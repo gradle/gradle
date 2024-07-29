@@ -38,7 +38,7 @@ public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMut
     }
 
     @Override
-    public void chmod(File file, int mode) throws Exception {
+    public void chmod(File file, int mode) throws IOException {
         maybeWarn();
         chmod.chmod(file, mode);
     }

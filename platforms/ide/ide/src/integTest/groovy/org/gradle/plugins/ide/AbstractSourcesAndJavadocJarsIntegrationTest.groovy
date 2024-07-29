@@ -312,7 +312,7 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -338,7 +338,7 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -363,7 +363,7 @@ dependencies {
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -399,7 +399,7 @@ dependencies {
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -426,7 +426,7 @@ dependencies {
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -448,7 +448,7 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -473,7 +473,7 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"
@@ -501,7 +501,7 @@ dependencies {
             dependencyResolutionManagement { repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS }
         """
 
-        buildScript """
+        buildFile """
             apply plugin: "java"
             apply plugin: "idea"
             apply plugin: "eclipse"

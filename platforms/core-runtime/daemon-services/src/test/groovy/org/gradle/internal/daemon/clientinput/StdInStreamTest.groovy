@@ -19,8 +19,10 @@ package org.gradle.internal.daemon.clientinput
 
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ReadStdInEvent
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4273")
 class StdInStreamTest extends ConcurrentSpec {
     def "read byte requests input from client and blocks until it is available"() {
         def dispatch = Mock(OutputEventListener)

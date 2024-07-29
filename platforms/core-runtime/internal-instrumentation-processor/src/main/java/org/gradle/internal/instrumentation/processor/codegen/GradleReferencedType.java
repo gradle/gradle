@@ -18,7 +18,6 @@ package org.gradle.internal.instrumentation.processor.codegen;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
-import org.objectweb.asm.Type;
 
 /**
  * Used since we don't want to depend on Gradle types directly, since that way we have to depend on Gradle projects like core-api.
@@ -29,20 +28,25 @@ public enum GradleReferencedType {
     GENERATED_ANNOTATION("org.gradle.api.Generated"),
     LIST_PROPERTY_LIST_VIEW("org.gradle.api.internal.provider.views.ListPropertyListView"),
     SET_PROPERTY_SET_VIEW("org.gradle.api.internal.provider.views.SetPropertySetView"),
-    MAP_PROPERTY_MAP_VIEW("org.gradle.api.internal.provider.views.MapPropertyMapView");
+    MAP_PROPERTY_MAP_VIEW("org.gradle.api.internal.provider.views.MapPropertyMapView"),
+    REGULAR_FILE("org.gradle.api.file.RegularFile"),
+    DIRECTORY("org.gradle.api.file.Directory"),
+    FILE_SYSTEM_LOCATION("org.gradle.api.file.FileSystemLocation");
 
     @SuppressWarnings("ImmutableEnumChecker")
-    private final Type type;
+    private final ClassName className;
 
     GradleReferencedType(String name) {
-        this.type = Type.getType("L" + name.replace('.', '/') + ";");
-    }
-
-    public TypeName asTypeName() {
-        return asClassName();
+        this.className = ClassName.bestGuess(name);
     }
 
     public ClassName asClassName() {
-        return TypeUtils.className(type);
+        return className;
+    }
+
+    public static boolean isAssignableToFileSystemLocation(TypeName typeName) {
+        return typeName.equals(REGULAR_FILE.asClassName())
+            || typeName.equals(DIRECTORY.asClassName())
+            || typeName.equals(FILE_SYSTEM_LOCATION.asClassName());
     }
 }

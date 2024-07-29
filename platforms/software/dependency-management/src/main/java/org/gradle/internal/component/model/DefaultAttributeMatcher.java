@@ -62,48 +62,80 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
     }
 
     @Override
-    public boolean isMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
-        if (requested.isEmpty() || candidate.isEmpty()) {
-            return true;
-        }
-
-        ImmutableAttributes requestedAttributes = requested.asImmutable();
-        ImmutableAttributes candidateAttributes = candidate.asImmutable();
-
-        for (Attribute<?> attribute : requestedAttributes.keySet()) {
-            AttributeValue<?> requestedValue = requestedAttributes.findEntry(attribute);
-            AttributeValue<?> candidateValue = candidateAttributes.findEntry(attribute.getName());
-            if (candidateValue.isPresent()) {
-                Object coercedValue = candidateValue.coerce(attribute);
-                boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
-                if (!match) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
+    public <T> boolean isMatchingValue(Attribute<T> attribute, T candidate, T requested) {
         return schema.matchValue(attribute, requested, candidate);
     }
 
     @Override
+    public boolean isMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested) {
+        return allCommonAttributesSatisfy(candidate, requested, schema::matchValue);
+    }
+
+    @Override
+    public boolean areMutuallyCompatible(ImmutableAttributes candidate, ImmutableAttributes requested) {
+        return allCommonAttributesSatisfy(candidate, requested, schema::weakMatchValue);
+    }
+
+    /**
+     * Return true iff all common attributes between the candidate and requested
+     * attribute sets satisfy the given predicate.
+     */
+    private boolean allCommonAttributesSatisfy(
+        ImmutableAttributes candidate,
+        ImmutableAttributes requested,
+        CoercingAttributeValuePredicate predicate
+    ) {
+        if (requested.isEmpty() || candidate.isEmpty()) {
+            return true;
+        }
+
+        return requested.keySet().stream().map(schema::tryRehydrate).allMatch(attribute -> {
+            AttributeValue<?> candidateAttributeValue = candidate.findEntry(attribute.getName());
+            AttributeValue<?> requestedAttributeValue = requested.findEntry(attribute.getName());
+
+            return !candidateAttributeValue.isPresent() || !requestedAttributeValue.isPresent() ||
+                predicate.test(attribute, requestedAttributeValue, candidateAttributeValue);
+        });
+    }
+
+    /**
+     * Matches two attribute values, one from the consumer and one from the producer,
+     * that share a common attribute type.
+     */
+    private interface CoercingAttributeValuePredicate {
+
+        /**
+         * Test that the candidate attribute value satisfies the requested attribute value.
+         */
+        <A> boolean test(Attribute<A> attribute, A requested, A candidate);
+
+        /**
+         * Coerce the candidate and requested attribute values to the type of the attribute
+         * and test that they match.
+         */
+        default <T> boolean test(
+            Attribute<T> attribute,
+            AttributeValue<?> requested,
+            AttributeValue<?> candidate
+        ) {
+            T requestedValue = requested.coerce(attribute);
+            T candidateValue = candidate.coerce(attribute);
+            return test(attribute, requestedValue, candidateValue);
+        }
+    }
+
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public List<AttributeMatcher.MatchingDescription<?>> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+    public List<AttributeMatcher.MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
         if (requested.isEmpty() || candidate.isEmpty()) {
             return Collections.emptyList();
         }
 
-        ImmutableAttributes requestedAttributes = requested.asImmutable();
-        ImmutableAttributes candidateAttributes = candidate.asImmutable();
-
-        ImmutableSet<Attribute<?>> attributes = requestedAttributes.keySet();
+        ImmutableSet<Attribute<?>> attributes = requested.keySet();
         List<AttributeMatcher.MatchingDescription<?>> result = new ArrayList<>(attributes.size());
         for (Attribute<?> attribute : attributes) {
-            AttributeValue<?> requestedValue = requestedAttributes.findEntry(attribute);
-            AttributeValue<?> candidateValue = candidateAttributes.findEntry(attribute.getName());
+            AttributeValue<?> requestedValue = requested.findEntry(attribute);
+            AttributeValue<?> candidateValue = candidate.findEntry(attribute.getName());
             if (candidateValue.isPresent()) {
                 Object coercedValue = candidateValue.coerce(attribute);
                 boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
@@ -116,15 +148,16 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
     }
 
     @Override
-    public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder explanationBuilder) {
-        if (candidates.size() == 0) {
+    public <T extends HasAttributes> List<T> matchMultipleCandidates(Collection<? extends T> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+        if (candidates.isEmpty()) {
             explanationBuilder.noCandidates(requested);
             return ImmutableList.of();
         }
 
         if (candidates.size() == 1) {
             T candidate = candidates.iterator().next();
-            if (isMatching((AttributeContainerInternal) candidate.getAttributes(), requested)) {
+            ImmutableAttributes candidateAttrs = ((AttributeContainerInternal) candidate.getAttributes()).asImmutable();
+            if (isMatchingCandidate(candidateAttrs, requested)) {
                 explanationBuilder.singleMatch(candidate, candidates, requested);
                 return Collections.singletonList(candidate);
             }
@@ -132,7 +165,6 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return ImmutableList.of();
         }
 
-        ImmutableAttributes requestedAttributes = requested.asImmutable();
         List<T> candidateList = (candidates instanceof List) ? Cast.uncheckedCast(candidates) : ImmutableList.copyOf(candidates);
 
         // Often times, collections of candidates will themselves differ even though their attributes are the same.
@@ -141,10 +173,10 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
         // The result of this is a list of indices into the original candidate list from which the
         // attributes-to-disambiguate are derived. When retrieving a result from the cache, we use the resulting
         // indices to index back into the original candidates list.
-        CachedQuery query = CachedQuery.from(requestedAttributes, candidateList);
+        CachedQuery query = CachedQuery.from(requested, candidateList);
         int[] indices = cachedQueries.compute(query, (key, value) -> {
             if (value == null || !explanationBuilder.canSkipExplanation()) {
-                int[] matches = new MultipleCandidateMatcher<>(schema, candidateList, requestedAttributes, explanationBuilder).getMatches();
+                int[] matches = new MultipleCandidateMatcher<>(schema, candidateList, requested, explanationBuilder).getMatches();
                 LOGGER.debug("Selected matches {} from candidates {} for {}", Ints.asList(matches), candidateList, requested);
                 return matches;
             }

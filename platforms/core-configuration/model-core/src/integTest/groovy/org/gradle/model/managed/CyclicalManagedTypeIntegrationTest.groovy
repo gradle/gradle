@@ -24,7 +24,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "managed types can have cyclical managed type references"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Parent {
                 String getName()
@@ -68,7 +68,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "managed types can have cyclical managed type references where more than two types constitute the cycle"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface A {
                 String getName()

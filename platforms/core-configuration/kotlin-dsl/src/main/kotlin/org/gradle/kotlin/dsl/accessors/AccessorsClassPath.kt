@@ -245,6 +245,7 @@ object AccessorFormats {
         accessor.trimIndent()
     }
 
+    @Suppress("ObjectPropertyNaming")
     val `internal`: AccessorFormat = { accessor ->
         accessor
             .trimIndent()
@@ -410,7 +411,6 @@ fun classNamesFromTypeString(type: SchemaType): ClassNamesFromTypeString =
 
 internal
 fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
-
     val all = mutableListOf<String>()
     val leafs = mutableListOf<String>()
     var buffer = StringBuilder()
@@ -644,6 +644,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.api.tasks.TaskContainer
@@ -659,17 +660,17 @@ import org.gradle.kotlin.dsl.accessors.runtime.*
  * Location of the discontinued project schema snapshot, relative to the root project.
  */
 internal
-const val projectSchemaResourcePath =
+const val PROJECT_SCHEMA_RESOURCE_PATH =
     "gradle/project-schema.json"
 
 
 internal
-const val projectSchemaResourceDiscontinuedWarning =
-    "Support for $projectSchemaResourcePath was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
+const val PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING =
+    "Support for $PROJECT_SCHEMA_RESOURCE_PATH was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
 
 
 fun Project.warnAboutDiscontinuedJsonProjectSchema() {
-    if (file(projectSchemaResourcePath).isFile) {
-        logger.warn(projectSchemaResourceDiscontinuedWarning)
+    if (file(PROJECT_SCHEMA_RESOURCE_PATH).isFile) {
+        logger.warn(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING)
     }
 }

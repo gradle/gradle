@@ -34,7 +34,7 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
         file("p1/build.gradle") << USE
         file("p2/build.gradle") << USE
 
-        buildScript """
+        buildFile """
             evaluationDependsOnChildren()
             task verify {
                 def p1PluginClass = project(":p1").pluginClass
@@ -57,7 +57,7 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractPluginSpec {
             project.task("verify")
         """)
 
-        buildScript USE
+        buildFile USE
 
         expect:
         succeeds("verify")

@@ -798,7 +798,7 @@ task someTask(type: SomeTask) {
     def "fileTrees with regular file roots cannot be used as output files"() {
         enableProblemsApiCheck()
         expectReindentedValidationMessage()
-        buildScript """
+        buildFile """
             task myTask {
                 inputs.file file('input.txt')
                 outputs.files(files('build/output.txt').asFileTree).withPropertyName('output')

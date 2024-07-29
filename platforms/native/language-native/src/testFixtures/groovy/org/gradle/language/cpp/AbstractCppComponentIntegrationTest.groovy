@@ -156,6 +156,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @ToBeFixedForConfigurationCache
     def "ignores duplicate target machines"() {
         given:
         makeSingleProject()

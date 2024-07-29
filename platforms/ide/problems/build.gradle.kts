@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = """Problem SPI implementations.
@@ -23,13 +24,48 @@ description = """Problem SPI implementations.
     |This project contains the SPI implementations for the problem reporting infrastructure.
 """.trimMargin()
 
-dependencies {
-    api(project(":problems-api"))
-    api(project(":build-operations"))
-    api(project(":java-language-extensions"))
-    api(project(":service-provider"))
 
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(testFixtures(project(":logging")))
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+val problemReportReportPath by configurations.creating {
+    isVisible = false
+    isCanBeConsumed = false
+    attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
+}
+
+// You can have a faster feedback loop by running `configuration-cache-report` as an included build
+// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
+dependencies {
+    problemReportReportPath(libs.configurationCacheReport)
+}
+
+tasks.processResources {
+    from(zipTree(problemReportReportPath.elements.map { it.first().asFile })) {
+        into("org/gradle/internal/impl/problems")
+        exclude("META-INF/**")
+        rename { fileName ->
+            fileName.replace("configuration-cache-report", "problems-report")
+        }
+    }
+}
+
+dependencies {
+    api(projects.buildOperations)
+    api(projects.buildOption)
+    api(projects.concurrent)
+    api(projects.configurationProblemsBase)
+    api(projects.core)
+    api(projects.fileTemp)
+    api(projects.loggingApi)
+    api(projects.problemsApi)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+
+    api(libs.jsr305)
+    api(libs.kotlinStdlib)
+
+    implementation(projects.logging)
+    implementation(projects.messaging)
+
+    integTestImplementation(projects.internalTesting)
+    integTestImplementation(testFixtures(projects.logging))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

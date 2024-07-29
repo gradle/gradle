@@ -27,7 +27,6 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
@@ -43,8 +42,6 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 
 class IntegrationTestSamplesExecutor extends CommandExecutor {
-
-    private static final String CHECK_LOADING_FROM_CONFIGURATION_CACHE = "org.gradle.integtest.samples.checkLoadingFromConfigurationCache";
 
     private static final String WARNING_MODE_FLAG_PREFIX = "--warning-mode=";
 
@@ -75,26 +72,10 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             } else {
                 ExecutionResult result = executer.run();
                 outputStream.write(result.getOutput().getBytes());
-
-                if (shouldCheckLoadingFromConfigurationCache()) {
-                    rerunReusingStoredConfigurationCacheEntry(args, flags);
-                }
             }
             return expectFailure ? 1 : 0;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        }
-    }
-
-    private void rerunReusingStoredConfigurationCacheEntry(List<String> args, List<String> flags) {
-        // Rerun tasks. If the task is up-to-date, then its actions aren't executed.
-        // This might hide issues with Groovy closures, as the methods referenced inside the closure are resolved dynamically.
-        try {
-            createExecuter(args, flags).withArgument("--rerun-tasks").run();
-        } catch (UnexpectedBuildFailure e) {
-            UnexpectedBuildFailure tweakedException = new UnexpectedBuildFailure("Failed to rerun the build when reusing the configuration cache entry.\n" + e.getMessage());
-            tweakedException.setStackTrace(e.getStackTrace());
-            throw tweakedException;
         }
     }
 
@@ -139,9 +120,5 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     private static String capitalize(String s) {
         return s.substring(0, 1).toUpperCase() + s.substring(1);
-    }
-
-    private static boolean shouldCheckLoadingFromConfigurationCache() {
-        return Boolean.parseBoolean(System.getProperty(CHECK_LOADING_FROM_CONFIGURATION_CACHE));
     }
 }

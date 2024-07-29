@@ -44,7 +44,7 @@ public interface ProblemReporter {
      * <p>
      * The spec must specify the exception, the problem label, and the category. Any additional configuration is optional.
      *
-     * @return nothing, the method throws an exception
+     * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
      * @since 8.6
      */
     RuntimeException throwing(Action<ProblemSpec> spec);
@@ -54,7 +54,7 @@ public interface ProblemReporter {
      * <p>
      * The spec must specify the problem label and the category. Any additional configuration is optional.
      *
-     * @return nothing, the method throws an exception
+     * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
      * @since 8.6
      */
     RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec);

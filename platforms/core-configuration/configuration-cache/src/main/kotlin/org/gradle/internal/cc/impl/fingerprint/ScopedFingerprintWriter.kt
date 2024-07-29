@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.io.Closeable
@@ -25,7 +25,7 @@ import java.io.Closeable
 
 internal
 class ScopedFingerprintWriter<T>(
-    private val writeContext: DefaultWriteContext
+    private val writeContext: CloseableWriteContext
 ) : Closeable {
     override fun close() {
         // we synchronize access to all resources used by callbacks

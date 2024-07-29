@@ -31,6 +31,7 @@ import java.util.stream.Collectors
 import java.util.stream.IntStream
 
 import static org.gradle.util.AttributeTestUtil.attributes
+import static org.gradle.util.AttributeTestUtil.attributesTyped
 import static org.gradle.util.TestUtil.objectFactory
 
 class DefaultAttributeMatcherTest extends Specification {
@@ -51,11 +52,11 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match")
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
-        matcher.matches([candidate2], requested, explanationBuilder) == []
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2], requested, explanationBuilder) == []
 
-        matcher.isMatching(candidate1, requested)
-        !matcher.isMatching(candidate2, requested)
+        matcher.isMatchingCandidate(candidate1, requested)
+        !matcher.isMatchingCandidate(candidate2, requested)
     }
 
     def "selects candidate with subset of attributes and whose values match"() {
@@ -70,18 +71,18 @@ class DefaultAttributeMatcherTest extends Specification {
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
         def candidate3 = attributes(usage: "match", other: "no match")
-        def candidate4 = attributes()
+        def candidate4 = ImmutableAttributes.EMPTY
 
         def requested = attributes(usage: "match", other: "match")
 
         expect:
-        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
-        matcher.matches([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate4]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate4]
 
-        matcher.isMatching(candidate1, requested)
-        !matcher.isMatching(candidate2, requested)
-        !matcher.isMatching(candidate3, requested)
-        matcher.isMatching(candidate4, requested)
+        matcher.isMatchingCandidate(candidate1, requested)
+        !matcher.isMatchingCandidate(candidate2, requested)
+        !matcher.isMatchingCandidate(candidate3, requested)
+        matcher.isMatchingCandidate(candidate4, requested)
     }
 
     def "selects candidate with additional attributes and whose values match"() {
@@ -98,11 +99,11 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match")
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
-        matcher.matches([candidate2], requested, explanationBuilder) == []
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2], requested, explanationBuilder) == []
 
-        matcher.isMatching(candidate1, requested)
-        !matcher.isMatching(candidate2, requested)
+        matcher.isMatchingCandidate(candidate1, requested)
+        !matcher.isMatchingCandidate(candidate2, requested)
     }
 
     def "selects multiple candidates with compatible values"() {
@@ -117,13 +118,13 @@ class DefaultAttributeMatcherTest extends Specification {
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
         def candidate3 = attributes(other: "match")
-        def candidate4 = attributes()
+        def candidate4 = ImmutableAttributes.EMPTY
         def candidate5 = attributes(usage: "match")
 
         def requested = attributes(usage: "match", other: "match")
 
         expect:
-        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate5], requested, explanationBuilder) == [candidate1, candidate3, candidate4, candidate5]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5], requested, explanationBuilder) == [candidate1, candidate3, candidate4, candidate5]
     }
 
     def "applies disambiguation rules and selects intersection of best matches for each attribute"() {
@@ -150,10 +151,10 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "requested", other: "requested")
 
         expect:
-        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate5], requested, explanationBuilder) == [candidate5]
-        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1, candidate3, candidate4]
-        matcher.matches([candidate1, candidate2, candidate4], requested, explanationBuilder) == [candidate1]
-        matcher.matches([candidate2, candidate4], requested, explanationBuilder) == [candidate4]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5], requested, explanationBuilder) == [candidate5]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1, candidate3, candidate4]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2, candidate4], requested, explanationBuilder) == [candidate4]
     }
 
     def "rule can disambiguate based on requested value"() {
@@ -179,14 +180,14 @@ class DefaultAttributeMatcherTest extends Specification {
         def candidate1 = attributes(usage: "compatible")
         def candidate2 = attributes(usage: "no match")
         def candidate3 = attributes(usage: "best")
-        def candidate4 = attributes()
+        def candidate4 = ImmutableAttributes.EMPTY
         def requested1 = attributes(usage: "requested")
-        def requested2 = attributes()
+        def requested2 = ImmutableAttributes.EMPTY
 
 
         expect:
-        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested1, explanationBuilder) == [candidate3]
-        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested2, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested1, explanationBuilder) == [candidate3]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested2, explanationBuilder) == [candidate1]
     }
 
     def "disambiguation rule is presented with all non-null candidate values"() {
@@ -213,7 +214,7 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "requested")
 
         expect:
-        matcher.matches([candidate1, candidate2, candidate3], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3], requested, explanationBuilder) == [candidate1]
     }
 
     def "prefers match with superset of matching attributes"() {
@@ -234,10 +235,10 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match", other: "match")
 
         expect:
-        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate5]
-        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate6], requested, explanationBuilder) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.matches([candidate1, candidate2, candidate4, candidate6], requested, explanationBuilder) == [candidate1, candidate4, candidate6]
-        matcher.matches([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate3]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate5]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate6], requested, explanationBuilder) == [candidate1, candidate3, candidate4, candidate6]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested, explanationBuilder) == [candidate1, candidate4, candidate6]
+        matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate3]
     }
 
     def "disambiguates multiple matches using extra attributes from producer"() {
@@ -254,7 +255,7 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match")
 
         expect:
-        def matches = matcher.matches([candidate1, candidate2], requested, explanationBuilder)
+        def matches = matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder)
         matches == [candidate2]
     }
 
@@ -277,7 +278,7 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "foo")
 
         expect:
-        def matches = matcher.matches([candidate1, candidate2], requested, explanationBuilder)
+        def matches = matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder)
         matches == [candidate2]
     }
 
@@ -288,30 +289,30 @@ class DefaultAttributeMatcherTest extends Specification {
         def usage = Attribute.of("usage", String)
         schema.attribute(usage)
 
-        def candidate1 = attributes()
+        def candidate1 = ImmutableAttributes.EMPTY
         def candidate2 = attributes(usage: "ignored")
-        def requested = attributes()
+        def requested = ImmutableAttributes.EMPTY
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1, candidate2]
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1, candidate2]
 
-        matcher.matches([candidate1], requested, explanationBuilder) == [candidate1]
-        matcher.isMatching(candidate1, requested)
+        matcher.matchMultipleCandidates([candidate1], requested, explanationBuilder) == [candidate1]
+        matcher.isMatchingCandidate(candidate1, requested)
 
-        matcher.matches([candidate2], requested, explanationBuilder) == [candidate2]
-        matcher.isMatching(candidate2, requested)
+        matcher.matchMultipleCandidates([candidate2], requested, explanationBuilder) == [candidate2]
+        matcher.isMatchingCandidate(candidate2, requested)
     }
 
     def "non-empty consumer attributes match empty producer attributes"() {
         given:
         def matcher = new DefaultAttributeMatcher(schema)
 
-        def candidate = attributes()
+        def candidate = ImmutableAttributes.EMPTY
         def requested = attributes(usage: "dont care", other: "dont care")
 
         expect:
-        matcher.matches([candidate], requested, explanationBuilder) == [candidate]
-        matcher.isMatching(candidate, requested)
+        matcher.matchMultipleCandidates([candidate], requested, explanationBuilder) == [candidate]
+        matcher.isMatchingCandidate(candidate, requested)
     }
 
     def "can match when consumer uses more general type for attribute"() {
@@ -322,12 +323,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", Integer)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, 1)
-        def candidate2 = attributes().attribute(producer, 2)
-        def requested = attributes().attribute(consumer, 1)
+        def candidate1 = attributesTyped((producer): 1)
+        def candidate2 = attributesTyped((producer): 2)
+        def requested = attributesTyped((consumer): 1)
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
     }
 
     def "can match when producer uses desugared attribute of type Named"() {
@@ -338,12 +339,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", String)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, "name1")
-        def candidate2 = attributes().attribute(producer, "name2")
-        def requested = attributes().attribute(consumer, objectFactory().named(NamedTestAttribute, "name1"))
+        def candidate1 = attributesTyped((producer): "name1")
+        def candidate2 = attributesTyped((producer): "name2")
+        def requested = attributesTyped((consumer): objectFactory().named(NamedTestAttribute, "name1"))
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
     }
 
     def "can match when consumer uses desugared attribute of type Named"() {
@@ -354,12 +355,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", NamedTestAttribute)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, objectFactory().named(NamedTestAttribute, "name1"))
-        def candidate2 = attributes().attribute(producer, objectFactory().named(NamedTestAttribute, "name2"))
-        def requested = attributes().attribute(consumer, "name1")
+        def candidate1 = attributesTyped((producer): objectFactory().named(NamedTestAttribute, "name1"))
+        def candidate2 = attributesTyped((producer): objectFactory().named(NamedTestAttribute, "name2"))
+        def requested = attributesTyped((consumer): "name1")
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
     }
 
     def "can match when producer uses desugared attribute of type Enum"() {
@@ -370,12 +371,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", String)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, "NAME1")
-        def candidate2 = attributes().attribute(producer, "NAME2")
-        def requested = attributes().attribute(consumer, EnumTestAttribute.NAME1)
+        def candidate1 = attributesTyped((producer): "NAME1")
+        def candidate2 = attributesTyped((producer): "NAME2")
+        def requested = attributesTyped((consumer): EnumTestAttribute.NAME1)
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
     }
 
     def "can match when consumer uses desugared attribute of type Enum"() {
@@ -386,12 +387,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", EnumTestAttribute)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, EnumTestAttribute.NAME1)
-        def candidate2 = attributes().attribute(producer, EnumTestAttribute.NAME2)
-        def requested = attributes().attribute(consumer, "NAME1")
+        def candidate1 = attributesTyped((producer): EnumTestAttribute.NAME1)
+        def candidate2 = attributesTyped((producer): EnumTestAttribute.NAME2)
+        def requested = attributesTyped((consumer): "NAME1")
 
         expect:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder) == [candidate1]
     }
 
     def "cannot match when producer uses desugared attribute of unsupported type"() {
@@ -402,12 +403,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", String)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, "name1")
-        def candidate2 = attributes().attribute(producer, "name2")
-        def requested = attributes().attribute(consumer, new NotSerializableInGradleMetadataAttribute("name1"))
+        def candidate1 = attributesTyped((producer): "name1")
+        def candidate2 = attributesTyped((producer): "name2")
+        def requested = attributesTyped((consumer): new NotSerializableInGradleMetadataAttribute("name1"))
 
         when:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder)
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -422,12 +423,12 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
         schema.attribute(consumer)
 
-        def candidate1 = attributes().attribute(producer, new NotSerializableInGradleMetadataAttribute("name1"))
-        def candidate2 = attributes().attribute(producer, new NotSerializableInGradleMetadataAttribute("name2"))
-        def requested = attributes().attribute(consumer, "name1")
+        def candidate1 = attributesTyped((producer): new NotSerializableInGradleMetadataAttribute("name1"))
+        def candidate2 = attributesTyped((producer): new NotSerializableInGradleMetadataAttribute("name2"))
+        def requested = attributesTyped((consumer): "name1")
 
         when:
-        matcher.matches([candidate1, candidate2], requested, explanationBuilder)
+        matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -442,11 +443,11 @@ class DefaultAttributeMatcherTest extends Specification {
         def producer = Attribute.of("a", Number)
         schema.attribute(consumer)
 
-        def candidate = attributes().attribute(producer, 1)
-        def requested = attributes().attribute(consumer, "1")
+        def candidate = attributesTyped((producer): 1)
+        def requested = attributesTyped((consumer): "1")
 
         when:
-        matcher.matches([candidate], requested, explanationBuilder)
+        matcher.matchMultipleCandidates([candidate], requested, explanationBuilder)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -467,7 +468,7 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: 'match')
 
         expect:
-        def matches = matcher.matches([candidate1, candidate2], requested, explanationBuilder)
+        def matches = matcher.matchMultipleCandidates([candidate1, candidate2], requested, explanationBuilder)
         matches == [candidate1]
     }
 
@@ -495,7 +496,7 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested = attributes(usage: 'java-api')
 
         when:
-        def result = matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder)
+        def result = matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder)
         then:
         result == [candidate1]
 
@@ -505,7 +506,7 @@ class DefaultAttributeMatcherTest extends Specification {
         candidate3 = attributes(usage: 'java-api-extra', bundling: value2, status: 'integration')
         candidate4 = attributes(usage: 'java-runtime-extra', bundling: value1, status: 'integration')
 
-        result = matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder)
+        result = matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder)
 
         then:
         result == [candidate1]
@@ -516,7 +517,7 @@ class DefaultAttributeMatcherTest extends Specification {
         candidate3 = attributes(bundling: value1, status: 'integration', usage: 'java-api-extra')
         candidate4 = attributes(status: 'integration', usage: 'java-runtime-extra', bundling: value2)
 
-        result = matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder)
+        result = matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder)
 
         then:
         result == [candidate1]

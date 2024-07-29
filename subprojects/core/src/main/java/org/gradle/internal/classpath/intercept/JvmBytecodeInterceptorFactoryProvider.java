@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 @NonNullApi
 public interface JvmBytecodeInterceptorFactoryProvider {
 
+    @SuppressWarnings("ClassInitializationDeadlock")
     JvmBytecodeInterceptorFactoryProvider DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(JvmBytecodeInterceptorFactoryProvider.class.getClassLoader());
 
     List<JvmBytecodeCallInterceptor.Factory> getInterceptorFactories();

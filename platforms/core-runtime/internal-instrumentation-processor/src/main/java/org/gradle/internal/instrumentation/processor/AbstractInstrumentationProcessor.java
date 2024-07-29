@@ -29,6 +29,7 @@ import org.gradle.internal.instrumentation.processor.extensibility.RequestPostPr
 import org.gradle.internal.instrumentation.processor.extensibility.ResourceGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
@@ -39,7 +40,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -58,6 +58,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getExecutableElementsFromElements;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
@@ -87,7 +89,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         Stream<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
             .flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
             .flatMap(element -> findActualTypesToVisit(element).stream())
-            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName));
+            .sorted(Comparator.comparing(TypeUtils::elementQualifiedName));
         collectAndProcessRequests(annotatedTypes);
         return false;
     }
@@ -114,7 +116,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     private void collectAndProcessRequests(Stream<? extends Element> annotatedElements) {
         Collection<AnnotatedMethodReaderExtension> readers = getExtensionsByType(AnnotatedMethodReaderExtension.class);
 
-        List<ExecutableElement> allMethodElementsInAnnotatedClasses = getExecutableElementsFromAnnotatedElements(annotatedElements);
+        List<ExecutableElement> allMethodElementsInAnnotatedClasses = getExecutableElementsFromElements(annotatedElements);
 
         Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors = new LinkedHashMap<>();
         List<CallInterceptionRequestReader.Result.Success> successResults = new ArrayList<>();
@@ -129,20 +131,6 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         List<CallInterceptionRequest> requests = postProcessRequests(successResults);
 
         runCodeGeneration(requests);
-    }
-
-    @Nonnull
-    private static List<ExecutableElement> getExecutableElementsFromAnnotatedElements(Stream<? extends Element> annotatedClassElements) {
-        return annotatedClassElements
-            .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())
-            .filter(it -> it.getKind() == ElementKind.METHOD)
-            .map(it -> (ExecutableElement) it)
-            // Ensure that the elements have a stable order, as the annotation processing engine does not guarantee that for type elements.
-            // The order in which the executable elements are listed should be the order in which they appear in the code but
-            // we take an extra measure of care here and ensure the ordering between all elements.
-            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName))
-            .distinct()
-            .collect(Collectors.toList());
     }
 
     private static void readRequests(Collection<AnnotatedMethodReaderExtension> readers, List<ExecutableElement> allMethodElementsInAnnotatedClasses, Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors, List<CallInterceptionRequestReader.Result.Success> successResults) {
@@ -179,16 +167,5 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         );
 
         generatorHost.generateCodeForRequestedInterceptors(requests);
-    }
-
-    private static String elementQualifiedName(Element element) {
-        if (element instanceof ExecutableElement) {
-            String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
-            return enclosingTypeName + "." + element.getSimpleName();
-        } else if (element instanceof TypeElement) {
-            return ((TypeElement) element).getQualifiedName().toString();
-        } else {
-            throw new IllegalArgumentException("Unsupported element type to read qualified name from: " + element.getClass());
-        }
     }
 }

@@ -64,7 +64,7 @@ public class DaemonDiagnostics {
     }
 
     private String formatTail(String tail) {
-        return "----- Last  " + TAIL_SIZE + " lines from daemon log file - " + getDaemonLog().getName() + " -----\n"
+        return "----- Last " + TAIL_SIZE + " lines from daemon log file - " + getDaemonLog().getName() + " -----\n"
             + tail
             + "----- End of the daemon log -----\n";
     }

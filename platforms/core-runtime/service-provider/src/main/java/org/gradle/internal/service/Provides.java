@@ -30,4 +30,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Keep
 public @interface Provides {
+
+    /**
+     * List of services to expose.
+     * <p>
+     * The return type of the method is used when this is empty.
+     */
+    Class<?>[] value() default {};
+
 }

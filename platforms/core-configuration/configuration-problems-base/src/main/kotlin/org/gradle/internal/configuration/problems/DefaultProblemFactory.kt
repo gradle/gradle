@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.extensions.stdlib.capitalized
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 
@@ -35,10 +36,17 @@ class DefaultProblemFactory(
     override fun locationForCaller(consumer: String?): PropertyTrace =
         locationForCaller(consumer, userCodeContext.current()?.source)
 
-    override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
-        val diagnostics = problemStream.forCurrentCaller(exception)
+    override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?, getStackTrace: Boolean): PropertyProblem {
+        val diagnostics = getProblemDiagnostics(exception, getStackTrace)
         val trace = locationForCaller(null, diagnostics)
         return PropertyProblem(trace, message, exception, diagnostics.failure, documentationSection)
+    }
+
+    private fun getProblemDiagnostics(exception: Throwable?, getStackTrace: Boolean): ProblemDiagnostics {
+        if (getStackTrace) {
+            return problemStream.forCurrentCaller(exception)
+        }
+        return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
     }
 
     override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
@@ -90,7 +98,7 @@ class DefaultProblemFactory(
     fun locationForCaller(consumer: String?, diagnostics: ProblemDiagnostics): PropertyTrace {
         val location = diagnostics.location
         return if (location != null) {
-            PropertyTrace.BuildLogic(location.sourceShortDisplayName, location.lineNumber)
+            PropertyTrace.BuildLogic(location)
         } else {
             locationForCaller(consumer, diagnostics.source)
         }
@@ -99,7 +107,7 @@ class DefaultProblemFactory(
     private
     fun locationForCaller(consumer: String?, source: UserCodeSource?): PropertyTrace {
         return if (source != null) {
-            PropertyTrace.BuildLogic(source.displayName, null)
+            PropertyTrace.BuildLogic(source)
         } else if (consumer != null) {
             PropertyTrace.BuildLogicClass(consumer)
         } else {

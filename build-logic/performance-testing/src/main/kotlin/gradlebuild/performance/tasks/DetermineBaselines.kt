@@ -27,7 +27,7 @@ import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
-const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
+const val FLAKINESS_DETECTION_COMMIT_BASELINE = "flakiness-detection-commit"
 
 
 @DisableCachingByDefault(because = "Not worth caching")
@@ -47,7 +47,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
 
     @TaskAction
     fun determineForkPointCommitBaseline() {
-        if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
+        if (configuredBaselines.getOrElse("") == FLAKINESS_DETECTION_COMMIT_BASELINE) {
             determinedBaselines = determineFlakinessDetectionBaseline()
         } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
             determinedBaselines = configuredBaselines
@@ -67,7 +67,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
      * @see PerformanceTest#NON_CACHEABLE_VERSIONS
      */
     private
-    fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
+    fun determineFlakinessDetectionBaseline() = if (distributed) FLAKINESS_DETECTION_COMMIT_BASELINE else currentCommitBaseline()
 
     private
     fun currentBranchIsMasterOrRelease() = logicalBranch.get() in listOf("master", "release")

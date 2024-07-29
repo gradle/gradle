@@ -50,6 +50,16 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
     }
 
     @Override
+    public Set<String> getUnexportedPackages() {
+        return ImmutableSet.of(
+            // This package is not exported to Gradle API default classloader,
+            // and can be used for worker action code that needs to access external libraries.
+            // See also explanation in https://github.com/gradle/gradle/pull/29591#issuecomment-2216917657.
+            "org.gradle.unexported"
+        );
+    }
+
+    @Override
     public Set<String> getExportedResourcePrefixes() {
         return ImmutableSet.of(
             "META-INF/gradle-plugins"

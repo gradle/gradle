@@ -22,34 +22,38 @@ description = "Public types for unit testing plugins"
 
 dependencies {
     api(libs.jsr305)
+    api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(project(":base-services"))
-    api(project(":build-operations"))
-    api(project(":concurrent"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":persistent-cache"))
-    api(project(":serialization"))
-    api(project(":time"))
-    api(project(":build-process-services"))
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.persistentCache)
+    api(projects.serialization)
+    api(projects.time)
+    api(projects.buildProcessServices)
 
-    implementation(project(":build-state"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":java-language-extensions"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":daemon-protocol"))
-    implementation(project(":daemon-services"))
-    implementation(project(":native"))
+    implementation(projects.buildState)
+    implementation(projects.fileCollections)
+    implementation(projects.fileTemp)
+    implementation(projects.instrumentationAgentServices)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
+    implementation(projects.modelCore)
+    implementation(projects.daemonProtocol)
+    implementation(projects.daemonServices)
+    implementation(projects.native)
+    implementation(projects.serviceRegistryBuilder)
 
-    testImplementation(project(":testing-base"))
+    testImplementation(projects.testingBase)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
-    integTestRuntimeOnly(project(":distributions-core")) {
+    integTestRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeClasspath(project(":distributions-core"))
+    integTestDistributionRuntimeClasspath(projects.distributionsFull)
 }

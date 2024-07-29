@@ -31,18 +31,29 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
     val allTestedVersions: List<GradleVersion>
 
     val mainTestedVersions: List<GradleVersion>
+    val lowestInterestingVersion: GradleVersion
+    val lowestTestedVersion: GradleVersion
 
     init {
-        val lowestInterestingVersion = GradleVersion.version("0.8")
-        val lowestTestedVersion = GradleVersion.version("3.0")
+        lowestTestedVersion = GradleVersion.version("3.0")
+        lowestInterestingVersion = GradleVersion.version("0.8")
 
         val releasedVersions = releasedVersionsFile.asFile.reader().use {
             Gson().fromJson(it, ReleasedVersions::class.java)
         }
 
         val latestFinalRelease = releasedVersions.finalReleases.first()
-        val latestRelease = listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc).filter { it.gradleVersion() > latestFinalRelease.gradleVersion() }.maxByOrNull { it.buildTimeStamp() } ?: latestFinalRelease
-        val previousVersions = (listOf(latestRelease) + releasedVersions.finalReleases).filter { it.gradleVersion() >= lowestInterestingVersion && it.gradleVersion().baseVersion < currentBaseVersion }.distinct()
+        val latestRelease =
+            listOf(releasedVersions.latestReleaseSnapshot, releasedVersions.latestRc)
+                .filter {
+                    it.gradleVersion() > latestFinalRelease.gradleVersion()
+                }.maxByOrNull { it.buildTimeStamp() }
+                ?: latestFinalRelease
+        val previousVersions = (listOf(latestRelease) + releasedVersions.finalReleases)
+            .filter {
+                it.gradleVersion() >= lowestInterestingVersion &&
+                    it.gradleVersion().baseVersion < currentBaseVersion
+            }.distinct()
         allPreviousVersions = previousVersions.map { it.gradleVersion() }
         mostRecentRelease = previousVersions.first().gradleVersion()
         mostRecentSnapshot = releasedVersions.latestReleaseSnapshot.gradleVersion()

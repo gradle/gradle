@@ -30,12 +30,12 @@ jdks:
     vendor: "temurin"
     version: "jdk-21.0.3+9"
     sha256: fffa52c22d797b715a962e6c8d11ec7d79b90dd819b5bc51d62137ea4b22a340
-  - param: "linux.java22.openjdk.64bit"
+  - param: "linux.java23.openjdk.64bit"
     os: linux
     arch: amd64
     vendor: "temurin"
-    version: "jdk-22.0.1+8"
-    sha256: e59c6bf801cc023a1ea78eceb5e6756277f1564cd0a421ea984efe6cb96cfcf8
+    version: "jdk-23+30-ea-beta"
+    sha256: a322985986f0d0118a308841b34fabd3db78b5b49e31439d4b23bffb69053023
   - params: [ "windows.java8.openjdk.64bit", "windows.java8.oracle.64bit" ]
     os: windows
     arch: amd64
@@ -60,12 +60,12 @@ jdks:
     vendor: "temurin"
     version: "jdk-21.0.3+9"
     sha256: c43a66cff7a403d56c5c5e1ff10d3d5f95961abf80f97f0e35380594909f0e4d
-  - param: "windows.java22.openjdk.64bit"
+  - param: "windows.java23.openjdk.64bit"
     os: windows
     arch: amd64
     vendor: "temurin"
-    version: "jdk-22.0.1+8"
-    sha256: 4cf9d3c7ed8ec72a8adcca290d90fdd775100a38670410e674b05233a0c8288e
+    version: "jdk-23+30-ea-beta"
+    sha256: d0991a38af15e0089c027177f8efb6f47b40c69f7847e291adc052f9b932fbfa
   - param: "macos.java8.openjdk.64bit"
     os: macos
     arch: amd64
@@ -90,12 +90,6 @@ jdks:
     vendor: "temurin"
     version: "jdk-21.0.3+9"
     sha256: f777103aab94330d14a29bd99f3a26d60abbab8e2c375cec9602746096721a7c
-  - param: "macos.java22.openjdk.64bit"
-    os: macos
-    arch: amd64
-    vendor: "temurin"
-    version: "jdk-22.0.1+8"
-    sha256: 9445952d4487451af024a9a3f56373df76fbd928d9ff9186988aa27be2e4f10c
   - param: "macos.java8.zulu.aarch64"
     os: macos
     arch: aarch64
@@ -119,9 +113,9 @@ jdks:
     vendor: "temurin"
     version: "jdk-21.0.3+9"
     sha256: b6be6a9568be83695ec6b7cb977f4902f7be47d74494c290bc2a5c3c951e254f
-  - param: "macos.java22.openjdk.aarch64"
+  - param: "macos.java23.openjdk.aarch64"
     os: macos
     arch: aarch64
     vendor: "temurin"
-    version: "jdk-22.0.1+8"
-    sha256: 80d6fa75e87280202ae7660139870fe50f07fca9dc6c4fbd3f2837cbd70ec902
+    version: "jdk-23+30-ea-beta"
+    sha256: 0d22abb1448bdf620d184e135da6e90621ca0caa0d468d19d99af55ea0c92a23

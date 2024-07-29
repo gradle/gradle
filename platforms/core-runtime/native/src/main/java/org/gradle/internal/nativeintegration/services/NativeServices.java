@@ -29,7 +29,6 @@ import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
-import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -53,11 +52,12 @@ import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.util.internal.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +78,7 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
 /**
  * Provides various native platform integration services.
  */
-public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
+public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static final NativeServices INSTANCE = new NativeServices();
 
@@ -91,6 +91,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private File nativeBaseDir;
     private final EnumSet<NativeFeatures> initializedFeatures = EnumSet.noneOf(NativeFeatures.class);
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
+
+    private final ServiceRegistry services;
 
     public enum NativeFeatures {
         FILE_SYSTEM_WATCHING {
@@ -322,28 +324,27 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
     }
 
-    public static synchronized NativeServices getInstance() {
+    public static synchronized ServiceRegistry getInstance() {
         if (!INSTANCE.initialized) {
             // If this occurs while running gradle or running integration tests, it is indicative of a problem.
             // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
             throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
         }
-        return INSTANCE;
+        return INSTANCE.services;
     }
 
     private NativeServices() {
-        addProvider(new FileSystemServices());
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                registration.add(GradleUserHomeTemporaryFileProvider.class);
-            }
-        });
-    }
-
-    @Override
-    public void close() {
-        // Don't close
+        services = ServiceRegistryBuilder.builder()
+            .displayName("native services")
+            .provider(new FileSystemServices())
+            .provider(this)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                public void configure(ServiceRegistration registration) {
+                    registration.add(GradleUserHomeTemporaryFileProvider.class);
+                }
+            })
+            .build();
     }
 
     @Provides
@@ -568,7 +569,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        public Object invoke(Object proxy, Method method, Object[] args) {
             throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("Service '%s' is not available (os=%s, enabled=%s).", type, operatingSystem, useNativeIntegrations));
         }
     }

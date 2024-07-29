@@ -16,12 +16,47 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.KotlinDefaultMask;
+
 import java.util.List;
 
 public interface CallableInfo {
     CallableKindInfo getKind();
+
     CallableOwnerInfo getOwner();
+
     String getCallableName();
+
     CallableReturnTypeInfo getReturnType();
+
     List<ParameterInfo> getParameters();
+
+    /**
+     * Returns true if the interceptor method has a parameter annotated with {@link KotlinDefaultMask}.
+     *
+     * @return true if the method has a default mask parameter
+     */
+    default boolean hasKotlinDefaultMaskParam() {
+        return getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK);
+    }
+
+    /**
+     * Returns true if the interceptor method has a parameter annotated with {@link CallerClassName}.
+     *
+     * @return true if the method has a caller class name parameter
+     */
+    default boolean hasCallerClassNameParam() {
+        return getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME);
+    }
+
+    /**
+     * Returns true if the interceptor method has a parameter annotated with {@link InjectVisitorContext}.
+     *
+     * @return true if the method has a visitor context parameter
+     */
+    default boolean hasInjectVisitorContextParam() {
+        return getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.INJECT_VISITOR_CONTEXT);
+    }
 }

@@ -25,11 +25,11 @@ moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(projects.concurrent)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.fileTemp)
-    api(projects.serviceProvider)
-    api(project(":hashing"))
-    api(project(":build-operations"))
+    api(projects.serviceLookup)
+    api(projects.hashing)
+    api(projects.buildOperations)
     api(libs.inject)
     api(libs.jsr305)
     api(libs.guava)
@@ -42,16 +42,16 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 
-    integTestImplementation(project(":logging"))
+    integTestImplementation(projects.logging)
 
-    testFixturesApi(project(":hashing"))
+    testFixturesApi(projects.hashing)
     testFixturesImplementation(libs.guava)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
     testImplementation(libs.xerces)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    jmh(platform(project(":distributions-dependencies")))
+    jmh(platform(projects.distributionsDependencies))
     jmh(libs.bouncycastleProvider)
     jmh(libs.guava)
 }

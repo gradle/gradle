@@ -155,13 +155,13 @@ val File.isClassPathArchive
 
 private
 val String.isClassFilePath
-    get() = endsWith(classFileExtension)
-        && !endsWith("package-info$classFileExtension")
+    get() = endsWith(CLASS_FILE_EXTENSION)
+        && !endsWith("package-info$CLASS_FILE_EXTENSION")
         && !matches(compilerGeneratedClassFilePath)
 
 
 private
-const val classFileExtension = ".class"
+const val CLASS_FILE_EXTENSION = ".class"
 
 
 private
@@ -175,7 +175,7 @@ val slashOrDollar = Regex("[/$]")
 // visible for testing
 fun kotlinSourceNameOf(classFilePath: String): String =
     classFilePath
-        .removeSuffix(classFileExtension)
+        .removeSuffix(CLASS_FILE_EXTENSION)
         .removeSuffix("Kt")
         .replace(slashOrDollar, ".")
 
@@ -195,7 +195,7 @@ fun nestedClassFilePathCandidatesFor(path: String): Sequence<String> =
 
 private
 fun candidateClassFiles(path: String) =
-    sequenceOf("$path$classFileExtension", "${path}Kt$classFileExtension")
+    sequenceOf("$path$CLASS_FILE_EXTENSION", "${path}Kt$CLASS_FILE_EXTENSION")
 
 
 private

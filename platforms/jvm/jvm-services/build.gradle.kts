@@ -28,34 +28,34 @@ errorprone {
 }
 
 dependencies {
-    api(project(":logging-api"))
-    api(projects.javaLanguageExtensions)
-    api(project(":base-services"))
-    api(project(":build-operations"))
-    api(project(":core-api"))
-    api(project(":enterprise-logging"))
-    api(project(":file-temp"))
-    api(project(":file-collections"))
-    api(project(":process-services"))
+    api(projects.loggingApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.coreApi)
+    api(projects.enterpriseLogging)
+    api(projects.fileTemp)
+    api(projects.fileCollections)
+    api(projects.processServices)
 
     api(libs.inject)
     api(libs.jsr305)
     api(libs.nativePlatform)
 
-    implementation(project(":functional"))
-    implementation(project(":native"))
+    implementation(projects.functional)
+    implementation(projects.native)
 
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.xmlApis)
     implementation(libs.slf4jApi)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":resources"))
+    testImplementation(projects.native)
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.resources)
     testImplementation(libs.slf4jApi)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

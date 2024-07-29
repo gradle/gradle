@@ -29,7 +29,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
     def "changing child specs of the copy task while executing is disallowed"() {
         given:
         file("some-dir/input.txt") << "Data"
-        buildScript """
+        buildFile """
             task copy(type: Copy) {
                 outputs.cacheIf { true }
                 from ("some-dir")
@@ -54,7 +54,7 @@ class CopyTaskChildSpecIntegrationTest extends AbstractIntegrationSpec implement
     def "can query file and dir mode if set in the parent"() {
         given:
         file("root/root-file.txt") << 'root'
-        buildScript("""
+        buildFile("""
             def baseSpec = copySpec {
                 from("root") {
                     println(filePermissions.getOrNull() == null ? "DEFAULT" : filePermissions.get().toUnixNumeric())

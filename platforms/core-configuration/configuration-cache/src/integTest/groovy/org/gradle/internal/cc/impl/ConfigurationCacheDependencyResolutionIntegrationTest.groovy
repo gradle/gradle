@@ -1375,7 +1375,7 @@ dependencies {
     def 'can use ListProperty of ComponentArtifactIdentifier as task input'() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        buildScript '''
+        buildFile '''
             plugins {
                 id 'java-library'
             }

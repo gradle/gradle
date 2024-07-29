@@ -30,8 +30,6 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -113,7 +111,7 @@ abstract class AbstractSmokeTest extends Specification {
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "4.1.1"
+        static grgit = "5.2.2"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
         static gradleVersions = "0.51.0"
@@ -122,7 +120,7 @@ abstract class AbstractSmokeTest extends Specification {
         static playframework = "0.13" // Can't upgrade to 0.14 as it breaks CC compat - see https://github.com/gradle/playframework/issues/184
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "3.1.0"
+        static errorProne = "4.0.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.9.4"
@@ -248,17 +246,21 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     SmokeTestGradleRunner runner(String... tasks) {
-        def gradleRunner = GradleRunner.create()
-            .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
-            .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-            .withProjectDir(testProjectDir)
-            .forwardOutput()
-            .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters() + kotlinDslParameters()
-            ) as DefaultGradleRunner
-        gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
-        return new SmokeTestGradleRunner(gradleRunner)
-            .withBuildOperationTracing(file("operations").absolutePath)
+        def args = tasks.toList() +
+            outputParameters() +
+            repoMirrorParameters() +
+            configurationCacheParameters() +
+            toolchainParameters() +
+            kotlinDslParameters()
+
+        def jvmArgs = ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
+
+        return new SmokeTestGradleRunner(
+            IntegrationTestBuildContext.INSTANCE,
+            args,
+            jvmArgs,
+            testProjectDir
+        )
     }
 
     private List<String> configurationCacheParameters() {
@@ -284,12 +286,16 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     private static List<String> repoMirrorParameters() {
-        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
-        return [
-            '--init-script', mirrorInitScriptPath,
-            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
-            "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
-        ]
+        if (RepoScriptBlockUtil.isMirrorEnabled()) {
+            String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+            return [
+                '--init-script', mirrorInitScriptPath,
+                "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
+                "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+            ]
+        } else {
+            return []
+        }
     }
 
     private static List<String> toolchainParameters() {

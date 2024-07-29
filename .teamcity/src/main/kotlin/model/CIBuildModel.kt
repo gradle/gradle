@@ -9,7 +9,6 @@ import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
 import common.toCapitalized
-import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
@@ -19,6 +18,7 @@ import configurations.DocsTestType.CONFIG_CACHE_ENABLED
 import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
+import configurations.OsAwareBaseGradleBuildType
 import configurations.SanityCheck
 import configurations.SmokeIdeTests
 import configurations.SmokeTests
@@ -349,105 +349,105 @@ const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
 
 enum class SpecificBuild {
     CompileAll {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return CompileAll(model, stage)
         }
     },
     SanityCheck {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SanityCheck(model, stage)
         }
     },
     BuildDistributions {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return BuildDistributions(model, stage)
         }
     },
     Gradleception {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return Gradleception(model, stage, BuildToolBuildJvm, "Default")
         }
     },
     GradleceptionWithGroovy4 {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
         }
     },
     GradleceptionWithMaxLtsJdk {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
         }
     },
     CheckLinks {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return CheckLinks(model, stage)
         }
     },
     TestPerformanceTest {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return TestPerformanceTest(model, stage)
         }
     },
     SmokeTestsMinJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, splitNumber = 2)
         }
     },
     SmokeTestsMaxJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 4)
         }
     },
     SantaTrackerSmokeTests {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, name, "santaTrackerSmokeTest", 4)
         }
     },
     ConfigCacheSantaTrackerSmokeTests {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, name, "configCacheSantaTrackerSmokeTest", 4)
         }
     },
     GradleBuildSmokeTests {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, GRADLE_BUILD_SMOKE_TEST_NAME, splitNumber = 4)
         }
     },
     ConfigCacheSmokeTestsMinJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
         }
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
         }
     },
     FlakyTestQuarantineLinux {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.LINUX)
         }
     },
     FlakyTestQuarantineMacOs {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.MACOS)
         }
     },
     FlakyTestQuarantineMacOsAppleSilicon {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
         }
     },
     FlakyTestQuarantineWindows {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return FlakyTestQuarantine(model, stage, Os.WINDOWS)
         }
     },
     SmokeIdeTests {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return SmokeIdeTests(model, stage)
         }
     };
 
-    abstract fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType
+    abstract fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType
 }

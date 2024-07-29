@@ -47,14 +47,14 @@ fun AnalysisStatementFilter.not(): AnalysisStatementFilter = AnalysisStatementFi
 
 
 internal
-fun AnalysisStatementFilter.shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScopeView>): Boolean = when (this) {
+fun AnalysisStatementFilter.shouldAnalyzeStatement(statement: DataStatement, isTopLevel: Boolean): Boolean = when (this) {
     is AnalysisStatementFilter.AnalyzeEverythingFilter -> true
-    is AnalysisStatementFilter.CompositionFilter.AndFilter -> left.shouldAnalyzeStatement(statement, scopes) && right.shouldAnalyzeStatement(statement, scopes)
-    is AnalysisStatementFilter.CompositionFilter.OrFilter -> left.shouldAnalyzeStatement(statement, scopes) || right.shouldAnalyzeStatement(statement, scopes)
+    is AnalysisStatementFilter.CompositionFilter.AndFilter -> left.shouldAnalyzeStatement(statement, isTopLevel) && right.shouldAnalyzeStatement(statement, isTopLevel)
+    is AnalysisStatementFilter.CompositionFilter.OrFilter -> left.shouldAnalyzeStatement(statement, isTopLevel) || right.shouldAnalyzeStatement(statement, isTopLevel)
     is AnalysisStatementFilter.ConfiguringCallFilter -> statement is FunctionCall && statement.args.singleOrNull() is FunctionArgument.Lambda
     is AnalysisStatementFilter.NamedCallFilter -> statement is FunctionCall && statement.name == callName
-    is AnalysisStatementFilter.NotFilter -> !negationOf.shouldAnalyzeStatement(statement, scopes)
-    is AnalysisStatementFilter.TopLevelElementFilter -> scopes.last().receiver is ObjectOrigin.TopLevelReceiver
+    is AnalysisStatementFilter.NotFilter -> !negationOf.shouldAnalyzeStatement(statement, isTopLevel)
+    is AnalysisStatementFilter.TopLevelElementFilter -> isTopLevel
 }
 
 

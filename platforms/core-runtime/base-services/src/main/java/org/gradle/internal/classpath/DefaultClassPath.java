@@ -164,7 +164,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     }
 
     @Override
-    public ClassPath removeIf(Spec<? super File> filter) {
+    public ClassPath removeIf(final Spec<? super File> filter) {
         List<File> remainingFiles = CollectionUtils.filter(files, new NotSpec<File>(filter));
         if (remainingFiles.size() == files.size()) {
             return this;

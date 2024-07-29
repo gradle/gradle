@@ -67,17 +67,23 @@ class DefaultClassEncoder(
         if (id != null) {
             writeSmallInt(id)
         } else {
-            val scope = scopeLookup.scopeFor(type.classLoader)
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
             writeString(type.name)
-            if (scope == null) {
-                writeBoolean(false)
-            } else {
-                writeBoolean(true)
-                writeScope(scope.first)
-                writeBoolean(scope.second.local)
-            }
+            encodeClassLoader(type.classLoader)
+        }
+    }
+
+    override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean {
+        val scope = classLoader?.let { scopeLookup.scopeFor(it) }
+        if (scope == null) {
+            writeBoolean(false)
+            return false
+        } else {
+            writeBoolean(true)
+            writeScope(scope.first)
+            writeBoolean(scope.second.local)
+            return true
         }
     }
 

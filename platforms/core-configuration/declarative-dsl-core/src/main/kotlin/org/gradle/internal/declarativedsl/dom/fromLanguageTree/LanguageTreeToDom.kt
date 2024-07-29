@@ -45,7 +45,6 @@ import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 
@@ -150,6 +149,7 @@ class LanguageTreeToDomContext {
     }
 
 
+    @Suppress("NestedBlockDepth")
     private
     fun exprToValue(expr: Expr): ExprConversion = when (expr) {
         is Literal<*> -> ExprConversion.Converted(literalNode(expr))
@@ -208,11 +208,11 @@ class LanguageTreeToDomContext {
 class LanguageTreeBackedDocument internal constructor(
     val block: Block,
     val languageTreeMappingContainer: LanguageTreeMappingContainer,
-    override val content: Collection<DeclarativeDocument.DocumentNode>
+    override val content: List<DeclarativeDocument.DocumentNode>
 ) : DeclarativeDocument {
 
-    override val sourceIdentifier: SourceIdentifier
-        get() = block.sourceData.sourceIdentifier
+    override val sourceData: SourceData
+        get() = block.sourceData
 }
 
 
@@ -221,7 +221,7 @@ fun propertyNode(blockElement: Assignment, valueNode: DeclarativeDocument.ValueN
 
 
 private
-fun elementNode(blockElement: FunctionCall, arguments: List<DeclarativeDocument.ValueNode>, content: Collection<DeclarativeDocument.DocumentNode>) =
+fun elementNode(blockElement: FunctionCall, arguments: List<DeclarativeDocument.ValueNode>, content: List<DeclarativeDocument.DocumentNode>) =
     DefaultElementNode(blockElement.name, blockElement.sourceData, arguments, content)
 
 

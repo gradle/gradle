@@ -58,9 +58,9 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':compileClasspath'.
    > Could not resolve project :producer.
      Required by:
-         project :
+         root project :
       > Dependency resolution is looking for a library compatible with JVM runtime version 6, but 'project :producer' is only compatible with JVM runtime version 7 or newer.""")
-        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version 7.")
+        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version 6.")
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
@@ -140,9 +140,9 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
 > Could not resolve all dependencies for configuration ':compileClasspath'.
    > Could not resolve project :producer.
      Required by:
-         project :
+         root project :
       > Dependency resolution is looking for a library compatible with JVM runtime version 6, but 'project :producer' is only compatible with JVM runtime version 7 or newer.""")
-        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version 7.")
+        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version 6.")
 
         when:
         buildFile << """

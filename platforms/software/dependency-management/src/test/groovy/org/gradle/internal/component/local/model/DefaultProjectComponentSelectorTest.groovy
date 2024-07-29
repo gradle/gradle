@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -31,11 +32,11 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY, [])
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, [])
 
         then:
         defaultBuildComponentSelector.projectPath == ":project:path"
-        defaultBuildComponentSelector.projectName == "projectName"
+        defaultBuildComponentSelector.projectIdentity.projectName == "projectName"
         defaultBuildComponentSelector.displayName == "project :id:path"
         defaultBuildComponentSelector.toString() == "project :id:path"
     }
@@ -75,7 +76,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "matches id (#buildName #projectPath)"() {
         expect:
-        def selector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY, [])
+        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, [])
         def sameIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
         def differentIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path2"), Path.path(":project:path"), "projectName")
         selector.matchesStrictly(sameIdPath)

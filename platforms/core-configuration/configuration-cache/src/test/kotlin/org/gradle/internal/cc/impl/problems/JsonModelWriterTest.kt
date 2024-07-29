@@ -17,10 +17,13 @@
 package org.gradle.internal.cc.impl.problems
 
 import groovy.json.JsonSlurper
-import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.configuration.problems.DecoratedPropertyProblem
+import org.gradle.internal.configuration.problems.DecoratedReportProblem
+import org.gradle.internal.configuration.problems.DecoratedReportProblemJsonSource
+import org.gradle.internal.configuration.problems.ProblemReportDetails
+import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasEntry
 import org.junit.Test
@@ -34,18 +37,37 @@ class JsonModelWriterTest {
         assertThat(
             jsonModelFor {
                 beginModel()
-                writeDiagnostic(
-                    DiagnosticKind.INPUT,
-                    DecoratedPropertyProblem(
+                DecoratedReportProblemJsonSource(
+                    DecoratedReportProblem(
                         PropertyTrace.Unknown,
-                        StructuredMessage.build { reference("") }
+                        StructuredMessage.build { reference("") },
+                        null,
+                        null,
+                        "input"
+                    )
+                ).writeToJson(this.modelWriter)
+                DecoratedReportProblemJsonSource(
+                    DecoratedReportProblem(
+                        PropertyTrace.Unknown,
+                        StructuredMessage.build { reference("") },
+                        null,
+                        null,
+                        "input"
+                    )
+                ).writeToJson(this.modelWriter)
+                endModel(
+                    ProblemReportDetailsJsonSource(
+                        ProblemReportDetails("", "", StructuredMessage.forText(""), "", 0)
                     )
                 )
-                endModel("", "", "", 0)
             },
             hasEntry(
                 "diagnostics",
                 listOf(
+                    mapOf(
+                        "trace" to listOf(mapOf("kind" to "Unknown")),
+                        "input" to listOf(mapOf("name" to ""))
+                    ),
                     mapOf(
                         "trace" to listOf(mapOf("kind" to "Unknown")),
                         "input" to listOf(mapOf("name" to ""))
@@ -59,7 +81,7 @@ class JsonModelWriterTest {
     fun jsonModelFor(builder: JsonModelWriter.() -> Unit): Map<String, Any> =
         JsonSlurper().parseText(
             StringWriter().also {
-                JsonModelWriter(it).apply(builder)
+                JsonModelWriter(JsonWriter(it)).apply(builder)
             }.toString()
         ).uncheckedCast()
 }

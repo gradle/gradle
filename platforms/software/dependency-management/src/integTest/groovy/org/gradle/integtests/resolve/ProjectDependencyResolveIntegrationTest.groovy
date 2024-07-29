@@ -503,7 +503,7 @@ project('c') {
         given:
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
-        buildScript '''
+        buildFile '''
             subprojects {
                 apply plugin: 'base'
                 task jar(type: Jar)
@@ -758,5 +758,56 @@ project(':b') {
 
         expect:
         succeeds(":help")
+    }
+
+    def "suggests outgoingVariants command when targetConfiguration not found in local project"() {
+        given:
+        settingsFile << """
+            includeBuild 'included'
+        """
+
+        file("included/build.gradle.kts") << """
+            group = "org"
+            configurations {
+                consumable("other")
+            }
+        """
+
+        buildFile << """
+            configurations {
+                dependencyScope("deps")
+                resolvable("resolver") {
+                    extendsFrom(deps)
+                }
+            }
+
+            dependencies {
+                deps(${declaredDependency}) {
+                    targetConfiguration = "absent"
+                }
+            }
+
+            task resolve {
+                def files = configurations.resolver.incoming.files
+                doLast {
+                    files.forEach { println(it) }
+                }
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("A dependency was declared on configuration 'absent' of '${projectDescription}' but no variant with that configuration name exists.")
+        failure.assertHasResolution("To determine which configurations are available in the target ${projectDescription}, run ${expectedCommand}.")
+
+        expect:
+        succeeds(expectedCommand)
+
+        where:
+        declaredDependency   | projectDescription  | expectedCommand
+        "project(':')"       | "root project :"         | ":outgoingVariants"
+        "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
     }
 }

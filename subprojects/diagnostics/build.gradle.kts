@@ -16,53 +16,54 @@ errorprone {
 }
 
 dependencies {
-    api(projects.javaLanguageExtensions)
     api(projects.jvmServices)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":enterprise-logging"))
-    api(project(":file-collections"))
-    api(project(":logging"))
-    api(project(":model-core"))
-    api(project(":platform-base"))
-    api(project(":reporting"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.enterpriseLogging)
+    api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.modelCore)
+    api(projects.platformBase)
+    api(projects.reporting)
 
     api(libs.groovy)
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
-    implementation(project(":functional"))
-    implementation(project(":logging-api"))
+    implementation(projects.functional)
+    implementation(projects.loggingApi)
 
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.jatl)
 
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation(projects.processServices)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.logging))
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
-    integTestImplementation(testFixtures(project(":declarative-dsl-provider")))
+    integTestImplementation(testFixtures(projects.declarativeDslProvider))
 
-    testFixturesApi(testFixtures(project(":platform-native")))
-    testFixturesApi(testFixtures(project(":logging")))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesApi(testFixtures(projects.platformNative))
+    testFixturesApi(testFixtures(projects.logging))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))  {
+    integTestDistributionRuntimeOnly(projects.distributionsFull)  {
         because("There are integration tests that assert that all the tasks of a full distribution are reported (these should probably move to ':integTests').")
     }
 }

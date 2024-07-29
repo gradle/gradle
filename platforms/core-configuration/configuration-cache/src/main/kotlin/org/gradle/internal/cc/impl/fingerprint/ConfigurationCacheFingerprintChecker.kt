@@ -21,8 +21,13 @@ import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.RenderingUtils.oxfordListOf
+import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -37,13 +42,14 @@ import java.util.function.Consumer
 
 
 internal
-typealias InvalidationReason = String
+typealias InvalidationReason = StructuredMessage
 
 
 internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val buildPath: Path
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
@@ -73,41 +79,50 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return CheckedFingerprint.EntryInvalid(reason)
+                        return CheckedFingerprint.EntryInvalid(host.buildPath, reason)
                     }
                 }
-                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
         return CheckedFingerprint.Valid
     }
 
+    @Suppress("NestedBlockDepth")
     suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
         // TODO: log some debug info
-        var firstReason: InvalidationReason? = null
-        val projects = mutableMapOf<Path, ProjectInvalidationState>()
+        var firstInvalidatedPath: Path? = null
+        val projects = hashMapOf<Path, ProjectInvalidationState>()
         while (true) {
             when (val input = read()) {
                 null -> break
-                is ProjectSpecificFingerprint.ProjectFingerprint -> input.run {
+                is ProjectSpecificFingerprint.ProjectIdentity -> {
+                    val state = projects.entryFor(input.identityPath)
+                    state.buildPath = input.buildPath
+                    state.projectPath = input.projectPath
+                }
+                is ProjectSpecificFingerprint.ProjectFingerprint -> {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
-                    val state = projects.entryFor(input.projectPath)
+                    val state = projects.entryFor(input.projectIdentityPath)
                     if (!state.isInvalid) {
                         val reason = check(input.value)
                         if (reason != null) {
-                            if (firstReason == null) {
-                                firstReason = reason
+                            if (firstInvalidatedPath == null) {
+                                firstInvalidatedPath = input.projectIdentityPath
                             }
-                            state.invalidate()
+                            state.invalidate(reason)
                         }
                     }
                 }
+
                 is ProjectSpecificFingerprint.ProjectDependency -> {
                     val consumer = projects.entryFor(input.consumingProject)
                     val target = projects.entryFor(input.targetProject)
                     target.consumedBy(consumer)
                 }
+
                 is ProjectSpecificFingerprint.CoupledProjects -> {
                     if (host.invalidateCoupledProjects) {
                         val referrer = projects.entryFor(input.referringProject)
@@ -116,28 +131,41 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         referrer.consumedBy(target)
                     }
                 }
-                else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
+
+                else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return if (firstReason == null) {
+        return if (firstInvalidatedPath == null) {
             CheckedFingerprint.Valid
         } else {
-            CheckedFingerprint.ProjectsInvalid(firstReason!!, projects.entries.filter { it.value.isInvalid }.map { it.key }.toSet())
+            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
+                it.value.toProjectInvalidationData()
+            }
+            CheckedFingerprint.ProjectsInvalid(firstInvalidatedPath, invalidatedProjects)
         }
     }
 
     suspend fun ReadContext.visitEntriesForProjects(reusedProjects: Set<Path>, consumer: Consumer<ProjectSpecificFingerprint>) {
         while (true) {
+            // TODO(mlopatkin): this implementation duplicates some inputs, e.g. a build file input is stored even if the project is reused.
             when (val input = read()) {
                 null -> break
-                is ProjectSpecificFingerprint.ProjectFingerprint ->
-                    if (reusedProjects.contains(input.projectPath)) {
+
+                is ProjectSpecificFingerprint.ProjectIdentity ->
+                    if (reusedProjects.contains(input.identityPath)) {
                         consumer.accept(input)
                     }
+
+                is ProjectSpecificFingerprint.ProjectFingerprint ->
+                    if (reusedProjects.contains(input.projectIdentityPath)) {
+                        consumer.accept(input)
+                    }
+
                 is ProjectSpecificFingerprint.ProjectDependency ->
                     if (reusedProjects.contains(input.consumingProject)) {
                         consumer.accept(input)
                     }
+
                 is ProjectSpecificFingerprint.CoupledProjects ->
                     if (reusedProjects.contains(input.referringProject)) {
                         consumer.accept(input)
@@ -147,100 +175,108 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = getOrPut(path) { ProjectInvalidationState() }
+    fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = computeIfAbsent(path, ::ProjectInvalidationState)
 
+    @Suppress("CyclomaticComplexMethod")
     private
-    fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
+    fun check(input: ConfigurationCacheFingerprint): InvalidationReason? = structuredMessageOrNull {
         when (input) {
             is ConfigurationCacheFingerprint.WorkInputs -> input.run {
                 val currentFingerprint = host.fingerprintOf(fileSystemInputs)
-                if (currentFingerprint != fileSystemInputsFingerprint) {
+                ifOrNull(currentFingerprint != fileSystemInputsFingerprint) {
                     // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
-                    return "an input to $workDisplayName has changed"
+                    text("an input to $workDisplayName has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.InputFile -> input.run {
-                return when (checkFileUpToDateStatus(file, hash)) {
-                    FileUpToDateStatus.ContentsChanged -> "file '${displayNameOf(file)}' has changed"
-                    FileUpToDateStatus.Removed -> "file '${displayNameOf(file)}' has been removed"
-                    FileUpToDateStatus.TypeChanged -> "file '${displayNameOf(file)}' has been replaced by a directory"
+                when (checkFileUpToDateStatus(file, hash)) {
+                    FileUpToDateStatus.ContentsChanged -> text("file ").reference(displayNameOf(file)).text(" has changed")
+                    FileUpToDateStatus.Removed -> text("file ").reference(displayNameOf(file)).text(" has been removed")
+                    FileUpToDateStatus.TypeChanged -> text("file ").reference(displayNameOf(file)).text(" has been replaced by a directory")
                     FileUpToDateStatus.Unchanged -> null
                 }
             }
+
             is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
-                if (hasDirectoryChanged(file, hash)) {
-                    return "directory '${displayNameOf(file)}' has changed"
+                ifOrNull(hasDirectoryChanged(file, hash)) {
+                    text("directory ").reference(displayNameOf(file)).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.InputFileSystemEntry -> input.run {
                 val newType = fileSystemEntryType(file)
-                if (newType != fileType) {
-                    val prefix = "the file system entry '${displayNameOf(file)}'"
-                    return when {
-                        newType == FileType.Missing -> return "$prefix has been removed"
-                        fileType == FileType.Missing -> return "$prefix has been created"
-                        else -> "$prefix has changed"
-                    }
+                ifOrNull(newType != fileType) {
+                    text("the file system entry ").reference(displayNameOf(file)).text(
+                        when {
+                            newType == FileType.Missing -> " has been removed"
+                            fileType == FileType.Missing -> " has been created"
+                            else -> " has changed"
+                        }
+                    )
                 }
             }
+
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
                 val reason = checkFingerprintValueIsUpToDate(obtainedValue)
-                if (reason != null) return reason
+                reason?.let { message(it) }
             }
+
             is ConfigurationCacheFingerprint.InitScripts -> input.run {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
-                if (reason != null) return reason
+                reason?.let { message(it) }
             }
+
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
-                if (System.getProperty(key) != value) {
-                    return "system property '$key' has changed"
+                ifOrNull(System.getProperty(key) != value) {
+                    text("system property ").reference(key).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable -> input.run {
-                if (System.getenv(key) != value) {
-                    return "environment variable '$key' has changed"
+                ifOrNull(System.getenv(key) != value) {
+                    text("environment variable ").reference(key).text(" has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
-                if (host.buildStartTime >= expireAt) {
-                    return reason
+                ifOrNull(host.buildStartTime >= expireAt) {
+                    text(reason)
                 }
             }
+
             is ConfigurationCacheFingerprint.RemoteScript -> input.run {
-                if (!host.isRemoteScriptUpToDate(uri)) {
-                    return "remote script $uri has changed"
+                ifOrNull(!host.isRemoteScriptUpToDate(uri)) {
+                    text("remote script $uri has changed")
                 }
             }
+
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
-                if (host.gradleUserHomeDir != gradleUserHomeDir) {
-                    return "Gradle user home directory has changed"
-                }
-                if (jvmFingerprint() != jvm) {
-                    return "JVM has changed"
-                }
-                if (host.startParameterProperties != startParameterProperties) {
-                    return "the set of Gradle properties has changed"
-                }
-                if (host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting) {
-                    return "the set of ignored configuration inputs has changed"
-                }
-                if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
-                    val statusChangeString = when (instrumentationAgentUsed) {
-                        true -> "is no longer available"
-                        false -> "is now applied"
-                    }
-                    return "the instrumentation Java agent $statusChangeString"
-                }
-                if (host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths) {
-                    return "the set of paths ignored in file-system-check input tracking has changed"
+                when {
+                    host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
+                    jvmFingerprint() != jvm -> text("JVM has changed")
+                    host.startParameterProperties != startParameterProperties ->
+                        text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(host.startParameterProperties, startParameterProperties))
+
+                    host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting ->
+                        text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME}) has changed")
+
+                    host.instrumentationAgentUsed != instrumentationAgentUsed ->
+                        text("the instrumentation Java agent ${if (instrumentationAgentUsed) "is no longer available" else "is now applied"}")
+
+                    host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths ->
+                        text("the set of paths ignored in file-system-check input tracking (${StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME}) has changed")
+                    else -> null
                 }
             }
+
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
                 val current = System.getenv().filterKeysByPrefix(prefix)
-                if (current != snapshot) {
-                    return "the set of environment variables prefixed by '$prefix' has changed"
+                ifOrNull(current != snapshot) {
+                    text("the set of environment variables prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshot, current))
                 }
             }
+
             is ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy -> input.run {
                 val currentWithoutIgnored = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix).filterKeys {
                     // remove properties that are known to be modified by the build logic at the moment of obtaining this, as their initial
@@ -251,43 +287,46 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // remove placeholders of modified properties to only compare relevant values.
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
-                if (currentWithoutIgnored != snapshotWithoutIgnored) {
-                    return "the set of system properties prefixed by '$prefix' has changed"
+                ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
+                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
                 }
             }
         }
-        return null
     }
 
     private
     fun checkInitScriptsAreUpToDate(
         previous: List<ConfigurationCacheFingerprint.InputFile>,
         current: List<File>
-    ): InvalidationReason? =
+    ): InvalidationReason? = structuredMessageOrNull {
         when (val upToDatePrefix = countUpToDatePrefixOf(previous, current)) {
             previous.size -> {
                 val added = current.size - upToDatePrefix
                 when {
-                    added == 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' has been added"
-                    added > 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' and ${added - 1} more have been added"
+                    added == 1 -> text("init script ").reference(displayNameOf(current[upToDatePrefix])).text(" has been added")
+                    added > 1 -> text("init script ").reference(displayNameOf(current[upToDatePrefix])).text(" and ${added - 1} more have been added")
                     else -> null
                 }
             }
+
             current.size -> {
                 val removed = previous.size - upToDatePrefix
                 when {
-                    removed == 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' has been removed"
-                    removed > 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' and ${removed - 1} more have been removed"
+                    removed == 1 -> text("init script ").reference(displayNameOf(previous[upToDatePrefix].file)).text(" has been removed")
+                    removed > 1 -> text("init script ").reference(displayNameOf(previous[upToDatePrefix].file)).text(" and ${removed - 1} more have been removed")
                     else -> null
                 }
             }
+
             else -> {
                 when (val modifiedScript = current[upToDatePrefix]) {
-                    previous[upToDatePrefix].file -> "init script '${displayNameOf(modifiedScript)}' has changed"
-                    else -> "content of ${ordinal(upToDatePrefix + 1)} init script, '${displayNameOf(modifiedScript)}', has changed"
+                    previous[upToDatePrefix].file -> text("init script ").reference(displayNameOf(modifiedScript)).text(" has changed")
+                    else -> text("content of ${ordinal(upToDatePrefix + 1)} init script, ").reference(displayNameOf(modifiedScript)).text(", has changed")
                 }
             }
         }
+    }
+
 
     private
     fun countUpToDatePrefixOf(
@@ -348,45 +387,112 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         host.displayNameOf(file)
 
     private
-    fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
+    fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason = StructuredMessage.forText(
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
         } ?: "a build logic input of type '${unpackType(valueSource).simpleName}' has changed"
+    )
 
     private
-    fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason =
+    fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason = StructuredMessage.forText(
         "a build logic input of type '${obtainedValue.valueSourceType.simpleName}' failed when storing the entry with $failure"
+    )
+
+    /**
+     * Builds a structured message with a given [block], but if null is returned from the block, discards the message.
+     * @return built message or null if [block] returns null
+     */
+    private
+    inline fun structuredMessageOrNull(block: StructuredMessage.Builder.() -> StructuredMessage.Builder?): StructuredMessage? =
+        StructuredMessage.Builder().run { block() }?.build()
 
     private
-    class ProjectInvalidationState {
-        // When true, the project is definitely invalid
-        // When false, validity is not known
+    inline fun <T> ifOrNull(condition: Boolean, block: () -> T): T? {
+        return if (condition) block() else null
+    }
+
+    private
+    fun wereOrWas(values: Collection<String>, verb: String): String? =
+        when (values.size) {
+            0 -> null
+            1 -> "'${values.single()}' was $verb"
+            else -> "${quotedOxfordListOf(values, "and")} were $verb"
+        }
+
+    private
+    fun <T> detailedMessageForChanges(oldValues: Map<String, T>, newValues: Map<String, T>): String {
+        val added = newValues.keys - oldValues.keys
+        val removed = oldValues.keys - newValues.keys
+        val changed = oldValues.filter { (key, value) -> key in newValues && newValues[key] != value }.map { it.key }
+        return oxfordListOf(
+            listOfNotNull(
+                wereOrWas(changed, "changed")?.let { if (changed.size == 1) "the value of $it" else "the values of $it" },
+                wereOrWas(added, "added"),
+                wereOrWas(removed, "removed")
+            ),
+            "and"
+        )
+    }
+
+    private
+    class ProjectInvalidationState(private val identityPath: Path) {
+        var buildPath: Path? = null
+        var projectPath: Path? = null
+
+        // When not null, the project is definitely invalid
+        // When null, validity is not known
         private
-        var invalid = false
+        var _invalidationReason: InvalidationReason? = null
 
         private
         val consumedBy = mutableSetOf<ProjectInvalidationState>()
 
         val isInvalid: Boolean
-            get() = invalid
+            get() = _invalidationReason != null
+
+        val invalidationReason
+            get() = _invalidationReason!!
 
         fun consumedBy(consumer: ProjectInvalidationState) {
-            if (invalid) {
-                consumer.invalidate()
+            if (isInvalid) {
+                invalidateConsumer(consumer)
             } else {
                 consumedBy.add(consumer)
             }
         }
 
-        fun invalidate() {
-            if (invalid) {
+        fun invalidate(reason: StructuredMessageBuilder) {
+            invalidate(StructuredMessage.Builder().apply(reason).build())
+        }
+
+        fun invalidate(reason: InvalidationReason) {
+            if (isInvalid) {
                 return
             }
-            invalid = true
-            for (consumer in consumedBy) {
-                consumer.invalidate()
-            }
+            _invalidationReason = reason
+            consumedBy.forEach(this::invalidateConsumer)
             consumedBy.clear()
+        }
+
+        private
+        fun invalidateConsumer(consumer: ProjectInvalidationState) {
+            consumer.invalidate {
+                text("project dependency ")
+                reference(identityPath.toString())
+                text(" has changed")
+            }
+        }
+
+        fun toProjectInvalidationData(): CheckedFingerprint.ProjectInvalidationData {
+            val buildPath = this.buildPath
+            val projectPath = this.projectPath
+            require(buildPath != null) {
+                "buildPath for project $identityPath wasn't loaded from the fingerprint"
+            }
+            require(projectPath != null) {
+                "projectPath for project $identityPath wasn't loaded from the fingerprint"
+            }
+            return CheckedFingerprint.ProjectInvalidationData(buildPath, projectPath, invalidationReason)
         }
     }
 }

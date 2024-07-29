@@ -5,8 +5,8 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
-import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
@@ -79,7 +79,7 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value
-            is ObjectOrigin.External -> externalObjectsMap[objectOrigin.key] ?: error("No external object provided for external object key of ${objectOrigin.key}")
+            is ObjectOrigin.External -> externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(/*objectOrigin*/) }
             is ObjectOrigin.NullObjectOrigin -> null
@@ -106,7 +106,7 @@ class DeclarativeReflectionToObjectConverter(
     ): Any? {
         val dataFun = origin.function
         val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
-            ?: error("Tried to invoke a function $dataFun on a null receiver ${origin.receiver}")
+            ?: error("tried to invoke a function $dataFun on a null receiver ${origin.receiver}")
 
         val callResult = invokeFunctionAndGetResult(receiverInstance, origin)
         return callResult.result
@@ -135,7 +135,7 @@ class DeclarativeReflectionToObjectConverter(
     ): Any? = objectByIdentity(ObjectAccessKey.ConfiguringLambda(origin.receiver, origin.function)) {
         val function = origin.function
         val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
-            ?: error("Tried to invoke a function $function on a null receiver ${origin.receiver}")
+            ?: error("tried to invoke a function $function on a null receiver ${origin.receiver}")
 
         invokeFunctionAndGetResult(receiverInstance, origin).capturedValue
     }
@@ -152,7 +152,7 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun invokeBuilderFunction(receiverOrigin: ObjectOrigin, function: DataBuilderFunction, valueOrigin: ObjectOrigin) {
         val receiverInstance = getObjectByResolvedOrigin(receiverOrigin)
-            ?: error("Tried to invoke a function $function on a null receiver $receiverOrigin")
+            ?: error("tried to invoke a function $function on a null receiver $receiverOrigin")
         val receiverKClass = receiverInstance::class
         val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin), false)
 

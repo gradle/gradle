@@ -29,7 +29,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def 'stale output file is removed after input source directory is emptied.'() {
         def taskWithSources = new TaskWithSources()
         taskWithSources.createInputs()
-        buildScript(taskWithSources.buildScript)
+        buildFile(taskWithSources.buildScript)
 
         when:
         succeeds(taskWithSources.taskPath)
@@ -67,7 +67,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "only files owned by the build are deleted"() {
         def taskWithSources = new TaskWithSources(outputDir: 'unsafe-dir/output')
         taskWithSources.createInputs()
-        buildScript(taskWithSources.buildScript)
+        buildFile(taskWithSources.buildScript)
 
         when:
         succeeds(taskWithSources.taskPath)
@@ -233,7 +233,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         fixture.createInputs()
         creationCommand(fixture.outputDir)
         creationCommand(fixture.outputFile)
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
 
         expect:
         succeeds(fixture.taskPath, '-PassertRemoved=true')
@@ -253,7 +253,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "unregistered stale outputs (#nonRegisteredDirectory) are not removed before task executes"() {
         def fixture = new StaleOutputFixture(buildDir: nonRegisteredDirectory)
         fixture.createInputs()
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
         fixture.createStaleOutputs()
 
         when:
@@ -269,7 +269,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "stale outputs are cleaned in #outputDir"() {
         def fixture = new StaleOutputFixture(buildDir: outputDir)
         fixture.createInputs()
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
         fixture.createStaleOutputs()
 
         when:
@@ -286,7 +286,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
         def fixture = new StaleOutputFixture()
         fixture.createInputs()
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
         fixture.createStaleOutputs()
 
         when:
@@ -301,7 +301,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
         def fixture = new StaleOutputFixture()
         fixture.createInputs()
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
 
         when:
         succeeds(fixture.taskPath, '-PassertRemoved=true')
@@ -314,7 +314,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {
         def fixture = new StaleOutputFixture(buildDir: 'build/outputs', overlappingOutputDir: overlappingOutputDir)
         fixture.createInputs()
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
 
         when:
         succeeds fixture.taskPath, fixture.taskWritingOverlappingOutputs
@@ -329,7 +329,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     def "relative paths canonicalized for cleanup registry"() {
         def fixture = new StaleOutputFixture(buildDir: 'build/../some-dir')
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
         fixture.createInputs()
         fixture.createStaleOutputs()
 
@@ -342,7 +342,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     def "relative paths are canonicalized for output files"() {
         def fixture = new StaleOutputFixture(buildDir: 'build/output/../other-output')
-        buildScript(fixture.buildScript)
+        buildFile(fixture.buildScript)
         buildFile << """
             task writeToRealOutput() {
                 outputs.dir 'build/other-output'
@@ -421,7 +421,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "stale local state file is removed after input source directory is emptied"() {
         def taskWithLocalState = new TaskWithLocalState()
         taskWithLocalState.createInputs()
-        buildScript(taskWithLocalState.buildScript)
+        buildFile(taskWithLocalState.buildScript)
 
         when:
         succeeds(taskWithLocalState.taskPath)

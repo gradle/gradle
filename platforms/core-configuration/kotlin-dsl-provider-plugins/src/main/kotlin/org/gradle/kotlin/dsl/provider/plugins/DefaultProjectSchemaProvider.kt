@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -39,6 +40,8 @@ import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 
@@ -61,6 +64,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                     (scriptTarget as? Project)
                         ?.let { accessibleConfigurationsOf(it) }
                         ?: emptyList(),
+                    targetSchema.modelDefaults,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -79,7 +83,8 @@ data class TargetTypedSchema(
     val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>
+    val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>
 )
 
 
@@ -90,6 +95,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
@@ -116,6 +122,12 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 collectSchemaOf(sourceSet, typeOfSourceSet)
             }
         }
+        if (target is Settings) {
+            val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
+            accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
+                buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
+            }
+        }
         if (target is NamedDomainObjectContainer<*>) {
             accessibleContainerSchema(target.collectionSchema).forEach { schema ->
                 containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
@@ -129,7 +141,8 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         extensions,
         conventions,
         tasks,
-        containerElements
+        containerElements,
+        buildModelDefaults
     )
 }
 
@@ -305,6 +318,10 @@ val typeOfRepositoryHandler = typeOf<RepositoryHandler>()
 
 private
 val typeOfTaskContainer = typeOf<TaskContainer>()
+
+
+private
+val typeOfModelDefaults = typeOf<SharedModelDefaults>()
 
 
 internal

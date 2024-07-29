@@ -137,12 +137,12 @@ Before you can define interceptors you have to add an annotation processor and i
 You can do that manually by apply next plugin to your **build.gradle.kts**:
 ```kotlin
 plugins {
-    id("gradebuild.instrumented-project")
+    id("gradebuild.instrumented-java-project")
 }
 ```
 
 This will set up the annotation processor and all required compile time dependencies. 
-See the definition of a plugin: [gradlebuild.instrumented-project.gradle.kts](../../build-logic/uber-plugins/src/main/kotlin/gradlebuild.instrumented-project.gradle.kts).
+See the definition of a plugin: [gradlebuild.instrumented-java-project.gradle.kts](../../build-logic/uber-plugins/src/main/kotlin/gradlebuild.instrumented-java-project.gradle.kts).
 
 
 ##### Manual Interceptor declaration

@@ -1,62 +1,13 @@
-package org.gradle.internal.declarativedsl.astToLanguageTree
+package org.gradle.internal.declarativedsl.parsing
 
-import org.gradle.internal.declarativedsl.language.LanguageTreeResult
-import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
-import org.gradle.internal.declarativedsl.parsing.assert
 import org.junit.jupiter.api.Test
 
 
 class BasicParsingTest {
 
     @Test
-    fun `parses literals`() {
-        val results = parse(
-            """
-            a = 1
-            b = "test"
-            c = ${'"'}""test${'"'}""
-            e = true
-            d = false
-            """.trimIndent()
-        )
-
-        val expected = """
-                Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
-                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
-                        name = a
-                    )
-                    rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
-                )
-                Assignment [indexes: 6..16, line/column: 2/1..2/11, file: test] (
-                    lhs = PropertyAccess [indexes: 6..7, line/column: 2/1..2/2, file: test] (
-                        name = b
-                    )
-                    rhs = StringLiteral [indexes: 10..16, line/column: 2/5..2/11, file: test] (test)
-                )
-                Assignment [indexes: 17..31, line/column: 3/1..3/15, file: test] (
-                    lhs = PropertyAccess [indexes: 17..18, line/column: 3/1..3/2, file: test] (
-                        name = c
-                    )
-                    rhs = StringLiteral [indexes: 21..31, line/column: 3/5..3/15, file: test] (test)
-                )
-                Assignment [indexes: 32..40, line/column: 4/1..4/9, file: test] (
-                    lhs = PropertyAccess [indexes: 32..33, line/column: 4/1..4/2, file: test] (
-                        name = e
-                    )
-                    rhs = BooleanLiteral [indexes: 36..40, line/column: 4/5..4/9, file: test] (true)
-                )
-                Assignment [indexes: 41..50, line/column: 5/1..5/10, file: test] (
-                    lhs = PropertyAccess [indexes: 41..42, line/column: 5/1..5/2, file: test] (
-                        name = d
-                    )
-                    rhs = BooleanLiteral [indexes: 45..50, line/column: 5/5..5/10, file: test] (false)
-                )""".trimIndent()
-        results.assert(expected)
-    }
-
-    @Test
     fun `parses imports`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             import a.b.c
             import a.b.MyData
@@ -79,7 +30,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses function invocations without access chains`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             f(x = y)
             f(1)
@@ -111,7 +62,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses function invocation after an access chain`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             f.g.h.i.j.k(test)
             """.trimIndent())
@@ -147,7 +98,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses positional parameters`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             f(1, x, "s", g())
             """.trimIndent()
@@ -181,7 +132,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses named arguments`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             f(a = b, c = d)
             """.trimIndent()
@@ -210,7 +161,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses an assignment chain`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             a.b.c = 1
             """.trimIndent()
@@ -234,7 +185,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses assigning 'this' keyword`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             a = this
             """.trimIndent()
@@ -252,7 +203,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses assigning 'null'`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             a = null
             """.trimIndent()
@@ -270,7 +221,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses a local val`() {
-        val results = parse("val a = 1")
+        val results = ParseTestUtil.parse("val a = 1")
 
         val expected = """
             LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
@@ -282,7 +233,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses access chain in rhs`() {
-        val results = parse("a = b.c.d")
+        val results = ParseTestUtil.parse("a = b.c.d")
 
         val expected = """
             Assignment [indexes: 0..9, line/column: 1/1..1/10, file: test] (
@@ -304,7 +255,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses lambdas`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             a { b = 1 }
             """.trimIndent())
@@ -330,7 +281,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses call chain`() {
-        val results = parse("f(1).g(2).h(3)")
+        val results = ParseTestUtil.parse("f(1).g(2).h(3)")
 
         val expected = """
             FunctionCall [indexes: 10..14, line/column: 1/11..1/15, file: test] (
@@ -362,7 +313,7 @@ class BasicParsingTest {
 
     @Test
     fun `parses infix call chain`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             f(1) g "string" h true i 2L j 3.apply(4)
             """.trimIndent()
@@ -422,7 +373,7 @@ class BasicParsingTest {
 
     @Test
     fun `keeps empty lines in line number counting`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             import a.b.c
 
@@ -462,7 +413,7 @@ class BasicParsingTest {
 
     @Test
     fun `parse infix function call with regular arguments`() {
-        val results = parse(
+        val results = ParseTestUtil.parse(
             """
             f("a") g("b")
             """.trimIndent()
@@ -488,6 +439,4 @@ class BasicParsingTest {
         results.assert(expected)
     }
 
-    private
-    fun parse(code: String): LanguageTreeResult = ParseTestUtil.parse(code)
 }

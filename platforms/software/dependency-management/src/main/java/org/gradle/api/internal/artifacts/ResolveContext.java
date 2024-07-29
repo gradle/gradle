@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
@@ -31,7 +30,7 @@ import java.util.Set;
 /**
  * Represents something that can be resolved.
  */
-public interface ResolveContext extends DependencyMetaDataProvider {
+public interface ResolveContext {
 
     String getName();
 

@@ -460,7 +460,7 @@ alpha - ALPHA_in_sub1
 
     def "task report includes tasks defined via model rules running #tasks"() {
         when:
-        buildScript """
+        buildFile """
             model {
                 tasks {
                     create('a') {
@@ -489,7 +489,7 @@ alpha - ALPHA_in_sub1
 
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
         when:
-        buildScript """
+        buildFile """
             model {
                 tasks {
                     create('a')
@@ -517,7 +517,7 @@ b
 
     def "task report includes task container rule based tasks defined via model rule"() {
         when:
-        buildScript """
+        buildFile """
             tasks.addRule("Pattern: containerRule<ID>") { taskName ->
                 if (taskName.startsWith("containerRule")) {
                     task(taskName) {
@@ -567,7 +567,7 @@ b
     def "renders tasks with dependencies created by model rules running #tasks"() {
         when:
         settingsFile << "rootProject.name = 'test-project'"
-        buildScript """
+        buildFile """
             model {
                 tasks {
                     create('a')

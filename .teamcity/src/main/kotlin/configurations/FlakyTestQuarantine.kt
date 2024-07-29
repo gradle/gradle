@@ -18,7 +18,7 @@ import model.Stage
 import model.StageName
 import model.TestType
 
-class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : BaseGradleBuildType(stage = stage, init = {
+class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : OsAwareBaseGradleBuildType(os = os, stage = stage, init = {
     id("${model.projectId}_FlakyQuarantine_${os.asName()}_${arch.asName()}")
     name = "Flaky Test Quarantine - ${os.asName()} ${arch.asName()}"
     description = "Run all flaky tests skipped multiple times"

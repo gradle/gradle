@@ -32,11 +32,6 @@ import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
 
-    private static List<Class<?>> supportedAdditionalDataTypes = ImmutableList.<Class<?>>of(
-        GeneralDataSpec.class,
-        DeprecationDataSpec.class,
-        TypeValidationDataSpec.class
-    );
     private ProblemStream problemStream;
 
     private ProblemId id;
@@ -81,7 +76,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
-            return invalidProblem("unsupported-additional-data", "Unsupported additional data type", "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + supportedAdditionalDataTypes);
+            return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + AdditionalDataBuilderFactory.getSupportedTypes());
         }
 
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
@@ -249,16 +245,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (!supportedAdditionalDataTypes.contains(specType)) {
-            additionalData = new UnsupportedAdditionalDataSpec(specType);
-        } else if (additionalData == null) {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(specType);
+        if (AdditionalDataBuilderFactory.ADDITIONAL_DATA_BUILDER_PROVIDERS.containsKey(specType)) {
+            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDatabuilder);
             additionalData = additionalDatabuilder.build();
         } else {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.builderFor(additionalData);
-            config.execute((U) additionalDatabuilder);
-            additionalData = additionalDatabuilder.build();
+            additionalData = new UnsupportedAdditionalDataSpec(specType);
         }
         return this;
     }

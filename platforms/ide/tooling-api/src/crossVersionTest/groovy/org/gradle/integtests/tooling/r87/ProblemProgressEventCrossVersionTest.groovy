@@ -26,6 +26,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -197,7 +198,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof ProblemEvent) {
-                this.problems.add(event)
+                if (!(event instanceof SingleProblemEvent) || event.definition.id.name != "executing-gradle-on-jvm-versions-and-lower") {
+                    this.problems.add(event)
+                }
             }
         }
     }

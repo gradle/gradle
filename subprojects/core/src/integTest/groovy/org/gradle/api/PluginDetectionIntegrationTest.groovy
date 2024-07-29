@@ -105,6 +105,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.buildFinished() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         run("verify")
     }
 
@@ -214,7 +215,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         """
         file("buildSrc/src/main/resources/META-INF/gradle-plugins/c.properties") << "implementation-class=PluginC"
 
-        buildScript """
+        buildFile """
             class ExamplePlugin implements Plugin<Project> {
                 void apply(final Project project) {
                     project.plugins.withId('a') {

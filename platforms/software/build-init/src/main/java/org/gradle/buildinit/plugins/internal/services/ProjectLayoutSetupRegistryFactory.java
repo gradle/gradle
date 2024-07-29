@@ -45,7 +45,7 @@ import org.gradle.buildinit.plugins.internal.SwiftApplicationProjectInitDescript
 import org.gradle.buildinit.plugins.internal.SwiftLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.TemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.TemplateOperationFactory;
-import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
+import org.gradle.unexported.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.workers.WorkerExecutor;
 

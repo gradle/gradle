@@ -1145,7 +1145,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
         failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
 Required by:
-    project :""")
+    root project :""")
         failure.assertHasCause("Unhappy :(")
     }
 

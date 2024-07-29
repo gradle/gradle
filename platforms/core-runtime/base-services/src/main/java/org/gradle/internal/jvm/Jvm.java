@@ -84,11 +84,11 @@ public class Jvm implements JavaInfo {
     /**
      * Constructs JVM details from the given values
      */
-    Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, Integer javaVersionMajor) {
+    Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
         this(os, suppliedJavaBase, implementationJavaVersion, javaVersionMajor, true);
     }
 
-    private Jvm(OperatingSystem os, File suppliedJavaBase, String implementationJavaVersion, Integer javaVersionMajor, boolean userSupplied) {
+    private Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor, boolean userSupplied) {
         this.os = os;
         this.javaBase = suppliedJavaBase;
         this.implementationJavaVersion = implementationJavaVersion;
@@ -107,7 +107,7 @@ public class Jvm implements JavaInfo {
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
     public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {
-        if (javaHome == null || !javaHome.isDirectory()) {
+        if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
         Jvm jvm = create(javaHome, null, null);
@@ -258,6 +258,9 @@ public class Jvm implements JavaInfo {
      */
     @Nullable
     public JavaVersion getJavaVersion() {
+        if (javaVersionMajor == null) {
+            return null;
+        }
         return JavaVersion.toVersion(javaVersionMajor);
     }
 
@@ -390,4 +393,13 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
+    @Nullable
+    public String getVendor() {
+        for (String vendorProperty : VENDOR_PROPERTIES) {
+            if (System.getProperties().containsKey(vendorProperty) && !System.getProperty(vendorProperty).isEmpty()) {
+                return System.getProperty(vendorProperty);
+            }
+        }
+        return null;
+    }
 }

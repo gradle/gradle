@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.logging.Logging
+import org.gradle.internal.extensions.core.debug
 import java.util.Stack
 
 
@@ -72,11 +74,28 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
 
     override fun unreportedProblemInCurrentCall(problemKey: Any): Boolean {
         val currentThreadCallStack = currentThreadState.callStack
-        check(currentThreadCallStack.isNotEmpty()) { "Expected unreportedProblemInCurrentCall to be called after enterDynamicCall" }
+        if (currentThreadCallStack.isEmpty()) {
+            logMissingScope()
+            return true
+        }
+
         return currentThreadCallStack.peek().problemsReportedInCurrentCall.add(problemKey)
+    }
+
+    private
+    fun logMissingScope() {
+        logger.debug {
+            val stackTrace = IllegalStateException("Expected unreportedProblemInCurrentCall to be called after enterDynamicCall").stackTraceToString()
+            "Warning: " + stackTrace.lines().take(15).joinToString("\n")
+        }
     }
 
     private
     val currentThreadState: State
         get() = threadLocalState.get()
+
+    companion object {
+        private
+        val logger = Logging.getLogger(DynamicCallProblemReporting::class.java)
+    }
 }

@@ -27,32 +27,32 @@ errorprone {
 }
 
 dependencies {
-    api(project(":core-api"))
+    api(projects.coreApi)
 
     api(libs.inject)
 
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":ivy"))
-    implementation(projects.javaLanguageExtensions)
-    implementation(project(":maven"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":publish"))
+    implementation(projects.baseServices)
+    implementation(projects.core)
+    implementation(projects.dependencyManagement)
+    implementation(projects.ivy)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.maven)
+    implementation(projects.platformBase)
+    implementation(projects.platformJvm)
+    implementation(projects.publish)
 
     runtimeOnly(libs.groovy)
 
-    integTestImplementation(testFixtures(project(":dependency-management")))
-    integTestImplementation(testFixtures(project(":resources-http")))
+    integTestImplementation(testFixtures(projects.dependencyManagement))
+    integTestImplementation(testFixtures(projects.resourcesHttp))
 
-    testImplementation(project(":language-java")) {
+    testImplementation(projects.languageJava) {
         because("need to access JavaCompile task")
     }
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 packageCycles {

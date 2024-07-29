@@ -18,11 +18,11 @@ package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.logging.Logger
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.service.scopes.Scope
@@ -60,7 +60,7 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder
 
-) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
 
     override val sharedIdentities = WriteIdentities()
 
@@ -91,9 +91,9 @@ class DefaultWriteContext(
         }
     }
 
-    // TODO: consider interning strings
-    override fun writeString(string: CharSequence) =
-        encoder.writeString(string)
+    override fun writeClassLoader(classLoader: ClassLoader?): Boolean = classEncoder.run {
+        encodeClassLoader(classLoader)
+    }
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
@@ -106,11 +106,25 @@ value class ClassLoaderRole(val local: Boolean)
 
 interface ClassEncoder {
     fun WriteContext.encodeClass(type: Class<*>)
+
+    /**
+     * Tries to encode the given [classLoader].
+     *
+     * @return `true` when the given [ClassLoader] is not `null` and could be encoded, `false` otherwise.
+     */
+    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean = false
 }
 
 
 interface ClassDecoder {
     fun ReadContext.decodeClass(): Class<*>
+
+    /**
+     * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
+     *
+     * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
+     */
+    fun ReadContext.decodeClassLoader(): ClassLoader? = null
 }
 
 
@@ -130,20 +144,18 @@ class DefaultReadContext(
     private
     val classDecoder: ClassDecoder
 
-) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), ReadContext, Decoder by decoder, AutoCloseable {
+) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
 
     private
     var singletonProperty: Any? = null
 
-    override lateinit var classLoader: ClassLoader
-
     override fun onFinish(action: () -> Unit) {
         pendingOperations.add(action)
     }
 
-    fun finish() {
+    override fun finish() {
         for (op in pendingOperations) {
             op()
         }
@@ -152,10 +164,6 @@ class DefaultReadContext(
 
     private
     var pendingOperations = ReferenceArrayList<() -> Unit>()
-
-    fun initClassLoader(classLoader: ClassLoader) {
-        this.classLoader = classLoader
-    }
 
     override var immediateMode: Boolean = false
 
@@ -171,16 +179,17 @@ class DefaultReadContext(
         decodeClass()
     }
 
+    override fun readClassLoader(): ClassLoader? = classDecoder.run {
+        decodeClassLoader()
+    }
+
     override val isolate: ReadIsolate
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
         beanStateReaderLookup.beanStateReaderFor(beanType)
 
-    /**
-     * Sets a client specific property value that can be queried via [getSingletonProperty].
-     */
-    fun <T : Any> setSingletonProperty(singletonProperty: T) {
+    override fun <T : Any> setSingletonProperty(singletonProperty: T) {
         this.singletonProperty = singletonProperty
     }
 
@@ -258,9 +267,9 @@ abstract class AbstractIsolateContext<T>(
         currentProblemsListener.onError(trace, error, message)
     }
 
-    override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) {
+    override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) {
         val previousListener = currentProblemsListener
-        currentProblemsListener = previousListener.forIncompatibleTask(path)
+        currentProblemsListener = previousListener.forIncompatibleTask(trace, reason)
         try {
             action()
         } finally {

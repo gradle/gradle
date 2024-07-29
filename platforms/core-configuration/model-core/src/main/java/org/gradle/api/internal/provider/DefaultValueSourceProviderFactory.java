@@ -37,8 +37,9 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.process.ExecOperations;
 
 import javax.annotation.Nonnull;
@@ -136,12 +137,17 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Nullable Class<P> parametersType,
         @Nullable P isolatedParameters
     ) {
-        DefaultServiceRegistry services = new DefaultServiceRegistry();
-        services.add(GradleProperties.class, gradleProperties);
-        services.add(ExecOperations.class, execOperations);
-        if (isolatedParameters != null) {
-            services.add(parametersType, isolatedParameters);
-        }
+        ServiceRegistry services = ServiceRegistryBuilder.builder()
+            .displayName("value source services")
+            .provider(registration -> {
+                registration.add(GradleProperties.class, gradleProperties);
+                registration.add(ExecOperations.class, execOperations);
+                if (isolatedParameters != null) {
+                    registration.add(parametersType, isolatedParameters);
+                }
+            })
+            .build();
+
         return instantiatorFactory
             .injectScheme()
             .withServices(services)

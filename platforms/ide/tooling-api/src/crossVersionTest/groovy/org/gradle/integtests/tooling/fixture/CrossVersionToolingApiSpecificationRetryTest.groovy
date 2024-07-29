@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.GradleException
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
+import org.gradle.integtests.fixtures.daemon.FakeDaemonLog
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -26,10 +26,12 @@ import org.gradle.tooling.GradleConnectionException
 //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
 @LeaksFileHandles
 class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecification {
+    private FakeDaemonLog daemonLog
 
     def setup() {
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
         toolingApi.requireIsolatedDaemons()
+        daemonLog = new FakeDaemonLog(daemonsFixture)
     }
 
     def iteration = 0
@@ -81,7 +83,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.",
             new IOException("Some exception in the chain",
                 new IOException("An existing connection was forcibly closed by the remote host"))), iteration == 1)
@@ -96,7 +98,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -114,7 +116,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog('java.net.SocketException: Socket operation on nonsocket: no further information')
+        daemonLog.logException('java.net.SocketException: Socket operation on nonsocket: no further information')
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
@@ -132,7 +134,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         iteration++
 
         when:
-        logToFakeDaemonLog("Caused by: java.net.SocketException: Something else")
+        daemonLog.logException("Caused by: java.net.SocketException: Something else")
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
@@ -140,30 +142,9 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.message == "Could not dispatch a message to the daemon."
     }
 
-    @TargetGradleVersion(">=2.6 <2.10")
-    def "retries on clock shift issue for <2.10 if exception is provided through build error output"() {
-        given:
-        iteration++
-
-        when:
-        throwWhen(new UnexpectedBuildFailure("Gradle execution failed",
-            new IllegalArgumentException("Unable to calculate percentage: 19 of -233. All inputs must be >= 0")), iteration == 1)
-
-        then:
-        true
-    }
-
     private static void throwWhen(Throwable throwable, boolean condition) {
         if (condition) {
             throw throwable
         }
-    }
-
-    private void logToFakeDaemonLog(String exceptionInDaemon) {
-        def logDir = new File(daemonsFixture.daemonBaseDir, daemonsFixture.getVersion())
-        logDir.mkdirs()
-        def log = new File(logDir, "daemon-fake.log")
-        log << "DefaultDaemonContext[uid=0000,javaHome=javaHome,javaVersion=11,daemonRegistryDir=daemonRegistryDir,pid=-9999,idleTimeout=120000,daemonOpts=daemonOpts]\n"
-        log << exceptionInDaemon
     }
 }

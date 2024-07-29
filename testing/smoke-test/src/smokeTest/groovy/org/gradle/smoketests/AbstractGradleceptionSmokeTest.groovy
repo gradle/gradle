@@ -72,7 +72,10 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         def runner = testKitDir != null
             ? runnerWithTestKitDir(testKitDir, gradleArgs)
             : runner(*gradleArgs)
+
         runner.ignoreDeprecationWarnings("Gradleception smoke tests don't check for deprecation warnings; TODO: we should add expected deprecations for each task being called")
+        runner.withJdkWarningChecksDisabled() // The Gradle build somehow still emits these warnings
+
         return runner
     }
 

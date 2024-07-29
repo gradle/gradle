@@ -88,7 +88,7 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
             package pkg
             class Message { public static final String MSG = "::msg::" }
         """
-        buildScript """
+        buildFile """
             task echoMsg {
                 doLast {
                     println pkg.Message.MSG

@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator
 import spock.lang.Issue
@@ -137,7 +137,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
     JvmInstallationMetadata jvmMetadata(String implementationVersion, boolean isJdk = false, KnownJvmVendor jvmVendor = ADOPTOPENJDK, String installPath = null) {
         return Mock(JvmInstallationMetadata) {
             getJavaHome() >> getJavaHome(implementationVersion, isJdk, installPath).toPath()
-            hasCapability(JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER) >> isJdk
+            getCapabilities() >> (isJdk ? JavaInstallationCapability.JDK_CAPABILITIES : Collections.emptySet())
             getVendor() >> jvmVendor.asJvmVendor()
             getJavaVersion() >> implementationVersion
         }

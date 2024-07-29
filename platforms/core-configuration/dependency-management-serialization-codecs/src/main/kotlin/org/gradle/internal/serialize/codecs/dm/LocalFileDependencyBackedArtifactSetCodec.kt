@@ -45,7 +45,6 @@ import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -118,7 +117,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             writeBoolean(artifactType != null)
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->
-                val recordingSet = RecordingVariantSet(value.dependencyMetadata.files, sourceAttributes)
+                val recordingSet = RecordingVariantSet(value.dependencyMetadata.componentId, value.dependencyMetadata.files, sourceAttributes)
                 val selected = value.variantSelector.select(recordingSet, value.requestAttributes, true, recordingSet)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
@@ -204,6 +203,7 @@ class DeserializedLocalFileDependencyArtifactSet(
 
 private
 class RecordingVariantSet(
+    private val componentId: ComponentIdentifier?,
     private val source: FileCollectionInternal,
     private val attributes: ImmutableAttributes
 ) : ResolvedVariantSet, ResolvedVariant, ArtifactVariantSelector.ResolvedArtifactTransformer, ResolvedArtifactSet {
@@ -230,12 +230,16 @@ class RecordingVariantSet(
         return null
     }
 
-    override fun getAttributes(): AttributeContainerInternal {
+    override fun getAttributes(): ImmutableAttributes {
         return attributes
     }
 
     override fun getCapabilities(): ImmutableCapabilities {
         return ImmutableCapabilities.EMPTY
+    }
+
+    override fun getComponentIdentifier(): ComponentIdentifier? {
+        return componentId
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {
@@ -376,8 +380,7 @@ class EmptyDependenciesResolverFactory : TransformUpstreamDependenciesResolverFa
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun finalizeIfNotAlready() {
-    }
+    override fun finalizeIfNotAlready() = Unit
 
     override fun computeArtifacts(): Try<TransformDependencies> {
         return Try.successful(DefaultTransformDependencies(FileCollectionFactory.empty()))

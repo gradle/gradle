@@ -379,6 +379,32 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
+    def "fails if no toolchain has a compiler"() {
+        def jre = AvailableJavaHomes.differentVersionJreOnly
+        assumeNotNull(jre)
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jre.javaVersionMajor})
+                }
+            }
+        """
+
+        when:
+        withInstallations(jre).fails("compileJava")
+
+        then:
+        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasResolutions(
+                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
+    }
+
     def "can use compile daemon with tools jar"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         assumeTrue(JavaVersion.current() != JavaVersion.VERSION_1_8)

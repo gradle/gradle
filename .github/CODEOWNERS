@@ -69,6 +69,7 @@ platforms/core-runtime/                                     @gradle/bt-core-runt
 platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
 platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-runtime/service-*/                           @gradle/bt-core-runtime-maintainers @alllex
 
 # Core automation platform (core/execution)
 platforms/core-execution/                                   @gradle/bt-execution
@@ -88,6 +89,7 @@ platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
 platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
 # JVM platform
+build-logic/java-api-extractor              @gradle/bt-jvm
 platforms/jvm/                              @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
 

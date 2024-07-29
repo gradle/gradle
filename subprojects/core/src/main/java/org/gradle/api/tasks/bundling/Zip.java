@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -72,6 +73,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * @return the compression level of the archive contents.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public ZipEntryCompression getEntryCompression() {
         return entryCompression;
     }
@@ -107,6 +109,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isZip64() {
         return allowZip64;
     }
@@ -118,6 +121,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * @return null if using the platform's default character set for ZIP metadata
      * @since 2.14
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getMetadataCharset() {
         return this.metadataCharset;

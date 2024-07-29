@@ -59,7 +59,7 @@ class ConfigurationCacheReportIntegrationTest extends AbstractConfigurationCache
             { pageErrors.add(it) }
         )
         pageErrors == []
-        activeGroup == "Problems grouped by message1"
+        activeGroup == "Problems grouped by message (1)"
     }
 
     private String selectInnerTextOf(File configurationCacheReport, String selector, Consumer<String> onPageError) {

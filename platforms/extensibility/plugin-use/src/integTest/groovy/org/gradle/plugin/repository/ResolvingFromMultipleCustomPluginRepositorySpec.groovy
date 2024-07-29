@@ -89,7 +89,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     def "#repoType repositories are queried in declaration order"() {
         given:
         publishPlugins(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "$pluginAB" version "1.0"
           }
@@ -109,7 +109,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     def "Tries next #repoType repository if first didn't match"() {
         given:
         publishPlugins(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "$pluginA" version "1.0"
           }
@@ -129,7 +129,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     def "Order of plugin requests does not affect order of #repoType repositories queried"() {
         given:
         publishPlugins(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "$pluginA" version "1.0"
               id "$pluginAB" version "1.0"
@@ -150,7 +150,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     def "Resolution failures for #repoType are reported in declaration order"() {
         given:
         publishPlugins(repoType)
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.foo" version "1.1"
           }
@@ -181,7 +181,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     def "Does not fall through to plugin portal if custom #repoType repos are defined"(String repoType) {
         given:
         publishPlugins(repoType)
-        buildScript """
+        buildFile """
             plugins {
                 id "org.gradle.hello-world" version "0.2" //exits in the plugin portal
             }
@@ -208,7 +208,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         given:
         publishPlugins(MAVEN)
         requireOwnGradleUserHomeDir()
-        buildScript """
+        buildFile """
             plugins {
                 id "org.gradle.hello-world" version "0.2" //exists in the plugin portal
             }
@@ -234,7 +234,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         given:
         publishPlugins(MAVEN)
         requireOwnGradleUserHomeDir()
-        buildScript """
+        buildFile """
             //this simulates pluginA having a dependency on the hello world plugin
             buildscript {
                 dependencies {

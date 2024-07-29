@@ -32,8 +32,10 @@ import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.SoftwareTypeRegistrationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
@@ -41,24 +43,40 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
-public class SettingsScopeServices extends DefaultServiceRegistry {
+import java.util.List;
+
+public class SettingsScopeServices implements ServiceRegistrationProvider {
+
+    public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
+        return ServiceRegistryBuilder.builder()
+            .scope(Scope.Settings.class)
+            .displayName("settings services")
+            .parent(parent)
+            .provider(new SettingsScopeServices(settings))
+            .build();
+    }
+
     private final SettingsInternal settings;
 
-    public SettingsScopeServices(final ServiceRegistry parent, final SettingsInternal settings) {
-        super(parent);
+    private SettingsScopeServices(SettingsInternal settings) {
         this.settings = settings;
-        register(registration -> {
-            for (GradleModuleServices services : parent.getAll(GradleModuleServices.class)) {
-                services.registerSettingsServices(registration);
-            }
-            registration.add(DefaultProjectDescriptorRegistry.class);
-        });
+    }
+
+    @Provides
+    protected void configure(ServiceRegistration registration, List<GradleModuleServices> gradleModuleServiceProviders) {
+        for (GradleModuleServices services : gradleModuleServiceProviders) {
+            services.registerSettingsServices(registration);
+        }
+        registration.add(DefaultProjectDescriptorRegistry.class);
     }
 
     @Provides
@@ -79,6 +97,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     @Provides
     protected PluginManagerInternal createPluginManager(
         Instantiator instantiator,
+        ServiceRegistry settingsScopeServiceRegistry,
         PluginRegistry pluginRegistry,
         InstantiatorFactory instantiatorFactory,
         BuildOperationRunner buildOperationRunner,
@@ -86,14 +105,15 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry
-        ) {
+        SoftwareTypeRegistry softwareTypeRegistry,
+        InternalProblems problems
+    ) {
         PluginTarget target = new SoftwareTypeRegistrationPluginTarget(
-            new ImperativeOnlyPluginTarget<>(settings),
+            new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
             softwareTypeRegistry,
             pluginScheme.getInspectionScheme()
         );
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     @Provides

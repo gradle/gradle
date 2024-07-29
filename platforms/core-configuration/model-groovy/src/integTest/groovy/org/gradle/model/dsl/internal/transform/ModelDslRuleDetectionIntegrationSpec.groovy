@@ -29,7 +29,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
         def normalisedPath = path.replace('"', '').replaceAll("'", "")
 
         when:
-        buildScript """
+        buildFile """
             @Managed
             interface Item {
                 String getValue()
@@ -94,7 +94,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
     def "only literal property paths are allowed - #pathCode"() {
         when:
-        buildScript """
+        buildFile """
             model {
                 $pathCode {
 
@@ -120,7 +120,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
     def "only rules are allowed in the model block - #code"() {
         when:
-        buildScript """
+        buildFile """
             model {
                 $code
             }
@@ -142,7 +142,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
     def "only closure literals can be used as rules"() {
         when:
-        buildScript """
+        buildFile """
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {

@@ -24,7 +24,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
@@ -32,7 +32,6 @@ dependencies {
     api(projects.reporting)
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
-    api(projects.serviceProvider)
     api(projects.time)
 
     api(libs.groovy)
@@ -40,6 +39,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
+    implementation(projects.internalInstrumentationApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.files)

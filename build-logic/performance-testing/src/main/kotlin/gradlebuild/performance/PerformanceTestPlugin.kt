@@ -22,6 +22,7 @@ import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.defaultPerformanceBaselines
+import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
@@ -174,7 +175,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<TemplateProjectGeneratorTask>().configureEach {
-            sharedTemplateDirectory = project(":internal-performance-testing").file("src/templates")
+            sharedTemplateDirectory = project(":internal-performance-testing").isolated.projectDirectory.file("src/templates").asFile
         }
     }
 
@@ -249,6 +250,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             classpath = performanceSourceSet.runtimeClasspath
             maxParallelForks = 1
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
+            systemProperty("org.gradle.performance.develocity.plugin.infoDir", projectDir.absolutePath)
 
             project.toolchainInstallationPaths?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
@@ -319,7 +321,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
         val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
-        val buildCommitDistributionsDir = project.rootProject.layout.buildDirectory.dir("commit-distributions")
+        val buildCommitDistributionsDir = project.getBuildEnvironmentExtension().rootProjectBuildDir.dir("commit-distributions")
 
         determineBaselines.configure {
             configuredBaselines = extension.baselines
@@ -499,7 +501,7 @@ class PerformanceTestExtension(
                         if (allTestsWereSkipped(file)) {
                             exclude()
                         }
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         exclude()
                     }
                 }

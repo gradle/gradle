@@ -70,6 +70,8 @@ public class KillLeakingJavaProcesses {
     private static final String JAVA_EXECUTABLE_PATTERN_STR = "java(?:\\.exe)?";
     private static final String GRADLE_MAIN_CLASS_PATTERN_STR = "(org\\.gradle\\.[a-zA-Z]+)";
     private static final String PLAY_SERVER_PATTERN_STR = "(play\\.core\\.server\\.NettyServer)";
+    // https://github.com/gradle/gradle-private/issues/4255
+    private static final String CHROME_PATTERN_STR = "(/usr/bin/google-chrome-for-testing)";
     private static final String JAVA_PROCESS_STACK_TRACES_MONITOR_PATTERN_STR = "(JavaProcessStackTracesMonitor\\.java)";
     private static ExecutionMode executionMode;
 
@@ -87,12 +89,14 @@ public class KillLeakingJavaProcesses {
         String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String playServerPattern = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + PLAY_SERVER_PATTERN_STR + ")";
-        return "(?i)[/\\\\]" + "(" + JAVA_EXECUTABLE_PATTERN_STR + ".+?" + "(?:"
+        String javaPattern = "(?i)[/\\\\]" + "(" + JAVA_EXECUTABLE_PATTERN_STR + ".+?" + "(?:"
             + perfTestClasspathPattern + "|"
             + buildDirClasspathPattern + "|"
             + playServerPattern + "|"
             + kotlinCompilerDaemonPattern + "|"
             + JAVA_PROCESS_STACK_TRACES_MONITOR_PATTERN_STR + ").+)";
+
+        return javaPattern + "|" + CHROME_PATTERN_STR;
     }
 
     public static void main(String[] args) {

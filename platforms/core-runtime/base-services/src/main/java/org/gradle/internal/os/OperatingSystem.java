@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
 
 import static org.gradle.internal.FileUtils.withExtension;
 
+
+@SuppressWarnings("ClassInitializationDeadlock")
 public abstract class OperatingSystem {
     public static final Windows WINDOWS = new Windows();
     public static final MacOs MAC_OS = new MacOs();

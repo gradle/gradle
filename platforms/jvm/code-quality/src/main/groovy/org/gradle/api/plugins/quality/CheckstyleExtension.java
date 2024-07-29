@@ -22,6 +22,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -53,6 +54,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     /**
      * The Checkstyle configuration file to use.
      */
+    @ToBeReplacedByLazyProperty
     public File getConfigFile() {
         return getConfig().asFile();
     }
@@ -69,6 +71,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
+    @ToBeReplacedByLazyProperty
     public TextResource getConfig() {
         return config;
     }
@@ -85,6 +88,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
+    @ToBeReplacedByLazyProperty
     public Map<String, Object> getConfigProperties() {
         return configProperties;
     }
@@ -118,6 +122,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return the maximum number of errors allowed
      * @since 3.4
      */
+    @ToBeReplacedByLazyProperty
     public int getMaxErrors() {
         return maxErrors;
     }
@@ -141,6 +146,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return the maximum number of warnings allowed
      * @since 3.4
      */
+    @ToBeReplacedByLazyProperty
     public int getMaxWarnings() {
         return maxWarnings;
     }
@@ -160,6 +166,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      *
      * Example: showViolations = false
      */
+    @ToBeReplacedByLazyProperty
     public boolean isShowViolations() {
         return showViolations;
     }

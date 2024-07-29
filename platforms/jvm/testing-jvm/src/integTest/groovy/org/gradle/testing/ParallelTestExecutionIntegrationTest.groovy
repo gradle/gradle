@@ -134,7 +134,8 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "does not run tests from multiple tasks from the same project in parallel"() {
         withBlockingJUnitTests(2)
         withBlockingJUnitTests(2, "other")
-        buildScript """
+        buildFile.clear()
+        buildFile """
             plugins {
                 id "java"
                 id "jvm-test-suite"

@@ -25,27 +25,29 @@ dependencies {
     api(libs.jsr305)
     api(libs.maven3Settings)
 
-    api(projects.javaLanguageExtensions)
+    api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":file-collections"))
-    api(project(":logging"))
-    api(project(":platform-jvm"))
-    api(project(":toolchains-jvm-shared"))
-    api(project(":workers"))
-    api(project(":daemon-services"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.platformJvm)
+    api(projects.toolchainsJvmShared)
+    api(projects.workers)
+    api(projects.daemonServices)
 
-    implementation(project(":logging-api"))
-    implementation(project(":platform-native"))
-    implementation(project(":plugins-application")) {
+    implementation(projects.internalInstrumentationApi)
+    implementation(projects.loggingApi)
+    implementation(projects.platformNative)
+    implementation(projects.pluginsApplication) {
         because("Needs access to StartScriptGenerator.")
     }
-    implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":wrapper-main"))
-    implementation(project(":wrapper-shared"))
+    implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.serviceLookup)
+    implementation(projects.wrapperMain)
+    implementation(projects.wrapperShared)
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -73,35 +75,37 @@ dependencies {
     compileOnly(libs.maven3Core)
     compileOnly(libs.maven3PluginApi)
 
-    compileOnly(project(":platform-base"))
+    compileOnly(projects.platformBase)
 
     testRuntimeOnly(libs.maven3Compat)
     testRuntimeOnly(libs.maven3PluginApi)
 
-    testImplementation(project(":cli"))
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":native"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(projects.cli)
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.native)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.processServices)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.platformNative))
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":platform-base"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":plugins-java"))
-    testFixturesImplementation(project(":testing-base"))
-    testFixturesImplementation(project(":test-suites-base"))
-    testFixturesImplementation(project(":plugins-jvm-test-suite"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.platformBase)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.pluginsJava)
+    testFixturesImplementation(projects.testingBase)
+    testFixturesImplementation(projects.testSuitesBase)
+    testFixturesImplementation(projects.pluginsJvmTestSuite)
 
-    integTestImplementation(project(":native"))
+    integTestImplementation(projects.native)
     integTestImplementation(libs.jetty)
 
-    testRuntimeOnly(project(":distributions-jvm")) {
+    integTestRuntimeOnly(libs.maven3Compat)
+
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
 packageCycles {

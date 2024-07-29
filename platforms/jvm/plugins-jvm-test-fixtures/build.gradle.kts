@@ -28,21 +28,21 @@ plugins {
 description = "Contains the Java Test Fixtures plugin"
 
 dependencies {
-    api(project(":core-api"))
+    api(projects.coreApi)
 
     api(libs.inject)
 
-    implementation(project(":base-services"))
-    implementation(project(":dependency-management"))
-    implementation(project(":core"))
-    implementation(project(":language-java"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-jvm-test-suite"))
+    implementation(projects.baseServices)
+    implementation(projects.dependencyManagement)
+    implementation(projects.core)
+    implementation(projects.languageJava)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJvmTestSuite)
 
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.logging)
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

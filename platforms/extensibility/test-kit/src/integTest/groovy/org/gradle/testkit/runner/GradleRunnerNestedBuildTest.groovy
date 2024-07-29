@@ -23,12 +23,12 @@ class GradleRunnerNestedBuildTest extends BaseGradleRunnerIntegrationTest {
     @Issue("https://github.com/gradle/gradle/issues/2622")
     def "does not break for deeply nested builds"() {
         given:
-        buildScript """          
+        buildFile """
             task nested1(type: GradleBuild)
-            
+
             task nested2(type: GradleBuild) {
                 tasks = ['nested1']
-            }           
+            }
         """
         settingsFile << "rootProject.name='root'"
 

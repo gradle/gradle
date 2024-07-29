@@ -33,7 +33,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         overridePluginPortalUri(pluginPortalUri)
 
         and:
-        buildScript """
+        buildFile """
             buildscript {
                 repositories { maven { url "$buildscriptRepoUri" } }
                 dependencies { classpath "my:plugin:1.0" }

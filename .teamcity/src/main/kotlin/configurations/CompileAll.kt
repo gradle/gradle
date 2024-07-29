@@ -1,9 +1,10 @@
 package configurations
 
+import common.Os
 import model.CIBuildModel
 import model.Stage
 
-class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
+class CompileAll(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
     id(buildTypeId(model))
     name = "Compile All"
     description = "Compiles all production/test source code and warms up the build cache"
