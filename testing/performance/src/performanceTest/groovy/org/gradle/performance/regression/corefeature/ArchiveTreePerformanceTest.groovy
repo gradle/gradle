@@ -64,6 +64,9 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "checkstyle test"() {
         given:
         runner.tasksToRun = ['checkstyleMain', "--rerun"]
+        runner.args.add('-Dorg.gradle.parallel=true')
+        runner.args.add("-Dorg.gradle.ignoreBuildJavaVersionCheck=true")
+        runner.args.add("--max-workers=6")
 
         when:
         def result = runner.run()
