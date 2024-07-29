@@ -19,7 +19,6 @@ package org.gradle.internal.reflect;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.TypeToken;
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -28,10 +27,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 
 public class JavaReflectionUtil {
-
-    public static Class<?> getWrapperTypeForPrimitiveType(Class<?> type) {
-        return AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(type);
-    }
 
     /**
      * This is intended to be a equivalent of deprecated {@link Class#newInstance()}.

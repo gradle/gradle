@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.testng.ISuiteListener;
 import org.testng.ITestListener;
 
@@ -89,7 +89,7 @@ class TestNGListenerAdapterFactory {
             Class<?> realReturnType = method.getReturnType();
             Class<?> boxedReturnType = realReturnType;
             if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
-                boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
+                boxedReturnType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(realReturnType);
             }
             if (method.getName().equals("equals") && args != null && args.length == 1) {
                 return proxyEquals(proxy, args[0]);
