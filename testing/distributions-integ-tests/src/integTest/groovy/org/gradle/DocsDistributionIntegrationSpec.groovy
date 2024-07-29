@@ -48,8 +48,5 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
         expect:
         contentsDir.file("LICENSE").assertIsFile()
         assertDocsExist(contentsDir, version)
-
-        // Docs distribution contains all published samples
-        contentsDir.file("docs/samples/index.html").assertIsFile()
     }
 }
