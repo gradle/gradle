@@ -36,12 +36,12 @@ class RelevantProjectsRegistry(
 ) : ProjectComponentObservationListener {
 
     private
-    val targetProjects = newConcurrentHashSet<ProjectState>()
+    val targetProjects = newConcurrentHashSet<Path>()
 
     fun relevantProjects(nodes: List<Node>): Set<ProjectState> {
         val result = mutableSetOf<ProjectState>()
         for (project in targetProjects) {
-            collect(project, result)
+            collect(projectStateRegistry.stateFor(project), result)
         }
         for (node in nodes) {
             val project = projectStateOf(node)
@@ -70,6 +70,6 @@ class RelevantProjectsRegistry(
     fun isLocalProject(projectState: ProjectState) = projectState.owner === build
 
     override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
-        targetProjects.add(projectStateRegistry.stateFor(targetProjectPath))
+        targetProjects.add(targetProjectPath)
     }
 }

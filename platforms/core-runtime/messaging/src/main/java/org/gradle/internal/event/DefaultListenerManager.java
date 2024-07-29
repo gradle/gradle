@@ -216,7 +216,8 @@ public class DefaultListenerManager implements ScopedListenerManager {
     }
 
     /**
-     * Manages the listeners and state for a given listener type
+     * A broadcaster. Manages all state and registered listener implementations for a given
+     * listener interface.
      */
     private abstract class EventBroadcast<T>  {
         protected final Class<T> type;
@@ -532,7 +533,9 @@ public class DefaultListenerManager implements ScopedListenerManager {
     }
 
     /**
-     * Holds state about a particular listener
+     * Holds state about a particular listener implementation. A listener implementation may
+     * implement multiple listener interfaces and therefore may receive events from multiple
+     * broadcasters.
      */
     private class ListenerDetails implements Dispatch<MethodInvocation> {
         final Object listener;
