@@ -104,9 +104,15 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         }
 
         try {
-            ant.taskdef(ImmutableMap.of("name", "checkstyle", "classname", "com.puppycrawl.tools.checkstyle.CheckStyleTask"));
+            ant.taskdef(ImmutableMap.of(
+                "name", "checkstyle",
+                "classname", "com.puppycrawl.tools.checkstyle.CheckStyleTask"
+            ));
         } catch (RuntimeException ignore) {
-            ant.taskdef(ImmutableMap.of("name", "checkstyle", "classname", "com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask"));
+            ant.taskdef(ImmutableMap.of(
+                "name", "checkstyle",
+                "classname", "com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask"
+            ));
         }
 
         try {
@@ -245,13 +251,10 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
     }
 
     private static List<String> getViolations(Node reportXml) {
-        List<String> severity = new ArrayList<>();
-        NodeList errorNodes = reportXml.getAt(QName.valueOf("file")).getAt("error");
-        for (Object node : errorNodes) {
-            Node errorNode = (Node) node;
-            severity.add((String) errorNode.attribute("severity"));
-        }
-        return severity.stream()
+        @SuppressWarnings("unchecked")
+        List<Node> errorNodes = reportXml.getAt(QName.valueOf("file")).getAt("error");
+        return errorNodes.stream()
+            .map(node -> (String) node.attribute("severity"))
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
             .entrySet().stream()
             .map(entry -> entry.getKey() + ":" + entry.getValue())
