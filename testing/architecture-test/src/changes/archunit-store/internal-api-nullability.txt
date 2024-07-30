@@ -490,6 +490,7 @@ Class <org.gradle.api.internal.project.ant.AntLoggingAdapter> is not annotated (
 Class <org.gradle.api.internal.project.ant.AntLoggingAdapterFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AntLoggingAdapterFactory.java:0)
 Class <org.gradle.api.internal.project.ant.BasicAntBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BasicAntBuilder.java:0)
 Class <org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultAntLoggingAdapterFactory.java:0)
+Class <org.gradle.api.internal.project.antbuilder.AntBuilderDelegate$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AntBuilderDelegate.java:0)
 Class <org.gradle.api.internal.project.antbuilder.AntBuilderDelegate> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AntBuilderDelegate.java:0)
 Class <org.gradle.api.internal.project.antbuilder.CacheEntry> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheEntry.java:0)
 Class <org.gradle.api.internal.project.antbuilder.CachedClassLoader> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachedClassLoader.java:0)

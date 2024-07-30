@@ -53,7 +53,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.invoke;
 
 class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
@@ -110,7 +109,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         }
 
         try {
-            invoke(ant, "checkstyle",
+            ant.invokeMethod("checkstyle",
                 ImmutableMap.of(
                     "config", config.getAsFile(),
                     "failOnViolation", false,
@@ -121,23 +120,23 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     source.addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
 
                     if (showViolations) {
-                        invoke(ant, "formatter", ImmutableMap.of("type", "plain", "useFile", false));
+                        ant.invokeMethod("formatter", ImmutableMap.of("type", "plain", "useFile", false));
                     }
 
                     if (isXmlRequired || isHtmlRequired) {
-                        invoke(ant, "formatter", ImmutableMap.of("type", "xml", "toFile", checkNotNull(xmlOutputLocation)));
+                        ant.invokeMethod("formatter", ImmutableMap.of("type", "xml", "toFile", checkNotNull(xmlOutputLocation)));
                     }
 
                     if (isSarifRequired) {
-                        invoke(ant, "formatter", ImmutableMap.of("type", "sarif", "toFile", checkNotNull(sarifOutputLocation)));
+                        ant.invokeMethod("formatter", ImmutableMap.of("type", "sarif", "toFile", checkNotNull(sarifOutputLocation)));
                     }
 
                     //noinspection CodeBlock2Expr
                     configProperties.forEach((key, value) -> {
-                        invoke(ant, "property", ImmutableMap.of("key", key, "value", value.toString()));
+                        ant.invokeMethod("property", ImmutableMap.of("key", key, "value", value.toString()));
                     });
 
-                    invoke(ant, "property", ImmutableMap.of("key", CONFIG_LOC_PROPERTY, "value", configDir.toString()));
+                    ant.invokeMethod("property", ImmutableMap.of("key", CONFIG_LOC_PROPERTY, "value", configDir.toString()));
                 });
         } catch (Exception e) {
             throw new CheckstyleInvocationException("An unexpected error occurred configuring and executing Checkstyle.", e);
@@ -147,9 +146,12 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             String stylesheet = stylesheetString.isPresent()
                 ? stylesheetString.get()
                 : readText(Checkstyle.class.getClassLoader().getResourceAsStream("checkstyle-noframes-sorted.xsl"));
-            invoke(ant, "xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
-                invoke(ant, "param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
-                invoke(ant, "style", () -> invoke(ant, "string", ImmutableMap.of("value", stylesheet)));
+            ant.invokeMethod("xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
+                ant.invokeMethod("param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
+                //noinspection CodeBlock2Expr
+                ant.invokeMethod("style", () -> {
+                    ant.invokeMethod("string", ImmutableMap.of("value", stylesheet));
+                });
             });
         }
 
@@ -159,7 +161,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
         Node reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation);
         String message = getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml);
-        boolean hasAFailure = AntInvokeUtils.getProjectProperties(ant).get(FAILURE_PROPERTY_NAME) != null;
+        boolean hasAFailure = ant.getProjectProperties().get(FAILURE_PROPERTY_NAME) != null;
         if (hasAFailure && !ignoreFailures) {
             throw new MarkedVerificationException(message);
         } else {

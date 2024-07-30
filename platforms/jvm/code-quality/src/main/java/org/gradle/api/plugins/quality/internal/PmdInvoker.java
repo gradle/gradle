@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.getProjectProperties;
-import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.invoke;
 
 class PmdInvoker implements Action<AntBuilderDelegate> {
 
@@ -134,10 +132,10 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         List<String> finalRuleSets = ruleSets;
         List<PmdActionParameters.EnabledReport> reports = parameters.getEnabledReports().get();
         ant.taskdef(ImmutableMap.of("name", "pmd", "classname", "net.sourceforge.pmd.ant.PMDTask"));
-        invoke(ant, "pmd", antPmdArgs, () -> {
+        ant.invokeMethod("pmd", antPmdArgs, () -> {
             parameters.getSource().addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
-            finalRuleSets.forEach(rule -> invoke(ant, "ruleset", rule));
-            parameters.getRuleSetConfigFiles().forEach(ruleSetConfig -> invoke(ant, "ruleset", ruleSetConfig));
+            finalRuleSets.forEach(rule -> ant.invokeMethod("ruleset", rule));
+            parameters.getRuleSetConfigFiles().forEach(ruleSetConfig -> ant.invokeMethod("ruleset", ruleSetConfig));
 
             FileCollection auxClasspath = parameters.getAuxClasspath().filter(new FileExistFilter());
             if (!auxClasspath.isEmpty()) {
@@ -148,7 +146,7 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                 File file = report.getOutputLocation().getAsFile().get();
                 checkArgument(file.getParentFile().exists(), "Parent directory of report file '" + file + "' does not exist.");
                 String type = report.getName().get().equals("html") ? finalHtmlFormat : report.getName().get();
-                invoke(ant, "formatter", ImmutableMap.of("type", type, "toFile", file));
+                ant.invokeMethod("formatter", ImmutableMap.of("type", type, "toFile", file));
             });
 
             if (parameters.getConsoleOutput().get()) {
@@ -157,10 +155,10 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                     consoleOutputType = "textcolor";
                 }
                 disableSaveStreams(ant);
-                invoke(ant, "formatter", ImmutableMap.of("type", consoleOutputType, "toConsole", true));
+                ant.invokeMethod("formatter", ImmutableMap.of("type", consoleOutputType, "toConsole", true));
             }
         });
-        String failureCount = (String) getProjectProperties(ant).get("pmdFailureCount");
+        String failureCount = (String) ant.getProjectProperties().get("pmdFailureCount");
         if (failureCount != null) {
             String message = String.format("%s PMD rule violations were found.", failureCount);
             PmdActionParameters.EnabledReport report = reports.isEmpty() ? null : reports.get(0);

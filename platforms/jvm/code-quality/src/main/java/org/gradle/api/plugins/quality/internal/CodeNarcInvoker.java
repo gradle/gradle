@@ -34,8 +34,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.invoke;
-
 class CodeNarcInvoker implements Action<AntBuilderDelegate> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CodeNarcInvoker.class);
@@ -60,7 +58,7 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
         setLifecycleLogLevel(ant, null);
         ant.taskdef(ImmutableMap.of("name", "codenarc", "classname", "org.codenarc.ant.CodeNarcTask"));
         try {
-            invoke(ant, "codenarc",
+            ant.invokeMethod("codenarc",
                 ImmutableMap.of(
                     "ruleSetFiles", "file:" + configFile,
                     "maxPriority1Violations", maxPriority1Violations,
@@ -72,17 +70,21 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                         if (r.getName().get().equals("console")) {
                             // The output from Ant is written at INFO level
                             setLifecycleLogLevel(ant, "INFO");
+
                             // Prefer to use the IDE based formatter because this produces a useful/clickable link to the violation on the console
-                            invoke(ant, "report", ImmutableMap.of("type", "ide"), () -> {
-                                invoke(ant, "option", ImmutableMap.of("name", "writeToStandardOut", "value", true));
+                            //noinspection CodeBlock2Expr
+                            ant.invokeMethod("report", ImmutableMap.of("type", "ide"), () -> {
+                                ant.invokeMethod("option", ImmutableMap.of("name", "writeToStandardOut", "value", true));
                             });
                         } else if (r.getName().get().equals("html")) {
-                            invoke(ant, "report", ImmutableMap.of("type", "sortable"), () -> {
-                                invoke(ant, "option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()));
+                            //noinspection CodeBlock2Expr
+                            ant.invokeMethod("report", ImmutableMap.of("type", "sortable"), () -> {
+                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()));
                             });
                         } else {
-                            invoke(ant, "report", ImmutableMap.of("type", r.getName().get()), () -> {
-                                invoke(ant, "option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()));
+                            //noinspection CodeBlock2Expr
+                            ant.invokeMethod("report", ImmutableMap.of("type", r.getName().get()), () -> {
+                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()));
                             });
                         }
                     });
