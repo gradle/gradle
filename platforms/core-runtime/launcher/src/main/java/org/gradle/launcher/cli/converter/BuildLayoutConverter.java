@@ -55,8 +55,8 @@ public class BuildLayoutConverter {
             layoutParameters.setCurrentDir(workingDir);
         }
         defaults.accept(layoutParameters);
-        Map<String, String> requestedSystemProperties = systemProperties.getRequestedSystemProperties();
-        new BuildLayoutParametersBuildOptions().propertiesConverter().convert(requestedSystemProperties, layoutParameters);
+        Map<String, String> requestedProperties = systemProperties.getRequestedProperties();
+        new BuildLayoutParametersBuildOptions().propertiesConverter().convert(requestedProperties, layoutParameters);
         buildLayoutConverter.convert(commandLine, layoutParameters);
         return new Result(layoutParameters);
     }

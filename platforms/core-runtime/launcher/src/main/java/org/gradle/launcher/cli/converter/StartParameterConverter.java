@@ -21,7 +21,6 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.cli.ProjectPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -33,14 +32,12 @@ public class StartParameterConverter {
     private final BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
     private final BuildOptionBackedConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
     private final BuildOptionBackedConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new ParallelismBuildOptions());
-    private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final BuildOptionBackedConverter<StartParameterInternal> buildOptionsConverter = new BuildOptionBackedConverter<>(new StartParameterBuildOptions());
 
     public void configure(CommandLineParser parser) {
         welcomeMessageConfigurationCommandLineConverter.configure(parser);
         loggingConfigurationCommandLineConverter.configure(parser);
         parallelConfigurationCommandLineConverter.configure(parser);
-        projectPropertiesCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         buildOptionsConverter.configure(parser);
     }
@@ -53,8 +50,7 @@ public class StartParameterConverter {
         parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
 
         startParameter.getSystemPropertiesArgs().putAll(properties.getRequestedSystemProperties());
-
-        projectPropertiesCommandLineConverter.convert(parsedCommandLine, startParameter.getProjectProperties());
+        startParameter.getProjectProperties().putAll(properties.getRequestedProjectProperties());
 
         if (!parsedCommandLine.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(parsedCommandLine.getExtraArguments());

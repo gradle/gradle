@@ -29,6 +29,11 @@ public interface AllProperties {
     Map<String, String> getRequestedSystemProperties();
 
     /**
+     * Returns the project properties defined as command-line options.
+     */
+    Map<String, String> getRequestedProjectProperties();
+
+    /**
      * Returns all properties that should be considered to calculate build option values.
      */
     Map<String, String> getProperties();

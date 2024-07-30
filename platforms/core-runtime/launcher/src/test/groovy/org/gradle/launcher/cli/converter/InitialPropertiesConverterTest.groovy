@@ -20,16 +20,24 @@ import org.gradle.cli.CommandLineParser
 import spock.lang.Specification
 
 class InitialPropertiesConverterTest extends Specification {
-    def "collects -D command-line options"() {
+    def "collects command-line options"() {
         def converter = new InitialPropertiesConverter()
         def parser = new CommandLineParser()
         converter.configure(parser)
-        def commandLine = parser.parse("-Done=12", "-Dtwo")
+        def commandLine = parser.parse("-Done=12", "-Dtwo", "-Pthree=3")
         def result = converter.convert(commandLine)
 
         expect:
+        result.requestedProperties.size() == 3
+        result.requestedProperties.get("one") == "12"
+        result.requestedProperties.get("two") == ""
+        result.requestedProperties.get("three") == "3"
+
         result.requestedSystemProperties.size() == 2
         result.requestedSystemProperties.get("one") == "12"
         result.requestedSystemProperties.get("two") == ""
+
+        result.requestedProjectProperties.size() == 1
+        result.requestedProjectProperties.get("three") == "3"
     }
 }

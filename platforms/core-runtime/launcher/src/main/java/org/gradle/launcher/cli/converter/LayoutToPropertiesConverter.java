@@ -67,7 +67,7 @@ public class LayoutToPropertiesConverter {
         configureFromBuildDir(layout, properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
-        properties.putAll(initialProperties.getRequestedSystemProperties());
+        properties.putAll(initialProperties.getRequestedProperties());
 
         Map<String, String> daemonJvmProperties = new HashMap<>();
         configureFromDaemonJVMProperties(layout, daemonJvmProperties);
@@ -151,6 +151,11 @@ public class LayoutToPropertiesConverter {
         }
 
         @Override
+        public Map<String, String> getRequestedProjectProperties() {
+            return initialProperties.getRequestedProjectProperties();
+        }
+
+        @Override
         public Map<String, String> getProperties() {
             return Collections.unmodifiableMap(properties);
         }
@@ -164,7 +169,7 @@ public class LayoutToPropertiesConverter {
         public Result merge(Map<String, String> systemProperties) {
             Map<String, String> properties = new HashMap<>(this.properties);
             properties.putAll(systemProperties);
-            properties.putAll(initialProperties.getRequestedSystemProperties());
+            properties.putAll(initialProperties.getRequestedProperties());
             return new Result(properties, daemonJvmProperties, initialProperties);
         }
     }

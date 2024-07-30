@@ -16,9 +16,10 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.launcher.cli.converter.BuildLayoutConverter
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
+import org.gradle.launcher.configuration.AllProperties
+import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -29,18 +30,18 @@ class ProviderStartParameterConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     def params = Stub(ProviderOperationParameters)
-    def layout = Stub(BuildLayoutConverter.Result)
-    def properties = Stub(LayoutToPropertiesConverter.Result)
+    def layout = Stub(BuildLayoutResult)
+    def properties = Stub(AllProperties)
 
     def "allows configuring the start parameter with build arguments"() {
-        params.getArguments() >> ['-PextraProperty=foo', '-m']
+        params.getArguments() >> ['-m' , '--warning-mode', 'fail']
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
 
         then:
-        start.projectProperties['extraProperty'] == 'foo'
         start.dryRun
+        start.warningMode == WarningMode.Fail
     }
 
     def "the start parameter is configured from properties"() {
@@ -73,5 +74,17 @@ class ProviderStartParameterConverterTest extends Specification {
         start.taskRequests.size() == 1
         start.taskRequests[0].projectPath == ':child'
         start.taskRequests[0].args == ['myTask']
+    }
+
+    def "cmdline properties are extracted from AllProperties"() {
+        properties.requestedSystemProperties >> ["fooz": "barz"]
+        properties.requestedProjectProperties >> ["foo": "bar"]
+
+        when:
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
+
+        then:
+        start.systemPropertiesArgs['fooz'] == 'barz'
+        start.projectProperties['foo'] == 'bar'
     }
 }
