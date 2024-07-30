@@ -61,8 +61,8 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
         static nebulaDependencyRecommender = "11.0.0"
 
-        // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "17.1.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
+        static nebulaPluginPlugin = "20.9.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
         static nebulaLint = "17.7.0"
