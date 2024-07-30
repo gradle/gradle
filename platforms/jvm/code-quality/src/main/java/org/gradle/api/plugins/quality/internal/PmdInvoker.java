@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.getProjectProperties;
 import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.invoke;
 
@@ -75,7 +76,6 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         }
     }
 
-    @SuppressWarnings("CodeBlock2Expr")
     private static void runPmd(AntBuilderDelegate ant, PmdActionParameters parameters) {
         VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader());
 
@@ -136,12 +136,8 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         ant.taskdef(ImmutableMap.of("name", "pmd", "classname", "net.sourceforge.pmd.ant.PMDTask"));
         invoke(ant, "pmd", antPmdArgs, () -> {
             parameters.getSource().addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
-            finalRuleSets.forEach(rule -> {
-                invoke(ant, "ruleset", rule);
-            });
-            parameters.getRuleSetConfigFiles().forEach(ruleSetConfig -> {
-                invoke(ant, "ruleset", ruleSetConfig);
-            });
+            finalRuleSets.forEach(rule -> invoke(ant, "ruleset", rule));
+            parameters.getRuleSetConfigFiles().forEach(ruleSetConfig -> invoke(ant, "ruleset", ruleSetConfig));
 
             FileCollection auxClasspath = parameters.getAuxClasspath().filter(new FileExistFilter());
             if (!auxClasspath.isEmpty()) {
@@ -150,7 +146,7 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
 
             reports.forEach(report -> {
                 File file = report.getOutputLocation().getAsFile().get();
-                assert file.getParentFile().exists();
+                checkArgument(file.getParentFile().exists(), "Parent directory of report file '" + file + "' does not exist.");
                 String type = report.getName().get().equals("html") ? finalHtmlFormat : report.getName().get();
                 invoke(ant, "formatter", ImmutableMap.of("type", type, "toFile", file));
             });

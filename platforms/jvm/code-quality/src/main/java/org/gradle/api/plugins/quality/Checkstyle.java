@@ -161,8 +161,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
         parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
         parameters.getIsSarifRequired().set(getReports().getSarif().getRequired());
-        parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
-        parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
+        parameters.getXmlOutputLocation().set(getReports().getXml().getOutputLocation());
+        parameters.getHtmlOutputLocation().set(getReports().getHtml().getOutputLocation());
         parameters.getSarifOutputLocation().set(getReports().getSarif().getOutputLocation());
         parameters.getTemporaryDir().set(getTemporaryDir());
         parameters.getConfigProperties().set(getConfigProperties());

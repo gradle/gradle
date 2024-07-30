@@ -29,6 +29,7 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -137,11 +138,12 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
     }
 
     @SuppressWarnings("unchecked")
-    static void setLifecycleLogLevel(AntBuilderDelegate ant, String lifecycleLogLevel) {
+    static void setLifecycleLogLevel(AntBuilderDelegate ant, @Nullable String lifecycleLogLevel) {
         try {
             Object project = ant.getBuilder().getClass().getMethod("getProject").invoke(ant.getBuilder());
             List<Object> buildListeners = (List<Object>) project.getClass().getMethod("getBuildListeners").invoke(project);
             for (Object it : buildListeners) {
+                // We cannot use instanceof or getClass().equals(AntLoggingAdapter.class) since they're in different class loaders
                 if (it.getClass().getName().equals(AntLoggingAdapter.class.getName())) {
                     it.getClass().getMethod("setLifecycleLogLevel", String.class).invoke(it, lifecycleLogLevel);
                 }

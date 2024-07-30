@@ -43,9 +43,9 @@ public interface CheckstyleActionParameters extends AntWorkParameters {
 
     Property<Boolean> getIsSarifRequired();
 
-    RegularFileProperty getXmlOuputLocation();
+    RegularFileProperty getXmlOutputLocation();
 
-    RegularFileProperty getHtmlOuputLocation();
+    RegularFileProperty getHtmlOutputLocation();
 
     RegularFileProperty getSarifOutputLocation();
 
