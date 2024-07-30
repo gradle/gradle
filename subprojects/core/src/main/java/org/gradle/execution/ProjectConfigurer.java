@@ -38,4 +38,5 @@ public interface ProjectConfigurer {
      */
     void configureHierarchy(ProjectInternal project);
 
+    void configureHierarchyInParallel(ProjectInternal project);
 }

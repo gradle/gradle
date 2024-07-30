@@ -21,12 +21,18 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
     private final BuildCancellationToken cancellationToken;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public TaskPathProjectEvaluator(BuildCancellationToken cancellationToken) {
+    public TaskPathProjectEvaluator(BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor) {
         this.cancellationToken = cancellationToken;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -49,5 +55,24 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         for (Project sub : project.getSubprojects()) {
             configure((ProjectInternal) sub);
         }
+    }
+
+    @Override
+    public void configureHierarchyInParallel(ProjectInternal project) {
+        buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
+            for (Project p : project.getAllprojects()) {
+                queue.add(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) throws Exception {
+                        configure((ProjectInternal) p);
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Configure project " + p.getName());
+                    }
+                });
+            }
+        });
     }
 }

@@ -72,7 +72,11 @@ public class DefaultTaskSelector implements TaskSelector {
         if (!includeSubprojects) {
             configurer.configure(targetProject.getMutableModel());
         } else {
-            configurer.configureHierarchy(targetProject.getMutableModel());
+            if (true){
+                configurer.configureHierarchyInParallel(targetProject.getMutableModel());
+            } else {
+                configurer.configureHierarchy(targetProject.getMutableModel());
+            }
         }
 
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
