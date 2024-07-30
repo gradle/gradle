@@ -460,10 +460,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public Object getGroup() {
         if (group != null) {
             return group;
-        } else if (this == rootProject) {
+        } else if (this.equals(rootProject)) {
             return "";
         }
-        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        group = rootProject.getName() + (getParent().equals(rootProject) ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
         return group;
     }
 
@@ -511,7 +511,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getCrossProjectModelAccess().getChildProjects(this, this);
+        return getChildProjects(this);
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().getChildProjects(referrer, this);
     }
 
     @Override
@@ -696,7 +701,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void allprojects(ProjectInternal referrer, Action<? super Project> action) {
-        getProjectConfigurator().allprojects(getCrossProjectModelAccess().getAllprojects(referrer, this), action);
+        getProjectConfigurator().allprojects(getAllprojects(referrer), action);
     }
 
     @Override
@@ -721,7 +726,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
-        getProjectConfigurator().subprojects(getCrossProjectModelAccess().getSubprojects(referrer, this), configureAction);
+        getProjectConfigurator().subprojects(getSubprojects(referrer), configureAction);
     }
 
     @Override

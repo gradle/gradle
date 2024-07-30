@@ -24,6 +24,7 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.extensions.core.getInternalFlag
@@ -34,11 +35,12 @@ import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCacheStartParameter(
+class ConfigurationCacheStartParameter internal constructor(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
-    private val modelParameters: BuildModelParameters
+    private val modelParameters: BuildModelParameters,
+    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
 
     /**
@@ -77,7 +79,7 @@ class ConfigurationCacheStartParameter(
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel
-        get() = modelParameters.configurationCacheLogLevel
+        get() = loggingParameters.logLevel
 
     val isIgnoreInputsInTaskGraphSerialization: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization

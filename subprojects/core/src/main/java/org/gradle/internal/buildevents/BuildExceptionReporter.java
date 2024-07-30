@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -65,12 +66,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * Reports the build exception, if any.
  */
+@NonNullApi
 public class BuildExceptionReporter implements Action<Throwable> {
     private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
 
+    @NonNullApi
     private enum ExceptionStyle {
         NONE, FULL
     }
@@ -414,6 +417,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    @NonNullApi
     private static class FailureDetails {
         Throwable failure;
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
@@ -451,6 +455,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    @NonNullApi
     private class ContextImpl implements FailureResolutionAware.Context {
         private final BufferingStyledTextOutput resolution;
 

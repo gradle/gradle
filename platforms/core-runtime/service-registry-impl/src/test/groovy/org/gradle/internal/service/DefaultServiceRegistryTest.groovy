@@ -310,7 +310,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry at DefaultServiceRegistryTest$<anonymous>.createServices()'
+        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via DefaultServiceRegistryTest$<anonymous>.createServices()'
     }
 
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
@@ -484,9 +484,8 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceLookupException e = thrown()
         e.message.contains("Multiple services of type Long available in DefaultServiceRegistry:")
-        e.message.contains('- Service Long at DefaultServiceRegistryTest$ConflictingDecoratorMethods.createLong()')
-        e.message.contains('- Service Long at DefaultServiceRegistryTest$ConflictingDecoratorMethods.decorateLong()')
-
+        e.message.contains('- Service Long via DefaultServiceRegistryTest$ConflictingDecoratorMethods.createLong()')
+        e.message.contains('- Service Long via DefaultServiceRegistryTest$ConflictingDecoratorMethods.decorateLong()')
     }
 
     def providerDecoratorMethodFailsWhenNoParentRegistry() {
@@ -561,7 +560,7 @@ class DefaultServiceRegistryTest extends Specification {
         ServiceCreationException e = thrown()
         e.message == 'Cannot create service of type String using method DefaultServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
         e.cause.message == 'Cannot create service of type Integer using method DefaultServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
-        e.cause.cause.message == 'Cycle in dependencies of Service String at DefaultServiceRegistryTest$ProviderWithCycle.createString() detected'
+        e.cause.cause.message == 'Cycle in dependencies of Service String via DefaultServiceRegistryTest$ProviderWithCycle.createString() detected'
 
         when:
         registry.getAll(Number)
@@ -571,7 +570,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         e.message == 'Cannot create service of type Integer using method DefaultServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
         e.cause.message == 'Cannot create service of type String using method DefaultServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
-        e.cause.cause.message == 'Cycle in dependencies of Service Integer at DefaultServiceRegistryTest$ProviderWithCycle.createInteger() detected'
+        e.cause.cause.message == 'Cycle in dependencies of Service Integer via DefaultServiceRegistryTest$ProviderWithCycle.createInteger() detected'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {
@@ -639,17 +638,34 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
 
-        expect:
-        registry.get(String)
-
         when:
         registry.get(Comparable)
 
         then:
         ServiceLookupException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Comparable available in DefaultServiceRegistry:
-   - Service Integer at DefaultServiceRegistryTest\$TestProvider.createInt()
-   - Service String at DefaultServiceRegistryTest\$TestProvider.createString()""")
+   - Service Integer via DefaultServiceRegistryTest\$TestProvider.createInt()
+   - Service String via DefaultServiceRegistryTest\$TestProvider.createString()""")
+    }
+
+    def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceTypeViaConstructor() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings('unused')
+            void configure(ServiceRegistration registration) {
+                registration.add(TestServiceImpl)
+                registration.add(TestMultiServiceImpl)
+            }
+        })
+
+        when:
+        registry.get(TestService)
+
+        then:
+        def e = thrown(ServiceLookupException)
+        withoutTestClassName(e.message) == TextUtil.toPlatformLineSeparators("""Multiple services of type TestService available in DefaultServiceRegistry:
+   - Service TestMultiServiceImpl via TestMultiServiceImpl constructor
+   - Service TestServiceImpl via TestServiceImpl constructor""")
     }
 
     def failsWhenArrayClassRequested() {
@@ -1094,8 +1110,8 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceLookupException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Multiple factories for objects of type Comparable available in RegistryWithAmbiguousFactoryMethods:
-   - Service Factory<Integer> at DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createIntegerFactory()
-   - Service Factory<String> at DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createStringFactory()""")
+   - Service Factory<Integer> via DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createIntegerFactory()
+   - Service Factory<String> via DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createStringFactory()""")
     }
 
     def servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
@@ -2131,5 +2147,9 @@ class DefaultServiceRegistryTest extends Specification {
     static class RequiresService {
         RequiresService(Number value) {
         }
+    }
+
+    private String withoutTestClassName(String s) {
+        s.replaceAll(this.class.simpleName + "\\\$", "")
     }
 }

@@ -66,9 +66,8 @@ parenthesizedExpression ::= LP expression RP
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-primaryExpression ::= parenthesizedExpression | thisExpression | literalConstant | simpleIdentifier | stringLiteral
+primaryExpression ::= parenthesizedExpression | literalConstant | simpleIdentifier | stringLiteral
 simpleIdentifier ::= id                                      // TODO: needs refining
 stringLiteral ::= string                                     // TODO: needs refining
 literalConstant ::= "null" | booleanLiteral | number         // TODO: needs refining
 booleanLiteral ::= "true" | "false"
-thisExpression ::= "this"

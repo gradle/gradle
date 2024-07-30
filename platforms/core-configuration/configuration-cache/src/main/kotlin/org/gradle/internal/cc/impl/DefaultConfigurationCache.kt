@@ -33,6 +33,7 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
@@ -43,17 +44,20 @@ import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.extensions.core.get
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
@@ -86,7 +90,8 @@ class DefaultConfigurationCache internal constructor(
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor
+    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
+    private val deferredRootBuildGradle: DeferredRootBuildGradle
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -97,7 +102,10 @@ class DefaultConfigurationCache internal constructor(
     var cacheEntryRequiresCommit = false
 
     private
-    lateinit var host: ConfigurationCacheHost
+    val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
+
+    private
+    val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(host) }
 
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
@@ -109,13 +117,16 @@ class DefaultConfigurationCache internal constructor(
     val store by storeDelegate
 
     private
-    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(host, cacheIO, store) }
+    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
     private
-    val lazyIntermediateModels = lazy { IntermediateModelController(host, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(isolateOwnerHost, cacheIO, store) }
 
     private
-    val lazyProjectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
+    val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+
+    private
+    val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
 
     private
     val buildTreeModelSideEffects
@@ -130,9 +141,6 @@ class DefaultConfigurationCache internal constructor(
         get() = lazyProjectMetadata.value
 
     private
-    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
-
-    private
     val gradlePropertiesController: GradlePropertiesController
         get() = host.service()
 
@@ -145,10 +153,6 @@ class DefaultConfigurationCache internal constructor(
         problems.action(cacheAction, cacheActionDescription)
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
-    }
-
-    override fun attachRootBuild(host: ConfigurationCacheHost) {
-        this.host = host
     }
 
     override fun loadOrScheduleRequestedTasks(
@@ -485,7 +489,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+        deferredRootBuildGradle.gradle.owner.projects.withMutableStateOfAllProjects {
             cacheIO.writeRootBuildStateTo(stateFile)
         }
 
@@ -528,7 +532,7 @@ class DefaultConfigurationCache internal constructor(
     ): CloseableWriteContext {
         val (context, codecs) = cacheIO.writeContextFor(stateType, outputStream, profile)
         return context.apply {
-            push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
+            push(isolateOwnerHost, codecs.fingerprintTypesCodec())
         }
     }
 
@@ -598,7 +602,7 @@ class DefaultConfigurationCache internal constructor(
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
         cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+            withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val buildPath: Path
                         get() = host.service<GradleInternal>().identityPath

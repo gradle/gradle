@@ -48,6 +48,14 @@ The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetB
 
 Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.14.html[Ant 1.10.14].
 
+==== Upgrade to JaCoCo 0.8.12
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.12].
+
+==== Upgrade to Groovy 3.0.22
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.22.html[Groovy 3.0.22].
+
 === Deprecations
 
 [[minimum_daemon_jvm_version]]
@@ -85,6 +93,19 @@ An Ivy dependency may sometimes be substituted for a project dependency, either 
 When this happens, configurations in the substituted project could be selected that were marked as non-consumable.
 
 Consuming non-consumable configurations in this manner is deprecated and will result in an error in Gradle 9.0.
+
+[[extending_configurations_in_same_project]]
+==== Deprecated extending configurations in the same project
+
+In prior versions of Gradle, it was possible to extend a configuration in a different project.
+
+The hierarchy of a Project's configurations should not be influenced by configurations in other projects.
+Cross-project hierarchies can lead to unexpected behavior when configurations are extended in a way that is not intended by the configuration's owner.
+
+Projects should also never access the mutable state of another project.
+Since Configurations are mutable, extending configurations across project boundaries restricts the parallelism that Gradle can apply.
+
+Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
 
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
@@ -219,11 +240,11 @@ tasks.register("resolve") {
 
 For the following use cases, consider these alternatives when replacing a `beforeResolve` hook:
 
-* **Adding dependencies**: Use link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[`withDependencies`].
+* **Adding dependencies**: Use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[DependencyFactory] and `addLater` or `addAllLater` on link:{javadocPath}/org/gradle/api/artifacts/DependencySet.html[DependencySet].
 * **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
-* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] to add excludes to a configuration.
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
-* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a `withDependencies` hook.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
 [[deprecate_filtered_configuration_file_and_filecollection_methods]]

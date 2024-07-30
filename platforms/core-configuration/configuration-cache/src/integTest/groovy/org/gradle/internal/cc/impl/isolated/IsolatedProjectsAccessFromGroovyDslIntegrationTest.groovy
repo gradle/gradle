@@ -970,4 +970,43 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "normalization"     | "normalization { runtimeClasspath{} }"
         "dependencyLocking" | "dependencyLocking { lockAllConfigurations() }"
     }
+
+    def 'child project access preserves a referrer'() {
+        settingsFile """
+            include(":a")
+        """
+
+        buildFile """
+            version = "v1"
+            println "root.version = " + childProjects.values().first().parent.version
+        """
+
+        file("a/build.gradle") << """
+            version = "v1"
+            println "a.version = " + parent.childProjects.values().first().version
+        """
+
+        when:
+        isolatedProjectsRun "help", "-q"
+
+        then:
+        outputContains "root.version = v1\na.version = v1"
+    }
+
+    def 'access via Gradle instance preserves a referrer'() {
+        settingsFile """
+            include(":a")
+        """
+
+        file("a/build.gradle") << """
+            version = "v1"
+            println "a.version = " + gradle.rootProject.getSubprojects()[0].version
+        """
+
+        when:
+        isolatedProjectsRun "help"
+
+        then:
+        outputContains "a.version = v1"
+    }
 }

@@ -110,6 +110,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         return new IncludedRootBuild(this);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         if (completed) {

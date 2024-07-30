@@ -21,13 +21,14 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
+class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def "root project has an updateDaemonJvm task only"() {
         buildFile << """
@@ -104,10 +105,9 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         succeeds( "updateDaemonJvm", "--jvm-version=10000")
     }
 
-    @NotYetImplemented
     def "When execute updateDaemonJvm for valid vendor option Then build properties are populated with expected values"() {
         when:
-        run "updateDaemonJvm", "--toolchain-vendor=$vendor"
+        run "updateDaemonJvm", "--jvm-vendor=$vendor"
 
         then:
         assertJvmCriteria(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION, vendor)
@@ -128,33 +128,30 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         implementation << ["VENDOR_SPECIFIC", "J9"]
     }
 
-    @NotYetImplemented
     def "When execute updateDaemonJvm specifying different options Then build properties are populated with expected values"() {
         when:
-        run "updateDaemonJvm", "--jvm-version=17", "--toolchain-vendor=IBM", "--toolchain-implementation=J9"
+        run "updateDaemonJvm", "--jvm-version=17", "--jvm-vendor=IBM"
 
         then:
-        assertJvmCriteria(JavaVersion.VERSION_17, "IBM", "J9")
+        assertJvmCriteria(JavaVersion.VERSION_17, "IBM")
     }
 
-    @NotYetImplemented
     def "When execute updateDaemonJvm specifying different options in lower case Then build properties are populated with expected values"() {
         when:
-        run "updateDaemonJvm", "--jvm-version=17", "--toolchain-vendor=ibm", "--toolchain-implementation=j9"
+        run "updateDaemonJvm", "--jvm-version=17", "--jvm-vendor=ibm", "-S"
 
         then:
-        assertJvmCriteria(JavaVersion.VERSION_17, "IBM", "J9")
+        assertJvmCriteria(JavaVersion.VERSION_17, "IBM")
     }
 
     @NotYetImplemented
-    def "When execute updateDaemonJvm with unexpected --toolchain-vendor option Then fails with expected exception message"() {
+    def "When execute updateDaemonJvm with unexpected --jvm-vendor option Then fails with expected exception message"() {
         when:
-        fails "updateDaemonJvm", "--toolchain-vendor=unknown-vendor"
+        fails "updateDaemonJvm", "--jvm-vendor=unknown-vendor"
 
         then:
-        failureDescriptionContains("Problem configuring option 'toolchain-vendor' on task ':updateDaemonJvm' from command line.")
-        failureHasCause("Cannot convert string value 'unknown-vendor' to an enum value of type 'org.gradle.internal.jvm.inspection.JvmVendor\$KnownJvmVendor' " +
-            "(valid case insensitive values: ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN)")
+        failureDescriptionContains("Value 'unknown-vendor' given for toolchainVendor is an invalid Java vendor. " +
+            "Possible values are [ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
     }
 
     @NotYetImplemented
@@ -180,19 +177,6 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         assertJvmCriteria(otherJvm.javaVersion)
     }
 
-    @NotYetImplemented
-    def "Given defined invalid criteria When execute updateDaemonJvm with different criteria Then criteria get modified using java home"() {
-        def currentJvm = JavaVersion.current()
-
-        given:
-        writeJvmCriteria(currentJvm, "invalidVendor")
-
-        expect:
-        succeeds("updateDaemonJvm", "--jvm-version=20", "--toolchain-vendor=AZUL")
-        assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
-    }
-
-    @NotYetImplemented
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined valid criteria matching with local toolchain When execute updateDaemonJvm with different criteria Then criteria get modified using the expected local toolchain"() {
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -200,9 +184,11 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
         given:
         writeJvmCriteria(otherJvm.javaVersion, otherMetadata.vendor.knownVendor.name())
+        captureJavaHome()
 
         expect:
-        succeeds("updateDaemonJvm", "--jvm-version=20", "--toolchain-vendor=AZUL")
+        withInstallations(otherJvm).succeeds("updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=AZUL")
         assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
+        assertDaemonUsedJvm(otherJvm)
     }
 }

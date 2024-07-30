@@ -23,8 +23,10 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.FeatureFlags
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -40,13 +42,18 @@ import org.gradle.internal.service.scopes.ServiceScope
 internal
 class DeprecatedFeaturesListener(
     private val featureFlags: FeatureFlags,
-    private val buildModelParameters: BuildModelParameters
+    private val buildModelParameters: BuildModelParameters,
+    private val internalOptions: InternalOptions
 ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener, ExecutionAccessListener {
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (shouldNag()) {
+        if (!isConfigurationCache() && isBuildScopeListenerDeprecationEnabled()) {
             nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
         }
+    }
+
+    private fun isBuildScopeListenerDeprecationEnabled(): Boolean {
+        return internalOptions.getInternalFlag("org.gradle.configuration-cache.internal.deprecation.buildScopeListener", true)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -88,7 +95,10 @@ class DeprecatedFeaturesListener(
     private
     fun shouldNag(): Boolean =
         // TODO:configuration-cache - this listener shouldn't be registered when cc is enabled
-        !buildModelParameters.isConfigurationCache && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE)
+        !isConfigurationCache() && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE)
+
+    private
+    fun isConfigurationCache() = buildModelParameters.isConfigurationCache
 
     /**
      * Only nag about tasks that are actually executing, but not tasks that are configured by the executing tasks.
