@@ -85,4 +85,4 @@
 -keep class io.ktor.client.engine.** { *; }
 
 # Kotlin embedded compiler
-#-keep class org.jetbrains.kotlin.** { *; }
+-keep class org.jetbrains.kotlin.** { *; }
