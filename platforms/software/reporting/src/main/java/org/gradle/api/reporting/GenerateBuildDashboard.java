@@ -69,7 +69,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     }
 
     @Input
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since ReportState is private")
     public Set<ReportState> getInputReports() {
         Set<ReportState> inputs = new LinkedHashSet<ReportState>();
         for (Report report : getEnabledInputReports()) {

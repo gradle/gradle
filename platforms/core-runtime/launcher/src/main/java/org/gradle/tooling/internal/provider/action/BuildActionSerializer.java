@@ -164,6 +164,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshKeys());
             encoder.writeBoolean(startParameter.isExportKeys());
             encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
+            encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -258,6 +259,7 @@ public class BuildActionSerializer {
             startParameter.setRefreshKeys(decoder.readBoolean());
             startParameter.setExportKeys(decoder.readBoolean());
             startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
+            startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
 
             return startParameter;
         }

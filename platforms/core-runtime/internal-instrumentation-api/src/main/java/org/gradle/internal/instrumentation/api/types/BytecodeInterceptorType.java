@@ -32,6 +32,11 @@ public enum BytecodeInterceptorType {
     BYTECODE_UPGRADE(
         FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor.class,
         FilterableBytecodeInterceptorFactory.BytecodeUpgradeInterceptorFactory.class
+    ),
+
+    BYTECODE_UPGRADE_REPORT(
+        FilterableBytecodeInterceptor.BytecodeUpgradeReportInterceptor.class,
+        FilterableBytecodeInterceptorFactory.BytecodeUpgradeReportInterceptorFactory.class
     );
 
     private final Class<? extends FilterableBytecodeInterceptor> interceptorMarkerInterface;

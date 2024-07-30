@@ -616,6 +616,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "instrumentation-reporting",
+    "path": "platforms/core-runtime/instrumentation-reporting",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "integ-test",
     "path": "testing/integ-test",
     "unitTests": false,

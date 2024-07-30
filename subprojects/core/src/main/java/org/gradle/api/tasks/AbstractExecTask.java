@@ -133,7 +133,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Optional
     @Input
     @Override
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
     public List<String> getArgs() {
         return execSpec.getArgs();
     }
@@ -314,7 +314,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
     public InputStream getStandardInput() {
         return execSpec.getStandardInput();
     }
@@ -333,7 +333,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true)
     public OutputStream getStandardOutput() {
         return execSpec.getStandardOutput();
     }
@@ -352,7 +352,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not because it's a stream")
+    @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not because it's a stream", unreported = true)
     public OutputStream getErrorOutput() {
         return execSpec.getErrorOutput();
     }
@@ -371,7 +371,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Input
     @Override
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
     public boolean isIgnoreExitValue() {
         return execSpec.isIgnoreExitValue();
     }

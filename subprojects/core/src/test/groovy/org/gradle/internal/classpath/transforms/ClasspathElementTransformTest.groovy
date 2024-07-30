@@ -343,7 +343,7 @@ class ClasspathElementTransformTest extends Specification {
     }
 
     private File transform(TransformFactoryType factory, File original, File target) {
-        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer(), gradleCoreInstrumentingRegistry).transform(target)
+        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer()).transform(target)
         return target
     }
 

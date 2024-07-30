@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.instrumentation.agent.AgentStatus
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -48,7 +49,8 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
         def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(
             TestUtil.objectInstantiator(),
             Stub(AgentStatus),
-            Stub(Gradle)
+            Stub(Gradle),
+            Stub(PropertyUpgradeReportConfig)
         )).create()
 
         when:

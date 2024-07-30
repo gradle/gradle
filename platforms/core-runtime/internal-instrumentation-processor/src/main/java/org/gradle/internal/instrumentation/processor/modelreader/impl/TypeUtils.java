@@ -75,7 +75,7 @@ public class TypeUtils {
         } else if (typeName instanceof ClassName) {
             className = (ClassName) typeName;
         } else {
-            throw new IllegalArgumentException("Not supported to extract raw type from: " + typeName);
+            throw new IllegalArgumentException("Not supported to extract raw type from: " + typeName.getClass());
         }
         return Type.getType("L" + className.reflectionName().replace('.', '/') + ";");
     }

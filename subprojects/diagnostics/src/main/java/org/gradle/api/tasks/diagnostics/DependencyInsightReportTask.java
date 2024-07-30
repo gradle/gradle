@@ -237,7 +237,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
      */
-    @ToBeReplacedByLazyProperty
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
     public void setConfiguration(@Nullable String configurationName) {
         setConfiguration(

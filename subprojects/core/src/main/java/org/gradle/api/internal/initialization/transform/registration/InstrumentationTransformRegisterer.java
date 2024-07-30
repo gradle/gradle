@@ -31,7 +31,10 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
+
+import java.util.function.Consumer;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
@@ -50,11 +53,13 @@ public class InstrumentationTransformRegisterer {
     private final AgentStatus agentStatus;
     private final Lazy<BuildServiceRegistry> buildServiceRegistry;
     private final IdGenerator<Long> contextIdGenerator;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
-    public InstrumentationTransformRegisterer(AgentStatus agentStatus, Lazy<BuildServiceRegistry> buildServiceRegistry) {
+    public InstrumentationTransformRegisterer(AgentStatus agentStatus, PropertyUpgradeReportConfig propertyUpgradeReportConfig, Lazy<BuildServiceRegistry> buildServiceRegistry) {
         this.buildServiceRegistry = buildServiceRegistry;
         this.contextIdGenerator = new LongIdGenerator();
         this.agentStatus = agentStatus;
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     public ScriptClassPathResolutionContext registerTransforms(DependencyHandler dependencyHandler) {
@@ -89,20 +94,36 @@ public class InstrumentationTransformRegisterer {
                 });
             }
         );
-        registerInstrumentingTransform(contextId, dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_ARTIFACT_ANALYSIS, INSTRUMENTED_AND_UPGRADED);
+        registerInstrumentingTransform(
+            contextId,
+            dependencyHandler,
+            ExternalDependencyInstrumentingArtifactTransform.class,
+            service,
+            MERGED_ARTIFACT_ANALYSIS,
+            INSTRUMENTED_AND_UPGRADED,
+            params -> {}
+        );
     }
 
     private void registerInstrumentationOnlyPipeline(long contextId, DependencyHandler dependencyHandler) {
-        registerInstrumentingTransform(contextId, dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), NOT_INSTRUMENTED, INSTRUMENTED_ONLY);
+        registerInstrumentingTransform(contextId,
+            dependencyHandler,
+            ProjectDependencyInstrumentingArtifactTransform.class,
+            Providers.notDefined(),
+            NOT_INSTRUMENTED,
+            INSTRUMENTED_ONLY,
+            params -> params.getIsUpgradeReport().set(propertyUpgradeReportConfig.isEnabled())
+        );
     }
 
-    private void registerInstrumentingTransform(
+    private <P extends BaseInstrumentingArtifactTransform.Parameters> void registerInstrumentingTransform(
         long contextId,
         DependencyHandler dependencyHandler,
-        Class<? extends BaseInstrumentingArtifactTransform> transform,
+        Class<? extends BaseInstrumentingArtifactTransform<P>> transform,
         Provider<CacheInstrumentationDataBuildService> service,
         DefaultScriptClassPathResolver.InstrumentationPhase fromPhase,
-        DefaultScriptClassPathResolver.InstrumentationPhase toPhase
+        DefaultScriptClassPathResolver.InstrumentationPhase toPhase,
+        Consumer<P> paramsConfiguration
     ) {
         dependencyHandler.registerTransform(
             transform,
@@ -113,6 +134,7 @@ public class InstrumentationTransformRegisterer {
                     params.getBuildService().set(service);
                     params.getContextId().set(contextId);
                     params.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
+                    paramsConfiguration.accept(params);
                 });
             }
         );

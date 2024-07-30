@@ -40,4 +40,9 @@ public @interface ToBeReplacedByLazyProperty {
      * Link to a GitHub issue if it exists.
      */
     String issue() default "";
+
+    /**
+     * If true property will be not be reported in the upgrade report.
+     */
+    boolean unreported() default false;
 }

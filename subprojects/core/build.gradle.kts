@@ -116,6 +116,7 @@ dependencies {
     api(projects.snapshots)
     api(projects.workerMain)
     api(projects.buildProcessServices)
+    api(projects.instrumentationReporting)
 
     api(libs.ant)
     api(libs.asm)

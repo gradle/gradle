@@ -39,8 +39,7 @@ class InstrumentedClasses {
         loader = new TestInstrumentedClassLoader(
             source,
             shouldInstrumentClassByName,
-            new InstrumentingClassTransform(interceptorFilter),
-            typeRegistry
+            new InstrumentingClassTransform(interceptorFilter, typeRegistry)
         )
     }
 

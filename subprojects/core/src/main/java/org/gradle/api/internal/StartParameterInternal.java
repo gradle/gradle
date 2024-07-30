@@ -44,6 +44,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
+    private boolean propertyUpgradeReportEnabled;
 
     public StartParameterInternal() {
     }
@@ -227,5 +228,13 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public boolean isPropertyUpgradeReportEnabled() {
+        return propertyUpgradeReportEnabled;
+    }
+
+    public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
+        this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
     }
 }

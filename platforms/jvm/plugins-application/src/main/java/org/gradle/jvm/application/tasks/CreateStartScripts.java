@@ -411,7 +411,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     }
 
     @Input
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since method is protected")
     protected Iterable<String> getRelativeClasspath() {
         //a list instance is needed here, as org.gradle.internal.snapshot.ValueSnapshotter.processValue() does not support
         //serializing Iterators directly

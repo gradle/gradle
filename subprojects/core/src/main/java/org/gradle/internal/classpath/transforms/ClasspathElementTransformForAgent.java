@@ -23,7 +23,6 @@ import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.util.internal.JarUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -44,8 +43,8 @@ class ClasspathElementTransformForAgent extends BaseClasspathElementTransform {
     private int lowestUnsupportedVersionInJar = Integer.MAX_VALUE;
     private boolean isMultiReleaseJar;
 
-    ClasspathElementTransformForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentationTypeRegistry typeRegistry, ClassTransform transform) {
-        super(source, classpathBuilder, classpathWalker, typeRegistry, transform);
+    ClasspathElementTransformForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
+        super(source, classpathBuilder, classpathWalker, transform);
     }
 
     @Override

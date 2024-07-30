@@ -38,19 +38,24 @@ import org.gradle.api.internal.initialization.transform.registration.Instrumenta
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
@@ -58,6 +63,8 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType.ARTIFACT;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType.INTERCEPTED_METHODS_REPORT;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -85,17 +92,25 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
+
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
-        Gradle gradle
+        Gradle gradle,
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
         this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
-        this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(agentStatus, Lazy.atomic().of(gradle::getSharedServices));
+        this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(
+            agentStatus,
+            propertyUpgradeReportConfig,
+            Lazy.atomic().of(gradle::getSharedServices)
+        );
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     @Override
@@ -137,12 +152,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            List<File> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
+            Map<FileType, List<File>> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
                 originalDependencies.getArtifacts(),
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies
             );
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
+
+            MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
+            instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
         }
     }
 

@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Publishing plugin for Ivy repositories"
@@ -27,7 +28,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)

@@ -185,7 +185,7 @@ public abstract class AntlrTask extends SourceTask {
      * @return The Ant task implementation classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Setter has protected access")
     public FileCollection getAntlrClasspath() {
         return antlrClasspath;
     }

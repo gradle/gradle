@@ -34,8 +34,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -57,7 +55,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NA
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class BaseInstrumentingArtifactTransform implements TransformAction<Parameters> {
+public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> implements TransformAction<T> {
 
     public interface Parameters extends TransformParameters {
         @Internal
@@ -103,12 +101,12 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     private void doTransform(File input, TransformOutputs outputs, Function<String, String> instrumentedEntryNameMapper) {
         String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
         File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
-        InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter();
-        InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
-        BytecodeInterceptorFilter interceptorFilter = typeRegistryAndFilter.getFilter();
-        ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(interceptorFilter), typeRegistry);
-        transform.transform(output);
+        try (InstrumentingClassTransformProvider provider = instrumentingClassTransformProvider(outputs)) {
+            InstrumentingClassTransform classTransform = provider.getClassTransform();
+            ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
+            ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform);
+            transform.transform(output);
+        }
     }
 
     private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
@@ -133,10 +131,12 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         }
     }
 
-    protected abstract InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter();
+    protected abstract InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs);
 
-    protected interface InterceptorTypeRegistryAndFilter {
-        InstrumentationTypeRegistry getRegistry();
-        BytecodeInterceptorFilter getFilter();
+    protected interface InstrumentingClassTransformProvider extends AutoCloseable {
+        InstrumentingClassTransform getClassTransform();
+
+        @Override
+        void close();
     }
 }

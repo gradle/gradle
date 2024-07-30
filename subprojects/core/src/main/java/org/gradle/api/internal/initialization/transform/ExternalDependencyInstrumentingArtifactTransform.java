@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization.transform;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.PropertiesBackedInstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -32,7 +33,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
  * Artifact transform that instruments external artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
+public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<BaseInstrumentingArtifactTransform.Parameters> {
 
     @Override
     public void transform(TransformOutputs outputs) {
@@ -73,20 +74,20 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     @Override
-    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter() {
-        return new InterceptorTypeRegistryAndFilter() {
+    protected InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs) {
+        return new InstrumentingClassTransformProvider() {
             @Override
-            public InstrumentationTypeRegistry getRegistry() {
-                return PropertiesBackedInstrumentationTypeRegistry.of(() -> {
+            public InstrumentingClassTransform getClassTransform() {
+                InstrumentationTypeRegistry typeRegistry = PropertiesBackedInstrumentationTypeRegistry.of(() -> {
                     File analysisFile = getInput().get().getAsFile();
                     InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
                     return serializer.readDependencyAnalysis(analysisFile).getDependencies();
                 });
+                return new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE, typeRegistry);
             }
 
             @Override
-            public BytecodeInterceptorFilter getFilter() {
-                return BytecodeInterceptorFilter.ALL;
+            public void close() {
             }
         };
     }
