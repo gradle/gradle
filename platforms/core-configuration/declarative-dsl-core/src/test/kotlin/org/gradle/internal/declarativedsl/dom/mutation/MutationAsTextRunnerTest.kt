@@ -35,6 +35,8 @@ import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 
 object MutationAsTextRunnerTest {
@@ -114,6 +116,42 @@ object MutationAsTextRunnerTest {
             """.trimIndent(),
             (result.stepResults.last() as ModelMutationStepResult.ModelMutationStepApplied).newDocumentText
         )
+    }
+
+    @Test
+    fun `reports step failures`() {
+        val document = documentWithResolution(schema.analysisSchema, ParseTestUtil.parse("/* empty document, no nested receiver */"))
+
+        val args = mutationArguments {
+            argument(xyMutationDefinition.xParam, 1)
+            argument(xyMutationDefinition.yParam, 2)
+        }
+        val result = runner.runMutation(xyMutationDefinition, args, TextMutationApplicationTarget(document, schema))
+
+        assertTrue { MutationRunIssue.HasStepFailure in result.issues }
+        assertEquals(2, result.stepResults.size)
+        assertTrue { result.stepResults.all { it is ModelMutationStepResult.ModelMutationFailed } }
+    }
+
+    @Test
+    fun `reports incompatible mutations`() {
+        val document = documentWithResolution(schema.analysisSchema, ParseTestUtil.parse(""))
+
+        val incompatibleMutation = object : MutationDefinition {
+            override val id: String = "com.example.incompatible"
+            override val name: String = "Incompatible"
+            override val description: String = "This mutation is not compatible with any schema and throws an exception on planning"
+            override val parameters: List<MutationParameter<*>> = emptyList()
+
+            override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = false
+
+            override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+                fail("tried to define the mutation sequence for an incompatible mutation!")
+        }
+
+        val result = runner.runMutation(incompatibleMutation, mutationArguments { }, TextMutationApplicationTarget(document, schema))
+
+        assertTrue { MutationRunIssue.IncompatibleMutation in result.issues }
     }
 
     private
