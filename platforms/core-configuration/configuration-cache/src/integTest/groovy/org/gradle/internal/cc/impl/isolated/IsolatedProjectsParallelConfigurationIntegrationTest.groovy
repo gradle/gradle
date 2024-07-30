@@ -22,7 +22,7 @@ import org.junit.Rule
 class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     @Rule
-    BlockingHttpServer server = new BlockingHttpServer(3_000)
+    BlockingHttpServer server = new BlockingHttpServer(5_000)
 
     def setup() {
         server.start()
@@ -37,6 +37,9 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
                 tasks.register("build")
             }
         """
+        buildFile """
+            ${server.callFromBuildUsingExpression("'configure-root'")}
+        """
         buildFile "a/build.gradle", """
             ${server.callFromBuildUsingExpression("'configure-' + project.name")}
         """
@@ -44,6 +47,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
             ${server.callFromBuildUsingExpression("'configure-' + project.name")}
         """
 
+        server.expect("configure-root")
         server.expectConcurrent("configure-a", "configure-b")
 
         when:
