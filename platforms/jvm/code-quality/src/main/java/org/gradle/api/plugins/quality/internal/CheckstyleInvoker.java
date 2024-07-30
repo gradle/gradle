@@ -47,12 +47,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.plugins.quality.internal.AntInvokeUtils.invoke;
 
 class CheckstyleInvoker implements Action<AntBuilderDelegate> {
@@ -69,7 +69,6 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
     }
 
     @Override
-    @SuppressWarnings({"UnusedDeclaration", "CodeBlock2Expr"})
     public void execute(AntBuilderDelegate ant) {
         FileTree source = parameters.getSource().getAsFileTree();
         boolean showViolations = parameters.getShowViolations().get();
@@ -78,28 +77,23 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         Map<String, Object> configProperties = parameters.getConfigProperties().get();
         boolean ignoreFailures = parameters.getIgnoreFailures().get();
         RegularFile config = parameters.getConfig().get();
-        File configDir = parameters.getConfigDirectory().getAsFile().getOrNull();
+        File configDir = parameters.getConfigDirectory().getAsFile().get();
         boolean isXmlRequired = parameters.getIsXmlRequired().get();
         boolean isHtmlRequired = parameters.getIsHtmlRequired().get();
         boolean isSarifRequired = parameters.getIsSarifRequired().get();
-        File xmlOutputLocation = isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)
-            ? new File(parameters.getTemporaryDir().getAsFile().get(), parameters.getXmlOuputLocation().getAsFile().get().getName())
-            : parameters.getXmlOuputLocation().getAsFile().getOrNull();
+        File xmlOutputLocation = getXmlOutputLocation(isXmlRequired, isHtmlRequired);
         Property<String> stylesheetString = parameters.getStylesheetString();
-        File htmlOutputLocation = parameters.getHtmlOuputLocation().getAsFile().getOrNull();
+        File htmlOutputLocation = parameters.getHtmlOutputLocation().getAsFile().getOrNull();
         File sarifOutputLocation = parameters.getSarifOutputLocation().getAsFile().getOrNull();
         VersionNumber currentToolVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader());
-        boolean sarifSupported = isSarifSupported(currentToolVersion);
 
-        if (configDir != null) {
-            // User provided their own config_loc
-            Object userProvidedConfigLoc = configProperties.get(CONFIG_LOC_PROPERTY);
-            if (userProvidedConfigLoc != null) {
-                throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.");
-            }
+        // User provided their own config_loc
+        Object userProvidedConfigLoc = configProperties.get(CONFIG_LOC_PROPERTY);
+        if (userProvidedConfigLoc != null) {
+            throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.");
         }
 
-        if (isSarifRequired && !sarifSupported) {
+        if (isSarifRequired && !isSarifSupported(currentToolVersion)) {
             assertUnsupportedReportFormatSARIF(currentToolVersion);
         }
 
@@ -131,13 +125,14 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     }
 
                     if (isXmlRequired || isHtmlRequired) {
-                        invoke(ant, "formatter", ImmutableMap.of("type", "xml", "toFile", xmlOutputLocation));
+                        invoke(ant, "formatter", ImmutableMap.of("type", "xml", "toFile", checkNotNull(xmlOutputLocation)));
                     }
 
                     if (isSarifRequired) {
-                        invoke(ant, "formatter", ImmutableMap.of("type", "sarif", "toFile", sarifOutputLocation));
+                        invoke(ant, "formatter", ImmutableMap.of("type", "sarif", "toFile", checkNotNull(sarifOutputLocation)));
                     }
 
+                    //noinspection CodeBlock2Expr
                     configProperties.forEach((key, value) -> {
                         invoke(ant, "property", ImmutableMap.of("key", key, "value", value.toString()));
                     });
@@ -152,11 +147,9 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             String stylesheet = stylesheetString.isPresent()
                 ? stylesheetString.get()
                 : readText(Checkstyle.class.getClassLoader().getResourceAsStream("checkstyle-noframes-sorted.xsl"));
-            invoke(ant, "xslt", ImmutableMap.of("in", xmlOutputLocation, "out", htmlOutputLocation), () -> {
+            invoke(ant, "xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
                 invoke(ant, "param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
-                invoke(ant, "style", ImmutableMap.of(), () -> {
-                    invoke(ant, "string", ImmutableMap.of("value", stylesheet));
-                });
+                invoke(ant, "style", () -> invoke(ant, "string", ImmutableMap.of("value", stylesheet)));
             });
         }
 
@@ -174,6 +167,16 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                 LOGGER.warn(message);
             }
         }
+    }
+
+    @Nullable
+    private File getXmlOutputLocation(boolean isXmlRequired, boolean isHtmlRequired) {
+        File xmlOutputLocation = parameters.getXmlOutputLocation().getAsFile().getOrNull();
+        if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
+            checkNotNull(xmlOutputLocation, "Xml report output is required when html report is requested.");
+            return new File(parameters.getTemporaryDir().getAsFile().get(), xmlOutputLocation.getName());
+        }
+        return xmlOutputLocation;
     }
 
     private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {

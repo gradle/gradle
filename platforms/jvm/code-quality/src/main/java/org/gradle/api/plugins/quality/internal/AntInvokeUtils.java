@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal;
 
+import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
@@ -23,6 +24,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 class AntInvokeUtils {
+
+    static void invoke(AntBuilderDelegate receiver, String methodName, Runnable closure) {
+        invoke(receiver, methodName, ImmutableMap.of(), closure);
+    }
 
     static void invoke(AntBuilderDelegate receiver, String methodName, Map<String, Object> parameters, Runnable closure) {
         receiver.invokeMethod(methodName, new Object[]{parameters, new Closure<Object>(receiver, receiver) {
@@ -34,7 +39,7 @@ class AntInvokeUtils {
     }
 
     static void invoke(AntBuilderDelegate receiver, String methodName, Map<String, Object> parameters) {
-        receiver.invokeMethod(methodName, new Object[]{parameters});
+        receiver.invokeMethod(methodName, parameters);
     }
 
     static void invoke(AntBuilderDelegate receiver, String methodName, Object parameter) {
