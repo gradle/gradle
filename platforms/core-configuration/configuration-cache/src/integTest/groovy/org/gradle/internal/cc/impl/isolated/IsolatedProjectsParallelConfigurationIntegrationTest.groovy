@@ -28,7 +28,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.start()
     }
 
-    def 'projects are configured in parallel for unqualified task selector'() {
+    def 'all projects are configured in parallel for #selector task selector'() {
         given:
         settingsFile """
             include(":a")
@@ -51,9 +51,14 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.expectConcurrent("configure-a", "configure-b")
 
         when:
-        isolatedProjectsRun("build")
+        isolatedProjectsRun(selector)
 
         then:
-        result.assertTasksExecuted(":a:build", ":b:build", ":build")
+        result.assertTasksExecuted(expectedTasks)
+
+        where:
+        selector | expectedTasks
+        "build"  | [":a:build", ":b:build", ":build"]
+        ":build"  | [":build"]
     }
 }
