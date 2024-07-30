@@ -38,9 +38,16 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        if (!buildModelParameters.isConfigureOnDemand() || !gradle.isRootBuild()) {
-            projectConfigurer.configureHierarchy(gradle.getRootProject());
-            new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
+        if (isDeferredRootProjectConfiguration(gradle)) {
+            return;
         }
+
+        projectConfigurer.configureHierarchy(gradle.getRootProject());
+        new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
+    }
+
+    private boolean isDeferredRootProjectConfiguration(GradleInternal gradle) {
+        return (buildModelParameters.isConfigureOnDemand() || buildModelParameters.isIsolatedProjects())
+            && gradle.isRootBuild();
     }
 }

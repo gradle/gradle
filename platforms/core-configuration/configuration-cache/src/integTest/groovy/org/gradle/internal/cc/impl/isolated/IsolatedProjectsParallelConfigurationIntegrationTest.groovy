@@ -51,14 +51,18 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.expectConcurrent("configure-a", "configure-b")
 
         when:
-        isolatedProjectsRun(selector)
+        isolatedProjectsRun(*selector)
 
         then:
         result.assertTasksExecuted(expectedTasks)
 
         where:
-        selector | expectedTasks
-        "build"  | [":a:build", ":b:build", ":build"]
-        ":build"  | [":build"]
+        selector                               | expectedTasks
+        ["build"]                              | [":a:build", ":b:build", ":build"]
+        ["build", "--configure-on-demand"]     | [":a:build", ":b:build", ":build"]
+        ["build", "--no-configure-on-demand"]  | [":a:build", ":b:build", ":build"]
+        [":build"]                             | [":build"]
+        [":build", "--configure-on-demand"]    | [":build"]
+        [":build", "--no-configure-on-demand"] | [":build"]
     }
 }
