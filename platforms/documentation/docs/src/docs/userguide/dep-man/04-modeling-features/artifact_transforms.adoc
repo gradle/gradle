@@ -12,92 +12,226 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[artifact_transforms]]
+= Artifact Transforms
+
+What if you want to adjust the JAR file you get from a repository before you use it?
+
+Gradle has a build in feature for this called **Artifact Transforms**.
+With Artifact Transforms, you can modify, extend, or reduce artifacts like JAR files before it is used by tasks or tools like the IDE.
+
+== Artifact Transforms Overview
+
+Artifact Transforms are a mechanism that allows you to convert one type of artifact into another during the build process.
+It's a more efficient and flexible way of handling dependencies by transforming the artifacts to the required format or type without the need for multiple variants of the same artifact.
+
+Artifact transforms are a lot like tasks.
+It’s a unit of work with some inputs and outputs.
+Mechanisms like `UP-TO-DATE` and caching work for transforms as well.
+
+The difference between tasks and transforms is how they are scheduled and put into the chain of actions Gradle executes when a build configures and runs.
+At a high level, transforms always run before tasks because they are part of the dependency resolution.
+Transforms modify artifacts BEFORE they become an input to a task.
+
+Here's a brief overview of how artifact transforms work:
+
+1. **Defining a Transform**: You define an artifact transform by creating a class that implements the `TransformAction` interface.
+This class specifies how the input artifact should be transformed into the output artifact.
+
+2. **Defining an Attribute**: Attributes are key-value pairs used to specify and match characteristics of artifacts.
+They are used to distinguish between different variants of an artifact AND to declare what type of artifact a dependency should resolve to.
+
+3. **Registering a Transform**: You register the transform in your build script using the `transform()` method of the `dependencies` configuration.
+This method links the input artifact type to the output artifact type and associates it with the transform action class.
+
+4. **Using Transformed Artifacts**: When a task requires an artifact of the transformed type, Gradle automatically applies the registered transform to the input artifact and provides the transformed artifact to the task.
+
+=== 1. Defining a Transform
+
+A transform is implemented as an abstract class.
+The class implements the `TransformAction` interface.
+It can optionally have parameters defined in a separate interface.
+
+Each transform has exactly one input artifact.
+It must be annotated with the `@InputArtifacts` annotation.
+
+Then, you implement the `transform()` method from the `TransformAction` interface.
+This is where you implement the work the transform should do when triggered.
+The method has the `TransformOutputs` as an argument which defines what the transform produces.
+
+Here, `MyTransform` is the custom transform action that converts a `jar` artifact to a `transformed-jar` artifact:
+[source,kotlin]
+----
+abstract class MyTransform : TransformAction<TransformParameters.None> {
+    @get:InputArtifact
+    abstract val inputArtifact: Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        val inputFile = inputArtifact.get().asFile
+        val outputFile = outputs.file(inputFile.name.replace(".jar", "-transformed.jar"))
+        // Perform transformation logic here
+    }
+}
+----
+
+=== 2. Defining an Attribute
+
+How do you trigger an artifact transform?
+Transforms are triggered based on their inputs and outputs.
+Attributes are used to determine whether an artifact transform should be run.
+
+The `implementation` dependency configuration specifies that it requires the `transformed-jar` format;
+
+// Show how to create an attribute
+[source,kotlin]
+----
+dependencies {
+    implementation("some:dependency") {
+        attributes {
+            attribute(ArtifactAttributes.ARTIFACT_FORMAT, "transformed-jar")
+        }
+    }
+}
+----
+
+=== 3. Registering a Transform
+
+A transform must be registered the same way a task is registered using `dependencies.registerTransform()`:
+
+Here, our transform is registered with the `dependencies` configuration:
+
+[source,kotlin]
+----
+dependencies {
+    registerTransform(MyTransform::class) {
+        from.attribute(ArtifactAttributes.ARTIFACT_FORMAT, "jar")
+        to.attribute(ArtifactAttributes.ARTIFACT_FORMAT, "transformed-jar")
+    }
+}
+----
+
+Gradle can handle dependencies more efficiently by transforming artifacts as needed rather than relying on multiple pre-built variants.
+
 [[sec:abm_artifact_transforms]]
-= Transforming dependency artifacts on resolution
+== Understanding Different Variants of Dependencies and Transforming Artifacts on Resolution
 
-As described in <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,different kinds of configurations>>, there may be different variants for the same dependency.
-For example, an external Maven dependency has a variant which should be used when compiling against the dependency (`java-api`), and a variant for running an application which uses the dependency (`java-runtime`).
-A project dependency has even more variants, for example the classes of the project which are used for compilation are available as classes directories (`org.gradle.usage=java-api, org.gradle.libraryelements=classes`) or as JARs (`org.gradle.usage=java-api, org.gradle.libraryelements=jar`).
+Dependencies can have different <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,**variants**>>, which are essentially different versions or forms of the same dependency.
+These variants can differ based on their use cases, such as for compiling code or running applications.
 
-The variants of a dependency may differ in its transitive dependencies or in the artifact itself.
-For example, the `java-api` and `java-runtime` variants of a Maven dependency only differ in the transitive dependencies and both use the same artifact — the JAR file.
-For a project dependency, the `java-api,classes` and the `java-api,jars` variants have the same transitive dependencies and different artifacts — the classes directories and the JAR files respectively.
+Let's use the following example:
 
-Gradle identifies a variant of a dependency uniquely by its set of <<variant_model.adoc#sec:abm_configuration_attributes,attributes>>.
-The `java-api` variant of a dependency is the variant identified by the `org.gradle.usage` attribute with value `java-api`.
+.Maven Dependencies
+[cols="1,1"]
+|===
+|Variant | Description
 
-When Gradle resolves a configuration, the <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> on the resolved configuration determine the _requested attributes_.
-For all dependencies in the configuration, the variant with the requested attributes is selected when resolving the configuration.
-For example, when the configuration requests `org.gradle.usage=java-api, org.gradle.libraryelements=classes` on a project dependency, then the classes directory is selected as the artifact.
+|`java-api`
+|Used for compiling against the dependency.
 
-When the dependency does not have a variant with the requested attributes, resolving the configuration fails.
-Sometimes it is possible to transform the artifact of the dependency into the requested variant without changing the transitive dependencies.
-For example, unzipping a JAR transforms the artifact of the `java-api,jars` variant into the `java-api,classes` variant.
-Such a transformation is called _Artifact Transform_.
+|`java-runtime`
+|Used for running an application with the dependency.
+|===
+
+.Project Dependencies
+[cols="1,1"]
+|===
+|Variant | Description
+
+|`java-api,classes`
+|Represents classes directories used for compilation.
+
+|`java-api,jar`
+|Represents JAR files used for compilation.
+|===
+
+=== Attributes and Variants
+
+Each variant is identified uniquely by a set of <<variant_model.adoc#sec:abm_configuration_attributes,**attributes**>>.
+Attributes are key-value pairs that describe specific characteristics of the variant.
+
+For example, the `java-api` variant of a dependency might be identified by the attribute `org.gradle.usage` with the value `java-api`.
+
+=== Resolving Configurations
+
+When Gradle resolves a configuration (a group of dependencies), it uses the attributes defined in the configuration to select the appropriate variant of each dependency.
+These are called the **requested attributes** and are the attributes that Gradle uses to determine which variant to select.
+
+For example, if a configuration requests `org.gradle.usage=java-api` and `org.gradle.libraryelements=classes`, Gradle will select the variant of the project dependency that matches these attributes (in this case, the `classes` directory).
+
+=== Artifact Transforms
+
+Sometimes, a dependency might not have the exact variant with the requested attributes.
+In such cases, Gradle can transform one variant into another without changing its transitive dependencies (other dependencies it relies on).
+
+For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can transform the JAR file into a `classes` directory by unzipping it.
+This process is known as an **Artifact Transform**.
+
 Gradle allows registering artifact transforms, and when the dependency does not have the requested variant, then Gradle will try to find a chain of artifact transforms for creating the variant.
 
-== Artifact transform selection and execution
+== Understanding Artifact Transforms and Attribute-Based Resolution
 
-As described above, when Gradle resolves a configuration and a dependency in the configuration does not have a variant with the requested attributes, Gradle tries to find a chain of artifact transforms to create the variant.
-The process of finding a matching chain of artifact transforms is called _artifact transform selection_.
-Each registered transform converts from a set of attributes to a set of attributes.
-For example, the unzip transform can convert from `org.gradle.usage=java-api, org.gradle.libraryelements=jars` to `org.gradle.usage=java-api, org.gradle.libraryelements=classes`.
+When Gradle resolves a configuration and a dependency does not have a variant with the requested attributes, it attempts to find a chain of artifact transforms to create the desired variant.
+This process is called **artifact transform selection**.
 
-In order to find a chain, Gradle starts with the requested attributes and then considers all transforms which modify some of the requested attributes as possible paths leading there.
-Going backwards, Gradle tries to obtain a path to some existing variant using transforms.
+For example, consider a transform that unzips a JAR file and converts from `org.gradle.usage=java-api, org.gradle.libraryelements=jars` to `org.gradle.usage=java-api, org.gradle.libraryelements=classes`.
 
-For example, consider a `minified` attribute with two values: `true` and `false`.
-The minified attribute represents a variant of a dependency with unnecessary class files removed.
-There is an artifact transform registered, which can transform `minified` from `false` to `true`.
-When `minified=true` is requested for a dependency, and there are only variants with `minified=false`, then Gradle selects the registered minify transform.
-The minify transform is able to transform the artifact of the dependency with `minified=false` to the artifact with `minified=true`.
+=== How Gradle Resolves Variants
 
-Of all the found transform chains, Gradle tries to select the best one:
+1. **Starting with Requested Attributes**:
+- Gradle starts with the attributes specified in the configuration.
+- It considers all registered transforms that modify these attributes.
 
-- If there is only one transform chain, it is selected.
-- If there are two transform chains, and one is a suffix of the other one, it is selected.
-- If there is a shortest transform chain, then it is selected.
-- In all other cases, the selection fails and an error is reported.
+2. **Finding a Path to Existing Variants**:
+- Gradle works backwards, trying to find a path from the requested attributes to an existing variant.
 
-IMPORTANT: Gradle does not try to select artifact transforms when there is already a variant of the dependency matching the requested attributes.
+For example, if the `minified` attribute has values `true` and `false`, and a transform can change `minified=false` to `minified=true`, Gradle will use this transform if only `minified=false` variants are available but `minified=true` is requested.
 
-[NOTE]
-====
-The `artifactType` attribute is special, since it is only present on resolved artifacts and not on dependencies.
-As a consequence, any transform which is only mutating `artifactType` will never be selected when resolving a configuration with only the `artifactType` as requested attribute.
-It will only be considered when using an link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[ArtifactView].
-====
+=== Selection of Transform chains
 
-After selecting the required artifact transforms, Gradle resolves the variants of the dependencies which are necessary for the initial transform in the chain.
-As soon as Gradle finishes resolving the artifacts for the variant, either by downloading an external dependency or executing a task producing the artifact, Gradle starts transforming the artifacts of the variant with the selected chain of artifact transforms.
-Gradle executes the transform chains in parallel when possible.
+Gradle selects the best chain of transforms based on specific rules:
+- If there is only one chain, it is selected.
+- If one chain is a suffix of another, the more specific chain is selected.
+- The shortest chain is preferred.
+- If multiple chains are equally suitable, the selection fails and an error is reported.
 
-Picking up the minify example above, consider a configuration with two dependencies, the external `guava` dependency and a project dependency on the `producer` project.
-The configuration has the attributes `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=true`.
-The external `guava` dependency has two variants:
+=== `artifactType` Attribute
 
-- `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false` and
-- `org.gradle.usage=java-api,org.gradle.libraryelements=jar,minified=false`.
+- The `artifactType` attribute is special because it is only present on resolved artifacts, not on dependencies.
+- Transforms that only change `artifactType` are not considered during configuration resolution but can be used in an `ArtifactView`.
 
-Using the minify transform, Gradle can convert the variant `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false` of `guava` to `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=true`, which are the requested attributes.
-The project dependency also has variants:
+=== Example
 
-- `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false`,
-- `org.gradle.usage=java-runtime,org.gradle.libraryelements=classes,minified=false`,
-- `org.gradle.usage=java-api,org.gradle.libraryelements=jar,minified=false`,
-- `org.gradle.usage=java-api,org.gradle.libraryelements=classes,minified=false`
-- and a few more.
+A configuration requests `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
 
-Again, using the minify transform, Gradle can convert the variant `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=false` of the project `producer` to `org.gradle.usage=java-runtime,org.gradle.libraryelements=jar,minified=true`, which are the requested attributes.
+The dependencies are:
 
-When the configuration is resolved, Gradle needs to download the `guava` JAR and minify it.
-Gradle also needs to execute the `producer:jar` task to generate the JAR artifact of the project and then minify it.
-The downloading and the minification of the `guava.jar` happens in parallel to the execution of the `producer:jar` task and the minification of the resulting JAR.
+* External `guava` dependency with variants:
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false`
+** `org.gradle.usage=java-api, org.gradle.libraryelements=jar, minified=false`
 
-Here is how to setup the `minified` attribute so that the above works.
-You need to register the new attribute in the schema, add it to all JAR artifacts and request it on all resolvable configurations.
+* Project `producer` dependency with variants:
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false`
+** `org.gradle.usage=java-runtime, org.gradle.libraryelements=classes, minified=false`
+** `org.gradle.usage=java-api, org.gradle.libraryelements=jar, minified=false`
+** `org.gradle.usage=java-api, org.gradle.libraryelements=classes, minified=false`
 
-.Artifact transform attribute setup
+Gradle uses the `minify` transform to convert `minified=false` variants to `minified=true`:
+
+- For `guava`, Gradle converts `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false` to `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
+- For `producer`, Gradle converts `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=false` to `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
+
+Then, during execution:
+
+- Gradle downloads the `guava` JAR and minifies it.
+- Gradle executes the `producer:jar` task to produce the JAR and then minifies it.
+- These tasks are executed in parallel where possible.
+
+To set up the `minified` attribute so that the above works:
+
+1. Register the new attribute in the schema.
+2. Add the attribute to all JAR artifacts.
+3. Request the attribute on all resolvable configurations.
+
 ====
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
@@ -109,13 +243,12 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/gro
 <5> Add task that requires the transformed artifacts
 
 You can now see what happens when we run the `resolveRuntimeClasspath` task which resolves the `runtimeClasspath` configuration.
-Observe that Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
+
+Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
 Gradle transforms the binary dependencies when it executes the `resolveRuntimeClasspath` task.
 
-.Output when resolving the runtimeClasspath configuration
 ----
-> gradle resolveRuntimeClasspath
-
+$ gradle resolveRuntimeClasspath
 include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
 ----
 
@@ -127,6 +260,7 @@ The major difference to custom task types is that the action and the parameters 
 
 The implementation of the artifact transform action is a class implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction].
 You need to implement the `transform()` method on the action, which converts an input artifact into zero, one or multiple of output artifacts.
+
 Most artifact transforms will be one-to-one, so the transform method will transform the input artifact to exactly one output artifact.
 
 The implementation of the artifact transform action needs to register each output artifact by calling
