@@ -30,39 +30,3 @@ import org.gradle.docs.samples.Dsl
 plugins {
     id("org.gradle.samples")
 }
-
-val singleProjectSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN, SWIFT, CPP)
-val multiProjectApplicationSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN)
-
-singleProjectSampleLanguages.forEach { language ->
-    setupGeneratorTask(language, "library", ModularizationOption.SINGLE_PROJECT)
-    setupGeneratorTask(language, "application", ModularizationOption.SINGLE_PROJECT)
-}
-
-multiProjectApplicationSampleLanguages.forEach { language ->
-    setupGeneratorTask(language, "application", ModularizationOption.WITH_LIBRARY_PROJECTS)
-}
-
-fun setupGeneratorTask(language: Language, kind: String, modularizationOption: ModularizationOption) {
-    val buildInitType = "${language.getName()}-$kind"
-    val capName = language.getName().capitalize()
-    val capKind = kind.capitalize().replace("y", "ie") + "s"
-    val languageDisplayName = language.toString().replace("C++", "{cpp}")
-    val sampleName = "building$capName$capKind" + if (modularizationOption.isMulti()) "MultiProject" else ""
-    val multiProjectSuffix = if (modularizationOption.isMulti()) " with libraries" else ""
-    val generateSampleTask = project.tasks.register<GenerateSample>("generateSample${sampleName.capitalize()}") {
-        readmeTemplates.convention(layout.projectDirectory.dir("src/samples/readme-templates"))
-        target.convention(layout.buildDirectory.dir("generated-samples/$buildInitType" + if (modularizationOption.isMulti()) "-with-libraries" else ""))
-        type = buildInitType
-        modularization = modularizationOption
-    }
-    samples.publishedSamples.create(sampleName) {
-        dsls = setOf(Dsl.GROOVY, Dsl.KOTLIN)
-        sampleDirectory = generateSampleTask.flatMap { it.target }
-        displayName = "Building $languageDisplayName $capKind$multiProjectSuffix"
-        description = "Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step."
-        category = language.toString()
-    }
-}
-
-fun ModularizationOption.isMulti() = this == ModularizationOption.WITH_LIBRARY_PROJECTS
