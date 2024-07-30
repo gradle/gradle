@@ -115,9 +115,13 @@ compose.desktop {
             appResourcesRootDir = layout.projectDirectory.dir("src/assets")
             jvmArgs += "-splash:${'$'}APPDIR/resources/splash.png"
             modules(
+                "java.instrument",
                 "java.management",
                 "java.naming",
+                "java.scripting",
                 "java.sql",
+                "jdk.compiler",
+                "jdk.unsupported"
             )
             linux {
                 iconFile = layout.projectDirectory.file("src/assets/desktop/icon.png")
