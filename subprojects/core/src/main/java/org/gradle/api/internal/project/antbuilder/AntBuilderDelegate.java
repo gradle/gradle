@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import groovy.lang.Closure;
 import groovy.util.BuilderSupport;
 import groovy.util.Node;
 import groovy.util.NodeList;
@@ -27,6 +29,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -131,5 +134,28 @@ public class AntBuilderDelegate extends BuilderSupport {
 
     public Object getBuilder() {
         return originalBuilder;
+    }
+
+    public void invokeMethod(String methodName, Runnable closure) {
+        invokeMethod(methodName, ImmutableMap.of(), closure);
+    }
+
+    public void invokeMethod(String methodName, Map<String, Object> parameters, Runnable closure) {
+        invokeMethod(methodName, new Object[]{parameters, new Closure<Object>(this, this) {
+            public Object doCall(Object ignored) {
+                closure.run();
+                return null;
+            }
+        }});
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getProjectProperties() {
+        try {
+            Object project = this.getProperty("project");
+            return (Map<String, Object>) project.getClass().getDeclaredMethod("getProperties").invoke(project);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
