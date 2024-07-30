@@ -76,7 +76,7 @@ dependencies {
 
 In this example, `libs.guava` and `libs.junit.jupiter` refer to the corresponding libraries defined in your version catalog.
 
-TIP: The `versions.junit.jupiter` syntax is used because the key contains a hyphen which is a special characters.
+TIP: The `versions.junit.jupiter` syntax is used because the key contains a hyphen which is a special character.
 
 A version catalog provides a number of advantages over declaring dependencies directly in build scripts:
 
