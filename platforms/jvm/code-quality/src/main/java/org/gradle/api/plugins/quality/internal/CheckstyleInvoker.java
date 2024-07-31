@@ -124,17 +124,22 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     }
 
                     if (isXmlRequired || isHtmlRequired) {
-                        ant.invokeMethod("formatter", ImmutableMap.of("type", "xml", "toFile", checkNotNull(xmlOutputLocation)));
+                        ant.invokeMethod("formatter", ImmutableMap.of(
+                            "type", "xml",
+                            "toFile", checkNotNull(xmlOutputLocation, "Xml report output location is required when xml or html report is requested."))
+                        );
                     }
 
                     if (isSarifRequired) {
-                        ant.invokeMethod("formatter", ImmutableMap.of("type", "sarif", "toFile", checkNotNull(sarifOutputLocation)));
+                        ant.invokeMethod("formatter", ImmutableMap.of(
+                            "type", "sarif",
+                            "toFile", checkNotNull(sarifOutputLocation, "SARIF report output location is required when SARIF report is requested."))
+                        );
                     }
 
-                    //noinspection CodeBlock2Expr
-                    configProperties.forEach((key, value) -> {
-                        ant.invokeMethod("property", ImmutableMap.of("key", key, "value", value.toString()));
-                    });
+                    configProperties.forEach((key, value) ->
+                        ant.invokeMethod("property", ImmutableMap.of("key", key, "value", value.toString()))
+                    );
 
                     ant.invokeMethod("property", ImmutableMap.of("key", CONFIG_LOC_PROPERTY, "value", configDir.toString()));
                 });
@@ -148,10 +153,9 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                 : readText(Checkstyle.class.getClassLoader().getResourceAsStream("checkstyle-noframes-sorted.xsl"));
             ant.invokeMethod("xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
                 ant.invokeMethod("param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
-                //noinspection CodeBlock2Expr
-                ant.invokeMethod("style", () -> {
-                    ant.invokeMethod("string", ImmutableMap.of("value", stylesheet));
-                });
+                ant.invokeMethod("style", () ->
+                    ant.invokeMethod("string", ImmutableMap.of("value", stylesheet))
+                );
             });
         }
 
@@ -175,7 +179,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
     private File getXmlOutputLocation(boolean isXmlRequired, boolean isHtmlRequired) {
         File xmlOutputLocation = parameters.getXmlOutputLocation().getAsFile().getOrNull();
         if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
-            checkNotNull(xmlOutputLocation, "Xml report output is required when html report is requested.");
+            checkNotNull(xmlOutputLocation, "Xml report output location is required when html report is requested.");
             return new File(parameters.getTemporaryDir().getAsFile().get(), xmlOutputLocation.getName());
         }
         return xmlOutputLocation;

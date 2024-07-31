@@ -72,20 +72,17 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                             setLifecycleLogLevel(ant, "INFO");
 
                             // Prefer to use the IDE based formatter because this produces a useful/clickable link to the violation on the console
-                            //noinspection CodeBlock2Expr
-                            ant.invokeMethod("report", ImmutableMap.of("type", "ide"), () -> {
-                                ant.invokeMethod("option", ImmutableMap.of("name", "writeToStandardOut", "value", true));
-                            });
+                            ant.invokeMethod("report", ImmutableMap.of("type", "ide"), () ->
+                                ant.invokeMethod("option", ImmutableMap.of("name", "writeToStandardOut", "value", true))
+                            );
                         } else if (r.getName().get().equals("html")) {
-                            //noinspection CodeBlock2Expr
-                            ant.invokeMethod("report", ImmutableMap.of("type", "sortable"), () -> {
-                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()));
-                            });
+                            ant.invokeMethod("report", ImmutableMap.of("type", "sortable"), () ->
+                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()))
+                            );
                         } else {
-                            //noinspection CodeBlock2Expr
-                            ant.invokeMethod("report", ImmutableMap.of("type", r.getName().get()), () -> {
-                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()));
-                            });
+                            ant.invokeMethod("report", ImmutableMap.of("type", r.getName().get()), () ->
+                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()))
+                            );
                         }
                     });
 
