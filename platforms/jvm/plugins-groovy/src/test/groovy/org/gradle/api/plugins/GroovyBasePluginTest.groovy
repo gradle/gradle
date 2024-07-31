@@ -70,8 +70,8 @@ class GroovyBasePluginTest {
 
     @Test void configuresAdditionalTasksDefinedByTheBuildScript() {
         def task = project.task('otherGroovydoc', type: Groovydoc)
-        assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-        assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+        assertThat(task.destinationDir.asFile.get(), equalTo(new File(project.docsDir, 'groovydoc')))
+        assertThat(task.docTitle.get(), equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+        assertThat(task.windowTitle.get(), equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 }
