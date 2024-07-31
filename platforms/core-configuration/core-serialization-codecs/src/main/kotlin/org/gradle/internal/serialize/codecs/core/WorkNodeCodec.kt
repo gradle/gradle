@@ -33,17 +33,27 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 
 private
@@ -76,7 +86,6 @@ class WorkNodeCodec(
     suspend fun WriteContext.doWrite(work: ScheduledWork) {
         val nodes = work.scheduledNodes
         val nodeCount = nodes.size
-        writeSmallInt(nodeCount)
         val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount)
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
@@ -108,6 +117,23 @@ class WorkNodeCodec(
         }
     }
 
+    private
+    suspend fun ReadContext.doRead(): ScheduledWork {
+        val (nodes, nodesById) = readNodes()
+        // Note that using the ImmutableSet retains the original ordering of entry nodes.
+        val entryNodes =
+            buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
+                add(nodesById[readSmallInt()])
+            }.build()
+
+        val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
+        nodes.forEach { node ->
+            readSuccessorReferencesOf(node, nodeForId)
+            node.group = readNodeGroup(nodeForId)
+        }
+        return ScheduledWork(nodes, entryNodes)
+    }
+
     sealed class NodeOwner {
         object NoOwner : NodeOwner()
         data class Project(val project: ProjectInternal) : NodeOwner()
@@ -127,45 +153,53 @@ class WorkNodeCodec(
         nodes: ImmutableList<Node>,
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
     ) {
-        nodes.groupBy { NodeOwner.of(it) }.forEach { (_, someNodes) ->
-            someNodes.forEach { node ->
-                writeSmallInt(nodeIds.getInt(node))
-                write(node)
-                if (node is LocalTaskNode) {
-                    writeSmallInt(nodeIds.getInt(node.prepareNode))
+        require(this is DefaultWriteContext)
+        val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
+        val isolateOwner = isolate.owner
+        writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
+            val file = Files.createTempFile("cc-", owner.toString())
+            writeString(file.absolutePathString())
+            writeContextForFile(file).useToRun {
+                withIsolate(isolateOwner) {
+                    writeCollection(groupNodes) { node ->
+                        writeSmallInt(nodeIds.getInt(node))
+                        write(node)
+                        if (node is LocalTaskNode) {
+                            writeSmallInt(nodeIds.getInt(node.prepareNode))
+                        }
+                    }
                 }
             }
         }
     }
 
     private
-    suspend fun ReadContext.doRead(): ScheduledWork {
-        val nodeCount = readSmallInt()
-        val nodes = ArrayList<Node>(nodeCount)
+    suspend fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
+        require(this is DefaultReadContext)
+        val nodes = mutableListOf<Node>()
         val nodesById = mutableMapOf<Int, Node>()
-        repeat(nodeCount) {
-            val nodeId = readSmallInt()
-            val node = readNode()
-            nodesById[nodeId] = node
-            if (node is LocalTaskNode) {
-                node.prepareNode.require()
-                val prepareNodeId = readSmallInt()
-                nodesById[prepareNodeId] = node.prepareNode
+        val isolateOwner = isolate.owner
+        val projectProvider = getSingletonProperty<ProjectProvider>()
+        readCollection {
+            val file = readString()
+            readContextForFile(Paths.get(file)).useToRun {
+                setSingletonProperty(projectProvider)
+                withIsolate(isolateOwner) {
+                    readCollection {
+                        val nodeId = readSmallInt()
+                        val node = readNode()
+                        nodesById[nodeId] = node
+                        if (node is LocalTaskNode) {
+                            node.prepareNode.require()
+                            val prepareNodeId = readSmallInt()
+                            nodesById[prepareNodeId] = node.prepareNode
+                        }
+                        nodes.add(node)
+                    }
+                }
             }
-            nodes.add(node)
         }
-        // Note that using the ImmutableSet retains the original ordering of entry nodes.
-        val entryNodes =
-            buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
-                add(nodesById[readSmallInt()])
-            }.build()
-
-        val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
-        nodes.forEach { node ->
-            readSuccessorReferencesOf(node, nodeForId)
-            node.group = readNodeGroup(nodeForId)
-        }
-        return ScheduledWork(nodes, entryNodes)
+        return nodes to nodesById
     }
 
     private
