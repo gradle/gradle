@@ -187,12 +187,12 @@ For example, if the requested variant is `java-api,classes`, but the dependency 
 Gradle allows registering Artifact Transforms.
 When the dependency does not have the requested variant, Gradle will try to find a chain of Artifact Transforms to create it.
 
-image::artifact-transform-3.png[]
-
 == Understanding Artifact Transforms and Attribute-Based Resolution
 
 When Gradle resolves a configuration and a dependency does not have a variant with the requested attributes, it attempts to find a chain of Artifact Transforms to create the desired variant.
 This process is called **Artifact Transform selection**:
+
+image::artifact-transform-5.png[]
 
 1. **Start with requested Attributes**:
 - Gradle starts with the attributes specified in the configuration.
