@@ -238,7 +238,7 @@ public class ConsumerProvidedVariantFinder {
             public CacheKey(List<ImmutableAttributes> variantAttributes, ImmutableAttributes requested) {
                 this.variantAttributes = variantAttributes;
                 this.requested = requested;
-                this.hashCode = variantAttributes.hashCode() ^ requested.hashCode();
+                this.hashCode = 31 * variantAttributes.hashCode() + requested.hashCode();
             }
 
             @Override
@@ -283,7 +283,7 @@ public class ConsumerProvidedVariantFinder {
             public CacheKey(ImmutableAttributes candidate, ImmutableAttributes requested) {
                 this.candidate = candidate;
                 this.requested = requested;
-                this.hashCode = candidate.hashCode() ^ requested.hashCode();
+                this.hashCode = 31 * candidate.hashCode() + requested.hashCode();
             }
 
             @Override
