@@ -35,9 +35,11 @@ import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.DefaultReadContext
-import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateContextSource
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
@@ -51,6 +53,8 @@ import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readWith
+import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeWith
@@ -150,14 +154,26 @@ class WorkNodeCodec(
         nodes: ImmutableList<Node>,
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
     ) {
-        require(this is DefaultWriteContext)
         val isolateOwner = isolate.owner
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
-        writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
-            val groupPath = pathFor(nodeOwner)
-            writeString(groupPath.path)
-            contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
-                writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
+        val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
+        buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
+            writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
+                val groupPath = pathFor(nodeOwner)
+                writeString(groupPath.path)
+                add(object : RunnableBuildOperation {
+                    override fun run(context: BuildOperationContext) {
+                        runWriteOperation {
+                            contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
+                                writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
+                            }
+                        }
+                    }
+
+                    override fun description(): BuildOperationDescriptor.Builder {
+                        return BuildOperationDescriptor.displayName("Nodes for $nodeOwner")
+                    }
+                })
             }
         }
     }
@@ -173,7 +189,6 @@ class WorkNodeCodec(
 
     private
     fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
-        require(this is DefaultReadContext)
         val nodes = mutableListOf<Node>()
         val nodesById = mutableMapOf<Int, Node>()
         val isolateOwner = isolate.owner
