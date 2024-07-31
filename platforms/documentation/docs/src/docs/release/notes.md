@@ -20,7 +20,7 @@ Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gr
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -53,6 +53,7 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 <a name="java-23"></a>
+
 ### Full Java 23 support
 
 With this release, Gradle supports running on [Java 23](https://jdk.java.net/23/).
@@ -63,6 +64,7 @@ Certain features that rely on third-party tools, such as PMD and Scala support, 
 For details, see the full [compatibility documentation](userguide/compatibility.html#java).
 
 <a name="config-cache"></a>
+
 ### Configuration cache improvements
 
 The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
@@ -72,10 +74,71 @@ nothing that affects the build configuration has changed.
 #### Report improvements
 
 TBD:
+
 - Incompatible tasks tab
 - Copy experience
 - Invalidation reason (+ message improvements?)
 
+### Gradle lifecycle callback behavior changes
+
+The behavior of the recently added [GradleLifecycle](https://docs.gradle.org/8.9/javadoc/org/gradle/api/invocation/GradleLifecycle.html) API has changed.
+Previously, the `GradleLifecycle#beforeProject` callback was executed right before the project evaluation.
+
+The issue is that the results of `GradleLifecycle#beforeProject` execution are not observable within the eager API family
+callbacks: `Project#allprojects`, `Project#getAllprojects`, `Project#subprojects` and similar cross-project accessing callbacks.
+Some builds may rely on the eagerness of that API family, which requires additional build logic changes while migrating to the new `GradleLifecycle` callbacks.
+
+An example:
+
+```kotlin
+// settings.gradle.kts
+gradle.lifecycle.beforeProject {
+    println("Lifecycle :$name")
+    extra["foo"] = "bar"
+}
+rootProject.name = "root"
+include(":a")
+include(":b")
+
+// build.gradle.kts
+allprojects {
+    println("Allprojects :$name")
+    println("Foo = ${extra["foo"]}")
+}
+```
+
+Previously, the output would be:
+
+```
+Lifecycle :root
+Allprojects :root
+Foo = bar
+Allprojects :a
+Foo = null
+Allprojects :b
+Foo = null
+Lifecycle :a
+Lifecycle :b
+```
+
+As shown, the result of setting an extra property in `GradleLifecycle#beforeProject` is not observable in `Project#allprojects`.
+
+To address this, with this release, `GradleLifecycle#beforeProject` execution can be triggered from within the eager API callbacks when the mutable state of the project is accessed.
+So the output will be:
+
+```
+Lifecycle :root
+Allprojects :root
+Foo = bar
+Allprojects :a
+Lifecycle :a
+Foo = bar
+Allprojects :b
+Lifecycle :b
+Foo = bar
+```
+
+Otherwise, if only the immutable state of the project is accessed, the `GradleLifecycle#beforeProject` callback will be executed as previously, right before the project evaluation.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -84,6 +147,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
