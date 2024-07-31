@@ -65,4 +65,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         [":build", "--configure-on-demand"]    | [":build"]
         [":build", "--no-configure-on-demand"] | [":build"]
     }
+
+    // TODO Test -x behavior
+    // TODO Test included builds behavior
 }
