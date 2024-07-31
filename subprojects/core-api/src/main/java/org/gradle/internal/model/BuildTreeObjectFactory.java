@@ -16,13 +16,10 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 
 /**
  * A marker interface for an ObjectFactory that is instantiated with BuildTreeScopeServices.
- * @since 8.5
  */
-@Incubating
 public interface BuildTreeObjectFactory extends ObjectFactory {
 }
