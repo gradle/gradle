@@ -83,7 +83,6 @@ abstract class MyTransform : TransformAction<TransformParameters.None> {
 
 === 2. Use an Attribute
 
-Transforms are triggered based on their inputs and outputs.
 Attributes are used to determine whether an artifact transform should be run.
 
 Here, the `implementation` dependency configuration specifies that it requires the `transformed-jar` format:
@@ -126,6 +125,8 @@ Gradle can handle dependencies more efficiently by transforming artifacts as nee
 
 Dependencies can have different <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,**variants**>>, essentially different versions or forms of the same dependency.
 These variants can differ based on their use cases, such as when compiling code or running applications.
+
+image::artifact-transform-4.png[]
 
 Let's use the following example where an external Maven dependency has two variants:
 
