@@ -20,8 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -32,15 +36,12 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Compilation options to be passed to the Groovy compiler.
@@ -49,81 +50,61 @@ import java.util.Map;
 public abstract class GroovyCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private String encoding = "UTF-8";
-
-    private boolean fork = true;
-
-    private boolean keepStubs;
-
-    private List<String> fileExtensions = ImmutableList.of("java", "groovy");
-
-    private Map<String, Boolean> optimizationOptions = new HashMap<>();
-
-    private boolean javaAnnotationProcessing;
-
-    private boolean parameters;
+    public GroovyCompileOptions() {
+        getFailOnError().convention(true);
+        getVerbose().convention(false);
+        getListFiles().convention(false);
+        getEncoding().convention(StandardCharsets.UTF_8.name());
+        getFork().convention(true);
+        getJavaAnnotationProcessing().convention(false);
+        getParameters().convention(false);
+        getFileExtensions().convention(ImmutableList.of("java", "groovy"));
+        getKeepStubs().convention(false);
+    }
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
-     * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
 
-    /**
-     * Sets whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
-     * @since 0.7
-     */
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsFailOnError() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnError()", "getFailOnError()");
+        return getFailOnError();
     }
 
     /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
-     * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isVerbose() {
-        return verbose;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getVerbose();
 
-    /**
-     * Sets whether to turn on verbose output. Defaults to {@code false}.
-     * @since 0.7
-     */
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsVerbose() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsVerbose()", "getVerbose()");
+        return getVerbose();
     }
 
     /**
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
-     * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isListFiles() {
-        return listFiles;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
 
-    /**
-     * Sets whether to print which source files are to be compiled. Defaults to {@code false}.
-     * @since 0.7
-     */
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsListFiles() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsListFiles()", "getListFiles()");
+        return getListFiles();
     }
 
     /**
@@ -131,35 +112,21 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getEncoding() {
-        return encoding;
-    }
-
-    /**
-     * Sets the source encoding. Defaults to {@code UTF-8}.
-     * @since 0.7
-     */
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
-     * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFork() {
-        return fork;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
 
-    /**
-     * Sets whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
-     * @since 0.7
-     */
-    public void setFork(boolean fork) {
-        this.fork = fork;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsFork() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFork()", "getFork()");
+        return getFork();
     }
 
     /**
@@ -241,22 +208,16 @@ public abstract class GroovyCompileOptions implements Serializable {
      * When this option is set to {@code false} (the default), Groovy code will not be subject to annotation processing, but any joint compiled Java code will be.
      * If the compiler argument {@code "-proc:none"} was specified as part of the Java compile options, the value of this flag will be ignored.
      * No annotation processing will be performed regardless, on Java or Groovy source.
-     * @since 2.5
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isJavaAnnotationProcessing() {
-        return javaAnnotationProcessing;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getJavaAnnotationProcessing();
 
-    /**
-     * Sets whether Java annotation processors should process annotations on stubs.
-     *
-     * Defaults to {@code false}.
-     * @since 2.5
-     */
-    public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
-        this.javaAnnotationProcessing = javaAnnotationProcessing;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsJavaAnnotationProcessing() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsJavaAnnotationProcessing()", "getJavaAnnotationProcessing()");
+        return getJavaAnnotationProcessing();
     }
 
     /**
@@ -265,19 +226,14 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 6.1
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isParameters() {
-        return parameters;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getParameters();
 
-    /**
-     * Sets whether metadata for reflection on method parameter names should be generated.
-     * Defaults to {@code false}
-     *
-     * @since 6.1
-     */
-    public void setParameters(boolean parameters) {
-        this.parameters = parameters;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsParameters() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsParameters()", "getParameters()");
+        return getParameters();
     }
 
     /**
@@ -313,22 +269,10 @@ public abstract class GroovyCompileOptions implements Serializable {
      * </dl>
      * @since 1.1
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable
-    @Optional
     @Input
-    public Map<String, Boolean> getOptimizationOptions() {
-        return optimizationOptions;
-    }
-
-    /**
-     * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
-     * Only takes effect when compiling against Groovy 1.8 or higher.
-     * @since 1.1
-     */
-    public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
-        this.optimizationOptions = optimizationOptions;
-    }
+    @Optional
+    @ReplacesEagerProperty
+    public abstract MapProperty<String, Boolean> getOptimizationOptions();
 
     /**
      * Returns the set of global AST transformations which should not be loaded into the Groovy compiler.
@@ -377,40 +321,23 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 1.1
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getFileExtensions() {
-        return fileExtensions;
-    }
-
-    /**
-     * Sets the list of acceptable source file extensions. Only takes effect when compiling against
-     * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
-     * @since 1.1
-     */
-    public void setFileExtensions(List<String> fileExtensions) {
-        this.fileExtensions = fileExtensions;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getFileExtensions();
 
     /**
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
-     * @since 1.0
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isKeepStubs() {
-        return keepStubs;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getKeepStubs();
 
-    /**
-     * Sets whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
-     * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
-     * Defaults to {@code false}.
-     * @since 1.0
-     */
-    public void setKeepStubs(boolean keepStubs) {
-        this.keepStubs = keepStubs;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsKeepStubs() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsKeepStubs()", "getKeepStubs()");
+        return getKeepStubs();
     }
 
 }
