@@ -44,19 +44,19 @@ public class MinimalGroovyCompileOptions implements Serializable {
     private Set<String> disabledGlobalASTTransformations;
 
     public MinimalGroovyCompileOptions(GroovyCompileOptions compileOptions) {
-        this.failOnError = compileOptions.isFailOnError();
-        this.verbose = compileOptions.isVerbose();
-        this.listFiles = compileOptions.isListFiles();
-        this.encoding = compileOptions.getEncoding();
-        this.fork = compileOptions.isFork();
-        this.keepStubs = compileOptions.isKeepStubs();
-        this.fileExtensions = ImmutableList.copyOf(compileOptions.getFileExtensions());
+        this.failOnError = compileOptions.getFailOnError().get();
+        this.verbose = compileOptions.getVerbose().getOrElse(false);
+        this.listFiles = compileOptions.getListFiles().getOrElse(false);
+        this.encoding = compileOptions.getEncoding().get();
+        this.fork = compileOptions.getFork().get();
+        this.keepStubs = compileOptions.getKeepStubs().get();
+        this.fileExtensions = ImmutableList.copyOf(compileOptions.getFileExtensions().get());
         this.forkOptions = new MinimalGroovyCompilerDaemonForkOptions(compileOptions.getForkOptions());
-        this.optimizationOptions = Maps.newHashMap(compileOptions.getOptimizationOptions());
-        this.stubDir = compileOptions.getStubDir();
-        this.configurationScript = compileOptions.getConfigurationScript();
-        this.javaAnnotationProcessing = compileOptions.isJavaAnnotationProcessing();
-        this.parameters = compileOptions.isParameters();
+        this.optimizationOptions = Maps.newHashMap(compileOptions.getOptimizationOptions().get());
+        this.stubDir = compileOptions.getStubDir().getAsFile().getOrNull();
+        this.configurationScript = compileOptions.getConfigurationScript().getAsFile().getOrNull();
+        this.javaAnnotationProcessing = compileOptions.getJavaAnnotationProcessing().get();
+        this.parameters = compileOptions.getParameters().get();
         this.disabledGlobalASTTransformations = compileOptions.getDisabledGlobalASTTransformations().get();
     }
 
