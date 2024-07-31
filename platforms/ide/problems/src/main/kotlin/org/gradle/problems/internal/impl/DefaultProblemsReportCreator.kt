@@ -68,9 +68,7 @@ class DefaultProblemsReportCreator(
                 with(jsonWriter) {
                     property("problemsReport") {
                         jsonObject {
-                            property("totalProblemCount") {
-                                write(problemCount.toString())
-                            }
+                            property("totalProblemCount") { write(problemCount.toString()) }
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
                             property("documentationLink", DocumentationRegistry().getDocumentationFor("problem-report"))
@@ -98,9 +96,8 @@ class DefaultProblemsReportCreator(
                             }
                         }
 
-                        property("problem") {
-                            writeStructuredMessage(StructuredMessage.forText(problem.definition.id.displayName))
-                        }
+                        property("problem") { writeStructuredMessage(StructuredMessage.forText(problem.definition.id.displayName)) }
+
                         problem.details?.let {
                             property("problemDetails") {
                                 writeStructuredMessage(
@@ -109,12 +106,8 @@ class DefaultProblemsReportCreator(
                                 )
                             }
                         }
-                        problem.definition.documentationLink?.let {
-                            property("documentationLink", it.url)
-                        }
-                        problem.exception?.let {
-                            writeError(failureDecorator.decorate(failureFactory.create(it)))
-                        }
+                        problem.definition.documentationLink?.let { property("documentationLink", it.url) }
+                        problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
                         property("category") {
                             val list = listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName)) +
                                 generateSequence(problem.definition.id.group) { it.parent }.toList().asReversed()
