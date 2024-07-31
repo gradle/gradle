@@ -16,10 +16,12 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
@@ -92,13 +94,7 @@ class WorkNodeCodec(
             }
         }
 
-        nodes.forEach { node ->
-            writeSmallInt(scheduledNodeIds.getInt(node))
-            write(node)
-            if (node is LocalTaskNode) {
-                writeSmallInt(scheduledNodeIds.getInt(node.prepareNode))
-            }
-        }
+        writeNodes(nodes, scheduledNodeIds)
 
         // A large build may have many nodes but not so many entry nodes.
         // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
@@ -109,6 +105,36 @@ class WorkNodeCodec(
         nodes.forEach { node ->
             writeSuccessorReferencesOf(node, idForNode)
             writeNodeGroup(node.group, idForNode)
+        }
+    }
+
+    sealed class NodeOwner {
+        object NoOwner : NodeOwner()
+        data class Project(val project: ProjectInternal) : NodeOwner()
+
+        companion object {
+            fun of(node: Node): NodeOwner {
+                return when (val project = node.owningProject) {
+                    null -> NoOwner
+                    else -> Project(project)
+                }
+            }
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeNodes(
+        nodes: ImmutableList<Node>,
+        nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
+    ) {
+        nodes.groupBy { NodeOwner.of(it) }.forEach { (_, someNodes) ->
+            someNodes.forEach { node ->
+                writeSmallInt(nodeIds.getInt(node))
+                write(node)
+                if (node is LocalTaskNode) {
+                    writeSmallInt(nodeIds.getInt(node.prepareNode))
+                }
+            }
         }
     }
 
