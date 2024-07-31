@@ -20,8 +20,6 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 
 import java.io.Serializable;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 public class DefaultProblemId implements ProblemId, Serializable {
 
@@ -52,23 +50,16 @@ public class DefaultProblemId implements ProblemId, Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        return groupPath(getGroup()) + getName();
+    }
 
-        Deque<ProblemGroup> stack = new ArrayDeque<ProblemGroup>();
-        ProblemGroup current = parent;
-        while (current != null) {
-            stack.push(current);
-            current = current.getParent();
+    static String groupPath(ProblemGroup group) {
+        ProblemGroup parent = group.getParent();
+        if (parent == null) {
+            return group.getName();
+        } else {
+            return groupPath(parent) + ":" + group.getName();
         }
-
-        while (!stack.isEmpty()) {
-            ProblemGroup group = stack.pop();
-            sb.append(group.getName());
-            sb.append(':');
-        }
-
-        sb.append(id);
-        return sb.toString();
     }
 
     @Override
