@@ -427,9 +427,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             for (int i = 0; i < 10; i++) {
                 problems.forNamespace("org.example.plugin").reporting {
-                        it.id("type\$i", "label\$i")
+                        it.id("type\$i", "This is the heading problem text\$i")
                         .severity(Severity.WARNING)
-                        .details("details\$i")
+                        .details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
             }
@@ -443,9 +443,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         10.times { num ->
             verifyAll(receivedProblem(num)) {
-                definition.id.displayName == "label$num"
+                definition.id.displayName == "This is the heading problem text$num"
                 definition.id.name == "type$num"
                 definition.severity == Severity.WARNING
+                details == "This is a huge amount of extremely and very relevant details for this problem$num"
                 solutions == ["solution"]
             }
         }
