@@ -36,6 +36,10 @@ import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
@@ -49,6 +53,8 @@ import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import java.nio.file.Files
@@ -156,19 +162,33 @@ class WorkNodeCodec(
         require(this is DefaultWriteContext)
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val isolateOwner = isolate.owner
-        writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
-            val file = Files.createTempFile("cc-", owner.toString())
-            writeString(file.absolutePathString())
-            writeContextForFile(file).useToRun {
-                withIsolate(isolateOwner) {
-                    writeCollection(groupNodes) { node ->
-                        writeSmallInt(nodeIds.getInt(node))
-                        write(node)
-                        if (node is LocalTaskNode) {
-                            writeSmallInt(nodeIds.getInt(node.prepareNode))
+        val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
+        buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
+            writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
+                val file = Files.createTempFile("cc-", owner.toString())
+                writeString(file.absolutePathString())
+
+                add(object : RunnableBuildOperation {
+                    override fun run(context: BuildOperationContext) {
+                        runWriteOperation {
+                            writeContextForFile(file).useToRun {
+                                withIsolate(isolateOwner) {
+                                    writeCollection(groupNodes) { node ->
+                                        writeSmallInt(nodeIds.getInt(node))
+                                        write(node)
+                                        if (node is LocalTaskNode) {
+                                            writeSmallInt(nodeIds.getInt(node.prepareNode))
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                }
+
+                    override fun description(): BuildOperationDescriptor.Builder {
+                        return BuildOperationDescriptor.displayName("Nodes for $owner")
+                    }
+                })
             }
         }
     }
