@@ -103,7 +103,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:compileJava'.")
-        failure.assertHasCause("Compilation failed with reported problems; see the problem details below.")
+        failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
     @Rule

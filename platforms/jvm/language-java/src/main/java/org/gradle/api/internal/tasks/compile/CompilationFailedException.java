@@ -52,7 +52,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
     }
 
     public CompilationFailedException(@Nullable ApiCompilerResult result, Collection<Problem> reportedProblems) {
-        super("Compilation failed with reported problems; see the problem details below.");
+        super("Compilation failed; see the compiler output below.");
         this.compilerPartialResult = result;
         this.reportedProblems = reportedProblems;
     }
