@@ -22,8 +22,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Inherited;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -125,37 +123,6 @@ public class JavaPropertyReflectionUtil {
                 PROPERTY_CACHE.put(targetType, cached);
             }
             return cached;
-        }
-    }
-
-    @Nullable
-    public static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType) {
-        return getAnnotation(type, annotationType, true);
-    }
-
-    @Nullable
-    private static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType, boolean checkType) {
-        A annotation;
-        if (checkType) {
-            annotation = type.getAnnotation(annotationType);
-            if (annotation != null) {
-                return annotation;
-            }
-        }
-
-        if (annotationType.getAnnotation(Inherited.class) != null) {
-            for (Class<?> anInterface : type.getInterfaces()) {
-                annotation = getAnnotation(anInterface, annotationType, true);
-                if (annotation != null) {
-                    return annotation;
-                }
-            }
-        }
-
-        if (type.isInterface() || type.equals(Object.class)) {
-            return null;
-        } else {
-            return getAnnotation(type.getSuperclass(), annotationType, false);
         }
     }
 

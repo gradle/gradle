@@ -16,16 +16,19 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.execution.plan.Node
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 
 
+@ParallelListener
 @ServiceScope(Scope.Build::class)
 class RelevantProjectsRegistry(
     private val build: BuildState,
@@ -33,12 +36,12 @@ class RelevantProjectsRegistry(
 ) : ProjectComponentObservationListener {
 
     private
-    val targetProjects = mutableSetOf<ProjectState>()
+    val targetProjects = newConcurrentHashSet<Path>()
 
     fun relevantProjects(nodes: List<Node>): Set<ProjectState> {
         val result = mutableSetOf<ProjectState>()
         for (project in targetProjects) {
-            collect(project, result)
+            collect(projectStateRegistry.stateFor(project), result)
         }
         for (node in nodes) {
             val project = projectStateOf(node)
@@ -67,6 +70,6 @@ class RelevantProjectsRegistry(
     fun isLocalProject(projectState: ProjectState) = projectState.owner === build
 
     override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
-        targetProjects.add(projectStateRegistry.stateFor(targetProjectPath))
+        targetProjects.add(targetProjectPath)
     }
 }
