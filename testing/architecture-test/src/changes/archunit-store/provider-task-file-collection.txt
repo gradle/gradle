@@ -20,7 +20,6 @@ Method <org.gradle.api.tasks.compile.JavaCompile.getClasspath()> does not have r
 Method <org.gradle.api.tasks.compile.JavaCompile.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (JavaCompile.java:0)
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfiguration()> does not have raw return type (org.gradle.api.artifacts.Configuration) assignable to any of [ConfigurableFileCollection] in (DependencyInsightReportTask.java:0)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (Groovydoc.java:0)
-Method <org.gradle.api.tasks.javadoc.Groovydoc.getGroovyClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (Groovydoc.java:0)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (Groovydoc.java:0)
 Method <org.gradle.api.tasks.javadoc.Javadoc.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (Javadoc.java:0)
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (Javadoc.java:0)
