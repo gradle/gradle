@@ -64,6 +64,8 @@ import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.work.Synchronizer
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import java.io.Closeable
 import java.io.File
@@ -82,11 +84,12 @@ class DefaultConfigurationCacheIO internal constructor(
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
-    private val eventEmitter: BuildOperationProgressEventEmitter
+    private val eventEmitter: BuildOperationProgressEventEmitter,
+    private val workerLeaseService: WorkerLeaseService
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
-    val codecs = codecs()
+    val codecs = codecs(workerLeaseService.newResource())
 
     private
     val encryptionService by lazy { service<EncryptionService>() }
@@ -395,7 +398,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     private
-    fun codecs(): Codecs =
+    fun codecs(synchronizer: Synchronizer): Codecs =
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
@@ -428,6 +431,7 @@ class DefaultConfigurationCacheIO internal constructor(
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
             transformStepNodeFactory = service(),
+            synchronizer = synchronizer
         )
 
     private

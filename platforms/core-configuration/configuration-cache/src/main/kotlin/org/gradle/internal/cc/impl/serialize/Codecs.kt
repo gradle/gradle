@@ -136,6 +136,7 @@ import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.work.Synchronizer
 
 
 @Suppress("LongParameterList")
@@ -172,6 +173,7 @@ class Codecs(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
+    private val synchronizer: Synchronizer
 ) {
     private
     val userTypesBindings: Bindings
@@ -341,6 +343,7 @@ class Codecs(
         buildStateRegistry: BuildStateRegistry,
         flowProviders: FlowProviders
     ) = FixedValueReplacingProviderCodec(
+        synchronizer,
         defaultCodecForProviderWithChangingValue(
             ValueSourceProviderCodec(valueSourceProviderFactory),
             BuildServiceProviderCodec(buildStateRegistry),
@@ -355,6 +358,7 @@ class Codecs(
     fun nestedProviderCodecForFingerprint(
         valueSourceProviderFactory: ValueSourceProviderFactory
     ) = FixedValueReplacingProviderCodec(
+        synchronizer,
         defaultCodecForProviderWithChangingValue(
             ValueSourceProviderCodec(valueSourceProviderFactory),
             UnsupportedFingerprintBuildServiceProviderCodec,

@@ -47,6 +47,7 @@ import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.unsupported
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.work.WorkerLeaseService
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -63,8 +64,10 @@ class IsolatedActionCodecsFactory(
     val filePropertyFactory: FilePropertyFactory,
 
     private
-    val fileFactory: FileFactory
+    val fileFactory: FileFactory,
 
+    private
+    val workerLeaseService: WorkerLeaseService
 ) {
     fun isolatedActionCodecs() = Bindings.of {
         allUnsupportedTypes()
@@ -107,6 +110,7 @@ class IsolatedActionCodecsFactory(
     private
     fun fixedValueReplacingProviderCodec() =
         FixedValueReplacingProviderCodec(
+            workerLeaseService.newResource(),
             Bindings.of {
                 unsupportedProviderTypes()
                 bind(BeanCodec)
