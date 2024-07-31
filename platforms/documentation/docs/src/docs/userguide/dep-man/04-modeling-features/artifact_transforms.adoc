@@ -15,12 +15,16 @@
 [[artifact_transforms]]
 = Artifact Transforms
 
-What if you want to adjust the JAR file you get from a repository before you use it?
+What if you want to adjust the JAR file of one of the dependencies you get from a repository before you use it?
 
 Gradle has a build in feature for this called **Artifact Transforms**.
 With Artifact Transforms, you can modify, extend, or reduce artifacts like JAR files before it is used by tasks or tools like the IDE.
 
 == Artifact Transforms Overview
+
+Dependencies may exist with different variants (where variants are a set of attributes, i.e., key-value pairs such as `minified=true`).
+When Gradle resolves a configuration, it looks at each dependency and finds its variant with the requested attributes is selected.
+When the dependency does not have a variant, resolving the configuration fails unless Gradle finds Artifact Transforms that transform the dependency's artifacts into the required format (without changing its transitive dependencies).
 
 Artifact Transforms are a mechanism that allows you to convert one type of artifact into another during the build process.
 It's a more efficient and flexible way of handling dependencies by transforming the artifacts to the required format or type without the need for multiple variants of the same artifact.
@@ -412,3 +416,31 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kot
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
+== Executing Artifact Transforms
+
+On the command line, Gradle runs tasks and not Artifact Transforms: `./gradlew build`.
+So how and when does it run transforms?
+
+A task can declare an input with attributes.
+When running this task, Gradle may run an artifact transform to ensure that the input to the task has the proper attributes.
+Then it will run the task.
+
+There are two ways to execute a transform:
+
+1. Artifact Transforms execution for _project dependencies_ can be discovered ahead of task execution and therefore can be scheduled outside the task execution (as a <<build_lifecycle.adoc#sec:execution, planned transform node in the execution graph>>).
+2. Artifact Transforms execution for _external module dependencies_ cannot be discovered ahead of task execution and therefore are scheduled inside the task execution (as part of the <<build_lifecycle.adoc#sec:execution, task node in the execution graph>>).
+
+Unlike a task, which is invoked once when all its dependencies finished executing, transforms can be requested by many tasks in different parts of the build.
+Therefore, when an execution graph node or a task needs an artifact transform, it places a request.
+
+NOTE: Transform executions don’t run as ‘children’ of execution graph nodes. Requests are the ‘children’.
+
+Gradle will check if it needs to execute this request.
+The execution engine will fulfill the request as efficiently as possible.
+If the request is in the in-memory cache (daemon memory), `UP-TO-DATE`, or in the local/remove cache, Gradle will avoid executing it again.
+This means that one execution of a transform can fulfill many requests.
+Gradle takes full advantage of already fulfilled requests.
+
+TIP: In well-declared builds, project dependencies can be fully discovered during task configuration ahead of task execution scheduling.
+If the project dependency is badly declared (eg missing task input) then the transform execution will happen inside the task.
+What could be a planned transform node in the execution graph becomes a transform request to the parent task.
