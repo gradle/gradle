@@ -301,6 +301,8 @@ tasks.test {
 }
 
 tasks.compileTestGroovy {
+    // TODO: Fix for Gradle 10, use groovyOptions.fork instead
+    @Suppress("DEPRECATION")
     groovyOptions.isFork = true
     groovyOptions.forkOptions.run {
         memoryInitialSize = "128M"
