@@ -68,7 +68,7 @@ class GroovydocTest extends AbstractConventionTaskTest {
         groovydoc.link(url2, package3)
 
         expect:
-        groovydoc.getLinks() == WrapUtil.toSet(
+        groovydoc.getLinks().get() == WrapUtil.toSet(
                 new Groovydoc.Link(url1, package1, package2),
                 new Groovydoc.Link(url2, package3))
     }
@@ -82,15 +82,15 @@ class GroovydocTest extends AbstractConventionTaskTest {
 
         groovydoc.link(url1, package1)
         def newLinkSet = WrapUtil.toSet(new Groovydoc.Link(url2, package2))
-        groovydoc.setLinks(newLinkSet)
+        groovydoc.links = newLinkSet
 
         expect:
-        groovydoc.getLinks() == newLinkSet
+        groovydoc.getLinks().get() == newLinkSet
     }
 
     def "groovy classpath must not be empty"() {
         when:
-        groovydoc.setGroovyClasspath(TestFiles.empty())
+        groovydoc.groovyClasspath = TestFiles.empty()
         groovydoc.generate()
 
         then:
