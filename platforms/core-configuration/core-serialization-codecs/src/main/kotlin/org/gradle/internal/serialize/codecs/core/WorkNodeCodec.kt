@@ -82,7 +82,6 @@ class WorkNodeCodec(
         // Not restoring them as entry points doesn't affect the resulting execution plan.
         val scheduledEntryNodeIds = mutableListOf<Int>()
         nodes.forEach { node ->
-            write(node)
             val nodeId = scheduledNodeIds.size
             scheduledNodeIds[node] = nodeId
             if (node in work.entryNodes) {
@@ -92,6 +91,15 @@ class WorkNodeCodec(
                 scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
             }
         }
+
+        nodes.forEach { node ->
+            writeSmallInt(scheduledNodeIds.getInt(node))
+            write(node)
+            if (node is LocalTaskNode) {
+                writeSmallInt(scheduledNodeIds.getInt(node.prepareNode))
+            }
+        }
+
         // A large build may have many nodes but not so many entry nodes.
         // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
         writeCollection(scheduledEntryNodeIds) {
@@ -108,13 +116,15 @@ class WorkNodeCodec(
     suspend fun ReadContext.doRead(): ScheduledWork {
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
-        val nodesById = ArrayList<Node>(nodeCount)
+        val nodesById = mutableMapOf<Int, Node>()
         repeat(nodeCount) {
+            val nodeId = readSmallInt()
             val node = readNode()
-            nodesById.add(node)
+            nodesById[nodeId] = node
             if (node is LocalTaskNode) {
                 node.prepareNode.require()
-                nodesById.add(node.prepareNode)
+                val prepareNodeId = readSmallInt()
+                nodesById[prepareNodeId] = node.prepareNode
             }
             nodes.add(node)
         }
@@ -124,7 +134,7 @@ class WorkNodeCodec(
                 add(nodesById[readSmallInt()])
             }.build()
 
-        val nodeForId: NodeForId = nodesById::get
+        val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
         nodes.forEach { node ->
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
