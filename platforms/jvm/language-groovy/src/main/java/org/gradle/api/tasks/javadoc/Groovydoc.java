@@ -18,14 +18,18 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -39,6 +43,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -50,9 +56,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -63,31 +67,11 @@ import java.util.Set;
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
-    private FileCollection groovyClasspath;
-
-    private FileCollection classpath;
-
-    private File destinationDir;
 
     private AntGroovydoc antGroovydoc;
-
-    private boolean use;
-
-    private boolean noTimestamp = true;
-
-    private boolean noVersionStamp = true;
-
-    private String windowTitle;
-
-    private String docTitle;
-
-    private String header;
-
-    private String footer;
+    private FileCollection classpath;
 
     private TextResource overview;
-
-    private Set<Link> links = new LinkedHashSet<Link>();
 
     private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
 
@@ -99,21 +83,24 @@ public abstract class Groovydoc extends SourceTask {
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
+        getUse().convention(false);
+        getNoTimestamp().convention(true);
+        getNoVersionStamp().convention(true);
     }
 
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDir().getAsFile().get();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
         getAntGroovydoc().execute(
-            getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
-            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(),
-            getAccess().get(), getLinks(), getGroovyClasspath(), getClasspath(),
+            getSource(), destinationDir, getUse().get(), getNoTimestamp().get(), getNoVersionStamp().get(),
+            getWindowTitle().getOrNull(), getDocTitle().getOrNull(), getHeader().getOrNull(), getFooter().getOrNull(),
+            getPathToOverview(), getAccess().get(), getLinks().get(), getGroovyClasspath(), getClasspath(),
             getTemporaryDir(), getServices().get(FileSystemOperations.class),
             getIncludeAuthor().get(), getProcessScripts().get(), getIncludeMainForScripts().get()
         );
@@ -150,17 +137,8 @@ public abstract class Groovydoc extends SourceTask {
      * @return The directory to generate the documentation into
      */
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-
-    /**
-     * Sets the directory to generate the documentation into.
-     */
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getDestinationDir();
 
     /**
      * Returns the classpath containing the Groovy library to be used.
@@ -168,17 +146,8 @@ public abstract class Groovydoc extends SourceTask {
      * @return The classpath containing the Groovy library to be used
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getGroovyClasspath() {
-        return groovyClasspath;
-    }
-
-    /**
-     * Sets the classpath containing the Groovy library to be used.
-     */
-    public void setGroovyClasspath(FileCollection groovyClasspath) {
-        this.groovyClasspath = groovyClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getGroovyClasspath();
 
     /**
      * Returns the classpath used to locate classes referenced by the documented sources.
@@ -186,7 +155,7 @@ public abstract class Groovydoc extends SourceTask {
      * @return The classpath used to locate classes referenced by the documented sources
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -199,7 +168,7 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Has no lazy replacement")
     public AntGroovydoc getAntGroovydoc() {
         if (antGroovydoc == null) {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
@@ -217,129 +186,75 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to create class and package usage pages.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isUse() {
-        return use;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getUse();
 
-    /**
-     * Sets whether to create class and package usage pages.
-     */
-    public void setUse(boolean use) {
-        this.use = use;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsUse() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUse()", "getUse()");
+        return getUse();
     }
 
     /**
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isNoTimestamp() {
-        return noTimestamp;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getNoTimestamp();
 
-    /**
-     * Sets whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
-     */
-    public void setNoTimestamp(boolean noTimestamp) {
-        this.noTimestamp = noTimestamp;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsNoTimestamp() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsNoTimestamp()", "getNoTimestamp()");
+        return getNoTimestamp();
     }
 
     /**
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isNoVersionStamp() {
-        return noVersionStamp;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getNoVersionStamp();
 
-    /**
-     * Sets whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
-     */
-    public void setNoVersionStamp(boolean noVersionStamp) {
-        this.noVersionStamp = noVersionStamp;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsNoVersionStamp() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsNoVersionStamp()", "getNoVersionStamp()");
+        return getNoVersionStamp();
     }
 
     /**
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getWindowTitle() {
-        return windowTitle;
-    }
-
-    /**
-     * Sets the browser window title for the documentation.
-     *
-     * @param windowTitle A text for the windows title
-     */
-    public void setWindowTitle(@Nullable String windowTitle) {
-        this.windowTitle = windowTitle;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getWindowTitle();
 
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getDocTitle() {
-        return docTitle;
-    }
-
-    /**
-     * Sets title for the package index(first) page (optional).
-     *
-     * @param docTitle the docTitle as HTML
-     */
-    public void setDocTitle(@Nullable String docTitle) {
-        this.docTitle = docTitle;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDocTitle();
 
     /**
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getHeader() {
-        return header;
-    }
-
-    /**
-     * Sets header text for each page (optional).
-     *
-     * @param header the header as HTML
-     */
-    public void setHeader(@Nullable String header) {
-        this.header = header;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getHeader();
 
     /**
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getFooter() {
-        return footer;
-    }
-
-    /**
-     * Sets footer text for each page (optional).
-     *
-     * @param footer the footer as HTML
-     */
-    public void setFooter(@Nullable String footer) {
-        this.footer = footer;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getFooter();
 
     /**
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
@@ -409,20 +324,8 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the links to groovydoc/javadoc output at the given URL.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<Link> getLinks() {
-        return Collections.unmodifiableSet(links);
-    }
-
-    /**
-     * Sets links to groovydoc/javadoc output at the given URL.
-     *
-     * @param links The links to set
-     * @see #link(String, String...)
-     */
-    public void setLinks(Set<Link> links) {
-        this.links = links;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<Link> getLinks();
 
     /**
      * Add links to groovydoc/javadoc output at the given URL.
@@ -431,7 +334,7 @@ public abstract class Groovydoc extends SourceTask {
      * @param packages list of package prefixes
      */
     public void link(String url, String... packages) {
-        links.add(new Link(url, packages));
+        getLinks().add(new Link(url, packages));
     }
 
     /**
