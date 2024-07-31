@@ -69,6 +69,8 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 
 @ServiceScope(Scope.Build::class)
@@ -319,7 +321,7 @@ class DefaultConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(decoderFor(stateType, inputStream))
+        readContextFor(stateType, inputStream)
             .let { (context, codecs) ->
                 context.useToRun {
                     runReadOperation {
@@ -329,6 +331,11 @@ class DefaultConfigurationCacheIO internal constructor(
                     }
                 }
             }
+
+    private fun readContextFor(
+        stateType: StateType,
+        inputStream: () -> InputStream
+    ) = readContextFor(decoderFor(stateType, inputStream))
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
         val (context, codecs) = readContextFor(decoder)
@@ -353,7 +360,18 @@ class DefaultConfigurationCacheIO internal constructor(
         tracer,
         problems,
         DefaultClassEncoder(scopeRegistryListener),
-    )
+    ).also {
+        it.creator = { file ->
+            val (subContext, subCodecs) = writeContextFor(
+                StateType.Work,
+                outputStream = { file.outputStream() },
+                profile = { file.toString() }
+            )
+
+            subContext.push(subCodecs.internalTypesCodec())
+            subContext
+        }
+    }
 
     private
     fun readContextFor(
@@ -366,7 +384,15 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         problems,
         DefaultClassDecoder()
-    )
+    ).also {
+        it.creator = { file ->
+            val (subContext, subCodecs) =
+                readContextFor(StateType.Work, inputStream = { file.inputStream() })
+
+            subContext.push(subCodecs.internalTypesCodec())
+            subContext
+        }
+    }
 
     private
     fun codecs(): Codecs =
