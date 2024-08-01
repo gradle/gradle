@@ -104,11 +104,7 @@ public class Path implements Comparable<Path> {
 
     public String getPath() {
         if (fullPath == null) {
-            synchronized (this) {
-                if (fullPath == null) {
-                    fullPath = createFullPath();
-                }
-            }
+            fullPath = createFullPath();
         }
         return fullPath;
     }

@@ -85,6 +85,7 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
@@ -239,10 +240,10 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getRootDir();
     }
 
-    @Nullable
     @Override
-    public Path getProjectIdentityPath() {
-        return delegate.getProjectIdentityPath();
+    @Nonnull
+    public ProjectIdentity getProjectIdentity() {
+        return delegate.getProjectIdentity();
     }
 
     /**
