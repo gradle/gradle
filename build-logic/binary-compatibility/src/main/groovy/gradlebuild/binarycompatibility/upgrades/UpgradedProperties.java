@@ -73,18 +73,18 @@ public class UpgradedProperties {
      * We don't automatically accept changes when the @since annotation is missing, because we want to keep this information on the API.
      */
     public static boolean shouldAcceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
-        if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
-            // We still want to report the violation if @since is not added to a method
-            return false;
-        }
-
         Map<AccessorKey, UpgradedProperty> currentAccessors = context.getUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES);
         Map<AccessorKey, ReplacedAccessor> oldAccessors = context.getUserData(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+
+        if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
+            // We want to keep @since nagging for new methods, unless it's `getX` or `getIsX` method that replaces `isX` boolean method.
+            return isCurrentGetterThatReplacesBooleanIsGetter(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
+        }
 
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
             return isOldSetterOfUpgradedProperty(jApiMethod, oldAccessors) || isOldGetterOfUpgradedProperty(jApiMethod, oldAccessors) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldAccessors);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
-            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors);
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) && isOldGetterOfUpgradedProperty(jApiMethod, oldAccessors);
         }
@@ -102,6 +102,29 @@ public class UpgradedProperties {
 
     private static boolean isOldBooleanGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, BOOLEAN_GETTER_REGEX) && jApiMethod.getReturnType().getOldReturnType().equals("boolean");
+    }
+
+    private static boolean isKotlinBooleanSourceCompatibilityMethod(JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
+        if (!jApiMethod.getName().startsWith("getIs")) {
+            return false;
+        }
+        String methodName = "get" + jApiMethod.getName().substring(5);
+        return currentMethods.containsKey(AccessorKey.ofMethodWithSameSignatureButNewName(methodName, jApiMethod));
+    }
+
+    private static boolean isCurrentGetterThatReplacesBooleanIsGetter(JApiMethod jApiMethod, Map<AccessorKey, UpgradedProperty> currentMethods) {
+        if (!isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods)) {
+            return false;
+        }
+
+        UpgradedProperty method = currentMethods.get(AccessorKey.ofNewMethod(jApiMethod));
+        if (method != null) {
+            String propertyName = method.getPropertyName();
+            String isGetterName = "is" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+            return method.getReplacedAccessors().stream()
+                .anyMatch(replacedAccessor -> replacedAccessor.getName().equals(isGetterName) && replacedAccessor.getDescriptor().equals("()Z"));
+        }
+        return false;
     }
 
     private static boolean isOldMethod(JApiMethod jApiMethod, Map<AccessorKey, ReplacedAccessor> upgradedMethods, Pattern pattern) {
