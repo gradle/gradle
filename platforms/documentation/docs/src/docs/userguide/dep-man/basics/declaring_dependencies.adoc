@@ -15,20 +15,20 @@
 [[declaring-basic-dependencies]]
 = 1. Declaring dependencies
 
-Declaring dependencies in Gradle involves specifying the external libraries, modules, or files that your project depends on.
+Declaring dependencies in Gradle involves specifying libraries or files that your project depends on.
 
 [[sub:producers-vs-consumers]]
-== Understanding consumers and producers
+== Understanding producers and consumers
 
-In dependency management, it is essential to understand the distinction between _consumers_ and _producers_.
+In dependency management, it is essential to understand the distinction between _producers_ and _consumers_.
 
 When you build a library, you are acting as a _producer_, creating artifacts that will be consumed by others, the _consumers_.
 
-When you consume that library, you are acting as a _consumer_.
+When you depend on that library, you are acting as a _consumer_.
 _Consumers_ can be broadly defined as:
 
 - Projects that depend on other projects.
-- Tasks that depend on specific artifacts.
+- Configurations that declare dependencies on specific artifacts.
 
 The decisions we make in dependency management often depend on the type of project we are building, specifically, what kind of _consumer_ we are.
 
@@ -40,7 +40,7 @@ To add a dependency in Gradle, you use the link:{javadocPath}/org/gradle/api/art
 
 The `dependencies` block allows you to specify various types of dependencies such as external libraries, local JAR files, or other projects within a multi-project build.
 
-Dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID (group), artifact ID (name), and version.
+External Dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID (group), artifact ID (name), and version.
 
 [source,groovy]
 .build.gradle
@@ -55,12 +55,12 @@ Note:
 
 1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
 2. Gradle offers several  <<dependency_configurations.adoc#dependency-configurations,_configuration_>> options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
-3. You can specify <<declaring_repositories_adv.adoc#declaring-repositories,repositories>> where Gradle should look for dependencies in your build file.
+3. You can specify the <<declaring_repositories_adv.adoc#declaring-repositories,repositories>> where Gradle should look for dependencies in your build file.
 
 [[sec:dependency-types]]
 == Understanding types of dependencies
 
-There are two kinds of dependencies, module dependencies and file dependencies.
+There are three kinds of dependencies, module dependencies, project dependencies, and file dependencies.
 
 [[sub:module_dependencies]]
 === 1. Module dependencies
@@ -68,31 +68,26 @@ There are two kinds of dependencies, module dependencies and file dependencies.
 Module dependencies are the most common dependencies.
 They refer to a module in a repository:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-.build.gradle.kts
-----
-dependencies {
-    implementation("org.springframework:spring-aop:2.5")
-    implementation("org.hibernate:hibernate:3.0.5")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-.build.gradle
-----
-dependencies {
-    implementation('org.springframework:spring-core:2.5')
-    implementation('org.hibernate:hibernate:3.0.5')
-}
-----
-=====
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_catalog_equiv]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
+====
+
+[[sub:project_dependencies]]
+=== 2. Project dependencies
+
+Project dependencies allow you to declare dependencies on other projects within the same build.
+This is useful in multi-project builds where multiple projects are part of the same Gradle build.
+
+Project dependencies are declared by referencing the project path:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin/web-service",files="build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy/web-service",files="build.gradle[tags=project-dependencies]"]
+====
 
 [[sub:file_dependencies]]
-=== 2. File dependencies
+=== 3. File dependencies
 
 In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
 Instead, you might host these dependencies on a shared drive or to check them into version control alongside the project source code.
@@ -108,6 +103,8 @@ include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="buil
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
 ====
 
+WARNING: It is recommended to use project dependencies or external dependencies over file dependencies.
+
 == Looking at an example
 
 Let's imagine an example for a Java application which uses link:https://github.com/google/guava[Guava], a set of core Java libraries from Google:
@@ -116,51 +113,24 @@ image::declaring-dependencies-2.png[]
 
 The Java app contains the following Java class:
 
-[source, java]
-.InitializeCollection.java
-----
-package com.myapp;
-
-import com.google.common.collect.ImmutableMap;  // Comes from guava library
-import java.util.Map;
-
-public class InitializeCollection {
-    public static void main(String[] args) {
-        Map items = ImmutableMap.of("coin", 3, "glass", 4, "pencil", 1);
-    }
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app/src/main/java/org/example",files="InitializeCollection.java[]"]
+====
 
 To add the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] library to your Gradle project as a dependency, you must add the following line to your build file:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-.build.gradle.kts
-----
-dependencies {
-    implementation("com.google.guava:guava:30.1.1-jre")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-.build.gradle
-----
-dependencies {
-    implementation('com.google.guava:guava:30.1.1-jre')
-}
-----
-=====
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=dependency-config]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=dependency-config]"]
+====
 
 Where:
 
 * `implementation` is the configuration.
-* `com.google.guava:guava:30.1.1-jre` specifies the group, name, and version of the library:
+* `com.google.guava:guava:23.0` specifies the group, name, and version of the library:
 ** `com.google.guava` is the group ID.
 ** `guava` is the artifact ID (i.e., name).
-** `30.1.1-jre` is the version.
+** `23.0` is the version.
 
 Take a quick look at the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava page in Maven Central] as a reference.
 
@@ -174,50 +144,22 @@ This task can be particularly useful for debugging dependency issues, such as ve
 
 For example, let's say our `app` project contains the follow lines in its build script:
 
-[source, kotlin]
-.app/build.gradle.kts
-----
-dependencies {
-    implementation("com.google.guava:guava:30.0-jre")
-    runtimeOnly("org.apache.commons:commons-lang3:3.14.0")
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin",files="build.gradle.kts[tags=dependency-config]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy",files="build.gradle[tags=dependency-config]"]
+====
 
 Running the `dependencies` task on the `app` project yields the following:
 
-[source,text]
+====
 ----
-$ ./gradlew app:dependencies
-
-> Task :app:dependencies
-
-------------------------------------------------------------
-Project ':app'
-------------------------------------------------------------
-
-[...]
-
-implementation - Implementation only dependencies for source set 'main'.
-\--- com.google.guava:guava:30.0-jre
-
-runtimeClasspath - Runtime classpath of source set 'main'.
-+--- com.google.guava:guava:30.0-jre
-|    +--- com.google.guava:failureaccess:1.0.1
-|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-|    +--- com.google.code.findbugs:jsr305:3.0.2
-|    +--- org.checkerframework:checker-qual:3.5.0
-|    +--- com.google.errorprone:error_prone_annotations:2.3.4
-|    \--- com.google.j2objc:j2objc-annotations:1.3
-\--- org.apache.commons:commons-lang3:3.14.0
-
-runtimeOnly - Runtime only dependencies for source set 'main'.
-\--- org.apache.commons:commons-lang3:3.14.0
-
-[...]
+$ ./gradlew hello
+include::{snippetsPath}/dependencyManagement/declaringDependencies-basic/tests/basicJavaDepTests.out[]
 ----
+====
 
-We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` has been added
-As for the `runtimeOnly` configuration, the `org.org.apache.commons:commons-lang3:3.14.0`.
+We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` dependency has been added.
+As for the `runtimeOnly` configuration, the `org.org.apache.commons:commons-lang3:3.14.0` dependency has been added.
 
 We also see a list of transitive dependencies for `com.google.guava:guava:30.0-jre` (which are the dependencies for the `guava` library), such as `com.google.guava:failureaccess:1.0.1` in the `runtimeClasspath` configuration.
 

@@ -34,11 +34,11 @@ include::sample[dir="snippets/dependencyManagement/introductionDependencies/groo
 Within the `dependencies` block, there are three things to notice when a dependency is declared:
 
 1. The configuration: `implementation` also known as the scope the dependency is applied to
-2. The coordinates: `com.google.guava:guava` made up of a `group` and an artifact `name` which are uniquely identifiable
-3. The version: `32.1.2-jre` which is only required for published dependencies
+2. The module ID: `com.google.guava:guava` is made up of a `group` and an artifact `name` which are uniquely identifiable
+3. The version: `32.1.2-jre` which is not always required
 
 Dependencies can be local or external.
-To let Gradle know where to find the dependencies declared, you can use the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
+To let Gradle know where to find external dependencies, use the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
 
 Let's expand our example:
 
@@ -51,18 +51,18 @@ In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_
 
 == 1. Declaring Dependencies
 
-You can add external libraries to your Java project such as `com.google.common.base`, a Guava package.
+You can add external libraries to your Java project, such as Guava.
 These libraries are <<declaring_dependencies.adoc#declaring-basic-dependencies, _dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
 
 == 2. Dependency Configurations
 
-You can <<declaring_dependencies.adoc#declaring-basic-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
+You can declare dependencies for different scopes. For example, you can declare dependencies that are only used at compile time.
 Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 == 3. Declaring Repositories
 
-You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_.
+You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
 
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
 
@@ -72,16 +72,13 @@ During a build, Gradle locates and downloads the dependencies, a process called 
 
 This is typically done using platforms and version catalogs.
 A platform is a set of modules intended to be used together.
-A version catalog is a centralized list of dependency versions that can be referenced in multiple projects.
+A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
 
 == 5. Dependency Constraints and Conflict Resolution
 
-Metadata describes dependencies.
-Some examples of metadata include:
+Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
+This usually leads to failing builds.
 
-* coordinates for finding the dependency in a repository
-* information about the project that created the dependency
-* the authors of the dependency
-* other dependencies required for a dependency to work properly, known as _transitive dependencies_
+Gradle manages two types of conflicts: version conflicts, and capability conflicts.
 
-You can <<dependency_constraints.adoc#dependency-constraints,customize Gradle's handling of transitive dependencies>> based on the requirements of a project.
+You can <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,customize Gradle's handling of dependencies and conflict resolution>> with a number of available APIs.

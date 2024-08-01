@@ -42,7 +42,7 @@ Every configuration can be identified by a unique name.
 Many Gradle plugins add pre-defined configurations to your project.
 
 The Java Library plugin is used to define a project that produces a Java library.
-The plugin adds many configurations.
+The plugin adds many dependency configurations.
 These configurations represent the various classpaths needed for source code compilation, executing tests, and more:
 
 [cols="~,~,~"]
