@@ -204,7 +204,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
+        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
          root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0

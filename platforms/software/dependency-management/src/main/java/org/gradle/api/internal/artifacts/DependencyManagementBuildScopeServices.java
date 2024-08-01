@@ -150,7 +150,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         DependencyManagementServices dependencyManagementServices,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
@@ -159,7 +158,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
-            dependencyMetaDataProvider,
             objects,
             collectionCallbackActionDecorator
         );
