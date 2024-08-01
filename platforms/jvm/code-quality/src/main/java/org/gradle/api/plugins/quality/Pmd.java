@@ -19,13 +19,18 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -40,6 +45,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -48,8 +54,6 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -61,18 +65,13 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<PmdReports> {
 
-    private FileCollection pmdClasspath;
-    private List<String> ruleSets;
-    private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
-    private FileCollection ruleSetFiles;
     private final PmdReports reports;
-    private boolean consoleOutput;
-    private FileCollection classpath;
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
+    private final Property<RegularFile> incrementalCacheFile;
 
     public Pmd() {
         super();
@@ -82,6 +81,10 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
         this.threads = objects.property(Integer.class);
+        getConsoleOutput().convention(false);
+
+        DirectoryProperty temporaryDir = objects.directoryProperty().fileProvider(getProject().provider(this::getTemporaryDir));
+        this.incrementalCacheFile = objects.fileProperty().convention(temporaryDir.file("incremental.cache"));
     }
 
     @TaskAction
@@ -103,11 +106,9 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
             parameters.getRuleSetConfigFiles().from(getRuleSetConfig().asFile());
         }
         parameters.getIgnoreFailures().set(getIgnoreFailures());
-        parameters.getConsoleOutput().set(isConsoleOutput());
+        parameters.getConsoleOutput().set(getConsoleOutput());
         parameters.getStdOutIsAttachedToTerminal().set(stdOutIsAttachedToTerminal());
-        if (getClasspath() != null) {
-            parameters.getAuxClasspath().setFrom(getClasspath());
-        }
+        parameters.getAuxClasspath().setFrom(getClasspath());
         parameters.getRulesMinimumPriority().set(getRulesMinimumPriority());
         parameters.getMaxFailures().set(getMaxFailures());
         parameters.getIncrementalAnalysis().set(getIncrementalAnalysis());
@@ -188,17 +189,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * The class path containing the PMD library to be used.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getPmdClasspath() {
-        return pmdClasspath;
-    }
-
-    /**
-     * The class path containing the PMD library to be used.
-     */
-    public void setPmdClasspath(FileCollection pmdClasspath) {
-        this.pmdClasspath = pmdClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getPmdClasspath();
 
     /**
      * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_rules_java.html">official list</a> of built-in rule sets.
@@ -208,37 +200,15 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * </pre>
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getRuleSets() {
-        return ruleSets;
-    }
-
-    /**
-     * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_rules_java.html">official list</a> of built-in rule sets.
-     *
-     * <pre>
-     *     ruleSets = ["basic", "braces"]
-     * </pre>
-     */
-    public void setRuleSets(List<String> ruleSets) {
-        this.ruleSets = ruleSets;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getRuleSets();
 
     /**
      * The target JDK to use with PMD.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public TargetJdk getTargetJdk() {
-        return targetJdk;
-    }
-
-    /**
-     * The target JDK to use with PMD.
-     */
-    public void setTargetJdk(TargetJdk targetJdk) {
-        this.targetJdk = targetJdk;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<TargetJdk> getTargetJdk();
 
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
@@ -283,22 +253,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    @ToBeReplacedByLazyProperty
-    public FileCollection getRuleSetFiles() {
-        return ruleSetFiles;
-    }
-
-    /**
-     * The custom rule set files to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
-     * This adds to the default rule sets defined by {@link #getRuleSets()}.
-     *
-     * <pre>
-     *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
-     * </pre>
-     */
-    public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = ruleSetFiles;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getRuleSetFiles();
 
     /**
      * The reports to be generated by this task.
@@ -340,18 +296,14 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 2.1
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isConsoleOutput() {
-        return consoleOutput;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getConsoleOutput();
 
-    /**
-     * Whether or not to write PMD results to {@code System.out}.
-     *
-     * @since 2.1
-     */
-    public void setConsoleOutput(boolean consoleOutput) {
-        this.consoleOutput = consoleOutput;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsConsoleOutput() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsConsoleOutput()", "getConsoleOutput()");
+        return getConsoleOutput();
     }
 
     /**
@@ -363,26 +315,10 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      *
      * @since 2.8
      */
-    @Nullable
     @Optional
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Compile class path for the classes to be analyzed.
-     *
-     * The classes on this class path are used during analysis but aren't analyzed themselves.
-     *
-     * This is only well supported for PMD 5.2.1 or better.
-     *
-     * @since 2.8
-     */
-    public void setClasspath(@Nullable FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Controls whether to use incremental analysis or not.
@@ -402,9 +338,9 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 5.6
      */
     @LocalState
-    @ToBeReplacedByLazyProperty
-    public File getIncrementalCacheFile() {
-        return new File(getTemporaryDir(), "incremental.cache");
+    @ReplacesEagerProperty
+    public Provider<RegularFile> getIncrementalCacheFile() {
+        return incrementalCacheFile;
     }
 
     /**
