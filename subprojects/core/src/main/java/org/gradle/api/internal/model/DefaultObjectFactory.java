@@ -41,7 +41,6 @@ import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -51,6 +50,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
