@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
@@ -27,6 +28,14 @@ public interface ResolvedGraphVariant {
      */
     Long getNodeId();
 
+    /**
+     * Get the resolve state of the owning component.
+     */
+    ComponentGraphResolveState getComponentResolveState();
+
+    /**
+     * Get the resolve state of this variant.
+     */
     VariantGraphResolveState getResolveState();
 
     @Nullable

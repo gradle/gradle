@@ -113,13 +113,12 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), this, configuration);
     }
 
-    private static class DefaultConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private static class DefaultConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
         public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ModuleConfigurationMetadata configuration) {
-            super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
             this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(componentState.prepareForArtifactResolution().getArtifactMetadata(), configuration));

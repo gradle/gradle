@@ -119,7 +119,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         //       excludes to dependencies in a beforeResolve.
         this.graphSelectionCandidates.set(
             calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
-                computeGraphSelectionCandidates(this, idGenerator, variantFactory, calculatedValueContainerFactory, artifactTransformer)
+                computeGraphSelectionCandidates(getMetadata(), idGenerator, variantFactory, calculatedValueContainerFactory, artifactTransformer)
             )
         );
         this.selectableVariantResults.set(
@@ -179,7 +179,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
-        DefaultLocalComponentGraphResolveState component,
+        LocalComponentGraphResolveMetadata componentMetadata,
         ComponentIdGenerator idGenerator,
         VariantMetadataFactory variantFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
@@ -194,7 +194,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             }
 
             LocalVariantGraphResolveState variantState = new DefaultLocalVariantGraphResolveState(
-                idGenerator.nextVariantId(), component, variant, calculatedValueContainerFactory
+                idGenerator.nextVariantId(), componentMetadata, variant, calculatedValueContainerFactory
             );
 
             if (!variant.getAttributes().isEmpty()) {
@@ -234,7 +234,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             .collect(Collectors.toList());
     }
 
-
     @Nullable
     @Override
     @Deprecated
@@ -247,27 +246,26 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             if (artifactTransformer != null) {
                 variant = variant.copyWithTransformedArtifacts(artifactTransformer);
             }
-            return new DefaultLocalVariantGraphResolveState(idGenerator.nextVariantId(), this, variant, calculatedValueContainerFactory);
+            return new DefaultLocalVariantGraphResolveState(idGenerator.nextVariantId(), getMetadata(), variant, calculatedValueContainerFactory);
         });
     }
 
-    private static class DefaultLocalVariantGraphResolveState extends AbstractVariantGraphResolveState implements LocalVariantGraphResolveState {
+    private static class DefaultLocalVariantGraphResolveState implements LocalVariantGraphResolveState {
         private final long instanceId;
         private final LocalVariantGraphResolveMetadata variant;
         private final CalculatedValue<DefaultLocalVariantArtifactResolveState> artifactResolveState;
 
         public DefaultLocalVariantGraphResolveState(
             long instanceId,
-            AbstractComponentGraphResolveState<?> componentState,
+            ComponentGraphResolveMetadata componentMetadata,
             LocalVariantGraphResolveMetadata variant,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(componentState);
             this.instanceId = instanceId;
             this.variant = variant;
             this.artifactResolveState = calculatedValueContainerFactory.create(Describables.of("artifacts of", variant), context -> {
                 LocalVariantArtifactGraphResolveMetadata variantArtifactMetadata = variant.prepareToResolveArtifacts();
-                LocalComponentArtifactResolveMetadata componentArtifactMetadata = new LocalComponentArtifactResolveMetadata(componentState.getMetadata());
+                LocalComponentArtifactResolveMetadata componentArtifactMetadata = new LocalComponentArtifactResolveMetadata(componentMetadata);
                 return new DefaultLocalVariantArtifactResolveState(componentArtifactMetadata, variantArtifactMetadata);
             });
         }
