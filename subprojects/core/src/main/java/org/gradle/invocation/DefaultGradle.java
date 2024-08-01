@@ -67,7 +67,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -488,7 +488,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             // Internal listeners are always allowed: we know their lifecycle and ensure there are no problems when configuration cache is reused.
             return true;
         }
-        if (JavaPropertyReflectionUtil.getAnnotation(listener.getClass(), DeprecatedInGradleScope.class) != null) {
+        if (JavaReflectionUtil.hasAnnotation(listener.getClass(), DeprecatedInGradleScope.class)) {
             // Explicitly unsupported Listener types are disallowed.
             return false;
         }
