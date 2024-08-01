@@ -136,6 +136,13 @@ public class UpgradedProperty {
             return new AccessorKey(containingType, replacedAccessor.getName(), replacedAccessor.getDescriptor());
         }
 
+        public static AccessorKey ofMethodWithSameSignatureButNewName(String newName, JApiMethod jApiMethod) {
+            String descriptor = jApiMethod.getNewMethod().get().getSignature();
+            String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
+            return new AccessorKey(containingType, newName, descriptor);
+        }
+
+
         public static AccessorKey ofNewMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getNewMethod().get().getSignature();
