@@ -46,7 +46,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         ListenerManager listenerManager,
         BuildTreeLocalComponentProvider componentProvider
     ) {
-        this.currentProjectPath = getProjectIdentityPath(domainObjectContext);
+        this.currentProjectPath = getProjectBuildTreePath(domainObjectContext);
         this.currentBuildPath = domainObjectContext.getBuildPath();
         this.projectComponentObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
         this.componentProvider = componentProvider;
@@ -72,7 +72,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     }
 
     @Nullable
-    private static Path getProjectIdentityPath(DomainObjectContext domainObjectContext) {
+    private static Path getProjectBuildTreePath(DomainObjectContext domainObjectContext) {
         ProjectIdentity id = domainObjectContext.getProjectIdentity();
         if (id != null) {
             return id.getBuildTreePath();
