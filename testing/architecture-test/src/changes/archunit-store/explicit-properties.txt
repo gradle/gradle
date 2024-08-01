@@ -9,11 +9,10 @@ Method <org.gradle.api.plugins.quality.Checkstyle.getSource()> is not abstract
 Method <org.gradle.api.plugins.quality.CodeNarc.getCodenarcClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.CodeNarc.getCompilationClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.CodeNarc.getSource()> is not abstract
-Method <org.gradle.api.plugins.quality.Pmd.getClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getIncrementalAnalysis()> is not abstract
+Method <org.gradle.api.plugins.quality.Pmd.getIncrementalCacheFile()> is not abstract
+Method <org.gradle.api.plugins.quality.Pmd.getIsConsoleOutput()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getMaxFailures()> is not abstract
-Method <org.gradle.api.plugins.quality.Pmd.getPmdClasspath()> is not abstract
-Method <org.gradle.api.plugins.quality.Pmd.getRuleSetFiles()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getRulesMinimumPriority()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getSource()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getThreads()> is not abstract
