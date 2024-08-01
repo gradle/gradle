@@ -50,6 +50,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
@@ -119,11 +120,11 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
@@ -172,18 +173,22 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
-    public DependencyResolutionServices create(FileResolver resolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
+    public DependencyResolutionServices newDetachedResolver(
+        FileResolver resolver,
+        FileCollectionFactory fileCollectionFactory,
+        DomainObjectContext owner
+    ) {
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .parent(parent)
             .provider(registration -> {
                 registration.add(FileResolver.class, resolver);
                 registration.add(FileCollectionFactory.class, fileCollectionFactory);
-                registration.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
-                registration.add(ProjectFinder.class, projectFinder);
-                registration.add(DomainObjectContext.class, domainObjectContext);
+                registration.add(DependencyMetaDataProvider.class, AnonymousModule::new);
+                registration.add(ProjectFinder.class, new UnknownProjectFinder("Project dependencies cannot be declared here."));
+                registration.add(DomainObjectContext.class, owner);
             })
             .provider(new TransformGradleUserHomeServices())
-            .provider(new DependencyResolutionScopeServices(domainObjectContext))
+            .provider(new DependencyResolutionScopeServices(owner))
             .build();
 
         return services.get(DependencyResolutionServices.class);

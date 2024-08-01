@@ -23,7 +23,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -313,14 +312,12 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
         BuildLogicBuilder buildLogicBuilder
     ) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
-            dependencyMetaDataProvider,
             buildLogicBuilder
         );
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
