@@ -17,11 +17,14 @@
 
 Gradle needs to know where it can download the dependencies used in the project.
 
-For example, the `com.google.guava:guava:30.0-jre` dependency can be downloaded from the public Maven Central repository `mavenCentral()`..
+For example, the `com.google.guava:guava:30.0-jre` dependency can be downloaded from the public Maven Central repository `mavenCentral()`.
 Gradle will find and download the `guava` source code (as a `jar`) from Maven Central and use it build the project.
 
 You can add any number of repositories for your dependencies by configuring the `repositories` block in your `build.gradle(.kts)` file:
 
+====
+[.multi-language-sample]
+=====
 [source,kotlin]
 .build.gradle.kts
 ----
@@ -40,6 +43,29 @@ repositories {
 <2> Private/Custom repository
 <3> Local repository
 <4> File location
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+repositories {
+    mavenCentral()  // <1>
+    maven {         // <2>
+        url = uri("https://company/com/maven2")
+    }
+    mavenLocal()    // <3>
+    flatDir {       // <4>
+        dirs "libs"
+    }
+}
+----
+<1> Public repository
+<2> Private/Custom repository
+<3> Local repository
+<4> File location
+=====
+====
 
 Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
 
@@ -164,4 +190,4 @@ repositories {
 ----
 
 [.text-right]
-**Next Step:** <<centralizing_dependencies.adoc#centralizing-dependencies,Learn about Centralizing Repositories>> >>
+**Next Step:** <<centralizing_dependencies.adoc#centralizing-dependencies,Learn about Centralizing Dependencies>> >>

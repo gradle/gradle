@@ -15,15 +15,15 @@
 [[dependency-constraints-conflicts]]
 = 5. Dependency Constraints and Conflict Resolution
 
-When the same library is declared multiple times or when two different libraries are used with the same functionality, a conflict can occur during your build.
+When the same library is declared multiple times or when two different libraries provide the same functionality, a conflict can occur during dependency resolution.
 
 [[sec:conflict-resolution]]
 == Understanding types of conflicts
 
 During dependency resolution, Gradle handles two types of conflicts:
 
-1. *Version conflicts*: That is when two or more dependencies require a given dependency but with different versions.
-2. *Capability conflicts*: That is when the dependency graph contains multiple components that provide the same implementation.
+1. *Version conflicts*: That is when two or more dependencies require a given module but with different versions.
+2. *Capability conflicts*: That is when the dependency graph contains multiple artifacts that provide the same functionality.
 
 == Resolving version conflicts
 
@@ -40,7 +40,7 @@ By default, it will select the _highest_ one out of these versions.
 == Resolving capability conflicts
 
 Gradle uses attributes and capabilities to identify which artifacts a component _provides_.
-A capability conflict occurs whenever two or more components in dependency graph declare the same capability
+A capability conflict occurs whenever two or more variants of a component in dependency graph declare the same capability.
 
 Gradle will generally fail the build and report the conflict.
 

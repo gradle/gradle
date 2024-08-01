@@ -54,12 +54,12 @@ dependencies {
 }
 ----
 
-By including the `platform-bom`, you ensure that all Spring components use the versions defined in the BOM file.
+By including the `platform-bom` platform dependency, you ensure that all Spring components use the versions defined in the BOM file.
 
 == Using a Version catalog
 
 A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
-You can reference this catalog in your projects to ensure consistent version management.
+You can reference this catalog in your build scripts to ensure each project depends on a common set of well-known dependencies.
 
 First, create a `libs.versions.toml` file in the `gradle` directory of your project.
 This file will define the versions of your dependencies and plugins:

@@ -1,9 +1,5 @@
 plugins {
-    `java-platform`
-}
-
-javaPlatform {
-    allowDependencies()
+    id("java-platform")
 }
 
 dependencies {

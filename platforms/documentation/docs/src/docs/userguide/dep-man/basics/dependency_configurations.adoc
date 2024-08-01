@@ -61,14 +61,6 @@ These configurations represent the various classpaths needed for source code com
 |Dependencies needed only at runtime, not included in the compile classpath.
 |Declare Dependencies
 
-|`compileClasspath`
-|Combines `implementation` and `compileOnly` dependencies, used for compiling source code.
-|Resolve Dependencies
-
-|`runtimeClasspath`
-|Combines `implementation` and `runtimeOnly` dependencies, used for running the application.
-|Resolve Dependencies
-
 |`testImplementation`
 |Dependencies required for compiling and running tests.
 |Declare Dependencies
@@ -81,29 +73,16 @@ These configurations represent the various classpaths needed for source code com
 |Dependencies needed only for running tests.
 |Declare Dependencies
 
-|`testCompileClasspath`
-|Combines `testImplementation` and `testCompileOnly` dependencies, used for compiling test sources.
-|Resolve Dependencies
-
-|`testRuntimeClasspath`
-|Combines `testImplementation` and `testRuntimeOnly` dependencies, used for running tests.
-|Resolve Dependencies
-
-|`apiElements`
-|Combines .
-|Consume Dependencies
-
-|`runtimeElements`
-|Combines .
-|Consume Dependencies
-
 |===
 
 === Dependency declaration Configurations
 
 The *dependency declaration configurations* (`compileOnly`, `implementation`, `runtimeOnly`) focus on declaring and managing dependencies based on their usage (compile time, runtime, API exposure):
 
-[source,kotlin]
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 dependencies {
     implementation("com.google.guava:guava:30.1.1-jre")     // Implementation dependency
@@ -111,15 +90,39 @@ dependencies {
     runtimeOnly("mysql:mysql-connector-java:8.0.23")        // Runtime-only dependency
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+dependencies {
+    implementation("com.google.guava:guava:30.1.1-jre")     // Implementation dependency
+    compileOnly("org.projectlombok:lombok:1.18.20")         // Compile-only dependency
+    runtimeOnly("mysql:mysql-connector-java:8.0.23")        // Runtime-only dependency
+}
+----
+=====
+====
 
 === Other Configurations
 
-As you can see in the table above, there are other types of configurations, but they are not used to declare dependencies.
-
-The *resolving configurations* (`runtimeClasspath`, `compileClasspath`) focus on resolving dependencies needed at different stages of the build process.
-The *consuming configurations* (`apiElements`, `runtimeElements`) focus on exposing the artifacts and dependencies that a project produces for other projects to consume.
+There are other types of configurations (such as `runtimeClasspath`, `compileClasspath`, `apiElements`, `runtimeElements`), but they are not used to declare dependencies.
 
 It is also possible to create custom configurations.
+A custom configuration allows you to define a distinct group of dependencies that can be used for specific purposes, such as toolchains or code generation, separate from the standard configurations (e.g., `implementation`, `testImplementation`):
+
+[source,kotlin]
+----
+configurations {
+    customConfig
+}
+
+dependencies {
+    customConfig("org.example:example-lib:1.0")
+}
+----
+
+Creating a custom configuration helps manage and isolate dependencies, ensuring they are only included in the relevant classpaths and build processes.
 
 [[sec:view-configurations]]
 == Viewing configurations
