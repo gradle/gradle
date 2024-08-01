@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a listener interface to indicate that its events are stateful.
+ * Marks a listener as being able to handle multiple events concurrently.
  * <p>
- * The listener infrastructure will ensure that a listener of this type will either receive all events, or no events.
- * Currently, this is done by disallowing the registration and de-registration of a listener of this type once any events
- * have been fired.
- * <p>
- * As a benefit to forbidding mutation of listeners after events have been fired, the listener infrastructure can
- * concurrently notify {@link ParallelListener parallel} listeners of stateful events.
- *
- * @see Scope
+ * Listeners annotated this annotation may receive events from multiple threads simultaneously.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-public @interface StatefulListener {
+public @interface ParallelListener {
 }
