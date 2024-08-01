@@ -608,15 +608,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    @Nonnull
     public Path getProjectPath() {
         return owner.getProjectPath();
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public Path getProjectIdentityPath() {
-        return getIdentityPath();
+    public ProjectIdentity getProjectIdentity() {
+        return owner.getIdentity();
     }
 
     @Override
@@ -1556,20 +1555,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         @Override
         @Nullable
-        public Path getProjectPath() {
-            return delegate.getProjectPath();
-        }
-
-        @Override
-        @Nullable
         public ProjectInternal getProject() {
             return delegate.getProject();
         }
 
         @Nullable
         @Override
-        public Path getProjectIdentityPath() {
-            return delegate.getProjectIdentityPath();
+        public ProjectIdentity getProjectIdentity() {
+            return delegate.getProjectIdentity();
         }
 
         @Override
@@ -1600,6 +1593,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         @Override
         public boolean isDetachedState() {
             return true;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "detached context of " + delegate.getDisplayName();
         }
     }
 }

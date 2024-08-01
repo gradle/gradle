@@ -24,6 +24,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.SourceSet
@@ -360,7 +361,7 @@ fun compilationClassPathForScriptPluginOf(
 
     val scriptSource = textResourceScriptSource(resourceDescription, scriptFile, project.serviceOf())
     val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
-    val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
+    val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
 
     kotlinScriptFactoryOf(project).evaluate(
         target = target,

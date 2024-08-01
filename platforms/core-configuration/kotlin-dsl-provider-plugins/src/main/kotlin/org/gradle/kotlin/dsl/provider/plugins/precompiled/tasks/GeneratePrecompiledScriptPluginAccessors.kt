@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -443,7 +443,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             fileCollectionFactory,
             gradle.serviceOf<DependencyMetaDataProvider>(),
             UnknownProjectFinder("Project dependencies are not allowed at GeneratePrecompiledScriptPluginAccessors resolution"),
-            RootScriptDomainObjectContext.PLUGINS
+            StandaloneDomainObjectContext.PLUGINS
         )
 
         val dependencies = dependencyResolutionServices.dependencyHandler

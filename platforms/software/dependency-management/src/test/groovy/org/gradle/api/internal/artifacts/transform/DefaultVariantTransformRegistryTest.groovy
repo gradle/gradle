@@ -29,7 +29,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.execution.InputFingerprinter
@@ -63,7 +63,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         getPropertyWalker() >> propertyWalker
     }
     def domainObjectContext = Mock(DomainObjectContext) {
-        getModel() >> RootScriptDomainObjectContext.INSTANCE
+        getModel() >> StandaloneDomainObjectContext.ANONYMOUS
     }
 
     def isolatableFactory = new TestIsolatableFactory()

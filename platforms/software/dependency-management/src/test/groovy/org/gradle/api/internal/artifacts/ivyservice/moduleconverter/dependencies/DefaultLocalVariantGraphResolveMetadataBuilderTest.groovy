@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.DetachedConfigurationsProvider
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
@@ -163,6 +163,6 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     }
 
     def create() {
-        return converter.create(configuration, configurationsProvider, componentId, cache, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
+        return converter.create(configuration, configurationsProvider, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
     }
 }

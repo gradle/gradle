@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -98,8 +99,9 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     }
 
     private PlannedTransformStepIdentity createIdentity() {
-        String consumerBuildPath = transformStep.getOwningProject().getBuildPath().toString();
-        String consumerProjectPath = transformStep.getOwningProject().getProjectPath().toString();
+        ProjectIdentity projectId = transformStep.getOwningProject().getProjectIdentity();
+        String consumerBuildPath = projectId.getBuildIdentifier().getBuildPath();
+        String consumerProjectPath = projectId.getProjectPath().getPath();
         ComponentIdentifier componentId = ComponentToOperationConverter.convertComponentIdentifier(targetComponentVariant.getComponentId());
         Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());

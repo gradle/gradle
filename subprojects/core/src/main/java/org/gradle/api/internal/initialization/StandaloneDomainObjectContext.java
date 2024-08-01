@@ -17,7 +17,9 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
@@ -26,18 +28,55 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
+/**
+ * Domain object context implementation intended for identifying contexts that wrap no mutable state.
+ */
+public abstract class StandaloneDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
     private static final Object MODEL = new Object();
-    public static final RootScriptDomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
 
-    public static final RootScriptDomainObjectContext PLUGINS = new RootScriptDomainObjectContext() {
+    /**
+     * A domain object context not tied to any mutable state.
+     *
+     * NOTE: In almost all cases, other than testing, there is a better domain object context to use.
+     */
+    public static final StandaloneDomainObjectContext ANONYMOUS = new StandaloneDomainObjectContext() {
+        @Override
+        public String getDisplayName() {
+            return "unknown";
+        }
+    };
+
+    /**
+     * Domain object context for resolving plugins outside a project's buildscript.
+     */
+    public static final StandaloneDomainObjectContext PLUGINS = new StandaloneDomainObjectContext() {
         @Override
         public boolean isPluginContext() {
             return true;
         }
+
+        @Override
+        public String getDisplayName() {
+            return "plugin resolution";
+        }
     };
 
-    private RootScriptDomainObjectContext() {
+    /**
+     * A domain object context for resolution within some script.
+     *
+     * TODO: We should probably have more specialized types for each script, to ensure locks
+     * on mutable state are properly acquired, build ID is properly reported, etc.
+     */
+    public static StandaloneDomainObjectContext forScript(ScriptSource source) {
+        return new StandaloneDomainObjectContext() {
+            @Override
+            public String getDisplayName() {
+                return source.getShortDisplayName().getDisplayName();
+            }
+        };
+    }
+
+    private StandaloneDomainObjectContext() {
     }
 
     @Override
@@ -50,14 +89,9 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
         return Path.path(name);
     }
 
-    @Override
-    public Path getProjectPath() {
-        return null;
-    }
-
     @Nullable
     @Override
-    public Path getProjectIdentityPath() {
+    public ProjectIdentity getProjectIdentity() {
         return null;
     }
 

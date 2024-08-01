@@ -39,6 +39,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
@@ -60,7 +61,8 @@ import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -1817,10 +1819,18 @@ All Artifacts:
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
         def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
-        _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
-        _ * domainObjectContext.projectPath(_) >> { String p -> Path.path(projectPath).child(p) }
-        _ * domainObjectContext.buildPath >> Path.path(buildPath)
-        _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        def project = Path.path(projectPath)
+        def buildTreePath = build.append(Path.path(projectPath))
+        _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
+        _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
+        _ * domainObjectContext.buildPath >> build
+        _ * domainObjectContext.projectIdentity >> new ProjectIdentity(
+            new DefaultBuildIdentifier(build),
+            buildTreePath,
+            project,
+            project.name ?: "foo"
+        )
+        _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,
