@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
@@ -35,12 +34,10 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-class ComponentResultSerializerTest extends Specification {
-    def serializer = new ComponentResultSerializer(
-        new ThisBuildOnlyComponentDetailsSerializer(),
-        new ThisBuildOnlySelectedVariantSerializer(null, null),
-        DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
-        false
+class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
+
+    def serializer = new ThisBuildTreeOnlyComponentResultSerializer(
+        DependencyManagementTestUtil.componentSelectionDescriptorFactory()
     )
 
     def "serializes"() {
@@ -52,7 +49,6 @@ class ComponentResultSerializerTest extends Specification {
         def v1Result = Mock(ResolvedVariantResult)
         def v1State = Mock(VariantGraphResolveState) {
             getInstanceId() >> 1
-            getVariantResult(null) >> v1Result
         }
         def v1 = Mock(ResolvedGraphVariant) {
             getNodeId() >> 1
@@ -63,18 +59,17 @@ class ComponentResultSerializerTest extends Specification {
         def v3Result = Mock(ResolvedVariantResult)
         def v3State = Mock(VariantGraphResolveState) {
             getInstanceId() >> 3
-            getVariantResult(null) >> v3Result
         }
         def v3 = Mock(ResolvedGraphVariant) {
             getNodeId() >> 3
             getOwner() >> extId
             getResolveState() >> v3State
+            getComponentResolveState() >> Mock(ComponentGraphResolveState)
             getExternalVariant() >> null
         }
         def v2Result = Mock(ResolvedVariantResult)
         def v2State = Mock(VariantGraphResolveState) {
             getInstanceId() >> 2
-            getVariantResult(v3Result) >> v2Result
         }
         def v2 = Mock(ResolvedGraphVariant) {
             getNodeId() >> 2
@@ -88,6 +83,8 @@ class ComponentResultSerializerTest extends Specification {
         def componentState = Stub(ComponentGraphResolveState) {
             id >> componentIdentifier
             metadata >> componentMetadata
+            getPublicViewFor(v1State, _) >> v1Result
+            getPublicViewFor(v2State, _) >> v2Result
         }
         def component = Stub(ResolvedGraphComponent) {
             resolveState >> componentState
@@ -115,22 +112,14 @@ class ComponentResultSerializerTest extends Specification {
     private byte[] serialize(ResolvedGraphComponent component) {
         def outstr = new ByteArrayOutputStream()
         def encoder = new KryoBackedEncoder(outstr)
-        serializer.write(encoder, component)
+        serializer.writeComponentResult(encoder, component, false)
         encoder.flush()
         return outstr.toByteArray()
     }
 
     private ResolvedComponentResult deserialize(byte[] serialized) {
         def builder = new ResolutionResultGraphBuilder()
-        serializer.readInto(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
+        serializer.readComponentResult(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
         return builder.getRoot(0)
-    }
-
-    private Capability capability(String name) {
-        Mock(Capability) {
-            getGroup() >> 'org'
-            getName() >> name
-            getVersion() >> '1.0'
-        }
     }
 }

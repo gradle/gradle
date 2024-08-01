@@ -162,6 +162,11 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Override
+    public ComponentGraphResolveState getComponentResolveState() {
+        return getComponent().getResolveState();
+    }
+
+    @Override
     public boolean isRoot() {
         return false;
     }
