@@ -23,8 +23,8 @@ import org.objectweb.asm.Type;
 
 import java.util.List;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-import static org.gradle.internal.reflect.JavaReflectionUtil.getWrapperTypeForPrimitiveType;
+import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.AALOAD;
 import static org.objectweb.asm.Opcodes.AASTORE;
 import static org.objectweb.asm.Opcodes.ACONST_NULL;

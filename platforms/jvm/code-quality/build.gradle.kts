@@ -20,11 +20,10 @@ plugins {
 
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
 
-sourceSets {
-    main {
-        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
-        errorprone.enabled = false
-    }
+errorprone {
+    disabledChecks.addAll(
+        "HidingField", // 3 occurrences
+    )
 }
 
 dependencies {
@@ -53,6 +52,7 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
 
     runtimeOnly(projects.languageJvm)
 

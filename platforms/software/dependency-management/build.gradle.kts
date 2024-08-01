@@ -88,6 +88,7 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.time)
+    implementation(projects.baseAsm)
     implementation(projects.baseServicesGroovy)
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)

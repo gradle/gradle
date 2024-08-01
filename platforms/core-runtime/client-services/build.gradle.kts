@@ -44,8 +44,8 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.baseAsm)
     implementation(projects.serviceRegistryBuilder)
-
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.slf4jApi)

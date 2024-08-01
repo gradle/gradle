@@ -1,5 +1,7 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    // Uninstrumented since it is a mix of Groovy and Java code,
+    // and additionally we don't plan to have upgrades for IDE plugins.
+    id("gradlebuild.distribution.uninstrumented.api-java")
 }
 
 description = "Plugins for integration with native projects in XCode and Visual Studio IDEs"

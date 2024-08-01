@@ -16,7 +16,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.modelCore)
-    api(projects.processServices)
+    api(projects.processMemoryServices)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
@@ -27,6 +27,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.processServices)
     implementation(projects.fileCollections)
     implementation(projects.time)
     implementation(projects.serviceRegistryBuilder)

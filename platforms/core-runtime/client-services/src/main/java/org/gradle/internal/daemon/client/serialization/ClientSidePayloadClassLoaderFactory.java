@@ -16,7 +16,7 @@
 
 package org.gradle.internal.daemon.client.serialization;
 
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;

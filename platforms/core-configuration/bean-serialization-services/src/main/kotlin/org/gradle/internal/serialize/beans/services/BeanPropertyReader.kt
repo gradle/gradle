@@ -20,7 +20,6 @@ import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.serialize.graph.BeanStateReader
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.logPropertyProblem
@@ -29,6 +28,7 @@ import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ModelObject
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils
 import java.lang.reflect.Field
 
 
@@ -90,7 +90,7 @@ class BeanPropertyReader(
     private
     fun isAssignableTo(type: Class<*>, value: Any?) =
         type.isInstance(value) ||
-            type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
+            type.isPrimitive && AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(type).isInstance(value)
 }
 
 

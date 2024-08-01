@@ -37,7 +37,6 @@ import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
 import org.gradle.internal.instrumentation.util.NameUtil;
-import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
@@ -203,7 +202,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         });
         requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER).forEach(request -> {
             String propertyName = request.getInterceptedCallable().getCallableName();
-            String setterName = "set" + TextUtil.capitalize(propertyName);
+            String setterName = NameUtil.setterName(propertyName);
             scopeExpressions.add(CodeBlock.of("$1T.writesOfPropertiesNamed($2S)", INTERCEPTED_SCOPE_CLASS, propertyName));
             scopeExpressions.add(CodeBlock.of("$1T.methodsNamed($2S)", INTERCEPTED_SCOPE_CLASS, setterName));
         });

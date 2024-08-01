@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.JvmMethodSignature
 
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter

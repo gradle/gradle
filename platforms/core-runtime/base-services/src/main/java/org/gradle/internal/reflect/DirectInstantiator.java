@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -76,7 +77,7 @@ public class DirectInstantiator implements Instantiator {
             }
             Class<?> pType = param.getClass();
             if (pType.isPrimitive()) {
-                pType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(pType);
+                pType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(pType);
             }
             result[i] = pType;
         }
@@ -128,7 +129,7 @@ public class DirectInstantiator implements Instantiator {
                     if (argumentType == null) {
                         return false;
                     }
-                    parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
+                    parameterType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(parameterType);
                 }
                 if (argumentType != null && !parameterType.isAssignableFrom(argumentType)) {
                     return false;

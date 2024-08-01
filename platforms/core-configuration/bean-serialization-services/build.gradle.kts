@@ -30,7 +30,7 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
-    implementation(projects.baseServices)
+    implementation(projects.baseAsm)
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
     implementation(projects.coreApi)

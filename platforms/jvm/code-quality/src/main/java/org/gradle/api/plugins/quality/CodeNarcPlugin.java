@@ -68,7 +68,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     abstract protected JavaToolchainService getToolchainService();
 
     @Override
-    protected Class<? extends Plugin> getBasePlugin() {
+    protected Class<? extends Plugin<?>> getBasePlugin() {
         return GroovyBasePlugin.class;
     }
 

@@ -59,11 +59,11 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.gradle.util.internal.VersionNumber;
@@ -141,7 +141,7 @@ public class AsmBackedClassGeneratorTest {
                     Object arg = args[i];
                     Class<?> parameterType = constructor.getParameterTypes()[i];
                     if (parameterType.isPrimitive()) {
-                        parameterType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType);
+                        parameterType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(parameterType);
                     }
                     if (!parameterType.isInstance(arg)) {
                         break;

@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.file
 
-import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.model.internal.asm.AsmConstants
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label

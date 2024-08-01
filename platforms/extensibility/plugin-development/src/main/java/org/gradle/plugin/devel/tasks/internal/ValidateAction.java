@@ -35,7 +35,7 @@ import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 import org.gradle.work.DisableCachingByDefault;

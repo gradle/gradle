@@ -47,6 +47,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
 
     public static final String DEFAULT_CHECKSTYLE_VERSION = "9.3";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
+
     private CheckstyleExtension extension;
 
     @Override

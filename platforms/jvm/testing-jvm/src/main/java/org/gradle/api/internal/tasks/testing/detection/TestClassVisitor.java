@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 
