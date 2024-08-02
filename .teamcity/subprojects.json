@@ -982,7 +982,7 @@
   {
     "name": "problems",
     "path": "platforms/ide/problems",
-    "unitTests": false,
+      "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
