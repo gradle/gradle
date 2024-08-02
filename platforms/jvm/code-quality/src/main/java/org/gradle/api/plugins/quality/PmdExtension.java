@@ -17,12 +17,14 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -35,25 +37,18 @@ import java.util.List;
  */
 public abstract class PmdExtension extends CodeQualityExtension {
 
-    private final Project project;
-
-    private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
-    private ConfigurableFileCollection ruleSetFiles;
-    private boolean consoleOutput;
-    private final ListProperty<String> ruleSets;
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
 
     public PmdExtension(Project project) {
-        this.project = project;
         this.rulesMinimumPriority = project.getObjects().property(Integer.class);
         this.incrementalAnalysis = project.getObjects().property(Boolean.class);
         this.maxFailures = project.getObjects().property(Integer.class);
         this.threads = project.getObjects().property(Integer.class);
-        this.ruleSets = project.getObjects().listProperty(String.class);
+        getConsoleOutput().convention(false);
     }
 
     /**
@@ -66,21 +61,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
      */
-    @ToBeReplacedByLazyProperty
-    public List<String> getRuleSets() {
-        return ruleSets.get();
-    }
-
-    /**
-     * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_rules_java.html">official list</a> of built-in rule sets.
-     *
-     * <pre>
-     *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
-     * </pre>
-     */
-    public void setRuleSets(List<String> ruleSets) {
-        this.ruleSets.set(ruleSets);
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getRuleSets();
 
     /**
      * Convenience method for adding rule sets.
@@ -92,26 +74,14 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @param ruleSets the rule sets to be added
      */
     public void ruleSets(String... ruleSets) {
-        this.ruleSets.addAll(Arrays.asList(ruleSets));
+        getRuleSets().addAll(Arrays.asList(ruleSets));
     }
 
     /**
      * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
      */
-    @ToBeReplacedByLazyProperty
-    public TargetJdk getTargetJdk() {
-        return targetJdk;
-    }
-
-    /**
-     * Sets the target jdk used with pmd.
-     *
-     * @param targetJdk The target jdk
-     * @since 4.0
-     */
-    public void setTargetJdk(TargetJdk targetJdk) {
-        this.targetJdk = targetJdk;
-    }
+    @ReplacesEagerProperty(adapter = TargetJdkAdapter.class)
+    public abstract Property<TargetJdk> getTargetJdk();
 
     /**
      * The maximum number of failures to allow before stopping the build.
@@ -122,15 +92,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     public Property<Integer> getMaxFailures() {
         return maxFailures;
-    }
-
-    /**
-     * Sets the target jdk used with pmd.
-     *
-     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
-     */
-    public void setTargetJdk(Object value) {
-        targetJdk = TargetJdk.toVersion(value);
     }
 
     /**
@@ -162,7 +123,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Nullable
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "TextResource has no lazy replacement")
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -189,22 +150,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
      * </pre>
      */
-    @ToBeReplacedByLazyProperty
-    public FileCollection getRuleSetFiles() {
-        return ruleSetFiles;
-    }
-
-    /**
-     * The custom rule set files to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
-     * This adds to the default rule sets defined by {@link #getRuleSets()}.
-     *
-     * <pre>
-     *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
-     * </pre>
-     */
-    public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = project.getObjects().fileCollection().from(ruleSetFiles);
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getRuleSetFiles();
 
     /**
      * Convenience method for adding rule set files.
@@ -216,22 +163,19 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @param ruleSetFiles the rule set files to be added
      */
     public void ruleSetFiles(Object... ruleSetFiles) {
-        this.ruleSetFiles.from(ruleSetFiles);
+        getRuleSetFiles().from(ruleSetFiles);
     }
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isConsoleOutput() {
-        return consoleOutput;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getConsoleOutput();
 
-    /**
-     * Whether or not to write PMD results to {@code System.out}.
-     */
-    public void setConsoleOutput(boolean consoleOutput) {
-        this.consoleOutput = consoleOutput;
+    @Deprecated
+    public Property<Boolean> getIsConsoleOutput() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsConsoleOutput()", "getConsoleOutput()");
+        return getConsoleOutput();
     }
 
     /**
@@ -255,6 +199,24 @@ public abstract class PmdExtension extends CodeQualityExtension {
     }
 
     void ruleSetsConvention(Provider<List<String>> provider) {
-        ruleSets.convention(provider);
+        getRuleSets().convention(provider);
+    }
+
+    static class TargetJdkAdapter {
+        @Nullable
+        @BytecodeUpgrade
+        static TargetJdk getTargetJdk(PmdExtension extension) {
+            return extension.getTargetJdk().getOrNull();
+        }
+
+        @BytecodeUpgrade
+        static void setTargetJdk(PmdExtension extension, TargetJdk targetJdk) {
+            extension.getTargetJdk().set(targetJdk);
+        }
+
+        @BytecodeUpgrade
+        static void setTargetJdk(PmdExtension extension, Object value) {
+            extension.getTargetJdk().set(TargetJdk.toVersion(value));
+        }
     }
 }
