@@ -1,0 +1,38 @@
+import org.gradle.api.artifacts.transform.TransformParameters
+
+plugins {
+    id 'application'
+}
+
+// tag::artifact-transform-imp[]
+abstract class MyTransform implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        def inputFile = inputArtifact.get().asFile
+        def outputFile = outputs.file(inputFile.name.replace(".jar", "-transformed.jar"))
+        // Perform transformation logic here
+    }
+}
+// end::artifact-transform-imp[]
+
+// tag::artifact-transform-use[]
+def artifactType = Attribute.of("artifactType", String)
+
+configurations.named("runtimeClasspath") {
+    attributes {
+        attribute(artifactType, "transformed-jar")
+    }
+}
+// end::artifact-transform-use[]
+
+// tag::artifact-transform-registration[]
+dependencies {
+    registerTransform(MyTransform) {
+        from.attribute(artifactType, "jar")
+        to.attribute(artifactType, "transformed-jar")
+    }
+}
+// end::artifact-transform-registration[]
