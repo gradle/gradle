@@ -90,7 +90,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getIncrementalAnalysis().convention(true);
         extension.getMaxFailures().convention(0);
         extension.getThreads().convention(1);
-        extension.setRuleSetFiles(project.getLayout().files());
+        extension.getRuleSetFiles().setFrom(project.getLayout().files());
         extension.ruleSetsConvention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
         conventionMappingOf(extension).map("targetJdk", () ->
             getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
@@ -149,13 +149,12 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("pmdClasspath", () -> configuration);
-        taskMapping.map("ruleSets", () -> extension.getRuleSets());
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
-        taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
-        taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
-        taskMapping.map("targetJdk", () -> extension.getTargetJdk());
-
+        task.getPmdClasspath().convention(configuration);
+        task.getRuleSets().convention(extension.getRuleSets());
+        task.getRuleSetFiles().convention(extension.getRuleSetFiles());
+        task.getConsoleOutput().convention(extension.getConsoleOutput());
+        task.getTargetJdk().convention(extension.getTargetJdk());
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
