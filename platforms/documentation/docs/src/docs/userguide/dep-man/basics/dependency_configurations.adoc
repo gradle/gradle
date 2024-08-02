@@ -65,12 +65,20 @@ These configurations represent the various classpaths needed for source code com
 |===
 |Configuration Name |Description |Used to:
 
+|`api`
+|Dependencies required for both compilation and runtime, and included in the published API.
+|Declare Dependencies
+
 |`implementation`
 |Dependencies required for both compilation and runtime.
 |Declare Dependencies
 
 |`compileOnly`
 |Dependencies needed only for compilation, not included in runtime or publication.
+|Declare Dependencies
+
+|`compileOnlyApi`
+|Dependencies needed only for compilation, but included in the published API.
 |Declare Dependencies
 
 |`runtimeOnly`

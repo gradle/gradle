@@ -40,7 +40,7 @@ To add a dependency in Gradle, you use the link:{javadocPath}/org/gradle/api/art
 
 The `dependencies` block allows you to specify various types of dependencies such as external libraries, local JAR files, or other projects within a multi-project build.
 
-External Dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID (group), artifact ID (name), and version.
+External dependencies in Gradle are declared using a configuration name (e.g., `implementation`, `compileOnly`, `testImplementation`) followed by the dependency notation, which includes the group ID (group), artifact ID (name), and version.
 
 [source,groovy]
 .build.gradle

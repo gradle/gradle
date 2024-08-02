@@ -1,0 +1,10 @@
+import org.gradle.
+
+plugins {
+    id 'java-library'
+    alias(libs.plugins.versions)
+}
+
+dependencies {
+    api libs.bundles.groovy
+}

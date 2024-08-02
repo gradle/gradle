@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-rootProject.name = 'toml-catalog'
+rootProject.name = "toml-catalog"
 
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
 }
-
-// tag::change_default_extension_name[]
-dependencyResolutionManagement {
-    defaultLibrariesExtensionName = 'projectLibs'
-}
-// end::change_default_extension_name[]
-
-// tag::additional_catalog[]
-dependencyResolutionManagement {
-    versionCatalogs {
-        // declares an additional catalog, named 'testLibs', from the 'test-libs.versions.toml' file
-        testLibs {
-            from(files('gradle/test-libs.versions.toml'))
-        }
-    }
-}
-// end::additional_catalog[]
