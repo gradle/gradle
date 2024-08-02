@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.rocache
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.containers.GradleInContainer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -29,6 +30,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
     value = [UnitTestPreconditions.HasDocker, IntegTestPreconditions.NotEmbeddedExecutor],
     reason = "needs real Gradle distribution to run in container"
 )
+@LocalOnly
 class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDependencyResolutionTest {
 
     BlockingHttpServer synchronizer
