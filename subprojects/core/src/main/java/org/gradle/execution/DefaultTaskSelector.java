@@ -72,9 +72,7 @@ public class DefaultTaskSelector implements TaskSelector {
 
     @Override
     public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
-        if (buildModelParameters.isIsolatedProjects()) {
-            configurer.configureHierarchyInParallel(targetProject.getMutableModel());
-        } else if (!includeSubprojects) {
+        if (!includeSubprojects) {
             configurer.configure(targetProject.getMutableModel());
         } else {
             configurer.configureHierarchy(targetProject.getMutableModel());
