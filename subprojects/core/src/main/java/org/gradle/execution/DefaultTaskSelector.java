@@ -27,7 +27,6 @@ import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.util.internal.NameMatcher;
 
 import javax.annotation.Nonnull;
@@ -41,13 +40,11 @@ public class DefaultTaskSelector implements TaskSelector {
 
     private final TaskNameResolver taskNameResolver;
     private final ProjectConfigurer configurer;
-    private final BuildModelParameters buildModelParameters;
 
     @Inject
-    public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer, BuildModelParameters buildModelParameters) {
+    public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
         this.taskNameResolver = taskNameResolver;
         this.configurer = configurer;
-        this.buildModelParameters = buildModelParameters;
     }
 
     @Inject
