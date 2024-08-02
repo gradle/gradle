@@ -83,7 +83,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     def "configures pmd extension"() {
         expect:
         PmdExtension extension = project.extensions.pmd
-        extension.ruleSets == ["category/java/errorprone.xml"]
+        extension.ruleSets.get() == ["category/java/errorprone.xml"]
         extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
