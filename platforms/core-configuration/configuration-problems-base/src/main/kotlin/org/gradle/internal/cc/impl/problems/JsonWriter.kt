@@ -54,6 +54,10 @@ class JsonWriter(private val writer: Writer) {
         property(name) { jsonString(value) }
     }
 
+    fun property(name: String, value: Int) {
+        property(name) { write(value.toString()) }
+    }
+
     fun property(name: String, value: () -> Unit) {
         elementSeparator()
         propertyName(name)
@@ -130,7 +134,6 @@ class JsonWriter(private val writer: Writer) {
     private
     fun write(c: Char) = writer.append(c)
 
-    private
     fun <T> jsonList(list: Iterator<T>, body: (T) -> Unit) {
         beginArray()
         list.forEach {

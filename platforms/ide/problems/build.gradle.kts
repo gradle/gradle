@@ -65,6 +65,10 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
 
+    testImplementation(projects.stdlibKotlinExtensions)
+
+    testImplementation(libs.junit)
+
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
