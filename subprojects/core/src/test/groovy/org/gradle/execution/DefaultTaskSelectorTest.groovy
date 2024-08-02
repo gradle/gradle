@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 
@@ -33,8 +32,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
     def project1 = project(":a", projectModel1)
     def resolver = Mock(TaskNameResolver)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def buildModelParameters = Stub(BuildModelParameters)
-    def selector = new DefaultTaskSelector(resolver, projectConfigurer, buildModelParameters)
+    def selector = new DefaultTaskSelector(resolver, projectConfigurer)
 
     def "exclude filter configures target project and selects exact match on task name when subprojects not included"() {
         def excluded = Stub(Task)
