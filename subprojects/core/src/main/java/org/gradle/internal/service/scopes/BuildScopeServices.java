@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -646,12 +647,14 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildInclusionCoordinator inclusionCoordinator,
         BuildLoader buildLoader,
         BuildOperationRunner buildOperationRunner,
-        BuildModelParameters buildModelParameters
+        BuildModelParameters buildModelParameters,
+        BuildType buildType
     ) {
         return new BuildOperationFiringProjectsPreparer(
             new BuildTreePreparingProjectsPreparer(
                 new DefaultProjectsPreparer(
                     projectConfigurer,
+                    buildType,
                     buildModelParameters,
                     buildOperationRunner),
                 buildLoader,
