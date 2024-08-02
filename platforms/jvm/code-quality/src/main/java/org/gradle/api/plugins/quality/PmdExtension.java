@@ -17,16 +17,16 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Configuration options for the PMD plugin.
@@ -36,18 +36,16 @@ import java.util.List;
 @SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
 public abstract class PmdExtension extends CodeQualityExtension {
 
-    private final Project project;
-
     private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
-    private ConfigurableFileCollection ruleSetFiles;
-    private boolean consoleOutput;
 
     public PmdExtension(Project project) {
-        this.project = project;
+        getConsoleOutput().convention(false);
     }
 
-    abstract ListProperty<String> getRuleSetsProperty();
+    ListProperty<String> getRuleSetsProperty() {
+        return getRuleSets();
+    }
 
     /**
      * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-7.24.0/pmd_rules_java.html">official list</a> of built-in rule sets.
@@ -59,21 +57,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
      */
-    @ToBeReplacedByLazyProperty
-    public List<String> getRuleSets() {
-        return getRuleSetsProperty().get();
-    }
-
-    /**
-     * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-7.24.0/pmd_rules_java.html">official list</a> of built-in rule sets.
-     *
-     * <pre>
-     *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
-     * </pre>
-     */
-    public void setRuleSets(List<String> ruleSets) {
-        this.getRuleSetsProperty().set(ruleSets);
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getRuleSets();
 
     /**
      * Convenience method for adding rule sets.
@@ -114,6 +99,19 @@ public abstract class PmdExtension extends CodeQualityExtension {
         this.targetJdk = targetJdk;
     }
 
+    /**
+     * Sets the target jdk used with pmd.
+     *
+     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
+     * @deprecated This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets.
+     *     Scheduled to be removed in Gradle 10.
+     */
+    @Deprecated
+    public void setTargetJdk(Object value) {
+        nagAboutTargetJdkDeprecation("setTargetJdk(Object)");
+        targetJdk = DeprecationLogger.whileDisabled(() -> TargetJdk.toVersion(value));
+    }
+
     private static void nagAboutTargetJdkDeprecation(String methodWithParams) {
         DeprecationLogger.deprecateMethod(PmdExtension.class, methodWithParams)
             .withAdvice("This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets. Remove the targetJdk configuration from your build.")
@@ -130,19 +128,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @since 6.4
      */
     public abstract Property<Integer> getMaxFailures();
-
-    /**
-     * Sets the target jdk used with pmd.
-     *
-     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
-     * @deprecated This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets.
-     *     Scheduled to be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setTargetJdk(Object value) {
-        nagAboutTargetJdkDeprecation("setTargetJdk(Object)");
-        targetJdk = DeprecationLogger.whileDisabled(() -> TargetJdk.toVersion(value));
-    }
 
     /**
      * The rule priority threshold; violations for rules with a lower priority will not be reported. Default value is 5, which means that all violations will be reported.
@@ -171,7 +156,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Nullable
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "TextResource has no lazy replacement")
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -198,22 +183,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
      * </pre>
      */
-    @ToBeReplacedByLazyProperty
-    public FileCollection getRuleSetFiles() {
-        return ruleSetFiles;
-    }
-
-    /**
-     * The custom rule set files to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-7.24.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
-     * This adds to the default rule sets defined by {@link #getRuleSets()}.
-     *
-     * <pre>
-     *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
-     * </pre>
-     */
-    public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = project.getObjects().fileCollection().from(ruleSetFiles);
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getRuleSetFiles();
 
     /**
      * Convenience method for adding rule set files.
@@ -225,22 +196,19 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @param ruleSetFiles the rule set files to be added
      */
     public void ruleSetFiles(@Nullable Object... ruleSetFiles) {
-        this.ruleSetFiles.from(ruleSetFiles);
+        getRuleSetFiles().from(ruleSetFiles);
     }
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isConsoleOutput() {
-        return consoleOutput;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getConsoleOutput();
 
-    /**
-     * Whether or not to write PMD results to {@code System.out}.
-     */
-    public void setConsoleOutput(boolean consoleOutput) {
-        this.consoleOutput = consoleOutput;
+    @Deprecated
+    public Property<Boolean> getIsConsoleOutput() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsConsoleOutput()", "getConsoleOutput()");
+        return getConsoleOutput();
     }
 
     /**
