@@ -19,14 +19,30 @@ Every dependency declared for a Gradle project applies to a specific scope.
 
 For example, some dependencies should be used for compiling source code whereas others only need to be available at runtime:
 
+====
+[.multi-language-sample]
+=====
 [source, kotlin]
 .build.gradle.kts
 ----
 dependencies {
-    implementation("com.google.guava:guava:30.0-jre") // Needed to compile and run the app
-    runtimeOnly("org.slf4j:slf4j-simple:2.0.13") // Only needed at runtime
+    implementation("com.google.guava:guava:30.0-jre")   // Needed to compile and run the app
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.13")        // Only needed at runtime
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
+----
+dependencies {
+    implementation("com.google.guava:guava:30.0-jre")   // Needed to compile and run the app
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.13")        // Only needed at runtime
+}
+----
+=====
+====
 
 Dependency configurations are a way to define different sets of dependencies for different purposes within a project.
 They determine how and when dependencies are used in various stages of the build process.

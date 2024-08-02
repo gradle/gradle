@@ -24,7 +24,7 @@ dependencyResolutionManagement {
 
 // tag::change_default_extension_name[]
 dependencyResolutionManagement {
-    defaultLibrariesExtensionName = "projectLibs"
+    defaultLibrariesExtensionName = "libs"
 }
 // end::change_default_extension_name[]
 

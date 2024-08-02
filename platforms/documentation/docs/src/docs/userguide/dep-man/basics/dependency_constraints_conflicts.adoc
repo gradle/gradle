@@ -69,5 +69,3 @@ dependencies {
     }
 }
 ----
-
-The configuration API provides additional solutions.

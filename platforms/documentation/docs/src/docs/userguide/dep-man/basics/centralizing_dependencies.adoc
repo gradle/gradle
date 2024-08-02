@@ -25,34 +25,29 @@ A platform is a set of dependency constraints designed to manage the transitive 
 When you define a platform in Gradle, you're essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
 
 ====
-include::sample[dir="snippets/java-platform/dep-man/kotlin/platform",files="build.gradle.kts[]"]
-include::sample[dir="snippets/java-platform/dep-man/groovy/platform",files="build.gradle[]"]
+include::sample[dir="snippets/java-platform/dep-man/kotlin",files="platform/build.gradle.kts[]"]
+include::sample[dir="snippets/java-platform/dep-man/groovy",files="platform/build.gradle[]"]
 ====
 
 Then, you can use that platform in your project:
 
 ====
-include::sample[dir="snippets/java-platform/dep-man/kotlin/app",files="build.gradle.kts[]"]
-include::sample[dir="snippets/java-platform/dep-man/groovy/app",files="build.gradle[]"]
+include::sample[dir="snippets/java-platform/dep-man/kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/java-platform/dep-man/groovy",files="app/build.gradle[]"]
 ====
 
-Here, `my-platform` defines versions for `moduleA` and `moduleB`, ensuring they are compatible.
+Here, `platform` defines versions for `commons-lang3`, `guava`, and `slf4j-api`, ensuring they are compatible.
 
 Maven's BOM (Bill of Materials) is a popular type of platform that Gradle supports.
 A BOM file lists dependencies with specific versions, allowing you to manage these versions in a centralized way.
 
-A popular platform is the link:https://mvnrepository.com/artifact/io.spring.platform/platform-bom/Cairo-RELEASE[Spring IO Bill of Materials] which is maintained and hosted by link:https://spring.io/[Spring]:
+A popular platform is the link:https://mvnrepository.com/artifact/io.spring.platform/platform-bom/Cairo-RELEASE[Spring IO Bill of Materials] which is maintained and hosted by link:https://spring.io/[Spring].
 To use the BOM, you add it to the dependencies of your project:
 
-[source,kotlin]
-.build.gradle.kts
-----
-dependencies {
-    implementation platform("io.spring.platform:platform-bom:Cairo-RELEASE")
-    implementation("org.springframework:spring-core")
-    implementation("org.springframework:spring-context")
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tag=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tag=dependency-on-bom]"]
+====
 
 By including the `platform-bom` platform dependency, you ensure that all Spring components use the versions defined in the BOM file.
 
@@ -64,45 +59,16 @@ You can reference this catalog in your build scripts to ensure each project depe
 First, create a `libs.versions.toml` file in the `gradle` directory of your project.
 This file will define the versions of your dependencies and plugins:
 
-[source,toml]
-.gradle/libs.versions.toml
-----
-[versions]
-guava = "30.1.1-jre"
-commons-lang3 = "3.12.0"
-lombok = "1.18.20"
-mysql = "8.0.23"
-
-[libraries]
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
-lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-mysql = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
-
-[plugins]
-spring-boot = { id = "org.springframework.boot", version = "2.5.4" }
-----
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="gradle/libs.versions.toml[]"]
+====
 
 Then, you can use the version catalog in you build file:
 
-[source,groovy]
-----
-plugins {
-   id('java')
-   id('org.springframework.boot' version libs.versions.spring.boot)
-}
-
-repositories {
-   mavenCentral()
-}
-
-dependencies {
-   implementation(libs.guava)
-   implementation(libs.commons.lang3)
-   compileOnly(libs.lombok)
-   runtimeOnly(libs.mysql)
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy",files="build.gradle[]"]
+====
 
 [.text-right]
 **Next Step:** <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,Learn about Dependency Constrains and Conflict Resolution>> >>

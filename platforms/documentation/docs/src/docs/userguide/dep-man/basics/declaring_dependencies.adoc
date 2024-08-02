@@ -145,15 +145,16 @@ This task can be particularly useful for debugging dependency issues, such as ve
 For example, let's say our `app` project contains the follow lines in its build script:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin",files="build.gradle.kts[tags=dependency-config]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy",files="build.gradle[tags=dependency-config]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
 ====
 
 Running the `dependencies` task on the `app` project yields the following:
 
 ====
 ----
-$ ./gradlew hello
+$ ./gradlew app:dependencies
+
 include::{snippetsPath}/dependencyManagement/declaringDependencies-basic/tests/basicJavaDepTests.out[]
 ----
 ====

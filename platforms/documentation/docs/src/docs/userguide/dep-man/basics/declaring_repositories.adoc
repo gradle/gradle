@@ -79,6 +79,9 @@ Popular public repositories include link:https://repo.maven.apache.org/maven2/[M
 
 Gradle provides built-in shorthand notations for these widely-used repositories:
 
+====
+[.multi-language-sample]
+=====
 [source,kotlin]
 .build.gradle.kts
 ----
@@ -88,6 +91,20 @@ repositories {
     gradlePluginPortal()
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+repositories {
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+}
+----
+=====
+====
 
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
@@ -101,6 +118,9 @@ In-house repositories allow teams to publish internal binaries, manage users and
 Specifying a custom URL is useful for declaring less popular but publicly-available repositories.
 Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API:
 
+====
+[.multi-language-sample]
+=====
 [source,kotlin]
 .build.gradle.kts
 ----
@@ -113,6 +133,23 @@ repositories {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+repositories {
+    maven {
+        url = uri("https://maven-central.storage.apis.com")
+    }
+    ivy {
+        url = uri("https://github.com/ivy-rep/")
+    }
+}
+----
+=====
+====
 
 [[sec:declaring_local_repository]]
 == Declaring a local repository
@@ -143,6 +180,7 @@ You may resolve dependencies from:
 Here is a quick snapshot:
 
 [source,groovy]
+.build.gradle
 ----
 repositories {
 
