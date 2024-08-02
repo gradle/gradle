@@ -1,4 +1,3 @@
-Method <org.gradle.api.plugins.quality.PmdExtension.getRuleSetFiles()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (PmdExtension.java:0)
 Method <org.gradle.api.tasks.SourceSet.getAnnotationProcessorPath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getCompileClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getRuntimeClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (SourceSet.java:0)
