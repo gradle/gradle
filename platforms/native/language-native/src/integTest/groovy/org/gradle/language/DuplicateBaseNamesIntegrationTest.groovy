@@ -152,7 +152,6 @@ model {
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def "can have objectiveC and objectiveCpp source files with same name in different directories"() {
         setup:
         testApp.writeSources(file("src/main"))

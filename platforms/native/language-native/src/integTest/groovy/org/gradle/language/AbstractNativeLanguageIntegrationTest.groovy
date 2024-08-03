@@ -32,7 +32,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         buildFile << helloWorldApp.extraConfiguration
     }
 
-    @ToBeFixedForConfigurationCache
     def "compile and link executable"() {
         given:
         buildFile << """
@@ -55,7 +54,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "build executable with custom compiler arg"() {
         given:
         buildFile << """
@@ -82,7 +80,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "build executable with macro defined"() {
         given:
         buildFile << """
@@ -110,7 +107,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "install and run executable with dependencies"() {
         given:
         buildFile << """
@@ -144,7 +140,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "install and run executable with dependencies and customized installation"() {
         given:
         buildFile << """
@@ -178,7 +173,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "build shared library and link into executable"() {
         given:
         buildFile << """
@@ -212,7 +206,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "build static library and link into executable"() {
         given:
         buildFile << """
@@ -249,7 +242,6 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.frenchOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "link order is stable across project directories for the same sources"() {
         def firstCopy = file("firstDir")
         def secondCopy = file("secondDir")

@@ -29,7 +29,6 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
     @Rule
     GitFileRepository repo = new GitFileRepository(testDirectory)
 
-    @ToBeFixedForConfigurationCache
     def "can combine C++ builds in a composite"() {
         given:
         createDirs("app", "hello", "log")

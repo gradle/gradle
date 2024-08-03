@@ -29,7 +29,6 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def "resource files are ignored on unsupported platforms"() {
         given:
         buildFile << """
