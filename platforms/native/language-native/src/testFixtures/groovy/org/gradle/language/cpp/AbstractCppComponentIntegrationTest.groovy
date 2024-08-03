@@ -160,9 +160,11 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}")
         buildFile << """
             task verifyTargetMachineCount {
+                def targetMachines = ${componentUnderTestDsl}.targetMachines
+                def expectedMachine = machines.${currentHostOperatingSystemFamilyDsl}
                 doLast {
-                    assert ${componentUnderTestDsl}.targetMachines.get().size() == 1
-                    assert ${componentUnderTestDsl}.targetMachines.get() == [machines.${currentHostOperatingSystemFamilyDsl}] as Set
+                    assert targetMachines.get().size() == 1
+                    assert targetMachines.get() == [expectedMachine] as Set
                 }
             }
         """
