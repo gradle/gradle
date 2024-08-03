@@ -16,7 +16,7 @@
 
 package org.gradle.language.objectivec
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -34,7 +34,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         return new ObjectiveCHelloWorldApp()
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not recompile when include path has #testCase"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -76,7 +75,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         "replacement header dir after" | '"src/main/headers", "src/replacement-headers"'
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles only source file that imported changed header file"() {
         given:
         sourceFile << """
@@ -99,7 +97,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
-    @ToBeFixedForConfigurationCache
     def "source is always recompiled if it imported header via complex macro"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
@@ -140,7 +137,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles source file when transitively imported header file is changed"() {
         given:
         def transitiveHeaderFile = file("src/main/headers/transitive.h") << """

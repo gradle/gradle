@@ -30,7 +30,6 @@ import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest {
-    @ToBeFixedForConfigurationCache
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]

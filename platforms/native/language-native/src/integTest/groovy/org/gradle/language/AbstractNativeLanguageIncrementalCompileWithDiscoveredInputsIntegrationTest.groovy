@@ -24,7 +24,6 @@ abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsInteg
         ":dependMainExecutableMain${sourceType}"
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not recompile when include path has #testCase"() {
         given:
         outputs.snapshot { run "mainExecutable" }

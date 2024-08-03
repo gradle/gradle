@@ -27,7 +27,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends AbstractNativeParallelIntegrationTest {
     abstract HelloWorldApp getApp()
 
-    @ToBeFixedForConfigurationCache
     def "can execute link executable tasks in parallel"() {
         given:
         withComponentForApp()
@@ -40,7 +39,6 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("linkMainExecutable")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can execute link shared library tasks in parallel"() {
         given:
         withComponentsForAppAndSharedLib()
@@ -53,7 +51,6 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("linkMainLibSharedLibrary")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can execute create static library tasks in parallel"() {
         given:
         withComponentsForAppAndStaticLib()
@@ -66,7 +63,6 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("createMainLibStaticLibrary")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can execute compile tasks in parallel"() {
         given:
         withComponentForApp()
