@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
@@ -75,7 +75,6 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can compile and link against a c++ library with a dependency on a #linkage.toLowerCase() c++ library"() {
         createDirs("hello", "cppGreeter", "logger")
         settingsFile << "include 'hello', 'cppGreeter', 'logger'"

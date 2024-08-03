@@ -27,6 +27,9 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         """
     }
 
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'XCTestDependenciesIntegrationTest'
+    ])
     def "can define implementation dependencies on component"() {
         given:
         createDirs("lib")
@@ -47,6 +50,9 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'XCTestDependenciesIntegrationTest'
+    ])
     def "can define implementation dependencies on each binary"() {
         given:
         createDirs("lib")

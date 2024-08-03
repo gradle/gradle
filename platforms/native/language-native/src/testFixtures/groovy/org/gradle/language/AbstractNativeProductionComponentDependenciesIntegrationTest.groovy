@@ -16,8 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 abstract class AbstractNativeProductionComponentDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
     def "can define different implementation dependencies on each binary"() {
         given:

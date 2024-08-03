@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -48,7 +48,6 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "extracts symbols from binary"() {
         when:
         succeeds ":extractSymbolsDebug"
@@ -58,7 +57,6 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
-    @ToBeFixedForConfigurationCache
     def "extract is skipped when there are no changes"() {
         when:
         succeeds ":extractSymbolsDebug"
@@ -74,7 +72,6 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
-    @ToBeFixedForConfigurationCache
     def "extract is re-executed when changes are made"() {
         when:
         succeeds ":extractSymbolsDebug"

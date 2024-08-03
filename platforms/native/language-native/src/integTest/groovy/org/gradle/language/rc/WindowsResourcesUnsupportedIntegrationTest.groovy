@@ -15,7 +15,6 @@
  */
 package org.gradle.language.rc
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement

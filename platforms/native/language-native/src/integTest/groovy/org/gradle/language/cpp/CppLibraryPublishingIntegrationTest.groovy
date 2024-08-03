@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -815,7 +815,6 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
@@ -886,7 +885,6 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "fails when a dependency is published without a matching target architecture"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 

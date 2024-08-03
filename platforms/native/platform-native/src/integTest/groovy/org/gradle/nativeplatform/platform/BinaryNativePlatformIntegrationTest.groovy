@@ -62,7 +62,6 @@ model {
         return [name: "x86-64", altName: "amd64"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "build binary for a default target platform"() {
         given:
         def arch = currentArch()
@@ -78,7 +77,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "configure component for a single target platform"() {
         when:
         buildFile << """
@@ -110,7 +108,6 @@ model {
         executable("build/exe/main/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    @ToBeFixedForConfigurationCache
     def "defaults to current platform when platforms are defined but not targeted"() {
         def arch = currentArch()
         when:
@@ -138,7 +135,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "library with matching platform is enforced by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
@@ -181,7 +177,6 @@ model {
         executable("build/exe/exe/exe").exec().out == "i386 ${os.familyName}" * 2
     }
 
-    @ToBeFixedForConfigurationCache
     def "library with no platform defined is correctly chosen by dependency resolution"() {
         def arch = currentArch()
 
@@ -212,7 +207,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
@@ -261,7 +255,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "can configure binary for multiple target operating systems"() {
         String currentOs
         if (os.windows) {
@@ -318,7 +311,6 @@ model {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message when trying to build for an #type"() {
         when:
         buildFile << """

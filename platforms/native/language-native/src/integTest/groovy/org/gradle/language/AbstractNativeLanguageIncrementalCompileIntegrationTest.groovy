@@ -18,7 +18,6 @@ package org.gradle.language
 
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
