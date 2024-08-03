@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -44,15 +43,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         given:
         makeSingleProject()
         def expectedVersion = AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility.version == ${expectedVersion}
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(expectedVersion)
 
         expect:
         succeeds "verifyBinariesSwiftVersion"
@@ -90,15 +81,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT3
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
-                    }
-                }
-            }
         """
+        verifySwiftVersion(3)
         settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
@@ -118,15 +102,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT4
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
-                    }
-                }
-            }
         """
+        verifySwiftVersion(4)
         settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
@@ -146,15 +123,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT4
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
-                    }
-                }
-            }
         """
+        verifySwiftVersion(4)
         settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
@@ -175,15 +145,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT5
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
-                    }
-                }
-            }
         """
+        verifySwiftVersion(5)
         settingsFile << "rootProject.name = '${swift5Component.projectName}'"
 
         when:
@@ -204,15 +167,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT5
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
-                    }
-                }
-            }
         """
+        verifySwiftVersion(5)
         settingsFile << "rootProject.name = '${swift5Component.projectName}'"
 
         when:
@@ -233,15 +189,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT3
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
-                    }
-                }
-            }
         """
+        verifySwiftVersion(3)
         settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
@@ -258,15 +207,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         given:
         makeSingleProject()
         swift3Component.writeToProject(testDirectory)
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(3)
         settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
@@ -282,15 +223,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         given:
         makeSingleProject()
         swift4Component.writeToProject(testDirectory)
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(4)
         settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
@@ -306,15 +239,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         given:
         makeSingleProject()
         swift5Component.writeToProject(testDirectory)
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(5)
         settingsFile << "rootProject.name = '${swift5Component.projectName}'"
 
         when:
@@ -388,6 +313,22 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         } else {
             return osFamily
         }
+    }
+
+    private void verifySwiftVersion(int version) {
+        buildFile << """
+            task verifyBinariesSwiftVersion {
+                def sourceCompatibilities = provider {
+                    // `binaries` is not a provider, so cannot map it
+                    ${componentUnderTestDsl}.binaries.get().collect { it.targetPlatform.sourceCompatibility }
+                }
+                doLast {
+                    sourceCompatibilities.get().each {
+                        assert it.version == $version
+                    }
+                }
+            }
+        """
     }
 
     abstract String getDevelopmentBinaryCompileTask()
