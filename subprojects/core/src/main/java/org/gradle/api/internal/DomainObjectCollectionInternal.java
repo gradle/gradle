@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal;
 
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.tasks.Internal;
+
 /**
- * @see MutationGuard
- * @see MutationGuards#of(Object)
+ * Internal counterpart to {@link DomainObjectCollection}.
  */
-public interface WithMutationGuard {
+public interface DomainObjectCollectionInternal<T> extends DomainObjectCollection<T> {
+
+    /**
+     * Get the guard that controls the mutation of this collection.
+     */
+    @Internal
     MutationGuard getMutationGuard();
+
+    /**
+     * @see ElementSource#estimatedSize()
+     */
+    int estimatedSize();
+
 }

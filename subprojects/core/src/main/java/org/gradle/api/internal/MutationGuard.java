@@ -19,7 +19,9 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 
 /**
- * A guard object for the mutability of an object. All mutable method of the object needs to be guarded by calling {@code #assertMutationAllowed(String)}. If you want to allow ad-hoc code to pass over the mutation guard of the object, the object will need to implement {@code WithMutationGuard}. You can then use {@code MutationGuards#of(Object)} to acquire the guard and enable/disable the mutation as you see fit.
+ * A guard object for the mutability of an object.
+ * All mutable methods of an object protected by this guard needs to be guarded
+ * by calling {@code #assertMutationAllowed(String)}.
  */
 public interface MutationGuard {
     /**

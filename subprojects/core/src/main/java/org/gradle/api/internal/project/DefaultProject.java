@@ -49,7 +49,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -1473,7 +1472,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     private void assertMutatingMethodAllowed(String methodName) {
-        MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
+        getProjectConfigurator().getMutationGuard().assertMutationAllowed(methodName, this, Project.class);
     }
 
     @Override

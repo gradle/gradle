@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -252,7 +253,9 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
         serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
         serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
-        serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator))
+        serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator) {
+            getMutationGuard() >> Mock(MutationGuard)
+        })
         serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
         serviceRegistry.add(FileResolver, Stub(FileResolver))

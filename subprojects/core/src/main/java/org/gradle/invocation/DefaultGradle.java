@@ -32,7 +32,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -341,7 +340,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void assertProjectMutatingMethodAllowed(String methodName) {
-        MutationGuards.of(crossProjectConfigurator).assertMutationAllowed(methodName, this, Gradle.class);
+        crossProjectConfigurator.getMutationGuard().assertMutationAllowed(methodName, this, Gradle.class);
     }
 
     @Override

@@ -43,7 +43,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize, WithMutationGuard {
+public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollectionInternal<T> {
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
@@ -152,7 +152,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         Collection<T> copied = null;
         for (T t : this) {
             if (copied == null) {
-                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+                copied = new ArrayList<>(estimatedSize());
             }
             copied.add(t);
         }
@@ -175,7 +175,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         while (iterator.hasNext()) {
             // only create an intermediate collection if there's something to copy
             if (copied == null) {
-                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+                copied = new ArrayList<>(estimatedSize());
             }
             copied.add(iterator.next());
         }
@@ -449,7 +449,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         // no special validation
     }
 
-    protected class IteratorImpl implements Iterator<T>, WithEstimatedSize {
+    protected class IteratorImpl implements Iterator<T> {
         private final Iterator<T> iterator;
         private T currentElement;
 
@@ -476,11 +476,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             didRemove(currentElement);
             getEventRegister().fireObjectRemoved(currentElement);
             currentElement = null;
-        }
-
-        @Override
-        public int estimatedSize() {
-            return DefaultDomainObjectCollection.this.estimatedSize();
         }
     }
 

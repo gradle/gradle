@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
+public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainObjectCollectionInternal<T> {
     private final DomainObjectSet<T> delegate;
 
     public DelegatingDomainObjectSet(DomainObjectSet<T> delegate) {
@@ -177,5 +177,15 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     @Override
     public Set<T> findAll(Closure spec) {
         return delegate.findAll(spec);
+    }
+
+    @Override
+    public MutationGuard getMutationGuard() {
+        return ((DomainObjectCollectionInternal<?>) delegate).getMutationGuard();
+    }
+
+    @Override
+    public int estimatedSize() {
+        return ((DomainObjectCollectionInternal<?>) delegate).estimatedSize();
     }
 }
