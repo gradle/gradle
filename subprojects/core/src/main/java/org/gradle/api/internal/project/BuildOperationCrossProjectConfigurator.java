@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -29,7 +28,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collections;
 
-public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
+public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
     private final BuildOperationRunner buildOperationRunner;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
