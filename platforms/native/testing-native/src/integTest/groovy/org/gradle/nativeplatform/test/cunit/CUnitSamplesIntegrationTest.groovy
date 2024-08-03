@@ -52,7 +52,6 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         output.contains "C unit exe 'operatorsTest:passing:cUnitExe'"
     }
 
-    @ToBeFixedForConfigurationCache
     def "cunit"() {
         given:
         // On windows, CUnit sample only works out of the box with VS2015

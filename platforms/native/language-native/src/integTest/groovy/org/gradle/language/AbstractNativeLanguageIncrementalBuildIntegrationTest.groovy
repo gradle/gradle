@@ -320,7 +320,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "rebuilds binary with target platform change"() {
         Assume.assumeTrue(languageBuildsOnMultiplePlatforms())
         given:
@@ -378,7 +377,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executable.assertHasChangedSince(snapshot)
     }
 
-    @ToBeFixedForConfigurationCache
     def "relinks binary but does not recompile when linker option changed"() {
         given:
         run "mainExecutable"

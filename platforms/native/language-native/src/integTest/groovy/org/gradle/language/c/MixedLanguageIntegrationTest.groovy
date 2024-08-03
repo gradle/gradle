@@ -17,7 +17,6 @@
 package org.gradle.language.c
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -32,7 +31,6 @@ class MixedLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest
         return new MixedLanguageHelloWorldApp(toolChain)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can have all source files co-located in a common directory"() {
         given:
         buildFile << """
@@ -81,7 +79,6 @@ model {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """

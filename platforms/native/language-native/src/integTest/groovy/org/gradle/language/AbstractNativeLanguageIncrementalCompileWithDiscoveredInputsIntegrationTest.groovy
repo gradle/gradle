@@ -16,8 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
 
     String getDependTask() {
