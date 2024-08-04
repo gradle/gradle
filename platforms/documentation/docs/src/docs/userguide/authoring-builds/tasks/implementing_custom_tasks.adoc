@@ -1176,9 +1176,6 @@ Here are all available annotations in detail:
 |`@InputDirectory`
 |Property is an input directory for the task
 
-|`@InputDirectory`
-|Property is an input directory for the task
-
 |`@Classpath`
 |Property is a one or more input files or directories that represent a Java classpath
 
