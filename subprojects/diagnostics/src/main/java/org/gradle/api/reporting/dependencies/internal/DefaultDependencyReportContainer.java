@@ -16,22 +16,25 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.dependencies.DependencyReportContainer;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
-import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.api.reporting.internal.DefaultReportContainer;
+import org.gradle.api.reporting.internal.DelegatingReportContainer;
+import org.gradle.api.reporting.internal.SingleDirectoryReport;
 
 import javax.inject.Inject;
 
-public class DefaultDependencyReportContainer extends TaskReportContainer<Report> implements DependencyReportContainer {
+public class DefaultDependencyReportContainer extends DelegatingReportContainer<Report> implements DependencyReportContainer {
 
     @Inject
-    public DefaultDependencyReportContainer(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(Report.class, task, callbackActionDecorator);
-        add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
+    public DefaultDependencyReportContainer(Describable owner, ObjectFactory objectFactory) {
+        super(DefaultReportContainer.create(objectFactory, Report.class, factory -> ImmutableList.of(
+            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html")
+        )));
     }
 
     @Override

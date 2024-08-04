@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -61,7 +62,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
 
     public CodeNarc() {
         super();
-        reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, this);
+        reports = getObjectFactory().newInstance(CodeNarcReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         compilationClasspath = getProject().files();
         // Set default JavaLauncher to current JVM in case
         // CodeNarcPlugin that sets Java launcher convention is not applied

@@ -16,31 +16,46 @@
 
 package org.gradle.api.reporting.internal
 
+import org.gradle.api.Describable
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.reporting.Report
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.Describables
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
+import javax.inject.Inject
+
+class ReportContainerIntegTest extends AbstractIntegrationSpec {
 
     def task = ":createReports"
 
     def setup() {
         // Do not define the task in the build script, so that changes to the build script do not invalidate the task implementation
-        file("buildSrc/src/main/groovy/TestTaskReportContainer.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.reporting.*
-            import org.gradle.api.reporting.internal.*
-            import org.gradle.api.internal.CollectionCallbackActionDecorator
+        file("buildSrc/src/main/groovy/TestReportContainer.groovy") << """
+            import ${Report.class.name}
+            import ${ObjectFactory.class.name}
+            import ${Describable.class.name}
+            import ${DefaultSingleFileReport.class.name}
+            import ${SingleDirectoryReport.class.name}
+            import ${DelegatingReportContainer.class.name}
+            import ${DefaultReportContainer.class.name}
 
-            class TestTaskReportContainer extends TaskReportContainer<Report> {
-                TestTaskReportContainer(Task task) {
-                    super(Report, task, CollectionCallbackActionDecorator.NOOP)
-                    add(TaskGeneratedSingleFileReport, "file1", task)
-                    add(TaskGeneratedSingleFileReport, "file2", task)
-                    add(TaskGeneratedSingleDirectoryReport, "dir1", task, null)
-                    add(TaskGeneratedSingleDirectoryReport, "dir2", task, null)
+            import ${Inject.class.name}
+
+            class TestReportContainer extends DelegatingReportContainer<Report> {
+
+                @Inject
+                TestReportContainer(ObjectFactory objectFactory, Describable owner) {
+                    super(DefaultReportContainer.create(objectFactory, Report, factory -> [
+                        factory.instantiateReport(DefaultSingleFileReport, "file1", owner),
+                        factory.instantiateReport(DefaultSingleFileReport, "file2", owner),
+                        factory.instantiateReport(SingleDirectoryReport, "dir1", owner, null),
+                        factory.instantiateReport(SingleDirectoryReport, "dir2", owner, null)
+                    ]))
                 }
+
             }
         """
         file("buildSrc/src/main/groovy/TestTask.groovy") << """
@@ -48,10 +63,19 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
             import org.gradle.api.reporting.*
             import org.gradle.api.reporting.internal.*
+            import ${Describables.class.name}
+
+            import ${Inject.class.name}
 
             class TestTask extends DefaultTask {
+
                 @Nested
-                TaskReportContainer reports = project.services.get(org.gradle.internal.reflect.Instantiator).newInstance(TestTaskReportContainer, this)
+                TestReportContainer reports
+
+                @Inject
+                public TestTask() {
+                    this.reports = getProject().getObjects().newInstance(TestReportContainer, Describables.quoted("Task", getIdentityPath()))
+                }
 
                 @TaskAction
                 def doStuff() {

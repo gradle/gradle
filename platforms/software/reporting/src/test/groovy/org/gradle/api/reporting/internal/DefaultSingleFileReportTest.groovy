@@ -16,18 +16,18 @@
 
 package org.gradle.api.reporting.internal
 
-import org.gradle.api.Task
+import org.gradle.internal.Describables
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-class TaskGeneratedSingleFileReportTest extends Specification {
+class DefaultSingleFileReportTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "can attach a convention mapping for output file location"() {
-        def report = TestUtil.objectFactory(tmpDir.testDirectory).newInstance(TaskGeneratedSingleFileReport, "report", Stub(Task))
+        def report = TestUtil.objectFactory(tmpDir.testDirectory).newInstance(DefaultSingleFileReport, "name", Describables.of("owner"))
         def output = new File("report.txt")
         def resolvedOutput = tmpDir.file("report.txt")
 
@@ -37,5 +37,6 @@ class TaskGeneratedSingleFileReportTest extends Specification {
         report.conventionMapping.map("destination") { output }
 
         report.outputLocation.asFile.get() == resolvedOutput
+        report.displayName == "name report for owner"
     }
 }

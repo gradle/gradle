@@ -35,6 +35,7 @@ import org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
+import org.gradle.internal.Describables;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -73,7 +74,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     private final DependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
-        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
+        reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
     }
 

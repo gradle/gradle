@@ -21,46 +21,29 @@ import org.gradle.api.Describable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
-import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.provider.Property
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.ReportContainer
+import org.gradle.api.reporting.internal.DefaultReportContainer.ReportGenerator
 import org.gradle.internal.Describables
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultReportContainerTest extends Specification {
-    static class TestReportContainer extends DefaultReportContainer {
-        TestReportContainer(Closure c) {
-            super(Report, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
-            c.delegate = new Object() {
-                Report createReport(String name) {
-                    add(TestReport, name, Describables.of(name), Report.OutputType.FILE)
-                }
-            }
-
-            c()
-        }
-    }
-
-    DefaultReportContainer createContainer(Closure cl) {
-        try {
-            TestUtil.instantiatorFactory().decorateLenient().newInstance(TestReportContainer, cl)
-        } catch (ObjectInstantiationException e) {
-            throw e.cause
-        }
+    private static DefaultReportContainer<Report> createContainer(ReportGenerator<Report> reportGenerator) {
+        DefaultReportContainer.create(TestUtil.objectFactory(), Report, reportGenerator)
     }
 
     DefaultReportContainer container
 
     def setup() {
-        container = createContainer {
-            createReport("a")
-            createReport("b")
-            createReport("c")
-        }
+        container = createContainer { factory -> [
+            factory.instantiateReport(TestReport, "a", Describables.of("a"), Report.OutputType.FILE),
+            factory.instantiateReport(TestReport, "b", Describables.of("b"), Report.OutputType.FILE),
+            factory.instantiateReport(TestReport, "c", Describables.of("c"), Report.OutputType.FILE)
+        ]}
     }
 
     def "reports given at construction are available"() {
@@ -109,12 +92,13 @@ class DefaultReportContainerTest extends Specification {
 
     def "cannot add report named 'enabled'"() {
         when:
-        createContainer {
-            createReport "enabled"
-        }
+        createContainer { factory -> [
+            factory.instantiateReport(TestReport, "enabled", Describables.of("enabled"), Report.OutputType.FILE)
+        ]}
 
         then:
-        thrown(InvalidUserDataException)
+        def e = thrown(ObjectInstantiationException)
+        e.cause instanceof InvalidUserDataException
     }
 
     def "cant access or configure non existent report"() {

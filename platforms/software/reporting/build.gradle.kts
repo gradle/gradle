@@ -20,10 +20,12 @@ repositories {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.modelCore)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
@@ -31,8 +33,6 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.logging)
-    implementation(projects.modelCore)
-    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.jatl)
