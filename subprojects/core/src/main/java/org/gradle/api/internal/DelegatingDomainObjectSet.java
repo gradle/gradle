@@ -22,6 +22,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Internal;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Collection;
@@ -189,6 +190,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
         ((DomainObjectCollectionInternal<?>) delegate).beforeCollectionChanges(action);
     }
 
+    @Internal
     @Override
     public String getDisplayName() {
         return ((DomainObjectCollectionInternal<?>) delegate).getDisplayName();
