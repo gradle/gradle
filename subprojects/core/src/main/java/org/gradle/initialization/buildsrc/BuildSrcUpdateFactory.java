@@ -29,7 +29,6 @@ public class BuildSrcUpdateFactory {
     }
 
     @Nonnull
-    @SuppressWarnings("deprecation")
     public ClassPath create(BuildTreeLifecycleController buildController) {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
         buildController.beforeBuild(gradle -> gradle.addListener(listener));

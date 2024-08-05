@@ -66,7 +66,6 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
         return failures;
     }
 
-    @SuppressWarnings("deprecation")
     private RootProjectBuildDirCollectingListener getRootProjectBuildDirCollectingListener(BuildTreeLifecycleController buildController) {
         RootProjectBuildDirCollectingListener listener = new RootProjectBuildDirCollectingListener(
             defaultRootBuildDirOf()
