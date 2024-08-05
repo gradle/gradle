@@ -60,7 +60,6 @@ Applying locking on non resolvable-configurations is simply a no-op.
 
 Or the following, as a way to lock all configurations:
 
-.Locking all configurations
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=locking-all]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=locking-all]"]
@@ -69,9 +68,8 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 NOTE: The above will lock all _project_ configurations, but not the _buildscript_ ones.
 
 You can also disable locking on a specific configuration.
-This can be useful if a plugin configured locking on all configurations but you happen to add one that should not be locked.
+This can be useful if a plugin configured locking on all configurations but you happen to add one that should not be locked:
 
-.Unlocking a specific configuration
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-one]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSingleConfiguration/groovy",files="build.gradle[tags=locking-one]"]
@@ -82,7 +80,6 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSi
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
 In order to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
 
-.Locking buildscript classpath configuration
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingClasspathConfiguration/kotlin",files="build.gradle.kts[tags=locking-classpath]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingClasspathConfiguration/groovy",files="build.gradle[tags=locking-classpath]"]
@@ -109,7 +106,6 @@ This will effectively lock all resolvable configurations that have locking enabl
 Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
 * Declare a custom task that resolves all configurations. This does not work for Android projects.
 
-.Resolving all configurations
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
@@ -139,7 +135,6 @@ include::{snippetsPath}/dependencyManagement/dependencyLocking-lockingSingleFile
 
 which matches the following dependency declaration:
 
-.Dynamic dependency declaration
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-explicit]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-explicit]"]
@@ -161,9 +156,8 @@ Gradle will keep sourcing the lock state from the per configuration files as lon
 
 When using the single lock file per project, you can configure its name and location.
 The main reason for providing this is to enable having a file name that is determined by some project properties, effectively allowing a single project to store different lock state for different execution contexts.
-One trivial example in the JVM ecosystem is the Scala version that is often found in artifact coordinates.
+One trivial example in the JVM ecosystem is the Scala version that is often found in artifact coordinates:
 
-.Changing the lock file name
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-file-name]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-file-name]"]
@@ -195,7 +189,6 @@ In this mode, dependency locking will still pin dynamic versions but otherwise c
 
 The lock mode can be controlled from the `dependencyLocking` block as shown below:
 
-.Setting the lock mode
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockModeSelection/kotlin",files="build.gradle.kts[tags=lock-mode]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockModeSelection/groovy",files="build.gradle[tags=lock-mode]"]
@@ -241,7 +234,6 @@ There are scenarios that are better served with leveraging  <<#fine_tuning_depen
 
 You can configure ignored dependencies in the `dependencyLocking` project extension:
 
-.Ignoring dependencies for the lock state
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=ignore-dependencies]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=ignore-dependencies]"]
