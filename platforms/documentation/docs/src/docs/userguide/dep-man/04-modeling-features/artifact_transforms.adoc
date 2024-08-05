@@ -18,7 +18,7 @@
 What if you want to adjust the JAR file of one of your dependencies before you use it?
 
 Gradle has a built-in feature for this called **Artifact Transforms**.
-With Artifact Transforms, you can modify, extend, or reduce artifacts like JAR files before tasks or tools like the IDE use it.
+With Artifact Transforms, you can modify, extend, or reduce artifacts like JAR files before tasks or tools like the IDE use them.
 
 == Artifact Transforms Overview
 
@@ -405,6 +405,4 @@ It's important to remember that Artifact Transforms:
 
 - can be run in parallel
 - are cacheable
-- are reusable*
-
-*If separate resolutions used by different tasks require the same transform to be executed on the same artifacts, the transform results will be cached and shared.
+- are reusable (if separate resolutions used by different tasks require the same transform to be executed on the same artifacts, the transform results will be cached and shared)

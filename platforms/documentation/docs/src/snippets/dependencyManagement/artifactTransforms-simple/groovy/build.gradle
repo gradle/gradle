@@ -4,6 +4,14 @@ plugins {
     id 'application'
 }
 
+dependencies {
+    implementation("com.google.guava:guava:33.2.1-jre")
+}
+
+repositories {
+    mavenCentral()
+}
+
 // tag::artifact-transform-imp[]
 abstract class MyTransform implements TransformAction<TransformParameters.None> {
     @InputArtifact
@@ -14,16 +22,19 @@ abstract class MyTransform implements TransformAction<TransformParameters.None> 
         def inputFile = inputArtifact.get().asFile
         def outputFile = outputs.file(inputFile.name.replace(".jar", "-transformed.jar"))
         // Perform transformation logic here
+        inputFile.withInputStream { input ->
+            outputFile.withOutputStream { output ->
+                output << input
+            }
+        }
     }
 }
 // end::artifact-transform-imp[]
 
 // tag::artifact-transform-use[]
-def artifactType = Attribute.of("artifactType", String)
-
 configurations.named("runtimeClasspath") {
     attributes {
-        attribute(artifactType, "transformed-jar")
+        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "transformed-jar")
     }
 }
 // end::artifact-transform-use[]
@@ -31,8 +42,16 @@ configurations.named("runtimeClasspath") {
 // tag::artifact-transform-registration[]
 dependencies {
     registerTransform(MyTransform) {
-        from.attribute(artifactType, "jar")
-        to.attribute(artifactType, "transformed-jar")
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar")
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "transformed-jar")
     }
 }
 // end::artifact-transform-registration[]
+
+tasks.register("resolve") {
+    def files = configurations.runtimeClasspath.incoming.files
+    def fileNames = files.collect { it.name }
+    doLast {
+        assert fileNames.contains("guava-33.2.1-jre-transformed.jar")
+    }
+}
