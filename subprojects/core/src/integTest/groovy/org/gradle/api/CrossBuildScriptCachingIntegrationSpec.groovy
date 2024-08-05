@@ -55,6 +55,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         remappedCachesDir = new File(versionCaches, 'scripts-remapped')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Expects sequential script compilation")
     def "identical build files are compiled once"() {
         given:
         root {
@@ -113,6 +114,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 0
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Expects sequential script compilation")
     def "can have two build files with same contents and file name"() {
         given:
         root {
@@ -163,6 +165,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 6 // classpath + body for settings and for each build.gradle file
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Expects sequential script compilation")
     def "reuses scripts when build file changes in a way that does not affect behaviour"() {
         given:
         root {
