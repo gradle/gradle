@@ -21,9 +21,11 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
@@ -59,20 +61,27 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     @Override
     public void configureHierarchyInParallel(ProjectInternal project) {
-        buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
-            for (Project p : project.getAllprojects()) {
-                queue.add(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) throws Exception {
-                        configure((ProjectInternal) p);
-                    }
+        try {
+            buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
+                for (Project p : project.getAllprojects()) {
+                    queue.add(new RunnableBuildOperation() {
+                        @Override
+                        public void run(BuildOperationContext context) throws Exception {
+                            configure((ProjectInternal) p);
+                        }
 
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Configure project " + p.getName());
-                    }
-                });
+                        @Override
+                        public BuildOperationDescriptor.Builder description() {
+                            return BuildOperationDescriptor.displayName("Configure project " + p.getName());
+                        }
+                    });
+                }
+            });
+        } catch (MultipleBuildOperationFailures e) {
+            if (e.getCauses().size() == 1) {
+                throw UncheckedException.throwAsUncheckedException(e.getCauses().get(0));
             }
-        });
+            throw e;
+        }
     }
 }
