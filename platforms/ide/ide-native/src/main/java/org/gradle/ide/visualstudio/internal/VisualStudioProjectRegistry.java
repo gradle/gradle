@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -31,8 +32,15 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ObjectFactory objectFactory, ProviderFactory providerFactory) {
-        super(DefaultVisualStudioProject.class, instantiator, collectionCallbackActionDecorator);
+    public VisualStudioProjectRegistry(
+        FileResolver fileResolver,
+        Instantiator instantiator,
+        IdeArtifactRegistry ideArtifactRegistry,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
+    ) {
+        super(DefaultVisualStudioProject.class, instantiator, collectionCallbackActionDecorator, MutationGuards.identity());
         this.fileResolver = fileResolver;
         this.ideArtifactRegistry = ideArtifactRegistry;
         this.objectFactory = objectFactory;

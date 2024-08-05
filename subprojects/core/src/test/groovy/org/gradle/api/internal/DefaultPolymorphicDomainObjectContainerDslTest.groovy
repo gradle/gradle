@@ -32,7 +32,7 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
 
     def setup() {
         instantiator = project.services.get(Instantiator)
-        container = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator, collectionCallbackActionDecorator)
+        container = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator, instantiator, collectionCallbackActionDecorator, MutationGuards.identity())
         project.extensions.add("container", container)
     }
 

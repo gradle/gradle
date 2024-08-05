@@ -48,34 +48,25 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     protected final ProjectInternal project;
 
-    private final MutationGuard parentMutationGuard;
-
     public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard, CollectionCallbackActionDecorator decorator) {
-        super(type, instantiator, Named.Namer.INSTANCE, decorator);
+        super(type, instantiator, decorator, parentMutationGuard);
         this.project = project;
-        this.parentMutationGuard = parentMutationGuard;
     }
 
-    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
-        super(collection, filter, instantiator, Named.Namer.INSTANCE);
-        this.project = project;
-        this.parentMutationGuard = parentMutationGuard;
-    }
-
+    @SuppressWarnings("unused") // Called by #filtered(Spec, CollectionFilter)
     public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
-        super(collection, nameFilter, elementFilter, instantiator, Named.Namer.INSTANCE);
+        super(collection, nameFilter, elementFilter, instantiator, Named.Namer.INSTANCE, parentMutationGuard);
         this.project = project;
-        this.parentMutationGuard = parentMutationGuard;
     }
 
     @Override
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard));
+        return filtered(Specs.satisfyAll(), filter);
     }
 
     @Override
     protected <S extends T> DefaultTaskCollection<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultTaskCollection.class, this, nameFilter, elementFilter, getInstantiator(), project, parentMutationGuard));
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultTaskCollection.class, this, nameFilter, elementFilter, getInstantiator(), project, getParentMutationGuard()));
     }
 
     @Override
@@ -148,11 +139,6 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
         // TODO: This isn't quite right. We're leaking the _implementation_ type here.  But for tasks, this is usually right.
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType()));
-    }
-
-    @Override
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
     }
 
     @Override

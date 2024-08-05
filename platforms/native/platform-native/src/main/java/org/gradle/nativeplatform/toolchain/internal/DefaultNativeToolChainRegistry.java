@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
@@ -38,7 +39,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
     private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
     public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(NativeToolChain.class, instantiator, instantiator, collectionCallbackActionDecorator);
+        super(NativeToolChain.class, instantiator, instantiator, collectionCallbackActionDecorator, MutationGuards.identity());
         whenObjectAdded(new Action<NativeToolChain>() {
             @Override
             public void execute(NativeToolChain toolChain) {

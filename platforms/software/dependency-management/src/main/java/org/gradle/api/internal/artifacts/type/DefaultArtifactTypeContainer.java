@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -31,7 +32,7 @@ public class DefaultArtifactTypeContainer extends AbstractValidatingNamedDomainO
     private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultArtifactTypeContainer(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(ArtifactTypeDefinition.class, instantiator, callbackActionDecorator);
+        super(ArtifactTypeDefinition.class, instantiator, callbackActionDecorator, MutationGuards.identity());
         this.attributesFactory = attributesFactory;
     }
 

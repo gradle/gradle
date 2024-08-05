@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Namer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -29,6 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -432,20 +432,13 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
                                     Action<PrebuiltLibrary> binaryFactory,
                                     CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                     DomainObjectCollectionFactory domainObjectCollectionFactory) {
-            super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
+            super(ArtifactRepository.class, instantiator, instantiator, collectionCallbackActionDecorator, MutationGuards.identity());
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
                 @Override
                 public PrebuiltLibraries create(String name) {
                     return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, objectFactory, binaryFactory, collectionCallbackActionDecorator, domainObjectCollectionFactory);
                 }
             });
-        }
-    }
-
-    private static class ArtifactRepositoryNamer implements Namer<ArtifactRepository> {
-        @Override
-        public String determineName(ArtifactRepository object) {
-            return object.getName();
         }
     }
 

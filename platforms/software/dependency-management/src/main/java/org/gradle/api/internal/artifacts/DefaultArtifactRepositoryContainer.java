@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Namer;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
@@ -38,20 +37,13 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     private final Action<ArtifactRepository> addLastAction = DefaultArtifactRepositoryContainer.super::add;
 
     public DefaultArtifactRepositoryContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(ArtifactRepository.class, instantiator, new RepositoryNamer(), callbackActionDecorator);
+        super(ArtifactRepository.class, instantiator, callbackActionDecorator);
         whenObjectAdded((InternalAction<ArtifactRepository>) artifactRepository -> {
             if (artifactRepository instanceof ArtifactRepositoryInternal) {
                 ArtifactRepositoryInternal repository = (ArtifactRepositoryInternal) artifactRepository;
                 repository.onAddToContainer(DefaultArtifactRepositoryContainer.this);
             }
         });
-    }
-
-    private static class RepositoryNamer implements Namer<ArtifactRepository> {
-        @Override
-        public String determineName(ArtifactRepository r) {
-            return r.getName();
-        }
     }
 
     @Override

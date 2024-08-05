@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.FlavorContainer;
@@ -25,7 +26,7 @@ import org.gradle.nativeplatform.FlavorContainer;
 public class DefaultFlavorContainer extends AbstractValidatingNamedDomainObjectContainer<Flavor> implements FlavorContainer {
 
     public DefaultFlavorContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(Flavor.class, instantiator, collectionCallbackActionDecorator);
+        super(Flavor.class, instantiator, collectionCallbackActionDecorator, MutationGuards.identity());
     }
 
     @Override

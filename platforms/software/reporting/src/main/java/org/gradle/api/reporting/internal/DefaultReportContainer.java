@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Report;
@@ -81,7 +82,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         ServiceRegistry servicesToInject,
         CollectionCallbackActionDecorator callbackActionDecorator
     ) {
-        super(type, instantiatorFactory.decorateLenient(servicesToInject), Report.NAMER, callbackActionDecorator);
+        super(type, instantiatorFactory.decorateLenient(servicesToInject), callbackActionDecorator, MutationGuards.identity());
         this.addAll(reportGenerator.generateReports(new DefaultReportFactory<>(getInstantiator())));
         instantiated = true;
 

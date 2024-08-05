@@ -17,6 +17,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.reflect.Instantiator
@@ -431,7 +432,7 @@ class DynamicOwner {
     }
 }
 
-class TestObject {
+class TestObject implements Named {
     String prop
     String name
     final children

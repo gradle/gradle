@@ -47,6 +47,8 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nonnull;
+
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {
@@ -87,6 +89,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.projectRegistry = projectRegistry;
     }
 
+    @Nonnull
     @Override
     public TaskContainerInternal create() {
         DefaultTaskContainer tasks = instantiator.newInstance(
@@ -97,7 +100,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             taskFactory,
             statistics,
             buildOperationRunner,
-            crossProjectConfigurator,
+            crossProjectConfigurator.getMutationGuard(),
             callbackDecorator,
             projectRegistry
         );

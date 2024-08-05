@@ -26,7 +26,7 @@ class DefaultPolymorphicDomainObjectContainerBaseTest extends AbstractNamedDomai
 
 class PolymorphicTestContainer extends AbstractPolymorphicDomainObjectContainer<TestObject> {
     PolymorphicTestContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(TestObject, instantiator, new DynamicPropertyNamer(), collectionCallbackActionDecorator)
+        super(TestObject, instantiator, collectionCallbackActionDecorator, MutationGuards.identity())
     }
 
     @Override

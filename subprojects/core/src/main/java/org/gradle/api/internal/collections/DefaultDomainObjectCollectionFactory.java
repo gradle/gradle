@@ -33,6 +33,7 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -86,7 +87,7 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     public <T> ExtensiblePolymorphicDomainObjectContainer<T> newPolymorphicDomainObjectContainer(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         Instantiator elementInstantiator = instantiatorFactory.decorateLenient(servicesToInject);
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, elementInstantiator, collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, elementInstantiator, collectionCallbackActionDecorator, MutationGuards.identity()));
     }
 
     @Override
@@ -98,7 +99,7 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     @Override
     public <T> NamedDomainObjectSet<T> newNamedDomainObjectSet(Class<T> elementType) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultNamedDomainObjectSet.class, elementType, instantiator, new DynamicPropertyNamer(), collectionCallbackActionDecorator));
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultNamedDomainObjectSet.class, elementType, instantiator, new DynamicPropertyNamer(), collectionCallbackActionDecorator, MutationGuards.identity()));
     }
 
     @Override

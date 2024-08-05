@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -34,14 +35,21 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
-    public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        super(objects, filter, instantiator, namer);
+
+    public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+        super(type, new ListElementSource<>(), instantiator, Named.Namer.forType(type), decorator);
     }
 
+    /**
+     * Same as above, but accepts a {@link Namer}. Prefer the above constructor, using a {@code type} that implements {@link org.gradle.api.Named}.
+     */
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
-        super(type, new ListElementSource<T>(), instantiator, namer, decorator);
+        super(type, new ListElementSource<>(), instantiator, namer, decorator);
     }
 
+    /**
+     * Create a new collection that is a view of the given collection, with the given filter applied to the names and elements.
+     */
     private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
         super(objects, nameFilter, elementFilter, instantiator, namer);
     }
@@ -150,12 +158,12 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public NamedDomainObjectList<T> matching(Spec<? super T> spec) {
-        return new DefaultNamedDomainObjectList<T>(this, createFilter(spec), getInstantiator(), getNamer());
+        return new DefaultNamedDomainObjectList<T>(this, Specs.satisfyAll(), createFilter(spec), getInstantiator(), getNamer());
     }
 
     @Override
     public <S extends T> NamedDomainObjectList<S> withType(Class<S> type) {
-        return new DefaultNamedDomainObjectList<S>(this, createFilter(type), getInstantiator(), getNamer());
+        return new DefaultNamedDomainObjectList<S>(this, Specs.satisfyAll(), createFilter(type), getInstantiator(), getNamer());
     }
 
     @Override
