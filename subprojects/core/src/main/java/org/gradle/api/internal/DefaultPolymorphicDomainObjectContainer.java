@@ -20,7 +20,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
@@ -32,23 +31,9 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
     private final Instantiator elementInstantiator;
 
-    // NOTE: This constructor exists for backwards compatibility
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
-        this(type, instantiator, instantiator, namer, callbackDecorator);
-    }
-
-    // NOTE: This constructor exists for backwards compatibility
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
-        this(type, instantiator, instantiator, Named.Namer.forType(type), callbackDecorator);
-    }
-
-    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator callbackDecorator) {
-        this(type, instantiator, elementInstantiator, Named.Namer.forType(type), callbackDecorator);
-    }
-
-    private DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
-        super(type, instantiator, namer, callbackDecorator);
-        this.namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<T>(type, "this container");
+    public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator callbackDecorator, MutationGuard parentMutationGuard) {
+        super(type, instantiator, callbackDecorator, parentMutationGuard);
+        this.namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<>(type, "this container");
         this.elementInstantiator = elementInstantiator;
     }
 

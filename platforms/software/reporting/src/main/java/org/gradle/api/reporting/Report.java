@@ -16,11 +16,12 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.Namer;
+import org.gradle.api.Named;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Configurable;
 
 /**
@@ -28,11 +29,26 @@ import org.gradle.util.Configurable;
  * <p>
  * Tasks that produce reports expose instances of this type for configuration via the {@link Reporting} interface.
  */
-public interface Report extends Configurable<Report> {
+public interface Report extends Configurable<Report>, Named {
 
-    Namer<Report> NAMER = new Namer<Report>() {
+    /**
+     * Names Report instances.
+     *
+     * @deprecated This namer is no longer needed for a Report. Use {@link Named.Namer#forType(Class)} instead.
+     * <p>
+     * This field will be removed in Gradle 9.0.
+     */
+    @Deprecated
+    org.gradle.api.Namer<Report> NAMER = new org.gradle.api.Namer<Report>() {
         @Override
         public String determineName(Report report) {
+
+            DeprecationLogger.deprecateMethod(Report.class, "NAMER")
+                .withContext("This Namer is no longer needed for Report, as Report now extends Named. Use Named.Namer.forType(Class) instead.")
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser();
+
             return report.getName();
         }
     };
@@ -52,6 +68,7 @@ public interface Report extends Configurable<Report> {
      * @return The name of this report.
      */
     @Input
+    @Override
     String getName();
 
     /**

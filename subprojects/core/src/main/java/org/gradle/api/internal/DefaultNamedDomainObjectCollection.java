@@ -28,7 +28,6 @@ import org.gradle.api.Namer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
@@ -87,35 +86,27 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this.instantiator = instantiator;
         this.namer = namer;
         this.index = new UnfilteredIndex<T>();
-        index();
-    }
 
-    protected void index() {
         for (T t : getStore()) {
             index.put(namer.determineName(t), t);
         }
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store, eventRegister);
-        this.instantiator = instantiator;
-        this.namer = namer;
-        this.index = index;
-    }
-
+    /**
+     * Create a new collection that is a view of the given collection, with the given filter applied to the names and elements.
+     */
     // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
-        this(collection, Specs.satisfyAll(), elementFilter, instantiator, namer);
-    }
-
-    protected DefaultNamedDomainObjectCollection(
+    public DefaultNamedDomainObjectCollection(
         DefaultNamedDomainObjectCollection<? super T> collection,
         Spec<String> nameFilter,
         CollectionFilter<T> elementFilter,
         Instantiator instantiator,
         Namer<? super T> namer
     ) {
-        this(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter), collection.filteredIndex(nameFilter, elementFilter), instantiator, namer);
+        super(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter));
+        this.instantiator = instantiator;
+        this.namer = namer;
+        this.index = collection.filteredIndex(nameFilter, elementFilter);
     }
 
     @Override
@@ -251,7 +242,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      */
     @Override
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer));
+        return filtered(Specs.satisfyAll(), filter);
     }
 
     /**

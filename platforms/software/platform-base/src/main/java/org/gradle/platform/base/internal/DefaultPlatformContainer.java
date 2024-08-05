@@ -18,6 +18,7 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.Platform;
 import org.gradle.platform.base.PlatformContainer;
@@ -25,7 +26,7 @@ import org.gradle.platform.base.PlatformContainer;
 public class DefaultPlatformContainer extends DefaultPolymorphicDomainObjectContainer<Platform> implements PlatformContainer {
 
     public DefaultPlatformContainer(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(Platform.class, instantiator, instantiator, collectionCallbackActionDecorator);
+        super(Platform.class, instantiator, instantiator, collectionCallbackActionDecorator, MutationGuards.identity());
     }
 
 }

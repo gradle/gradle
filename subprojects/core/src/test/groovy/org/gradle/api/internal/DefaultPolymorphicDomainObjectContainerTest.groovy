@@ -32,7 +32,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     def container = createContainer()
 
     private DefaultPolymorphicDomainObjectContainer<Person> createContainer() {
-        new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator)
+        new DefaultPolymorphicDomainObjectContainer<Person>(Person, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.instantiatorFactory().decorateLenient(), callbackActionDecorator, MutationGuards.identity())
     }
 
     boolean supportsBuildOperations = true
@@ -191,27 +191,22 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     }
 
     def "create elements with specified type based on type binding"() {
-        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, TestUtil.instantiatorFactory().decorateLenient(),
-            { it instanceof Named ? it.name : "unknown" } as Named.Namer, CollectionCallbackActionDecorator.NOOP)
+        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
+        container = new DefaultPolymorphicDomainObjectContainer<?>(Named, instantiator, instantiator, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity())
 
-        container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
         container.registerBinding(CtorNamedPerson, DefaultCtorNamedPerson)
 
         when:
-        container.create("fred", UnnamedPerson)
         container.create("barney", CtorNamedPerson)
 
         then:
-        container.size() == 2
+        container.size() == 1
         !container.findByName("fred")
-        with(container.findByName("unknown")) {
-            DefaultUnnamedPerson.isInstance(it)
-        }
         with(container.findByName("barney")) {
             DefaultCtorNamedPerson.isInstance(it)
             name == "barney"
         }
-        container.createableTypes == Sets.newHashSet(UnnamedPerson, CtorNamedPerson)
+        container.createableTypes == Sets.newHashSet(CtorNamedPerson)
     }
 
     def "maybe create elements with specified type"() {

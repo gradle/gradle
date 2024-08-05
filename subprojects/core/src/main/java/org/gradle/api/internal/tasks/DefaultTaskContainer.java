@@ -29,9 +29,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -104,11 +104,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         ITaskFactory taskFactory,
         TaskStatistics statistics,
         BuildOperationRunner buildOperationRunner,
-        CrossProjectConfigurator crossProjectConfigurator,
+        MutationGuard parentMutationGuard,
         CollectionCallbackActionDecorator callbackDecorator,
         ProjectRegistry<ProjectInternal> projectRegistry
     ) {
-        super(Task.class, instantiator, project, crossProjectConfigurator.getMutationGuard(), callbackDecorator);
+        super(Task.class, instantiator, project, parentMutationGuard, callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskIdentityFactory, taskFactory, project);

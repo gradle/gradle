@@ -19,6 +19,7 @@ import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -34,7 +35,7 @@ public class DefaultDistributionContainer extends AbstractNamedDomainObjectConta
 
     @Inject
     public DefaultDistributionContainer(Class<Distribution> type, Instantiator instantiator, ObjectFactory objectFactory, FileOperations fileOperations, CollectionCallbackActionDecorator callbackDecorator) {
-        super(type, instantiator, callbackDecorator);
+        super(type, instantiator, callbackDecorator, MutationGuards.identity());
         this.objectFactory = objectFactory;
         this.fileOperations = fileOperations;
     }

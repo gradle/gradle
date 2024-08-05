@@ -30,7 +30,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
             return bean.name
         }
     };
-    DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, callbackActionDecorator)
+    DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer, callbackActionDecorator, MutationGuards.identity())
     Bean a = new BeanSub1("a")
     Bean b = new BeanSub1("b")
     Bean c = new BeanSub1("c")

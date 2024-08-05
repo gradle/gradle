@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.Namer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
@@ -65,7 +64,7 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
             ProviderFactory providerFactory,
             AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
-        this.repositories = new DefaultNamedDomainObjectList<JavaToolchainRepository>(JavaToolchainRepository.class, instantiator, new RepositoryNamer(), CollectionCallbackActionDecorator.NOOP) {
+        this.repositories = new DefaultNamedDomainObjectList<JavaToolchainRepository>(JavaToolchainRepository.class, instantiator, CollectionCallbackActionDecorator.NOOP) {
             @Override
             public String getTypeDisplayName() {
                 return "repository";
@@ -75,13 +74,6 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
-    }
-
-    private static class RepositoryNamer implements Namer<JavaToolchainRepository> {
-        @Override
-        public String determineName(JavaToolchainRepository repository) {
-            return repository.getName();
-        }
     }
 
     @Override

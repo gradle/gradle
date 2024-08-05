@@ -235,7 +235,6 @@ Method <org.gradle.api.tasks.SourceSet.getJarTaskName()> does not have raw retur
 Method <org.gradle.api.tasks.SourceSet.getJavadocElementsConfigurationName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getJavadocJarTaskName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getJavadocTaskName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)
-Method <org.gradle.api.tasks.SourceSet.getName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getProcessResourcesTaskName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getRuntimeClasspathConfigurationName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)
 Method <org.gradle.api.tasks.SourceSet.getRuntimeElementsConfigurationName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (SourceSet.java:0)

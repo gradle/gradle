@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
@@ -37,12 +36,15 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamedDomainObjectSet<T> implements NamedDomainObjectContainer<T>, HasPublicType {
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
-        super(type, instantiator, namer, callbackDecorator);
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator, MutationGuard parentMutationGuard) {
+        super(type, instantiator, callbackActionDecorator, parentMutationGuard);
     }
 
-    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(type, instantiator, Named.Namer.forType(type), callbackActionDecorator);
+    /**
+     * Same as above, but accepts a {@link Namer}. Prefer the above constructor, using a {@code type} that implements {@link org.gradle.api.Named}.
+     */
+    protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator, MutationGuard parentMutationGuard) {
+        super(type, instantiator, namer, callbackDecorator, parentMutationGuard);
     }
 
     /**

@@ -63,7 +63,7 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
     }
 
     protected getInstance(name) {
-        new FactoryNamedDomainObjectContainer(type, instantiator, new ReflectiveNamedDomainObjectFactory(type, instantiator, *extraArgs), CollectionCallbackActionDecorator.NOOP).create(name)
+        new FactoryNamedDomainObjectContainer(type, instantiator, Named.Namer.forType(type), new ReflectiveNamedDomainObjectFactory(type, instantiator, *extraArgs), MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP).create(name)
     }
 
     static class JustName implements Named {

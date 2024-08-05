@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
@@ -49,7 +50,8 @@ import javax.annotation.Nullable;
  * </pre>
  */
 @NotToBeMigratedToLazy
-public interface SourceSet extends ExtensionAware {
+public interface SourceSet extends ExtensionAware, Named {
+
     /**
      * The name of the main source set.
      */
@@ -59,13 +61,6 @@ public interface SourceSet extends ExtensionAware {
      * The name of the test source set.
      */
     String TEST_SOURCE_SET_NAME = "test";
-
-    /**
-     * Returns the name of this source set.
-     *
-     * @return The name. Never returns null.
-     */
-    String getName();
 
     /**
      * Returns the classpath used to compile this source.

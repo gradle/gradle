@@ -33,29 +33,21 @@ import java.util.Set;
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
     private final MutationGuard parentMutationGuard;
 
-    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
-        super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer, decorator);
-        this.parentMutationGuard = MutationGuards.identity();
+    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator decorator, MutationGuard parentMutationGuard) {
+        this(type, instantiator, Named.Namer.forType(type), decorator, parentMutationGuard);
     }
 
-    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
-        this(type, instantiator, Named.Namer.forType(type), decorator);
+    /**
+     * Same as above, but accepts a {@link Namer}. Prefer the above constructor, using a {@code type} that implements {@link org.gradle.api.Named}.
+     */
+    public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator, MutationGuard parentMutationGuard) {
+        super(type, new SortedSetElementSource<>(new Namer.Comparator<>(namer)), instantiator, namer, decorator);
+        this.parentMutationGuard = parentMutationGuard;
     }
 
-    // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        this(collection, filter, instantiator, namer, MutationGuards.identity());
-    }
-
-    // should be protected, but use of the class generator forces it to be public
-    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
-        this(objects, nameFilter, elementFilter, instantiator, namer, MutationGuards.identity());
-    }
-
-    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
-        this(collection, Specs.satisfyAll(), filter, instantiator, namer, parentMutationGuard);
-    }
-
+    /**
+     * Create a new collection that is a view of the given collection, with the given filter applied to the names and elements.
+     */
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
         super(collection, nameFilter, elementFilter, instantiator, namer);
         this.parentMutationGuard = parentMutationGuard;
@@ -63,12 +55,12 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
 
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> elementFilter) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, elementFilter, getInstantiator(), getNamer()));
+        return filtered(Specs.satisfyAll(), elementFilter);
     }
 
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, nameFilter, elementFilter, getInstantiator(), getNamer()));
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, nameFilter, elementFilter, getInstantiator(), getNamer(), MutationGuards.identity()));
     }
 
     @Override
@@ -105,5 +97,9 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Override
     protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
         return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    }
+
+    protected MutationGuard getParentMutationGuard() {
+        return parentMutationGuard;
     }
 }

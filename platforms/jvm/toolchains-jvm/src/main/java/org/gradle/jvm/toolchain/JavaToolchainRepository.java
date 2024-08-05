@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.provider.Property;
 
@@ -33,12 +34,13 @@ import org.gradle.api.provider.Property;
  * @since 7.6
  */
 @Incubating
-public interface JavaToolchainRepository extends AuthenticationSupported {
+public interface JavaToolchainRepository extends AuthenticationSupported, Named {
 
     /**
      * Name of the configuration, set by the build author, can be anything, as long
      * as it doesn't conflict with other repository names.
      */
+    @Override
     String getName();
 
     /**

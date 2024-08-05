@@ -23,6 +23,7 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -55,7 +56,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
                                                  ObjectFactory objects,
                                                  UserCodeApplicationContext context,
                                                  Supplier<DependencyResolutionServices> dependencyResolutionServices) {
-        super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator);
+        super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator, MutationGuards.identity());
         this.objects = objects;
         this.context = context;
         this.dependencyResolutionServices = dependencyResolutionServices;

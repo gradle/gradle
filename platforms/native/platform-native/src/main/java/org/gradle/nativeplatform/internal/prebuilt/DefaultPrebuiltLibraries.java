@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -33,7 +34,7 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultPrebuiltLibraries(String name, Instantiator instantiator, ObjectFactory objectFactory, Action<PrebuiltLibrary> libraryInitializer, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        super(PrebuiltLibrary.class, instantiator, collectionCallbackActionDecorator);
+        super(PrebuiltLibrary.class, instantiator, collectionCallbackActionDecorator, MutationGuards.identity());
         this.name = name;
         this.objectFactory = objectFactory;
         this.libraryInitializer = libraryInitializer;

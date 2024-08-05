@@ -20,6 +20,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -32,7 +33,7 @@ public abstract class DefaultSoftwareComponentContainer extends DefaultPolymorph
 
     @Inject
     public DefaultSoftwareComponentContainer(Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator decorator) {
-        super(SoftwareComponent.class, instantiator, elementInstantiator, decorator);
+        super(SoftwareComponent.class, instantiator, elementInstantiator, decorator, MutationGuards.identity());
     }
 
     @Override
