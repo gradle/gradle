@@ -125,15 +125,15 @@ In the example below, we configure all java compilation tasks to use Java 8.
 Additionally, we introduce a new `Test` task that will run our unit tests using a JDK 17.
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
+include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 ====
 
 In addition, in the `application` subproject, we add another Java execution task to run our application with JDK 17.
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
+include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
+include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
 ====
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.

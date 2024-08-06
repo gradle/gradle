@@ -71,9 +71,6 @@ It's very common that a project defines and executes different types of tests e.
 Optimally, the test source code for each test type should be stored in dedicated source directories.
 Separated test source code has a positive impact on maintainability and separation of concerns as you can run test types independent from each other.
 
-Have a look at the link:../samples/sample_jvm_multi_project_with_additional_test_types.html[sample]
-that demonstrates how a separate integration tests configuration can be added to a Java-based project.
-
 [[sec:use_standard_conventions]]
 == Use standard conventions as much as possible
 

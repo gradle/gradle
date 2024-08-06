@@ -1,8 +1,0 @@
-org.gradle.sample.app - 1.0.2
-com.google.gson - 2.8.9
-org.apache.commons.lang3 - 3.10
-org.apache.commons.cli - 3.2.2
-org.apache.commons.beanutils - 1.9.4
-
-Original: Message{message='null', receivers=[]}
-Copy:     Message{message='null', receivers=[]}

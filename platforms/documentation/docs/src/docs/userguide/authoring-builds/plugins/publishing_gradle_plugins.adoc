@@ -29,7 +29,7 @@ This approach streamlines configuration steps and provides validation checks to 
 
 == Prerequisites
 
-You'll need an existing Gradle plugin project for this tutorial. If you don't have one, use the link:../samples/sample_gradle_plugin.html[Greeting plugin sample].
+You'll need an existing Gradle plugin project for this tutorial.
 
 Attempting to publish this plugin will safely fail with a permission error, so don't worry about cluttering up the {portal} with a trivial example plugin.
 
