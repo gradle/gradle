@@ -185,4 +185,20 @@ class DiagnosticToProblemListenerTest extends Specification {
         1 * spec.offsetInFileLocation("SomeFile.java", 10, 10)
     }
 
+    def "multiline diagnostic messages are composed into contextual message and details"() {
+        given:
+        def diagnostic = Mock(Diagnostic)
+        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
+        diagnostic.kind >> Diagnostic.Kind.ERROR
+
+        when:
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
+
+        then:
+        // Only the first line of the message is used as the contextual message
+        1 * spec.contextualLabel("Error detail line 1")
+        // The full message then repeated in the details
+        1 * spec.details(DIAGNOSTIC_DETAIL)
+    }
+
 }
