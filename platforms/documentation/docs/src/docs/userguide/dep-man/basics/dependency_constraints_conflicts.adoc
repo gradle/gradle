@@ -1,0 +1,71 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-constraints-conflicts]]
+= 5. Dependency Constraints and Conflict Resolution
+
+When the same library is declared multiple times or when two different libraries provide the same functionality, a conflict can occur during dependency resolution.
+
+[[sec:conflict-resolution]]
+== Understanding types of conflicts
+
+During dependency resolution, Gradle handles two types of conflicts:
+
+1. *Version conflicts*: That is when two or more dependencies require a given module but with different versions.
+2. *Capability conflicts*: That is when the dependency graph contains multiple artifacts that provide the same functionality.
+
+== Resolving version conflicts
+
+A version conflict occurs when a component declares two dependencies that:
+
+* Depend on the same module, let's say `com.google.guava:guava`
+* But on different versions, let's say `20.0` and `25.1-android`
+** Our project itself depends on `com.google.guava:guava:20.0`
+** Our project also depends on `com.google.inject:guice:4.2.2` which itself depends on `com.google.guava:guava:25.1-android`
+
+Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
+By default, it will select the _highest_ one out of these versions.
+
+== Resolving capability conflicts
+
+Gradle uses attributes and capabilities to identify which artifacts a component _provides_.
+A capability conflict occurs whenever two or more variants of a component in dependency graph declare the same capability.
+
+Gradle will generally fail the build and report the conflict.
+
+You can resolve conflicts manually by specifying which capability to use in the `resolutionStrategy` block:
+
+[source,kotlin]
+----
+configurations.all {
+    resolutionStrategy.capabilitiesResolution.withCapability("com.example.logging") {
+        selectHighestVersion()
+    }
+}
+----
+
+== Understanding dependency constraints
+
+In order to help Gradle resolve issue with dependencies, a number of solutions are provided.
+
+For example, the `dependencies` block provides a `constraints` block which can be used to help Gradle pick a specific version of a dependency:
+
+[source,kotlin]
+----
+dependencies {
+    constraints {
+        implementation("org.apache.commons:commons-lang3:3.12.0")
+    }
+}
+----

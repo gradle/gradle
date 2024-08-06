@@ -38,7 +38,7 @@ When Gradle attempts to resolve a dependency to a module version, all <<rich_ver
 The highest version that matches all conditions is selected.
 If no such version is found, Gradle fails with an error showing the conflicting declarations.
 If this happens you can adjust your dependencies or dependency constraints declarations, or make other adjustments to the transitive dependencies if needed.
-Similar to dependency declarations, dependency constraint declarations are <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build.
+Similar to dependency declarations, dependency constraint declarations are <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build.
 If a dependency constraint influenced the resolution result, any type of <<resolution_rules.adoc#sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
 .Define dependency constraints

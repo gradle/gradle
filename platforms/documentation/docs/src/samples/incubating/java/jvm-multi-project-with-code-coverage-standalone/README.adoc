@@ -19,7 +19,7 @@ In this scenario, two additional pieces of setup are necessary:
 <2> Define a report of type `JacocoCoverageReport` which collects coverage data from unit test suites
 <3> Optional: make JaCoCo aggregate report generation part of the 'check' lifecycle phase
 
-The report aggregation logic does not automatically inspect all subprojects for coverage data to aggregate.  Instead, the direct and transitive <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> of the `jacocoAggregation` configuration are selected for potential aggregation.
+The report aggregation logic does not automatically inspect all subprojects for coverage data to aggregate.  Instead, the direct and transitive <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependencies>> of the `jacocoAggregation` configuration are selected for potential aggregation.
 
 The user must also declare one or more reports of type `JacocoCoverageReport`.  Each report instance specifies a `testType` property, used to match the test suite producing the coverage data.  A `JacocoReport` task is synthesized for each user-defined report and performs the aggregation.  Invoking this task will cause tests to be executed in the dependent projects of the `jacocoAggregation` configuration.
 

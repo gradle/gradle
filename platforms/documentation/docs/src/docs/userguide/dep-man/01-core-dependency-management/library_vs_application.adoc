@@ -42,7 +42,7 @@ A typical example in the Java world is the Guava library which is published in d
 However, it's the consumer responsibility to tell what version to use, and it's the dependency management engine responsibility to ensure _consistency of the graph_ (for example making sure that you don't end up with both Java and Android versions of Guava on your classpath).
 This is where the <<variant_model.adoc#understanding-variant-selection,variant model>> of Gradle comes into play.
 
-In Gradle, _producer variants_ are exposed via <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
+In Gradle, _producer variants_ are exposed via <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
 
 [[sub:strong-encapsulation]]
 == Strong encapsulation

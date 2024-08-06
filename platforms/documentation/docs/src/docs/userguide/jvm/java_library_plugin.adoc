@@ -37,7 +37,7 @@ include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradl
 
 The key difference between the standard Java plugin and the Java Library plugin is that the latter introduces the concept of an _API_ exposed to consumers. A library is a Java component meant to be consumed by other components. It's a very common use case in multi-project builds, but also as soon as you have external dependencies.
 
-The plugin exposes two <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `implementation`.
+The plugin exposes two <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `implementation`.
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
 .Declaring API and implementation dependencies

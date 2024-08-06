@@ -29,7 +29,7 @@ It enables several key scenarios, including:
 Combined with <<publishing_maven.adoc#publishing_maven:resolved_dependencies,publishing resolved versions>>, you can replace the declared dynamic versions at publication time.
 Consumers will see the resolved versions that your release used.
 
-Locking is enabled per <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configuration>>.
+Locking is enabled per <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configuration>>.
 Once enabled, you must create an initial lock state.
 This will cause Gradle to verify that resolution results do not change, ensuring the same dependencies are selected even if newer versions are available.
 Modifications to your build that impact the resolved set of dependencies will cause it to fail.

@@ -90,7 +90,7 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapa
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
 ====
 
-Capabilities must be attached to _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
+Capabilities must be attached to _outgoing configurations_, which are <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
 
 This example shows that we declare two capabilities:
 

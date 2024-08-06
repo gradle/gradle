@@ -22,7 +22,7 @@ With Artifact Transforms, you can modify, extend, or reduce artifacts like JAR f
 
 == Artifact Transforms Overview
 
-Each component exposes a set of <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_model.adoc#sec:abm_configuration_attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
+Each component exposes a set of <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_model.adoc#sec:abm_configuration_attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
 
 When Gradle resolves a configuration, it looks at each dependency, resolves it to a component, and selects the corresponding variant from that component that matches the configuration's request attributes.
 If the component does not have a matching variant, resolution fails unless Gradle finds an Artifact Transform chain that can transform one of the component's variants' artifacts to satisfy the request attributes (without changing its transitive dependencies).
@@ -105,7 +105,7 @@ During a build, Gradle uses registered transforms to produce a required artifact
 [[sec:abm_artifact_transforms]]
 == Understanding Artifact Transforms
 
-Dependencies can have different <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,**variants**>>, essentially different versions or forms of the same dependency.
+Dependencies can have different <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,**variants**>>, essentially different versions or forms of the same dependency.
 These variants can differ based on their use cases, such as when compiling code or running applications.
 
 Each variant is identified by a set of <<variant_model.adoc#sec:abm_configuration_attributes,**attributes**>>.
