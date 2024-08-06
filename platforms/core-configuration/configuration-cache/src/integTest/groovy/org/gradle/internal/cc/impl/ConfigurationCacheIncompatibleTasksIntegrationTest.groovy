@@ -383,7 +383,6 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         }
     }
 
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/30043")
     def "can resolve project dependencies at execution time"() {
         given:
@@ -396,16 +395,20 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         '''
 
         buildFile '''
-            configurations { create("implementation") }
+            plugins { id("java") }
+
             dependencies { implementation(project(':other')) }
 
-            tasks.register("reportedlyIncompatible") {
-                notCompatibleWithConfigurationCache("declaring myself as not compatible")
-                inputs.files (files() + configurations.implementation) // TODO: this is still resolved at configuration time
+            abstract class TaskWithRuntimeClasspath extends DefaultTask {
+                @Classpath FileCollection getTaskClasspath() { project.configurations.runtimeClasspath }
 
-                doLast {
+                @TaskAction void doIt() {
                     println("Running incompatible task")
                 }
+            }
+
+            tasks.register("reportedlyIncompatible", TaskWithRuntimeClasspath) {
+                notCompatibleWithConfigurationCache("declaring myself as not compatible")
             }
         '''
 
