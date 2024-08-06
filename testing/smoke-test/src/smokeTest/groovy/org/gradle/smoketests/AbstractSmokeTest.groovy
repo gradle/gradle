@@ -88,7 +88,7 @@ abstract class AbstractSmokeTest extends Specification {
         static docker = "9.4.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.1.4"
+        static springDependencyManagement = "1.1.6"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
         static springBoot = "3.2.4"
