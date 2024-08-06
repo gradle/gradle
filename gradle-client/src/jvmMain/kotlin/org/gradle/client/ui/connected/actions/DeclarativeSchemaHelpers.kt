@@ -9,8 +9,8 @@ fun AnalysisSchema.dataClassFor(typeRef: DataTypeRef.Name): DataClass =
 val AnalysisSchema.softwareTypes: List<SchemaMemberFunction>
     get() = topLevelReceiverType.memberFunctions
 
-fun AnalysisSchema.softwareTypeNamed(name: String): SchemaMemberFunction =
-    softwareTypes.single { it.simpleName == name }
+fun AnalysisSchema.softwareTypeNamed(name: String): SchemaMemberFunction? =
+    softwareTypes.singleOrNull { it.simpleName == name }
 
 val SchemaMemberFunction.softwareTypeSemantics: FunctionSemantics.AccessAndConfigure
     get() = semantics as FunctionSemantics.AccessAndConfigure

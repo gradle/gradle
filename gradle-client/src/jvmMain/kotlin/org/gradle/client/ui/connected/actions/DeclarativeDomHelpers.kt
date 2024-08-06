@@ -4,8 +4,8 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 
-val DeclarativeDocument.singleSoftwareTypeNode: ElementNode
-    get() = content.single() as ElementNode
+val DeclarativeDocument.singleSoftwareTypeNode: ElementNode?
+    get() = content.filterIsInstance<ElementNode>().singleOrNull()
 
 fun ElementNode.childElementNode(
     name: String

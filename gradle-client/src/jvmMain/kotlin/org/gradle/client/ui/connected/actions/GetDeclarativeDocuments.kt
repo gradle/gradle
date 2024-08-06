@@ -29,6 +29,7 @@ import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.connected.TwoPanes
 import org.gradle.client.ui.theme.spacing
 import org.gradle.client.ui.theme.transparency
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -68,8 +69,8 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
         fun readBuildFile() = selectedBuildFile.value.takeIf { it.canRead() }?.readText().orEmpty()
         fun readSettingsFile() = model.settingsFile.takeIf { it.canRead() }?.readText().orEmpty()
-        
-        val buildFileContent = remember(selectedBuildFile.value) { 
+
+        val buildFileContent = remember(selectedBuildFile.value) {
             mutableStateOf(readBuildFile())
         }
         val settingsFileContent = remember(selectedBuildFile.value, model.settingsFile) {
@@ -104,7 +105,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             }
         }
 
-        
+
         val analyzer = analyzer(model)
         val projectResult by remember {
             derivedStateOf {
@@ -149,40 +150,27 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                     )
 
                     val softwareTypeNode = domWithDefaults.document.singleSoftwareTypeNode
-                    val softwareTypeSchema = projectAnalysisSchema.softwareTypeNamed(softwareTypeNode.name)
-                    val softwareTypeType =
-                        projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
+                    if (softwareTypeNode == null) {
+                        Text("No software type")
+                    } else {
+                        val softwareTypeSchema = projectAnalysisSchema.softwareTypeNamed(softwareTypeNode.name)
+                        if (softwareTypeSchema == null) {
+                            Text("No software type named '${softwareTypeNode.name}'")
+                        } else {
 
-                    Column {
-                        with(
-                            ModelTreeRendering(
-                                domWithDefaults.overlayResolutionContainer,
+                            val softwareTypeType =
+                                projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
+
+                            ModelView(
+                                selectedBuildFile,
                                 highlightingContext,
+                                projectEvaluationSchema,
+                                domWithDefaults,
+                                softwareTypeNode,
+                                softwareTypeType,
                                 mutationApplicability,
-                                onRunMutation = { mutationDefinition, mutationArgumentsContainer ->
-                                    MutationUtils.runMutation(
-                                        selectedBuildFile.value,
-                                        domWithDefaults.inputOverlay,
-                                        projectEvaluationSchema,
-                                        mutationDefinition,
-                                        mutationArgumentsContainer
-                                    )
-                                    // Trigger recomposition:
-                                    updateFileContents()
-                                }
+                                ::updateFileContents,
                             )
-                        ) {
-                            WithDecoration(softwareTypeNode) {
-                                TitleMedium(
-                                    text = "Software Type: ${softwareTypeNode.name}",
-                                    modifier = Modifier
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                                        .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
-                                )
-                            }
-                            MaterialTheme.spacing.VerticalLevel4()
-
-                            ElementInfoOrNothingDeclared(softwareTypeType, softwareTypeNode, 0)
                         }
                     }
                 }
@@ -197,6 +185,54 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 }
             },
         )
+    }
+
+    @Composable
+    @Suppress("LongParameterList")
+    private fun ModelView(
+        selectedBuildFile: MutableState<File>,
+        highlightingContext: HighlightingContext,
+        projectEvaluationSchema: EvaluationSchema,
+        domWithDefaults: DocumentOverlayResult,
+        softwareTypeNode: DeclarativeDocument.DocumentNode.ElementNode,
+        softwareTypeType: DataClass,
+        mutationApplicability: NodeData<List<ApplicableMutation>>,
+        updateFileContents: () -> Unit
+    ) {
+        Column {
+            with(
+                ModelTreeRendering(
+                    domWithDefaults.overlayResolutionContainer,
+                    highlightingContext,
+                    mutationApplicability,
+                    onRunMutation = { mutationDefinition, mutationArgumentsContainer ->
+                        MutationUtils.runMutation(
+                            selectedBuildFile.value,
+                            domWithDefaults.inputOverlay,
+                            projectEvaluationSchema,
+                            mutationDefinition,
+                            mutationArgumentsContainer
+                        )
+                        // Trigger recomposition:
+                        updateFileContents()
+                    }
+                )
+            ) {
+                WithDecoration(softwareTypeNode) {
+                    TitleMedium(
+                        text = "Software Type: ${softwareTypeNode.name}",
+                        modifier = Modifier
+                            .pointerHoverIcon(
+                                PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+                            )
+                            .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
+                    )
+                }
+                MaterialTheme.spacing.VerticalLevel4()
+
+                ElementInfoOrNothingDeclared(softwareTypeType, softwareTypeNode, 0)
+            }
+        }
     }
 
     @Composable
