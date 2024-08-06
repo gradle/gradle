@@ -134,7 +134,7 @@ private fun BuildMainContent(component: BuildComponent, build: Build, snackbarSt
         DirectoryField(
             description = "Java Home",
             state = javaHome,
-            defaultState = System.getenv("JAVA_HOME").takeIf { it.isNotBlank() },
+            defaultState = System.getenv("JAVA_HOME")?.takeIf { it.isNotBlank() },
             isError = !isJavaHomeValid,
             showHiddenFiles = true,
             showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } }
