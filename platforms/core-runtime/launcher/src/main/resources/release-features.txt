@@ -1,0 +1,3 @@
+ - Running Gradle on Java 23
+ - Configuration cache improvements
+ - Build authoring improvements
