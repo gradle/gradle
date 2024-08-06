@@ -24,7 +24,7 @@ This is called _dependency locking_.
 It enables several key scenarios, including:
 
 * Companies managing multiple repositories no longer need to rely on `-SNAPSHOT` or changing dependencies, which can result in cascading failures when a dependency introduces a bug or incompatibility.
-* Teams Using the latest dependencies can use dynamic versions, locking their dependencies only for releases. The release tag will contain the lock states, ensuring the build is fully reproducible when bug fixes need to be developed.
+* Teams using the latest dependencies can use dynamic versions, locking their dependencies only for releases. The release tag will contain the lock states, ensuring the build is fully reproducible when bug fixes need to be developed.
 
 Combined with <<publishing_maven.adoc#publishing_maven:resolved_dependencies,publishing resolved versions>>, you can replace the declared dynamic versions at publication time.
 Consumers will see the resolved versions that your release used.

@@ -33,7 +33,7 @@ dependencies {
 The simplest version declaration is a _simple string_ representing the version to use.
 Gradle supports different ways of declaring a version string:
 
-[cols="1,1,~"]
+[cols="1,1,2"]
 |===
 |Version |Example |Note
 

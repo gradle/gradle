@@ -21,6 +21,8 @@ You can easily depend on these constantly changing dependencies by using a _dyna
 
 A <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic version>> can be either a version range (e.g., `2.+`) or a placeholder for the latest version available, e.g., `latest.integration`.
 
+TIP: For reproducible builds, use <<dependency_locking.adoc#dependency-locking,dependency locking>> when declaring dependencies with dynamic versions.
+
 Alternatively, the module you request can change even for the same version, which is known as a <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing version>>.
 An example of a _changing module_ is a Maven `SNAPSHOT` module, which always points to the latest artifact published.
 In other words, a standard Maven snapshot is a module that is continually evolving; it is a "changing module".
