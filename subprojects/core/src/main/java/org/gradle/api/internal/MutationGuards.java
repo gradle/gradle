@@ -52,15 +52,4 @@ public class MutationGuards {
     public static MutationGuard identity() {
         return IDENTITY_MUTATION_GUARD;
     }
-
-    /**
-     * Retrieves the {@code MutationGuard} of the target if it implements {@code WithMutationGuard}, else returns an identity mutation guard performing no guard operations.
-     */
-    public static MutationGuard of(Object target) {
-        if (target instanceof WithMutationGuard) {
-            return ((WithMutationGuard) target).getMutationGuard();
-        } else {
-            return IDENTITY_MUTATION_GUARD;
-        }
-    }
 }
