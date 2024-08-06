@@ -34,7 +34,7 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 With this release, Gradle supports running on [Java 23](https://jdk.java.net/23/).
 This means you can now use Java 23 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
 
-Note that certain features that rely on third-party tools, such as [PMD](https://pmd.github.io/) and [Scala](https://www.scala-lang.org/) support, may not work with Java 23 yet.
+Note that certain features that rely on third-party tools, such as [PMD](https://pmd.github.io/) and [Scala](https://www.scala-lang.org/), may not work with Java 23 yet.
 
 For details, see the full [compatibility documentation](userguide/compatibility.html#java).
 
@@ -95,7 +95,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABkAAAAEuCAIAAABZN0lUAAFDSUlEQ
 
 ##### Reports include an “Incompatible tasks” tab
 
-Since Gradle 7.4, it is possible to mark tasks [as not compatible](https://docs.gradle.org/current/userguide/configuration_cache.html#config_cache:task_opt_out) with the Configuration Cache. When these tasks participate in a build invocation, the cache entry will not be stored.
+Since Gradle 7.4, it is possible to mark tasks [as not compatible](/userguide/configuration_cache.html#config_cache:task_opt_out) with the Configuration Cache. When these tasks participate in a build invocation, the cache entry will not be stored.
 
 In Gradle 8.10, any incompatible tasks executed as part of the invocation are shown in a new dedicated section of the report:
 
@@ -119,7 +119,7 @@ Gradle provides rich APIs for plugin authors and build engineers to develop cust
 
 #### Improved behavior and callback execution for the GradleLifecycle API
 
-The recently added [GradleLifecycle API](https://docs.gradle.org/current/javadoc/org/gradle/api/invocation/GradleLifecycle.html) is part of Gradle's core API and is used to manage and interact with a Gradle build's lifecycle events.
+The recently added [GradleLifecycle API](/javadoc/org/gradle/api/invocation/GradleLifecycle.html) is part of Gradle's core API and is used to manage and interact with a Gradle build's lifecycle events.
 
 Previously, the `GradleLifecycle#beforeProject` callback was executed right before the project evaluation.
 
