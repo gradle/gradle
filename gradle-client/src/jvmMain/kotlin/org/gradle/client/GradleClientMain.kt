@@ -1,13 +1,12 @@
 package org.gradle.client
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.configureSwingGlobalsForCompose
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.*
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
@@ -19,8 +18,10 @@ import org.gradle.client.core.util.appDirs
 import org.gradle.client.ui.AppDispatchers
 import org.gradle.client.ui.UiComponent
 import org.gradle.client.ui.UiContent
+import org.gradle.client.ui.showCrashDialog
 import org.slf4j.LoggerFactory
 import javax.swing.SwingUtilities
+import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger(GradleClientMain::class.java)
 
@@ -68,16 +69,29 @@ class GradleClientMain(
             )
         }
 
+        val windowExceptionHandlerFactory = WindowExceptionHandlerFactory { window ->
+            WindowExceptionHandler { exception ->
+                window.dispose()
+                logger.error("Application UI crash", exception)
+                showCrashDialog(appDirs.logDirectory, exception)
+                exitProcess(1)
+            }
+        }
         application {
-            val windowState = rememberWindowState(size = DpSize(1800.dp, 1200.dp))
+            CompositionLocalProvider(
+                LocalWindowExceptionHandlerFactory provides windowExceptionHandlerFactory,
+            ) {
+                val windowState = rememberWindowState(size = DpSize(1800.dp, 1200.dp))
 
-            Window(
-                state = windowState,
-                onCloseRequest = ::exitApplication, title = APPLICATION_DISPLAY_NAME) {
-                LaunchedEffect(Unit) {
-                    logger.atInfo().log { "$APPLICATION_DISPLAY_NAME started!" }
+                Window(
+                    state = windowState,
+                    onCloseRequest = ::exitApplication, title = APPLICATION_DISPLAY_NAME
+                ) {
+                    LaunchedEffect(Unit) {
+                        logger.atInfo().log { "$APPLICATION_DISPLAY_NAME started!" }
+                    }
+                    UiContent(uiComponent)
                 }
-                UiContent(uiComponent)
             }
         }
     }
