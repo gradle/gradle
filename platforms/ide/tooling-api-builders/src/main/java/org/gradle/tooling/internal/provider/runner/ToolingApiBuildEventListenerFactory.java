@@ -24,18 +24,12 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 
-import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
@@ -110,32 +104,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
     }
 
     private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer) {
-        if (subscriptions.isRequested(OperationType.PROBLEMS)) {
-            return createProblemsProgressConsumer(progressEventConsumer);
-        }
-        if (subscriptions.isRequested(OperationType.GENERIC)) {
-            return new ClientForwardingBuildOperationListener(progressEventConsumer);
-        }
-        return NO_OP;
+        // TODO (donat) think of a better name for this class
+        return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()));
     }
-
-    @Nonnull
-    private ProblemsProgressEventConsumer createProblemsProgressConsumer(ProgressEventConsumer progressEventConsumer) {
-        Supplier<OperationIdentifier> operationIdentifierSupplier = () -> new OperationIdentifier(idFactory.nextId());
-        return new ProblemsProgressEventConsumer(progressEventConsumer, operationIdentifierSupplier);
-    }
-
-    private static final BuildOperationListener NO_OP = new BuildOperationListener() {
-        @Override
-        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        }
-
-        @Override
-        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-        }
-
-        @Override
-        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        }
-    };
 }

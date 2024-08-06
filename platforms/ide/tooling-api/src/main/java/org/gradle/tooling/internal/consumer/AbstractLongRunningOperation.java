@@ -19,8 +19,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.Supplier;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.internal.CollectionUtils;
@@ -30,12 +32,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
+    private BuildFailedProgressAdapter buildFailedProgressAdapter = new BuildFailedProgressAdapter();
     protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
 
@@ -178,6 +182,12 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
+    @Override
+    public T withDetailedFailure() {
+        operationParamsBuilder.addProgressListener(buildFailedProgressAdapter, EnumSet.of(OperationType.ROOT));
+        return getThis();
+    }
+
     /**
      * Specifies classpath URIs used for loading user-defined classes. This list is in addition to the default classpath.
      *
@@ -192,5 +202,14 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     public void copyFrom(ConsumerOperationParameters operationParameters) {
         operationParamsBuilder.copyFrom(operationParameters);
+    }
+
+    protected ConnectionExceptionTransformer createExceptionTransformer(ConnectionExceptionTransformer.ConnectionFailureMessageProvider messageProvider) {
+        return new ConnectionExceptionTransformer(messageProvider, new Supplier<List<Failure>>() {
+            @Override
+            public List<Failure> get() {
+                return buildFailedProgressAdapter == null ? Collections.<Failure>emptyList() : buildFailedProgressAdapter.failures;
+            }
+        });
     }
 }

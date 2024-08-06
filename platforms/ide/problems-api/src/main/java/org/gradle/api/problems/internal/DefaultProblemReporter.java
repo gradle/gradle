@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -29,18 +30,24 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ProblemSummarizer problemSummarizer;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
+    private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
-        AdditionalDataBuilderFactory additionalDataBuilderFactory
+        AdditionalDataBuilderFactory additionalDataBuilderFactory,
+        ExceptionProblemRegistry exceptionProblemRegistry,
+        ExceptionAnalyser exceptionAnalyser
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
+        this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
+        this.exceptionAnalyser = exceptionAnalyser;
     }
 
     @Override
@@ -71,6 +78,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     private RuntimeException throwError(Throwable exception, Problem problem) {
         report(problem);
+        exceptionProblemRegistry.onProblem(transform(exception), problem);
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
@@ -112,6 +120,21 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
+        Throwable exception = problem.getException();
+        if (exception != null) {
+            exceptionProblemRegistry.onProblem(transform(exception), problem);
+        }
         problemSummarizer.emit(problem, id);
+    }
+
+    private Throwable transform(Throwable failure) {
+        if (exceptionAnalyser == null) {
+            return failure;
+        }
+        try {
+            return exceptionAnalyser.transform(failure).getCause();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

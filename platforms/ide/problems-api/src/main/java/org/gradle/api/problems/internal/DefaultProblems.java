@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,19 +33,15 @@ public class DefaultProblems implements InternalProblems {
     private final ProblemSummarizer problemSummarizer;
     private final InternalProblemReporter internalReporter;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
+    private final ExceptionProblemRegistry exceptionProblemRegistry;
+    private final ExceptionAnalyser exceptionAnalyser;
 
-    public DefaultProblems(ProblemSummarizer emitter, CurrentBuildOperationRef currentBuildOperationRef) {
-        this(emitter, null, currentBuildOperationRef);
-    }
-
-    public DefaultProblems(ProblemSummarizer emitter) {
-        this(emitter, null, CurrentBuildOperationRef.instance());
-    }
-
-    public DefaultProblems(ProblemSummarizer problemSummarizer, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(ProblemSummarizer problemSummarizer, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef, ExceptionProblemRegistry exceptionProblemRegistry, ExceptionAnalyser exceptionAnalyser) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
+        this.exceptionProblemRegistry = exceptionProblemRegistry;
+        this.exceptionAnalyser = exceptionAnalyser;
         this.internalReporter = createReporter();
     }
 
@@ -55,7 +52,7 @@ public class DefaultProblems implements InternalProblems {
 
     @Nonnull
     private DefaultProblemReporter createReporter() {
-        return new DefaultProblemReporter(problemSummarizer, problemStream, currentBuildOperationRef, additionalDataBuilderFactory);
+        return new DefaultProblemReporter(problemSummarizer, problemStream, currentBuildOperationRef, additionalDataBuilderFactory, exceptionProblemRegistry, exceptionAnalyser);
     }
 
     @Override

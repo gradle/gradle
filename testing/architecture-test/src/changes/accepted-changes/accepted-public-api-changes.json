@@ -39,30 +39,6 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
-            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getAdditionalData()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
-            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getContextualLabel()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
-            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getDetails()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
         }
     ]
 }

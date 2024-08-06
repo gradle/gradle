@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
@@ -148,7 +149,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         // TODO: currently not marked as failed
     }
 
-    def "does not include dependency resolution that is a child of a task when task events are not included"() {
+    @ToolingApiVersion("<8.12")
+    def "does not include dependency resolution that is a child of a task when task events are not included (Tooling API client < 8.12)"() {
         given:
         buildFile << """
             allprojects { apply plugin: 'java' }
@@ -161,9 +163,32 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events, [OperationType.GENERIC] as Set)
-                        .forTasks("build")
-                        .run()
+                    .addProgressListener(events, [OperationType.GENERIC] as Set)
+                    .forTasks("build")
+                    .run()
+        }
+
+        then:
+        !events.operations.find { it.name.contains("compileClasspath") }
+    }
+
+    @ToolingApiVersion(">=8.12")
+    def "does not include dependency resolution that is a child of a task when task events are not included (Tooling API client >= 8.12)"() {
+        given:
+        buildFile << """
+            allprojects { apply plugin: 'java' }
+"""
+        file("src/main/java/Thing.java") << """class Thing { }"""
+        file("src/test/java/Thing.java") << """class ThingTest { }"""
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, [OperationType.GENERIC, OperationType.ROOT] as Set)
+                    .forTasks("build")
+                    .run()
         }
 
         then:

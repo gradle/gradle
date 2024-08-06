@@ -41,6 +41,10 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.ExceptionProblemRegistry
+import org.gradle.api.problems.internal.NoOpProblemSummarizer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -53,6 +57,7 @@ import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -132,6 +137,10 @@ class TestUtil {
         return services().get(ObjectFactory)
     }
 
+    static Problems problemsService() {
+        return services().get(Problems)
+    }
+
     static ObjectFactory objectFactory(TestFile baseDir) {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
@@ -181,6 +190,17 @@ class TestUtil {
                 ProjectLayout createProjectLayout() {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
                     return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                }
+
+                @Provides
+                Problems createProblems() {
+                    return new DefaultProblems(
+                        new NoOpProblemSummarizer(),
+                        null,
+                        CurrentBuildOperationRef.instance(),
+                        new ExceptionProblemRegistry(),
+                        null
+                    )
                 }
 
                 @Provides

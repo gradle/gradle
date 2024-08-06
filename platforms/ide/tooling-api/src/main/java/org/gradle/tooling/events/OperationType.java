@@ -167,5 +167,20 @@ public enum OperationType {
      * @since 8.4
      */
     @Incubating
-    PROBLEMS
+    PROBLEMS,
+
+    /**
+     * Flag for the topmost progress event.
+     * <p>
+     * Using this operation type is useful for capturing the build failure details from the finish event.
+     *
+     * The following events are currently issued for this operation type.
+     * <ul>
+     *     <li>{@link StartEvent}</li>
+     *     <li>{@link FinishEvent}</li>
+     * </ul>
+     * @since 8.12
+     */
+    @Incubating
+    ROOT
 }

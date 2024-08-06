@@ -47,6 +47,8 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serviceRegistryBuilder)
 
+
+    testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
 
     testRuntimeOnly(projects.distributionsCore) {

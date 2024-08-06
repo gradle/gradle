@@ -65,8 +65,6 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factories
@@ -1828,7 +1826,7 @@ class DefaultConfigurationSpec extends Specification {
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            new DefaultProblems(Mock(ProblemSummarizer))
+            TestUtil.problemsService()
         )
     }
 

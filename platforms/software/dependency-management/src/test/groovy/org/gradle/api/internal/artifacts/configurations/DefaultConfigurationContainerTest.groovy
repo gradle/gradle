@@ -37,8 +37,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.provider.Provider
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
@@ -95,7 +93,7 @@ class DefaultConfigurationContainerTest extends Specification {
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),
-        new DefaultProblems(Mock(ProblemSummarizer))
+        TestUtil.problemsService()
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,

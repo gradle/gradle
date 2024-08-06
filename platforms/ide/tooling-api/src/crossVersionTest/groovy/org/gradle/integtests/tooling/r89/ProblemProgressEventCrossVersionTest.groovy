@@ -40,7 +40,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
-@ToolingApiVersion(">=8.9")
+@ToolingApiVersion(">=8.9 <8.12")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
@@ -198,7 +198,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
         ProblemProgressListener listener = new ProblemProgressListener()
-
 
         when:
         withConnection {

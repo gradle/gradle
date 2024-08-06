@@ -34,7 +34,8 @@ import org.gradle.tooling.events.problems.internal.GeneralData
 @TargetGradleVersion(">=8.11")
 @ToolingApiVersion(">=8.11")
 class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecification {
-    def "can supply ResolutionFailureData"() {
+    @ToolingApiVersion(">=8.11 <8.12")
+    def "can supply ResolutionFailureData  (Tooling API client [8.11,8.12)"() {
         given:
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
@@ -49,6 +50,32 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         List<GeneralData> failureData = runAndGetProblems()
             .findAll { it instanceof SingleProblemEvent }
             .collect { ProblemEvent problem -> problem.additionalData as GeneralData }
+
+        then:
+        failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
+        failureData.last().asMap.tap { Map d ->
+            assert d.problemId == "UNKNOWN_RESOLUTION_FAILURE"
+            assert d.requestTarget == "test failure"
+            assert d.problemDisplayName == "Unknown resolution failure"
+        }
+    }
+
+    @ToolingApiVersion(">=8.12")
+    def "can supply ResolutionFailureData (Tooling API client >= 8.12)"() {
+        given:
+        withReportProblemTask """
+            TestResolutionFailure failure = new TestResolutionFailure()
+
+            getProblems().getReporter().reporting {
+                it.id("id", "shortProblemMessage")
+                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+            }
+        """
+
+        when:
+        List<GeneralData> failureData = runAndGetProblems().collect { ProblemEvent event ->
+            event.problem.additionalData as GeneralData
+        }
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
@@ -107,7 +134,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
 
         @Override
         void statusChanged(ProgressEvent event) {
-            if (event instanceof ProblemEvent) {
+            if (event instanceof SingleProblemEvent) {
                 this.problems.add(event)
             }
         }

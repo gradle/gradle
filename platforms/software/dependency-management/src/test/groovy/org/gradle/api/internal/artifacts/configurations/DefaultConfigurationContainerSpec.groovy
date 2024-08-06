@@ -31,8 +31,6 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
@@ -88,7 +86,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),
-        new DefaultProblems(Mock(ProblemSummarizer))
+        TestUtil.problemsService()
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,

@@ -16,12 +16,17 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import java.util.Collection;
+import java.util.Map;
 
 @UsedByScanPlugin
 public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
     public interface Details {
+        Map<Throwable, Collection<Problem>> getProblemsForThrowables();
     }
 
     public interface Result {

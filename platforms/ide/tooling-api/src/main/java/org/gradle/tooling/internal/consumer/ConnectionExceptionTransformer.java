@@ -19,8 +19,10 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.BuildException;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ListenerFailedException;
+import org.gradle.tooling.Supplier;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
@@ -29,11 +31,25 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 
+import java.util.Collections;
+import java.util.List;
+
 public class ConnectionExceptionTransformer {
     private final ConnectionFailureMessageProvider messageProvider;
+    private final Supplier<List<Failure>> failures;
 
     public ConnectionExceptionTransformer(ConnectionFailureMessageProvider messageProvider) {
+        this(messageProvider, new Supplier<List<Failure>>() {
+            @Override
+            public List<Failure> get() {
+                return Collections.emptyList();
+            }
+        });
+    }
+
+    public ConnectionExceptionTransformer(ConnectionFailureMessageProvider messageProvider, Supplier<List<Failure>> failures) {
         this.messageProvider = messageProvider;
+        this.failures = failures;
     }
 
     public GradleConnectionException transform(Throwable failure) {
@@ -48,13 +64,13 @@ public class ConnectionExceptionTransformer {
         } else if (failure instanceof InternalBuildCancelledException) {
             return new BuildCancelledException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof InternalTestExecutionException) {
-            return new TestExecutionException(connectionFailureMessage(failure), failure.getCause());
+            return new TestExecutionException(connectionFailureMessage(failure), failure.getCause(), failures);
         } else if (failure instanceof BuildExceptionVersion1) {
-            return new BuildException(connectionFailureMessage(failure), failure.getCause());
+            return new BuildException(connectionFailureMessage(failure), failure.getCause(), failures);
         } else if (failure instanceof ListenerNotificationException) {
             return new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses());
         } else {
-            return new GradleConnectionException(connectionFailureMessage(failure), failure);
+            return new GradleConnectionException(connectionFailureMessage(failure), failure, failures);
         }
     }
 
