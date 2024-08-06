@@ -7,6 +7,10 @@ repositories { // <1>
     mavenCentral()
 }
 
+configurations { // <3>
+    customConfiguration
+}
+
 dependencies { // <2>
     implementation 'com.google.guava:guava:32.1.2-jre'
     testImplementation 'junit:junit:4.13.2'
@@ -15,8 +19,4 @@ dependencies { // <2>
     constraints { // <4>
         api 'org.apache.juneau:juneau-marshall:8.2.0'
     }
-}
-
-configurations { // <3>
-    customConfiguration
 }

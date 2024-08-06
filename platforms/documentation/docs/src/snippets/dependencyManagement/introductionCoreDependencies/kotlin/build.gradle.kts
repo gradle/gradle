@@ -7,6 +7,8 @@ repositories { // <1>
     mavenCentral()
 }
 
+val customConfiguration by configurations.creating // <3>
+
 dependencies { // <2>
     implementation("com.google.guava:guava:32.1.2-jre")
     testImplementation("junit:junit:4.13.2")
@@ -15,8 +17,4 @@ dependencies { // <2>
     constraints { // <4>
         api("org.apache.juneau:juneau-marshall:8.2.0")
     }
-}
-
-configurations { // <3>
-    create("customConfiguration")
 }
