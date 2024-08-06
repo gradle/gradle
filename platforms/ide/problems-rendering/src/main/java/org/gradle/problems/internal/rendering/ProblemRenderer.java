@@ -48,7 +48,7 @@ public class ProblemRenderer {
             groupedProblems.add(problem);
         }
 
-        renderingGroups.forEach((id, groupedProblems) -> renderSingleProblemGroup(id, groupedProblems));
+        renderingGroups.forEach((id, groupedProblems) -> renderProblemGroup(output, id, groupedProblems));
         problemCount++;
     }
 
@@ -56,34 +56,34 @@ public class ProblemRenderer {
         this.render(Collections.singletonList(problem));
     }
 
-    private void renderSingleProblemGroup(ProblemId id, List<Problem> groupedProblems) {
+    static void renderProblemGroup(PrintWriter output, ProblemId id, List<Problem> groupedProblems) {
         output.printf(
             "%s (%s)%n", id.getDisplayName(), id
         );
-        groupedProblems.forEach(this::renderSingleProblem);
+        groupedProblems.forEach(problem -> renderProblem(output, problem));
     }
 
-    private void renderSingleProblem(Problem problem) {
+    static void renderProblem(PrintWriter output, Problem problem) {
         Map<String, String> additionalData = Optional.ofNullable(problem.getAdditionalData())
             .map(GeneralData.class::cast)
             .map(GeneralData::getAsMap)
             .orElse(Collections.emptyMap());
 
         if (additionalData.containsKey("formatted")) {
-            printMultiline(additionalData.get("formatted"), 1);
+            formatMultiline(output, additionalData.get("formatted"), 1);
         } else {
             if (problem.getContextualLabel() != null) {
-                printMultiline(problem.getContextualLabel(), 1);
+                formatMultiline(output, problem.getContextualLabel(), 1);
             } else {
-                printMultiline(problem.getDefinition().getId().getDisplayName(), 1);
+                formatMultiline(output, problem.getDefinition().getId().getDisplayName(), 1);
             }
             if (problem.getDetails() != null) {
-                printMultiline(problem.getDetails(), 2);
+                formatMultiline(output, problem.getDetails(), 2);
             }
         }
     }
 
-    private void printMultiline(String message, int level) {
+    static void formatMultiline(PrintWriter output, String message, int level) {
         for (String line : message.split("\n")) {
             for (int i = 0; i < level; i++) {
                 output.print("  ");
