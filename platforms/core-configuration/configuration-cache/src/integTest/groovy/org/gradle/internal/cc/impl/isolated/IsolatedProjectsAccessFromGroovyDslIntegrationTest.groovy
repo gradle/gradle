@@ -301,6 +301,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 //        "afterProject"           | 1                | "another project ':b'"
     }
 
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "reports cross-project model access in composite build access to Gradle.#invocation"() {
         createDirs("a", "include")
         settingsFile << """
@@ -316,7 +317,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         then:
         fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":include")
+            projectsConfigured(":include", ":", ":a")
+            // TODO:isolated expected behavior for incremental configuration
+//            projectsConfigured(":include")
             problem("Build file 'include/build.gradle': line 2: Project ':include' cannot access 'Project.buildDir' functionality on subprojects of project ':'")
         }
 
@@ -348,6 +351,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "reports cross-project model from ProjectEvaluationListener registered in Gradle.#invocation"() {
         createDirs("a", "b")
         settingsFile << """
@@ -365,13 +369,19 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        // TODO:isolated expected behavior for incremental configuration
+//        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsRun(":a:help", ":b:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
         }
+        // TODO:isolated expected behavior for incremental configuration
+//        fixture.assertStateStoredAndDiscarded {
+//            projectsConfigured(":", ":a", ":b")
+//            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
+//        }
 
         where:
         invocation                     | _
