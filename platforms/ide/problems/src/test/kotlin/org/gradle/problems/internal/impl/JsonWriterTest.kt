@@ -29,7 +29,7 @@ import java.io.StringWriter
 class JsonWriterTest {
 
     @Test
-    fun `complex structure is valid JSON`() {
+    fun `writer produces valid multilevel JSON`() {
         assertThat(
             jsonModelFor {
                 jsonObject {
@@ -42,7 +42,6 @@ class JsonWriterTest {
                         }
                     }
                 }
-
             },
             hasEntry(
                 "solutions",

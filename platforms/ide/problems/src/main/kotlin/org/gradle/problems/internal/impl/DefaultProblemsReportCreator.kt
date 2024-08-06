@@ -94,11 +94,11 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                if (problem.locations.isNotEmpty()) {
+                val fileLocations = problem.locations.filterIsInstance<FileLocation>()
+                if (fileLocations.isNotEmpty()) {
                     property("fileLocations") {
                         jsonObjectList(
-                            problem.locations
-                                .filterIsInstance<FileLocation>()
+                            fileLocations
                         ) { location ->
                             property("path", location.path)
                             if (location is LineInFileLocation) {
