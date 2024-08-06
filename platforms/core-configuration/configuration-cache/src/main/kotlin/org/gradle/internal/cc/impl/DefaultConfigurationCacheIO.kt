@@ -431,7 +431,8 @@ class DefaultConfigurationCacheIO internal constructor(
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
             transformStepNodeFactory = service(),
-            synchronizer = synchronizer
+            synchronizer = synchronizer,
+            temporaryFileProvider = service()
         )
 
     private

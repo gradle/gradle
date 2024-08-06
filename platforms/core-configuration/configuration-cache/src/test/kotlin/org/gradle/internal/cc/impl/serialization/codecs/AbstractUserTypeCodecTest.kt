@@ -189,6 +189,8 @@ abstract class AbstractUserTypeCodecTest {
         javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
         flowProviders = mock(),
         transformStepNodeFactory = mock(),
+        synchronizer = mock(),
+        temporaryFileProvider = mock()
     )
 }
 

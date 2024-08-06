@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.ActionNode
@@ -57,7 +58,6 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
-import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
@@ -73,7 +73,8 @@ typealias IdForNode = (Node) -> Int
 class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
-    private val ordinalGroups: OrdinalGroupFactory
+    private val ordinalGroups: OrdinalGroupFactory,
+    private val temporaryFileProvider: TemporaryFileProvider
 ) {
 
     suspend fun WriteContext.writeWork(work: ScheduledWork) {
@@ -165,7 +166,7 @@ class WorkNodeCodec(
         val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
         buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
             writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
-                val file = Files.createTempFile("cc-", owner.toString())
+                val file = temporaryFileProvider.createTemporaryFile("cc-", owner.toString()).toPath()
                 writeString(file.absolutePathString())
 
                 add(object : RunnableBuildOperation {

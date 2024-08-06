@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
@@ -173,7 +174,8 @@ class Codecs(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
-    private val synchronizer: Synchronizer
+    private val synchronizer: Synchronizer,
+    private val temporaryFileProvider: TemporaryFileProvider
 ) {
     private
     val userTypesBindings: Bindings
@@ -387,5 +389,5 @@ class Codecs(
     }
 
     fun workNodeCodecFor(gradle: GradleInternal) =
-        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory)
+        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory, temporaryFileProvider)
 }
