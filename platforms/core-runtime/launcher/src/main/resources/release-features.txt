@@ -1,0 +1,3 @@
+ - Support for Java 23
+ - Faster configuration cache
+ - Better configuration cache reports
