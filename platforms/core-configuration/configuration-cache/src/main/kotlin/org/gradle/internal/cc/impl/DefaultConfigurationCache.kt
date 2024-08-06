@@ -59,6 +59,7 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.debug.Debug
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -692,8 +693,10 @@ class DefaultConfigurationCache internal constructor(
         for (projectPath in pathsForProjects) {
             val projectStateFile = baseStateFile.stateFileForProject(projectPath)
             if (!projectStateFile.exists) {
+                Debug.println("Skipping operation for ${projectPath} as file does not exist: ${projectStateFile.stateFile.file}")
                 continue
             }
+            Debug.println("Adding operation for reading ${projectPath} from ${projectStateFile.stateFile.file}")
             operations.add(object : RunnableBuildOperation {
                 override fun description(): BuildOperationDescriptor.Builder {
                     val pathString = projectPath.toString()
@@ -712,6 +715,7 @@ class DefaultConfigurationCache internal constructor(
         }
         val stateFileForNodesInOtherBuilds = baseStateFile.stateFileForNodesInAnotherBuild()
         if (stateFileForNodesInOtherBuilds.exists) {
+            Debug.println("Adding operation for reading tasks from other builds")
             operations.add(object : RunnableBuildOperation {
                 override fun description(): BuildOperationDescriptor.Builder =
                     BuildOperationDescriptor
@@ -726,6 +730,7 @@ class DefaultConfigurationCache internal constructor(
                 }
             })
         }
+        Debug.println("Reading work nodes")
         runCCOperations(BuildOperationExecutor::runAllWithAccessToProjectState, operations)
         // TODO-RC the number of build ids seen may be even 0, for instance, when only requesting buildSrc build tasks to run
         // as they are not executed - see ConfigurationCacheIncludedBuildLogicIntegrationTest
@@ -737,6 +742,7 @@ class DefaultConfigurationCache internal constructor(
                 s
             }
         }
+        Debug.println("Reading work edges")
         var result: Pair<String, ScheduledWork>? = null
         runCCOperations(BuildOperationExecutor::runAllWithAccessToProjectState,
             object : RunnableBuildOperation {

@@ -34,6 +34,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.debug.Debug
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
@@ -262,7 +263,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        println { "Reading ${stateFile.stateType.name} - ${stateFile.stateFile.file.name}" }
+        Debug.trace { "Reading ${stateFile.stateType.name} - ${stateFile.stateFile.file.name}" }
         return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
