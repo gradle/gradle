@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -96,7 +97,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
-    private val encryptionService: EncryptionService
+    private val encryptionService: EncryptionService,
+    private val configurationTimeBarrier: ConfigurationTimeBarrier
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -266,6 +268,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+            if (!atConfigurationTime()) {
+                return
+            }
+
             error("Unexpected project dependency observed outside of fingerprinting: consumer=$consumingProjectPath, target=$targetProjectPath")
         }
 
@@ -273,6 +279,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         fun closeStreams() {
             fingerprintWriter.close()
         }
+
+        private
+        fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
     }
 
     private
