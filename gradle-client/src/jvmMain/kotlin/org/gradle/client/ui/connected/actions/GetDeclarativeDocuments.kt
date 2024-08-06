@@ -68,8 +68,8 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
         fun readBuildFile() = selectedBuildFile.value.takeIf { it.canRead() }?.readText().orEmpty()
         fun readSettingsFile() = model.settingsFile.takeIf { it.canRead() }?.readText().orEmpty()
-        
-        val buildFileContent = remember(selectedBuildFile.value) { 
+
+        val buildFileContent = remember(selectedBuildFile.value) {
             mutableStateOf(readBuildFile())
         }
         val settingsFileContent = remember(selectedBuildFile.value, model.settingsFile) {
@@ -104,7 +104,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             }
         }
 
-        
+
         val analyzer = analyzer(model)
         val projectResult by remember {
             derivedStateOf {
@@ -150,39 +150,46 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
                     val softwareTypeNode = domWithDefaults.document.singleSoftwareTypeNode
                     val softwareTypeSchema = projectAnalysisSchema.softwareTypeNamed(softwareTypeNode.name)
-                    val softwareTypeType =
-                        projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
+                    if (softwareTypeSchema == null) {
+                        Text("No software type named '${softwareTypeNode.name}'")
+                    } else {
 
-                    Column {
-                        with(
-                            ModelTreeRendering(
-                                domWithDefaults.overlayResolutionContainer,
-                                highlightingContext,
-                                mutationApplicability,
-                                onRunMutation = { mutationDefinition, mutationArgumentsContainer ->
-                                    MutationUtils.runMutation(
-                                        selectedBuildFile.value,
-                                        domWithDefaults.inputOverlay,
-                                        projectEvaluationSchema,
-                                        mutationDefinition,
-                                        mutationArgumentsContainer
-                                    )
-                                    // Trigger recomposition:
-                                    updateFileContents()
-                                }
-                            )
-                        ) {
-                            WithDecoration(softwareTypeNode) {
-                                TitleMedium(
-                                    text = "Software Type: ${softwareTypeNode.name}",
-                                    modifier = Modifier
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                                        .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
+                        val softwareTypeType =
+                            projectAnalysisSchema.configuredTypeOf(softwareTypeSchema.softwareTypeSemantics)
+
+                        Column {
+                            with(
+                                ModelTreeRendering(
+                                    domWithDefaults.overlayResolutionContainer,
+                                    highlightingContext,
+                                    mutationApplicability,
+                                    onRunMutation = { mutationDefinition, mutationArgumentsContainer ->
+                                        MutationUtils.runMutation(
+                                            selectedBuildFile.value,
+                                            domWithDefaults.inputOverlay,
+                                            projectEvaluationSchema,
+                                            mutationDefinition,
+                                            mutationArgumentsContainer
+                                        )
+                                        // Trigger recomposition:
+                                        updateFileContents()
+                                    }
                                 )
-                            }
-                            MaterialTheme.spacing.VerticalLevel4()
+                            ) {
+                                WithDecoration(softwareTypeNode) {
+                                    TitleMedium(
+                                        text = "Software Type: ${softwareTypeNode.name}",
+                                        modifier = Modifier
+                                            .pointerHoverIcon(
+                                                PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+                                            )
+                                            .withClickTextRangeSelection(softwareTypeNode, highlightingContext)
+                                    )
+                                }
+                                MaterialTheme.spacing.VerticalLevel4()
 
-                            ElementInfoOrNothingDeclared(softwareTypeType, softwareTypeNode, 0)
+                                ElementInfoOrNothingDeclared(softwareTypeType, softwareTypeNode, 0)
+                            }
                         }
                     }
                 }
