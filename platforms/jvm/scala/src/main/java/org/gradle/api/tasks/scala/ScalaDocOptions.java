@@ -17,7 +17,6 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -26,7 +25,8 @@ import java.util.List;
 /**
  * Options for the ScalaDoc tool.
  */
-public abstract class ScalaDocOptions extends AbstractOptions {
+@SuppressWarnings("deprecation")
+public abstract class ScalaDocOptions extends org.gradle.api.tasks.compile.AbstractOptions {
     private boolean deprecation = true;
     private boolean unchecked = true;
     private String windowTitle;
