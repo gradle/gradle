@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -54,12 +54,12 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
-import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
+import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
+import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -114,6 +114,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     }
 
     private static class BuildScopeServices implements ServiceRegistrationProvider {
+        @Provides
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);
             registration.add(DefaultPluginRequestApplicator.class);
