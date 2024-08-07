@@ -9,8 +9,6 @@ JVM-specific dependencies blocks and JVM test suite interfaces."""
 errorprone {
     disabledChecks.addAll(
         "OverridesJavaxInjectableMethod", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
