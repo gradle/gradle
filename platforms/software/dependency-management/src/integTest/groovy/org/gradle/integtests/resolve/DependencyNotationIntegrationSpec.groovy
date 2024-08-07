@@ -218,31 +218,27 @@ task checkDeps
         failure.assertThatCause(CoreMatchers.startsWith("Cannot convert a null value to an object of type Dependency"))
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     @Issue("https://issues.gradle.org/browse/GRADLE-3271")
-    def "gradleApi dependency implements contentEquals"() {
+    def "gradle API equality"() {
         when:
         buildFile << """
             configurations {
-              conf
+                conf
             }
 
             dependencies {
-              conf gradleApi()
+                conf gradleApi()
             }
 
-            task check {
-                doLast {
-                    assert dependencies.gradleApi().contentEquals(dependencies.gradleApi())
-                    assert dependencies.gradleApi().is(dependencies.gradleApi())
-                    assert dependencies.gradleApi() == dependencies.gradleApi()
-                    assert configurations.conf.dependencies.contains(dependencies.gradleApi())
-                }
-            }
+            assert dependencies.gradleApi().contentEquals(dependencies.gradleApi())
+            assert dependencies.gradleApi().is(dependencies.gradleApi())
+            assert dependencies.gradleApi() == dependencies.gradleApi()
+            assert configurations.conf.dependencies.contains(dependencies.gradleApi())
         """
 
         then:
-        succeeds "check"
+        executer.expectDocumentedDeprecationWarning("The Dependency.contentEquals(Dependency) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Object.equals(Object) instead Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_content_equals")
+        succeeds("help")
     }
 
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
@@ -286,5 +282,26 @@ task checkDeps
 
         then:
         result.hasErrorOutput("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
+    }
+
+    def "contentEquals is deprecated"() {
+        buildFile << """
+            def d1 = dependencies.create(files())
+            def d2 = dependencies.module('org.foo:bar:1.0')
+            def d3 = dependencies.create('org.foo:baz:1.0')
+            def d4 = dependencies.create(project)
+
+            def other = dependencies.create('org.other:foo:1.0')
+
+            d1.contentEquals(other)
+            d2.contentEquals(other)
+            d3.contentEquals(other)
+            d4.contentEquals(other)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
+        4.times { executer.expectDocumentedDeprecationWarning("The Dependency.contentEquals(Dependency) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Object.equals(Object) instead Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_content_equals") }
+        succeeds("help")
     }
 }

@@ -180,6 +180,7 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
         return delegate.contentEquals(dependency);
     }

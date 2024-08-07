@@ -121,6 +121,15 @@ Since Configurations are mutable, extending configurations across project bounda
 
 Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
 
+==== Deprecated `Dependency#contentEquals(Dependency)`
+
+The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
+
+The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
+The existing method does not behave as specified by its javadoc, and we do not plan to introduce a replacement that does.
+
+Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
+
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
 
