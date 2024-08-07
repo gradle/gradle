@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
 import kotlinx.coroutines.launch
 import org.gradle.client.core.database.Build
 import org.gradle.client.core.gradle.GradleConnectionParameters
@@ -21,6 +22,7 @@ import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isVali
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidGradleVersion
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidJavaHome
 import org.gradle.client.core.gradle.GradleDistribution
+import org.gradle.client.core.util.currentDesktopOS
 import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.theme.plusPaneSpacing
 import org.gradle.client.ui.theme.spacing
@@ -287,35 +289,80 @@ private fun DirectoryField(
         },
         trailingIcon = {
             val helpText = "Select a $description"
-            var isDirChooserOpen by remember { mutableStateOf(false) }
-            if (isDirChooserOpen) {
-                DirChooserDialog(
-                    helpText = helpText,
-                    showHiddenFiles = showHiddenFiles,
-                    onDirChosen = { dir ->
-                        isDirChooserOpen = false
-                        if (dir == null) {
-                            showSnackbar("No $description selected")
-                        } else {
-                            state.value = dir.absolutePath
-                        }
-                    }
-                )
-            }
-            Row {
-                IconButton(
-                    enabled = state.value.isNotBlank(),
-                    onClick = { state.value = "" },
-                    content = { Icon(Icons.Default.Clear, "Clear") }
-                )
-                PlainTextTooltip(helpText) {
-                    IconButton(onClick = { isDirChooserOpen = true }) {
-                        Icon(Icons.Default.Folder, helpText)
-                    }
-                }
+            if (currentDesktopOS.isLinux) {
+                LinuxDirectoryFieldPicker(description, helpText, state, showHiddenFiles, showSnackbar)
+            } else {
+                NonLinuxDirectoryFieldPicker(description, helpText, state, showSnackbar)
             }
         },
     )
+}
+
+@Composable
+private fun LinuxDirectoryFieldPicker(
+    description: String,
+    helpText: String,
+    state: MutableState<String>,
+    showHiddenFiles: Boolean = false,
+    showSnackbar: (message: String) -> Unit,
+) {
+    var isDirChooserOpen by remember { mutableStateOf(false) }
+    if (isDirChooserOpen) {
+        DirChooserDialog(
+            helpText = helpText,
+            showHiddenFiles = showHiddenFiles,
+            onDirChosen = { dir ->
+                isDirChooserOpen = false
+                if (dir == null) {
+                    showSnackbar("No $description selected")
+                } else {
+                    state.value = dir.absolutePath
+                }
+            }
+        )
+    }
+    DirectoryFilePickerIcon(helpText, state) {
+        isDirChooserOpen = true
+    }
+}
+
+@Composable
+private fun NonLinuxDirectoryFieldPicker(
+    description: String,
+    helpText: String,
+    state: MutableState<String>,
+    showSnackbar: (message: String) -> Unit,
+) {
+    val dirPickerLauncher = rememberDirectoryPickerLauncher(helpText) { dir ->
+        if (dir == null) {
+            showSnackbar("No $description selected")
+        } else {
+            state.value = dir.file.absolutePath
+        }
+    }
+    DirectoryFilePickerIcon(helpText, state) {
+        dirPickerLauncher.launch()
+    }
+}
+
+@Composable
+private fun DirectoryFilePickerIcon(
+    helpText: String,
+    state: MutableState<String>,
+    onClick: () -> Unit
+) {
+    Row {
+        IconButton(
+            enabled = state.value.isNotBlank(),
+            onClick = { state.value = "" },
+            content = { Icon(Icons.Default.Clear, "Clear") }
+        )
+        PlainTextTooltip(helpText) {
+            IconButton(onClick = onClick) {
+                Icon(Icons.Default.Folder, helpText)
+            }
+        }
+    }
 }
 
 @Composable

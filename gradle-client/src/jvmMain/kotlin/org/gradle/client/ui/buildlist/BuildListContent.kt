@@ -15,11 +15,16 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.core.FileKitPlatformSettings
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.gradle.client.core.Constants.APPLICATION_DISPLAY_NAME
 import org.gradle.client.core.database.Build
+import org.gradle.client.core.util.currentDesktopOS
 import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.theme.plusPaneSpacing
+import java.io.File
 
 @Composable
 fun BuildListContent(component: BuildListComponent) {
@@ -78,6 +83,24 @@ private fun BuildListDeleteButon(component: BuildListComponent, build: Build) {
 
 @Composable
 private fun AddBuildButton(component: BuildListComponent, snackbarState: SnackbarHostState) {
+    if (currentDesktopOS.isLinux) {
+        LinuxAddBuildButton(component, snackbarState)
+    } else {
+        NonLinuxAddBuildButton(component, snackbarState)
+    }
+}
+
+@Composable
+private fun NonLinuxAddBuildButton(component: BuildListComponent, snackbarState: SnackbarHostState) {
+    val scope = rememberCoroutineScope()
+    val dirPickerLauncher = rememberDirectoryPickerLauncher(ADD_BUILD_HELP_TEXT) { rootDir ->
+        onBuildDirSelected(scope, component, snackbarState, rootDir?.file)
+    }
+    AddBuildDirFAB { dirPickerLauncher.launch() }
+}
+
+@Composable
+private fun LinuxAddBuildButton(component: BuildListComponent, snackbarState: SnackbarHostState) {
     val scope = rememberCoroutineScope()
     var isDirChooserOpen by remember { mutableStateOf(false) }
     if (isDirChooserOpen) {
@@ -85,26 +108,40 @@ private fun AddBuildButton(component: BuildListComponent, snackbarState: Snackba
             helpText = ADD_BUILD_HELP_TEXT,
             onDirChosen = { rootDir ->
                 isDirChooserOpen = false
-                if (rootDir == null) {
-                    scope.launch { snackbarState.showSnackbar("No build selected") }
-                } else {
-                    val valid = rootDir.listFiles { file ->
-                        file.name.startsWith("settings.gradle")
-                    }?.isNotEmpty() ?: false
-                    if (!valid) {
-                        scope.launch { snackbarState.showSnackbar("Directory is not a Gradle build!") }
-                    } else {
-                        component.onNewBuildRootDirChosen(rootDir)
-                    }
-                }
+                onBuildDirSelected(scope, component, snackbarState, rootDir)
             }
         )
     }
+    AddBuildDirFAB { isDirChooserOpen = true }
+}
+
+private fun onBuildDirSelected(
+    scope: CoroutineScope,
+    component: BuildListComponent,
+    snackbarState: SnackbarHostState,
+    rootDir: File?
+) {
+    if (rootDir == null) {
+        scope.launch { snackbarState.showSnackbar("No build selected") }
+    } else {
+        val valid = rootDir.listFiles { file ->
+            file.name.startsWith("settings.gradle")
+        }?.isNotEmpty() ?: false
+        if (!valid) {
+            scope.launch { snackbarState.showSnackbar("Directory is not a Gradle build!") }
+        } else {
+            component.onNewBuildRootDirChosen(rootDir)
+        }
+    }
+}
+
+@Composable
+private fun AddBuildDirFAB(onClick: () -> Unit) {
     PlainTextTooltip(ADD_BUILD_HELP_TEXT) {
         ExtendedFloatingActionButton(
             icon = { Icon(Icons.Default.Add, "") },
             text = { Text(text = "Add build", Modifier.testTag("add_build")) },
-            onClick = { isDirChooserOpen = true },
+            onClick = onClick,
         )
     }
 }

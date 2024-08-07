@@ -31,7 +31,6 @@
 -dontwarn org.openjsse.**
 
 # Kotlin embedded compiler dependencies
--dontwarn com.sun.jna.**
 -dontwarn kotlin.annotations.jvm.**
 -dontwarn org.jetbrains.kotlin.com.google.common.**
 -dontwarn org.jetbrains.kotlin.com.google.gson.**
@@ -86,3 +85,9 @@
 
 # Kotlin embedded compiler
 -keep class org.jetbrains.kotlin.** { *; }
+
+# JNA classes
+-keep class com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** { public *; }
+-keep class * implements com.sun.jna.** { *; }
+-dontnote com.sun.**

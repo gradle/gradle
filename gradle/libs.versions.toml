@@ -30,6 +30,7 @@ gradle-declarative-dsl-evaluator = { module = "org.gradle:gradle-declarative-dsl
 gradle-declarative-dsl-tooling-models = { module = "org.gradle:gradle-declarative-dsl-tooling-models", version.ref = "declarative-dsl" }
 material3WindowSizeClassMultiplatform = { module = "dev.chrisbanes.material3:material3-window-size-class-multiplatform", version = "0.3.1" }
 materialKolor = { module = "com.materialkolor:material-kolor", version = "1.4.4" }
+filekit-compose = { module = "io.github.vinceglb:filekit-compose", version = "0.7.0" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.3" }
 junit-junit = { module = "junit:junit", version = "4.13.2" }
