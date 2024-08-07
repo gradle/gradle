@@ -121,6 +121,43 @@ Since Configurations are mutable, extending configurations across project bounda
 
 Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
 
+==== Deprecated `AbstractOptions`
+
+The `AbstractOptions` class has been deprecated and will be removed in Gradle 9.0.
+All classes extending `AbstractOptions` will no longer extend it.
+
+As a result, the `AbstractOptions#define(Map)` method will no longer be present.
+This method exposes a non-type-safe API and unnecessarily relies on reflection.
+It can be replaced by directly setting the properties specified in the map.
+
+Additionally, `CompileOptions#fork(Map)`, `CompileOptions#debug(Map)`, and `GroovyCompileOptions#fork(Map)`, which depend on `define`, are also deprecated for removal in Gradle 9.0.
+
+Consider the following example of the deprecated behavior and its replacement:
+=====
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+tasks.withType(JavaCompile) {
+    // Deprecated behavior
+    options.define(encoding: 'UTF-8')
+    options.fork(memoryMaximumSize: '1G')
+    options.debug(debugLevel: 'lines')
+
+    // Can be replaced by
+    options.encoding = 'UTF-8'
+
+    options.fork = true
+    options.forkOptions.memoryMaximumSize = '1G'
+
+    options.debug = true
+    options.debugOptions.debugLevel = 'lines'
+}
+----
+======
+=====
+
 ==== Deprecated `Dependency#contentEquals(Dependency)`
 
 The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.

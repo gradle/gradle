@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
  * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
  */
+@SuppressWarnings("deprecation")
 public class BaseForkOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
