@@ -322,11 +322,11 @@ link:{gradle-issues}13462[[.green]#✓#]:: <<antlr_plugin.adoc#antlr_plugin,ANTL
 
 a|
 [horizontal]
-link:{gradle-issues}13484[[.red]#✖#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
-link:{gradle-issues}13485[[.red]#✖#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+link:{gradle-issues}13484[[.green]#✓#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+link:{gradle-issues}13485[[.green]#✓#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
 link:{gradle-issues}13514[[.red]#✖#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
-link:{gradle-issues}13515[[.red]#✖#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
-link:{gradle-issues}13487[[.red]#✖#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+link:{gradle-issues}13515[[.green]#✓#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+link:{gradle-issues}13487[[.green]#✓#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
 link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 
 a|
