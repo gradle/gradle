@@ -13,6 +13,15 @@ Include only their name, impactful features should be called out separately belo
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Björn Kautler](https://github.com/Vampire),
+[Craig Andrews](https://github.com/candrews),
+[gotovsky](https://github.com/SergeyGotovskiy),
+[Jeff](https://github.com/mathjeff),
+[Kirill Gavrilov](https://github.com/gavvvr),
+[Madalin Valceleanu](https://github.com/vmadalin),
+[Sergei Vorobev](https://github.com/HackerMadCat),
+[Thach Le](https://github.com/thachlp),
+[Thad Guidry](https://github.com/thadguidry)
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
