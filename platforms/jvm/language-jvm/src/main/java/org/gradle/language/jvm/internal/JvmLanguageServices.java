@@ -50,6 +50,7 @@ public class JvmLanguageServices extends AbstractGradleModuleServices {
     }
 
     private static class ComponentRegistrationAction implements ServiceRegistrationProvider {
+        @Provides
         public void configure(ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry
                 .maybeRegisterComponentType(JvmLibrary.class)
