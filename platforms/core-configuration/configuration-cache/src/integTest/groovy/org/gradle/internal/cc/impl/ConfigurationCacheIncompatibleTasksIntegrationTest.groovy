@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
@@ -375,6 +376,44 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         // We allow false negative to avoid checking if the provider has fixed execution time value.
         // A desired assertion is configurationCacheFails("bypassesSafeguards")
         configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30043")
+    def "can resolve project dependencies at execution time"() {
+        given:
+        settingsFile """
+            include(":other")
+        """
+
+        buildFile "other/build.gradle", '''
+            plugins { id("java") }
+        '''
+
+        buildFile '''
+            plugins { id("java") }
+
+            dependencies { implementation(project(':other')) }
+
+            abstract class TaskWithRuntimeClasspath extends DefaultTask {
+                @Classpath FileCollection getTaskClasspath() { project.configurations.runtimeClasspath }
+
+                @TaskAction void doIt() {
+                    println("Running incompatible task")
+                }
+            }
+
+            tasks.register("reportedlyIncompatible", TaskWithRuntimeClasspath) {
+                notCompatibleWithConfigurationCache("declaring myself as not compatible")
+            }
+        '''
+
+        when:
+        configurationCacheRun("reportedlyIncompatible")
 
         then:
         fixture.assertStateStoredAndDiscarded {
