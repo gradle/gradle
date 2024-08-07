@@ -455,7 +455,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
             fqid == 'compilation:java:initialization-failed'
-            contextualLabel == 'error: invalid flag: -invalid-flag'
+            // Message can change between JDK versions:
+            //  - JDK1.8: error: invalid flag: -invalid-flag
+            //  - JDK11:         invalid flag: -invalid-flag
+            contextualLabel.endsWith('invalid flag: -invalid-flag')
             exception.message.endsWith('invalid flag: -invalid-flag')
         }
     }
