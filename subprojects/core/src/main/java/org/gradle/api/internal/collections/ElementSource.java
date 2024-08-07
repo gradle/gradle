@@ -106,8 +106,8 @@ public interface ElementSource<T> extends Iterable<T> {
     void onPendingAdded(Action<T> action);
 
     /**
-     * Controls the mutability of this element source.
+     * Tracks whether lazy actions are currently being executed against this element source.
      */
-    MutationGuard getMutationGuard();
+    MutationGuard getLazyBehaviorGuard();
 
 }

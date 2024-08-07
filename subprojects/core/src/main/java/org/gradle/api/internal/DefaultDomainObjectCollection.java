@@ -190,7 +190,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         assertEagerContext("configureEach(Action)");
-        Action<? super T> wrappedAction = withMutationDisabled(decorate(action));
+        Action<? super T> wrappedAction = wrapLazyAction(decorate(action));
         Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
@@ -211,8 +211,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return store.getMutationGuard().withMutationDisabled(action);
+    protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
+        return store.getLazyBehaviorGuard().wrapLazyAction(action);
     }
 
     @Override
@@ -458,9 +458,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      * This method should be called by methods that must not be called in lazy actions.
      */
     protected final void assertEagerContext(String methodName) {
-        // MutationGuard is poorly named. In practice, it tracks and asserts whether
-        // we are executing within a lazy context.
-        store.getMutationGuard().assertMutationAllowed(methodName, this);
+        store.getLazyBehaviorGuard().assertEagerContext(methodName, this);
     }
 
     /**

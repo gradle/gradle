@@ -326,7 +326,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
 
         @Override
-        public MutationGuard getMutationGuard() {
+        public MutationGuard getLazyBehaviorGuard() {
             return MutationGuards.identity();
         }
     }
