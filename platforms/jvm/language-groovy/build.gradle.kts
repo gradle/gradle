@@ -9,7 +9,6 @@ errorprone {
     disabledChecks.addAll(
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
