@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
@@ -743,7 +744,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         fails ":${language.compileTaskName}"
 
         then:
-        failure.assertHasCause('Compilation failed; see the compiler error output for details.')
+        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
     }
 
     def "detects changes in compile classpath order"() {
@@ -801,7 +802,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         fails ":${language.compileTaskName}"
 
         then:
-        failure.assertHasCause('Compilation failed; see the compiler error output for details.')
+        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20398")
