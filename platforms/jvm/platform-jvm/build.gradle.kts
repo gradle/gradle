@@ -8,7 +8,6 @@ description = """Extends platform-base with base types and interfaces specific t
 errorprone {
     disabledChecks.addAll(
         "StringCharset", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
     )
 }
 
