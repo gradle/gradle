@@ -26,6 +26,9 @@ import java.util.Optional;
 
 public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure {
 
+    public static final String COMPILATION_FAILED_DETAILS_ABOVE = "Compilation failed; see the compiler error output for details.";
+    public static final String COMPILATION_FAILED_DETAILS_BELOW = "Compilation failed; see the compiler output below.";
+
     private final ApiCompilerResult compilerPartialResult;
     private final Collection<Problem> reportedProblems;
 
@@ -46,13 +49,13 @@ public class CompilationFailedException extends RuntimeException implements Comp
     }
 
     public CompilationFailedException(@Nullable ApiCompilerResult result) {
-        super("Compilation failed; see the compiler error output for details.");
+        super(COMPILATION_FAILED_DETAILS_ABOVE);
         this.compilerPartialResult = result;
         this.reportedProblems = Collections.emptyList();
     }
 
     public CompilationFailedException(@Nullable ApiCompilerResult result, Collection<Problem> reportedProblems) {
-        super("Compilation failed; see the compiler output below.");
+        super(COMPILATION_FAILED_DETAILS_BELOW);
         this.compilerPartialResult = result;
         this.reportedProblems = reportedProblems;
     }

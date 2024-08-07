@@ -641,7 +641,7 @@ Group 2 (generic:group-2)
             .id("group-2", "Group 2")
             .build()
         def failure = new MultipleBuildFailures(
-            List.of(
+            Arrays.asList(
                 new ContextAwareException(
                     new GradleException(
                         "<root problem-1 message>",
