@@ -19,6 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
@@ -27,8 +28,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @FluidDependenciesResolveTest
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
@@ -345,7 +344,7 @@ project(':api') {
         output.contains "Horray!!!"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "runs configuration at execution time")
     def "may configure project at execution time"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -560,20 +559,20 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "extra properties defined in parent project are accessible to child"() {
         createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"
-        file('a/build.gradle') << """
-ext.foo = "Moo!!!"
-"""
-        file('a/child/build.gradle') << """
-task printExt {
-    doLast {
-        println "The Foo says " + foo
-    }
-}
-"""
+        buildFile('a/build.gradle', """
+            ext.foo = "Moo!!!"
+        """)
+        buildFile('a/child/build.gradle', """
+            task printExt {
+                def foo = foo
+                doLast {
+                    println "The Foo says " + foo
+                }
+            }
+        """)
         when:
         run(":a:child:printExt")
 
