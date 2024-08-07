@@ -25,16 +25,8 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
     File targetDir
 
     def "can build Gradle distribution"() {
-        def runner = runner(':distributions-full:binDistributionZip', ':distributions-full:binInstallation', '--stacktrace')
-//            .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
-//                "This is scheduled to be removed in Gradle 8.0. " +
-//                "Please use the destinationDirectory property instead. " +
-//                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
-//                "https://youtrack.jetbrains.com/issue/KT-46019")
-            .ignoreDeprecationWarnings("https://github.com/gradle/gradle-private/issues/3405")
-
         when:
-        def result = runner.build()
+        run([':distributions-full:binDistributionZip', ':distributions-full:binInstallation', '--stacktrace'])
 
         then:
         result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS
@@ -42,12 +34,12 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
     }
 
     def "can install Gradle distribution over itself"() {
-        def runner = runner('install', "-Pgradle_installPath=$targetDir", '--stacktrace')
-            .ignoreDeprecationWarnings("https://github.com/gradle/gradle-private/issues/3405")
+        given:
+        def args = ['install', "-Pgradle_installPath=$targetDir", '--stacktrace']
 
         when:
-        runner.build()
-        def result = runner.build()
+        run(args)
+        run(args)
 
         then:
         result.task(":distributions-full:install").outcome == TaskOutcome.SUCCESS
