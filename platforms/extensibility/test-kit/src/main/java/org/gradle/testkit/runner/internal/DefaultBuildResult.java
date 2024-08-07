@@ -16,28 +16,41 @@
 
 package org.gradle.testkit.runner.internal;
 
+import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 
 public class DefaultBuildResult implements BuildResult {
 
-    private final String output;
+    private final ByteSource outputSource;
+
     private final List<BuildTask> tasks;
 
     public DefaultBuildResult(String output, List<BuildTask> tasks) {
-        this.output = output;
+        this(ByteSource.wrap(output.getBytes(Charset.defaultCharset())), tasks);
+    }
+
+    public DefaultBuildResult(@Nonnull ByteSource outputSource, List<BuildTask> tasks) {
+        this.outputSource = outputSource;
         this.tasks = tasks;
     }
 
     @Override
     public String getOutput() {
-        return output;
+        try {
+            return outputSource.asCharSource(Charset.defaultCharset()).read();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
