@@ -301,10 +301,6 @@ fun configureTests() {
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
-
-        if (usesEmbeddedExecuter()) {
-            enabled = false
-        }
     }
 }
 
