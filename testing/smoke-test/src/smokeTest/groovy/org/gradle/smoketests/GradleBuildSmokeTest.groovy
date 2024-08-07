@@ -42,7 +42,7 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
         run(args)
 
         then:
-        result.task(":distributions-full:install").outcome == TaskOutcome.SUCCESS
+        result.task(":distributions-full:install").outcome == TaskOutcome.UP_TO_DATE
         new File(targetDir, "bin/gradle").exists()
         new File(targetDir, "LICENSE").exists()
     }
