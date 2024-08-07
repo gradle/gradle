@@ -996,7 +996,7 @@
   {
     "name": "problems-rendering",
     "path": "platforms/ide/problems-rendering",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
