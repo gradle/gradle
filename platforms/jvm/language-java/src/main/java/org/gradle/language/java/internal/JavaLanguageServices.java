@@ -78,6 +78,8 @@ public class JavaLanguageServices extends AbstractGradleModuleServices {
     }
 
     private static class JavaBuildScopeServices implements ServiceRegistrationProvider {
+        @Provides
+        @SuppressWarnings("UnusedVariable") //registration
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
                 .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);

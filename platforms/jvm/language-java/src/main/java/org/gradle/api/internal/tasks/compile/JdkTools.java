@@ -54,10 +54,6 @@ import java.util.function.Function;
  */
 public class JdkTools {
 
-    // Copied from ToolProvider.defaultJavaCompilerName
-    private static final String DEFAULT_COMPILER_IMPL_NAME = "com.sun.tools.javac.api.JavacTool";
-    private static final String DEFAULT_CONTEXT_IMPL_NAME = "com.sun.tools.javac.util.Context";
-
     private final ClassLoader isolatedToolsLoader;
 
     private Class<JavaCompiler.CompilationTask> incrementalCompileTaskClass;

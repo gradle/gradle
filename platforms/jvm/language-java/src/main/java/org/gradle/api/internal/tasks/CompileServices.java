@@ -51,6 +51,9 @@ public class CompileServices extends AbstractGradleModuleServices {
     }
 
     private static class BuildScopeCompileServices implements ServiceRegistrationProvider {
+        @Provides
+        @SuppressWarnings("UnusedVariable")
+            //registration
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery
             initializer.initializeJdkTools();
