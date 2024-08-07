@@ -139,7 +139,7 @@ class ProblemRendererTest extends Specification {
     }
 
     def getRenderedTextLines() {
-        return renderedText.split("\n")
+        return renderedText.split('\r?\n')
     }
 
     private static ProblemGroup getLevel0Group() {
