@@ -53,6 +53,7 @@ public interface ResolvedConfiguration {
      * @throws ResolveException when the resolve was not successful.
      * @since 3.3
      */
+    // Deprecate
     Set<File> getFiles() throws ResolveException;
 
     /**

@@ -92,11 +92,9 @@ dependencies {
     }
 }
 
-configurations.all {
-    afterEvaluate {
-        if (canBeResolved) {
-            attributes.attribute(minified, true) // <3>
-        }
+configurations.runtimeClasspath {
+    attributes {
+        attribute(minified, true)                // <3>
     }
 }
 // tag::artifact-transform-registration[]

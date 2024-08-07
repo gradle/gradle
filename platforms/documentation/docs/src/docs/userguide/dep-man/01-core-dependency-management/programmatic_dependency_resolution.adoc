@@ -1,0 +1,240 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:programmatic_api]]
+= Dependency resolution APIs
+
+Dependency resolution in Gradle can largely be thought of as a two-step process. The first being _graph resolution_, and the second being _artifact resolution_.
+The results of these processes are presented through a variety of types, each catering to different use cases:
+
+- link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files. This is the most common way to access dependency resolution results.
+- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[ArtifactCollection] - Provides access to the metadata for each resolved artifact in addition to the file itself.
+- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] and link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Exposes the raw dependency graph without resolving artifacts, describing the relationships between components and variants.
+
+== Declaring a resolvable Configuration
+
+The entrypoint to all dependency resolution APIs is a _resolvable_ link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration].
+The Java plugins primarily use the `compileClasspath`, and `runtimeClasspath` configurations to resolve jars for compilation and runtime respectively.
+
+A resolvable configuration should only be used to initiate dependency resolution.
+The dependencies to be resolved are declared on _dependency scope_ configurations.
+The Java plugins use the `api`, `implementation`, and `runtimeOnly` dependency scope configurations, among others, as a source of dependencies to be resolved by the resolvable configurations.
+
+Consider the following example that demonstrates how to declare a set of configurations intended for resolution:
+
+[source,groovy]
+----
+configurations {
+    implementation {
+        canBeResolved = false
+        canBeConsumed = false
+    }
+    runtimeClasspath {
+        canBeConsumed = false
+        canBeDeclared = false
+
+        extendsFrom implementation
+    }
+}
+----
+
+Using the incubating role-based configuration APIs, you can declare dependency scope and resolvable configurations directly:
+
+[source,groovy]
+----
+configurations {
+    dependencyScope("implementation")
+    resolvable("runtimeClasspath") {
+        extendsFrom(implementation)
+    }
+}
+----
+
+Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
+
+[source,groovy]
+----
+dependencies {
+    implementation("com.google.guava:guava:33.2.1-jre")
+}
+----
+
+Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's dependency resolution APIs to access the results of resolution.
+
+== Traversing a dependency graph
+
+In the _graph resolution_ phase, Gradle downloads and examines component metadata (GMM, POM, and Ivy files) for declared and transitive dependencies to construct a dependency graph.
+This process is described in detail by the <<dependency_resolution.adoc, Dependency Resolution>> chapter.
+
+The output of the graph resolution phase is a fully resolved dependency graph, which is used as the input to the artifact resolution phase.
+The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult] API provides access to the resolved dependency graph without triggering artifact resolution.
+This API presents the resolved dependency graph, where each node in the graph is a variant of a component.
+
+Raw access to the dependency graph can be useful for a number of use cases:
+
+- Visualizing the dependency graph, for example generating a `.dot` file for Graphviz.
+- Exposing <<dependency_constraints.adoc,diagnostics>> about a given resolution, similar to the `dependencies` or `dependencyInsight` tasks.
+- Resolving a subset of the artifacts for a dependency graph (when used in conjunction with the `artifactView` API).    TODO: Link to example
+
+Below, we define a task that traverses a dependency graph, transforming the graph into a `.dot` file for visualization:
+
+[source,groovy]
+----
+TODO: Fill out
+----
+
+TODO: Describe the structure of a graph traversal. Why we operate on variants.
+
+To create and initialize the task, we use the `ResolutionResult` api to access the root component and root variant of `runtimeClasspath`.
+
+[source,groovy]
+----
+TODO: Fill out
+----
+
+Running this task, we get the following output:
+
+[source]
+----
+TODO: Fill out
+----
+
+Compare this to the output of the `dependencies` task:
+
+[source]
+----
+TODO: Fill out
+----
+
+== Artifact resolution
+
+After constructing a dependency graph, Gradle can perform artifact resolution on the resolved graph.
+Gradle APIs can be used to influence the process of _artifact selection_ -- the mapping of a graph to a set of artifacts.
+Gradle can then expose the results of artifact selection as an `ArtifactCollection`.
+More commonly, however, the results are exposed as a `FileCollection`, which is a flat list of files that are downloaded in parallel.
+
+Artifact selection operates on the dependency graph on a node-by-node basis.
+Each node in the graph may expose multiple sets of artifacts, but only one can be selected.
+For example, the `runtimeElements` variant of the Java plugins exposes both a `jar` and a `classes+resources` artifact set.
+These two artifact sets represent the same compiled code, but in different forms.
+
+For each node (variant) in a graph, Gradle performs attribute matching over each set of artifacts exposed by that node to determine the best artifact set.
+If no artifact sets match the requested attributes, Gradle will attempt to construct an artifact transform chain to satisfy the request.
+
+TODO: Link to attribute matching page for details.
+
+=== Implicit artifact selection
+
+By default, the attributes used for artifact selection are the same as those used for variant selection during graph resolution.
+These attributes are specified by the `Configuration#getAttributes()` property.
+To perform artifact selection (and implicitly, graph resolution) using these defaults attributes, use any of the following APIs:
+
+[source,groovy]
+----
+configurations.runtimeClasspath
+configurations.runtimeClasspath.incoming.files
+configurations.runtimeClasspath.incoming.artifacts
+----
+
+// TODO: Describe the difference between these APIs
+
+NOTE: Files can also be accessed from the configuration's `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedArtifact` and `ResolvedDependency` APIs.
+However, these APIs are in maintenance mode and are discouraged for use in new development.
+These APIs perform artifact selection using the default attributes.
+
+=== Customizing artifact selection
+
+In some cases, it is desirable to customize the attributes used for artifact selection.
+This can be done, without affecting the attributes used for graph resolution, by using the `ArtifactView` API.
+
+==== Triggering artifact transforms
+
+Traditionally, this API is used to request attributes that do not match any artifact set exposed by the node being selected.
+In turn, Gradle will attempt to construct a suitable artifact set based on the artifact sets exposed by the node in question, transformed by any registered artifact transforms.
+
+Consider the below example, where we register an artifact transform that TODO: does what? and use the `ArtifactView` API to request artifacts that match the transform's attributes:
+
+[source,groovy]
+----
+
+----
+
+Gradle performs artifact selection using the graph resolution attributes specified on the configuration, concatenated with the attributes specified in the `attributes` block of the `ArtifactView`.
+
+==== Performing variant reselection
+
+Standard artifact selection can only select between and transform artifact sets exposed by the node under selection.
+However, in some cases, it may be desirable to select artifacts from a variant _parallel_ to graph node being selected.
+
+Consider the example component structure below, describing a typical Java library published by Gradle:
+
+[source]
+----
+variant 'apiElements'
+    artifact set 'jar'
+    artifact set 'classes+resources'
+variant 'runtimeElements'
+    artifact set 'jar'
+    artifact set 'classes+resources'
+variant 'javadocElements'
+    artifact set 'jar'
+variant 'sourcesElements'
+    artifact set 'jar'
+----
+
+Resolving a Java runtime classpath will select the `runtimeElements` variant for each component in the graph.
+However, it is common to want to select all sources or all javadoc for every node in the graph.
+
+Consider the following example which selects all sources for a given runtime classpath:
+
+[source,groovy]
+----
+
+----
+
+Using the incubating `ArtifactView#withVariantReselection()` API, Gradle will optionally perform graph variant reselection again before performing artifact selection on the new selected variant.
+When Gradle selects artifacts for the `runtimeElements` node, it will use the request attributes to reselect the graph variant, thus selecting the `sourcesElements` variant instead.
+Then, traditional artifact selection will be performed on the `sourcesElements` variant to select the `jar` artifact set.
+
+When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView#getAttributes()` method.
+The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
+
+==== Performing lenient artifact resolution
+
+The `ArtifactView` API can also be used perform lenient artifact resolution.
+This allows artifact resolution to be performed on a graph that contains failures -- for example when a request module was not found, the requested module version did not exist, or a conflict was not resolved.
+Furthermore, lenient artifact resolution can be used to resolve artifacts when the graph was successfully resolved, but the corresponding artifacts could not be downloaded.
+
+Lenient resolution is performed by using the `ArtifactView#lenient()` method.
+
+[source,groovy]
+----
+
+----
+
+==== Filtering artifacts
+
+The `ArtifactView` API can be used to filter specific artifacts from a
+
+
+=== Using `ResolutionResult` and `ArtifactView` together
+
+In some cases, it is desirable to select artifacts from a resolution based on the shape of the resolved graph.
+For example, one use case would be to select all artifacts in a resolution that are reachable from some specific node.
+
+To achieve this, we can use the `ResolutionResult` API to discover the nodes we want to select artifacts from, and then use the `ArtifactView` API to filter the artifacts to only include the discovered nodes.
+
+
+
+// TODO: See the documentation on <<incremental_build.adoc#sec:task_input_using_dependency_resolution_results, using dependency resolution results>> for more details on how to consume the results in a task.

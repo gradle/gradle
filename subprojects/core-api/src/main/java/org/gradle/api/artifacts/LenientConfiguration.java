@@ -66,6 +66,7 @@ public interface LenientConfiguration {
      * @return resolved dependencies files
      * @since 3.3
      */
+    // Deprecate if we don't swallow verification failures in lenient artifact view
     Set<File> getFiles();
 
     /**

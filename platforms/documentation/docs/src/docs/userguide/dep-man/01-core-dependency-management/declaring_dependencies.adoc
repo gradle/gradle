@@ -32,7 +32,7 @@ See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin
 .Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
-For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<dependency_resolution.adoc#sec:programmatic_api,resolution result APIs>>.
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<programmatic_dependency_resolution.adoc#sec:programmatic_api,resolution result APIs>>.
 
 [[sub:config-inheritance-composition]]
 === Configuration inheritance and composition

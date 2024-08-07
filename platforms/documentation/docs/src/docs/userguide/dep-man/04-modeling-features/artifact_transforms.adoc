@@ -221,7 +221,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/gro
 ====
 <1> Add the attribute to the schema
 <2> All JAR files are not minified
-<3> Request `minified=true` on all resolvable configurations
+<3> Request that the runtime classpath is minified
 <4> Add the dependencies which will be transformed
 <5> Add task that requires the transformed artifacts
 
