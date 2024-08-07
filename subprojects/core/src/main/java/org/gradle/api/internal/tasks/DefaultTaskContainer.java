@@ -108,7 +108,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         CollectionCallbackActionDecorator callbackDecorator,
         ProjectRegistry<ProjectInternal> projectRegistry
     ) {
-        super(Task.class, instantiator, project, crossProjectConfigurator.getMutationGuard(), callbackDecorator);
+        super(Task.class, instantiator, project, crossProjectConfigurator.getLazyBehaviorGuard(), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         taskInstantiator = new TaskInstantiator(taskIdentityFactory, taskFactory, project);

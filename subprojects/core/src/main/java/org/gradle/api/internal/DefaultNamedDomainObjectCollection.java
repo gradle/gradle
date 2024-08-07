@@ -899,7 +899,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public void configure(Action<? super I> action) {
             assertEagerContext("NamedDomainObjectProvider.configure(Action)");
-            withMutationDisabled(action).execute(get());
+            wrapLazyAction(action).execute(get());
         }
 
         @Override
@@ -949,7 +949,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 return;
             }
 
-            Action<? super I> wrappedAction = withMutationDisabled(action);
+            Action<? super I> wrappedAction = wrapLazyAction(action);
             Action<? super I> decoratedAction = getEventRegister().getDecorator().decorate(wrappedAction);
 
             if (object != null) {

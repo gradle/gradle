@@ -30,6 +30,10 @@ public interface CrossProjectConfigurator {
 
     void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor);
 
-    MutationGuard getMutationGuard();
+    /**
+     * Tracks whether the current thread is executing a lazy operation on a domain
+     * object within this project.
+     */
+    MutationGuard getLazyBehaviorGuard();
 
 }

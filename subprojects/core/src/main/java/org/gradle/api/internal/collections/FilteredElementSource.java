@@ -93,8 +93,8 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return collection.getMutationGuard();
+    public MutationGuard getLazyBehaviorGuard() {
+        return collection.getLazyBehaviorGuard();
     }
 
     private static class FilteringIterator<T, S extends T> implements Iterator<S> {
