@@ -15,28 +15,62 @@
 [[single-version-declarations]]
 = Declaring Versions and Ranges
 
+You can declare dependencies with specific versions or version ranges to define the acceptable versions of a dependency that your project can use:
+
+[source,groovy]
+----
+dependencies {
+    implementation 'org.springframework:spring-core:5.3.8'
+    implementation 'org.springframework:spring-core:5.3.+'
+    implementation 'org.springframework:spring-core:latest.release'
+    implementation 'org.springframework:spring-core:[5.2.0, 5.3.8]'
+    implementation 'org.springframework:spring-core:[5.2.0,)'
+}
+----
+
+== Understanding version declaration
+
 The simplest version declaration is a _simple string_ representing the version to use.
 Gradle supports different ways of declaring a version string:
 
-* An exact version: e.g. `1.3`, `1.3.0-beta3`, `1.0-20150201.131010-1`
-* A Maven-style version range: e.g. `[1.0,)`, `[1.1, 2.0)`, `(1.2, 1.5]`
-** The `[` and `]` symbols indicate an inclusive bound; `(` and `)` indicate an exclusive bound.
-** When the upper or lower bound is missing, the range has no upper or lower bound.
-** The symbol `]` can be used instead of `(` for an exclusive lower bound, and `[` instead of `)` for exclusive upper bound. e.g `]1.0, 2.0[`
-** An upper bound exclude acts as a prefix exclude.
-This means that `[1.0, 2.0[` will also exclude all versions starting with `2.0` that are smaller than `2.0`.
-For example versions like `2.0-dev1` or `2.0-SNAPSHOT` are no longer included in the range.
-* A _prefix_ version range: e.g. `1.\+`, `1.3.+`
-** Only versions exactly matching the portion before the `+` are included.
-** The range `+` on its own will include any version.
-* A `latest-status` version: e.g. `latest.integration`, `latest.release`
-** Will match the highest versioned module with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
-* A Maven `SNAPSHOT` version identifier: e.g. `1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
+[cols="1,1,2"]
+|===
+|Version |Example |Note
+
+|An exact version
+|`1.3`, `1.3.0-beta3`, `1.0-20150201.131010-1`
+|
+
+|A Maven-style version range
+|`[1.0,)`, `[1.1, 2.0)`, `(1.2, 1.5]`
+|The `[` and `]` symbols indicate an inclusive bound; `(` and `)` indicate an exclusive bound.
+
+When the upper or lower bound is missing, the range has no upper or lower bound.
+
+The symbol `]` can be used instead of `(` for an exclusive lower bound and `[` instead of `)` for an exclusive upper bound. e.g. `]1.0, 2.0[`.
+
+An upper bound exclude acts as a prefix exclude.
+
+|A _prefix_ version range
+|`1.\+`, `1.3.+`
+|Only versions exactly matching the portion before the `\+` are included.
+
+The range `+` on its own will include any version.
+
+|A `latest-status` version
+|`latest.integration`, `latest.release`
+|Will match the highest versioned module with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
+
+|A Maven `SNAPSHOT` version identifier
+|`1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
+|
+|===
 
 [[version_ordering]]
-== Version ordering
+== Understanding version ordering
 
-Versions have an implicit ordering. Version ordering is used to:
+Versions have an implicit ordering.
+Version ordering is used to:
 
 * Determine if a particular version is included in a range.
 * Determine which version is 'newest' when performing conflict resolution (watch out though, conflict resolution uses
@@ -54,48 +88,46 @@ Versions are ordered based on the following rules:
 ** If both are non-numeric, the parts are compared **alphabetically**, in a **case-sensitive** manner: `1.A` < `1.B` < `1.a` < `1.b`
 ** A version with an extra numeric part is considered **higher** than a version without (even when it's zero): `1.1` < `1.1.0`
 ** A version with an extra non-numeric part is considered **lower** than a version without: `1.1.a` < `1.1`
-* Certain non-numeric parts have special meaning for the purposes of ordering:
+* Certain non-numeric parts have special meaning for ordering:
 ** `dev` is consider **lower** than any other non-numeric part: `1.0-dev` < `1.0-ALPHA` < `1.0-alpha` < `1.0-rc`.
 ** The strings `rc`, `snapshot`, `final`, `ga`, `release` and `sp` are considered **higher** than any other string part (sorted in this order): `1.0-zeta` < `1.0-rc` < `1.0-snapshot` < `1.0-final` < `1.0-ga` < `1.0-release` < `1.0-sp` < `1.0`.
-** These special values are **NOT case sensitive**, as opposed to regular string parts and they do not depend on the separator used around them: `1.0-RC-1` == `1.0.rc.1`
+** These special values are **NOT case sensitive**, as opposed to regular string parts, and they do not depend on the separator used around them: `1.0-RC-1` == `1.0.rc.1`
 
-== Simple version declaration semantics
+== Understanding version declaration semantics
 
-When you declare a version using the short-hand notation, for example:
+When you declare a version using the shorthand notation, then the version is considered a <<rich_versions.adoc#sec:required-version,required version>>:
 
-.A simple declaration
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=required-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
 ====
 
-Then the version is considered a <<rich_versions.adoc#sec:required-version,required version>> which means that it should _minimally_ be `1.7.15` but can be upgraded by the engine (optimistic upgrade).
+This means it should _minimally_ be `1.7.15` but can be upgraded by the engine (optimistic upgrade).
 
 There is, however, a shorthand notation for <<rich_versions.adoc#sec:strict-version,strict versions>>, using the `!!` notation:
 
-.Shorthand notation for strict dependencies
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=strict-shorthand]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
 ====
 
-A strict version _cannot be upgraded_ and overrides whatever transitive dependencies originating from this dependency provide.
-It is recommended to use ranges for strict versions.
+A strict version _cannot be upgraded_ and takes precedence over any transitive dependencies that specify a different version.
+It is recommended to use version ranges when defining strict versions.
 
 The notation `[1.7, 1.8[!!1.7.25` above is equivalent to:
 
 * strictly `[1.7, 1.8[`
 * prefer `1.7.25`
 
-which means that the engine **must** select a version between 1.7 (included) and 1.8 (excluded), and that if no other component in the graph needs a different version, it should _prefer_ `1.7.25`.
+This means that the engine **must** select a version between 1.7 (included) and 1.8 (excluded) and that if no other component in the graph needs a different version, it should _prefer_ `1.7.25`.
 
 [[sec:declaring_without_version]]
 == Declaring a dependency without version
 
 A recommended practice for larger projects is to declare dependencies without versions and use <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> for version declaration.
-The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place.
 
-.Declaring a dependency without version
+The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place:
+
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]

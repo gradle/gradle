@@ -15,7 +15,8 @@
 [[rich-version-constraints]]
 = Declaring Rich Versions
 
-Gradle supports a rich model for declaring versions, which allows to combine different level of version information.
+Gradle supports a rich model for declaring versions, which allows you to combine different levels of version information.
+
 The terms and their meaning are explained below, from the strongest to the weakest:
 
 [[sec:strict-version]]
@@ -23,7 +24,7 @@ The terms and their meaning are explained below, from the strongest to the weake
 Any version not matched by this version notation will be excluded.
 This is the strongest version declaration.
 On a declared dependency, a `strictly` can downgrade a version.
-When on a transitive dependency, it will cause dependency resolution to fail if no version acceptable by this clause can be selected.
+For a transitive dependency, dependency resolution will fail if no acceptable version can be selected.
 See <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,overriding dependency version>> for details.
 This term supports dynamic versions.
 +
@@ -40,7 +41,7 @@ When defined, this overrides any previous `strictly` declaration and clears prev
 [[sec:preferred-version]]
 `prefer`::
 This is a very soft version declaration.
-It applies only if there is no stronger non dynamic opinion on a version for the module.
+It applies only if there is no stronger non-dynamic opinion on a version of the module.
 This term does not support dynamic versions.
 +
 Definition can complement `strictly` or `require`.
@@ -52,22 +53,21 @@ There is also an additional term outside of the level hierarchy:
 [[sec:rejected-version]]
 `reject`::
 Declares that specific version(s) are not accepted for the module.
-This will cause dependency resolution to fail if the only versions selectable are also rejected.
+This will cause dependency resolution to fail if the selected version is rejected.
 This term supports dynamic versions.
 
-The following table illustrates a number of use cases and how to combine the different terms for rich version declaration:
+The following table illustrates several use cases and how to combine the different terms for rich version declaration:
 
-.Rich version use cases
 [%header%autowidth,compact]
 |===
 | Which version(s) of this dependency are acceptable? | `strictly` | `require` | `prefer` | `rejects` | Selection result
 
-| Tested with version `1.5`, believe all future versions should work.
+| Tested with version `1.5`; believe all future versions should work.
 |
 | 1.5
 |
 |
-| Any version starting from `1.5`, equivalent of `org:foo:1.5`. An upgrade to `2.4` is accepted.
+| Any version starting from `1.5`, equivalent to `org:foo:1.5`. An upgrade to `2.4` is accepted.
 
 | Tested with `1.5`, soft constraint upgrades according to semantic versioning.
 |
@@ -102,7 +102,7 @@ Overwrites versions from transitive dependencies. +
 |
 | `1.5` if no other opinion, any otherwise.
 
-| No opinion, prefer latest release.
+| No opinion, prefer the latest release.
 |
 |
 | `latest.release`
@@ -137,13 +137,11 @@ Overwrites versions from transitive dependencies. +
 |===
 
 Lines annotated with a lock (🔒) indicate that leveraging <<dependency_locking.adoc#dependency-locking,dependency locking>> makes sense in this context.
-Another concept that relates with rich version declaration is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of declared ones.
+Another concept related to rich version declaration is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of declared ones.
 
-
-Using `strictly`, especially for a library, must be a well thought process as it has an impact on downstream consumers.
-At the same time, used correctly, it will help consumers understand what combination of libraries do not work together in their context.
+Using `strictly`, especially for a library, must be a well-thought-out process as it impacts downstream consumers.
+At the same time, if used correctly, it will help consumers understand what combination of libraries does not work together in their context.
 See <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,overriding dependency version>> for more information.
-
 
 [NOTE]
 ====
@@ -153,9 +151,8 @@ The highest level will be published, that is `strictly` or `require` over `prefe
 In addition, any `reject` will be ignored.
 ====
 
-Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration which gives access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint].
+Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration, which gives access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint]:
 
-.Rich version declaration
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
