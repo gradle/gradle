@@ -43,7 +43,6 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
             "-Xjsr305=strict",
             "-java-parameters",
             "-Xsam-conversions=class",
-            "-Xskip-prerelease-check",
         )
     }
 }

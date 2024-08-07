@@ -30,6 +30,7 @@ tasks.compileGroovy.configure {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
+        // Usage of deprecated kotlinx-metadata APIs
         allWarningsAsErrors = false
     }
 }
