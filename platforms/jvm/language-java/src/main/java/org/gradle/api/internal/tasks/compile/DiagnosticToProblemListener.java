@@ -52,21 +52,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final InternalProblemReporter problemReporter;
-    private final Context context;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context, Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter) {
-        this.problemReporter = problemReporter;
-        this.context = context;
-        this.messageFormatter = messageFormatter;
-    }
-
     public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
-        this.context = context;
         this.messageFormatter = diagnostic -> {
             try {
                 DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
@@ -184,7 +176,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         int line = clampLocation(diagnostic.getLineNumber());
         int column = clampLocation(diagnostic.getColumnNumber());
         int position = clampLocation(diagnostic.getPosition());
-        int start = clampLocation(diagnostic.getStartPosition());
         int end = clampLocation(diagnostic.getEndPosition());
 
         // We only set the location if we have a resource to point to
