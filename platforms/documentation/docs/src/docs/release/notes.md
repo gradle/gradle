@@ -53,7 +53,16 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="java-problem-reporting"></a>
+### Java compiler error reporting improvements
 
+Java compiler errors will be displayed as part of the build failure.
+The feature separates failures per-task, and works by reporting each tasks' failures accordingly.
+
+For example, if we have `project1` and `project2`, both causing a compilation error, and we execute `compileJava --continue`, the new output will be:
+```
+
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
