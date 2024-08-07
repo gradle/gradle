@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
@@ -45,7 +46,15 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
+
+        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
+            .withAdvice("Use Object.equals(Object) instead")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_content_equals")
+            .nagUser();
+
         if (this == dependency) {
             return true;
         }

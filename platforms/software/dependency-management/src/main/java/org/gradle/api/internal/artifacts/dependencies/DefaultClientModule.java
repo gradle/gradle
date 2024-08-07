@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
@@ -70,7 +71,8 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
         if (!(o instanceof Dependency)) {
             return false;
         }
-        return contentEquals((Dependency) o);
+
+        return DeprecationLogger.whileDisabled(() -> contentEquals((Dependency) o));
     }
 
     @Override
@@ -79,7 +81,15 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
+
+        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
+            .withAdvice("Use Object.equals(Object) instead")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_content_equals")
+            .nagUser();
+
         if (this == dependency) {
             return true;
         }
