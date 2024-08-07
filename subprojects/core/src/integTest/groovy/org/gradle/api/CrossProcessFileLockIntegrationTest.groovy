@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @org.junit.Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
+    @Override
+    def setup() {
+        server.start()
+    }
+
     def "the task history lock can be acquired when the initial owner is busy executing tasks"() {
+        given:
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
@@ -33,35 +40,29 @@ class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile """
-            def waitForStop() {
-              def sanityWaitUntil = System.currentTimeMillis() + 120000
-              println 'waiting for file...'
-              while(!file('stop.txt').exists()) {
-                Thread.sleep(300)
-                assert System.currentTimeMillis() < sanityWaitUntil : "Timeout waiting for file"
-              }
-              println 'no more waiting!'
-            }
-            def stopNow() {
-              assert file('stop.txt').createNewFile()
-            }
             subprojects {
                 apply plugin: 'java'
             }
             project(":a") {
-                compileJava.doFirst { waitForStop() }
+                compileJava.doFirst {
+                     println 'waiting for resource...'
+                    ${server.callFromTaskAction("first")}
+                    println 'no more waiting!'
+                }
             }
             project(":b") {
-                compileJava.doFirst { stopNow() }
+                compileJava.doFirst { ${server.callFromTaskAction("second")} }
             }
         """
+
+        server.expectConcurrent("first", "second")
 
         then:
         def handle1 = executer.withArguments(':a:build', '-i').start()
         poll(120) {
-            assert handle1.standardOutput.contains('waiting for file...')
+            assert handle1.standardOutput.contains('waiting for resource...')
         }
-        //first build is waiting for file, so the lock should be releasable now (for example: the task history lock)
+        //first build is waiting for resource, so the lock should be releasable now (for example: the task history lock)
 
         and:
         def handle2 = executer.withArguments('b:build', '-is').start()
