@@ -29,7 +29,6 @@ dependencies {
     implementation(libs.kotlinxSerializationJson)
 
     testImplementation(projects.coreApi)
-    testImplementation(libs.futureKotlin("test-junit5"))
     testImplementation("org.jetbrains:annotations:24.0.1")
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)

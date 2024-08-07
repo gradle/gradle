@@ -20,9 +20,9 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.demo.demoPlugins.schema
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.gradle.internal.declarativedsl.assertIs
 
 
 object SerializationTest {

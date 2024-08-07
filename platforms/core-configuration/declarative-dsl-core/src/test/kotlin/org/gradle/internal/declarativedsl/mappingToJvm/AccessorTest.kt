@@ -35,11 +35,11 @@ import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 
 object AccessorTest {

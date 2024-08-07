@@ -34,9 +34,9 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTar
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutationFailureReason.TargetNotFoundOrSuperseded
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 
 object DocumentTextMutationPlannerTest {

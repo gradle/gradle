@@ -27,9 +27,9 @@ import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.fail
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.fail
 
 
 internal
@@ -191,7 +191,7 @@ object MutationApplicabilityCheckerTest {
                 fail("tried to define the mutation sequence for an incompatible mutation!")
         }
 
-        assertEquals(emptyList(), MutationApplicabilityChecker(schema, documentWithResolution(schema, ParseTestUtil.parse(""))).checkApplicability(incompatibleMutation))
+        assertEquals(emptyList<MutationApplicability>(), MutationApplicabilityChecker(schema, documentWithResolution(schema, ParseTestUtil.parse(""))).checkApplicability(incompatibleMutation))
     }
 
     private
