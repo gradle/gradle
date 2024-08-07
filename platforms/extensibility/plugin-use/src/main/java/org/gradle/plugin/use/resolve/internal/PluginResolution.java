@@ -50,4 +50,11 @@ public interface PluginResolution {
     default String getPluginVersion() {
         return null;
     }
+
+    /**
+     * Returns {@code true}, if the plugin is from a local build.
+     */
+    default boolean isLocal() {
+        return false;
+    }
 }

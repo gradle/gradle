@@ -56,6 +56,11 @@ class LocalPluginResolution implements PluginResolution {
         pluginManager.apply(pluginId.getId());
     }
 
+    @Override
+    public boolean isLocal() {
+        return true;
+    }
+
     static Optional<PluginResolution> resolvePlugin(GradleInternal gradle, PluginId requestedPluginId) {
         ProjectPublicationRegistry publicationRegistry = gradle.getServices().get(ProjectPublicationRegistry.class);
         for (ProjectPublicationRegistry.Reference<PluginPublication> reference : publicationRegistry.getPublications(PluginPublication.class)) {
