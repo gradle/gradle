@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.test.precondition.Requires
@@ -24,6 +25,11 @@ import spock.lang.Issue
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     CompiledLanguage language = CompiledLanguage.JAVA
+
+    @Override
+    String expectedJavaCompilationFailureMessage() {
+        return CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW
+    }
 
     def "doesn't recompile when private inner class changes"() {
         given:
