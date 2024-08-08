@@ -757,7 +757,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         then:
         // Depending on the language, we expect either:
         //  - The
-        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_ABOVE) || failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
+        failure.assertHasCause(expectedJavaCompilationFailureMessage())
     }
 
     def "detects changes in compile classpath order"() {
