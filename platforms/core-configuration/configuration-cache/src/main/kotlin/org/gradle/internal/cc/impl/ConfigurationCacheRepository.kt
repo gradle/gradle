@@ -220,7 +220,7 @@ class ConfigurationCacheRepository(
     private
     fun relatedStateFileFor(parentStateFile: File, path: Path) =
         parentStateFile.run {
-            resolveSibling("${path.segments().joinToString("_")}.$name")
+            resolveSibling("${path.segments().joinToString("_", "_")}.$name")
         }
 
     private
