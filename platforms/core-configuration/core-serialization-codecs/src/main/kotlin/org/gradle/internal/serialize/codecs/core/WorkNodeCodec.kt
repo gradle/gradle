@@ -39,6 +39,7 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateContextSource
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
@@ -70,20 +71,20 @@ class WorkNodeCodec(
     private val contextSource: IsolateContextSource
 ) {
 
-    suspend fun WriteContext.writeWork(work: ScheduledWork) {
+    fun WriteContext.writeWork(work: ScheduledWork) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
             doWrite(work)
         }
     }
 
-    suspend fun ReadContext.readWork(): ScheduledWork =
+    fun ReadContext.readWork(): ScheduledWork =
         withGradleIsolate(owner, internalTypesCodec) {
             doRead()
         }
 
     private
-    suspend fun WriteContext.doWrite(work: ScheduledWork) {
+    fun WriteContext.doWrite(work: ScheduledWork) {
         val nodes = work.scheduledNodes
         val nodeCount = nodes.size
         val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount).apply {
@@ -127,7 +128,7 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun ReadContext.doRead(): ScheduledWork {
+    fun ReadContext.doRead(): ScheduledWork {
         val (nodes, nodesById) = readNodes()
         // Note that using the ImmutableSet retains the original ordering of entry nodes.
         val entryNodes =
@@ -145,61 +146,86 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeNodes(
+    fun WriteContext.writeNodes(
         nodes: ImmutableList<Node>,
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
     ) {
         require(this is DefaultWriteContext)
-        val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val isolateOwner = isolate.owner
+        val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
-            val ownerPath = owner.asPath()
-            writeString(ownerPath.path)
-            val childContext = contextSource.writeContextFor(this, ownerPath)
-            childContext.writeWith(null) {
-                withIsolate(isolateOwner) {
-                    writeCollection(groupNodes) { node ->
-                        val nodeId = nodeIds.getInt(node)
-                        writeSmallInt(nodeId)
-                        write(node)
-                        if (node is LocalTaskNode) {
-                            val prepareNodeId = nodeIds.getInt(node.prepareNode)
-                            writeSmallInt(prepareNodeId)
-                        }
-                    }
-                }
+            val groupPath = pathFor(owner)
+            writeString(groupPath.path)
+            contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
+                writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
             }
         }
     }
 
     private
-    suspend fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
+    fun pathFor(owner: NodeOwner): Path {
+        // TODO:parallel-cc make sure there are no conflicts between project node and owner-less nodes
+        return when (owner) {
+            NodeOwner.None -> Path.path("X")
+            is NodeOwner.Project -> owner.project.identityPath
+        }
+    }
+
+    private
+    fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
         require(this is DefaultReadContext)
         val nodes = mutableListOf<Node>()
         val nodesById = mutableMapOf<Int, Node>()
         val isolateOwner = isolate.owner
         val projectProvider = getSingletonProperty<ProjectProvider>()
         readCollection {
-            val ownerPath = Path.path(readString())
-            val childContext = contextSource.readContextFor(this, ownerPath)
-            childContext.readWith(null) {
+            val groupPath = Path.path(readString())
+            contextSource.readContextFor(this, groupPath).readWith(Unit) {
                 setSingletonProperty(projectProvider)
-                withIsolate(isolateOwner) {
-                    readCollection {
-                        val nodeId = readSmallInt()
-                        val node = readNode()
-                        nodesById[nodeId] = node
-                        if (node is LocalTaskNode) {
-                            node.prepareNode.require()
-                            val prepareNodeId = readSmallInt()
-                            nodesById[prepareNodeId] = node.prepareNode
-                        }
-                        nodes.add(node)
-                    }
-                }
+                readGroupedNodes(isolateOwner, nodes, nodesById)
             }
         }
         return nodes to nodesById
+    }
+
+    private
+    suspend fun WriteContext.writeGroupedNodes(
+        isolateOwner: IsolateOwner,
+        nodes: List<Node>,
+        nodeIds: Object2IntOpenHashMap<Node>
+    ) {
+        withIsolate(isolateOwner) {
+            writeCollection(nodes) { node ->
+                val nodeId = nodeIds.getInt(node)
+                writeSmallInt(nodeId)
+                write(node)
+                if (node is LocalTaskNode) {
+                    val prepareNodeId = nodeIds.getInt(node.prepareNode)
+                    writeSmallInt(prepareNodeId)
+                }
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.readGroupedNodes(
+        isolateOwner: IsolateOwner,
+        nodes: MutableList<Node>,
+        nodesById: MutableMap<Int, Node>
+    ) {
+        withIsolate(isolateOwner) {
+            readCollection {
+                val nodeId = readSmallInt()
+                val node = readNode()
+                nodesById[nodeId] = node
+                if (node is LocalTaskNode) {
+                    node.prepareNode.require()
+                    val prepareNodeId = readSmallInt()
+                    nodesById[prepareNodeId] = node.prepareNode
+                }
+                nodes.add(node)
+            }
+        }
     }
 
     private
@@ -303,20 +329,7 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: IdForNode) {
-        var successors = node.dependencySuccessors
-        if (node is ActionNode) {
-            val setupNode = node.action?.preExecutionNode
-            // Could probably add some abstraction for nodes that can be executed eagerly and discarded
-            if (setupNode is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies) {
-                setupNode.run(object : NodeExecutionContext {
-                    override fun <T : Any> getService(type: Class<T>): T {
-                        return ownerService(type)
-                    }
-                })
-                successors = successors + setupNode.postExecutionNodes
-            }
-        }
-        writeSuccessorReferences(successors, scheduledNodeIds)
+        writeSuccessorReferences(dependencySuccessorsOf(node), scheduledNodeIds)
         when (node) {
             is TaskNode -> {
                 writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
@@ -356,13 +369,31 @@ class WorkNodeCodec(
     }
 
     private
+    fun WriteContext.dependencySuccessorsOf(node: Node): MutableSet<Node> {
+        var successors = node.dependencySuccessors
+        if (node is ActionNode) {
+            val setupNode = node.action?.preExecutionNode
+            // Could probably add some abstraction for nodes that can be executed eagerly and discarded
+            if (setupNode is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies) {
+                setupNode.run(object : NodeExecutionContext {
+                    override fun <T : Any> getService(type: Class<T>): T {
+                        return ownerService(type)
+                    }
+                })
+                successors = successors + setupNode.postExecutionNodes
+            }
+        }
+        return successors
+    }
+
+    private
     fun WriteContext.writeSuccessorReferences(
         successors: Collection<Node>,
-        scheduledNodeIds: IdForNode
+        idForNode: IdForNode
     ) {
         for (successor in successors) {
             if (successor.isRequired) {
-                val successorId = scheduledNodeIds(successor)
+                val successorId = idForNode(successor)
                 writeSmallInt(successorId)
             }
         }
@@ -383,22 +414,14 @@ class WorkNodeCodec(
 
 sealed class NodeOwner {
 
-    abstract fun asPath(): Path
+    object None : NodeOwner()
 
-    object NoOwner : NodeOwner() {
-        val path = Path.path("")
-        override fun asPath(): Path =
-            path
-    }
-    data class Project(val project: ProjectInternal) : NodeOwner() {
-        override fun asPath(): Path = project.identityPath
-    }
-
+    data class Project(val project: ProjectInternal) : NodeOwner()
 
     companion object {
         fun of(node: Node): NodeOwner {
             return when (val project = node.owningProject) {
-                null -> NoOwner
+                null -> None
                 else -> Project(project)
             }
         }
