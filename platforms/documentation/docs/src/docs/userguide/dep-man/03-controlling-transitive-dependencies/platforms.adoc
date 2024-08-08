@@ -433,7 +433,7 @@ The actual version will be subject to traditional conflict resolution, if any.
 [[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 
-A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
+A <<glossary.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
 In most cases it's exclusively composed of <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> which will either _suggest_ dependency versions or _enforce_ some versions.
 As such, this is a perfect tool whenever you need to _share dependency versions between projects_.
 In this case, a project will typically be organized this way:

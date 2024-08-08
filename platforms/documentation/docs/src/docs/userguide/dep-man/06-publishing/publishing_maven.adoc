@@ -16,7 +16,7 @@
 = The Maven Publish Plugin
 
 The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven] repository.
-A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
+A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
 You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
 
 
@@ -60,11 +60,11 @@ Copies all defined publications to the local Maven cache, including their metada
 [[publishing_maven:publications]]
 == Publications
 
-This plugin provides <<dependency_management_terminology.adoc#sub:terminology_publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. To learn how to define and use publications, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<glossary.adoc#sub:terminology_publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. To learn how to define and use publications, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in a Maven publication:
 
- * A <<dependency_management_terminology.adoc#sub:terminology_component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * A <<glossary.adoc#sub:terminology_component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)].
  * <<publishing_customization.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)] method. See link:{groovyDslPath}/org.gradle.api.publish.maven.MavenArtifact.html[MavenArtifact] for the available configuration options for custom Maven artifacts.
  * Standard metadata like `artifactId`, `groupId` and `version`.
  * Other contents of the POM file — via link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)].
@@ -140,7 +140,7 @@ Gradle will also use the versions resolved on the `runtimeClasspath` for depende
 [[publishing_maven:repositories]]
 == Repositories
 
-This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<glossary.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 
@@ -255,7 +255,7 @@ The result is that the following artifacts will be published:
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
 
 TIP: publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
-If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
+If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories_adv.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
 
 [[publishing_maven:deferred_configuration]]
 == Removal of deferred configuration behavior
