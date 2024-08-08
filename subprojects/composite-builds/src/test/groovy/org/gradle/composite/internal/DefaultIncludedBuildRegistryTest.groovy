@@ -42,8 +42,8 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.session.CrossBuildSessionState
 import org.gradle.internal.work.WorkerLeaseService
@@ -62,7 +62,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def listenerManager = Stub(ListenerManager) {
         getBroadcaster(BuildAddedListener) >> buildAddedListener
     }
-    def services = new DefaultServiceRegistry()
+    ServiceRegistry services
     def modelServices = Mock(BuildModelControllerServices)
     def buildTree = Mock(BuildTreeState)
     def factory = new BuildStateFactory(
@@ -79,16 +79,21 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     )
 
     def setup() {
-        services.add(Stub(WorkerLeaseService))
-        services.add(Stub(BuildTreeWorkGraphController))
-        services.add(Stub(ExceptionAnalyser))
-        services.add(Stub(BuildOperationRunner))
-        services.add(Stub(BuildStateRegistry))
-        services.add(Stub(BuildTreeLifecycleControllerFactory))
-        services.add(Stub(BuildModelParameters))
-        services.add(Stub(GradleInternal))
-        services.add(Stub(DocumentationRegistry))
-        services.add(modelServices)
+        def gradleInternal = Stub(GradleInternal)
+
+        services = ServiceRegistryBuilder.builder()
+            .service(Stub(WorkerLeaseService), WorkerLeaseService)
+            .service(Stub(BuildTreeWorkGraphController), BuildTreeWorkGraphController)
+            .service(Stub(ExceptionAnalyser), ExceptionAnalyser)
+            .service(Stub(BuildOperationRunner), BuildOperationRunner)
+            .service(Stub(BuildStateRegistry), BuildStateRegistry)
+            .service(Stub(BuildTreeLifecycleControllerFactory), BuildTreeLifecycleControllerFactory)
+            .service(Stub(BuildModelParameters), BuildModelParameters)
+            .service(Stub(GradleInternal), GradleInternal)
+            .service(Stub(DocumentationRegistry), DocumentationRegistry)
+            .service(modelServices, BuildModelControllerServices)
+            .service(buildController(), BuildLifecycleController)
+            .build()
 
         _ * buildTree.services >> services
     }
@@ -101,8 +106,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def "can add a root build"() {
         def notifiedBuild
         def buildDefinition = Stub(BuildDefinition)
-        def buildController = buildController()
-        services.add(buildController)
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
@@ -318,12 +321,10 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     RootBuildState rootBuild(TestFile rootDir = tmpDir.createDir("root-dir")) {
-        def settings = Stub(SettingsInternal)
-        def gradle = Stub(GradleInternal)
-        def buildController = buildController(settings, gradle)
+        def settings = services.get(SettingsInternal)
+        def gradle = services.get(GradleInternal)
         def build = Stub(RootBuildState)
 
-        services.add(buildController)
         modelServices.servicesForBuild(_, _, _) >> Mock(BuildModelControllerServices.Supplier)
         settings.rootProject >> Stub(ProjectDescriptor) {
             getName() >> "root"

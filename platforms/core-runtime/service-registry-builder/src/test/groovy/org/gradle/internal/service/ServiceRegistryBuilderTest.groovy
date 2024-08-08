@@ -36,8 +36,30 @@ class ServiceRegistryBuilderTest extends Specification {
         exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
     }
 
+    def "supports adding service instances via the builder"() {
+        def service1 = Stub(BuildTreeScopedService)
+        def service2 = Stub(AnotherBuildTreeScopedService)
+
+        def registry = ServiceRegistryBuilder.builder()
+            .service(service1, BuildTreeScopedService)
+            .provider {} // intentionally empty
+            .service(service2, AnotherBuildTreeScopedService)
+            .build()
+
+        when:
+        def actualService1 = registry.get(BuildTreeScopedService)
+        def actualService2 = registry.get(AnotherBuildTreeScopedService)
+
+        then:
+        actualService1 === service1
+        actualService2 === service2
+    }
+
     @ServiceScope(Scope.BuildTree)
     static class BuildTreeScopedService {}
+
+    @ServiceScope(Scope.BuildTree)
+    static class AnotherBuildTreeScopedService {}
 
     static class ScopedServiceProvider implements ServiceRegistrationProvider {
         @Provides
