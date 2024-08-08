@@ -16,10 +16,17 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.CompiledLanguage
 
 abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
     CompiledLanguage language = CompiledLanguage.GROOVY
+
+    @Override
+    String expectedJavaCompilationFailureMessage() {
+        // Groovy problem reporting is not yet implemented
+        return CompilationFailedException.COMPILATION_FAILED_DETAILS_ABOVE
+    }
 
     private String goodAstTransformation() {
         """

@@ -29,6 +29,17 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
 
     abstract CompiledLanguage getLanguage()
 
+    /**
+     * Returns the expected error message when a compilation fails.
+     * <p>
+     * This method should be overridden by subclasses that have a different expectation,
+     * based on their integration level with the problems API
+     *
+     * @return the expected error message
+     * @see CompilationFailedException
+     */
+    abstract String expectedJavaCompilationFailureMessage();
+
     def setup() {
         createDirs("a", "b")
         settingsFile << """
@@ -744,7 +755,9 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         fails ":${language.compileTaskName}"
 
         then:
-        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
+        // Depending on the language, we expect either:
+        //  - The
+        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_ABOVE) || failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
     }
 
     def "detects changes in compile classpath order"() {
@@ -802,7 +815,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         fails ":${language.compileTaskName}"
 
         then:
-        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
+        failure.assertHasCause(expectedJavaCompilationFailureMessage())
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20398")
