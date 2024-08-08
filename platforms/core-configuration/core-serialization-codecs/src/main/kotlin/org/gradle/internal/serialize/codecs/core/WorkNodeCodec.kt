@@ -49,8 +49,10 @@ import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.util.Path
 
 private
