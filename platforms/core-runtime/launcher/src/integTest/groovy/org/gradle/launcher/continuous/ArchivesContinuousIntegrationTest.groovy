@@ -76,8 +76,8 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
 
         def permissions = readonly
             ? """
-                fileMode 0644
-                dirMode 0755
+                filePermissions { unix(0644) }
+                dirPermissions { unix(0755) }
               """
             : ""
 
