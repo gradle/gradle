@@ -67,17 +67,18 @@ interface WriteContext : MutableIsolateContext, Encoder {
 }
 
 
-interface CloseableWriteContext : WriteContext, AutoCloseable {
-    fun <I, R> writeWith(
-        argument: I,
-        writeOperation: suspend WriteContext.(I) -> R
-    ): R =
-        useToRun {
-            runWriteOperation {
-                writeOperation(argument)
-            }
+interface CloseableWriteContext : WriteContext, AutoCloseable
+
+
+fun <I, R> CloseableWriteContext.writeWith(
+    argument: I,
+    writeOperation: suspend WriteContext.(I) -> R
+): R =
+    useToRun {
+        runWriteOperation {
+            writeOperation(argument)
         }
-}
+    }
 
 
 interface Tracer {
@@ -130,15 +131,18 @@ interface MutableReadContext : ReadContext {
 
 interface CloseableReadContext : MutableReadContext, AutoCloseable {
     fun finish()
-    fun <I, R> readWith(argument: I, readOperation: suspend MutableReadContext.(I) -> R) =
-        useToRun {
-            runReadOperation {
-                readOperation(argument)
-            }.also {
-                finish()
-            }
-        }
+
 }
+
+
+fun <I, R> CloseableReadContext.readWith(argument: I, readOperation: suspend MutableReadContext.(I) -> R) =
+    useToRun {
+        runReadOperation {
+            readOperation(argument)
+        }.also {
+            finish()
+        }
+    }
 
 
 inline
