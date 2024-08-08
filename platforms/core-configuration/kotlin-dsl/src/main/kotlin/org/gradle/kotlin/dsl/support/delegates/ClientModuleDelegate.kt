@@ -101,7 +101,7 @@ abstract class ClientModuleDelegate : org.gradle.api.artifacts.ClientModule {
     override fun setTransitive(transitive: Boolean): ModuleDependency =
         delegate.setTransitive(transitive)
 
-    @Deprecated("Deprecated in Java", ReplaceWith("Object.equals(Object)"))
+    @Deprecated("Deprecated in Java", ReplaceWith("this.equals(dependency)"))
     override fun contentEquals(dependency: Dependency): Boolean =
         delegate.contentEquals(dependency)
 
