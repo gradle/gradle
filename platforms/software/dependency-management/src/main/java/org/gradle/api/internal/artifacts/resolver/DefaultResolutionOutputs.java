@@ -122,7 +122,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             viewConfiguration.lenient,
             viewConfiguration.componentFilter,
             viewConfiguration.reselectVariants,
-            viewConfiguration.viewAttributes.asImmutable(),
+            viewConfiguration.viewAttributes,
 
             resolutionAccess,
             taskDependencyFactory,
@@ -138,7 +138,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final boolean lenient;
         private final Spec<? super ComponentIdentifier> componentFilter;
         private final boolean reselectVariants;
-        private final ImmutableAttributes viewAttributes;
+        private final AttributeContainerInternal viewAttributes;
 
         // Services
         private final ResolutionAccess resolutionAccess;
@@ -150,7 +150,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             boolean lenient,
             Spec<? super ComponentIdentifier> componentFilter,
             boolean reselectVariants,
-            ImmutableAttributes viewAttributes,
+            AttributeContainerInternal viewAttributes,
 
             ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
@@ -213,11 +213,11 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
             // When re-selecting, we do not base the view attributes on the original request attributes.
             if (reselectVariants) {
-                return viewAttributes;
+                return viewAttributes.asImmutable();
             }
 
             // Otherwise, artifact views without re-selection are based on the original request attributes.
-            return attributesFactory.concat(baseAttributes, viewAttributes);
+            return attributesFactory.concat(baseAttributes, viewAttributes.asImmutable());
         }
     }
 
