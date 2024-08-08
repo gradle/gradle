@@ -86,7 +86,9 @@ class WorkNodeCodec(
     suspend fun WriteContext.doWrite(work: ScheduledWork) {
         val nodes = work.scheduledNodes
         val nodeCount = nodes.size
-        val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount)
+        val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount).apply {
+            defaultReturnValue(-1)
+        }
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
         // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
@@ -110,7 +112,13 @@ class WorkNodeCodec(
         writeCollection(scheduledEntryNodeIds) {
             writeSmallInt(it)
         }
-        val idForNode: IdForNode = scheduledNodeIds::getInt
+        val idForNode: IdForNode = { node ->
+            scheduledNodeIds.getInt(node).also {
+                require(it >= 0) {
+                    "Node id missing for node $it"
+                }
+            }
+        }
         writeCollection(nodes) { node ->
             writeSmallInt(idForNode(node))
             writeSuccessorReferencesOf(node, idForNode)
