@@ -111,7 +111,8 @@ class WorkNodeCodec(
             writeSmallInt(it)
         }
         val idForNode: IdForNode = scheduledNodeIds::getInt
-        nodes.forEach { node ->
+        writeCollection(nodes) { node ->
+            writeSmallInt(idForNode(node))
             writeSuccessorReferencesOf(node, idForNode)
             writeNodeGroup(node.group, idForNode)
         }
@@ -127,7 +128,8 @@ class WorkNodeCodec(
             }.build()
 
         val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
-        nodes.forEach { node ->
+        readCollection {
+            val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
         }
