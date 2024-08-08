@@ -394,7 +394,7 @@ class DefaultConfigurationCacheIO internal constructor(
     /**
      * Provides R/W isolate contexts based on some other context.
      */
-    inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile): IsolateContextSource {
+    inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
         override fun readContextFor(baseContext: CloseableReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
                 readContextFor(it).also { (subContext, subCodecs) ->
@@ -405,7 +405,7 @@ class DefaultConfigurationCacheIO internal constructor(
         override fun writeContextFor(baseContext: CloseableWriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
                 //TODO-RC what would be a proper profile string here?
-                writeContextFor(it, { "private state for $path" } ).also { (subContext, subCodecs) ->
+                writeContextFor(it) { "private state for $path" }.also { (subContext, subCodecs) ->
                     subContext.push(subCodecs.internalTypesCodec())
                 }.first
             }
