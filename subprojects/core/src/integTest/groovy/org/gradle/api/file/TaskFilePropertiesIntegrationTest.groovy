@@ -152,7 +152,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile 'include "a", "b"'
 
         buildFile('a/build.gradle', '''
-            configurations { compile }
+            configurations.create("compile")
             dependencies { compile project(path: ':b', configuration: 'archives') }
 
             task doStuff(type: InputTask) {
@@ -178,7 +178,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations {
-                deps
+                create("deps")
                 archives {
                     extendsFrom deps
                 }
