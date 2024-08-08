@@ -40,11 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 2.0.0
+==== Upgrade to Kotlin 2.0.10
 
-The embedded Kotlin has been updated from 1.9.24 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.0[Kotlin 2.0.0].
+The embedded Kotlin has been updated from 1.9.24 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.10[Kotlin 2.0.10].
+Also see the link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.0[Kotlin 2.0.0] release notes.
 
-The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.0 as well.
+The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.10 as well.
 
 Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backwards compatibility.
 
