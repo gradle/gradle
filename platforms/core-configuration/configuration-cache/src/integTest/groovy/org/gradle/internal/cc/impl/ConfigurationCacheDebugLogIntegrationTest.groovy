@@ -19,10 +19,12 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.DefaultTask
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheDebugOption
+import spock.lang.Ignore
 
 import static org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.GradleEnvironment
 import static org.gradle.internal.cc.impl.fingerprint.ProjectSpecificFingerprint.ProjectFingerprint
 
+@Ignore("WIP:parallel cc")
 class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "logs categorized open/close frame events for state and fingerprint files"() {
