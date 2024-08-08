@@ -559,6 +559,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "reaches out to a property of the parent project")
     def "extra properties defined in parent project are accessible to child"() {
         createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"
