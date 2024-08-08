@@ -33,7 +33,6 @@ import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.encryption.EncryptionService
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
@@ -45,6 +44,7 @@ import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateContextSource
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -69,8 +69,6 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.io.path.inputStream
-import kotlin.io.path.outputStream
 
 
 @ServiceScope(Scope.Build::class)
@@ -209,8 +207,8 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(stateFile.stateType, stateFile::inputStream) { codecs ->
-            ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
+        return withReadContextFor(stateFile) { codecs ->
+            ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
                 action(this)
             }
         }
@@ -221,13 +219,11 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val (context, codecs) = writeContextFor(stateFile.stateType, stateFile::outputStream) {
+        val profile = {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
-        return context.useToRun {
-            runWriteOperation {
-                action(ConfigurationCacheState(codecs, stateFile, eventEmitter, host))
-            }
+        return withWriteContextFor(stateFile, profile) { codecs ->
+            action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
         }
     }
 
@@ -246,6 +242,12 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
     }
+
+    private
+    fun writeContextFor(
+        stateFile: ConfigurationCacheStateFile,
+        profile: () -> String
+    ) = writeContextFor(stateFile.stateType, stateFile.stateFile.file::outputStream, profile)
 
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
@@ -323,14 +325,26 @@ class DefaultConfigurationCacheIO internal constructor(
     ): R =
         readContextFor(stateType, inputStream)
             .let { (context, codecs) ->
-                context.useToRun {
-                    runReadOperation {
-                        readOperation(codecs)
-                    }.also {
-                        finish()
-                    }
-                }
+                withReadContextFor(context, codecs, readOperation)
             }
+
+    override fun <R> withReadContextFor(readContext: CloseableReadContext, codecs: Codecs, readOperation: suspend MutableReadContext.(Codecs) -> R): R =
+        readContext.readWith(codecs, readOperation)
+
+    override fun <R> withWriteContextFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        profile: () -> String,
+        writeOperation: suspend WriteContext.(Codecs) -> R
+    ): R =
+        writeContextFor(stateType, outputStream, profile)
+            .let { (context, codecs) ->
+                context.writeWith(codecs, writeOperation)
+            }
+
+    private fun readContextFor(
+        stateFile: ConfigurationCacheStateFile
+    ) = readContextFor(stateFile.stateType, stateFile.stateFile.file::inputStream)
 
     private fun readContextFor(
         stateType: StateType,
@@ -360,18 +374,7 @@ class DefaultConfigurationCacheIO internal constructor(
         tracer,
         problems,
         DefaultClassEncoder(scopeRegistryListener),
-    ).also {
-        it.creator = { file ->
-            val (subContext, subCodecs) = writeContextFor(
-                StateType.Work,
-                outputStream = { file.outputStream() },
-                profile = { file.toString() }
-            )
-
-            subContext.push(subCodecs.internalTypesCodec())
-            subContext
-        }
-    }
+    )
 
     private
     fun readContextFor(
@@ -384,14 +387,26 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         problems,
         DefaultClassDecoder()
-    ).also {
-        it.creator = { file ->
-            val (subContext, subCodecs) =
-                readContextFor(StateType.Work, inputStream = { file.inputStream() })
+    )
 
-            subContext.push(subCodecs.internalTypesCodec())
-            subContext
-        }
+    /**
+     * Provides R/W isolate contexts based on some other context.
+     */
+    inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile): IsolateContextSource {
+        override fun readContextFor(baseContext: CloseableReadContext, path: Path): CloseableReadContext =
+            baseFile.relatedStateFile(path).let {
+                readContextFor(it).also { (subContext, subCodecs) ->
+                    subContext.push(subCodecs.internalTypesCodec())
+                }.first
+            }
+
+        override fun writeContextFor(baseContext: CloseableWriteContext, path: Path): CloseableWriteContext =
+            baseFile.relatedStateFile(path).let {
+                //TODO-RC what would be a proper profile string here?
+                writeContextFor(it, { "private state for $path" } ).also { (subContext, subCodecs) ->
+                    subContext.push(subCodecs.internalTypesCodec())
+                }.first
+            }
     }
 
     private

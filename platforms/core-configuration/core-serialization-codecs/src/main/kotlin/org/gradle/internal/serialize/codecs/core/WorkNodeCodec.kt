@@ -35,10 +35,10 @@ import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateContextSource
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
@@ -51,10 +51,7 @@ import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
-import java.nio.file.Files
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
-
+import org.gradle.util.Path
 
 private
 typealias NodeForId = (Int) -> Node
@@ -67,7 +64,8 @@ typealias IdForNode = (Node) -> Int
 class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
-    private val ordinalGroups: OrdinalGroupFactory
+    private val ordinalGroups: OrdinalGroupFactory,
+    private val contextSource: IsolateContextSource
 ) {
 
     suspend fun WriteContext.writeWork(work: ScheduledWork) {
@@ -134,20 +132,6 @@ class WorkNodeCodec(
         return ScheduledWork(nodes, entryNodes)
     }
 
-    sealed class NodeOwner {
-        object NoOwner : NodeOwner()
-        data class Project(val project: ProjectInternal) : NodeOwner()
-
-        companion object {
-            fun of(node: Node): NodeOwner {
-                return when (val project = node.owningProject) {
-                    null -> NoOwner
-                    else -> Project(project)
-                }
-            }
-        }
-    }
-
     private
     suspend fun WriteContext.writeNodes(
         nodes: ImmutableList<Node>,
@@ -157,15 +141,18 @@ class WorkNodeCodec(
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val isolateOwner = isolate.owner
         writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
-            val file = Files.createTempFile("cc-", owner.toString())
-            writeString(file.absolutePathString())
-            writeContextForFile(file).useToRun {
+            val ownerPath = owner.asPath()
+            writeString(ownerPath.path)
+            val childContext = contextSource.writeContextFor(this, ownerPath)
+            childContext.writeWith(null) {
                 withIsolate(isolateOwner) {
                     writeCollection(groupNodes) { node ->
-                        writeSmallInt(nodeIds.getInt(node))
+                        val nodeId = nodeIds.getInt(node)
+                        writeSmallInt(nodeId)
                         write(node)
                         if (node is LocalTaskNode) {
-                            writeSmallInt(nodeIds.getInt(node.prepareNode))
+                            val prepareNodeId = nodeIds.getInt(node.prepareNode)
+                            writeSmallInt(prepareNodeId)
                         }
                     }
                 }
@@ -181,8 +168,9 @@ class WorkNodeCodec(
         val isolateOwner = isolate.owner
         val projectProvider = getSingletonProperty<ProjectProvider>()
         readCollection {
-            val file = readString()
-            readContextForFile(Paths.get(file)).useToRun {
+            val ownerPath = Path.path(readString())
+            val childContext = contextSource.readContextFor(this, ownerPath)
+            childContext.readWith(null) {
                 setSingletonProperty(projectProvider)
                 withIsolate(isolateOwner) {
                     readCollection {
@@ -376,6 +364,31 @@ class WorkNodeCodec(
             if (successorId == -1) break
             val successor = nodeForId(successorId)
             onSuccessor(successor)
+        }
+    }
+}
+
+
+sealed class NodeOwner {
+
+    abstract fun asPath(): Path
+
+    object NoOwner : NodeOwner() {
+        val path = Path.path("")
+        override fun asPath(): Path =
+            path
+    }
+    data class Project(val project: ProjectInternal) : NodeOwner() {
+        override fun asPath(): Path = project.identityPath
+    }
+
+
+    companion object {
+        fun of(node: Node): NodeOwner {
+            return when (val project = node.owningProject) {
+                null -> NoOwner
+                else -> Project(project)
+            }
         }
     }
 }
