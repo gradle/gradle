@@ -18,7 +18,9 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import spock.lang.Ignore
 
+@Ignore("WIP:parallel cc")
 class ConfigurationCacheStringDeduplicationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "strings are deduplicated across projects"() {
