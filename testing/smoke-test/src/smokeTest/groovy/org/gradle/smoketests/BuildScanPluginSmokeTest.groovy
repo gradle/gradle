@@ -45,8 +45,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         ),
         BAMBOO(
             AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
-            "https://raw.githubusercontent.com/gradle/gradle-enterprise-bamboo-plugin/%s/src/main/resources/gradle-enterprise/gradle/gradle-enterprise-init-script.gradle",
-            "ge-plugin"
+            "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle",
+            "develocity-plugin"
         );
 
         String gitRef
