@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
 import org.gradle.api.problems.Severity
@@ -79,17 +78,18 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         fails("compileJava")
 
-
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            contextualLabel == '\';\' expected'
+            fqid == 'compilation:java:compiler-err-expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            contextualLabel == '\';\' expected'
+            fqid == 'compilation:java:compiler-err-expected'
         }
 
         result.error.contains("2 errors\n")
@@ -105,25 +105,29 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
             solutions.empty
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
 
         result.error.contains("4 errors\n")
@@ -138,14 +142,16 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
 
         result.error.contains("2 warnings\n")
@@ -161,24 +167,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
 
         result.error.contains("4 warnings\n")
@@ -194,24 +204,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
 
         result.error.contains("4 errors\n")
@@ -230,24 +244,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "ERROR", true)
-            fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            assertLocations(it, true)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
 
         result.error.contains("2 errors\n")
@@ -268,9 +286,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         // 2 warnings + 1 special error
         // The compiler will report a single error, implying that the warnings were treated as errors
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "ERROR", false)
-            fqid == 'compilation:java:java-compilation-error'
-            details == 'warnings found and -Werror specified'
+            assertLocations(it, false)
+            severity == Severity.ERROR
+            fqid == 'compilation:java:compiler-err-warnings-and-werror'
+            contextualLabel == 'warnings found and -Werror specified'
             solutions.empty
             additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
         }
@@ -285,9 +304,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
 
         // The two expected warnings are still reported as warnings
         verifyAll(receivedProblem(1)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
                 it.path == fooFileLocation.absolutePath
@@ -298,9 +318,10 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
                    ^"""
         }
         verifyAll(receivedProblem(2)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
             additionalData.asMap ["formatted"] == """\
 ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
@@ -403,9 +424,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         then:
         outputContains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
             // In JDK8, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
         }
@@ -430,9 +452,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         then:
         !result.error.contains(DiagnosticToProblemListener.FORMATTER_FALLBACK_MESSAGE)
         verifyAll(receivedProblem(0)) {
-            assertProblem(it, "WARNING", true)
-            fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            assertLocations(it, true)
+            severity == Severity.WARNING
+            fqid == 'compilation:java:compiler-warn-redundant-cast'
+            contextualLabel == 'redundant cast to java.lang.String'
             // In JDK11, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to String")
         }
@@ -472,27 +495,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
      *
      * @throws AssertionError if the problem does not look like how we expect it to look like
      */
-    void assertProblem(
+    void assertLocations(
         ReceivedProblem problem,
-        String severity,
         boolean expectPreciseLocation = true
     ) {
-        // TODO (donat) we can probably delete some of this method
-        assert problem.definition.severity == Severity.valueOf(severity): "Expected severity to be ${severity}, but was ${problem.definition.severity}"
-        switch (severity) {
-            case "ERROR":
-                assert problem.definition.id.displayName == "Java compilation error": "Expected label 'Java compilation error', but was ${problem.definition.id.displayName}"
-                break
-            case "WARNING":
-                assert problem.definition.id.displayName == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem.definition.id.displayName}"
-                break
-            default:
-                throw new IllegalArgumentException("Unknown severity: ${severity}")
-        }
-
-        def details = problem.details
-        assert details: "Expected details to be non-null, but was null"
-
         def locations = problem.locations
         // We use this counter to assert that we have visited all locations
         def assertedLocationCount = 0
