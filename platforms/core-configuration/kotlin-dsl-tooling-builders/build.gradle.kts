@@ -27,6 +27,8 @@ dependencies {
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.kotlinDsl)
+    testFixturesImplementation(projects.toolingApi)
     testFixturesImplementation(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.persistentCache)
