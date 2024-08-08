@@ -41,6 +41,12 @@ class IsolatedProjectsIdeSyncFixture {
         this.rootDir = rootDir
     }
 
+    void assertHtmlReportHasNoProblems() {
+        assertHtmlReportHasProblems {
+            totalProblemsCount = 0
+        }
+    }
+
     void assertHtmlReportHasProblems(
         @DelegatesTo(value = HasConfigurationCacheProblemsInReportSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
