@@ -695,4 +695,26 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/29916")
+    def "can create jacoco report while report tasks are realized early"() {
+        buildFile << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            tasks.withType(JacocoReport) {
+                // realizes all reports eagerly.
+            }
+
+            reporting {
+                reports {
+                    create("testCodeCoverageReport", JacocoCoverageReport) {
+                        testType.set(TestSuiteType.UNIT_TEST)
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
 }
