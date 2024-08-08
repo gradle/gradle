@@ -37,6 +37,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.time.TimestampSuppliers
+import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -115,6 +116,12 @@ class ConfigurationCacheRepository(
                 includedBuildFileFor(file, build),
                 stateType
             )
+
+        override fun relatedStateFile(path: Path): ConfigurationCacheStateFile =
+            ReadableConfigurationCacheStateFile(
+                relatedStateFileFor(file, path),
+                stateType
+            )
     }
 
     private
@@ -148,6 +155,13 @@ class ConfigurationCacheRepository(
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
                 includedBuildFileFor(file, build),
+                stateType,
+                onFileAccess
+            )
+
+        override fun relatedStateFile(path: Path): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                relatedStateFileFor(file, path),
                 stateType,
                 onFileAccess
             )
@@ -201,6 +215,12 @@ class ConfigurationCacheRepository(
     fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
         parentStateFile.run {
             resolveSibling("$name.${build.name}")
+        }
+
+    private
+    fun relatedStateFileFor(parentStateFile: File, path: Path) =
+        parentStateFile.run {
+            resolveSibling("${path.segments().joinToString("_")}.$name")
         }
 
     private
