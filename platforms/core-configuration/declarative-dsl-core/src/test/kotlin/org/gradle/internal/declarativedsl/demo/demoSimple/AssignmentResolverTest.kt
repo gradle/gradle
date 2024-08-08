@@ -5,9 +5,9 @@ import org.gradle.internal.declarativedsl.demo.assignmentTrace
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
+import org.gradle.internal.declarativedsl.assertIs
 
 
 object AssignmentResolverTest {

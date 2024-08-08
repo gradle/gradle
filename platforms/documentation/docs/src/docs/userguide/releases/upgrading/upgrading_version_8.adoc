@@ -35,6 +35,20 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.11]]
+== Upgrading from 8.10 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.0.10
+
+The embedded Kotlin has been updated from 1.9.24 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.10[Kotlin 2.0.10].
+Also see the link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.0[Kotlin 2.0.0] release notes.
+
+The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.10 as well.
+
+Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backwards compatibility.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 

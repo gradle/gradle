@@ -12,6 +12,10 @@
 test-splits/
 /gradle/verification-keyring.gpg
 
+# Kotlin
+# ------
+.kotlin
+
 # IDEA
 # ----
 !/.idea

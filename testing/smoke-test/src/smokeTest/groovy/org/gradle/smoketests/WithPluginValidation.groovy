@@ -88,6 +88,7 @@ trait WithPluginValidation {
                 "--continue",
                 *extraParameters] as String[])
             validation.ignoreDeprecationWarnings("We are only checking type validation problems here")
+            validation.withJdkWarningChecksDisabled()
 
             def result
             if (failsValidation) {

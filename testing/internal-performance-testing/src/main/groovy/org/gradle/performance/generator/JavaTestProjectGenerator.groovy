@@ -161,7 +161,7 @@ enum JavaTestProjectGenerator {
             "otel" : "io.opentelemetry:opentelemetry-sdk:1.33.0",
             "jackson" : "com.fasterxml.jackson.core:jackson-databind:2.10.0",
             "junit5" : "org.junit.jupiter:junit-jupiter-engine:5.10.0",
-            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:1.9.24",
+            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:2.0.10",
             "testcontainers": "org.testcontainers:mysql:1.15.3",
             "vertx": "io.vertx:vertx-web:4.4.2",
             "keycloak": "org.keycloak:keycloak-core:24.0.1"

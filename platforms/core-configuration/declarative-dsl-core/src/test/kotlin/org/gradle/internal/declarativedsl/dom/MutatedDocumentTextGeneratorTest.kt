@@ -26,8 +26,8 @@ import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTag.BlockElement
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 
 object MutatedDocumentTextGeneratorTest {

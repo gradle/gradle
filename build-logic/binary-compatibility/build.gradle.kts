@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
     id("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
@@ -24,4 +26,11 @@ dependencies {
 
 tasks.compileGroovy.configure {
     classpath += files(tasks.compileKotlin)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        // Usage of deprecated kotlinx-metadata APIs
+        allWarningsAsErrors = false
+    }
 }
