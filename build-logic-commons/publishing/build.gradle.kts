@@ -1,14 +1,14 @@
 plugins {
-    id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
+    `kotlin-dsl`
 }
+
+group = "gradlebuild"
 
 description = "Provides a plugin for publishing some of Gradle's subprojects to Artifactory or the Plugin Portal"
 
 dependencies {
-    implementation("gradlebuild:basics")
-    implementation("gradlebuild:module-identity")
-
-    implementation(projects.integrationTesting)
+    implementation(projects.basics)
+    implementation(projects.moduleIdentity)
 
     implementation("com.gradle.publish:plugin-publish-plugin")
 }
