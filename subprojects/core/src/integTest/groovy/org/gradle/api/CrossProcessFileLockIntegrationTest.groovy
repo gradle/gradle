@@ -33,31 +33,34 @@ class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
     def "the task history lock can be acquired when the initial owner is busy executing tasks"() {
         given:
         createDirs("a", "b")
-        settingsFile << "include 'a', 'b'"
+        settingsFile "include 'a', 'b'"
 
-        file("a/src/main/java/A.java") << "public class A {}"
-        file("b/src/main/java/B.java") << "public class B {}"
+        javaFile("a/src/main/java/A.java", "public class A {}")
+        javaFile("b/src/main/java/B.java", "public class B {}")
 
-        when:
-        buildFile """
-            subprojects {
-                apply plugin: 'java'
+        buildFile("a/build.gradle", """
+            plugins {
+                id("java")
             }
-            project(":a") {
-                compileJava.doFirst {
-                     println 'waiting for resource...'
-                    ${server.callFromTaskAction("first")}
-                    println 'no more waiting!'
-                }
-            }
-            project(":b") {
-                compileJava.doFirst { ${server.callFromTaskAction("second")} }
-            }
-        """
 
+            compileJava.doFirst {
+                println 'waiting for resource...'
+                ${server.callFromTaskAction("first")}
+                println 'no more waiting!'
+            }
+        """)
+
+        buildFile("b/build.gradle", """
+            plugins {
+                id("java")
+            }
+
+            compileJava.doFirst { ${server.callFromTaskAction("second")} }
+        """)
+
+        expect:
         server.expectConcurrent("first", "second")
 
-        then:
         def handle1 = executer.withArguments(':a:build', '-i').start()
         poll(120) {
             assert handle1.standardOutput.contains('waiting for resource...')
