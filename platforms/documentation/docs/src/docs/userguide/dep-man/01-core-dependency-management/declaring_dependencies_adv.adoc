@@ -199,7 +199,7 @@ Gradle provides different notations for module dependencies. There is a string n
 ====
 If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories.
 If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. `cglib`) are downloaded.
-If no such module metadata file exists, as of Gradle 6.0, you need to configure <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
+If no such module metadata file exists, as of Gradle 6.0, you need to configure <<declaring_repositories_adv.adoc#sec:supported_metadata_sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
 ====
 
 [IMPORTANT]
@@ -215,7 +215,7 @@ Each artifact can have a different set of dependencies.
 
 Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies.
 It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code.
-Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<dependency_management_terminology.adoc#sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
+Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<glossary.adoc#sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
 
 .Resolving file dependencies from the local file system and a shared drive
 image::dependency-management-file-dependencies.png[]
@@ -233,7 +233,7 @@ The most prominent methods for creating a file reference are
 link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)],
 link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)]
 and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
-Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<declaring_repositories.adoc#sub:flat_dir_resolver,flat directory repository>>.
+Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,flat directory repository>>.
 
 [NOTE]
 ====
@@ -449,7 +449,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifac
 External module dependencies require module metadata (so that, typically, Gradle can figure out the transitive dependencies of a module).
 To do so, Gradle supports different metadata formats.
 
-You can also tweak which format will be looked up in the <<declaring_repositories.adoc#sec:supported_metadata_sources,repository definition>>.
+You can also tweak which format will be looked up in the <<declaring_repositories_adv.adoc#sec:supported_metadata_sources,repository definition>>.
 
 [[sub:supported-md-gradle]]
 === Gradle Module Metadata files

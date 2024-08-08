@@ -381,7 +381,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency.
 For example: `project(path: ':myJavaProject', configuration: 'default')`.
@@ -715,7 +715,7 @@ Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAc
 }
 ----
 
-See <<declaring_repositories.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<declaring_repositories_adv.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration

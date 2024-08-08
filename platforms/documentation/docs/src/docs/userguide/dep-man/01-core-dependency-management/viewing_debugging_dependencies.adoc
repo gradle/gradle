@@ -29,7 +29,7 @@ You can visualize dependencies with:
 == List Project Dependencies
 
 Gradle provides the built-in `dependencies` task to render a dependency tree from the command line.
-By default, the dependency tree renders dependencies for all <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
+By default, the dependency tree renders dependencies for all <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
 The dependency tree indicates the selected version of each dependency.
 It also displays information about dependency conflict resolution.
 
@@ -44,7 +44,7 @@ The `dependencies` task marks dependency trees with the following annotations:
 
 - `(*)`: Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 - `(c)`: This element is a <<dependency_constraints.adoc#sec:direct-vs-transitive-deps,dependency constraint>>, not a dependency. Look for the matching dependency elsewhere in the tree.
-- `(n)`: A dependency or dependency configuration that <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,cannot be resolved>>.
+- `(n)`: A dependency or dependency configuration that <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,cannot be resolved>>.
 
 === Specify a Dependency Configuration
 
@@ -68,7 +68,7 @@ For more info, see that plugin's documentation (for instance, the Java Plugin is
 === Example
 
 Consider a project that uses the link:https://www.eclipse.org/jgit/[JGit library] to execute Source Control Management (SCM) operations for a release process.
-You can declare dependencies for external tooling with the help of a <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,custom dependency configuration>>.
+You can declare dependencies for external tooling with the help of a <<dependency_configurations.adoc#sec:what-are-dependency-configurations,custom dependency configuration>>.
 This avoids polluting other contexts, such as the compilation classpath for your production source code.
 
 The following example declares a custom dependency configuration named "scm" that contains the JGit dependency:
@@ -106,7 +106,7 @@ image::dependency-management-dependency-insight-report-build-scan.png[]
 === Dependency Insights
 
 Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
-Dependency insights provide information about a single dependency within a single <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configuration>>.
+Dependency insights provide information about a single dependency within a single <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configuration>>.
 Given a dependency, you can identify the selection reason and origin.
 
 `dependencyInsight` accepts the following parameters:
@@ -130,7 +130,7 @@ The following code snippet demonstrates how to run a dependency insight report f
 include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
 ----
 
-For more information about configurations, see the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configuration documentation>>.
+For more information about configurations, see the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configuration documentation>>.
 
 ==== Selection Reasons
 
@@ -146,7 +146,7 @@ Have a look at the table below to understand the meaning of the different terms 
 | No reason other than a reference, direct or transitive, was present.
 
 | Was requested : <text>
-| The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies#sec:documenting-dependencies, `because` text>>.
+| The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies_adv.adoc#sec:documenting-dependencies, `because` text>>.
 
 | Was requested : didn't match versions <versions>
 | The dependency appears with a <<dynamic_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>> which did not include the listed versions.

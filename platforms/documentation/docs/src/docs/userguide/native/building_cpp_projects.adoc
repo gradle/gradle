@@ -108,7 +108,7 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
  * _Project reference_ (ex: `project(':common')`) - the project referenced by the specified path
 
-You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
+You can find a more comprehensive glossary of dependency management terms <<glossary.adoc#dependency_management_terminology,here>>.
 
 As far as configurations go, the main ones of interest are:
 
@@ -125,11 +125,11 @@ We have only scratched the surface here, so we recommend that you read the <<cor
 
 Some common scenarios that require further reading include:
 
- * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven-compatible>> repository
+ * Defining a custom <<declaring_repositories_adv.adoc#sec:maven_repo,Maven-compatible>> repository
  * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
- * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
+ * Declaring a sibling <<declaring_dependencies_adv.adoc#sub:project_dependencies,project as a dependency>>
  * <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies and their versions>>
- * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
+ * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories_adv.adoc#sub:maven_local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 

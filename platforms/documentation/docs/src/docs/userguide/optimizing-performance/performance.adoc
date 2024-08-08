@@ -491,7 +491,7 @@ include::sample[dir="snippets/performance/resolveAtBuildTime/kotlin",files="buil
 include::sample[dir="snippets/performance/resolveAtBuildTime/groovy",files="build.gradle[tags=copy]"]
 ====
 
-Note that the `from()` declaration doesn’t resolve the dependencies because you’re using the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configuration>> itself as an argument, not the files.
+Note that the `from()` declaration doesn’t resolve the dependencies because you’re using the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configuration>> itself as an argument, not the files.
 The `Copy` task resolves the configuration itself during task execution.
 
 ==== Visualize dependency resolution with build scans

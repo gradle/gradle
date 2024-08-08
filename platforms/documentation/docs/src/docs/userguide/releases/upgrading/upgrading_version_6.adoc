@@ -67,7 +67,7 @@ Users can still opt in to have this unique identifier part of the produced metad
 JFrog link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the sunset of the JCenter repository in February 2021. https://blog.gradle.org/jcenter-shutdown[Many Gradle builds] rely on JCenter for project dependencies.
 
 No new packages or versions are published to JCenter, but JFrog says they will keep JCenter running in a read-only state indefinitely.
-We recommend that you consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
+We recommend that you consider <<declaring_repositories.adoc#declaring-basic-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
 
 Gradle emits a deprecation warning when `jcenter()` is used as a repository and this method is scheduled to be removed in Gradle 8.0.
 
