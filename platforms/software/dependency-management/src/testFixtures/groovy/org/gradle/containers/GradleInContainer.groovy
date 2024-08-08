@@ -32,7 +32,7 @@ import org.testcontainers.utility.MountableFile
 @CompileStatic
 @NotThreadSafe
 class GradleInContainer {
-    static final String BASE_IMAGE = "openjdk:11-jre-slim"
+    static final String BASE_IMAGE = "adoptopenjdk/openjdk11:jdk-11.0.24_8-slim"
 
     private final GradleContainer container
     private final GradleContainerExecuter executer
