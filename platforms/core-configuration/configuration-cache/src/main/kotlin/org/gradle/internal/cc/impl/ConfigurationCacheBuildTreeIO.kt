@@ -68,7 +68,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         stateFile: ConfigurationCacheStateFile,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        withReadContextFor(stateFile.stateType, stateFile.stateFile.file::inputStream, readOperation)
+        withReadContextFor(stateFile.stateType, stateFile::inputStream, readOperation)
 
     fun <R> withReadContextFor(
         stateType: StateType,
@@ -87,7 +87,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         profile: () -> String,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        withWriteContextFor(stateFile.stateType, stateFile.stateFile.file::outputStream, profile, writeOperation)
+        withWriteContextFor(stateFile.stateType, stateFile::outputStream, profile, writeOperation)
 
     fun <R> withWriteContextFor(
         stateType: StateType,

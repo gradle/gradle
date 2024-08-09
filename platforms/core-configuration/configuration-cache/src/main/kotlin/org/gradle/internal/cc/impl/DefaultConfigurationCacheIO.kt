@@ -249,7 +249,7 @@ class DefaultConfigurationCacheIO internal constructor(
     fun writeContextFor(
         stateFile: ConfigurationCacheStateFile,
         profile: () -> String
-    ) = writeContextFor(stateFile.stateType, stateFile.stateFile.file::outputStream, profile)
+    ) = writeContextFor(stateFile.stateType, stateFile::outputStream, profile)
 
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
@@ -346,7 +346,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private fun readContextFor(
         stateFile: ConfigurationCacheStateFile
-    ) = readContextFor(stateFile.stateType, stateFile.stateFile.file::inputStream)
+    ) = readContextFor(stateFile.stateType, stateFile::inputStream)
 
     private fun readContextFor(
         stateType: StateType,
