@@ -314,7 +314,11 @@ tasks.test {
 }
 
 tasks.compileTestGroovy {
-    groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
+    groovyOptions.isFork = true
+    groovyOptions.forkOptions.run {
+        memoryInitialSize = "128M"
+        memoryMaximumSize = "1G"
+    }
 }
 
 tasks.isolatedProjectsIntegTest {

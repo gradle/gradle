@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -36,7 +35,8 @@ import java.util.List;
 /**
  * Options for Scala platform compilation.
  */
-public abstract class BaseScalaCompileOptions extends AbstractOptions {
+@SuppressWarnings("deprecation")
+public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compile.AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
