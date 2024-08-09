@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
@@ -60,7 +60,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final GraphVariantSelector graphVariantSelector;
     private final AttributesSchemaInternal consumerSchema;
 
-    private final Lazy<ImmutableSet<ResolvedVariant>> ownArtifacts = Lazy.locking().of(this::calculateOwnArtifacts);
+    private final Lazy<ImmutableList<ResolvedVariant>> ownArtifacts = Lazy.locking().of(this::calculateOwnArtifacts);
 
     public VariantResolvingArtifactSet(
         VariantArtifactResolver variantResolver,
@@ -98,7 +98,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
                 return ResolvedArtifactSet.EMPTY;
             }
 
-            ImmutableSet<ResolvedVariant> variants;
+            ImmutableList<ResolvedVariant> variants;
             try {
                 if (!spec.getSelectFromAllVariants()) {
                     variants = ownArtifacts.get();
@@ -126,11 +126,11 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         }
     }
 
-    public ImmutableSet<ResolvedVariant> calculateOwnArtifacts() {
+    public ImmutableList<ResolvedVariant> calculateOwnArtifacts() {
         if (artifacts.isEmpty()) {
             return getArtifactsForGraphVariant(variant);
         } else {
-            return ImmutableSet.of(variant.prepareForArtifactResolution().resolveAdhocVariant(variantResolver, artifacts));
+            return ImmutableList.of(variant.prepareForArtifactResolution().resolveAdhocVariant(variantResolver, artifacts));
         }
     }
 
@@ -142,7 +142,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
      * same algorithm used during graph variant selection. This considers requested and declared
      * capabilities.</p>
      */
-    private ImmutableSet<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes) {
+    private ImmutableList<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes) {
         // First, find the graph variant containing the artifact variants to select among.
         VariantGraphResolveState graphVariant = graphVariantSelector.selectByAttributeMatchingLenient(
             requestAttributes,
@@ -155,7 +155,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         // It is fine if no graph variants satisfy our request.
         // Variant reselection allows no target variants to be found.
         if (graphVariant == null) {
-            return ImmutableSet.of();
+            return ImmutableList.of();
         }
 
         // Next, return all artifact variants for the selected graph variant.
@@ -165,10 +165,10 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     /**
      * Resolve all artifact variants for the given graph variant.
      */
-    private ImmutableSet<ResolvedVariant> getArtifactsForGraphVariant(VariantGraphResolveState graphVariant) {
+    private ImmutableList<ResolvedVariant> getArtifactsForGraphVariant(VariantGraphResolveState graphVariant) {
         VariantArtifactResolveState variantState = graphVariant.prepareForArtifactResolution();
         Set<? extends VariantResolveMetadata> artifactVariants = variantState.getArtifactVariants();
-        ImmutableSet.Builder<ResolvedVariant> resolved = ImmutableSet.builderWithExpectedSize(artifactVariants.size());
+        ImmutableList.Builder<ResolvedVariant> resolved = ImmutableList.builderWithExpectedSize(artifactVariants.size());
 
         ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
         if (exclusions.mayExcludeArtifacts()) {

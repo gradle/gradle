@@ -47,14 +47,22 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
-        this.rules.add(new InstantiatingAction<>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)),
-            instantiator, new ExceptionHandler<>(rule)));
+        this.rules.add(new InstantiatingAction<>(
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)),
+            instantiator,
+            new ExceptionHandler<>(rule),
+            true
+        ));
     }
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule) {
-        this.rules.add(new InstantiatingAction<>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule)),
-            instantiator, new ExceptionHandler<>(rule)));
+        this.rules.add(new InstantiatingAction<>(
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule)),
+            instantiator,
+            new ExceptionHandler<>(rule),
+            true
+        ));
     }
 
     @Override

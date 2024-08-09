@@ -257,7 +257,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                 collectedRules.add(classBasedRule.getConfigurableRule());
             }
         }
-        return new InstantiatingAction<>(new DefaultConfigurableRules<>(collectedRules), instantiator, new ExceptionHandler());
+        return new InstantiatingAction<>(new DefaultConfigurableRules<>(collectedRules), instantiator, new ExceptionHandler(), false);
     }
 
 

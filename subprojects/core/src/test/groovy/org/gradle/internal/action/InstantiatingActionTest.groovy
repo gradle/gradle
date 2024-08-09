@@ -47,7 +47,8 @@ class InstantiatingActionTest extends Specification {
                     }
                 }, SnapshotTestUtil.isolatableFactory())),
             TestUtil.instantiatorFactory().decorateLenient(),
-            shouldNotFail
+            shouldNotFail,
+            false
         )
 
         then:
@@ -72,7 +73,8 @@ class InstantiatingActionTest extends Specification {
         def action = new InstantiatingAction<Details>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(RuleWithInjectedParams)),
             TestUtil.instantiatorFactory().inject(registry),
-            shouldNotFail
+            shouldNotFail,
+            false
         )
 
         then:
@@ -85,7 +87,6 @@ class InstantiatingActionTest extends Specification {
         then:
         1 * service.doSomething() >> "hello from service"
         1 * details.see("hello from service")
-
     }
 
     def "can instantiate rule with injected and user-provided parameters"() {
@@ -104,7 +105,8 @@ class InstantiatingActionTest extends Specification {
                     }
                 }, SnapshotTestUtil.isolatableFactory())),
             TestUtil.instantiatorFactory().inject(registry),
-            shouldNotFail
+            shouldNotFail,
+            false
         )
 
         then:
@@ -118,6 +120,45 @@ class InstantiatingActionTest extends Specification {
         1 * service.doSomething() >> "hello from service"
         1 * details.see("hello from service", 456)
 
+    }
+
+    def "rules are cached if requested"() {
+        def details = new RecordingDetails()
+        def details2 = new RecordingDetails()
+        def service = Mock(SomeService)
+        def registry = new DefaultServiceRegistry()
+        registry.add(SomeService, service)
+
+        when:
+        def action = new InstantiatingAction<Details>(
+            new DefaultConfigurableRules<>([
+                DefaultConfigurableRule.of(InstanceRecordingRule),
+                DefaultConfigurableRule.of(InstanceRecordingRule)
+            ]),
+            TestUtil.instantiatorFactory().inject(registry),
+            shouldNotFail,
+            cache
+        )
+        action.execute(details)
+        action.execute(details2)
+
+        then:
+        def call1rule1 = details.calls[0]
+        def call1rule2 = details.calls[1]
+
+        def call2rule1 = details2.calls[0]
+        def call2rule2 = details2.calls[1]
+
+        if (cache) {
+            assert call1rule1[0].is(call2rule1[0])
+            assert call1rule2[0].is(call2rule2[0])
+        } else {
+            assert !(call1rule1[0].is(call2rule1[0]))
+            assert !(call1rule2[0].is(call2rule2[0]))
+        }
+
+        where:
+        cache << [true, false]
     }
 
     static interface Details {
@@ -175,6 +216,22 @@ class InstantiatingActionTest extends Specification {
         @Override
         void execute(Details details) {
             details.see(service.doSomething(), x)
+        }
+    }
+
+    static class InstanceRecordingRule implements Action<Details> {
+        @Override
+        void execute(Details details) {
+            details.see(this)
+        }
+    }
+
+    static class RecordingDetails implements Details {
+        List<Object[]> calls = []
+
+        @Override
+        void see(Object... args) {
+            calls << args
         }
     }
 

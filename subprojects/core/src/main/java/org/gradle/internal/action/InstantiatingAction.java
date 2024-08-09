@@ -17,53 +17,64 @@
 package org.gradle.internal.action;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.ReusableAction;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
     private final ConfigurableRules<DETAILS> rules;
     private final Instantiator instantiator;
     private final ExceptionHandler<DETAILS> exceptionHandler;
-    private final Action<DETAILS>[] reusableRules;
+    private final List<Action<DETAILS>> reusableRules;
 
-    @SuppressWarnings("unchecked")
-    public InstantiatingAction(ConfigurableRules<DETAILS> rules, Instantiator instantiator, ExceptionHandler<DETAILS> exceptionHandler) {
+    public InstantiatingAction(
+        ConfigurableRules<DETAILS> rules,
+        Instantiator instantiator,
+        ExceptionHandler<DETAILS> exceptionHandler,
+        boolean cacheRules
+    ) {
         this.rules = rules;
         this.instantiator = instantiator;
         this.exceptionHandler = exceptionHandler;
-        this.reusableRules = new Action[rules.getConfigurableRules().size()];
+
+        if (cacheRules) {
+            this.reusableRules = new ArrayList<>(rules.getConfigurableRules().size());
+        } else {
+            this.reusableRules = null;
+        }
     }
 
     public InstantiatingAction<DETAILS> withInstantiator(Instantiator instantiator) {
-        return new InstantiatingAction<DETAILS>(rules, instantiator, exceptionHandler);
+        return new InstantiatingAction<>(rules, instantiator, exceptionHandler, reusableRules != null);
     }
 
     @Override
     public void execute(DETAILS target) {
         List<ConfigurableRule<DETAILS>> configurableRules = rules.getConfigurableRules();
-        int i = 0;
-        for (ConfigurableRule<DETAILS> rule : configurableRules) {
+        for (int i = 0; i < configurableRules.size(); i++) {
+            ConfigurableRule<DETAILS> rule = configurableRules.get(i);
             try {
-                Action<DETAILS> instance = reusableRules[i];
-                if (!(instance instanceof ReusableAction)) {
-                    instance = instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams().isolate());
-                    // This second check is only done so that we can make the difference between an uninitialized rule (never seen before) and
-                    // a rule which is not reusable
-                    if (instance instanceof ReusableAction) {
-                        reusableRules[i] = instance;
+                if (reusableRules == null) {
+                    instantiateRule(rule).execute(target);
+                } else {
+                    Action<DETAILS> instance;
+                    if (i < reusableRules.size()) {
+                        instance = reusableRules.get(i);
                     } else {
-                        reusableRules[i] = Actions.doNothing();
+                        instance = instantiateRule(rule);
+                        reusableRules.add(instance);
                     }
+                    instance.execute(target);
                 }
-                instance.execute(target);
             } catch (Throwable t) {
                 exceptionHandler.handleException(target, t);
             }
-            i++;
         }
+    }
+
+    private Action<DETAILS> instantiateRule(ConfigurableRule<DETAILS> rule) {
+        return instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams().isolate());
     }
 
     public ConfigurableRules<DETAILS> getRules() {

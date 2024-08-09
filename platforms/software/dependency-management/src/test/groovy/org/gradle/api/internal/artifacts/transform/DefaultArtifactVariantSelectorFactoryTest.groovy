@@ -57,7 +57,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.schema >> producerSchema
@@ -78,7 +78,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.asDescribable() >> Describables.of('<component>')
@@ -109,7 +109,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
         def transformedVariants = variants.collect { transformedVariant(it, requested)}
 
         given:
@@ -151,7 +151,7 @@ Found the following transforms:
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.schema >> producerSchema
@@ -173,7 +173,7 @@ Found the following transforms:
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.schema >> producerSchema

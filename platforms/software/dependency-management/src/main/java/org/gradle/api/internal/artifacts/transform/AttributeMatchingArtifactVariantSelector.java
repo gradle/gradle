@@ -16,15 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -33,9 +28,7 @@ import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
@@ -82,15 +75,12 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
-        final List<ResolvedVariant> variants = ImmutableList.copyOf(producer.getVariants());
+        final List<ResolvedVariant> variants = producer.getVariants();
 
         List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
-            // Request is ambiguous. Rerun matching again, except capture an explanation this time for reporting.
-            TraceDiscardedVariants newExpBuilder = new TraceDiscardedVariants();
-            matches = matcher.matchMultipleCandidates(variants, componentRequested, newExpBuilder);
             throw failureProcessor.ambiguousArtifactsFailure(schema, matcher, producer, componentRequested, matches);
         }
 
@@ -158,29 +148,5 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         return differentTransforms;
-    }
-
-    private static class TraceDiscardedVariants implements AttributeMatchingExplanationBuilder {
-
-        private final Set<HasAttributes> discarded = new HashSet<>();
-
-        @Override
-        public boolean canSkipExplanation() {
-            return false;
-        }
-
-        @Override
-        public <T extends HasAttributes> void candidateDoesNotMatchAttributes(T candidate, AttributeContainerInternal requested) {
-            recordDiscardedCandidate(candidate);
-        }
-
-        public <T extends HasAttributes> void recordDiscardedCandidate(T candidate) {
-            discarded.add(candidate);
-        }
-
-        @Override
-        public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
-            recordDiscardedCandidate(candidate);
-        }
     }
 }
