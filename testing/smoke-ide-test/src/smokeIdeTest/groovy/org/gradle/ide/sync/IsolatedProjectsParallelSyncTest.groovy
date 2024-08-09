@@ -16,7 +16,6 @@
 
 package org.gradle.ide.sync
 
-
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
@@ -42,7 +41,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeaSyncTest {
 //        server.expectConcurrent("configure-a", "configure-b")
 
         expect:
-        ideaSync("2024.2")
+        ideaSync(IDEA_VERSION)
     }
 
     private void simpleProject() {
