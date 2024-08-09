@@ -17,10 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +39,6 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasLineNumber(3)
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "produces reasonable error message when taskGraph.whenReady action fails"() {
         buildFile << """
     def action = {

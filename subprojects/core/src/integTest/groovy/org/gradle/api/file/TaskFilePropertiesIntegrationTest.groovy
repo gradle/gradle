@@ -17,9 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
 class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -149,44 +147,45 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksNotSkipped(":transform")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task dependencies are inferred from contents of input FileCollection"() {
         // Include a configuration with transitive dep on a Jar and an unmanaged Jar.
-        file('settings.gradle') << 'include "a", "b"'
-        file('a/build.gradle') << '''
-configurations { compile }
-dependencies { compile project(path: ':b', configuration: 'archives') }
+        settingsFile 'include "a", "b"'
 
-task doStuff(type: InputTask) {
-    src = configurations.compile + fileTree('src/java')
-}
+        buildFile('a/build.gradle', '''
+            configurations.create("compile")
+            dependencies { compile project(path: ':b', configuration: 'archives') }
 
-class InputTask extends DefaultTask {
-    @InputFiles
-    def FileCollection src
-}
-'''
-        file('b/build.gradle') << '''
-apply plugin: 'base'
-task jar {
-    doLast {
-        file('b.jar').text = 'some jar'
-    }
-}
+            task doStuff(type: InputTask) {
+                src = configurations.compile + fileTree('src/java')
+            }
 
-task otherJar(type: Jar) {
-    destinationDirectory = buildDir
-}
+            class InputTask extends DefaultTask {
+                @InputFiles
+                def FileCollection src
+            }
+        ''')
+        buildFile('b/build.gradle', '''
+            apply plugin: 'base'
+            task jar {
+                def jarFile = file('b.jar')
+                doLast {
+                    jarFile.text = 'some jar'
+                }
+            }
 
-configurations {
-    deps
-    archives {
-        extendsFrom deps
-    }
-}
-dependencies { deps files('b.jar') { builtBy jar } }
-artifacts { archives otherJar }
-'''
+            task otherJar(type: Jar) {
+                destinationDirectory = buildDir
+            }
+
+            configurations {
+                create("deps")
+                archives {
+                    extendsFrom deps
+                }
+            }
+            dependencies { deps files('b.jar') { builtBy jar } }
+            artifacts { archives otherJar }
+        ''')
 
         when:
         run("doStuff")
