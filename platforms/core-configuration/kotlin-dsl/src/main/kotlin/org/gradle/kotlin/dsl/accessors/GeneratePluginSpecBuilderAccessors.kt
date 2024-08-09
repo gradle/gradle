@@ -31,9 +31,9 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.sourceNameOfBinaryName
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
@@ -156,11 +156,11 @@ fun IO.buildPluginDependencySpecAccessorsFor(
     srcDir: File,
     binDir: File
 ) {
-    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
+    makeAccessorOutputDirs(srcDir, binDir, KOTLIN_DSL_PACKAGE_PATH)
 
     val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath)
 
-    val baseFileName = "$kotlinDslPackagePath/PluginDependencySpecAccessors"
+    val baseFileName = "$KOTLIN_DSL_PACKAGE_PATH/PluginDependencySpecAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
     val accessorList = pluginDependencySpecAccessorsFor(pluginTrees).toList()
@@ -360,7 +360,7 @@ fun pluginDependencySpecAccessorsFor(pluginTrees: Map<String, PluginTree>, exten
 
 internal
 fun typeSpecForPluginGroupType(groupType: String) =
-    TypeSpec(groupType, InternalName("$kotlinDslPackagePath/$groupType"))
+    TypeSpec(groupType, InternalName("$KOTLIN_DSL_PACKAGE_PATH/$groupType"))
 
 
 internal
