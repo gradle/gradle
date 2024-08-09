@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /* Custom Admonition Blocks */
-:root {
+body {
     --gradle-blue: #209BC4;
     --gradle-bg-dark: #010002;
     --gradle-bg-gray: #F8F8F8;
@@ -24,7 +24,6 @@
     --gradle-blue-dark: #1b3262;
     --gradle-blue-darker: #19274f;
     --button-gradient-angle: 160deg;
-
 	--caution-color: #e40046;
 	--caution-on-color: #fff;
 	--important-color: #802392;
@@ -36,16 +35,16 @@
 	--warning-color: #f70;
 	--warning-on-color: #fff;
 	--admonition-background: #fafafa;
-
 	--doc-icon-filter: invert(14.5%);
 	--rem-base: 18;
-
 	--black-color: #000;
 	--white-color: #fff;
 	--text-color: #02303A;
 	--title-color: #02303A;
 	--header-color: rgba(0, 0, 0, 0.85);
-	--footer-color: rgba(0, 0, 0, 0.8);
+	--footer-color: #fff;
+	--footer-other-text-color: #02303;
+	--footer-form-color: #1BA8CB;
 	--code-color: #f7f7f8;
 	--code-text-color: rgba(0, 0, 0, 0.9);
 	--code-link-color: #021274;
@@ -58,30 +57,126 @@
 	--footer-text-color: #fff;
 	--quoteblock-color: #7a2518;
 	--menu-burger-color: #fff;
+	--various-border-color: #e7e7e9;
+}
 
-	.dark-mode {
-		--admonition-background: #2a2929;
-		--black-color: #fff;
-		--white-color: #121212;
-		--text-color: #aaa;
-		--title-color: #fff;
-		--header-color: rgba(255, 255, 255, 0.85);
-		--footer-color: #242526;
-		--code-color: #1f1f1f;
-		--code-text-color: rgba(255, 255, 255, 0.9);
-		--code-link-color: #1fafcc;
-		--num-color: #fff;
-		--nav-color: #121212;
-		--table-color: #121212;
-		--box-shadow-color: rgba(255, 255, 255, .15);
-		--top-header-color: #242526;
-		--footer-white-color: #242526;
-		--footer-text-color: #aaa;
-		--quoteblock-color: #1DA2BD;
-		--menu-burger-color: #242526;
+body.dark-theme {
+    --admonition-background: #2a2929;
+    --black-color: #fff;
+    --white-color: #121212;
+    --text-color: #aaa;
+    --title-color: #fff;
+    --header-color: rgba(255, 255, 255, 0.85);
+    --footer-color: #121212;
+    --footer-other-text-color: #ddd;
+    --code-color: #1f1f1f;
+    --code-text-color: rgba(255, 255, 255, 0.9);
+    --code-link-color: #1fafcc;
+    --num-color: #fff;
+    --nav-color: #121212;
+    --table-color: #121212;
+    --box-shadow-color: rgba(255, 255, 255, .15);
+    --top-header-color: #242526;
+    --footer-white-color: #242526;
+    --footer-text-color: #aaa;
+    --footer-form-color: #1BA8CB;
+    --quoteblock-color: #1DA2BD;
+    --menu-burger-color: #242526;
+    --various-border-color: #242526;
+}
 
+@media (prefers-color-scheme: dark) {
+  /* defaults to dark theme */
+  body {
+    --admonition-background: #2a2929;
+    --black-color: #fff;
+    --white-color: #121212;
+    --text-color: #aaa;
+    --title-color: #fff;
+    --header-color: rgba(255, 255, 255, 0.85);
+    --footer-color: #121212;
+    --footer-other-text-color: #ddd;
+    --code-color: #1f1f1f;
+    --code-text-color: rgba(255, 255, 255, 0.9);
+    --code-link-color: #1fafcc;
+    --num-color: #fff;
+    --nav-color: #121212;
+    --table-color: #121212;
+    --box-shadow-color: rgba(255, 255, 255, .15);
+    --top-header-color: #242526;
+    --footer-white-color: #242526;
+    --footer-text-color: #aaa;
+    --footer-form-color: #1BA8CB;
+    --quoteblock-color: #1DA2BD;
+    --menu-burger-color: #242526;
+    --various-border-color: #242526;
+  }
+  body.light-theme {
+    --gradle-blue: #209BC4;
+    --gradle-bg-dark: #010002;
+    --gradle-bg-gray: #F8F8F8;
+    --gradle-bg-white: #FFFFFF;
+    --gradle-blue: #209BC4;
+    --gradle-blue-lite: #4DC9C0;
+    --gradle-blue-dark: #1b3262;
+    --gradle-blue-darker: #19274f;
+    --button-gradient-angle: 160deg;
+	--caution-color: #e40046;
+	--caution-on-color: #fff;
+	--important-color: #802392;
+	--important-on-color: #fff;
+	--note-color: #2d7dd2;
+	--note-on-color: #fff;
+	--tip-color: #43b929;
+	--tip-on-color: #fff;
+	--warning-color: #f70;
+	--warning-on-color: #fff;
+	--admonition-background: #fafafa;
+	--doc-icon-filter: invert(14.5%);
+	--rem-base: 18;
+	--black-color: #000;
+	--white-color: #fff;
+	--text-color: #02303A;
+	--title-color: #02303A;
+	--header-color: rgba(0, 0, 0, 0.85);
+	--footer-color: #fff;
+    --footer-other-text-color: #02303;
+	--code-color: #f7f7f8;
+	--code-text-color: rgba(0, 0, 0, 0.9);
+	--code-link-color: #021274;
+	--num-color: rgba(0, 0, 0, 0.8);
+	--nav-color: #f8f8f7;
+	--table-color: #f7f8f7;
+	--box-shadow-color: rgba(0, 0, 0, .15);
+	--top-header-color: #fff;
+	--footer-white-color: #fff;
+	--footer-text-color: #fff;
+	--footer-form-color: #1BA8CB;
+	--quoteblock-color: #7a2518;
+	--menu-burger-color: #fff;
+	--various-border-color: #e7e7e9;
+  }
+}
 
-	}
+.cls-1 {
+    fill: #02303a;
+}
+
+body.dark-theme {
+    .cls-1 {
+      fill: #fff;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .cls-1 {
+        fill: #fff;
+    }
+    body.light-theme {
+        .cls-1 {
+            fill: #02303a;
+        }
+    }
 }
 
 /* Lato (normal, regular) */
@@ -1486,11 +1581,24 @@ table.tableblock #preamble>.sectionbody>.paragraph:first-of-type p {
 
 /* Custom SVG logos coloring */
 path {
-	fill="#02303A";
+	fill: #02303A;
 }
 
-.dark-mode path {
-	fill: white;
+body.dark-theme {
+    path {
+        fill: white;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    path {
+        fill: white;
+    }
+    body.light-theme {
+        path {
+            fill: #02303A;
+        }
+    }
 }
 
 /* Custom scroll bar */
@@ -1515,7 +1623,7 @@ path {
 	border: 3px #686868;
 }
 
-.dark-mode {
+body.dark-theme {
     /* Works on Firefox */
     * {
       scrollbar-width: auto;
@@ -1535,6 +1643,51 @@ path {
       background-color: #686868;
       border-radius: 20px;
       border: 3px #686868;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    /* Works on Firefox */
+    * {
+      scrollbar-width: auto;
+      scrollbar-color: #686868 #242526;
+    }
+
+    /* Works on Chrome, Edge, and Safari */
+    *::-webkit-scrollbar {
+      width: auto;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: #242526;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background-color: #686868;
+      border-radius: 20px;
+      border: 3px #686868;
+    }
+
+    body.light-theme {
+        .docs-navigation {
+            scrollbar-width: auto;
+            scrollbar-color: #686868 #e7e7e9;
+        }
+
+        /* Works on Chrome, Edge, and Safari */
+        .docs-navigation::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .docs-navigation::-webkit-scrollbar-track {
+            background: #e7e7e9;
+        }
+
+        .docs-navigation::-webkit-scrollbar-thumb {
+            background-color: #686868;
+            border-radius: 20px;
+            border: 3px #686868;
+        }
     }
 }
 
@@ -3345,7 +3498,7 @@ div.screenshot {
 		z-index: 2;
 	}
 
-	.dark-mode {
+	body.dark-theme {
 		.site-header {
 			-webkit-box-shadow: none;
 			-moz-box-shadow: none;
@@ -3353,6 +3506,23 @@ div.screenshot {
 			z-index: 2;
 		}
 	}
+
+    @media (prefers-color-scheme: dark) {
+        .site-header {
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+            box-shadow: none;
+            z-index: 2;
+        }
+        body.light-theme {
+        	.site-header {
+        		-webkit-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
+        		-moz-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
+        		box-shadow: 0 2px 4px 0 var(--box-shadow-color);
+        		z-index: 2;
+        	}
+        }
+    }
 
 	/*
       Pushes the section headings to just below the top nav bar when a user
@@ -3440,7 +3610,7 @@ div.screenshot {
 /* Side Navigation styles */
 /* Docs Navigation */
 .docs-navigation {
-	border-right: 1px solid #e7e7e9;
+	border-right: 1px solid var(--various-border-color);
 }
 
 .docs-navigation .search-container {
@@ -3656,7 +3826,7 @@ div.screenshot {
 }
 
 .site-footer__links .site-footer__links-list a {
-	color: #ddd;
+	color: var(--footer-other-text-color);
 }
 
 .site-footer__link-group {
@@ -3665,11 +3835,11 @@ div.screenshot {
 }
 
 .site-footer__link-group header {
-	color: var(--footer-text-color);
+	color: var(--text-color);
 }
 
 .site-footer__subscribe-newsletter .newsletter-form__header h5 {
-	color: var(--footer-text-color);
+	color: var(--text-color);
 	margin-top: 0;
 }
 
@@ -3680,7 +3850,7 @@ div.screenshot {
 }
 
 .site-footer__subscribe-newsletter .disclaimer {
-	color: #ddd;
+	color: var(--footer-other-text-color);
 	font-size: 0.75rem;
 	opacity: 0.55;
 }
@@ -3704,7 +3874,7 @@ div.screenshot {
 	padding-left: 20px;
 	border-top-left-radius: 4px;
 	border-bottom-left-radius: 4px;
-	border-style: none;
+	border: 1px solid var(--footer-form-color);
 }
 
 .site-footer__subscribe-newsletter .submit {
@@ -3713,7 +3883,7 @@ div.screenshot {
 	line-height: inherit;
 	width: 100px;
 	background-color: #1BA8CB;
-	color: var(--white-color);
+	color: #fff;
 	font-weight: 500;
 	border-top-right-radius: 4px;
 	border-bottom-right-radius: 4px;
@@ -3725,18 +3895,35 @@ div.screenshot {
 /* Secondary footer (below) */
 .site-footer-secondary {
 	background-color: var(--footer-white-color);
-	border-top: 1px solid #e7e7e9;
+	border-top: 1px solid var(--various-border-color);
 	width: 100%;
 	z-index: 1;
 }
 
-.dark-mode {
+body.dark-theme {
 	.site-footer-secondary {
 		background-color: var(--footer-white-color);
 		border-top: none;
 		width: 100%;
 		z-index: 1;
 	}
+}
+
+@media (prefers-color-scheme: dark) {
+	.site-footer-secondary {
+		background-color: var(--footer-white-color);
+		border-top: none;
+		width: 100%;
+		z-index: 1;
+	}
+	body.light-theme {
+        .site-footer-secondary {
+            background-color: var(--footer-white-color);
+            border-top: 1px solid var(--various-border-color);
+            width: 100%;
+            z-index: 1;
+        }
+    }
 }
 
 .site-footer-secondary__contents {
@@ -3927,6 +4114,7 @@ div.screenshot {
 .site-footer {
 	background-color: var(--footer-color);
 	padding: 20px 0 40px 0;
+	border-top: 1px solid var(--various-border-color);
 }
 
 #header {
@@ -4134,8 +4322,7 @@ code[data-lang="text"] .fun {
 	color: #000;
 }
 
-.dark-mode {
-
+body.dark-theme {
 	code[data-lang="text"] .pln,
 	code[data-lang="text"] .str,
 	code[data-lang="text"] .kwd,
@@ -4153,9 +4340,7 @@ code[data-lang="text"] .fun {
 	code[data-lang="text"] .fun {
 		color: #fff !important;
 	}
-}
 
-.dark-mode {
     .com       { color: #909090 !important; }
     .str, .tag { color: #90a959 !important; }
     .kwd, .atv { color: #d28445 !important; }
@@ -4164,15 +4349,88 @@ code[data-lang="text"] .fun {
     .pun, .pln,
     .opn, .clo { color: #d0d0d0 !important; }
     .dec, .var { color: #aa759f !important; }
-}
 
-.dark-mode {
 	li.L1,
 	li.L3,
 	li.L5,
 	li.L7,
 	li.L9 {
 		background: #111 !important;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	code[data-lang="text"] .pln,
+	code[data-lang="text"] .str,
+	code[data-lang="text"] .kwd,
+	code[data-lang="text"] .com,
+	code[data-lang="text"] .typ,
+	code[data-lang="text"] .lit,
+	code[data-lang="text"] .pun,
+	code[data-lang="text"] .opn,
+	code[data-lang="text"] .clo,
+	code[data-lang="text"] .tag,
+	code[data-lang="text"] .atn,
+	code[data-lang="text"] .atv,
+	code[data-lang="text"] .dec,
+	code[data-lang="text"] .var,
+	code[data-lang="text"] .fun {
+		color: #fff !important;
+	}
+
+    .com       { color: #909090 !important; }
+    .str, .tag { color: #90a959 !important; }
+    .kwd, .atv { color: #d28445 !important; }
+    .typ       { color: #f4bf75 !important; }
+    .lit, .atn { color: #6a9fb5 !important; }
+    .pun, .pln,
+    .opn, .clo { color: #d0d0d0 !important; }
+    .dec, .var { color: #aa759f !important; }
+
+	li.L1,
+	li.L3,
+	li.L5,
+	li.L7,
+	li.L9 {
+		background: #111 !important;
+	}
+
+	body.light-theme {
+        code[data-lang="text"] .pln,
+        code[data-lang="text"] .str,
+        code[data-lang="text"] .kwd,
+        code[data-lang="text"] .com,
+        code[data-lang="text"] .typ,
+        code[data-lang="text"] .lit,
+        code[data-lang="text"] .pun,
+        code[data-lang="text"] .opn,
+        code[data-lang="text"] .clo,
+        code[data-lang="text"] .tag,
+        code[data-lang="text"] .atn,
+        code[data-lang="text"] .atv,
+        code[data-lang="text"] .dec,
+        code[data-lang="text"] .var,
+        code[data-lang="text"] .fun {
+            color: #000;
+        }
+
+        .pln       { color: #000 !important;; }
+        .com       { color: #800 !important;; }
+        .str, .tag { color: #080 !important;; }
+        .kwd, .atv { color: #008 !important;; }
+        .typ       { color: #606 !important;; }
+        .lit, .atn { color: #066 !important;; }
+        .pun,
+        .opn, .clo { color: #660 !important;; }
+        .dec, .var { color: #606 !important;; }
+
+        li.L1,
+        li.L3,
+        li.L5,
+        li.L7,
+        li.L9 {
+            background: #eee;
+        }
 	}
 }
 
@@ -4197,6 +4455,7 @@ code[data-lang="text"] .fun {
         text-decoration: none;
     }
 }
+
 .badge {
     background-color: var(--black-color);
     height: 24px;
@@ -4209,15 +4468,18 @@ code[data-lang="text"] .fun {
         color: var(--gradle-blue);
     }
 }
+
 .badge-type {
     border-radius: 8px;
     margin-right: 10px;
     padding-left: 10px;
     padding-right: 10px;
 }
+
 .badge-text {
     color: var(--white-color);
 }
+
 .button--blue {
   color: white;
   border-color: transparent;
@@ -4225,6 +4487,7 @@ code[data-lang="text"] .fun {
     color: white;
   }
 }
+
 .button--blue {
   background: var(--gradle-blue);
   background: linear-gradient(var(--button-gradient-angle), var(--gradle-blue) 0%, var(--gradle-blue-lite) 100%);
