@@ -163,10 +163,8 @@ class WorkNodeCodec(
                 writeString(groupPath.path)
                 add(object : RunnableBuildOperation {
                     override fun run(context: BuildOperationContext) {
-                        runWriteOperation {
-                            contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
-                                writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
-                            }
+                        contextSource.writeContextFor(this@writeNodes, groupPath).writeWith(Unit) {
+                            writeGroupedNodes(nodeOwner, isolateOwner, groupNodes, nodeIds)
                         }
                     }
 
@@ -205,6 +203,7 @@ class WorkNodeCodec(
 
     private
     suspend fun WriteContext.writeGroupedNodes(
+        nodeOwner: NodeOwner,
         isolateOwner: IsolateOwner,
         nodes: List<Node>,
         nodeIds: Object2IntOpenHashMap<Node>
@@ -213,7 +212,9 @@ class WorkNodeCodec(
             writeCollection(nodes) { node ->
                 val nodeId = nodeIds.getInt(node)
                 writeSmallInt(nodeId)
-                write(node)
+                runSafely(nodeOwner) {
+                    write(node)
+                }
                 if (node is LocalTaskNode) {
                     val prepareNodeId = nodeIds.getInt(node.prepareNode)
                     writeSmallInt(prepareNodeId)
@@ -239,6 +240,18 @@ class WorkNodeCodec(
                     nodesById[prepareNodeId] = node.prepareNode
                 }
                 nodes.add(node)
+            }
+        }
+    }
+
+    private
+    suspend fun WriteContext.runSafely(owner: NodeOwner, function: suspend () -> Unit) {
+        when (owner) {
+            is NodeOwner.None -> function()
+            is NodeOwner.Project -> owner.project.owner.applyToMutableState {
+                runWriteOperation {
+                    function()
+                }
             }
         }
     }
