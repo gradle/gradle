@@ -63,6 +63,7 @@ kotlin {
 
             implementation(libs.material3WindowSizeClassMultiplatform)
             implementation(libs.materialKolor)
+            implementation(libs.filekit.compose)
 
             implementation(libs.slf4j.api)
             implementation(libs.logback.classic)
