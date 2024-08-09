@@ -1,8 +1,7 @@
 a = 1
-a.b.c = 1
+a = (1)
 b = this
 c = null
-d = a.b.c
 x = true
 
 block {
@@ -15,4 +14,10 @@ f(x=y)
 f.g.h.i.j.k(test)
 f(1, x, "s", g())
 f(a = b, c = d)
-f(1).g(2).h(3)
+
+// errors
+// a.b.c = 1
+// d = a.b.c
+// a.b {d = 1}
+// a.b.c {d = 1}
+// f(1).g(2).h(3)  // TODO: do we want to allow for this?

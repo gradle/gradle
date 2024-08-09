@@ -39,23 +39,21 @@ root ::= statements
 statement ::= (assignment | expression)
 statements ::= (statement semis?)*
 
-assignment ::= directlyAssignableExpression EQ expression {pin=2}
+assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
 expression ::= postfixUnaryExpression
 
 semis ::= SEMI+
 
 directlyAssignableExpression ::=
-    (postfixUnaryExpression navigationSuffix*) |          // navigationSuffix changed to optional due to greedy matching
+    primaryExpression |
     simpleIdentifier |
     parenthesizedDirectlyAssignableExpression
 
 parenthesizedDirectlyAssignableExpression ::= LP directlyAssignableExpression RP
 
-postfixUnaryExpression ::= primaryExpression postfixUnarySuffix*
+postfixUnaryExpression ::= primaryExpression postfixUnarySuffixes?
 
-postfixUnarySuffix ::= callSuffix | navigationSuffix
-
-callSuffix ::= (valueArguments? annotatedLambda) | valueArguments
+postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
 
 annotatedLambda ::= LB statements RB {pin=1}
 
