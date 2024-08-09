@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath.types;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.cache.StringInterner;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -38,10 +39,16 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
     private final InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry;
     private final Map<String, Set<String>> directSuperTypes;
     private final Map<String, Set<String>> instrumentedSuperTypes = new ConcurrentHashMap<>();
+    private final StringInterner interner;
 
-    public ExternalPluginsInstrumentationTypeRegistry(Map<String, Set<String>> directSuperTypes, InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
+    public ExternalPluginsInstrumentationTypeRegistry(
+        Map<String, Set<String>> directSuperTypes,
+        InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry,
+        StringInterner interner
+    ) {
         this.directSuperTypes = ImmutableMap.copyOf(directSuperTypes);
         this.gradleCoreInstrumentationTypeRegistry = gradleCoreInstrumentationTypeRegistry;
+        this.interner = interner;
     }
 
     @Override
@@ -67,7 +74,7 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
         Set<String> computedInstrumentedSuperTypes = instrumentedSuperTypes.get(type);
         if (computedInstrumentedSuperTypes == null) {
             computedInstrumentedSuperTypes = computeInstrumentedSuperTypes(type, visited);
-            instrumentedSuperTypes.put(type, computedInstrumentedSuperTypes);
+            instrumentedSuperTypes.put(interner.intern(type), computedInstrumentedSuperTypes);
         }
         return computedInstrumentedSuperTypes;
     }
@@ -82,6 +89,7 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
         // we would need to be more precise and actually check if types are instrumented.
         return superTypes.stream()
             .filter(superType -> superType.startsWith(GRADLE_CORE_PACKAGE_PREFIX))
+            .map(interner::intern)
             .collect(Collectors.toSet());
     }
 

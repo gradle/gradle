@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.types
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class ExternalPluginsInstrumentationTypeRegistryTest extends ConcurrentSpec {
@@ -33,7 +34,7 @@ class ExternalPluginsInstrumentationTypeRegistryTest extends ConcurrentSpec {
             "E": ["D"] as Set,
             "F": ["E"] as Set
         ] as Map<String, Set<String>>
-        def typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry)
+        def typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry, new StringInterner())
 
         when:
         def instrumentedSuperTypes = typeRegistry.getSuperTypes("F")
@@ -58,7 +59,7 @@ class ExternalPluginsInstrumentationTypeRegistryTest extends ConcurrentSpec {
         ] as Map<String, Set<String>>
 
         when:
-        def typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry)
+        def typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry, new StringInterner())
         def gInstrumentedSuperTypes = typeRegistry.getSuperTypes("G")
         def fInstrumentedSuperTypes = typeRegistry.getSuperTypes("F")
         def dInstrumentedSuperTypes = typeRegistry.getSuperTypes("D")
@@ -69,7 +70,7 @@ class ExternalPluginsInstrumentationTypeRegistryTest extends ConcurrentSpec {
         fInstrumentedSuperTypes ==~ ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set<String>
 
         when:
-        typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry)
+        typeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreRegistry, new StringInterner())
         dInstrumentedSuperTypes = typeRegistry.getSuperTypes("D")
         fInstrumentedSuperTypes = typeRegistry.getSuperTypes("F")
         gInstrumentedSuperTypes = typeRegistry.getSuperTypes("G")

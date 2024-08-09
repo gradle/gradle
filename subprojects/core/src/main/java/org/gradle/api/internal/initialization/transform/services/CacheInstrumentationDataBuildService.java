@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
 import org.gradle.api.internal.initialization.transform.utils.CachedInstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer;
@@ -172,8 +173,9 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             try {
                 return typeRegistryCache.get(typeHierarchyAnalysis, () -> {
                     InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
+                    StringInterner stringInterner = internalServices.getStringInterner();
                     Map<String, Set<String>> directSuperTypes = mergeTypeHierarchyAnalysis(typeHierarchyAnalysis);
-                    return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
+                    return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry, stringInterner);
                 });
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry
@@ -52,7 +53,7 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
         return new ExternalPluginsInstrumentationTypeRegistry([
             "org/gradle/internal/classpath/InheritedMethodTestReceiver\$A": ["org/gradle/internal/classpath/InheritedMethodTestReceiver"] as Set,
             "org/gradle/internal/classpath/InheritedMethodTestReceiver\$B": ["org/gradle/internal/classpath/InheritedMethodTestReceiver\$A"] as Set
-        ], InstrumentationTypeRegistry.empty())
+        ], InstrumentationTypeRegistry.empty(), new StringInterner())
     }
 
     String interceptedFor(InheritedMethodTestReceiver receiver) {
