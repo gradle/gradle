@@ -29,7 +29,7 @@ class ArtifactViewArtifactSelectionIntegrationTest extends AbstractIntegrationSp
                 resolveConf {
                     canBeConsumed = false
                     assert canBeResolved
-                } 
+                }
             }
         """
         file("producer/output").text = "from project producer"
@@ -82,10 +82,16 @@ class ArtifactViewArtifactSelectionIntegrationTest extends AbstractIntegrationSp
                 conf {
                     assert canBeConsumed
                     canBeResolved = false
+                    outgoing {
+                        capability("example:capability-1:1.0")
+                    }
                 }
                 additionalConf {
                     assert canBeConsumed
                     canBeResolved = false
+                    outgoing {
+                        capability("example:capability-2:1.0")
+                    }
                 }
             }
             artifacts {

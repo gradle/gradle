@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -39,6 +40,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
@@ -81,7 +84,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 ModuleIdentifier rootModuleId = rootId;
                 candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getId().getModule().equals(rootModuleId));
             }
-            if (candidatesForConflict.size() > 1) {
+            if (candidatesForConflict.size() > 1 && !isMultipleIvyConfsByNameInSameProject(candidatesForConflict)) {
                 PotentialConflict conflict = new PotentialConflict() {
                     @Override
                     public void withParticipatingModules(Action<ModuleIdentifier> action) {
@@ -100,6 +103,22 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             }
         }
         return PotentialConflictFactory.noConflict();
+    }
+
+    /**
+     * Tests if the given candidate nodes represent multiple Ivy configurations selected by name from the same module.
+     * <p>
+     * Depending on multiple Ivy configurations by name from the same module should <strong>NOT</strong>
+     * ever produce a capability conflict.
+     *
+     * @param nodes the nodes to examine
+     * @return {@code true} if conditions are met, {@code false} otherwise
+     */
+    private boolean isMultipleIvyConfsByNameInSameProject(List<NodeState> nodes) {
+        Supplier<Boolean> allAreIvy = () -> nodes.stream().allMatch(n -> n.getComponent().getMetadata() instanceof IvyModuleResolveMetadata);
+        Supplier<Boolean> allAreSameProject = () -> nodes.stream().map(n -> n.getComponent().getId()).distinct().count() == 1;
+        Supplier<Boolean> areSelectedByName = () -> nodes.stream().noneMatch(NodeState::isSelectedByVariantAwareResolution);
+        return allAreIvy.get() && allAreSameProject.get() && areSelectedByName.get();
     }
 
     private Set<NodeState> findNodesFor(CapabilityInternal capability) {
@@ -270,7 +289,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     private static class CapabilityConflict {
-
         private final Collection<NodeState> nodes;
         private final Set<Capability> descriptors;
 
@@ -285,16 +303,5 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             }
             this.descriptors = builder.build();
         }
-
-    }
-
-    private static boolean sameComponentAppearsMultipleTimes(CapabilityConflict conflict) {
-        Set<ComponentState> components = new HashSet<>();
-        for (NodeState node : conflict.nodes) {
-            if (!components.add(node.getComponent())) {
-                return true;
-            }
-        }
-        return false;
     }
 }

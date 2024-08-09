@@ -640,8 +640,16 @@ project('c') {
 project(':a') {
     apply plugin: 'base'
     configurations {
-        configOne
-        configTwo
+        configOne {
+            outgoing {
+                capability("example:capability-1:1.0")
+            }
+        }
+        configTwo  {
+            outgoing {
+                capability("example:capability-2:1.0")
+            }
+        }
     }
     task A1jar(type: Jar) {
         archiveFileName = 'A1.jar'

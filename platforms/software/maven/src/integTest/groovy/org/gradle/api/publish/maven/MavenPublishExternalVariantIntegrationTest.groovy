@@ -503,6 +503,9 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "extra"))
                     }
+                    outgoing {
+                        capability("example:other-capability-2:1.0")
+                    }
                 }
             }
 
@@ -681,8 +684,18 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
         buildFile << """
             dependencies {
-                firstImplementation create(project(':other'))
+                firstImplementation project(':other')
                 firstImplementation project(path: ':other', configuration: 'secondRuntimeElements')
+            }
+        """
+
+        file("other/build.gradle") << """
+            configurations {
+                secondRuntimeElements {
+                    outgoing {
+                        capability("example:second-runtime-elements-capability-2:1.0")
+                    }
+                }
             }
         """
 
