@@ -14,7 +14,7 @@ In next section we will use next terms:
 1. We will use `bytecode instrumentation` when we talk about configuration cache bytecode instrumentation.
 2. We will use `bytecode upgrades` when we talk about Property or API upgrades.
 3. We will use `bytecode interception` when we talk about both bytecode instrumentation or bytecode upgrades.
-4. We will use `transformation` when we talk about applying some interception to to jars or classes or classpath.
+4. We will use `transformation` when we talk about applying some interception to jars or classes or classpath.
 
 It is possible that in the code we use all these terms interchangeably, but we will try to be consistent in this document.
 
