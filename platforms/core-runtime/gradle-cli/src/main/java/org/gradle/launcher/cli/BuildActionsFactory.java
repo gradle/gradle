@@ -35,7 +35,6 @@ import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -68,7 +67,6 @@ import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
     private final ServiceRegistry loggingServices;
-    private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
 
@@ -76,7 +74,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
         this.basicServices = basicServices;
         this.loggingServices = loggingServices;
         this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
-        this.jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
     }
 
     @Override
@@ -101,7 +98,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
 
-        daemonParameters.applyDefaultsFromJvmCriteria(jvmVersionDetector);
         DaemonRequestContext requestContext = daemonParameters.toRequestContext();
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext));
@@ -142,13 +138,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
         if (!currentProcess.isLowMemoryProcess()) {
-            if (comparison.isSatisfiedBy(contextForCurrentProcess)) {
-                if (daemonParameters.hasUserDefinedImmutableJvmArgs()) {
-                    return currentProcess.getJvmOptions().getAllImmutableJvmArgs().equals(daemonParameters.getEffectiveSingleUseJvmArgs());
-                } else {
-                    return true;
-                }
-            }
+            return comparison.isSatisfiedBy(contextForCurrentProcess);
         }
         return false;
     }
@@ -161,8 +151,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             JavaLanguageVersion.current(),
             Jvm.current().getVendor(),
             null, 0L, 0,
-            // The gradle options aren't being properly checked.
-            requestContext.getDaemonOpts(),
+            currentProcess.getJvmOptions().getAllImmutableJvmArgs(),
             AgentStatus.allowed().isAgentInstrumentationEnabled(),
             // These aren't being properly checked.
             // We assume the current process is compatible when considering these properties.

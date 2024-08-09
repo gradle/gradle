@@ -15,12 +15,10 @@
  */
 package org.gradle.launcher.daemon.configuration
 
-
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
-import spock.lang.Issue
 import spock.lang.Specification
 
 import static java.lang.Boolean.parseBoolean
@@ -39,7 +37,7 @@ class DaemonParametersTest extends Specification {
         parameters.periodicCheckInterval == DaemonParameters.DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS
         parameters.baseDir == new File(userHomeDir, "daemon")
         parameters.systemProperties.isEmpty()
-        parameters.effectiveJvmArgs.size() == 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
+        parameters.effectiveJvmArgs.size() == 4 + 4 // 4 immutable system properties and 4 memory related properties
     }
 
     def "configuring jvmargs replaces the defaults"() {
@@ -54,44 +52,18 @@ class DaemonParametersTest extends Specification {
         when:
         parameters.setJvmArgs(["-Xmx17m"])
         parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(8), null, null)
-        parameters.applyDefaultsFromJvmCriteria(null)
 
         then:
         parameters.effectiveJvmArgs.containsAll(["-Xmx17m"])
         parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
     }
 
-    def "can apply defaults for Java 7 and earlier"() {
-        when:
-        parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(7), null, null)
-        parameters.applyDefaultsFromJvmCriteria(null)
-
-        then:
-        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
-    }
-
     def "can apply defaults for Java 8 and later"() {
         when:
         parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(9), null, null)
-        parameters.applyDefaultsFromJvmCriteria(null)
 
         then:
         parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
-    }
-
-    @Issue("20611")
-    def "defaults for Java 9+ contain the --add-opens args in the form that can be matched by a user's GRADLE_OPTS"() {
-        when:
-        parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(9), null, null)
-        parameters.applyDefaultsFromJvmCriteria(null)
-
-        then: "The --add-opens arguments should be in the form that can be matched by user-provided GRADLE_OPTS: --add-opens=x.y/z.a=..."
-        def addOpensArgs = parameters.effectiveJvmArgs.findAll { it.startsWith("--add-opens") }
-        !addOpensArgs.isEmpty()
-        addOpensArgs.every { it.matches("--add-opens=.*?/.*?=ALL-UNNAMED") }
-
-        and: "The required --add-opens args should not contain duplicates"
-        addOpensArgs.toSet().size() == addOpensArgs.size()
     }
 
     def "can configure debug mode"() {
@@ -109,7 +81,6 @@ class DaemonParametersTest extends Specification {
         when:
         parameters.setDebug(true)
         parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(jvmDefault, null, null)
-        parameters.applyDefaultsFromJvmCriteria(null)
 
         then:
         parameters.effectiveJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")

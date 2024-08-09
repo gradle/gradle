@@ -178,6 +178,12 @@ class JvmOptionsTest extends Specification {
         "user country"            | USER_COUNTRY_KEY         | "-D${USER_COUNTRY_KEY}=US"
         "jmx remote"              | JMX_REMOTE_KEY           | "-D${JMX_REMOTE_KEY}"
         "temp directory"          | JAVA_IO_TMPDIR_KEY       | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
+        "ssl keystore path"       | JvmOptions.SSL_KEYSTORE_KEY         | "-D${JvmOptions.SSL_KEYSTORE_KEY}=/keystore/path"
+        "ssl keystore password"   | JvmOptions.SSL_KEYSTOREPASSWORD_KEY | "-D${JvmOptions.SSL_KEYSTOREPASSWORD_KEY}=secret"
+        "ssl keystore type"       | JvmOptions.SSL_KEYSTORETYPE_KEY     | "-D${JvmOptions.SSL_KEYSTORETYPE_KEY}=jks"
+        "ssl truststore path"     | JvmOptions.SSL_TRUSTSTORE_KEY       | "-D${JvmOptions.SSL_TRUSTSTORE_KEY}=truststore/path"
+        "ssl truststore password" | JvmOptions.SSL_TRUSTPASSWORD_KEY    | "-D${JvmOptions.SSL_TRUSTPASSWORD_KEY}=secret"
+        "ssl truststore type"     | JvmOptions.SSL_TRUSTSTORETYPE_KEY   | "-D${JvmOptions.SSL_TRUSTSTORETYPE_KEY}=jks"
     }
 
     def "#propDescr can be set as systemproperty"() {
@@ -192,6 +198,12 @@ class JvmOptionsTest extends Specification {
         "user country"            | USER_COUNTRY_KEY         | "en"
         "user language"           | USER_LANGUAGE_KEY        | "US"
         "temp directory"          | JAVA_IO_TMPDIR_KEY       | "/some/tmp/folder"
+        "ssl keystore path"       | JvmOptions.SSL_KEYSTORE_KEY         | "/keystore/path"
+        "ssl keystore password"   | JvmOptions.SSL_KEYSTOREPASSWORD_KEY | "secret"
+        "ssl keystore type"       | JvmOptions.SSL_KEYSTORETYPE_KEY     | "jks"
+        "ssl truststore path"     | JvmOptions.SSL_TRUSTSTORE_KEY       | "truststore/path"
+        "ssl truststore password" | JvmOptions.SSL_TRUSTPASSWORD_KEY    | "secret"
+        "ssl truststore type"     | JvmOptions.SSL_TRUSTSTORETYPE_KEY   | "jks"
     }
 
     def "can enter debug mode"() {

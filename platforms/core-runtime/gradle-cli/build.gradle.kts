@@ -47,7 +47,6 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.jvmServices)
     implementation(projects.native)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)

@@ -151,7 +151,7 @@ class BuildActionsFactoryTest extends Specification {
     def "daemon context can be built from current process"() {
         def request = createDaemonRequest()
         def currentJvmOptions = new JvmOptions(Mock(FileCollectionFactory))
-        currentJvmOptions.jvmArgs = []
+        currentJvmOptions.jvmArgs = ["-Dtest=value", "-ea", "-Dfile.encoding=UTF-8", "-Duser.country=US", "-Duser.language=en", "-Duser.variant"]
 
         def daemon = BuildActionsFactory.buildDaemonContextForCurrentProcess(request, new CurrentProcess(Jvm.current(), currentJvmOptions))
 
@@ -164,10 +164,14 @@ class BuildActionsFactoryTest extends Specification {
 
         // should report current JVM's home
         daemon.javaHome == Jvm.current().javaHome
+        // should compare to the immutable properties of the process
+        daemon.daemonOpts.size() == 5
+        daemon.daemonOpts.containsAll(["-ea", "-Dfile.encoding=UTF-8", "-Duser.country=US", "-Duser.language=en", "-Duser.variant"])
         !daemon.shouldApplyInstrumentationAgent()
+
+        // These aren't reported properly in the daemon context
         daemon.nativeServicesMode == request.nativeServicesMode
         daemon.priority == request.priority
-        daemon.daemonOpts == request.daemonOpts
     }
 
     private DaemonRequestContext createDaemonRequest(Collection<String> daemonOpts = []) {

@@ -77,7 +77,13 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -89,6 +95,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -124,6 +131,21 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
             services.registerGradleUserHomeServices(registration);
         }
+    }
+
+    @Provides
+    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
+        return new CachingJvmMetadataDetector(
+            new ReportingJvmMetadataDetector(
+                new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
+                new InvalidInstallationWarningReporter()
+            )
+        );
+    }
+
+    @Provides
+    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
+        return new DefaultJvmVersionDetector(detector);
     }
 
     @Provides

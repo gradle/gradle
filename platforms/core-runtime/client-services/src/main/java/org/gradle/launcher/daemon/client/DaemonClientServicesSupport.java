@@ -20,6 +20,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -34,6 +35,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -105,7 +107,7 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, daemonJavaToolchainQueryService);
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService, DaemonRequestContext daemonRequestContext) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionValidator, jvmVersionDetector, daemonJavaToolchainQueryService);
     }
 }

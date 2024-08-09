@@ -43,13 +43,6 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
-import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -60,7 +53,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.process.internal.ExecHandleFactory;
 
 import java.net.InetAddress;
 
@@ -108,21 +100,6 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     @Provides
     DocumentationRegistry createDocumentationRegistry() {
         return new DocumentationRegistry();
-    }
-
-    @Provides
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
-        return new CachingJvmMetadataDetector(
-            new ReportingJvmMetadataDetector(
-                new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
-                new InvalidInstallationWarningReporter()
-            )
-        );
-    }
-
-    @Provides
-    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
-        return new DefaultJvmVersionDetector(detector);
     }
 
     @Provides

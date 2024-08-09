@@ -866,6 +866,40 @@ public class TestFile extends File {
         assertEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
     }
 
+    /**
+     * Merges the given properties into the properties file represented by this TestFile.
+     *
+     * This merges the contents of the file if it exists, but it does not try to do a per-property
+     * merge of any values.
+     *
+     * @see #writeProperties(Map)
+     */
+    public void mergeProperties(Map<?, ?> properties) {
+        Properties props = new Properties();
+        if (exists()) {
+            try (FileInputStream stream = new FileInputStream(this)) {
+                props.load(stream);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        props.putAll(properties);
+
+        getParentFile().mkdirs();
+        try (FileOutputStream stream = new FileOutputStream(this)) {
+            props.store(stream, "comment");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Writes the given properties to the properties file represented by this TestFile.
+     *
+     * This overwrites the contents of the file if it exists.
+     *
+     * @see #mergeProperties(Map)
+     */
     public void writeProperties(Map<?, ?> properties) {
         Properties props = new Properties();
         props.putAll(properties);

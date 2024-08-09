@@ -91,7 +91,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        executer.inDirectory(rootDir).withTasks("clean", "jar").run();
+        executer.inDirectory(rootDir).withTasks("clean", "jar", "--stacktrace").run();
     }
 
     private boolean isGradleExecuterVersionLessThan(String version) {
