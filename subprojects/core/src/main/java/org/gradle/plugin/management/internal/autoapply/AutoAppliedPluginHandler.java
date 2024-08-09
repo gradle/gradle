@@ -16,7 +16,9 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
+import org.gradle.api.Project;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.template.TemplatePluginHandler;
 
 /**
  * <p>
@@ -24,14 +26,15 @@ import org.gradle.plugin.management.internal.PluginRequests;
  * that the user is trying to use it. For instance, when the user uses the <code>--scan</code> option, it
  * is clear they expect the build scan plugin to be applied.
  * </p>
- *
  * Auto-application of a plugin is skipped in the following situations, so the user can adjust the version they want:
- *
  * <ul>
  * <li> The plugin was already applied (e.g. through an init script)
  * <li> The plugin was already requested in the <code>plugins {}</code> block </li>
  * <li> The plugin was already requested in the <code>buildscript {}</code> block </li>
  * </ul>
+ * <p>
+ * Gradle also allows for automatically loading plugins via a system property, this class
+ * understands how to discover these plugin requests as well.
  */
 public interface AutoAppliedPluginHandler {
 
@@ -40,4 +43,24 @@ public interface AutoAppliedPluginHandler {
      * based on user requests, the current build invocation and the given target.
      */
     PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget);
+
+    /**
+     * Returns all plugin requests that should be applied to the given target, including
+     * implicit and external requests.
+     * <p>
+     * This includes:
+     * <ul>
+     *     <li>The initial plugin requests, explicitly declared by the user in a script</li>
+     *     <li>The auto-applied plugins, based on user requests, the current build invocation and the given target</li>
+     *     <li>The plugins loaded via the System Property (for loading templates)</li>
+     * </ul>
+     *
+     * @param initialPluginRequests the initial plugin requests, explicitly declared by the user in a script
+     * @param pluginTarget the target object to apply the plugins to
+     */
+    default PluginRequests getAllPluginRequests(PluginRequests initialPluginRequests, Object pluginTarget) {
+        PluginRequests autoAppliedPlugins = getAutoAppliedPlugins(initialPluginRequests, pluginTarget);
+        PluginRequests argumentLoadedPlugins = pluginTarget instanceof Project ? TemplatePluginHandler.getTemplatePlugins() : PluginRequests.EMPTY;
+        return initialPluginRequests.mergeWith(autoAppliedPlugins).mergeWith(argumentLoadedPlugins);
+    }
 }

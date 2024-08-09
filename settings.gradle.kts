@@ -200,6 +200,8 @@ val software = platform("software") {
     uses(core)
     subproject("antlr")
     subproject("build-init")
+    subproject("build-init-templates")
+    subproject("build-init-templates-api")
     subproject("dependency-management")
     subproject("plugins-distribution")
     subproject("distributions-publishing")

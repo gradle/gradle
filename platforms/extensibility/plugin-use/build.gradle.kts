@@ -19,6 +19,8 @@ dependencies {
 
     implementation(projects.functional)
 
+    implementation(libs.slf4jApi)
+
     implementation(projects.jvmServices)
     implementation(projects.problemsApi)
 

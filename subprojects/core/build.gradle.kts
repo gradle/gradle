@@ -87,6 +87,7 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildInitTemplates)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.cli)

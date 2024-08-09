@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -452,18 +451,6 @@ Description""") // include the next header to make sure all options are listed
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
-    }
-
-    private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
-        def tasks = ['init', '--dsl', dsl.id]
-        tasks.addAll(initOptions)
-        run tasks
-    }
-
-    private ExecutionResult initFailsWith(BuildInitDsl dsl, String... initOptions) {
-        def tasks = ['init', '--dsl', dsl.id]
-        tasks.addAll(initOptions)
-        fails(*tasks)
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

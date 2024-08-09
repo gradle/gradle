@@ -72,6 +72,7 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.buildinit.templates.internal.TemplateLoader;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -434,5 +435,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
+    }
+
+    @Provides
+    protected TemplateLoader createTemplateLoader(ProjectInternal project) {
+        return new TemplateLoader(project.getClassLoaderScope().getLocalClassLoader(), project.getLogger());
     }
 }
