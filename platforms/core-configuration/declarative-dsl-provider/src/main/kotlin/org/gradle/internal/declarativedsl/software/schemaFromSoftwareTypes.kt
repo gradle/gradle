@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.software
 
-import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
@@ -39,10 +38,6 @@ import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
 
 
 /**
@@ -84,28 +79,8 @@ fun applySoftwareTypePlugin(receiverObject: Any, softwareType: SoftwareTypeImple
 }
 
 private fun getSoftwareTypeModelInstance(softwareType: SoftwareTypeImplementation<*>, receiverObject: ProjectInternal): Any {
-    fun Iterable<Annotation>.hasSoftwareTypeAnnotation() =
-        any { annotation -> annotation is SoftwareType && annotation.name == softwareType.softwareType }
-
-    val pluginInstance = receiverObject.plugins.getPlugin(softwareType.pluginClass)
-
-    with(softwareType.pluginClass.kotlin) {
-        (memberProperties + memberFunctions.filter { (it.parameters - it.instanceParameter).isEmpty() }).find { member ->
-            member.annotations.hasSoftwareTypeAnnotation() || (member is KProperty<*> && member.getter.annotations.hasSoftwareTypeAnnotation())
-        }?.let { accessor ->
-            return checkNotNull(accessor.call(pluginInstance))
-        }
-    }
-
-    // Fallback to Java accessors if Kotlin reflection metadata is lost or not available:
-    softwareType.pluginClass.methods.find { it.annotations.toList().hasSoftwareTypeAnnotation() }
-        ?.let { javaAccessor ->
-            return javaAccessor.invoke(pluginInstance)
-        }
-
-    error("no property found for software type '$softwareType' in the plugin type '${softwareType.pluginClass.name}'")
+    return receiverObject.extensions.getByName(softwareType.softwareType)
 }
-
 
 private
 class SoftwareTypeComponent(

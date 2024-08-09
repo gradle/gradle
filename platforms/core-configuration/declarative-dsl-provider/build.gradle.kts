@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
+    implementation(projects.modelCore)
 
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
