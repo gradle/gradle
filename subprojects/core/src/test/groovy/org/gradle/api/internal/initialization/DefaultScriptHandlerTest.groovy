@@ -63,6 +63,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
+        1 * configurationContainer.beforeCollectionChanges(_)
         1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -78,6 +79,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
+        1 * configurationContainer.beforeCollectionChanges(_)
         1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         0 * configurationContainer._
         0 * depMgmtServices._

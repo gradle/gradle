@@ -70,7 +70,7 @@ class DefaultGradleSpec extends Specification {
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator) {
-        getMutationGuard() >> Mock(MutationGuard)
+        getLazyBehaviorGuard() >> Mock(MutationGuard)
     }
     GradleLifecycleActionExecutor gradleLifecycleActionExecutor = Mock(GradleLifecycleActionExecutor)
 

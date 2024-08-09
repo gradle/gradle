@@ -45,7 +45,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     private Set<Collectors.TypedCollector<T>> pending = Collections.emptySet();
     private Action<T> addRealizedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
-    private final MutationGuard mutationGuard = new DefaultMutationGuard();
+    private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
         this.values = new TreeSet<T>(comparator);
@@ -261,7 +261,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return mutationGuard;
+    public MutationGuard getLazyBehaviorGuard() {
+        return lazyGuard;
     }
 }

@@ -26,32 +26,32 @@ public class DefaultMutationGuard implements MutationGuard {
     private final ThreadLocal<Boolean> mutationGuardState = ThreadLocal.withInitial(SerializableLambdas.supplier(() -> true));
 
     @Override
-    public <T> Action<? super T> withMutationDisabled(Action<? super T> action) {
+    public <T> Action<? super T> wrapLazyAction(Action<? super T> action) {
         return newActionWithMutation(action, false);
     }
 
     @Override
-    public <T> Action<? super T> withMutationEnabled(Action<? super T> action) {
+    public <T> Action<? super T> wrapEagerAction(Action<? super T> action) {
         return newActionWithMutation(action, true);
     }
 
     @Override
-    public boolean isMutationAllowed() {
+    public boolean isLazyContext() {
         boolean mutationAllowed = mutationGuardState.get();
         removeThreadLocalStateIfMutationAllowed(mutationAllowed);
-        return mutationAllowed;
+        return !mutationAllowed;
     }
 
     @Override
-    public void assertMutationAllowed(String methodName, Object target) {
-        if (!isMutationAllowed()) {
+    public void assertEagerContext(String methodName, Object target) {
+        if (isLazyContext()) {
             throw createIllegalStateException(new DslObject(target).getPublicType().getConcreteClass(), methodName, target);
         }
     }
 
     @Override
-    public <T> void assertMutationAllowed(String methodName, T target, Class<T> targetType) {
-        if (!isMutationAllowed()) {
+    public <T> void assertEagerContext(String methodName, T target, Class<T> targetType) {
+        if (isLazyContext()) {
             throw createIllegalStateException(targetType, methodName, target);
         }
     }

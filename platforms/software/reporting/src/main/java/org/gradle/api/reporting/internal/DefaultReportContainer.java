@@ -21,9 +21,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
@@ -37,18 +37,11 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
 
     public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Report.NAMER, callbackActionDecorator);
+        beforeCollectionChanges(SerializableLambdas.action(arg -> {
+            throw new ImmutableViolationException();
+        }));
 
-        enabled = matching(new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return element.getRequired().get();
-            }
-        });
-    }
-
-    @Override
-    protected void assertMutableCollectionContents() {
-        throw new ImmutableViolationException();
+        enabled = matching(SerializableLambdas.spec(element -> element.getRequired().get()));
     }
 
     @Override

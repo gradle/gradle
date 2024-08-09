@@ -180,12 +180,17 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return ((DomainObjectCollectionInternal<?>) delegate).getMutationGuard();
+    public int estimatedSize() {
+        return ((DomainObjectCollectionInternal<?>) delegate).estimatedSize();
     }
 
     @Override
-    public int estimatedSize() {
-        return ((DomainObjectCollectionInternal<?>) delegate).estimatedSize();
+    public void beforeCollectionChanges(Action<String> action) {
+        ((DomainObjectCollectionInternal<?>) delegate).beforeCollectionChanges(action);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return ((DomainObjectCollectionInternal<?>) delegate).getDisplayName();
     }
 }

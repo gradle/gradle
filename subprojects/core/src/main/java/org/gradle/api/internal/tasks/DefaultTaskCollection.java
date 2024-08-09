@@ -151,8 +151,8 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return parentMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
+        return parentMutationGuard.wrapLazyAction(super.wrapLazyAction(action));
     }
 
     @Override

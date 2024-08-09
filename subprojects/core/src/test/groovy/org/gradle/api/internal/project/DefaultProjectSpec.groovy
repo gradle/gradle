@@ -254,7 +254,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
         serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
         serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator) {
-            getMutationGuard() >> Mock(MutationGuard)
+            getLazyBehaviorGuard() >> Mock(MutationGuard)
         })
         serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))

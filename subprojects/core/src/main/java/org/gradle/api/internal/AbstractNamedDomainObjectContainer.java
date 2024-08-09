@@ -52,7 +52,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     @Override
     public T create(String name) {
-        assertMutable("create(String)");
+        assertCanMutate("create(String)");
         return create(name, Actions.doNothing());
     }
 
@@ -67,13 +67,13 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     @Override
     public T create(String name, Closure configureClosure) {
-        assertMutable("create(String, Closure)");
+        assertCanMutate("create(String, Closure)");
         return create(name, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
-        assertMutable("create(String, Action)");
+        assertCanMutate("create(String, Action)");
         assertCanAdd(name);
         T object = doCreate(name);
         add(object);
@@ -104,13 +104,13 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     @Override
     public NamedDomainObjectProvider<T> register(String name) throws InvalidUserDataException {
-        assertMutable("register(String)");
+        assertCanMutate("register(String)");
         return createDomainObjectProvider(name, null);
     }
 
     @Override
     public NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException {
-        assertMutable("register(String, Action)");
+        assertCanMutate("register(String, Action)");
         return createDomainObjectProvider(name, configurationAction);
     }
 

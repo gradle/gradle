@@ -90,8 +90,8 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     @Override
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return crossProjectConfiguratorMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
+        return crossProjectConfiguratorMutationGuard.wrapLazyAction(super.wrapLazyAction(action));
     }
 
     @Override

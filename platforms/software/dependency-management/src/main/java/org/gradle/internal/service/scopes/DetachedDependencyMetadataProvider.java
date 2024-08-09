@@ -77,7 +77,7 @@ public class DetachedDependencyMetadataProvider implements DependencyMetaDataPro
 
         @Override
         public String getName() {
-            return module.getVersion() + "-" + suffix;
+            return module.getName() + "-" + suffix;
         }
 
         @Override
