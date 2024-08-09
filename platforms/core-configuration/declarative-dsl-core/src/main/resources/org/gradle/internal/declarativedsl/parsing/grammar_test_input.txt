@@ -1,5 +1,4 @@
 a = 1
-a = (1)
 b = this
 c = null
 x = true
@@ -7,7 +6,7 @@ x = true
 rootProject.name = "something"
 
 block {
-    a = (1)
+    a = 1
     b = 2
 }
 
@@ -18,8 +17,9 @@ f(1, x, "s", g())
 f(a = b, c = d)
 
 // errors
+// a = (1)
 // a.b.c = 1
 // d = a.b.c
-//a.b {d = 1}
-//a.b.c {d = 1}
-//f(1).g(2).h(3)  // TODO: do we want to allow for this?
+// a.b {d = 1}
+// a.b.c {d = 1}
+// f(1).g(2).h(3)  // TODO: do we want to allow for this?

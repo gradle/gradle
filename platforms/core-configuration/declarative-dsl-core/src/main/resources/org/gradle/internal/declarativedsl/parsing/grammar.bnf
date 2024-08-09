@@ -60,11 +60,9 @@ annotatedLambda ::= LB statements RB {pin=1}
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
 valueArgument ::= (simpleIdentifier EQ)? expression
 
-parenthesizedExpression ::= LP expression RP
-
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-primaryExpression ::= parenthesizedExpression | literalConstant | simpleIdentifier | stringLiteral
+primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
 simpleIdentifier ::= id                                      // TODO: needs refining
 stringLiteral ::= string                                     // TODO: needs refining
 literalConstant ::= "null" | booleanLiteral | number         // TODO: needs refining
