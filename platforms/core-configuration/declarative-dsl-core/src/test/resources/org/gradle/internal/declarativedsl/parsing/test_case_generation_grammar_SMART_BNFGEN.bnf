@@ -1,0 +1,24 @@
+<statements> ::= <statement0>{10};
+
+<statement0> ::= <oneLiner> "\n" | <block0> "\n";
+<statement1> ::= "  " <oneLiner> "\n" | "  " <block1> "\n";
+<statement2> ::= "    " <oneLiner> "\n";
+
+<oneLiner> ::= <assignment> | <functionCall>;
+<assignment> ::= <simpleIdentifier> "=" <literalConstant>;
+<functionCall> ::= <simpleIdentifier> "(" <valueArgument> ")";
+<valueArgument> ::= <simpleIdentifier> "=" <literalConstant> | <literalConstant>;
+
+<block0> ::= <simpleIdentifier> " {\n" <statement1>{0,10} "}";
+<block1> ::= <simpleIdentifier> " {\n" <statement2>{0,10} "  }";
+
+<simpleIdentifier> ::= <alpha>{1};
+
+<literalConstant> ::= "null" | <booleanLiteral> | <digit>{1,5} | <stringLiteral>;
+<stringLiteral> ::= "\"" <alpha>{3,5} "\"";
+<booleanLiteral> ::= "true" | "false";
+
+<alpha>	 ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z";
+<digit>  ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+
+<start> ::= <statements>
