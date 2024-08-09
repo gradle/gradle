@@ -39,6 +39,8 @@ import java.nio.file.Paths
 @CleanupTestDirectory
 abstract class AbstractIdeaSyncTest extends Specification {
 
+    final static String IDEA_VERSION = "2024.2"
+
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
