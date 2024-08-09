@@ -32,7 +32,6 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
 
 
 interface PropertyExtractor {

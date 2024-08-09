@@ -21,8 +21,6 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.classpath.CachedClasspathTransformer
-import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
