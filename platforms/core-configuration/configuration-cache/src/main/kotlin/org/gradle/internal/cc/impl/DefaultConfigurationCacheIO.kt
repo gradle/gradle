@@ -395,14 +395,14 @@ class DefaultConfigurationCacheIO internal constructor(
      * Provides R/W isolate contexts based on some other context.
      */
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
-        override fun readContextFor(baseContext: CloseableReadContext, path: Path): CloseableReadContext =
+        override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
                 readContextFor(it).also { (subContext, subCodecs) ->
                     subContext.push(subCodecs.internalTypesCodec())
                 }.first
             }
 
-        override fun writeContextFor(baseContext: CloseableWriteContext, path: Path): CloseableWriteContext =
+        override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
                 writeContextFor(it) { "child '$path' state" }.also { (subContext, subCodecs) ->
                     subContext.push(subCodecs.internalTypesCodec())
