@@ -28,7 +28,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeaSyncTest {
         simpleJavaProject()
 
         when:
-        ideaSync("2024.2")
+        ideaSync(IDEA_VERSION)
 
         then:
         fixture.assertHtmlReportHasNoProblems()
