@@ -27,6 +27,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.nio.file.Path
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -61,6 +62,8 @@ class DefaultWriteContext(
     val classEncoder: ClassEncoder
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
+
+    var creator: ((Path) -> CloseableWriteContext)? = null
 
     override val sharedIdentities = WriteIdentities()
 
@@ -97,6 +100,10 @@ class DefaultWriteContext(
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
+
+    fun writeContextForFile(file: Path): CloseableWriteContext {
+        return creator!!(file)
+    }
 }
 
 
@@ -145,6 +152,8 @@ class DefaultReadContext(
     val classDecoder: ClassDecoder
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
+
+    var creator: ((Path) -> CloseableReadContext)? = null
 
     override val sharedIdentities = ReadIdentities()
 
@@ -203,6 +212,10 @@ class DefaultReadContext(
 
     override fun newIsolate(owner: IsolateOwner): ReadIsolate =
         DefaultReadIsolate(owner)
+
+    fun readContextForFile(file: Path): CloseableReadContext {
+        return creator!!(file)
+    }
 }
 
 

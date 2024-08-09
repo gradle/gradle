@@ -27,6 +27,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileTemp)
     api(projects.flowServices)
     api(projects.graphSerialization)
     api(projects.stdlibJavaExtensions)
@@ -39,6 +40,7 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
+    implementation(projects.buildOperations)
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)

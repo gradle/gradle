@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
@@ -136,6 +137,7 @@ import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.work.Synchronizer
 
 
 @Suppress("LongParameterList")
@@ -172,6 +174,8 @@ class Codecs(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
+    private val synchronizer: Synchronizer,
+    private val temporaryFileProvider: TemporaryFileProvider
 ) {
     private
     val userTypesBindings: Bindings
@@ -341,6 +345,7 @@ class Codecs(
         buildStateRegistry: BuildStateRegistry,
         flowProviders: FlowProviders
     ) = FixedValueReplacingProviderCodec(
+        synchronizer,
         defaultCodecForProviderWithChangingValue(
             ValueSourceProviderCodec(valueSourceProviderFactory),
             BuildServiceProviderCodec(buildStateRegistry),
@@ -355,6 +360,7 @@ class Codecs(
     fun nestedProviderCodecForFingerprint(
         valueSourceProviderFactory: ValueSourceProviderFactory
     ) = FixedValueReplacingProviderCodec(
+        synchronizer,
         defaultCodecForProviderWithChangingValue(
             ValueSourceProviderCodec(valueSourceProviderFactory),
             UnsupportedFingerprintBuildServiceProviderCodec,
@@ -383,5 +389,5 @@ class Codecs(
     }
 
     fun workNodeCodecFor(gradle: GradleInternal) =
-        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory)
+        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory, temporaryFileProvider)
 }

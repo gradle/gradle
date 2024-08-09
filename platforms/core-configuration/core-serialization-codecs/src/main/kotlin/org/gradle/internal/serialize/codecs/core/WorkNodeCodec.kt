@@ -16,10 +16,13 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
@@ -31,17 +34,32 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.serviceOf
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 
 private
@@ -55,7 +73,8 @@ typealias IdForNode = (Node) -> Int
 class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
-    private val ordinalGroups: OrdinalGroupFactory
+    private val ordinalGroups: OrdinalGroupFactory,
+    private val temporaryFileProvider: TemporaryFileProvider
 ) {
 
     suspend fun WriteContext.writeWork(work: ScheduledWork) {
@@ -74,7 +93,6 @@ class WorkNodeCodec(
     suspend fun WriteContext.doWrite(work: ScheduledWork) {
         val nodes = work.scheduledNodes
         val nodeCount = nodes.size
-        writeSmallInt(nodeCount)
         val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount)
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
@@ -82,7 +100,6 @@ class WorkNodeCodec(
         // Not restoring them as entry points doesn't affect the resulting execution plan.
         val scheduledEntryNodeIds = mutableListOf<Int>()
         nodes.forEach { node ->
-            write(node)
             val nodeId = scheduledNodeIds.size
             scheduledNodeIds[node] = nodeId
             if (node in work.entryNodes) {
@@ -92,6 +109,9 @@ class WorkNodeCodec(
                 scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
             }
         }
+
+        writeNodes(nodes, scheduledNodeIds)
+
         // A large build may have many nodes but not so many entry nodes.
         // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
         writeCollection(scheduledEntryNodeIds) {
@@ -106,30 +126,101 @@ class WorkNodeCodec(
 
     private
     suspend fun ReadContext.doRead(): ScheduledWork {
-        val nodeCount = readSmallInt()
-        val nodes = ArrayList<Node>(nodeCount)
-        val nodesById = ArrayList<Node>(nodeCount)
-        repeat(nodeCount) {
-            val node = readNode()
-            nodesById.add(node)
-            if (node is LocalTaskNode) {
-                node.prepareNode.require()
-                nodesById.add(node.prepareNode)
-            }
-            nodes.add(node)
-        }
+        val (nodes, nodesById) = readNodes()
         // Note that using the ImmutableSet retains the original ordering of entry nodes.
         val entryNodes =
             buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
                 add(nodesById[readSmallInt()])
             }.build()
 
-        val nodeForId: NodeForId = nodesById::get
+        val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
         nodes.forEach { node ->
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
         }
         return ScheduledWork(nodes, entryNodes)
+    }
+
+    sealed class NodeOwner {
+        object NoOwner : NodeOwner()
+        data class Project(val project: ProjectInternal) : NodeOwner()
+
+        companion object {
+            fun of(node: Node): NodeOwner {
+                return when (val project = node.owningProject) {
+                    null -> NoOwner
+                    else -> Project(project)
+                }
+            }
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeNodes(
+        nodes: ImmutableList<Node>,
+        nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
+    ) {
+        require(this is DefaultWriteContext)
+        val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
+        val isolateOwner = isolate.owner
+        val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
+        buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
+            writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
+                val file = temporaryFileProvider.createTemporaryFile("cc-", owner.toString()).toPath()
+                writeString(file.absolutePathString())
+
+                add(object : RunnableBuildOperation {
+                    override fun run(context: BuildOperationContext) {
+                        runWriteOperation {
+                            writeContextForFile(file).useToRun {
+                                withIsolate(isolateOwner) {
+                                    writeCollection(groupNodes) { node ->
+                                        writeSmallInt(nodeIds.getInt(node))
+                                        write(node)
+                                        if (node is LocalTaskNode) {
+                                            writeSmallInt(nodeIds.getInt(node.prepareNode))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    override fun description(): BuildOperationDescriptor.Builder {
+                        return BuildOperationDescriptor.displayName("Nodes for $owner")
+                    }
+                })
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
+        require(this is DefaultReadContext)
+        val nodes = mutableListOf<Node>()
+        val nodesById = mutableMapOf<Int, Node>()
+        val isolateOwner = isolate.owner
+        val projectProvider = getSingletonProperty<ProjectProvider>()
+        readCollection {
+            val file = readString()
+            readContextForFile(Paths.get(file)).useToRun {
+                setSingletonProperty(projectProvider)
+                withIsolate(isolateOwner) {
+                    readCollection {
+                        val nodeId = readSmallInt()
+                        val node = readNode()
+                        nodesById[nodeId] = node
+                        if (node is LocalTaskNode) {
+                            node.prepareNode.require()
+                            val prepareNodeId = readSmallInt()
+                            nodesById[prepareNodeId] = node.prepareNode
+                        }
+                        nodes.add(node)
+                    }
+                }
+            }
+        }
+        return nodes to nodesById
     }
 
     private

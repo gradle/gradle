@@ -62,9 +62,11 @@ import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.work.Synchronizer
 
 
 fun defaultCodecForProviderWithChangingValue(
@@ -86,12 +88,20 @@ fun defaultCodecForProviderWithChangingValue(
 class FixedValueReplacingProviderCodec(
 
     private
+    val synchronizer: Synchronizer,
+
+    private
     val providerWithChangingValueCodec: Codec<Any?>
 
 ) {
+
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
-        val state = value.calculateExecutionTimeValue()
-        encodeValue(state)
+        synchronizer.withLock {
+            runWriteOperation {
+                val state = value.calculateExecutionTimeValue()
+                encodeValue(state)
+            }
+        }
     }
 
     suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {

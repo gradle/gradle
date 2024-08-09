@@ -24,12 +24,12 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.CollectionPropertyInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.internal.cc.impl.serialization.codecs.beanStateReaderLookupForTesting
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.Cast.uncheckedNonnullCast
+import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.impl.serialization.codecs.beanStateReaderLookupForTesting
+import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
+import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
@@ -197,7 +197,8 @@ class IsolatedActionSerializerTest {
         IsolatedActionCodecsFactory(
             javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
             propertyFactory = propertyFactory(),
+            filePropertyFactory = TestFiles.filePropertyFactory(),
             fileFactory = TestFiles.fileFactory(),
-            filePropertyFactory = TestFiles.filePropertyFactory()
+            workerLeaseService = TODO()
         )
 }

@@ -64,11 +64,15 @@ import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.work.Synchronizer
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 
 @ServiceScope(Scope.Build::class)
@@ -80,11 +84,12 @@ class DefaultConfigurationCacheIO internal constructor(
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
-    private val eventEmitter: BuildOperationProgressEventEmitter
+    private val eventEmitter: BuildOperationProgressEventEmitter,
+    private val workerLeaseService: WorkerLeaseService
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
-    val codecs = codecs()
+    val codecs = codecs(workerLeaseService.newResource())
 
     private
     val encryptionService by lazy { service<EncryptionService>() }
@@ -319,7 +324,7 @@ class DefaultConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(decoderFor(stateType, inputStream))
+        readContextFor(stateType, inputStream)
             .let { (context, codecs) ->
                 context.useToRun {
                     runReadOperation {
@@ -329,6 +334,11 @@ class DefaultConfigurationCacheIO internal constructor(
                     }
                 }
             }
+
+    private fun readContextFor(
+        stateType: StateType,
+        inputStream: () -> InputStream
+    ) = readContextFor(decoderFor(stateType, inputStream))
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
         val (context, codecs) = readContextFor(decoder)
@@ -353,7 +363,18 @@ class DefaultConfigurationCacheIO internal constructor(
         tracer,
         problems,
         DefaultClassEncoder(scopeRegistryListener),
-    )
+    ).also {
+        it.creator = { file ->
+            val (subContext, subCodecs) = writeContextFor(
+                StateType.Work,
+                outputStream = { file.outputStream() },
+                profile = { file.toString() }
+            )
+
+            subContext.push(subCodecs.internalTypesCodec())
+            subContext
+        }
+    }
 
     private
     fun readContextFor(
@@ -366,10 +387,18 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         problems,
         DefaultClassDecoder()
-    )
+    ).also {
+        it.creator = { file ->
+            val (subContext, subCodecs) =
+                readContextFor(StateType.Work, inputStream = { file.inputStream() })
+
+            subContext.push(subCodecs.internalTypesCodec())
+            subContext
+        }
+    }
 
     private
-    fun codecs(): Codecs =
+    fun codecs(synchronizer: Synchronizer): Codecs =
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
@@ -402,6 +431,8 @@ class DefaultConfigurationCacheIO internal constructor(
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
             transformStepNodeFactory = service(),
+            synchronizer = synchronizer,
+            temporaryFileProvider = service()
         )
 
     private
