@@ -174,8 +174,8 @@ interface IsolateOwner {
 
 
 interface IsolateContextSource {
-    fun readContextFor(baseContext: CloseableReadContext, path: Path): CloseableReadContext
-    fun writeContextFor(baseContext: CloseableWriteContext, path: Path): CloseableWriteContext
+    fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext
+    fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext
 }
 
 
