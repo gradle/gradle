@@ -54,7 +54,10 @@ public interface Dependency {
      * key. Therefore dependencies might be equal and yet have different properties.
      *
      * @param dependency The dependency to compare this dependency with
+     *
+     * @deprecated Use {@link Object#equals(Object)} instead.
      */
+    @Deprecated
     boolean contentEquals(Dependency dependency);
 
     /**
