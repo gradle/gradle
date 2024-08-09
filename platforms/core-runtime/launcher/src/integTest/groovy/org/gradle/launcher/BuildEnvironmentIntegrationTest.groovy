@@ -246,4 +246,12 @@ task check {
         expect:
         succeeds 'help'
     }
+
+    def "does not see JAVA_MAIN_CLASS environment variable on macOS"() {
+        buildFile """
+            assert providers.environmentVariablesPrefixedBy("JAVA_MAIN_CLASS").get().size() == 0
+        """
+        expect:
+        succeeds("help")
+    }
 }

@@ -16,7 +16,9 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -39,9 +41,11 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.useDaemon = useDaemon;
         assert systemProperties != null;
         assert envVariables != null;
+
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
-        this.envVariables = new HashMap<String, String>(envVariables);
+
+        this.envVariables = new HashMap<String, String>(Cast.uncheckedCast(Jvm.getInheritableEnvironmentVariables(envVariables)));
         this.injectedPluginClasspath = injectedPluginClasspath;
     }
 
