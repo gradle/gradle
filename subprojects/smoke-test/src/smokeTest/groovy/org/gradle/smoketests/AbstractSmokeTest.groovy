@@ -191,7 +191,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nohttp = Versions.of("0.0.10")
 
         // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
-        static jenkinsJpi = Versions.of("0.43.0")
+        static jenkinsJpi = Versions.of("0.50.0")
     }
 
     static class Versions implements Iterable<String> {
