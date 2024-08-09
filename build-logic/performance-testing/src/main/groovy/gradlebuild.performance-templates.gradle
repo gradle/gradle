@@ -342,9 +342,9 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
 
 // Build-builder projects
 tasks.register("buildBuilder", RemoteProject) {
-    remoteUri = 'https://github.com/blindpirate/build-builder.git'
+    remoteUri = 'https://github.com/gradle/build-builder.git'
     // From master branch
-    ref = '1afcdf45d8db281ec11272f6ec0e3aa1be717bd9'
+    ref = '39037ebf30b9eab5bdceff259ce50126f94a5561'
 }
 
 tasks.register("installBuildBuilder", GradleBuild) {
