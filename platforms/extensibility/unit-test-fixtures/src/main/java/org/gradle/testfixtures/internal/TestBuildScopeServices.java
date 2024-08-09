@@ -16,6 +16,9 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
+import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
@@ -24,8 +27,10 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -66,6 +71,20 @@ public class TestBuildScopeServices extends BuildScopeServices {
     @Provides
     protected CurrentGradleInstallation createCurrentGradleInstallation() {
         return new CurrentGradleInstallation(new GradleInstallation(homeDir));
+    }
+
+    @Provides
+    @Override
+    protected ProviderFactory createProviderFactory(
+        Instantiator instantiator,
+        ValueSourceProviderFactory valueSourceProviderFactory,
+        ProcessOutputProviderFactory processOutputProviderFactory,
+        ListenerManager listenerManager
+    ) {
+        return instantiator.newInstance(TestProviderFactory.class,
+            valueSourceProviderFactory,
+            processOutputProviderFactory,
+            listenerManager);
     }
 
     private static class EmptyGradleProperties implements GradleProperties {
