@@ -153,8 +153,8 @@ class WorkNodeCodec(
         require(this is DefaultWriteContext)
         val isolateOwner = isolate.owner
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
-        writeCollection(groupedNodes.entries) { (owner, groupNodes) ->
-            val groupPath = pathFor(owner)
+        writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
+            val groupPath = pathFor(nodeOwner)
             writeString(groupPath.path)
             contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
                 writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
@@ -163,11 +163,11 @@ class WorkNodeCodec(
     }
 
     private
-    fun pathFor(owner: NodeOwner): Path {
+    fun pathFor(nodeOwner: NodeOwner): Path {
         // TODO:parallel-cc make sure there are no conflicts between project node and owner-less nodes
-        return when (owner) {
-            NodeOwner.None -> Path.path("X")
-            is NodeOwner.Project -> owner.project.identityPath
+        return when (nodeOwner) {
+            NodeOwner.None -> owner.identityPath.child("owner-less")
+            is NodeOwner.Project -> nodeOwner.project.identityPath
         }
     }
 
