@@ -404,8 +404,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
         override fun writeContextFor(baseContext: CloseableWriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
-                //TODO-RC what would be a proper profile string here?
-                writeContextFor(it) { "private state for $path" }.also { (subContext, subCodecs) ->
+                writeContextFor(it) { "child '$path' state" }.also { (subContext, subCodecs) ->
                     subContext.push(subCodecs.internalTypesCodec())
                 }.first
             }
