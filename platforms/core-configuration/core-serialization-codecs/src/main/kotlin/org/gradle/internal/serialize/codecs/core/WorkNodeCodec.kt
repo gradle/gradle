@@ -16,10 +16,12 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
@@ -31,18 +33,28 @@ import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.DefaultReadContext
+import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.IsolateContextSource
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readWith
+import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
-
+import org.gradle.internal.serialize.graph.writeWith
+import org.gradle.util.Path
 
 private
 typealias NodeForId = (Int) -> Node
@@ -55,34 +67,35 @@ typealias IdForNode = (Node) -> Int
 class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
-    private val ordinalGroups: OrdinalGroupFactory
+    private val ordinalGroups: OrdinalGroupFactory,
+    private val contextSource: IsolateContextSource
 ) {
 
-    suspend fun WriteContext.writeWork(work: ScheduledWork) {
+    fun WriteContext.writeWork(work: ScheduledWork) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
         withGradleIsolate(owner, internalTypesCodec) {
             doWrite(work)
         }
     }
 
-    suspend fun ReadContext.readWork(): ScheduledWork =
+    fun ReadContext.readWork(): ScheduledWork =
         withGradleIsolate(owner, internalTypesCodec) {
             doRead()
         }
 
     private
-    suspend fun WriteContext.doWrite(work: ScheduledWork) {
+    fun WriteContext.doWrite(work: ScheduledWork) {
         val nodes = work.scheduledNodes
         val nodeCount = nodes.size
-        writeSmallInt(nodeCount)
-        val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount)
+        val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount).apply {
+            defaultReturnValue(-1)
+        }
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
         // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
         // Not restoring them as entry points doesn't affect the resulting execution plan.
         val scheduledEntryNodeIds = mutableListOf<Int>()
         nodes.forEach { node ->
-            write(node)
             val nodeId = scheduledNodeIds.size
             scheduledNodeIds[node] = nodeId
             if (node in work.entryNodes) {
@@ -92,44 +105,127 @@ class WorkNodeCodec(
                 scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
             }
         }
+
+        writeNodes(nodes, scheduledNodeIds)
+
         // A large build may have many nodes but not so many entry nodes.
         // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
         writeCollection(scheduledEntryNodeIds) {
             writeSmallInt(it)
         }
-        val idForNode: IdForNode = scheduledNodeIds::getInt
-        nodes.forEach { node ->
+        val idForNode: IdForNode = { node ->
+            scheduledNodeIds.getInt(node).also {
+                require(it >= 0) {
+                    "Node id missing for node $it"
+                }
+            }
+        }
+        writeCollection(nodes) { node ->
+            writeSmallInt(idForNode(node))
             writeSuccessorReferencesOf(node, idForNode)
             writeNodeGroup(node.group, idForNode)
         }
     }
 
     private
-    suspend fun ReadContext.doRead(): ScheduledWork {
-        val nodeCount = readSmallInt()
-        val nodes = ArrayList<Node>(nodeCount)
-        val nodesById = ArrayList<Node>(nodeCount)
-        repeat(nodeCount) {
-            val node = readNode()
-            nodesById.add(node)
-            if (node is LocalTaskNode) {
-                node.prepareNode.require()
-                nodesById.add(node.prepareNode)
-            }
-            nodes.add(node)
-        }
+    fun ReadContext.doRead(): ScheduledWork {
+        val (nodes, nodesById) = readNodes()
         // Note that using the ImmutableSet retains the original ordering of entry nodes.
         val entryNodes =
             buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
                 add(nodesById[readSmallInt()])
             }.build()
 
-        val nodeForId: NodeForId = nodesById::get
-        nodes.forEach { node ->
+        val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
+        readCollection {
+            val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
         }
         return ScheduledWork(nodes, entryNodes)
+    }
+
+    private
+    fun WriteContext.writeNodes(
+        nodes: ImmutableList<Node>,
+        nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
+    ) {
+        require(this is DefaultWriteContext)
+        val isolateOwner = isolate.owner
+        val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
+        writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
+            val groupPath = pathFor(nodeOwner)
+            writeString(groupPath.path)
+            contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
+                writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
+            }
+        }
+    }
+
+    private
+    fun pathFor(nodeOwner: NodeOwner): Path {
+        // TODO:parallel-cc make sure there are no conflicts between project node and owner-less nodes
+        return when (nodeOwner) {
+            NodeOwner.None -> owner.identityPath.child("owner-less")
+            is NodeOwner.Project -> nodeOwner.project.identityPath
+        }
+    }
+
+    private
+    fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
+        require(this is DefaultReadContext)
+        val nodes = mutableListOf<Node>()
+        val nodesById = mutableMapOf<Int, Node>()
+        val isolateOwner = isolate.owner
+        val projectProvider = getSingletonProperty<ProjectProvider>()
+        readCollection {
+            val groupPath = Path.path(readString())
+            contextSource.readContextFor(this, groupPath).readWith(Unit) {
+                setSingletonProperty(projectProvider)
+                readGroupedNodes(isolateOwner, nodes, nodesById)
+            }
+        }
+        return nodes to nodesById
+    }
+
+    private
+    suspend fun WriteContext.writeGroupedNodes(
+        isolateOwner: IsolateOwner,
+        nodes: List<Node>,
+        nodeIds: Object2IntOpenHashMap<Node>
+    ) {
+        withIsolate(isolateOwner) {
+            writeCollection(nodes) { node ->
+                val nodeId = nodeIds.getInt(node)
+                writeSmallInt(nodeId)
+                write(node)
+                if (node is LocalTaskNode) {
+                    val prepareNodeId = nodeIds.getInt(node.prepareNode)
+                    writeSmallInt(prepareNodeId)
+                }
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.readGroupedNodes(
+        isolateOwner: IsolateOwner,
+        nodes: MutableList<Node>,
+        nodesById: MutableMap<Int, Node>
+    ) {
+        withIsolate(isolateOwner) {
+            readCollection {
+                val nodeId = readSmallInt()
+                val node = readNode()
+                nodesById[nodeId] = node
+                if (node is LocalTaskNode) {
+                    node.prepareNode.require()
+                    val prepareNodeId = readSmallInt()
+                    nodesById[prepareNodeId] = node.prepareNode
+                }
+                nodes.add(node)
+            }
+        }
     }
 
     private
@@ -205,20 +301,7 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: IdForNode) {
-        var successors = node.dependencySuccessors
-        if (node is ActionNode) {
-            val setupNode = node.action?.preExecutionNode
-            // Could probably add some abstraction for nodes that can be executed eagerly and discarded
-            if (setupNode is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies) {
-                setupNode.run(object : NodeExecutionContext {
-                    override fun <T : Any> getService(type: Class<T>): T {
-                        return ownerService(type)
-                    }
-                })
-                successors = successors + setupNode.postExecutionNodes
-            }
-        }
-        writeSuccessorReferences(successors, scheduledNodeIds)
+        writeSuccessorReferences(dependencySuccessorsOf(node), scheduledNodeIds)
         when (node) {
             is TaskNode -> {
                 writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
@@ -258,13 +341,31 @@ class WorkNodeCodec(
     }
 
     private
+    fun WriteContext.dependencySuccessorsOf(node: Node): MutableSet<Node> {
+        var successors = node.dependencySuccessors
+        if (node is ActionNode) {
+            val setupNode = node.action?.preExecutionNode
+            // Could probably add some abstraction for nodes that can be executed eagerly and discarded
+            if (setupNode is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies) {
+                setupNode.run(object : NodeExecutionContext {
+                    override fun <T : Any> getService(type: Class<T>): T {
+                        return ownerService(type)
+                    }
+                })
+                successors = successors + setupNode.postExecutionNodes
+            }
+        }
+        return successors
+    }
+
+    private
     fun WriteContext.writeSuccessorReferences(
         successors: Collection<Node>,
-        scheduledNodeIds: IdForNode
+        idForNode: IdForNode
     ) {
         for (successor in successors) {
             if (successor.isRequired) {
-                val successorId = scheduledNodeIds(successor)
+                val successorId = idForNode(successor)
                 writeSmallInt(successorId)
             }
         }
@@ -278,6 +379,23 @@ class WorkNodeCodec(
             if (successorId == -1) break
             val successor = nodeForId(successorId)
             onSuccessor(successor)
+        }
+    }
+}
+
+
+sealed class NodeOwner {
+
+    object None : NodeOwner()
+
+    data class Project(val project: ProjectInternal) : NodeOwner()
+
+    companion object {
+        fun of(node: Node): NodeOwner {
+            return when (val project = node.owningProject) {
+                null -> None
+                else -> Project(project)
+            }
         }
     }
 }

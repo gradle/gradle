@@ -66,17 +66,17 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
         events.contains([profile: "build ':' state", type: "O", frame: "Work Graph"])
 
         and: "state frame events are logged"
-        events.contains([profile: "build ':' state", type: "O", frame: ":ok"])
-        events.contains([profile: "build ':' state", type: "C", frame: ":ok"])
-        events.contains([profile: "build ':' state", type: "O", frame: ":sub:ok"])
-        events.contains([profile: "build ':' state", type: "C", frame: ":sub:ok"])
+        events.contains([profile: "child ':' state", type: "O", frame: ":ok"])
+        events.contains([profile: "child ':' state", type: "C", frame: ":ok"])
+        events.contains([profile: "child ':sub' state", type: "O", frame: ":sub:ok"])
+        events.contains([profile: "child ':sub' state", type: "C", frame: ":sub:ok"])
 
         and: "task type frame follows task path frame follows LocalTaskNode frame"
         def firstTaskNodeIndex = events.findIndexOf { it.frame == LocalTaskNode.name }
         firstTaskNodeIndex > 0
-        events[firstTaskNodeIndex] == [profile: "build ':' state", type: "O", frame: LocalTaskNode.name]
-        events[firstTaskNodeIndex + 1] == [profile: "build ':' state", type: "O", frame: ":ok"]
-        events[firstTaskNodeIndex + 2] == [profile: "build ':' state", type: "O", frame: DefaultTask.name]
+        events[firstTaskNodeIndex] == [profile: "child ':' state", type: "O", frame: LocalTaskNode.name]
+        events[firstTaskNodeIndex + 1] == [profile: "child ':' state", type: "O", frame: ":ok"]
+        events[firstTaskNodeIndex + 2] == [profile: "child ':' state", type: "O", frame: DefaultTask.name]
 
         where:
         enablement << CCDebugEnablement.values()

@@ -22,8 +22,10 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.util.Path
 
 
 /**
@@ -66,6 +68,17 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
 
 interface CloseableWriteContext : WriteContext, AutoCloseable
+
+
+fun <I, R> CloseableWriteContext.writeWith(
+    argument: I,
+    writeOperation: suspend WriteContext.(I) -> R
+): R =
+    useToRun {
+        runWriteOperation {
+            writeOperation(argument)
+        }
+    }
 
 
 interface Tracer {
@@ -118,7 +131,18 @@ interface MutableReadContext : ReadContext {
 
 interface CloseableReadContext : MutableReadContext, AutoCloseable {
     fun finish()
+
 }
+
+
+fun <I, R> CloseableReadContext.readWith(argument: I, readOperation: suspend MutableReadContext.(I) -> R) =
+    useToRun {
+        runReadOperation {
+            readOperation(argument)
+        }.also {
+            finish()
+        }
+    }
 
 
 inline
@@ -146,6 +170,12 @@ interface IsolateContext {
 interface IsolateOwner {
     val delegate: Any
     fun <T> service(type: Class<T>): T
+}
+
+
+interface IsolateContextSource {
+    fun readContextFor(baseContext: CloseableReadContext, path: Path): CloseableReadContext
+    fun writeContextFor(baseContext: CloseableWriteContext, path: Path): CloseableWriteContext
 }
 
 

@@ -22,8 +22,10 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.util.Path
 import java.io.InputStream
 import java.io.OutputStream
@@ -63,8 +65,34 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     fun writeContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<CloseableWriteContext, Codecs>
 
     fun <R> withReadContextFor(
+        stateFile: ConfigurationCacheStateFile,
+        readOperation: suspend MutableReadContext.(Codecs) -> R
+    ): R =
+        withReadContextFor(stateFile.stateType, stateFile::inputStream, readOperation)
+
+    fun <R> withReadContextFor(
         stateType: StateType,
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
+    ): R
+
+    fun <R> withReadContextFor(
+        readContext: CloseableReadContext,
+        codecs: Codecs,
+        readOperation: suspend MutableReadContext.(Codecs) -> R
+    ): R
+
+    fun <R> withWriteContextFor(
+        stateFile: ConfigurationCacheStateFile,
+        profile: () -> String,
+        writeOperation: suspend WriteContext.(Codecs) -> R
+    ): R =
+        withWriteContextFor(stateFile.stateType, stateFile::outputStream, profile, writeOperation)
+
+    fun <R> withWriteContextFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        profile: () -> String,
+        writeOperation: suspend WriteContext.(Codecs) -> R
     ): R
 }

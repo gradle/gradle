@@ -23,6 +23,7 @@ plugins {
 description = "Efficient and extensible serialization for object graphs, with the capability to isolate and manage portions of the graph independently"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.configurationProblemsBase)
     api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
@@ -32,7 +33,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.kotlinStdlib)
 
-    implementation(projects.baseServices)
     implementation(projects.problemsApi)
     implementation(projects.stdlibKotlinExtensions)
 
