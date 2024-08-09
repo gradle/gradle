@@ -7,7 +7,6 @@ description = "Version control integration (with git) for source dependencies"
 
 errorprone {
     disabledChecks.addAll(
-        "UnusedMethod", // 13 occurrences
         "UnusedVariable", // 3 occurrences
     )
 }

@@ -151,6 +151,7 @@ public final class AntGroovydoc {
                 ));
 
                 antBuilder.invokeMethod("groovydoc", new Object[]{args, new Closure<Object>(this, this) {
+                    @SuppressWarnings("UnusedVariable")
                     public Object doCall(Object ignore) {
                         for (Groovydoc.Link link : links) {
                             antBuilder.invokeMethod("link", new Object[]{

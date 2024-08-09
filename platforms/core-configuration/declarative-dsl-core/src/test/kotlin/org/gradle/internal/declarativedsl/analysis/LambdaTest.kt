@@ -19,9 +19,9 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
-import kotlin.test.Test
-import kotlin.test.assertTrue
 
 
 object LambdaTest {

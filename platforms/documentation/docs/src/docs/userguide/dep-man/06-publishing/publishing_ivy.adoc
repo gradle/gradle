@@ -17,7 +17,7 @@
 
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
-A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
+A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
 
 [[publishing_ivy:usage]]
 == Usage
@@ -50,11 +50,11 @@ An aggregate task that publishes all defined publications to all defined reposit
 [[publishing_ivy:publications]]
 == Publications
 
-This plugin provides <<dependency_management_terminology.adoc#sub:terminology_publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<glossary.adoc#sub:terminology_publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in an Ivy publication:
 
- * A <<dependency_management_terminology.adoc#sub:terminology_component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:from(org.gradle.api.component.SoftwareComponent)[IvyPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * A <<glossary.adoc#sub:terminology_component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:from(org.gradle.api.component.SoftwareComponent)[IvyPublication.from(org.gradle.api.component.SoftwareComponent)].
  * <<publishing_customization.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:artifact(java.lang.Object)[IvyPublication.artifact(java.lang.Object)] method. See link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyArtifact.html[IvyArtifact] for the available configuration options for custom Ivy artifacts.
  * Standard metadata like `module`, `organisation` and `revision`.
  * Other contents of the module descriptor — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:descriptor(org.gradle.api.Action)[IvyPublication.descriptor(org.gradle.api.Action)].
@@ -140,7 +140,7 @@ Gradle will also use the versions resolved on the `runtimeClasspath` for depende
 [[publishing_ivy:repositories]]
 == Repositories
 
-This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<glossary.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 

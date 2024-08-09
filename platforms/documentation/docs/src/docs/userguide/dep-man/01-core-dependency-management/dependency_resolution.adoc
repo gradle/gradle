@@ -16,7 +16,7 @@
 = Understanding dependency resolution
 
 This chapter covers the way dependency resolution works _inside_ Gradle.
-After covering how you can declare <<declaring_repositories.adoc#declaring-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-dependencies,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
+After covering how you can declare <<declaring_repositories.adoc#declaring-basic-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-basic-dependencies,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
 
 Dependency resolution is a process that consists of two phases, which are repeated until the dependency graph is complete:
 
@@ -82,7 +82,7 @@ This flexibility comes with the price of making it hard to reason about.
 ====
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
-Out of these versions, it will select the _highest_ one. More information on version ordering
+By default, it will select the _highest_ version. More information on version ordering
 <<single_versions#version_ordering,here>>.
 
 As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
@@ -201,7 +201,7 @@ Given a required dependency, with a version, Gradle attempts to resolve the depe
 
 [NOTE]
 ====
-The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
+The penultimate point above is what can make the integration with <<declaring_repositories_adv.adoc#sec:case-for-maven-local,Maven Local>> problematic.
 As it is a cache for Maven, it will sometimes miss some artifacts of a given module.
 If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
 ====

@@ -138,7 +138,8 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                     }
                 }
 
-                problem.solutions.let { solutions ->
+                val solutions = problem.solutions
+                if (solutions.isNotEmpty()) {
                     property("solutions") {
                         jsonList(solutions.iterator()) { solution ->
                             writeStructuredMessage(

@@ -14,8 +14,6 @@ errorprone {
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 3 occurrences
         "OperatorPrecedence", // 2 occurrences
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 

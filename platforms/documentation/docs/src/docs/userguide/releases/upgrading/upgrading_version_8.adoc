@@ -35,6 +35,20 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.11]]
+== Upgrading from 8.10 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.0.10
+
+The embedded Kotlin has been updated from 1.9.24 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.10[Kotlin 2.0.10].
+Also see the link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.0[Kotlin 2.0.0] release notes.
+
+The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.10 as well.
+
+Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backwards compatibility.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
@@ -106,6 +120,15 @@ Projects should also never access the mutable state of another project.
 Since Configurations are mutable, extending configurations across project boundaries restricts the parallelism that Gradle can apply.
 
 Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
+
+==== Deprecated `Dependency#contentEquals(Dependency)`
+
+The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
+
+The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
+The existing method does not behave as specified by its javadoc, and we do not plan to introduce a replacement that does.
+
+Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
 
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier

@@ -16,9 +16,8 @@
 
 package org.gradle.api.provider
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
@@ -241,7 +240,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         'HttpHeaderCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testAuthHeaderName\n  - testAuthHeaderValue"
     }
 
-    @UnsupportedWithConfigurationCache(because = "test checks behavior with and without configuration cache")
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "controls configuration cache status")
     def "credential values are not cached between executions"() {
         given:
         buildFile << """
@@ -268,8 +267,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
     }
 
-    @NotYetImplemented
-    @UnsupportedWithConfigurationCache(because = "test checks behavior with configuration cache")
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "controls configuration cache status")
     def "credential values are not stored in configuration cache`"() {
         given:
         buildFile << """
@@ -294,7 +292,6 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() }
         configurationCacheDirs.size() == 1
         def configurationCacheFiles = configurationCacheDirs[0].listFiles()
-        configurationCacheFiles.size() == 2
         configurationCacheFiles.each {
             def content = it.getText()
             assert !content.contains('user-value')

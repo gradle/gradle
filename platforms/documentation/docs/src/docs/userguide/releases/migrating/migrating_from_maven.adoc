@@ -133,7 +133,7 @@ If you want to include integration tests, you will have to <<migmvn:integration_
 `install`::
 Use the `publishToMavenLocal` task provided by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>>.
 +
-Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies.adoc#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#composite_builds,composite builds>>.
+Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies_adv.adoc#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#composite_builds,composite builds>>.
 You should only use `publishToMavenLocal` for interoperating with Maven builds.
 +
 Gradle also allows you to resolve dependencies against the local Maven cache, as described in the <<migmvn:declaring_repos,Declaring repositories>> section.
@@ -191,7 +191,7 @@ This will run the tests and produce the required artifacts automatically.
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 
-Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
+Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
 In fact, Gradle works with Maven-compatible repositories which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
@@ -204,7 +204,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies#declaring-dependencies,Declaring Dependencies>> chapter.
+All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 
@@ -288,7 +288,7 @@ Dependencies with other scopes will be ignored.
 
 Gradle allows you to retrieve declared dependencies from any Maven-compatible or Ivy-compatible repository.
 Unlike Maven, it has no default repository and so you have to declare at least one.
-In order to have the same behavior as your Maven build, just configure <<declaring_repositories.adoc#sub:maven_central,Maven Central>> in your Gradle build, like this:
+In order to have the same behavior as your Maven build, just configure <<declaring_repositories_adv.adoc#sub:maven_central,Maven Central>> in your Gradle build, like this:
 
 .Configuring the build to use Maven Central
 ====
@@ -296,11 +296,11 @@ include::sample[dir="snippets/mavenMigration/basic/kotlin",files="build.gradle.k
 include::sample[dir="snippets/mavenMigration/basic/groovy",files="build.gradle[tags=repositories]"]
 ====
 
-You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories.adoc#sec:maven_repo,Repository Types>> chapter.
+You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories_adv.adoc#sec:maven_repo,Repository Types>> chapter.
 
-Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sub:maven_local,local Maven cache/repository>>.
+Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories_adv.adoc#sub:maven_local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
-If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
+If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories_adv.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
 
 You might also be interested in learning about Gradle's own <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
@@ -407,7 +407,7 @@ include::sample[dir="snippets/mavenMigration/multiModule/groovy",files="settings
 > gradle projects
 include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out[]
 ----
- 2. Replace cross-module dependencies with <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>>.
+ 2. Replace cross-module dependencies with <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependencies>>.
  3. Replicate project inheritance with <<sharing_build_logic_between_subprojects#sec:convention_plugins,convention plugins>>.
 +
 This basically involves creating a root project build script that injects shared configuration into the appropriate subprojects.

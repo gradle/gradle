@@ -37,7 +37,7 @@ import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.Hashing
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.objectweb.asm.Type
@@ -110,7 +110,7 @@ class GradleJars(distroJars: Set<File>) {
 
 private
 fun builtInPluginIdExtFileIn(outputDir: File): File =
-    outputDir.resolve("$kotlinDslPackagePath/BuiltinPluginIdExtensions.kt").apply {
+    outputDir.resolve("$KOTLIN_DSL_PACKAGE_PATH/BuiltinPluginIdExtensions.kt").apply {
         parentFile.mkdirs()
     }
 
