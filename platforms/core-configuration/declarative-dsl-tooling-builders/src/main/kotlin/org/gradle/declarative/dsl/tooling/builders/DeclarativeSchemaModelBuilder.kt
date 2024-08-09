@@ -17,7 +17,6 @@
 package org.gradle.declarative.dsl.tooling.builders
 
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
@@ -30,7 +29,6 @@ import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSche
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
-import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
