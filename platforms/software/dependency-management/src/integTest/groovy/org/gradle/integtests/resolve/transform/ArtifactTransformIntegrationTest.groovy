@@ -1080,7 +1080,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             }
 
             // Provides a default value of `preferred` if a given attribute is not requested.
-            abstract class DefaultingDisambiguationRule implements AttributeDisambiguationRule<String>, org.gradle.api.internal.ReusableAction {
+            abstract class DefaultingDisambiguationRule implements AttributeDisambiguationRule<String> {
                 @Inject
                 protected abstract ObjectFactory getObjectFactory()
                 @Override

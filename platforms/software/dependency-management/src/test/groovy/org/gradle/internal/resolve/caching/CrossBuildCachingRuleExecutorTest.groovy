@@ -284,19 +284,19 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
     void withToUpperCaseRule() {
         rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             ToUpperCase
-        )), TestUtil.instantiatorFactory().decorateLenient(), shouldNotFail())
+        )), TestUtil.instantiatorFactory().decorateLenient(), shouldNotFail(), false)
     }
 
     void withNonCacheableToUpperCaseRule() {
         rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             ToUpperCaseNotCached
-        )), TestUtil.instantiatorFactory().decorateLenient(), shouldNotFail())
+        )), TestUtil.instantiatorFactory().decorateLenient(), shouldNotFail(), false)
     }
 
     void withServiceInjectedRule() {
         rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             WithServiceInjected
-        )), implicitInputsCapturingInstantiator, shouldNotFail())
+        )), implicitInputsCapturingInstantiator, shouldNotFail(), false)
     }
 
     void withServiceInjectedRules() {
@@ -306,7 +306,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         def rule2 = DefaultConfigurableRule.of(
             WithServiceInjected
         )
-        rule = new InstantiatingAction<Details>(new DefaultConfigurableRules([rule1, rule2]), implicitInputsCapturingInstantiator, shouldNotFail())
+        rule = new InstantiatingAction<Details>(new DefaultConfigurableRules([rule1, rule2]), implicitInputsCapturingInstantiator, shouldNotFail(), false)
     }
 
     InstantiatingAction.ExceptionHandler<Details> shouldNotFail() {

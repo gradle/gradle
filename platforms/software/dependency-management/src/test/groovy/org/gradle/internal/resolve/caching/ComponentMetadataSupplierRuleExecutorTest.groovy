@@ -193,7 +193,8 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         rule = new InstantiatingAction<>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(ruleClass)),
             instantiator,
-            shouldNotFail()
+            shouldNotFail(),
+            false
         )
     }
 

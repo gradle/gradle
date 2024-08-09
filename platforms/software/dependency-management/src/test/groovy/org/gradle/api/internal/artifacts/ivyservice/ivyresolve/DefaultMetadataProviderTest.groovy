@@ -174,7 +174,8 @@ class DefaultMetadataProviderTest extends Specification {
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
             TestUtil.instantiatorFactory().inject(),
-            Stub(InstantiatingAction.ExceptionHandler)
+            Stub(InstantiatingAction.ExceptionHandler),
+            false
         )
 
         when:
@@ -203,7 +204,8 @@ class DefaultMetadataProviderTest extends Specification {
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
             TestUtil.instantiatorFactory().inject(),
-            Stub(InstantiatingAction.ExceptionHandler)
+            Stub(InstantiatingAction.ExceptionHandler),
+            false
         )
 
         when:
@@ -227,7 +229,8 @@ class DefaultMetadataProviderTest extends Specification {
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
             TestUtil.instantiatorFactory().inject(),
-            Stub(InstantiatingAction.ExceptionHandler)
+            Stub(InstantiatingAction.ExceptionHandler),
+            false
         )
 
         when:
@@ -254,7 +257,8 @@ class DefaultMetadataProviderTest extends Specification {
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
             DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplierWithInvalidAttributes)),
             TestUtil.instantiatorFactory().inject(),
-            Stub(InstantiatingAction.ExceptionHandler)
+            Stub(InstantiatingAction.ExceptionHandler),
+            false
         )
 
         when:

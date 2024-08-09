@@ -55,14 +55,22 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
 
     @Override
     public void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
-        rules.add(new InstantiatingAction<>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)),
-            instantiator, new ExceptionHandler<>(rule)));
+        rules.add(new InstantiatingAction<>(
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule, configureAction, isolatableFactory)),
+            instantiator,
+            new ExceptionHandler<>(rule),
+            true
+        ));
     }
 
     @Override
     public void add(final Class<? extends AttributeCompatibilityRule<T>> rule) {
-        rules.add(new InstantiatingAction<>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule)),
-            instantiator, new ExceptionHandler<>(rule)));
+        rules.add(new InstantiatingAction<>(
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(rule)),
+            instantiator,
+            new ExceptionHandler<>(rule),
+            true
+        ));
     }
 
     @Override
