@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
@@ -37,7 +36,6 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
-import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner

@@ -16,7 +16,6 @@
 
 package gradlebuild.performance.tasks
 
-import gradlebuild.basics.BuildEnvironmentExtension
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import io.mockk.every
 import io.mockk.mockkStatic
