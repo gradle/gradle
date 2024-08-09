@@ -19,12 +19,10 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.DefaultTask
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheDebugOption
-import spock.lang.Ignore
 
 import static org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.GradleEnvironment
 import static org.gradle.internal.cc.impl.fingerprint.ProjectSpecificFingerprint.ProjectFingerprint
 
-@Ignore("WIP:parallel cc")
 class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "logs categorized open/close frame events for state and fingerprint files"() {
@@ -68,17 +66,17 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
         events.contains([profile: "build ':' state", type: "O", frame: "Work Graph"])
 
         and: "state frame events are logged"
-        events.contains([profile: "build ':' state", type: "O", frame: ":ok"])
-        events.contains([profile: "build ':' state", type: "C", frame: ":ok"])
-        events.contains([profile: "build ':' state", type: "O", frame: ":sub:ok"])
-        events.contains([profile: "build ':' state", type: "C", frame: ":sub:ok"])
+        events.contains([profile: "child ':' state", type: "O", frame: ":ok"])
+        events.contains([profile: "child ':' state", type: "C", frame: ":ok"])
+        events.contains([profile: "child ':sub' state", type: "O", frame: ":sub:ok"])
+        events.contains([profile: "child ':sub' state", type: "C", frame: ":sub:ok"])
 
         and: "task type frame follows task path frame follows LocalTaskNode frame"
         def firstTaskNodeIndex = events.findIndexOf { it.frame == LocalTaskNode.name }
         firstTaskNodeIndex > 0
-        events[firstTaskNodeIndex] == [profile: "build ':' state", type: "O", frame: LocalTaskNode.name]
-        events[firstTaskNodeIndex + 1] == [profile: "build ':' state", type: "O", frame: ":ok"]
-        events[firstTaskNodeIndex + 2] == [profile: "build ':' state", type: "O", frame: DefaultTask.name]
+        events[firstTaskNodeIndex] == [profile: "child ':' state", type: "O", frame: LocalTaskNode.name]
+        events[firstTaskNodeIndex + 1] == [profile: "child ':' state", type: "O", frame: ":ok"]
+        events[firstTaskNodeIndex + 2] == [profile: "child ':' state", type: "O", frame: DefaultTask.name]
 
         where:
         enablement << CCDebugEnablement.values()
