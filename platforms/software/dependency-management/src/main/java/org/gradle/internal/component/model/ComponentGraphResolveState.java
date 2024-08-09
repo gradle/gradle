@@ -64,6 +64,14 @@ public interface ComponentGraphResolveState {
     List<ResolvedVariantResult> getAllSelectableVariantResults();
 
     /**
+     * Gets the public view for the given variant.
+     * <p>
+     * Only valid for variants that are owned by this component.
+     * Results are undefined if {@code variant} is not owned by this component.
+     */
+    ResolvedVariantResult getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
+
+    /**
      * Returns the candidates for variant selection during graph resolution.
      */
     GraphSelectionCandidates getCandidatesForGraphVariantSelection();

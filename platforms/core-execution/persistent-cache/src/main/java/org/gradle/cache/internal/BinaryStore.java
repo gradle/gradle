@@ -20,7 +20,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 public interface BinaryStore {
     void write(WriteAction write);
@@ -29,11 +28,11 @@ public interface BinaryStore {
     BinaryData done();
 
     interface WriteAction {
-        void write(Encoder encoder) throws IOException;
+        void write(Encoder encoder) throws Exception;
     }
 
     interface ReadAction<T> {
-        T read(Decoder decoder) throws IOException;
+        T read(Decoder decoder) throws Exception;
     }
 
     interface BinaryData extends Closeable {

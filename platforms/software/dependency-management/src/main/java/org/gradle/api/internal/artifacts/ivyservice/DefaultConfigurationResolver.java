@@ -74,11 +74,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.SelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
@@ -129,8 +128,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final BuildIdentifier currentBuild;
     private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
-    private final ComponentDetailsSerializer componentDetailsSerializer;
-    private final SelectedVariantSerializer selectedVariantSerializer;
+    private final AdhocHandlingComponentResultSerializer componentResultSerializer;
     private final ResolvedVariantCache resolvedVariantCache;
     private final GraphVariantSelector graphVariantSelector;
     private final ProjectStateRegistry projectStateRegistry;
@@ -157,8 +155,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         BuildState currentBuild,
         ResolvedArtifactSetResolver artifactSetResolver,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        ComponentDetailsSerializer componentDetailsSerializer,
-        SelectedVariantSerializer selectedVariantSerializer,
+        AdhocHandlingComponentResultSerializer componentResultSerializer,
         ResolvedVariantCache resolvedVariantCache,
         GraphVariantSelector graphVariantSelector,
         ProjectStateRegistry projectStateRegistry,
@@ -184,8 +181,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.currentBuild = currentBuild.getBuildIdentifier();
         this.artifactSetResolver = artifactSetResolver;
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
-        this.componentDetailsSerializer = componentDetailsSerializer;
-        this.selectedVariantSerializer = selectedVariantSerializer;
+        this.componentResultSerializer = componentResultSerializer;
         this.resolvedVariantCache = resolvedVariantCache;
         this.graphVariantSelector = graphVariantSelector;
         this.projectStateRegistry = projectStateRegistry;
@@ -242,7 +238,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, componentSelectionDescriptorFactory, resolutionStrategy.getIncludeAllSelectableVariantResults());
+        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentResultSerializer, componentSelectionDescriptorFactory, resolutionStrategy.getIncludeAllSelectableVariantResults());
 
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
 

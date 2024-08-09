@@ -68,10 +68,9 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.SelectedVariantSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -119,11 +118,11 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
@@ -563,8 +562,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             BuildState currentBuild,
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             ResolvedArtifactSetResolver artifactSetResolver,
-            ComponentDetailsSerializer componentDetailsSerializer,
-            SelectedVariantSerializer selectedVariantSerializer,
+            AdhocHandlingComponentResultSerializer componentResultSerializer,
             ResolvedVariantCache resolvedVariantCache,
             GraphVariantSelector graphVariantSelector,
             ProjectStateRegistry projectStateRegistry,
@@ -591,8 +589,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 currentBuild,
                 artifactSetResolver,
                 componentSelectionDescriptorFactory,
-                componentDetailsSerializer,
-                selectedVariantSerializer,
+                componentResultSerializer,
                 resolvedVariantCache,
                 graphVariantSelector,
                 projectStateRegistry,

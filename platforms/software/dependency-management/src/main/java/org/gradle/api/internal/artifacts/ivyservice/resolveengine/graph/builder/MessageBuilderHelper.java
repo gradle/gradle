@@ -19,7 +19,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -76,9 +75,9 @@ abstract class MessageBuilderHelper {
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        ResolvedVariantResult selectedVariant = e.hasSelectedVariant() ? e.getSelectedNode().getResolveState().getVariantResult(null) : null;
-        if (selectedVariant != null) {
-            return " (" + selectedVariant.getDisplayName() + ")";
+        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
+        if (selectedVariantName != null) {
+            return " (" + selectedVariantName + ")";
         }
         return null;
     }
