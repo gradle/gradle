@@ -146,7 +146,7 @@ public class SomeIntegTestClass {
 
         expect:
         fails ":test"
-        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+        failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
     def "can toggle framework multiple times on default test task directly, outside of default test suite"() {

@@ -31,7 +31,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
-        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+        failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
     @Test
@@ -44,7 +44,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':compileTestJava'.")
-        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+        failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
     @Test

@@ -45,6 +45,16 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private AdditionalData additionalData;
     private boolean collectLocation = false;
 
+    public DefaultProblemBuilder() {
+        this.additionalData = null;
+        this.solutions = new ArrayList<String>();
+    }
+
+    public DefaultProblemBuilder(ProblemStream problemStream) {
+        this();
+        this.problemStream = problemStream;
+    }
+
     public DefaultProblemBuilder(Problem problem) {
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
@@ -58,12 +68,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
         this.problemStream = null;
-    }
-
-    public DefaultProblemBuilder(ProblemStream problemStream) {
-        this.problemStream = problemStream;
-        this.solutions = new ArrayList<String>();
-        this.additionalData = null;
     }
 
     @Override

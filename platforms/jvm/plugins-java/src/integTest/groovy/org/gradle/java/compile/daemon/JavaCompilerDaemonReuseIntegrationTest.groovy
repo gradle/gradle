@@ -21,6 +21,7 @@ import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.JavaAgentFixture
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.precondition.Requires
@@ -168,10 +169,12 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
             def operation = taskOperations[taskName] as BuildOperationRecord
             assert operation["progress"].find { BuildOperationRecord.Progress progress ->
                 "org.gradle.api.problems.internal.DefaultProblemProgressDetails" == progress.detailsClassName
-            }.any { BuildOperationRecord.Progress progress ->
-                def problem = progress.details["problem"]
-                def detail = problem["details"] as String
-                return detail.endsWith("ClassWithWarning${index + 1}.java uses or overrides a deprecated API.")
+            }.collect {
+                def progress = (BuildOperationRecord.Progress) it
+                def problemDetails = progress.details["problem"] as Map<String, Object>
+                new ReceivedProblem(operation.id, problemDetails)
+            }.any { ReceivedProblem problem ->
+                return problem.contextualLabel.endsWith("ClassWithWarning${index + 1}.java uses or overrides a deprecated API.")
             }
         }
     }

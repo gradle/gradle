@@ -99,6 +99,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "persistent-cache",
         "problems",
         "problems-api",
+        "problems-rendering",
         "process-memory-services",
         "process-services",
         "resources",

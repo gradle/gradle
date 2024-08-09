@@ -565,7 +565,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
-        failureHasCause("Compilation failed; see the compiler error output for details.")
+        failureHasCause("Compilation failed; see the compiler output below.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }

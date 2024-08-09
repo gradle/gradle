@@ -15,35 +15,57 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
-public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator {
+public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure {
+
+    public static final String COMPILATION_FAILED_DETAILS_ABOVE = "Compilation failed; see the compiler error output for details.";
+    public static final String COMPILATION_FAILED_DETAILS_BELOW = "Compilation failed; see the compiler output below.";
 
     private final ApiCompilerResult compilerPartialResult;
+    private final Collection<Problem> reportedProblems;
 
     public CompilationFailedException() {
         this((ApiCompilerResult) null);
     }
 
-    public CompilationFailedException(@Nullable ApiCompilerResult compilerPartialResult) {
-        super("Compilation failed; see the compiler error output for details.");
-        this.compilerPartialResult = compilerPartialResult;
-    }
-
     public CompilationFailedException(int exitCode) {
         super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
         this.compilerPartialResult = null;
+        this.reportedProblems = Collections.emptyList();
     }
 
     public CompilationFailedException(Throwable cause) {
         super(cause);
         this.compilerPartialResult = null;
+        this.reportedProblems = Collections.emptyList();
+    }
+
+    public CompilationFailedException(@Nullable ApiCompilerResult result) {
+        super(COMPILATION_FAILED_DETAILS_ABOVE);
+        this.compilerPartialResult = result;
+        this.reportedProblems = Collections.emptyList();
+    }
+
+    public CompilationFailedException(@Nullable ApiCompilerResult result, Collection<Problem> reportedProblems) {
+        super(COMPILATION_FAILED_DETAILS_BELOW);
+        this.compilerPartialResult = result;
+        this.reportedProblems = reportedProblems;
     }
 
     public Optional<ApiCompilerResult> getCompilerPartialResult() {
         return Optional.ofNullable(compilerPartialResult);
+    }
+
+    @Override
+    public Collection<Problem> getProblems() {
+        return reportedProblems;
     }
 }

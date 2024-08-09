@@ -24,6 +24,9 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.problems.internal.DefaultProblemBuilder
+import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemAwareFailure
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
@@ -417,8 +420,8 @@ org.gradle.api.GradleException: $MESSAGE
         def exception = new TestException() {
             @Override
             void appendResolutions(FailureResolutionAware.Context context) {
-                context.appendResolution { output -> output.append("resolution 1.")}
-                context.appendResolution { output -> output.append("resolution 2.")}
+                context.appendResolution { output -> output.append("resolution 1.") }
+                context.appendResolution { output -> output.append("resolution 2.") }
             }
         }
 
@@ -445,7 +448,7 @@ $GET_HELP
             @Override
             void appendResolutions(FailureResolutionAware.Context context) {
                 context.doNotSuggestResolutionsThatRequireBuildDefinition()
-                context.appendResolution { output -> output.append("resolution 1.")}
+                context.appendResolution { output -> output.append("resolution 1.") }
             }
         }
 
@@ -596,6 +599,88 @@ $GET_HELP
     }
     // endregion Duplicate Exception Branch Filtering
 
+    def "singular exceptions containing problems are rendered"() {
+        given:
+        def problem1 = new DefaultProblemBuilder()
+            .id("group-1", "Group 1")
+            .build()
+        def problem2 = new DefaultProblemBuilder()
+            .id("group-2", "Group 2")
+            .build()
+        def failure = new ContextAwareException(
+            new GradleException(
+                "<root problem message>",
+                new TestProblemAwareFailure(problem1, problem2)
+            )
+        )
+
+        when:
+        reporter.buildFinished(result(failure))
+
+        then:
+        output.value.contains(
+            """\
+* What went wrong:
+<root problem message>
+{info}> {normal}<problem-bearing exception message>
+
+Group 1 (generic:group-1)
+  Group 1
+Group 2 (generic:group-2)
+  Group 2
+"""
+        )
+    }
+
+    def "multi-cause exceptions containing problems are rendered"() {
+        given:
+        def problem1 = new DefaultProblemBuilder()
+            .id("group-1", "Group 1")
+            .build()
+        def problem2 = new DefaultProblemBuilder()
+            .id("group-2", "Group 2")
+            .build()
+        def failure = new MultipleBuildFailures(
+            Arrays.asList(
+                new ContextAwareException(
+                    new GradleException(
+                        "<root problem-1 message>",
+                        new TestProblemAwareFailure(problem1)
+                    )
+                ),
+                new ContextAwareException(
+                    new GradleException(
+                        "<root problem-2 message>",
+                        new TestProblemAwareFailure(problem2)
+                    )
+                )
+            )
+        )
+
+        when:
+        reporter.buildFinished(result(failure))
+
+        then:
+        output.value.contains(
+            """\
+* What went wrong:
+<root problem-1 message>
+{info}> {normal}<problem-bearing exception message>
+
+Group 1 (generic:group-1)
+  Group 1
+""")
+        output.value.contains(
+            """\
+* What went wrong:
+<root problem-2 message>
+{info}> {normal}<problem-bearing exception message>
+
+Group 2 (generic:group-2)
+  Group 2
+""")
+    }
+
     def result(Throwable failure) {
         BuildResult result = Mock()
         result.failure >> failure
@@ -607,4 +692,19 @@ $GET_HELP
             super(MESSAGE)
         }
     }
+
+    class TestProblemAwareFailure extends Throwable implements ProblemAwareFailure {
+        List<Problem> problems
+
+        TestProblemAwareFailure(Problem... problems) {
+            super("<problem-bearing exception message>")
+            this.problems = Arrays.asList(problems)
+        }
+
+        @Override
+        Collection<Problem> getProblems() {
+            return problems
+        }
+    }
+
 }
