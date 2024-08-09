@@ -82,7 +82,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     private boolean ignoreCleanupAssertions
 
     private boolean enableProblemsApiCheck = false
-    private BuildOperationsFixture buildOperationsFixture = null
+    BuildOperationsFixture buildOperationsFixture = null
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -742,6 +742,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
+    def enableBuildOperationsFixture() {
+        if (buildOperationsFixture == null) {
+            buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
+        }
+    }
+
     def resetProblemApiCheck() {
         // By nulling out the receivedProblems, upon calling getReceivedProblems() we will re-fetch the problems from the build operations fixture.
         receivedProblems = null
@@ -749,7 +755,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     def enableProblemsApiCheck() {
         enableProblemsApiCheck = true
-        buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
+        enableBuildOperationsFixture()
     }
 
     def disableProblemsApiCheck() {

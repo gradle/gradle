@@ -71,7 +71,7 @@ class KnownProblemIds {
         'compilation:java:java-compilation-error' : 'Java compilation error',
         'compilation:java:java-compilation-failed' : 'Java compilation error',
         'compilation:java:java-compilation-warning' : 'Java compilation warning',
-        'compilation:java:java-compilation-advice' : 'Java compilation note',
+        'compilation:java:java-compilation-note' : 'Java compilation note',
         'dependency-version-catalog:alias-not-finished' : 'version catalog error',
         'dependency-version-catalog:invalid-dependency-notation' : 'Dependency version catalog problem',
         'dependency-version-catalog:reserved-alias-name' : 'version catalog error',

@@ -17,8 +17,8 @@
 package org.gradle.java.compile.daemon
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.JavaAgentFixture
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -26,6 +26,8 @@ import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType
+
+import java.util.regex.Pattern
 
 class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
     @Override
@@ -116,7 +118,8 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
     }
 
     def "log messages from a compiler daemon are associated with the task that generates them"() {
-        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+        enableBuildOperationsFixture()
+        enableProblemsApiCheck()
 
         withSingleProjectSources()
         buildFile << """
@@ -153,26 +156,45 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         assertRunningCompilerDaemonIs(firstCompilerIdentity)
 
         and:
-        def compilerOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)
-        def taskOperations =
+        def compilerOperations = buildOperationsFixture.all(ExecuteWorkItemBuildOperationType)
+        Map<String, BuildOperationRecord> taskOperations =
             compilerOperations.collectEntries {
-                def op = buildOperations.parentsOf(it).reverse().find {
-                    parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType)
+                def op = buildOperationsFixture.parentsOf(it).reverse().find {
+                    parent -> buildOperationsFixture.isType(parent, ExecuteTaskBuildOperationType)
                 }
                 [op.displayName, it]
             }
 
-        def tasks = ['Task :compileJava', 'Task :compileMain2Java']
-        taskOperations.keySet() == tasks.toSet()
-        tasks.eachWithIndex { taskName, index ->
-            def operation = taskOperations[taskName] as BuildOperationRecord
-            assert operation["progress"].find { BuildOperationRecord.Progress progress ->
-                "org.gradle.api.problems.internal.DefaultProblemProgressDetails" == progress.detailsClassName
-            }.any { BuildOperationRecord.Progress progress ->
-                def problem = progress.details["problem"]
-                def detail = problem["details"] as String
-                return detail.endsWith("ClassWithWarning${index + 1}.java uses or overrides a deprecated API.")
-            }
+        // We expect 4 problems. We need to grab them by calling receivedProblem, otherwise our cleanup check will complain about untested problems
+        def problems = (0..3).collect {
+            receivedProblem(it)
+        }.sort {
+            // We sort the problems first by operationId and then by details to make the test deterministic
+            // In order to make the sorting less error-prone, we delete the test directory path from the details
+            p1, p2 -> return p1.operationId <=> p2.operationId ?: p1.details.replaceAll(Pattern.quote(testDirectory.toString()), '') <=> p2.details.replaceAll(Pattern.quote(testDirectory.toString()), '')
+        }
+
+        verifyAll(problems[0]) {
+            operationId == taskOperations["Task :compileJava"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == "${testDirectory}/src/main/java/ClassWithWarning1.java uses or overrides a deprecated API."
+            getSingleLocation(FileLocation).path == "${testDirectory}/src/main/java/ClassWithWarning1.java"
+        }
+        verifyAll(problems[1]) {
+            operationId == taskOperations["Task :compileJava"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == 'Recompile with -Xlint:deprecation for details.'
+        }
+        verifyAll(problems[2]) {
+            operationId == taskOperations["Task :compileMain2Java"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == "${testDirectory}/src/main2/java/ClassWithWarning2.java uses or overrides a deprecated API."
+            getSingleLocation(FileLocation).path == "${testDirectory}/src/main2/java/ClassWithWarning2.java"
+        }
+        verifyAll(problems[3]) {
+            operationId == taskOperations["Task :compileMain2Java"].id
+            fqid == 'compilation:java:java-compilation-note'
+            details == 'Recompile with -Xlint:deprecation for details.'
         }
     }
 }
