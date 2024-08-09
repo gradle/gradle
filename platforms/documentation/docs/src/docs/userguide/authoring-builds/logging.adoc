@@ -93,7 +93,7 @@ It's advisable to discuss this with your organization's security team.
 
 Some CI providers attempt to redact sensitive credentials from logs, but this process is not foolproof and typically only redacts exact matches of pre-configured secrets.
 
-If you suspect that a Gradle Plugin may inadvertently expose sensitive information, please contact [security@gradle.com](mailto:security@gradle.com) for assistance with disclosure.
+If you suspect that a Gradle Plugin may inadvertently expose sensitive information, please contact security@gradle.com for assistance with disclosure.
 
 [[sec:sending_your_own_log_messages]]
 == Writing your own log messages
@@ -158,7 +158,7 @@ include::sample[dir="snippets/tutorial/logging/kotlin",files="build.gradle.kts[t
 include::sample[dir="snippets/tutorial/logging/groovy",files="build.gradle[tags=task-capture-stdout]"]
 ====
 
-Gradle also integrates with the [Java Util Logging](https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html), Jakarta Commons Logging and [Log4j](https://logging.apache.org/log4j/2.x/) logging toolkits.
+Gradle also integrates with the https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html[Java Util Logging], Jakarta Commons Logging and https://logging.apache.org/log4j/2.x/[Log4j] logging toolkits.
 Any log messages your build classes write using these logging toolkits will be redirected to Gradle's logging system.
 
 [[sec:changing_what_gradle_logs]]
