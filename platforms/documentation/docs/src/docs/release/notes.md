@@ -132,9 +132,9 @@ Gradle provides rich APIs for plugin authors and build engineers to develop cust
 
 The recently added [GradleLifecycle API](/javadoc/org/gradle/api/invocation/GradleLifecycle.html) is part of Gradle's core API and is used to manage and interact with a Gradle build's lifecycle events.
 
-Previously, the `GradleLifecycle#beforeProject` callback was executed right before the project evaluation.
+Previously, the `GradleLifecycle.beforeProject{}` callback was executed right before the project evaluation.
 
-The issue is that the results of `GradleLifecycle#beforeProject` execution are not observable within cross-project access API invocations, such as `Project#allprojects`, `Project#getAllprojects`, `Project#subprojects`, etc.
+The issue is that the results of `GradleLifecycle.beforeProject{}` execution are not observable within cross-project access API invocations, such as `Project.allprojects{}`, `Project.getAllprojects{}`, `Project.subprojects{}`, etc.
 Some builds may depend on the eagerness of these APIs, necessitating additional build logic changes when migrating to the new `GradleLifecycle` callbacks.
 
 For example in:
@@ -172,10 +172,10 @@ Lifecycle :a
 Lifecycle :b
 ```
 
-Where the result of setting an extra property in `GradleLifecycle#beforeProject` is not observable in `Project#allprojects`.
+Where the result of setting an extra property in `GradleLifecycle.beforeProject{}` is not observable in `Project.allprojects{}`.
 
 In this release, the behavior of this incubating API has changed.
-If the mutable state of the project is accessed in cross-project access APIs, the execution order will change, such that `GradleLifecycle#beforeProject` is executed before mutable state access.
+If the mutable state of the project is accessed in cross-project access APIs, the execution order will change, such that `GradleLifecycle.beforeProject{}` is executed before mutable state access.
 
 Now, the result of running the above example would be:
 
@@ -191,7 +191,7 @@ Lifecycle :b
 Foo = bar
 ```
 
-Otherwise, if only the project's immutable state is accessed, the `GradleLifecycle#beforeProject` callback will be executed in the previous order.
+Otherwise, if only the project's immutable state is accessed, the `GradleLifecycle.beforeProject{}` callback will be executed in the previous order.
 
 <a name="java-daemon-17"></a>
 ### Preemptive warnings for outdated JVM versions in Gradle 9.0
