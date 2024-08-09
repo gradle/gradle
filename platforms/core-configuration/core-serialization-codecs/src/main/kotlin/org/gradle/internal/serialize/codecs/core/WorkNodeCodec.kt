@@ -163,10 +163,8 @@ class WorkNodeCodec(
                 writeString(groupPath.path)
                 add(object : RunnableBuildOperation {
                     override fun run(context: BuildOperationContext) {
-                        runWriteOperation {
-                            contextSource.writeContextFor(this, groupPath).writeWith(Unit) {
-                                writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
-                            }
+                        contextSource.writeContextFor(this@writeNodes, groupPath).writeWith(Unit) {
+                            writeGroupedNodes(isolateOwner, groupNodes, nodeIds)
                         }
                     }
 
