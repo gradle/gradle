@@ -494,14 +494,14 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
+    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
         workNodeCodec(gradle).run {
             writeWork(scheduledWork)
         }
     }
 
     private
-    suspend fun ReadContext.readWorkGraph(gradle: GradleInternal) =
+    fun ReadContext.readWorkGraph(gradle: GradleInternal) =
         workNodeCodec(gradle).run {
             readWork()
         }
