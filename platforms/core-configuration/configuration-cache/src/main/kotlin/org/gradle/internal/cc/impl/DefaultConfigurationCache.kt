@@ -601,7 +601,7 @@ class DefaultConfigurationCache internal constructor(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
-        cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
+        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
             withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val buildPath: Path
