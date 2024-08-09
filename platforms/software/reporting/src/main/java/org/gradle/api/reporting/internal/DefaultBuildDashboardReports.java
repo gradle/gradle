@@ -16,17 +16,22 @@
 
 package org.gradle.api.reporting.internal;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.BuildDashboardReports;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 
-public class DefaultBuildDashboardReports extends TaskReportContainer<Report> implements BuildDashboardReports {
+import javax.inject.Inject;
 
-    public DefaultBuildDashboardReports(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(DirectoryReport.class, task, callbackActionDecorator);
-        add(TaskGeneratedSingleDirectoryReport.class, "html", task, "index.html");
+public class DefaultBuildDashboardReports extends DelegatingReportContainer<Report> implements BuildDashboardReports {
+
+    @Inject
+    public DefaultBuildDashboardReports(Describable owner, ObjectFactory objectFactory) {
+        super(DefaultReportContainer.create(objectFactory, Report.class, factory -> ImmutableList.of(
+            factory.instantiateReport(SingleDirectoryReport.class, "html", owner, "index.html")
+        )));
     }
 
     @Override

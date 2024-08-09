@@ -64,6 +64,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.dispatch.Dispatch;
@@ -182,7 +183,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
+        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 

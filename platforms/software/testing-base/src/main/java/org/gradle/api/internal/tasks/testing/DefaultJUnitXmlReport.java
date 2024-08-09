@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.Task;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.Describable;
 import org.gradle.api.provider.Property;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
+import org.gradle.api.reporting.internal.SingleDirectoryReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 
-public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectoryReport implements JUnitXmlReport {
+public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implements JUnitXmlReport {
+
     private boolean outputPerTestCase;
 
-    public DefaultJUnitXmlReport(String name, Task task, ObjectFactory objectFactory) {
-        super(name, task, null);
+    public DefaultJUnitXmlReport(String name, Describable owner) {
+        super(name, owner, null);
         this.getMergeReruns().convention(false);
         this.getIncludeSystemOutLog().convention(true);
         this.getIncludeSystemErrLog().convention(true);

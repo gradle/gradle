@@ -23,6 +23,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Describables;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -41,7 +42,7 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
     public JacocoReport() {
         super();
         projectName.value(getProject().getName()).disallowChanges();
-        reports = getInstantiator().newInstance(JacocoReportsContainerImpl.class, this, getCallbackActionDecorator());
+        reports = getProject().getObjects().newInstance(JacocoReportsContainerImpl.class, Describables.quoted("Task", getIdentityPath()));
     }
 
     /**

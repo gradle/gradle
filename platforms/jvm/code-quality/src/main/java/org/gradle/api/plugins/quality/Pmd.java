@@ -39,6 +39,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -76,7 +77,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     public Pmd() {
         super();
         ObjectFactory objects = getObjectFactory();
-        reports = objects.newInstance(PmdReportsImpl.class, this);
+        reports = objects.newInstance(PmdReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         this.rulesMinimumPriority = objects.property(Integer.class);
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
