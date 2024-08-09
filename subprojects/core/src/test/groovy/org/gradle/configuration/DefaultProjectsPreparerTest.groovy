@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration
 
+import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -30,7 +31,7 @@ class DefaultProjectsPreparerTest extends Specification {
     def projectConfigurer = Mock(ProjectConfigurer)
     def modelParameters = Mock(BuildModelParameters)
     def buildOperationRunner = Mock(BuildOperationRunner)
-    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, buildOperationRunner)
+    def configurer = new DefaultProjectsPreparer(projectConfigurer, BuildType.TASKS, modelParameters, buildOperationRunner)
 
     def setup() {
         gradle.startParameter >> startParameter

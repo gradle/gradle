@@ -194,6 +194,7 @@ project(':api') {
         fixture.assertProjectsConfigured(':', ':impl', ':api')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "name matching execution from root evaluates all projects"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -212,6 +213,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "name matching execution from subproject evaluates only the subproject recursively"() {
         createDirs("api", "impl", "impl/one", "impl/two", "impl/two/abc")
         settingsFile << "include 'api', 'impl:one', 'impl:two', 'impl:two:abc'"
@@ -225,6 +227,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "may run implicit tasks from root"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -236,6 +239,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "may run implicit tasks for subproject"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -247,6 +251,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":api")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "respects default tasks"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -371,6 +376,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":a", ":b")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "handles buildNeeded"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -411,6 +417,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "task command-line argument may look like a task path"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
