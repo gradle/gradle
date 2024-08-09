@@ -145,7 +145,7 @@ public interface ResolutionStrategy {
 
     /**
      * Activates dependency locking support in Gradle.
-     * Once turned on on a configuration, resolution result can be saved and then reused for subsequent builds.
+     * Once turned on a configuration, resolution result can be saved and then reused for subsequent builds.
      * This enables reproducible builds when using dynamic versions.
      *
      * @return this resolution strategy instance

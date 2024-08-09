@@ -219,7 +219,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     // We don't really care _what_ the detached configuration's IDs are.
                     // These really should be an implementation detail, as they are a synthetic ID and just need
-                    // to be different than than the project that owns the detached component.
+                    // to be different than the project that owns the detached component.
                     assert fooRoot.get().id != detachedRoot.get().id
                     assert fooRoot.get().moduleVersion != detachedRoot.get().moduleVersion
                 }

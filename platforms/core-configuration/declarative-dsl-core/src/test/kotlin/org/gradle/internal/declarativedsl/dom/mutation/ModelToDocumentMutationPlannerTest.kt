@@ -232,7 +232,7 @@ class ModelToDocumentMutationPlannerTest {
         scopeLocation: ScopeLocation = ScopeLocation.fromTopLevel().alsoInNestedScopes()
     ) = ModelMutationRequest(scopeLocation, mutation)
 
-    // TODO: set property and there isn't actually one, so it shoudl fail or insert one, depending on the request
+    // TODO: set property and there isn't actually one, so it should fail or insert one, depending on the request
     // TODO: mutations in top level blocks
 
     private
