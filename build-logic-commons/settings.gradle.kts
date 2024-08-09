@@ -41,4 +41,7 @@ include("code-quality-rules")
 // Plugins to build :build-logic plugins
 include("gradle-plugin")
 
+// Plugins to publish gradle projects
+include("publishing")
+
 rootProject.name = "build-logic-commons"

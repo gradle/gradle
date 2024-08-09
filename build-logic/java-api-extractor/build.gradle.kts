@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.java-shared-runtime")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Logic to extract API classes from JVM classes that is shared between build-logic and runtime."

@@ -6,13 +6,13 @@ description = "Provides plugins that combine and configure other plugins for dif
 
 dependencies {
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:publishing")
 
     implementation(projects.buildquality)
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
     implementation(projects.profiling)
-    implementation(projects.publishing)
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
