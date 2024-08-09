@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -36,6 +37,7 @@ import static org.apache.commons.lang.StringUtils.join;
 public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
 
+    private static final StringInterner STRING_INTERNER = new StringInterner();
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     public static final String SEPARATOR = ":";
 
@@ -61,7 +63,11 @@ public class Path implements Comparable<Path> {
     }
 
     private static Path parsePath(String path) {
-        String[] segments = StringUtils.split(path, SEPARATOR);
+        String[] temp = StringUtils.split(path, SEPARATOR);
+        String[] segments = new String[temp.length];
+        for (int i = 0; i < temp.length; i++) {
+            segments[i] = STRING_INTERNER.intern(temp[i]);
+        }
         boolean absolute = path.startsWith(SEPARATOR);
         return new Path(segments, absolute);
     }
@@ -114,7 +120,7 @@ public class Path implements Comparable<Path> {
         if (absolute) {
             path.append(SEPARATOR);
         }
-        return path.append(join(segments, SEPARATOR)).toString();
+        return STRING_INTERNER.intern(path.append(join(segments, SEPARATOR)).toString());
     }
 
     /**

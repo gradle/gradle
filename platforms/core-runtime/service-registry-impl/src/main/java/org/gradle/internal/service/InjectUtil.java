@@ -20,8 +20,13 @@ import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 final class InjectUtil {
+
+    private final static Map<Class<?>, Constructor<?>> CACHED_CONSTRUCTORS = Collections.synchronizedMap(new WeakHashMap<Class<?>, Constructor<?>>());
 
     /**
      * Selects the single injectable constructor for the given type.
@@ -31,6 +36,10 @@ final class InjectUtil {
      * @param type the type to find the injectable constructor of.
      */
     static Constructor<?> selectConstructor(final Class<?> type) {
+        Constructor<?> result = CACHED_CONSTRUCTORS.get(type);
+        if (result != null) {
+            return result;
+        }
         if (isInnerClass(type)) {
             // The DI system doesn't support injecting non-static inner classes.
             throw new ServiceValidationException(
@@ -46,10 +55,12 @@ final class InjectUtil {
             Constructor<?> constructor = constructors[0];
             if (isPublicOrPackageScoped(constructor)) {
                 // If there is a single constructor, and that constructor is public or package private we select it.
+                CACHED_CONSTRUCTORS.put(type, constructor);
                 return constructor;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
                 // Otherwise, if there is a single constructor that is annotated with `@Inject`, we select it (short-circuit).
+                CACHED_CONSTRUCTORS.put(type, constructor);
                 return constructor;
             }
         }
@@ -81,6 +92,7 @@ final class InjectUtil {
             );
         }
 
+        CACHED_CONSTRUCTORS.put(type, match);
         return match;
     }
 
