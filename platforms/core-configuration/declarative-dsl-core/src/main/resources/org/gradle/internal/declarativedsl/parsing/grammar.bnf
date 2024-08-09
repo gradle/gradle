@@ -40,7 +40,7 @@ statement ::= (assignment | expression)
 statements ::= (statement semis?)*
 
 assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
-expression ::= postfixUnaryExpression
+expression ::= primaryExpression postfixUnarySuffixes
 
 semis ::= SEMI+
 
@@ -51,14 +51,12 @@ directlyAssignableExpression ::=
 
 parenthesizedDirectlyAssignableExpression ::= LP directlyAssignableExpression RP
 
-postfixUnaryExpression ::= primaryExpression postfixUnarySuffixes?
-
 postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
 
 annotatedLambda ::= LB statements RB {pin=1}
 
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? expression
+valueArgument ::= (simpleIdentifier EQ)? (primaryExpression postfixUnarySuffixes?)
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 

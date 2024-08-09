@@ -17,6 +17,7 @@ f(1, x, "s", g())
 f(a = b, c = d)
 
 // errors
+// 5
 // a = (1)
 // a.b.c = 1
 // d = a.b.c
