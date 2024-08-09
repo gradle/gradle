@@ -27,6 +27,7 @@ import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.isolated.models.DefaultIsolatedProviderFactory
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
@@ -35,6 +36,8 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.isolated.models.BuildIsolatedModelStore
+import org.gradle.internal.isolated.models.DefaultBuildIsolatedModelRegistry
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
@@ -86,6 +89,9 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
                 GradleLifecycleActionExecutor::class.java,
                 DefaultIsolatedProjectEvaluationListenerProvider::class.java
             )
+            add(BuildIsolatedModelStore::class.java)
+            add(DefaultBuildIsolatedModelRegistry::class.java)
+            add(DefaultIsolatedProviderFactory::class.java)
         }
     }
 

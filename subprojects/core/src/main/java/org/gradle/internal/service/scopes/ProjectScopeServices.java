@@ -80,6 +80,8 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.models.BuildIsolatedModelProjectLookup;
+import org.gradle.internal.isolated.models.BuildIsolatedModelStore;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.model.ModelContainer;
@@ -434,5 +436,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
+    }
+
+    @Provides
+    BuildIsolatedModelProjectLookup create(BuildIsolatedModelStore store) {
+        return new BuildIsolatedModelProjectLookup(store);
     }
 }
