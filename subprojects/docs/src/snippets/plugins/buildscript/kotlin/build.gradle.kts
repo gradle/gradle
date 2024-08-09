@@ -4,9 +4,9 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.4.1")
     }
 }
 
-apply(plugin = "com.jfrog.bintray")
+apply(plugin = "org.springframework.boot")
 // end::buildscript_block[]

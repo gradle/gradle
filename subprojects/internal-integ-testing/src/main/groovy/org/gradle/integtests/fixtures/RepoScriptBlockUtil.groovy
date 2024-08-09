@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
+import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
@@ -47,6 +48,7 @@ class RepoScriptBlockUtil {
     }
 
     private static enum MirroredRepository {
+        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
         MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
         GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
         LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),

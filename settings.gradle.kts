@@ -10,6 +10,13 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+            }
+        }
         gradlePluginPortal()
     }
 }

@@ -55,7 +55,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '${TestedVersions.nebulaPluginPlugin}'
+                id 'com.netflix.nebula.plugin-plugin' version '${TestedVersions.nebulaPluginPlugin}'
             }
         """
 
@@ -240,7 +240,7 @@ testImplementation('junit:junit:4.7')""")
     Map<String, Versions> getPluginsToValidate() {
         [
             'nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
-            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
+            'com.netflix.nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
             'nebula.lint': Versions.of(TestedVersions.nebulaLint),
             'nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
