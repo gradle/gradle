@@ -24,7 +24,6 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.reflect.Instantiator;
@@ -53,7 +52,10 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     @Override
     public T create(String name) {
         assertCanMutate("create(String)");
-        return create(name, Actions.doNothing());
+        assertElementNotPresent(name);
+        T object = doCreate(name);
+        doAdd(object, getEventRegister().getAddActions());
+        return object;
     }
 
     @Override
@@ -68,15 +70,19 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     @Override
     public T create(String name, Closure configureClosure) {
         assertCanMutate("create(String, Closure)");
-        return create(name, ConfigureUtil.configureUsing(configureClosure));
+        assertElementNotPresent(name);
+        T object = doCreate(name);
+        doAdd(object, getEventRegister().getAddActions());
+        ConfigureUtil.configureUsing(configureClosure).execute(object);
+        return object;
     }
 
     @Override
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
         assertCanMutate("create(String, Action)");
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         T object = doCreate(name);
-        add(object);
+        doAdd(object, getEventRegister().getAddActions());
         configureAction.execute(object);
         return object;
     }
@@ -115,7 +121,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     protected NamedDomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(
             getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), configurationAction)
         );

@@ -426,7 +426,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         !container.remove("a")
     }
 
-    def callsVetoActionBeforeObjectIsAdded() {
+    def "calls beforeCollectionChanges before object is added"() {
         def action = Mock(Action)
         container.beforeCollectionChanges(action)
 
@@ -438,7 +438,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * _
     }
 
-    def objectIsNotAddedWhenVetoActionThrowsAnException() {
+    def "object is not added when beforeCollectionChanges throws an exception"() {
         def action = Mock(Action)
         def failure = new RuntimeException()
         container.beforeCollectionChanges(action)
@@ -457,7 +457,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         !toList(container).contains("a")
     }
 
-    def callsVetoActionOnceBeforeCollectionIsAdded() {
+    def "calls beforeCollectionChanges once before collection is added"() {
         def action = Mock(Action)
         container.beforeCollectionChanges(action)
 
@@ -469,7 +469,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * _
     }
 
-    def callsVetoActionBeforeObjectIsRemoved() {
+    def "calls beforeCollectionChanges before object is removed"() {
         def action = Mock(Action)
         container.beforeCollectionChanges(action)
 
@@ -481,7 +481,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * _
     }
 
-    def callsVetoActionBeforeObjectIsRemovedUsingIterator() {
+    def "calls beforeCollectionChanges before object is removed using iterator"() {
         def action = Mock(Action)
 
         container.add("a")
@@ -498,7 +498,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * _
     }
 
-    def objectIsNotRemovedWhenVetoActionThrowsAnException() {
+    def "object is not removed when beforeCollectionChanges throws an exception"() {
         def action = Mock(Action)
         def failure = new RuntimeException()
 
@@ -519,7 +519,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         toList(container).contains("a")
     }
 
-    def callsVetoActionBeforeCollectionIsCleared() {
+    def "calls beforeCollectionChanges before collection is cleared"() {
         def action = Mock(Action)
         container.beforeCollectionChanges(action)
 
@@ -531,7 +531,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * _
     }
 
-    def callsVetoActionOnceBeforeCollectionIsRemoved() {
+    def "calls beforeCollectionChanges before collection is removed"() {
         def action = Mock(Action)
         container.beforeCollectionChanges(action)
 
@@ -543,7 +543,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * _
     }
 
-    def callsVetoActionOnceBeforeCollectionIsIntersected() {
+    def "calls beforeCollectionChanges before collection is intersected"() {
         def action = Mock(Action)
         container.add("a")
         container.add("b")

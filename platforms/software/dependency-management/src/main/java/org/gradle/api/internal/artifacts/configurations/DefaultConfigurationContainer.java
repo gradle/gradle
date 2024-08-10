@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Describables;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -360,7 +359,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
         // TODO: Deprecate changing roles of unlocked non-legacy configurations.
 
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         validateNameIsAllowed(name);
         Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
         add(configuration);
@@ -369,7 +368,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Action<? super T> configureAction, Class<T> publicType, Function<String, T> factory) {
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         validateNameIsAllowed(name);
 
         NamedDomainObjectProvider<T> configuration = Cast.uncheckedCast(
@@ -406,6 +405,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public String getDisplayName() {
-        return Describables.of("configuration container for", owner).getDisplayName();
+        return "configuration container for " + owner.getDisplayName();
     }
 }

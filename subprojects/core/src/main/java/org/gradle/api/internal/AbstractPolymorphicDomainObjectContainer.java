@@ -62,7 +62,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     @Override
     public <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) {
         assertCanMutate("create(String, Class, Action)");
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         U object = doCreate(name, type);
         add(object);
         if (configuration != null) {
@@ -84,7 +84,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     protected <U extends T> NamedDomainObjectProvider<U> createDomainObjectProvider(String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         NamedDomainObjectProvider<U> provider = Cast.uncheckedCast(
             getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractPolymorphicDomainObjectContainer.this, name, type, configurationAction)
         );

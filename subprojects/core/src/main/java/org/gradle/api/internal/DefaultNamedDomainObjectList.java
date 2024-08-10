@@ -49,7 +49,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     @Override
     public void add(int index, T element) {
         assertCanMutate("add(int, T)");
-        assertCanAdd(element);
+        assertElementNotPresent(element);
         getStore().add(index, element);
         didAdd(element);
         getEventRegister().fireObjectAdded(element);
@@ -85,7 +85,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     @Override
     public T set(int index, T element) {
         assertCanMutate("set(int, T)");
-        assertCanAdd(element);
+        assertElementNotPresent(element);
         T oldElement = getStore().set(index, element);
         if (oldElement != null) {
             didRemove(oldElement);
@@ -206,7 +206,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         @Override
         public void add(T t) {
             assertCanMutate("listIterator().add(T)");
-            assertCanAdd(t);
+            assertElementNotPresent(t);
             iterator.add(t);
             didAdd(t);
             getEventRegister().fireObjectAdded(t);
@@ -224,7 +224,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         @Override
         public void set(T t) {
             assertCanMutate("listIterator().set(T)");
-            assertCanAdd(t);
+            assertElementNotPresent(t);
             iterator.set(t);
             didRemove(lastElement);
             getEventRegister().fireObjectRemoved(lastElement);

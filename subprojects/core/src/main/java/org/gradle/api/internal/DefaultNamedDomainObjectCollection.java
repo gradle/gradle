@@ -218,19 +218,19 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     /**
-     * Asserts that an item with the given name can be added to this collection.
+     * Asserts that an item with the given name is not present in this collection.
      */
-    protected void assertCanAdd(String name) {
+    protected void assertElementNotPresent(String name) {
         if (hasWithName(name)) {
             throw new InvalidUserDataException(String.format("Cannot add a %s with name '%s' as a %s with that name already exists.", getTypeDisplayName(), name, getTypeDisplayName()));
         }
     }
 
     /**
-     * Asserts that the given item can be added to this collection.
+     * Asserts that this collection does not contain an item with the same name as the given item.
      */
-    protected void assertCanAdd(T t) {
-        assertCanAdd(getNamer().determineName(t));
+    protected void assertElementNotPresent(T t) {
+        assertElementNotPresent(getNamer().determineName(t));
     }
 
     @Override
