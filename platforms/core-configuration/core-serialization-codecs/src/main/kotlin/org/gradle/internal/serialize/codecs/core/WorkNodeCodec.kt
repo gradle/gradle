@@ -35,6 +35,7 @@ import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -57,7 +58,6 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.util.Path
 
 private
@@ -163,7 +163,7 @@ class WorkNodeCodec(
                 writeString(groupPath.path)
                 add(object : RunnableBuildOperation {
                     override fun run(context: BuildOperationContext) {
-                        contextSource.writeContextFor(this@writeNodes, groupPath).writeWith(Unit) {
+                        contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
                             writeGroupedNodes(nodeOwner, isolateOwner, groupNodes, nodeIds)
                         }
                     }
@@ -202,22 +202,22 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeGroupedNodes(
+    fun WriteContext.writeGroupedNodes(
         nodeOwner: NodeOwner,
         isolateOwner: IsolateOwner,
         nodes: List<Node>,
         nodeIds: Object2IntOpenHashMap<Node>
     ) {
-        withIsolate(isolateOwner) {
-            writeCollection(nodes) { node ->
-                val nodeId = nodeIds.getInt(node)
-                writeSmallInt(nodeId)
-                runSafely(nodeOwner) {
+        runSafely(nodeOwner) {
+            withIsolate(isolateOwner) {
+                writeCollection(nodes) { node ->
+                    val nodeId = nodeIds.getInt(node)
+                    writeSmallInt(nodeId)
                     write(node)
-                }
-                if (node is LocalTaskNode) {
-                    val prepareNodeId = nodeIds.getInt(node.prepareNode)
-                    writeSmallInt(prepareNodeId)
+                    if (node is LocalTaskNode) {
+                        val prepareNodeId = nodeIds.getInt(node.prepareNode)
+                        writeSmallInt(prepareNodeId)
+                    }
                 }
             }
         }
@@ -245,9 +245,12 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun WriteContext.runSafely(owner: NodeOwner, function: suspend () -> Unit) {
+    fun WriteContext.runSafely(owner: NodeOwner, function: suspend () -> Unit) {
         when (owner) {
-            is NodeOwner.None -> function()
+            is NodeOwner.None -> runWriteOperation {
+                function()
+            }
+
             is NodeOwner.Project -> owner.project.owner.applyToMutableState {
                 runWriteOperation {
                     function()
