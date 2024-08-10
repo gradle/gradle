@@ -38,9 +38,9 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
     api(projects.workers)
+    api(projects.fileOperations)
 
     implementation(projects.buildInitSpecsApi)
-    implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
     implementation(projects.pluginsApplication) {
