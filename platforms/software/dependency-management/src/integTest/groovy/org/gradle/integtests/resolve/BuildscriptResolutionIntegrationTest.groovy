@@ -62,7 +62,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("resolve")
     }
 
@@ -137,7 +137,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds(":resolve")
     }
 
@@ -215,7 +215,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of project ':first' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of project ':first' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds(":first:resolve")
     }
 
@@ -289,8 +289,8 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("resolve")
     }
 
@@ -330,7 +330,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("Calling setCanBeConsumed(false) on configuration ':classpath' has been deprecated. This will fail with an error in Gradle 9.0. This configuration's role was set upon creation and its usage should not be changed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("resolve")
     }
 
@@ -377,8 +377,8 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String, Closure) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("resolve")
     }
 
@@ -479,7 +479,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using create(String) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("help")
     }
 
@@ -493,7 +493,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle' using create(String) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("help")
     }
 
@@ -510,7 +510,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         then:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for initialization script 'init.gradle' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for initialization script 'init.gradle' using create(String) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("help")
     }
 
@@ -528,7 +528,70 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for script 'foo.gradle' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for script 'foo.gradle' using create(String) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
+        succeeds("help")
+    }
+
+    def "removing the classpath configuration from project buildscript is deprecated"() {
+        buildFile << """
+            buildscript {
+                configurations {
+                    remove(classpath)
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
+        succeeds("help")
+    }
+
+    def "removing the classpath configuration from settings buildscript is deprecated"() {
+        settingsFile << """
+            buildscript {
+                configurations {
+                    remove(classpath)
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
+        succeeds("help")
+    }
+
+    def "removing the classpath configuration from init buildscript is deprecated"() {
+        initScriptFile << """
+            buildscript {
+                configurations {
+                    remove(classpath)
+                }
+            }
+        """
+
+        when:
+        executer.usingInitScript(initScriptFile)
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for initialization script 'init.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
+        succeeds("help")
+    }
+
+    def "removing the classpath configuration from standalone buildscript is deprecated"() {
+        file("foo.gradle") << """
+            buildscript {
+                configurations {
+                    remove(classpath)
+                }
+            }
+        """
+
+        buildFile << """
+            apply from: "foo.gradle"
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for script 'foo.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("help")
     }
 
@@ -806,7 +869,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle.kts' has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#creating_new_buildscript_configurations")
+        executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle.kts' using create(String) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
         succeeds("help")
     }
 

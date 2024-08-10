@@ -160,9 +160,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
             configContainer.beforeCollectionChanges(methodName ->
-                DeprecationLogger.deprecateAction("Mutating " + configContainer.getDisplayName())
+                DeprecationLogger.deprecateAction("Mutating " + configContainer.getDisplayName() + " using " + methodName)
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "creating_new_buildscript_configurations")
+                .withUpgradeGuideSection(8, "mutating_buildscript_configurations")
                 .nagUser()
             );
             buildLogicBuilder.prepareClassPath(classpathConfiguration, resolutionContext);
