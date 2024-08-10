@@ -85,7 +85,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
                 "<script>hljs.highlightAll();</script>" +
-                "<script>const btn = document.querySelector('.theme-toggle');" +
+                "<script type=\"text/javascript\">" +
+                "const btn = document.querySelector('.theme-toggle');" +
                 "const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');" +
                 "const currentTheme = localStorage.getItem('theme');" +
                 "if (currentTheme == 'dark') {" +
@@ -102,7 +103,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "        var theme = document.body.classList.contains('dark-theme')? 'dark' : 'light';" +
                 "    }" +
                 "    localStorage.setItem('theme', theme);" +
-                "});"
+                "});</script>"
             );
 
             options.addBooleanOption("html5", true);
