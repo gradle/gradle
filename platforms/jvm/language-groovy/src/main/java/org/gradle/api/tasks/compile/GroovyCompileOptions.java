@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -274,6 +275,15 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
      */
     public void setForkOptions(GroovyForkOptions forkOptions) {
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super GroovyForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
