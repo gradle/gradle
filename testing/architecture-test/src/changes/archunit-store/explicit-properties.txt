@@ -83,10 +83,6 @@ Method <org.gradle.api.tasks.testing.Test.getTestFrameworkProperty()> is not abs
 Method <org.gradle.api.tasks.wrapper.Wrapper.getBatchScript()> is not abstract
 Method <org.gradle.api.tasks.wrapper.Wrapper.getNetworkTimeout()> is not abstract
 Method <org.gradle.api.tasks.wrapper.Wrapper.getPropertiesFile()> is not abstract
-Method <org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()> is not abstract
-Method <org.gradle.buildinit.tasks.InitBuild.getJavaVersion()> is not abstract
-Method <org.gradle.buildinit.tasks.InitBuild.getSplitProject()> is not abstract
-Method <org.gradle.buildinit.tasks.InitBuild.getUseIncubating()> is not abstract
 Method <org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.getXcodeProjectLocations()> is not abstract
 Method <org.gradle.internal.deployment.RunApplication.getClasspath()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getApplicationName()> is not abstract
