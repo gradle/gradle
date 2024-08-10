@@ -35,6 +35,7 @@ import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
+import org.gradle.internal.collect.PersistentList
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -52,6 +53,7 @@ import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runWriteOperation
@@ -59,6 +61,7 @@ import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.util.Path
+import java.util.concurrent.atomic.AtomicReference
 
 private
 typealias NodeForId = (Int) -> Node
@@ -133,18 +136,18 @@ class WorkNodeCodec(
 
     private
     fun ReadContext.doRead(): ScheduledWork {
-        val (nodes, nodesById) = readNodes()
+        val nodeForId = readNodes()
         // Note that using the ImmutableSet retains the original ordering of entry nodes.
         val entryNodes =
             buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
-                add(nodesById[readSmallInt()])
+                add(nodeForId(readSmallInt()))
             }.build()
 
-        val nodeForId: NodeForId = { key: Int -> nodesById.getValue(key) }
-        readCollection {
+        val nodes = readList {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
+            node
         }
         return ScheduledWork(nodes, entryNodes)
     }
@@ -154,6 +157,7 @@ class WorkNodeCodec(
         nodes: ImmutableList<Node>,
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
     ) {
+        writeSmallInt(nodeIds.size)
         val isolateOwner = isolate.owner
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
@@ -176,6 +180,49 @@ class WorkNodeCodec(
         }
     }
 
+    data class NodeId(
+        val node: Node,
+        val id: Int
+    )
+
+    private
+    fun ReadContext.readNodes(): NodeForId {
+        val nodeIdCount = readSmallInt()
+        val partialResultsRef = AtomicReference<PersistentList<List<NodeId>>>(PersistentList.of())
+        val isolateOwner = isolate.owner
+        val projectProvider = getSingletonProperty<ProjectProvider>()
+        val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
+        buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
+            readCollection {
+                val groupPath = Path.path(readString())
+                add(object : RunnableBuildOperation {
+                    override fun run(context: BuildOperationContext) {
+                        contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
+                            setSingletonProperty(projectProvider)
+                            val partialResult = readGroupedNodes(isolateOwner)
+                            partialResultsRef.updateAndGet {
+                                it.plus(partialResult)
+                            }
+                        }
+                    }
+
+                    override fun description(): BuildOperationDescriptor.Builder {
+                        return BuildOperationDescriptor
+                            .displayName("Loading $groupPath")
+                            .progressDisplayName(groupPath.path)
+                    }
+                })
+            }
+        }
+        val nodesById = Array<Node?>(nodeIdCount) { null }
+        partialResultsRef.get().forEach { ids ->
+            ids.forEach { (node, id) ->
+                nodesById[id] = node
+            }
+        }
+        return { id: Int -> nodesById[id]!! }
+    }
+
     private
     fun pathFor(nodeOwner: NodeOwner): Path {
         // TODO:parallel-cc make sure there are no conflicts between project node and owner-less nodes
@@ -183,22 +230,6 @@ class WorkNodeCodec(
             NodeOwner.None -> owner.identityPath.child("owner-less")
             is NodeOwner.Project -> nodeOwner.project.identityPath
         }
-    }
-
-    private
-    fun ReadContext.readNodes(): Pair<List<Node>, Map<Int, Node>> {
-        val nodes = mutableListOf<Node>()
-        val nodesById = mutableMapOf<Int, Node>()
-        val isolateOwner = isolate.owner
-        val projectProvider = getSingletonProperty<ProjectProvider>()
-        readCollection {
-            val groupPath = Path.path(readString())
-            contextSource.readContextFor(this, groupPath).readWith(Unit) {
-                setSingletonProperty(projectProvider)
-                readGroupedNodes(isolateOwner, nodes, nodesById)
-            }
-        }
-        return nodes to nodesById
     }
 
     private
@@ -226,22 +257,23 @@ class WorkNodeCodec(
     private
     suspend fun ReadContext.readGroupedNodes(
         isolateOwner: IsolateOwner,
-        nodes: MutableList<Node>,
-        nodesById: MutableMap<Int, Node>
-    ) {
+    ): List<NodeId> {
+        val size = readSmallInt()
+        val nodeIds = ArrayList<NodeId>(size)
         withIsolate(isolateOwner) {
-            readCollection {
+            repeat(size) {
                 val nodeId = readSmallInt()
                 val node = readNode()
-                nodesById[nodeId] = node
+                nodeIds.add(NodeId(node, nodeId))
                 if (node is LocalTaskNode) {
-                    node.prepareNode.require()
                     val prepareNodeId = readSmallInt()
-                    nodesById[prepareNodeId] = node.prepareNode
+                    val prepareNode = node.prepareNode
+                    prepareNode.require()
+                    nodeIds.add(NodeId(prepareNode, prepareNodeId))
                 }
-                nodes.add(node)
             }
         }
+        return nodeIds
     }
 
     private
