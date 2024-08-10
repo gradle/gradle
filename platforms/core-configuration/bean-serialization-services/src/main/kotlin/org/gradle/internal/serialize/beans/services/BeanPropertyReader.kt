@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize.beans.services
 
 import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.graph.BeanStateReader
@@ -45,7 +44,7 @@ class BeanPropertyReader(
     val relevantFields = relevantStateOf(beanType)
 
     private
-    val constructorForSerialization by unsafeLazy {
+    val constructorForSerialization by lazy(LazyThreadSafetyMode.PUBLICATION) {
         constructors.constructorForSerialization(beanType)
     }
 
