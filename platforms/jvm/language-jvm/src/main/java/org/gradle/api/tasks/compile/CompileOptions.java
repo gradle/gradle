@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -251,6 +252,15 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     /**
+     * Execute the given action against {@link #getDebugOptions()}.
+     *
+     * @since 8.11
+     */
+    public void debugOptions(Action<? super DebugOptions> action) {
+        action.execute(debugOptions);
+    }
+
+    /**
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
@@ -283,6 +293,15 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     public void setForkOptions(ForkOptions forkOptions) {
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super ForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
