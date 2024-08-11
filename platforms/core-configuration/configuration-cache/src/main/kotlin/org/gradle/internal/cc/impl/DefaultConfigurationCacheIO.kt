@@ -71,6 +71,8 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
 
 @ServiceScope(Scope.Build::class)
@@ -269,14 +271,16 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
-        outputStreamFor(stateType, outputStream).let { stream ->
+        outputStreamFor(stateType, outputStream).let {
+            val stream = GZIPOutputStream(it)
             if (startParameter.isDeduplicatingStrings) StringDeduplicatingKryoBackedEncoder(stream)
             else KryoBackedEncoder(stream)
         }
 
     private
     fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
-        inputStreamFor(stateType, inputStream).let { stream ->
+        inputStreamFor(stateType, inputStream).let {
+            val stream = GZIPInputStream(it)
             if (startParameter.isDeduplicatingStrings) StringDeduplicatingKryoBackedDecoder(stream)
             else KryoBackedDecoder(stream)
         }
