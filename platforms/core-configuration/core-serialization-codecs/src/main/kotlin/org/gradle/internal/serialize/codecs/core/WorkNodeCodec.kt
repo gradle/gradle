@@ -53,6 +53,7 @@ import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runWriteOperation
@@ -135,17 +136,18 @@ class WorkNodeCodec(
 
     private
     fun ReadContext.doRead(): ScheduledWork {
-        val (nodes, nodeForId) = readNodes()
+        val nodeForId = readNodes()
         // Note that using the ImmutableSet retains the original ordering of entry nodes.
         val entryNodes =
             buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
                 add(nodeForId(readSmallInt()))
             }.build()
 
-        readCollection {
+        val nodes = readList {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
+            node
         }
         return ScheduledWork(nodes, entryNodes)
     }
@@ -155,6 +157,7 @@ class WorkNodeCodec(
         nodes: ImmutableList<Node>,
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
     ) {
+        writeSmallInt(nodeIds.size)
         val isolateOwner = isolate.owner
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
@@ -177,19 +180,15 @@ class WorkNodeCodec(
         }
     }
 
-    data class PartialReadNodesResult(
-        val nodes: List<Node>,
-        val ids: List<NodeId>
-    )
-
     data class NodeId(
         val node: Node,
         val id: Int
     )
 
     private
-    fun ReadContext.readNodes(): Pair<List<Node>, NodeForId> {
-        val partialResultsRef = AtomicReference<PersistentList<PartialReadNodesResult>>(PersistentList.of())
+    fun ReadContext.readNodes(): NodeForId {
+        val nodeIdCount = readSmallInt()
+        val partialResultsRef = AtomicReference<PersistentList<List<NodeId>>>(PersistentList.of())
         val isolateOwner = isolate.owner
         val projectProvider = getSingletonProperty<ProjectProvider>()
         val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
@@ -215,23 +214,13 @@ class WorkNodeCodec(
                 })
             }
         }
-        val partialResults = partialResultsRef.get()
-        var nodeCount = 0
-        var idCount = 0
-        partialResults.forEach { (nodes, ids) ->
-            nodeCount += nodes.size
-            idCount += ids.size
-        }
-        val allNodes = ArrayList<Node>(nodeCount)
-        val allIds = Array<Node?>(idCount) { null }
-        partialResults.forEach { (nodes, ids) ->
-            allNodes.addAll(nodes)
+        val nodesById = Array<Node?>(nodeIdCount) { null }
+        partialResultsRef.get().forEach { ids ->
             ids.forEach { (node, id) ->
-                allIds[id] = node
+                nodesById[id] = node
             }
         }
-        val nodeForId: NodeForId = { id: Int -> allIds[id]!! }
-        return allNodes to nodeForId
+        return { id: Int -> nodesById[id]!! }
     }
 
     private
@@ -268,15 +257,13 @@ class WorkNodeCodec(
     private
     suspend fun ReadContext.readGroupedNodes(
         isolateOwner: IsolateOwner,
-    ): PartialReadNodesResult {
+    ): List<NodeId> {
         val size = readSmallInt()
-        val nodes = ArrayList<Node>(size)
         val nodeIds = ArrayList<NodeId>(size)
         withIsolate(isolateOwner) {
             repeat(size) {
                 val nodeId = readSmallInt()
                 val node = readNode()
-                nodes.add(node)
                 nodeIds.add(NodeId(node, nodeId))
                 if (node is LocalTaskNode) {
                     val prepareNodeId = readSmallInt()
@@ -286,7 +273,7 @@ class WorkNodeCodec(
                 }
             }
         }
-        return PartialReadNodesResult(nodes, nodeIds)
+        return nodeIds
     }
 
     private
