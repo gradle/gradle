@@ -43,6 +43,7 @@ dependencies {
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
+    implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
