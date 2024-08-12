@@ -34,6 +34,9 @@
   ]
 }
 
+// For a description of how these rules relate to the full Kotlin grammar please see:
+// https://docs.google.com/document/d/11GBpWfLV-BwYjGEayUl5OCoLzRlcDkI7m_b5FoaFD9Q/edit
+
 root ::= statements
 
 statement ::= (assignment | expression)

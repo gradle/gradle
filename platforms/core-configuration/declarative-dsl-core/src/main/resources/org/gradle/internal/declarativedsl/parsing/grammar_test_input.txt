@@ -23,4 +23,4 @@ f(a = b, c = d)
 // d = a.b.c
 // a.b {d = 1}
 // a.b.c {d = 1}
-// f(1).g(2).h(3)  // TODO: do we want to allow for this?
+// f(1).g(2).h(3)
