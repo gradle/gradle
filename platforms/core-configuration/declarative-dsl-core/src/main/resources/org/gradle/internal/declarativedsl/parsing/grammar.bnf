@@ -46,17 +46,14 @@ semis ::= SEMI+
 
 directlyAssignableExpression ::=
     primaryExpression navigationSuffix? |
-    simpleIdentifier |
-    parenthesizedDirectlyAssignableExpression
-
-parenthesizedDirectlyAssignableExpression ::= LP directlyAssignableExpression RP
+    simpleIdentifier
 
 postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
 
 annotatedLambda ::= LB statements RB {pin=1}
 
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? (primaryExpression postfixUnarySuffixes?)
+valueArgument ::= (simpleIdentifier EQ)? primaryExpression postfixUnarySuffixes?
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
