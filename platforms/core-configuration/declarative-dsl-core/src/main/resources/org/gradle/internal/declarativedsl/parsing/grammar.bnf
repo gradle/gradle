@@ -44,9 +44,7 @@ expression ::= primaryExpression postfixUnarySuffixes
 
 semis ::= SEMI+
 
-directlyAssignableExpression ::=
-    primaryExpression navigationSuffix? |
-    simpleIdentifier
+directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 
 postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
 
