@@ -75,7 +75,7 @@ dependencies {
         def failure = fails('compileTestJava')
 
         then:
-        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+        failure.assertHasCause("Compilation failed; see the compiler output below.")
         failure.assertHasErrorOutput("package org.apache.commons.logging does not exist")
     }
 

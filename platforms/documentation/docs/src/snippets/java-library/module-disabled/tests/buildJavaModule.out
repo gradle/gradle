@@ -13,10 +13,17 @@ FAILURE: Build failed with an exception.
 
 * What went wrong:
 Execution failed for task ':compileJava'.
-> Compilation failed; see the compiler error output for details.
+> Compilation failed; see the compiler output below.
+
+Java compilation error (compilation:java:java-compilation-error)
+  /home/user/gradle/samples/src/main/java/module-info.java:2: error: module not found: com.google.gson
+      requires com.google.gson;          // real module
+                         ^
+Java compilation error (compilation:java:java-compilation-error)
+  /home/user/gradle/samples/src/main/java/module-info.java:3: error: module not found: org.apache.commons.lang3
+      requires org.apache.commons.lang3; // automatic module
+                                 ^
 
 * Try:
 > Run with --info option to get more log output.
 > Run with --scan to get full insights.
-
-BUILD FAILED in 0s
