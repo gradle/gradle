@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.provider.Property
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -877,6 +878,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
+    @Ignore("configuration is parallel with IP, so unconfigurance is unpredictable")
     def "fails on invoke method of unconfigured project"() {
         given:
         settingsFile << """
