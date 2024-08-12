@@ -206,6 +206,14 @@ With this release, Gradle will start emitting warnings when using older JVM vers
 Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.
 ```
 
+### Matching specific vendors with daemon JVM criteria
+
+[Daemon JVM critiera](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) supports specifying the JVM vendor. When considering available JVM toolchains, Gradle will only choose a toolchain compatible with both the specified JVM vendor and version. 
+
+If no JVM vendor is specified in the criteria, any vendor is considered compatible. 
+
+This feature is still incubating and may change in future versions of Gradle. 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
