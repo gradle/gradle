@@ -40,7 +40,7 @@ statement ::= (assignment | expression)
 statements ::= (statement semis?)*
 
 assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
-expression ::= primaryExpression postfixUnarySuffixes
+expression ::= simpleIdentifier postfixUnarySuffixes
 
 semis ::= SEMI+
 
