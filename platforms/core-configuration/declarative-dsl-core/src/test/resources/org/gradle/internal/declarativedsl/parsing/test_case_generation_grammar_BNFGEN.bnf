@@ -1,40 +1,30 @@
-<statements> ::= <statement>{0,10};
-<statement> ::= <assignment> "\n" | <expression> "\n";
+<statement> ::= 3 <assignment> "\n" | <expression> "\n";
 
-<assignment> ::= <directlyAssignableExpression> "=" <expression>;
-<expression> ::= <postfixUnaryExpression>;
+<assignment> ::= <directlyAssignableExpression> "=" <primaryExpression>;
+<expression> ::= <simpleIdentifier> <postfixUnarySuffixes>;
 
 <directlyAssignableExpression> ::=
-    <postfixUnaryExpression> <navigationSuffix>{0,3} |
-    <simpleIdentifier> |
-    <parenthesizedDirectlyAssignableExpression>;
+    <simpleIdentifier> <navigationSuffix>{0,1};
 
-<parenthesizedDirectlyAssignableExpression> ::= "(" <directlyAssignableExpression> ")";
+<annotatedLambdaSuffix> ::= <valueArguments>{0,1} <annotatedLambda>;
+<valueArgumentsSuffix> ::= <navigationSuffix>{0,5} <valueArguments>;
+<postfixUnarySuffixes> ::= 3 <annotatedLambdaSuffix> | <valueArgumentsSuffix>;
 
-<postfixUnaryExpression> ::= <primaryExpression> <postfixUnarySuffix>{0,1};
-
-<postfixUnarySuffix> ::= <callSuffix> | <navigationSuffix>;
-
-<callSuffix> ::= <valueArguments>{0,1} <annotatedLambda> | <valueArguments>;
-
-<annotatedLambda> ::= "{" <statements> "}";
+<annotatedLambda> ::= " {\n" <statement>{0,3} "}\n";
 
 <valueArguments> ::= "(" <valueArgument> <furtherArguments>{0,2}  ")";
 <furtherArguments> ::= "," <valueArgument>;
-<valueArgument> ::= <identifierEquals>{0,1} <expression>;
+<valueArgument> ::= <identifierEquals>{0,1} <primaryExpression> <postfixUnarySuffixes>{0,1};
 <identifierEquals> ::= <simpleIdentifier> "=";
-
-<parenthesizedExpression> ::= "(" <expression> ")";
 
 <navigationSuffix> ::= "." <simpleIdentifier>;
 
-<primaryExpression> ::= <parenthesizedExpression> | <simpleIdentifier> | <literalConstant> | <stringLiteral>;
+<primaryExpression> ::= <simpleIdentifier> | 10 <digit>{1,3} | 7 <stringLiteral> | 3 <booleanLiteral> | "null";
 <simpleIdentifier> ::= <alpha>{3,4};
-<stringLiteral> ::= <alpha>{5,15};
+<stringLiteral> ::= "\"" <alpha>{5,15} "\"";
 <booleanLiteral> ::= "true" | "false";
-<literalConstant> ::= "null" | <booleanLiteral> | <digit>{1,3};
 
 <alpha>	 ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z";
 <digit>  ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
-<start> ::= <statements>
+<start> ::= <statement>{3,10}
