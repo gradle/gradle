@@ -423,7 +423,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         CrossProjectConfigurator projectConfigurator
     ) {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, projectScopeServiceRegistry, collectionCallbackActionDecorator, projectConfigurator.getMutationGuard());
+        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, projectScopeServiceRegistry, collectionCallbackActionDecorator, projectConfigurator.getLazyBehaviorGuard());
     }
 
     @Provides

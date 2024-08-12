@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -68,7 +69,9 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : getDependenciesForInternalUse(classpath)) {
             BuildState targetBuild = owningBuildOf(task);
-            assert targetBuild != currentBuild;
+            if (targetBuild == currentBuild) {
+                throw new InvalidUserDataException("Script classpath dependencies must reside in a separate build from the script itself.");
+            }
             tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
         }
         return tasksToBuild;

@@ -35,6 +35,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -158,6 +159,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+            configContainer.beforeCollectionChanges(methodName ->
+                DeprecationLogger.deprecateAction("Mutating " + configContainer.getDisplayName() + " using " + methodName)
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "mutating_buildscript_configurations")
+                .nagUser()
+            );
             buildLogicBuilder.prepareClassPath(classpathConfiguration, resolutionContext);
         }
     }

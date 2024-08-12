@@ -28,76 +28,6 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    def "buildscript configuration can select itself"() {
-        buildFile << """
-            buildscript {
-                configurations {
-                    conf {
-                        outgoing {
-                            artifact file('foo.txt')
-                        }
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
-                        }
-                    }
-                }
-
-                dependencies {
-                    conf project(":")
-                }
-            }
-
-            task resolve {
-                def files = buildscript.configurations.conf.incoming.files
-                doLast {
-                    assert files.files*.name == ["foo.txt"]
-                }
-            }
-        """
-
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-
-        expect:
-        succeeds("resolve")
-    }
-
-    def "buildscript configuration can select other buildscript configurations"() {
-        buildFile << """
-            buildscript {
-                configurations {
-                    conf {
-                        canBeConsumed = false
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "other"))
-                        }
-                    }
-                    other {
-                        outgoing {
-                            artifact file('bar.txt')
-                        }
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "other"))
-                        }
-                    }
-                }
-
-                dependencies {
-                    conf project(":")
-                }
-            }
-
-            task resolve {
-                def files = buildscript.configurations.conf.incoming.files
-                doLast {
-                    assert files*.name == ["bar.txt"]
-                }
-            }
-        """
-
-        expect:
-        succeeds("resolve")
-    }
-
     def "resolvable configuration does not contribute artifacts"() {
         mavenRepo.module("org", "foo").publish()
         buildFile << """
@@ -247,47 +177,6 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    def "buildscript resolvable configuration and consumable configuration from same project live in same resolved component"() {
-        buildFile << """
-            buildscript {
-                configurations {
-                    conf {
-                        canBeConsumed = false
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
-                        }
-                    }
-                    other {
-                        outgoing {
-                            artifact file("foo.txt")
-                        }
-                        attributes {
-                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
-                        }
-                    }
-                }
-
-                dependencies {
-                    conf project(":")
-                }
-            }
-
-            task resolve {
-                def result = buildscript.configurations.conf.incoming.resolutionResult
-                def root = result.root
-                assert root.id.projectName == 'root'
-                assert root.variants.size() == 2
-                def conf = root.variants.find { it.displayName == 'conf' }
-                def other = root.variants.find { it.displayName == 'other' }
-                assert conf != null
-                assert other != null
-            }
-        """
-
-        expect:
-        succeeds("resolve")
-    }
-
     def "resolvable configuration and consumable configuration from same project live in same resolved component"() {
         buildFile << """
             configurations {
@@ -320,6 +209,38 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
                 def other = root.variants.find { it.displayName == 'other' }
                 assert conf != null
                 assert other != null
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    // This is not necessarily desired behavior, or important behavior at all.
+    // The detached configuration is _not_ the project. It should not claim to be the project.
+    // Ideally, this configuration would have an unspecified identity, similar to init, settings, and standalone scripts.
+    def "project detached configurations are identified by the root project's identity"() {
+        mavenRepo.module("org", "foo").publish()
+        buildFile << """
+            ${mavenTestRepository()}
+
+            version = "1.0"
+            group = "foo"
+
+            task resolve {
+                def rootComponent = configurations.detachedConfiguration(
+                    dependencies.create("org:foo:1.0")
+                ).incoming.resolutionResult.rootComponent
+                doLast {
+                    def root = rootComponent.get()
+                    assert root.moduleVersion.group == "foo"
+                    assert root.moduleVersion.name == "root-detachedConfiguration1"
+                    assert root.moduleVersion.version == "1.0"
+                    assert root.id instanceof ModuleComponentIdentifier
+                    assert root.id.group == "foo"
+                    assert root.id.module == "root-detachedConfiguration1"
+                    assert root.id.version == "1.0"
+                }
             }
         """
 

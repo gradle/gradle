@@ -52,7 +52,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     // or provided.  We construct a correct iteration order from this set.
     private final List<Element<T>> inserted = new ArrayList<>();
 
-    private final MutationGuard mutationGuard = new DefaultMutationGuard();
+    private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
     private Action<T> pendingAddedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
@@ -229,8 +229,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return mutationGuard;
+    public MutationGuard getLazyBehaviorGuard() {
+        return lazyGuard;
     }
 
     protected class RealizedElementCollectionIterator implements Iterator<T> {

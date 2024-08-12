@@ -99,6 +99,45 @@ We decided to upgrade the minimum version of the Java runtime for a number of re
 - Some of the most popular plugins already require JVM 17 or later.
 - Download metrics for Gradle distributions show that JVM 17 is widely used.
 
+[[mutating_buildscript_configurations]]
+==== Deprecated mutating buildscript configurations
+
+Starting in Gradle 9.0, mutating configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript-groovy.lang.Closure-[buildscript] block will result in an error.
+This applies to project, settings, init, and standalone scripts.
+
+The buildscript configurations block is only intended to control buildscript classpath resolution.
+
+Consider the following script that creates a new buildscript configuration in a Settings script and resolves it:
+
+[source,kotlin]
+----
+buildscript {
+    configurations {
+        create("myConfig")
+    }
+    dependencies {
+        "myConfig"("org:foo:1.0")
+    }
+}
+
+val files = buildscript.configurations["myConfig"].files
+----
+
+This pattern is sometimes used to resolve dependencies in Settings, where there is no other way to obtain a Configuration.
+Resolving dependencies in this context is not recommended.
+Using a detached configuration is a possible yet discouraged alternative.
+
+The above example can be modified to use a detached configuration:
+
+[source,kotlin]
+----
+val myConfig = buildscript.configurations.detachedConfiguration(
+    buildscript.dependencies.create("org:foo:1.0")
+)
+
+val files = myConfig.files
+----
+
 [[consuming_non_consumable_variants_from_ivy_component]]
 ==== Deprecated consuming non-consumable configurations from Ivy
 

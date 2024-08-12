@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Namer;
@@ -39,6 +40,18 @@ public abstract class AbstractValidatingNamedDomainObjectContainer<T> extends Ab
     protected AbstractValidatingNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, callbackActionDecorator);
         nameDescription = type.getSimpleName() + " name";
+    }
+
+    @Override
+    public T create(String name) {
+        NameValidator.validate(name, nameDescription, "");
+        return super.create(name);
+    }
+
+    @Override
+    public T create(String name, Closure configureClosure) {
+        NameValidator.validate(name, nameDescription, "");
+        return super.create(name, configureClosure);
     }
 
     @Override

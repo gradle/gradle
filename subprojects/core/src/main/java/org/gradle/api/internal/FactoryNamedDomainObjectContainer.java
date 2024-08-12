@@ -30,6 +30,9 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     private final NamedDomainObjectFactory<T> factory;
     private final MutationGuard crossProjectConfiguratorMutationGuard;
 
+    // Many of these constructors are called by the nebula plugins
+    // https://github.com/nebula-plugins/nebula-project-plugin/blob/f0f587f7b7014b6202875dc499dae05b0fc32344/src/main/groovy/nebula/plugin/responsible/gradle/NamedContainerProperOrder.groovy#L12-L31
+
     /**
      * <p>Creates a container that instantiates using the given factory.<p>
      *
@@ -90,13 +93,19 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     }
 
     @Override
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return crossProjectConfiguratorMutationGuard.withMutationDisabled(super.withMutationDisabled(action));
+    protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
+        return crossProjectConfiguratorMutationGuard.wrapLazyAction(super.wrapLazyAction(action));
     }
 
     @Override
     protected T doCreate(String name) {
         return factory.create(name);
+    }
+
+    // For backwards compatibility with nebula plugins
+    // https://github.com/nebula-plugins/nebula-project-plugin/blob/f0f587f7b7014b6202875dc499dae05b0fc32344/src/main/groovy/nebula/plugin/responsible/gradle/NamedContainerProperOrder.groovy#L35
+    protected void assertCanAdd(String name) {
+        assertElementNotPresent(name);
     }
 
     private static class ClosureObjectFactory<T> implements NamedDomainObjectFactory<T> {

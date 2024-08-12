@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -24,37 +23,14 @@ import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.ImmutableActionSet;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
-    // TODO: Combine these with MutationGuard
-    private ImmutableActionSet<Void> beforeContainerChange = ImmutableActionSet.empty();
 
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), decorator);
-    }
-
-    /**
-     * Adds an action which is executed before this collection is mutated with the addition or removal of elements.
-     * Any exception thrown by the action will veto the mutation.
-     *
-     * TODO: Combine this with the MutationGuard or rework CompositeDomainObject to behave with MutationGuard/MutationValidator.
-     * The mutation validators used in DefaultConfiguration only expect to be used with add/remove methods and fail when we
-     * correctly try to also prevent all/withType/etc mutation methods.
-     *
-     * assertMutableCollectionContents is only used by add/remove methods, but we should remove this special handling and fix
-     * DefaultConfiguration and CompositeDomainObjects.
-     */
-    public void beforeCollectionChanges(Action<Void> action) {
-        beforeContainerChange = beforeContainerChange.add(action);
-    }
-
-    @Override
-    protected void assertMutableCollectionContents() {
-        beforeContainerChange.execute(null);
     }
 
     public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator decorator) {
