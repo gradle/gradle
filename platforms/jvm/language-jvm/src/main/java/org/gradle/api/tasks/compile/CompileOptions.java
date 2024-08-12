@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -59,6 +60,7 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerP
 /**
  * Main options for Java compilation.
  */
+@SuppressWarnings("deprecation")
 public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
@@ -250,6 +252,15 @@ public abstract class CompileOptions extends AbstractOptions {
     }
 
     /**
+     * Execute the given action against {@link #getDebugOptions()}.
+     *
+     * @since 8.11
+     */
+    public void debugOptions(Action<? super DebugOptions> action) {
+        action.execute(debugOptions);
+    }
+
+    /**
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
@@ -282,6 +293,15 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     public void setForkOptions(ForkOptions forkOptions) {
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super ForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
@@ -380,20 +400,42 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Convenience method to set {@link ForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public CompileOptions fork(Map<String, Object> forkArgs) {
+
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "fork(Map)")
+            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         fork = true;
-        forkOptions.define(forkArgs);
+        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
         return this;
     }
 
     /**
      * Convenience method to set {@link DebugOptions} with named parameter syntax.
      * Calling this method will set {@code debug} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public CompileOptions debug(Map<String, Object> debugArgs) {
+
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "debug(Map)")
+            .withAdvice("Set properties directly on the 'debugOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         debug = true;
-        debugOptions.define(debugArgs);
+
+        // Disable deprecation to avoid double-warning
+        DeprecationLogger.whileDisabled(() -> debugOptions.define(debugArgs));
         return this;
     }
 
