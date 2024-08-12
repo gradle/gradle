@@ -62,7 +62,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def void enableProblemsReport() {
+    void enableProblemsReport() {
         if (GradleContextualExecuter.embedded) {
             System.setProperty("org.gradle.internal.problems.report.enabled", "true")
         } else {

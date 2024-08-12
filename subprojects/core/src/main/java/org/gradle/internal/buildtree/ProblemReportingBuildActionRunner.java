@@ -58,7 +58,8 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
         ProblemConsumer collector = failure -> failures.add(exceptionAnalyser.transform(failure));
         for (ProblemReporter reporter : reporters) {
             try {
-                reporter.report(rootProjectBuildDir, collector);
+                File problemsReportDir = new File(rootProjectBuildDir, "/reports/problems");
+                reporter.report(problemsReportDir, collector);
             } catch (Exception e) {
                 failures.add(e);
             }
