@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility.upgrades;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
@@ -26,8 +27,8 @@ import me.champeau.gradle.japicmp.report.Violation;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
@@ -54,9 +55,13 @@ public class UpgradedProperties {
         if (!file.exists()) {
             return Collections.emptyList();
         }
-        try {
-            return new Gson().fromJson(new FileReader(file), new TypeToken<List<UpgradedProperty>>() {}.getType());
-        } catch (FileNotFoundException e) {
+        try (FileReader reader = new FileReader(file)) {
+            List<UpgradedProperty> upgradedProperties = new Gson().fromJson(reader, new TypeToken<List<UpgradedProperty>>() {}.getType());
+            // FIXME There should be no duplicates, yet there are some
+            return upgradedProperties.stream()
+                .distinct()
+                .collect(ImmutableList.toImmutableList());
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
