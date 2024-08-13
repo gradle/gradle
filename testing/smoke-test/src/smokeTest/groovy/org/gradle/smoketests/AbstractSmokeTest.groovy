@@ -55,13 +55,13 @@ abstract class AbstractSmokeTest extends Specification {
         static bnd = "7.0.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
-        static nebulaDependencyRecommender = "12.4.0"
+        static nebulaDependencyRecommender = "12.5.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
         static nebulaPluginPlugin = "20.11.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.lint
-        static nebulaLint = "19.0.1"
+        static nebulaLint = "19.0.3"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1.8"
@@ -70,7 +70,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyLock = Versions.of("15.1.0")
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
-        static nebulaResolutionRules = "11.2.0"
+        static nebulaResolutionRules = "11.3.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = "8.1.1"
