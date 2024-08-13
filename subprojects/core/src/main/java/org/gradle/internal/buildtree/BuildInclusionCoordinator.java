@@ -82,14 +82,16 @@ public class BuildInclusionCoordinator {
     }
 
     public void prepareForPluginResolution(IncludedBuildState build) {
-        if (!registering.add(build)) {
-            return;
-        }
-        try {
-            build.ensureProjectsConfigured();
-            makeSubstitutionsAvailableFor(build, new HashSet<>());
-        } finally {
-            registering.remove(build);
+        synchronized (registering) {
+            if (!registering.add(build)) {
+                return;
+            }
+            try {
+                build.ensureProjectsConfigured();
+                makeSubstitutionsAvailableFor(build, new HashSet<>());
+            } finally {
+                registering.remove(build);
+            }
         }
     }
 
