@@ -34,39 +34,31 @@
   ]
 }
 
+// For a description of how these rules relate to the full Kotlin grammar please see:
+// https://docs.google.com/document/d/11GBpWfLV-BwYjGEayUl5OCoLzRlcDkI7m_b5FoaFD9Q/edit
+
 root ::= statements
 
 statement ::= (assignment | expression)
 statements ::= (statement semis?)*
 
-assignment ::= directlyAssignableExpression EQ expression {pin=2}
-expression ::= postfixUnaryExpression
+assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
+expression ::= simpleIdentifier postfixUnarySuffixes
 
 semis ::= SEMI+
 
-directlyAssignableExpression ::=
-    (postfixUnaryExpression navigationSuffix*) |          // navigationSuffix changed to optional due to greedy matching
-    simpleIdentifier |
-    parenthesizedDirectlyAssignableExpression
+directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 
-parenthesizedDirectlyAssignableExpression ::= LP directlyAssignableExpression RP
-
-postfixUnaryExpression ::= primaryExpression postfixUnarySuffix*
-
-postfixUnarySuffix ::= callSuffix | navigationSuffix
-
-callSuffix ::= (valueArguments? annotatedLambda) | valueArguments
+postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
 
 annotatedLambda ::= LB statements RB {pin=1}
 
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? expression
-
-parenthesizedExpression ::= LP expression RP
+valueArgument ::= (simpleIdentifier EQ)? primaryExpression postfixUnarySuffixes?
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-primaryExpression ::= parenthesizedExpression | literalConstant | simpleIdentifier | stringLiteral
+primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
 simpleIdentifier ::= id                                      // TODO: needs refining
 stringLiteral ::= string                                     // TODO: needs refining
 literalConstant ::= "null" | booleanLiteral | number         // TODO: needs refining
