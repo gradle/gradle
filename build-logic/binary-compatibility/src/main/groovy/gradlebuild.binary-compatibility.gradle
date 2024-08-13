@@ -24,6 +24,7 @@ import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
 import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
 import gradlebuild.binarycompatibility.transforms.FindGradleClasspath
 import gradlebuild.binarycompatibility.transforms.FindGradleJars
+import gradlebuild.identity.provider.LatestNightlyVersionValueSource
 
 plugins {
     id("gradlebuild.module-identity")
@@ -56,7 +57,9 @@ def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonDirectory.asFile
     .collect { providers.fileContents(apiChangesJsonDirectory.file(it.name)).asText.get() }
 )
 
-def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
+// Revert once 9.0 is master
+//def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
+def compatibilityBaselineVersion = providers.of(LatestNightlyVersionValueSource) {}.get()
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
 def RUNTIME_ATTRIBUTE = objects.named(Usage, Usage.JAVA_RUNTIME)
