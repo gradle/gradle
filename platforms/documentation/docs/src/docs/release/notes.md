@@ -53,7 +53,14 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="native-plugin-improvements"></a>
+### Swift and C++ plugin improvements
 
+#### Configuration cache compatibility
+
+The Swift and C++ plugins are now configuration cache compatible.
+
+The `cpp-unit` and `xctest` plugins are not yet compatible.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
