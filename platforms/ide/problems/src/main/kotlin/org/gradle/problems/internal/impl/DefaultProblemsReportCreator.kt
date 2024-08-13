@@ -50,7 +50,8 @@ class DefaultProblemsReportCreator(
     internalOptions: InternalOptions,
     startParameter: StartParameterInternal,
     private val failureFactory: FailureFactory,
-    private val buildNameProvider: BuildNameProvider
+    private val buildNameProvider: BuildNameProvider,
+    private val showUrlOnConsole: Boolean
 ) : ProblemReportCreator {
 
     private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report", "problem-report")
@@ -79,8 +80,10 @@ class DefaultProblemsReportCreator(
                 }
             }
         })?.let {
-            val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("Problems report is available at: $url")
+            if (showUrlOnConsole) {
+                val url = ConsoleRenderer().asClickableFileUrl(it)
+                logger.warn("Problems report is available at: $url")
+            }
         }
     }
 

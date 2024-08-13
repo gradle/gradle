@@ -21,8 +21,9 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
-import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -57,7 +58,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
     }
 
-    private static InternalFlag enableProblemsReport = new InternalFlag("org.gradle.internal.problems.report.enabled", false);
+    private static InternalOption<String> enableProblemsReport = new StringInternalOption("org.gradle.internal.problems.report.enabled", "");
 
     @Provides
     ProblemReportCreator createProblemsReportCreator(
@@ -69,8 +70,12 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         FailureFactory failureFactory,
         BuildNameProvider buildNameProvider
     ) {
-        if (internalOptions.getOption(enableProblemsReport).get()) {
-            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
+        // "false" - don't create report
+        // "true" - create report and show location on the console
+        // default - create report but don't show location on the console
+        String option = internalOptions.getOption(enableProblemsReport).get();
+        if (!"false".equals(option)) {
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider, "true".equals(option));
         }
         return new NoOpProblemReportCreator();
     }
