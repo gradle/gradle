@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * TBD
  *
- * @since 8.10
+ * @since 8.11
  */
 @ServiceScope(Scope.Build.class)
 @Incubating
@@ -33,7 +33,7 @@ public interface BuildIsolatedModelLookup {
     /**
      * TBD
      *
-     * @since 8.10
+     * @since 8.11
      */
     <T> Provider<T> getModel(String key, Class<T> type);
 

@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * TBD
  *
- * @since 8.10
+ * @since 8.11
  */
 @ServiceScope(Scope.Build.class)
 @Incubating
@@ -34,7 +34,7 @@ interface BuildIsolatedModelRegistry {
     /**
      * TBD
      *
-     * @since 8.10
+     * @since 8.11
      */
     <T> void registerModel(String key, Class<T> type, Provider<T> provider);
 

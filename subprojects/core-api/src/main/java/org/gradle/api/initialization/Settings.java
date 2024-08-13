@@ -444,7 +444,7 @@ public interface Settings extends PluginAware, ExtensionAware {
     /**
      * TBD
      *
-     * @since 8.10
+     * @since 8.11
      */
     @Incubating
     BuildIsolatedModelRegistry getBuildModelRegistry();
