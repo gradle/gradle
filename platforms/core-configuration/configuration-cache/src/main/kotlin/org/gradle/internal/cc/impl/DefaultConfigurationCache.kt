@@ -413,9 +413,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveWorkGraph() {
-        saveToCache(
-            stateType = StateType.Work,
-        ) { stateFile -> writeConfigurationCacheState(stateFile) }
+        saveToCache(stateType = StateType.Work) { stateFile ->
+            writeConfigurationCacheState(stateFile)
+        }
     }
 
     private
