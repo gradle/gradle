@@ -16,35 +16,26 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
 import org.gradle.api.provider.Provider;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public class BuildIsolatedModelProjectLookup implements BuildIsolatedModelLookup {
+
+    private final IsolatedModelScope scope;
+    private final IsolatedModelScope buildScope;
 
     private final BuildIsolatedModelStore store;
 
-    private final Map<IsolatedModelKey<?>, Provider<?>> modelByKey = new HashMap<>();
-
-    public BuildIsolatedModelProjectLookup(BuildIsolatedModelStore store) {
+    public BuildIsolatedModelProjectLookup(ProjectInternal project, BuildIsolatedModelStore store) {
+        this.scope = new IsolatedModelScope(project.getBuildPath(), project.getProjectPath());
+        this.buildScope = new IsolatedModelScope(project.getBuildPath());
         this.store = store;
     }
 
     @Override
     public <T> Provider<T> getModel(String key, Class<T> type) {
-        Provider<?> provider = modelByKey.computeIfAbsent(new IsolatedModelKey<>(key, type), this::resolveModel);
-        return uncheckedCast(provider);
-    }
-
-    private Provider<?> resolveModel(IsolatedModelKey<?> modelKey) {
-        BuildIsolatedModel<?> model = store.findModel(modelKey);
-        if (model == null) {
-            throw new IllegalArgumentException("No provider for " + modelKey);
-        }
-        return model.instantiate();
+        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
+        return store.getModel(scope, modelKey, buildScope);
     }
 }

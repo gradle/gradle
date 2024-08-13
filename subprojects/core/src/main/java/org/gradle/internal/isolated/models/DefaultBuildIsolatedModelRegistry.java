@@ -16,14 +16,17 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
 import org.gradle.api.provider.Provider;
 
 public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegistryInternal, BuildIsolatedModelLookup {
 
+    private final IsolatedModelScope scope;
     private final BuildIsolatedModelStore store;
 
-    public DefaultBuildIsolatedModelRegistry(BuildIsolatedModelStore store) {
+    public DefaultBuildIsolatedModelRegistry(GradleInternal gradle, BuildIsolatedModelStore store) {
+        this.scope = new IsolatedModelScope(gradle.getIdentityPath());
         this.store = store;
     }
 
@@ -36,11 +39,7 @@ public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegi
     @Override
     public <T> Provider<T> getModel(String key, Class<T> type) {
         IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
-        BuildIsolatedModel<T> model = store.findModel(modelKey);
-        if (model == null) {
-            throw new IllegalArgumentException("No provider for " + modelKey);
-        }
-        return model.instantiate();
+        return store.getModel(scope, modelKey, scope);
     }
 
     @Override
