@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 8.11
  */
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.Project.class)
 @Incubating
 public interface BuildIsolatedModelLookup {
 
