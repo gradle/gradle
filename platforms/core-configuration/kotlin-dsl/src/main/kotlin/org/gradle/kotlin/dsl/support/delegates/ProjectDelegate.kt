@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.build.ProjectBuild
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -123,6 +124,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getGradle(): Gradle =
         delegate.gradle
+
+    override fun getBuild(): ProjectBuild =
+        delegate.build
 
     override fun getAllTasks(recursive: Boolean): MutableMap<Project, MutableSet<Task>> =
         delegate.getAllTasks(recursive)

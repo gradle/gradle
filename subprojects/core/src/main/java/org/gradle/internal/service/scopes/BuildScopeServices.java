@@ -29,6 +29,7 @@ import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.build.ProjectBuildProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -262,6 +263,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(DefaultScriptClassPathResolver.class);
         registration.add(DefaultScriptHandlerFactory.class);
         registration.add(DefaultBuildOutputCleanupRegistry.class);
+        registration.add(ProjectBuildProvider.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 

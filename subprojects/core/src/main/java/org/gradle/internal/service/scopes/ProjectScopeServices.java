@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.build.ProjectBuild;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.build.ProjectBuildProvider;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
@@ -434,5 +436,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
+    }
+
+    @Provides
+    protected ProjectBuild createProjectBuildProvider(ProjectBuildProvider provider) {
+        return provider.getProjectBuild();
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.build.ProjectBuild;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -1485,6 +1486,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The Gradle object. Never returns null.
      */
     Gradle getGradle();
+
+    /**
+     * Returns the {@link ProjectBuild} that contains this project.
+     *
+     * @since 8.11
+     */
+    @Incubating
+    ProjectBuild getBuild();
 
     /**
      * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the

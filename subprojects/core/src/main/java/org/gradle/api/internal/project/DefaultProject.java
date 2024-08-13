@@ -37,6 +37,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.build.ProjectBuild;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -55,6 +56,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
+import org.gradle.api.internal.build.ProjectBuildProvider;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -379,6 +381,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public GradleInternal getGradle() {
         return getCrossProjectModelAccess().gradleInstanceForProject(this, gradle);
     }
+
+    @Override
+    public ProjectBuild getBuild() {
+        return getProjectBuildProvider().getProjectBuild();
+    }
+
+    @Inject
+    protected abstract ProjectBuildProvider getProjectBuildProvider();
 
     @Inject
     protected abstract ProjectEvaluator getProjectEvaluator();

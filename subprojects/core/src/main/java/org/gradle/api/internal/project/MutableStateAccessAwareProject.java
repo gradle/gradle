@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.build.ProjectBuild;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -756,6 +757,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public GradleInternal getGradle() {
         return delegate.getGradle();
+    }
+
+    @Override
+    public ProjectBuild getBuild() {
+        return delegate.getBuild();
     }
 
     @Override
