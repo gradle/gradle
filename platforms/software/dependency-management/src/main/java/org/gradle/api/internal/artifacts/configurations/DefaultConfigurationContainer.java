@@ -355,7 +355,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @SuppressWarnings("deprecation")
     private Configuration createUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         // Sanity check to make sure we are locking all non-legacy configurations by 9.0
-        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY;
+        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY
+            : "Sanity check: All non-legacy configurations must be locked by 9.0";
 
         // TODO: Deprecate changing roles of unlocked non-legacy configurations.
 
@@ -380,10 +381,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private static void validateNameIsAllowed(String name) {
         if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
             DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
-                    .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "reserved_configuration_names")
-                    .nagUser();
+                .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "reserved_configuration_names")
+                .nagUser();
         }
     }
 
