@@ -28,10 +28,10 @@ import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
-object OriginReplacementTest {
+class OriginReplacementTest {
     @Test
     fun `replaces configured object access and function call receiver`() {
         with(resolution("configuring { property = value() }")) {

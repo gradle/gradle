@@ -35,11 +35,11 @@ import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import org.junit.jupiter.api.Assertions.fail
 
 
-object MutationAsTextRunnerTest {
+class MutationAsTextRunnerTest {
 
     @Test
     fun `can run a mutation from a mutation definition`() {
