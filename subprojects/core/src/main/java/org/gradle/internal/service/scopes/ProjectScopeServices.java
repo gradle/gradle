@@ -440,6 +440,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     BuildIsolatedModelProjectLookup create(BuildIsolatedModelStore store) {
-        return new BuildIsolatedModelProjectLookup(store);
+        return new BuildIsolatedModelProjectLookup(project, store);
     }
 }

@@ -17,7 +17,9 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -25,16 +27,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class BuildIsolatedModelStore {
+public class BuildIsolatedModelStore implements IsolatedModelStore {
 
     private final GradleInternal gradle;
     private final IsolatedProviderFactory isolatedProviderFactory;
 
     private final Map<IsolatedModelKey<?>, BuildIsolatedModel<?>> store = new ConcurrentHashMap<>();
 
-    public BuildIsolatedModelStore(GradleInternal gradle, IsolatedProviderFactory isolatedProviderFactory) {
+    private final Map<IsolatedModelAccessKey<?>, IsolatedModelProducingProvider<?>> currentValues = new ConcurrentHashMap<>();
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+
+    public BuildIsolatedModelStore(
+        GradleInternal gradle,
+        IsolatedProviderFactory isolatedProviderFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.gradle = gradle;
         this.isolatedProviderFactory = isolatedProviderFactory;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     public <T> void registerModel(IsolatedModelKey<T> modelKey, Provider<T> provider) {
@@ -47,4 +57,32 @@ public class BuildIsolatedModelStore {
         return uncheckedCast(store.get(modelKey));
     }
 
+    @Override
+    public <T> ProviderInternal<T> getModel(IsolatedModelScope consumer, IsolatedModelKey<T> key, IsolatedModelScope producer) {
+        checkSameBuild(consumer, producer);
+        if (producer.getProjectPath() != null) {
+            throw new UnsupportedOperationException("Only build-scope isolated models can be requested");
+        }
+
+        IsolatedModelAccessKey<T> accessKey = new IsolatedModelAccessKey<>(producer, key, consumer);
+        IsolatedModelProducingProvider<?> producingProvider = currentValues.computeIfAbsent(accessKey, this::instantiateProducer);
+
+        return uncheckedCast(producingProvider);
+    }
+
+    private <T> IsolatedModelProducingProvider<T> instantiateProducer(IsolatedModelAccessKey<T> isolatedModelAccessKey) {
+        // TODO: force the evaluation of the producer to ensure it registers all its models
+        BuildIsolatedModel<T> buildIsolatedModel = findModel(isolatedModelAccessKey.getModelKey());
+        if (buildIsolatedModel == null) {
+            throw new IllegalStateException("Model not found for key: " + isolatedModelAccessKey);
+        }
+        return new IsolatedModelProducingProvider<>(isolatedModelAccessKey, calculatedValueContainerFactory, buildIsolatedModel);
+    }
+
+    private static void checkSameBuild(IsolatedModelScope consumer, IsolatedModelScope producer) {
+        if (!consumer.getBuildPath().equals(producer.getBuildPath())) {
+            // TODO: include participants into the message
+            throw new IllegalArgumentException("Requesting isolated models from other builds is not allowed.");
+        }
+    }
 }
