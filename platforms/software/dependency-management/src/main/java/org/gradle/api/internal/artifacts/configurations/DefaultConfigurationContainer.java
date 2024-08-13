@@ -42,7 +42,6 @@ import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurat
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
-import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -352,10 +351,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    @SuppressWarnings("deprecation")
+    // @SuppressWarnings("deprecation")
     private Configuration createUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         // Sanity check to make sure we are locking all non-legacy configurations by 9.0
-        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY;
+        // FIXME Ignored for the EAP branch
+        // assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY;
 
         // TODO: Deprecate changing roles of unlocked non-legacy configurations.
 

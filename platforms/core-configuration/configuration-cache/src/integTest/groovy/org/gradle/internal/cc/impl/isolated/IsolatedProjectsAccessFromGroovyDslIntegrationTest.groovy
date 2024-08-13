@@ -34,7 +34,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsFails("assemble", "--stacktrace")
 
         then:
         fixture.assertStateStoredAndDiscarded {
