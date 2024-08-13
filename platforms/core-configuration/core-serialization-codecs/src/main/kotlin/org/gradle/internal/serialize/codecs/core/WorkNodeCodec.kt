@@ -19,6 +19,7 @@ package org.gradle.internal.serialize.codecs.core
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
+import org.gradle.api.GradleException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.project.ProjectInternal
@@ -40,8 +41,11 @@ import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationInvocationException
+import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.IsolateContextSource
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -159,29 +163,26 @@ class WorkNodeCodec(
         val isolateOwner = isolate.owner
         val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
-        buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
-            writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
-                val groupPath = pathFor(nodeOwner)
-                writeString(groupPath.path)
-                add(object : RunnableBuildOperation {
-                    override fun run(context: BuildOperationContext) {
-                        contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
-                            writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
+        unwrapBuildOperationExceptions("saving state nodes") {
+            buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
+                writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
+                    val groupPath = pathFor(nodeOwner)
+                    writeString(groupPath.path)
+                    add(object : RunnableBuildOperation {
+                        override fun run(context: BuildOperationContext) {
+                            contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
+                                writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
+                            }
                         }
-                    }
 
-                    override fun description(): BuildOperationDescriptor.Builder {
-                        return BuildOperationDescriptor.displayName("Nodes for $nodeOwner")
-                    }
-                })
+                        override fun description(): BuildOperationDescriptor.Builder {
+                            return BuildOperationDescriptor.displayName("Nodes for $nodeOwner")
+                        }
+                    })
+                }
             }
         }
     }
-
-    data class NodeId(
-        val node: Node,
-        val id: Int
-    )
 
     private
     fun ReadContext.readNodes(): NodeForId {
@@ -189,26 +190,28 @@ class WorkNodeCodec(
         val partialResultsRef = AtomicReference<PersistentList<List<NodeId>>>(PersistentList.of())
         val projectProvider = getSingletonProperty<ProjectProvider>()
         val buildOperationExecutor = isolate.owner.serviceOf<BuildOperationExecutor>()
-        buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
-            readCollection {
-                val groupPath = Path.path(readString())
-                add(object : RunnableBuildOperation {
-                    override fun run(context: BuildOperationContext) {
-                        contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
-                            setSingletonProperty(projectProvider)
-                            val partialResult = readGroupedNodes()
-                            partialResultsRef.updateAndGet {
-                                it.plus(partialResult)
+        unwrapBuildOperationExceptions("reading state nodes") {
+            buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
+                readCollection {
+                    val groupPath = Path.path(readString())
+                    add(object : RunnableBuildOperation {
+                        override fun run(context: BuildOperationContext) {
+                            contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
+                                setSingletonProperty(projectProvider)
+                                val partialResult = readGroupedNodes()
+                                partialResultsRef.updateAndGet {
+                                    it.plus(partialResult)
+                                }
                             }
                         }
-                    }
 
-                    override fun description(): BuildOperationDescriptor.Builder {
-                        return BuildOperationDescriptor
-                            .displayName("Loading $groupPath")
-                            .progressDisplayName(groupPath.path)
-                    }
-                })
+                        override fun description(): BuildOperationDescriptor.Builder {
+                            return BuildOperationDescriptor
+                                .displayName("Loading $groupPath")
+                                .progressDisplayName(groupPath.path)
+                        }
+                    })
+                }
             }
         }
         val nodesById = Array<Node?>(nodeIdCount) { null }
@@ -219,6 +222,35 @@ class WorkNodeCodec(
         }
         return { id: Int -> nodesById[id]!! }
     }
+
+    private
+    fun <R> IsolateContext.unwrapBuildOperationExceptions(message: String, action: () -> R): R =
+        try {
+            action()
+        } catch (e: MultipleBuildOperationFailures) {
+            val cause = when (val first = e.causes.first()) {
+                is BuildOperationInvocationException -> first.cause!!
+                else -> first
+            }
+            e.causes.drop(0).forEach(cause::addSuppressed)
+
+            when (cause) {
+                is GradleException -> throw cause
+                is Exception -> {
+                    onError(cause) {
+                        text("Error while $message")
+                    }
+                    // never runs
+                    error(Unit)
+                }
+                else -> throw e
+            }
+        }
+
+    data class NodeId(
+        val node: Node,
+        val id: Int
+    )
 
     private
     fun pathFor(nodeOwner: NodeOwner): Path {
