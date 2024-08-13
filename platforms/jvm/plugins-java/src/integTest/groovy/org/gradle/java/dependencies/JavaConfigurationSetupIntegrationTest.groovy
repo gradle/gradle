@@ -17,6 +17,7 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -91,6 +92,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | VALID
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "the #configuration configuration is setup correctly for consumption in the #plugin plugin"() {
         when:
         createDirs("sub")
