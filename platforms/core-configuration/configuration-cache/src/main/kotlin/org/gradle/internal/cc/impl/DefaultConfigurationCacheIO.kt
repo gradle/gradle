@@ -398,14 +398,14 @@ class DefaultConfigurationCacheIO internal constructor(
         override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
                 readContextFor(it).also { (subContext, subCodecs) ->
-                    subContext.push(subCodecs.internalTypesCodec())
+                    subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
                 writeContextFor(it) { "child '$path' state" }.also { (subContext, subCodecs) ->
-                    subContext.push(subCodecs.internalTypesCodec())
+                    subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
     }
