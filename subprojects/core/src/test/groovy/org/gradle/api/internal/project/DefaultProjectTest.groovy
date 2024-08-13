@@ -39,6 +39,7 @@ import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
+import org.gradle.api.internal.build.ProjectBuildProvider
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -753,6 +754,7 @@ def scriptMethod(Closure closure) {
     def properties() {
         given:
         serviceRegistryMock.get(ServiceRegistryFactory) >> Stub(ServiceRegistryFactory)
+        serviceRegistryMock.get(ProjectBuildProvider) >> Stub(ProjectBuildProvider)
 
         when:
         project.ext.additional = 'additional'
