@@ -413,9 +413,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveWorkGraph() {
-        saveToCache(
-            stateType = StateType.Work,
-        ) { stateFile -> writeConfigurationCacheState(stateFile) }
+        saveToCache(stateType = StateType.Work) { stateFile ->
+            writeConfigurationCacheState(stateFile)
+        }
     }
 
     private
@@ -434,7 +434,7 @@ class DefaultConfigurationCache internal constructor(
                     action(stateFile)
                     val storeFailure = problems.queryFailure()
                     StoreResult(stateFile.stateFile.file, storeFailure)
-                } catch (error: ConfigurationCacheError) {
+                } catch (error: Exception) {
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
                     throw error
