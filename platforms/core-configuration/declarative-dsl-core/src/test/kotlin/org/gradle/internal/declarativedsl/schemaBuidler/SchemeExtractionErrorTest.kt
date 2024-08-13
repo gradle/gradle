@@ -23,10 +23,10 @@ import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
-object SchemeExtractionErrorTest {
+class SchemeExtractionErrorTest {
 
     @Test
     fun `data type ref conversion of getter return type fails`() {
