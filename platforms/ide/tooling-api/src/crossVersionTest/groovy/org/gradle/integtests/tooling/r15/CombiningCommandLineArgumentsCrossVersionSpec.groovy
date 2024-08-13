@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling.r15
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
