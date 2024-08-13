@@ -182,7 +182,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                   <div class="well">
                       Sometimes, the change was made on the `release` branch but hasn't yet been published to the baseline version.
                       In that case, you can publish a new snapshot from the release branch. This will update `released-versions.json` on `master`.
-                      See <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">the documentation</a> for more details.
+                      See <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">the documentation</a> for more details.
                   </div>
                 </div>
                 </p>
