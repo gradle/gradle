@@ -60,7 +60,7 @@ class ProjectBuildIntegrationTest extends AbstractIntegrationSpec {
 
             gradle.lifecycle.beforeProject { project ->
                 project.tasks.register("something", CustomTask) {
-                    config = project.build.rootDirectory.file("config.txt")
+                    config = project.enclosingBuild.rootDirectory.file("config.txt")
                 }
             }
         """
@@ -81,7 +81,7 @@ class ProjectBuildIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile "included/build.gradle", """
-            println("Included build config: '\${project.build.rootDirectory.file("config.txt").asFile.text}'")
+            println("Included build config: '\${project.enclosingBuild.rootDirectory.file("config.txt").asFile.text}'")
         """
 
         when:

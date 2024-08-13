@@ -760,8 +760,8 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public ProjectBuild getBuild() {
-        return delegate.getBuild();
+    public ProjectBuild getEnclosingBuild() {
+        return delegate.getEnclosingBuild();
     }
 
     @Override

@@ -125,8 +125,8 @@ abstract class ProjectDelegate : Project {
     override fun getGradle(): Gradle =
         delegate.gradle
 
-    override fun getBuild(): ProjectBuild =
-        delegate.build
+    override fun getEnclosingBuild(): ProjectBuild =
+        delegate.enclosingBuild
 
     override fun getAllTasks(recursive: Boolean): MutableMap<Project, MutableSet<Task>> =
         delegate.getAllTasks(recursive)

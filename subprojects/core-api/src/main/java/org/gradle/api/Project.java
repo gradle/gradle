@@ -1493,7 +1493,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 8.11
      */
     @Incubating
-    ProjectBuild getBuild();
+    ProjectBuild getEnclosingBuild();
 
     /**
      * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the

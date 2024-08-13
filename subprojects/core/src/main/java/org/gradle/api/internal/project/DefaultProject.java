@@ -383,7 +383,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ProjectBuild getBuild() {
+    public ProjectBuild getEnclosingBuild() {
         return getProjectBuildProvider().getProjectBuild();
     }
 
