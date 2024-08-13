@@ -40,26 +40,26 @@ import java.util.List;
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
-    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
+    private final TransformUpstreamDependenciesResolver dependenciesResolver;
+    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
-    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final ResolutionFailureHandler failureProcessor;
 
     AttributeMatchingArtifactVariantSelector(
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
+        TransformUpstreamDependenciesResolver dependenciesResolver,
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         ResolutionFailureHandler failureProcessor
     ) {
-        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
+        this.dependenciesResolver = dependenciesResolver;
+        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
-        this.dependenciesResolverFactory = dependenciesResolverFactory;
         this.failureProcessor = failureProcessor;
     }
 
@@ -94,7 +94,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
+            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory);
         }
 
         if (!transformedVariants.isEmpty()) {

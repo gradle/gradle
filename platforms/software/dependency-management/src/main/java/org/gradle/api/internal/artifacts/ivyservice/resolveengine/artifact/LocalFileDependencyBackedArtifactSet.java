@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformChain;
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
@@ -166,8 +166,8 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
     }
 
     @Override
-    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformChain(), dependenciesResolverFactory, calculatedValueContainerFactory);
+    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolver dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformChain(), dependenciesResolver, calculatedValueContainerFactory);
     }
 
     @Override
@@ -294,15 +294,22 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
      * An artifact set that contains a single transformed local file.
      */
     private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
-        private final SingletonFileResolvedVariant delegate;
-
-        public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate,
-                                               ImmutableAttributes attributes,
-                                               TransformChain transformChain,
-                                               TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
-                                               CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentIdentifier(), delegate, attributes, ImmutableCapabilities.EMPTY, transformChain, dependenciesResolverFactory, calculatedValueContainerFactory);
-            this.delegate = delegate;
+        public TransformedLocalFileArtifactSet(
+            SingletonFileResolvedVariant delegate,
+            ImmutableAttributes attributes,
+            TransformChain transformChain,
+            TransformUpstreamDependenciesResolver dependenciesResolver,
+            CalculatedValueContainerFactory calculatedValueContainerFactory
+        ) {
+            super(
+                delegate.getComponentIdentifier(),
+                delegate,
+                attributes,
+                ImmutableCapabilities.EMPTY,
+                transformChain,
+                dependenciesResolver,
+                calculatedValueContainerFactory
+            );
         }
     }
 }

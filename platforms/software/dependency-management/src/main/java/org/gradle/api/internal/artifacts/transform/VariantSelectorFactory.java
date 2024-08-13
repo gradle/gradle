@@ -16,9 +16,28 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+
+import javax.annotation.Nullable;
+
 public interface VariantSelectorFactory {
+
     /**
-     * Returns a selector that selects using variant aware attribute matching.
+     * Returns a selector that selects using variant aware attribute matching and performs
+     * artifact transforms if the requested artifact variant is not available.
      */
-    ArtifactVariantSelector create(TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
+    ArtifactVariantSelector create(
+        ResolutionHost resolutionHost,
+        ImmutableAttributes requestAttributes,
+        @Nullable ConfigurationIdentity configurationId,
+        ResolutionStrategy.SortOrder artifactDependencySortOrder,
+        ResolutionResultProvider<ResolverResults> resolverResults,
+        ResolutionResultProvider<ResolverResults> strictResolverResults
+    );
+
 }
