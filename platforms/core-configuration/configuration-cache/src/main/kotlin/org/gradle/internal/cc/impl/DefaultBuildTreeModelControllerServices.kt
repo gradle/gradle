@@ -176,24 +176,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 )
             }
         }
-
-        if (!startParameter.isConfigurationCacheQuiet) {
-            if (modelParameters.isIsolatedProjects) {
-                IncubationLogger.incubatingFeatureUsed("Isolated projects")
-            }
-        }
-        if (modelParameters.isConfigureOnDemand) {
-            IncubationLogger.incubatingFeatureUsed("Configuration on demand")
-        }
-
-        val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
-        val buildFeatures = DefaultBuildFeatures(startParameter, modelParameters)
-
-        return BuildTreeModelControllerServices.Supplier { registration ->
-            val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
-            registration.add(BuildType::class.java, buildType)
-            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements, loggingParameters)
-        }
     }
 
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {

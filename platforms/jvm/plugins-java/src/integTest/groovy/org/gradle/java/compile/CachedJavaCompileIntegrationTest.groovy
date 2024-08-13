@@ -17,6 +17,7 @@
 package org.gradle.java.compile
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest implements IncrementalCompileMultiProjectTestFixture {
@@ -53,6 +54,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "up-to-date incremental compilation is cached if nothing to recompile"() {
         given:
         buildFile.text = ""
