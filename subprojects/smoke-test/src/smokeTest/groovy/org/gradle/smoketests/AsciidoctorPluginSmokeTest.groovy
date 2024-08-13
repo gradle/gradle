@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
@@ -43,7 +44,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('asciidoc').deprecations(AsciidocDeprecations) {
-            expectAsciiDocDeprecationWarnings()
+            expectAsciiDocDeprecationWarnings(version)
         }.build()
 
         then:
@@ -56,19 +57,29 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
-            [
-                "org.asciidoctor.decktape",
+            def base = [
                 "org.asciidoctor.editorconfig",
                 "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
-                "org.asciidoctor.jvm.gems",
-                "org.asciidoctor.jvm.leanpub",
-                "org.asciidoctor.jvm.leanpub.dropbox-copy",
+                // Plugin broken after JCenter dependency disappeared
+//                "org.asciidoctor.jvm.gems",
                 "org.asciidoctor.jvm.pdf",
-                "org.asciidoctor.jvm.revealjs",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
+            }
+            if(version.startsWith("3")) {
+                base + [
+                    "org.asciidoctor.decktape",
+                    "org.asciidoctor.jvm.leanpub",
+                    "org.asciidoctor.jvm.leanpub.dropbox-copy",
+                    // Plugin broken after JCenter dependency disappeared
+//                    "org.asciidoctor.jvm.revealjs",
+                ].collectEntries { plugin ->
+                    [(plugin): Versions.of(version)]
+                }
+            } else {
+                base
             }
         }
     }
@@ -85,9 +96,12 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             super(runner)
         }
 
-        void expectAsciiDocDeprecationWarnings() {
-            runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
-            runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
+        void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
+            def versionNumber = VersionNumber.parse(asciidoctorVersion)
+            if (versionNumber.major < 4) {
+                runner.expectDeprecationWarning(JAVAEXEC_SET_MAIN_DEPRECATION, "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
+                runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
+            }
         }
     }
 }

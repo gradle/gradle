@@ -61,8 +61,8 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
         static nebulaDependencyRecommender = "11.0.0"
 
-        // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "17.1.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
+        static nebulaPluginPlugin = "20.9.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
         static nebulaLint = "17.7.0"
@@ -81,8 +81,8 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0", "7.1.0")
 
-        // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = Versions.of("3.3.2")
+        // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
+        static asciidoctor = Versions.of("3.3.2", "4.0.2")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "5.0.6"
@@ -117,7 +117,7 @@ abstract class AbstractSmokeTest extends Specification {
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "4.1.0"
+        static grgit = "4.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
         static gradleVersions = "0.39.0"
@@ -149,7 +149,7 @@ abstract class AbstractSmokeTest extends Specification {
         static micronaut = Versions.of("2.0.6")
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
-        static gradleGitProperties = Versions.of("2.3.1")
+        static gradleGitProperties = Versions.of("2.4.2")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
         static flyway = Versions.of("8.0.0")
@@ -191,7 +191,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nohttp = Versions.of("0.0.10")
 
         // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
-        static jenkinsJpi = Versions.of("0.43.0")
+        static jenkinsJpi = Versions.of("0.50.0")
     }
 
     static class Versions implements Iterable<String> {
