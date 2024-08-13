@@ -22,10 +22,10 @@ import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
-object FunctionContractTest {
+class FunctionContractTest {
     @Test
     fun `should invoke a configuring function only once`() {
         val resolution = schema.resolve(

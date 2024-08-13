@@ -31,11 +31,10 @@ import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
-internal
-object DocumentOverlayTest {
+class DocumentOverlayTest {
     @Test
     fun `properties are combined in the result`() {
         val underlay = resolvedDocument(

@@ -27,10 +27,10 @@ import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTree.ChildTa
 import org.gradle.internal.declarativedsl.dom.writing.TextPreservingTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
-object MutatedDocumentTextGeneratorTest {
+class MutatedDocumentTextGeneratorTest {
     // This one does not include dot-access like z.f(...), TODO: add some once it is fixed for the DOM
     private
     val simpleCodeWithComments = """

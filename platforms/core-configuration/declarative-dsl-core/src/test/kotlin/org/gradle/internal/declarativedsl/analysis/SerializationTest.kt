@@ -21,11 +21,11 @@ import org.gradle.internal.declarativedsl.demo.demoPlugins.schema
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import org.gradle.internal.declarativedsl.assertIs
 
 
-object SerializationTest {
+class SerializationTest {
     private
     val pluginsSchema: AnalysisSchema = schema
 

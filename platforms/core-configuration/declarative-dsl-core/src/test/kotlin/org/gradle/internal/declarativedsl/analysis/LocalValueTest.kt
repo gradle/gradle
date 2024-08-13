@@ -6,14 +6,14 @@ import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
 val schema =
     schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class), emptyList(), emptyMap(), emptyList())
 
 
-object LocalValueTest {
+class LocalValueTest {
     @Test
     fun `local values with the same name are not ambiguous`() {
         val resolution = schema.resolve(

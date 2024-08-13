@@ -24,10 +24,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigur
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
-object EmptyBlocksTest {
+class EmptyBlocksTest {
     @Test
     fun `empty configuring block leads to object access`() {
         val resolution = schema.resolve(

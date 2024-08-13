@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.dom.writing.CanonicalCodeGenerator
 import org.gradle.internal.declarativedsl.dom.writing.CanonicalDocumentTextGenerator
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
 class CanonicalDocumentTextGeneratorTest {

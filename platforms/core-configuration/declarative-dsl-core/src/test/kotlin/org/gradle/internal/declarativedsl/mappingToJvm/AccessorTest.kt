@@ -37,12 +37,12 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 
-object AccessorTest {
+class AccessorTest {
     @Test
     fun `uses custom accessor in mapping to JVM`() {
         val resolution = schema.resolve(
