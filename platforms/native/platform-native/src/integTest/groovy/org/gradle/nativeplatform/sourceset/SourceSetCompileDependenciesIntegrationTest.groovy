@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.sourceset
 
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {

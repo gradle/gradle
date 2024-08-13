@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.sourceset
 
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
