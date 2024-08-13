@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 

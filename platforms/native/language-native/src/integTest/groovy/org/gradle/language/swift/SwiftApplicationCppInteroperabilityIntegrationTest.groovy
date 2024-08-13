@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLoggerApi

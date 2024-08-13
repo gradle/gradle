@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain
 
-
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
