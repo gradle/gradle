@@ -229,8 +229,10 @@ class CommonReport(
                 val reportDir = outputDirectory.resolve(reportHash())
                 val reportFile = reportDir.resolve("$reportFileName.html")
                 if (!reportFile.exists()) {
-                    require(reportDir.mkdirs()) {
-                        "Could not create $reportFileName directory '$reportDir'"
+                    if (!reportDir.exists()) {
+                        require(reportDir.mkdirs()) {
+                            "Could not create $reportFileName directory '$reportDir'"
+                        }
                     }
                     Files.move(spoolFile.toPath(), reportFile.toPath())
                 }

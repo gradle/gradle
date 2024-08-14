@@ -64,7 +64,7 @@ class DefaultProblemsReportCreator(
     }
 
     override fun report(reportDir: File, validationFailures: ProblemReporter.ProblemConsumer) {
-        report.writeReportFileTo(reportDir, object : JsonSource {
+        report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
                     property("problemsReport") {
