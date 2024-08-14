@@ -185,6 +185,7 @@ class RepoScriptBlockUtil {
                     }
                     applyToAllProjects(gradle, mirrorClosure)
                     maybeConfigurePluginManagement(gradle)
+                    maybeConfigureDependencyResolutionManagement(gradle)
                 }
 
                 @CompileDynamic
@@ -201,6 +202,15 @@ class RepoScriptBlockUtil {
                     if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
                         gradle.settingsEvaluated { Settings settings ->
                             withMirrors(settings.pluginManagement.repositories)
+                        }
+                    }
+                }
+
+                @CompileDynamic
+                void maybeConfigureDependencyResolutionManagement(Gradle gradle) {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.8")) {
+                        gradle.settingsEvaluated { Settings settings ->
+                            withMirrors(settings.dependencyResolutionManagement.repositories)
                         }
                     }
                 }
