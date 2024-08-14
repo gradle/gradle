@@ -49,18 +49,27 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.buildinit.projectspecs.InitProjectConfig;
+import org.gradle.buildinit.projectspecs.InitProjectGenerator;
+import org.gradle.buildinit.projectspecs.InitProjectParameter;
+import org.gradle.buildinit.projectspecs.InitProjectSpec;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
+import org.gradle.buildinit.projectspecs.internal.InitProjectRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +100,13 @@ public abstract class InitBuild extends DefaultTask {
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
+    @Internal
+    private final Property<InitProjectRegistry> initProjectRegistry = getProject().getObjects().property(InitProjectRegistry.class);
+
+    public InitBuild() {
+        InitProjectSpecLoader loader = getServices().get(InitProjectSpecLoader.class);
+        initProjectRegistry.convention(loader.loadProjectSpecs());
+    }
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
@@ -276,9 +292,67 @@ public abstract class InitBuild extends DefaultTask {
         return projectLayoutRegistry;
     }
 
+    /**
+     * This property returns the registry instance containing the available init project specifications
+     * that have been loaded and can be used for project generation.
+     *
+     * @return the available {@link InitProjectRegistry} instance
+     * @since 8.11
+     */
+    @Incubating
+    protected Property<InitProjectRegistry> getInitProjectRegistry() {
+        return initProjectRegistry;
+    }
+
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
+        if (shouldUseInitProjectSpec(inputHandler)) {
+            doInitSpecProjectGeneration(inputHandler);
+        } else {
+            doStandardProjectGeneration(inputHandler);
+        }
+    }
+
+    private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
+        boolean templatesAvailable = initProjectRegistry.get().areProjectSpecsAvailable();
+        return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
+    }
+
+    private void doInitSpecProjectGeneration(UserInputHandler inputHandler) {
+        InitProjectConfig config = inputHandler.askUser(this::selectAndConfigureSpec).get();
+        InitProjectGenerator generator = createGenerator(config);
+        generator.generate(config, projectDir);
+        generateWrapper();
+    }
+
+    private InitProjectConfig selectAndConfigureSpec(UserQuestions userQuestions) {
+        InitProjectSpec template = userQuestions.choice("Select project type", initProjectRegistry.get().getProjectSpecs())
+            .renderUsing(InitProjectSpec::getDisplayName)
+            .ask();
+
+        // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
+        return new InitProjectConfig() {
+            @Override
+            @Nonnull
+            public InitProjectSpec getProjectSpec() {
+                return template;
+            }
+
+            @Override
+            @Nonnull
+            public Map<InitProjectParameter<?>, Object> getArguments() {
+                return Collections.emptyMap();
+            }
+        };
+    }
+
+    private InitProjectGenerator createGenerator(InitProjectConfig config) {
+        Class<? extends InitProjectGenerator> generatorType = initProjectRegistry.get().getProjectGeneratorClass(config.getProjectSpec());
+        return getInstantiator().newInstance(generatorType);
+    }
+
+    private void doStandardProjectGeneration(UserInputHandler inputHandler) {
         GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings).get();
 
         boolean userInterrupted = inputHandler.interrupted();
@@ -640,4 +714,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract ProjectLayout getLayout();
+
+    @Inject
+    protected abstract Instantiator getInstantiator();
 }

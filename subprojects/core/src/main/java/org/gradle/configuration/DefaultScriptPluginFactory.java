@@ -43,7 +43,6 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
-
     private final ServiceRegistry scriptServices;
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final Factory<LoggingManagerInternal> loggingFactoryManager;
@@ -118,12 +117,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, target, baseScope, initialOperation, Actions.doNothing());
             initialRunner.run(target, services);
 
-            PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
-
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
-            PluginRequests autoAppliedPlugins = autoAppliedPluginHandler.getAutoAppliedPlugins(initialPluginRequests, target);
-            PluginRequests allPlugins = initialPluginRequests.mergeWith(autoAppliedPlugins);
-            pluginRequestApplicator.applyPlugins(allPlugins, scriptHandler, pluginManager, targetScope);
+            PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
+            PluginRequests allPluginRequests = autoAppliedPluginHandler.getAllPluginRequests(initialPluginRequests, target);
+            pluginRequestApplicator.applyPlugins(allPluginRequests, scriptHandler, pluginManager, targetScope);
+
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();

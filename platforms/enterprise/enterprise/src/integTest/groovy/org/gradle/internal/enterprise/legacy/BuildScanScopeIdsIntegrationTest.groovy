@@ -42,5 +42,7 @@ class BuildScanScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         output.contains "ids: [buildInvocation: $buildInvocationId, workspace: $workspaceId, user: $userId]"
     }
 
-
+    def setup() {
+        executer.withEagerClassLoaderCreationCheckDisabled()
+    }
 }
