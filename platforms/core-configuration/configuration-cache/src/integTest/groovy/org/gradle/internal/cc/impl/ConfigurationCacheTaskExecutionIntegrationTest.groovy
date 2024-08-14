@@ -65,7 +65,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
     def "tasks that access project through provider created at execution time emit problems"() {
         given:
-         buildFile """
+        buildFile """
             tasks.register("bypassesSafeguards") {
                  def providerFactory = providers
                 doLast { task ->
