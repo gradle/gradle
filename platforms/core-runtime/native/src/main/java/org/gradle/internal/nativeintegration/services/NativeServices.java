@@ -58,6 +58,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.platform.Architecture;
 import org.gradle.util.internal.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -360,6 +361,11 @@ public class NativeServices implements ServiceRegistrationProvider {
     @Provides
     protected OperatingSystem createOperatingSystem() {
         return OperatingSystem.current();
+    }
+
+    @Provides
+    protected Architecture createArchitecture() {
+        return Architecture.current();
     }
 
     @Provides
