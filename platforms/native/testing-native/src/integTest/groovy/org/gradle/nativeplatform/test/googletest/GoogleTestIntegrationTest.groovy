@@ -111,7 +111,6 @@ model {
         return OperatingSystem.current().getStaticLibraryName("gtest")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can build and run googleTest test suite"() {
         given:
         useConventionalSourceLocations()
@@ -131,7 +130,6 @@ model {
         testResults.checkTestCases(1, 1, 0)
     }
 
-    @ToBeFixedForConfigurationCache
     def "assemble does not build or run tests"() {
         given:
         useConventionalSourceLocations()
@@ -146,7 +144,6 @@ model {
     }
 
     @Issue("GRADLE-3225")
-    @ToBeFixedForConfigurationCache
     def "can build and run googleTest test suite with C and C++ plugins"() {
         given:
         useConventionalSourceLocations()
@@ -163,7 +160,6 @@ model {
             ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure via testSuite component"() {
         given:
         useConventionalSourceLocations()
@@ -205,7 +201,6 @@ tasks.withType(RunTestExecutable) {
         testResults.checkTestCases(1, 1, 0)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can supply cppCompiler macro to googleTest sources"() {
         given:
         useConventionalSourceLocations()
@@ -229,7 +224,6 @@ model {
         testResults.checkTestCases(1, 1, 0)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure location of googleTest test sources"() {
         given:
         useStandardConfig()
@@ -255,7 +249,6 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure location of googleTest test sources before component is declared"() {
         given:
         app.library.writeSources(file("src/hello"))
@@ -281,7 +274,6 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "variant-dependent sources are included in test binary"() {
         given:
         app.library.headerFiles*.writeToDir(file("src/hello"))
@@ -317,7 +309,6 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure variant-dependent test sources"() {
         given:
         useStandardConfig()
@@ -346,7 +337,6 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -361,7 +351,6 @@ model {
         skipped ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can build and run googleTest failing test suite"() {
         when:
         useStandardConfig()
@@ -384,7 +373,6 @@ model {
         testResults.checkTestCases(1, 0, 1)
     }
 
-    @ToBeFixedForConfigurationCache
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
         useStandardConfig()
@@ -404,7 +392,6 @@ tasks.withType(RunTestExecutable) {
         file("build/test-results/helloTest/test_detail.xml").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "test suite not skipped after failing run"() {
         given:
         useStandardConfig()
@@ -450,7 +437,6 @@ tasks.withType(RunTestExecutable) {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "non-buildable binaries are not attached to check task"() {
         given:
         useConventionalSourceLocations()
@@ -481,7 +467,6 @@ model {
         executedAndNotSkipped ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "google test run task is properly wired to binaries check tasks and lifecycle check task"() {
         given:
         useStandardConfig()

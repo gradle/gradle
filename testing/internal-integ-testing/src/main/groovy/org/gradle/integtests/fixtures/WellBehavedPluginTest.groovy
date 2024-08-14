@@ -46,8 +46,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest",
-        "CppLibraryPluginIntegrationTest",
-        "CppApplicationPluginIntegrationTest",
         "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])
@@ -76,8 +74,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest",
-        "CppLibraryPluginIntegrationTest",
-        "CppApplicationPluginIntegrationTest",
         "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])

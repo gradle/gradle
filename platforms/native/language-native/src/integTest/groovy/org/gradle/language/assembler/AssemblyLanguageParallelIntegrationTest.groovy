@@ -16,11 +16,9 @@
 
 package org.gradle.language.assembler
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.AssemblerWithCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-
 
 class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
 
@@ -29,7 +27,6 @@ class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareMode
         return new AssemblerWithCHelloWorldApp(toolChain)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can execute assembler tasks in parallel"() {
         given:
         withComponentForApp()

@@ -91,7 +91,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not re-execute build with no change"() {
         given:
         run "installMainExecutable"
@@ -104,7 +103,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "rebuilds executable with source file change"() {
         given:
         run "installMainExecutable"
@@ -131,7 +129,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         install.exec().out == app.alternateOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles but does not relink executable with source comment change"() {
         given:
         run "installMainExecutable"
@@ -158,7 +155,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "recompiles library and relinks executable after library source file change"() {
         given:
         run "installMainExecutable"
@@ -185,7 +181,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         install.exec().out == app.alternateLibraryOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles binary when header file changes"() {
         given:
         run "installMainExecutable"
@@ -211,7 +206,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles binary when system header file changes"() {
         given:
         def systemHeader = file("src/main/system/${headerFile.name}")
@@ -265,7 +259,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         skipped mainCompileTask
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
         given:
         run "installMainExecutable"
@@ -292,7 +285,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "rebuilds binary with compiler option change"() {
         given:
         run "installMainExecutable"
@@ -328,7 +320,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "rebuilds binary with target platform change"() {
         Assume.assumeTrue(languageBuildsOnMultiplePlatforms())
         given:
@@ -365,7 +356,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executedAndNotSkipped ":helloSharedLibrary", ":mainExecutable"
     }
 
-    @ToBeFixedForConfigurationCache
     def "relinks binary when set of input libraries changes"() {
         given:
         run "mainExecutable", "helloStaticLibrary"
@@ -387,7 +377,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         executable.assertHasChangedSince(snapshot)
     }
 
-    @ToBeFixedForConfigurationCache
     def "relinks binary but does not recompile when linker option changed"() {
         given:
         run "mainExecutable"
@@ -430,7 +419,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "cleans up stale object files when executable source file renamed"() {
         given:
         run "installMainExecutable"
@@ -459,7 +447,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         newObjFile.file
     }
 
-    @ToBeFixedForConfigurationCache
     def "cleans up stale object files when library source file renamed"() {
         when:
         run "helloStaticLibrary"
@@ -500,7 +487,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
-    @ToBeFixedForConfigurationCache
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
         if (buildingCorCppWithGcc()) {
@@ -576,7 +562,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     @Issue("GRADLE-3248")
-    @ToBeFixedForConfigurationCache
     def "incremental compilation isn't considered up-to-date when compilation fails"() {
         expect:
         succeeds mainCompileTask

@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -69,7 +68,6 @@ model {
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure components for a single flavor"() {
         given:
         buildFile << """
@@ -95,7 +93,6 @@ model {
         installation("build/install/main").exec().out == FRENCH + " " + FRENCH
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds executable for each defined flavor when not configured for component"() {
         when:
         succeeds "installMainEnglishExecutable", "installMainFrenchExecutable", "installMainGermanExecutable"
@@ -106,7 +103,6 @@ model {
         installation("build/install/main/german").assertInstalled()
     }
 
-    @ToBeFixedForConfigurationCache
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """

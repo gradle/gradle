@@ -29,11 +29,12 @@ import org.hamcrest.CoreMatchers
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
         'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
         'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
         'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'])
+        'SwiftXCTestComponentWithoutComponentIntegrationTest',
+        'SwiftXCTestComponentWithApplicationIntegrationTest'
+    ])
     def "sources are built with Swift tools"() {
         given:
         makeSingleProject()
@@ -46,20 +47,11 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         assertComponentUnderTestWasBuilt()
     }
 
-    @ToBeFixedForConfigurationCache
     def "binaries have the right Swift version"() {
         given:
         makeSingleProject()
         def expectedVersion = AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility.version == ${expectedVersion}
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(expectedVersion)
 
         expect:
         succeeds "verifyBinariesSwiftVersion"
@@ -89,12 +81,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'])
     def "can build Swift 3 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -103,15 +89,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT3
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
-                    }
-                }
-            }
         """
+        verifySwiftVersion(3)
         settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
@@ -122,8 +101,14 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithoutComponentIntegrationTest',
+        'SwiftXCTestComponentWithApplicationIntegrationTest'
+    ])
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache
     def "can build Swift 4 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -132,15 +117,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT4
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
-                    }
-                }
-            }
         """
+        verifySwiftVersion(4)
         settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
@@ -152,7 +130,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
-    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -161,15 +138,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT4
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
-                    }
-                }
-            }
         """
+        verifySwiftVersion(4)
         settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
@@ -182,7 +152,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
-    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 5 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -191,15 +160,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT5
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
-                    }
-                }
-            }
         """
+        verifySwiftVersion(5)
         settingsFile << "rootProject.name = '${swift5Component.projectName}'"
 
         when:
@@ -212,7 +174,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 5 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -221,15 +182,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT5
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
-                    }
-                }
-            }
         """
+        verifySwiftVersion(5)
         settingsFile << "rootProject.name = '${swift5Component.projectName}'"
 
         when:
@@ -242,7 +196,13 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithApplicationIntegrationTest',
+        'SwiftXCTestComponentWithoutComponentIntegrationTest'
+    ])
     def "throws exception with meaningful message when building Swift 3 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -251,15 +211,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl} {
                 sourceCompatibility = SwiftVersion.SWIFT3
             }
-
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
-                    }
-                }
-            }
         """
+        verifySwiftVersion(3)
         settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
@@ -272,20 +225,11 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
-    @ToBeFixedForConfigurationCache
     def "can compile Swift 3 component on Swift 3 compiler"() {
         given:
         makeSingleProject()
         swift3Component.writeToProject(testDirectory)
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(3)
         settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
@@ -297,25 +241,11 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'])
     def "can compile Swift 4 component on Swift 4 compiler"() {
         given:
         makeSingleProject()
         swift4Component.writeToProject(testDirectory)
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(4)
         settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
@@ -327,20 +257,18 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
+        'SwiftXCTestComponentWithApplicationIntegrationTest',
+        'SwiftXCTestComponentWithoutComponentIntegrationTest'
+    ])
     def "can compile Swift 5 component on Swift 5 compiler"() {
         given:
         makeSingleProject()
         swift5Component.writeToProject(testDirectory)
-        buildFile << """
-            task verifyBinariesSwiftVersion {
-                doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
-                    }
-                }
-            }
-        """
+        verifySwiftVersion(5)
         settingsFile << "rootProject.name = '${swift5Component.projectName}'"
 
         when:
@@ -414,6 +342,22 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         } else {
             return osFamily
         }
+    }
+
+    private void verifySwiftVersion(int version) {
+        buildFile << """
+            task verifyBinariesSwiftVersion {
+                def sourceCompatibilities = provider {
+                    // `binaries` is not a provider, so cannot map it
+                    ${componentUnderTestDsl}.binaries.get().collect { it.targetPlatform.sourceCompatibility }
+                }
+                doLast {
+                    sourceCompatibilities.get().each {
+                        assert it.version == $version
+                    }
+                }
+            }
+        """
     }
 
     abstract String getDevelopmentBinaryCompileTask()

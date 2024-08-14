@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
@@ -92,7 +91,6 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * of the daemon is different than the session id of the client.
      */
     @Requires([UnitTestPreconditions.NotWindows])
-    @ToBeFixedForConfigurationCache(because = "fixture uses the software model")
     def "session id of daemon is different from daemon client"() {
         given:
         withGetSidProject()

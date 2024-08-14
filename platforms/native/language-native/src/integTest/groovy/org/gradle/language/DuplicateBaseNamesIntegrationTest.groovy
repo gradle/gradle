@@ -38,7 +38,6 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "can have sourcefiles with same base name but different directories"() {
         given:
         def testApp = initTestApp(testAppType)
@@ -94,7 +93,6 @@ model {
      * is implemented
      * */
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "can have sourcefiles with same base name in same directory"() {
         setup:
         def testApp = new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
@@ -152,7 +150,6 @@ model {
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def "can have objectiveC and objectiveCpp source files with same name in different directories"() {
         setup:
         testApp.writeSources(file("src/main"))

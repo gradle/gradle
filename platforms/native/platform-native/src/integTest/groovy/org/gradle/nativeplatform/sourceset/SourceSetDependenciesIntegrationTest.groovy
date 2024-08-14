@@ -16,17 +16,16 @@
 
 package org.gradle.nativeplatform.sourceset
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
+
 // TODO: Test incremental
 // TODO: Test dependency on functional source set
 // TODO: Test dependency on source set that is not HeaderExportingSourceSet
 // TODO: Sad day tests
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "source dependency on source set of same type"() {
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -56,7 +55,6 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "source dependency on source set of headers"() {
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -84,7 +82,6 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "source dependency on source set of different type"() {
         def app = new CppCallingCHelloWorldApp()
         app.executable.writeSources(file("src/main"))
