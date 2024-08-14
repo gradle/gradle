@@ -146,13 +146,14 @@ class WorkNodeCodec(
             when (group) {
                 is OrdinalGroup -> {
                     writeSmallInt(0)
-                    writeSmallInt(group.ordinal)
+                    writeOrdinal(group)
                 }
 
                 is FinalizerGroup -> {
                     writeSmallInt(1)
                     writeSmallInt(idForNode(group.node))
                     writeNodeGroup(group.delegate, idForNode)
+                    writeNullableOrdinal(group.asOrdinal())
                 }
 
                 is CompositeNodeGroup -> {
@@ -177,15 +178,13 @@ class WorkNodeCodec(
     fun ReadContext.readNodeGroup(nodeForId: NodeForId): NodeGroup {
         return decodePreservingIdentity { id ->
             when (readSmallInt()) {
-                0 -> {
-                    val ordinal = readSmallInt()
-                    ordinalGroups.group(ordinal)
-                }
+                0 -> readOrdinal()
 
                 1 -> {
                     val finalizerNode = nodeForId(readSmallInt()) as TaskNode
                     val delegate = readNodeGroup(nodeForId)
-                    FinalizerGroup(finalizerNode, delegate)
+                    val ordinal = readNullableOrdinal()
+                    FinalizerGroup(finalizerNode, delegate, ordinal)
                 }
 
                 2 -> {
@@ -202,6 +201,35 @@ class WorkNodeCodec(
             }
         }
     }
+
+    private
+    fun WriteContext.writeOrdinal(group: OrdinalGroup) {
+        writeSmallInt(group.ordinal)
+    }
+
+    private
+    fun ReadContext.readOrdinal(): OrdinalGroup {
+        val ordinal = readSmallInt()
+        return ordinalGroups.group(ordinal)
+    }
+
+    private
+    fun WriteContext.writeNullableOrdinal(ordinal: OrdinalGroup?) {
+        if (ordinal != null) {
+            writeBoolean(true)
+            writeOrdinal(ordinal)
+        } else {
+            writeBoolean(false)
+        }
+    }
+
+    private
+    fun ReadContext.readNullableOrdinal(): OrdinalGroup? =
+        if (readBoolean()) {
+            readOrdinal()
+        } else {
+            null
+        }
 
     private
     fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: IdForNode) {
