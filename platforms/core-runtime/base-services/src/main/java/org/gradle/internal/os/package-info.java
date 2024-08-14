@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.platform;
-
-import org.gradle.api.Incubating;
-
-/**
- * Constants for various operating systems Gradle runs on.
- *
- * @since 7.6
- */
-@Incubating
-public enum OperatingSystem {
-    LINUX,
-    UNIX,
-    WINDOWS,
-    MAC_OS,
-    SOLARIS,
-    FREE_BSD,
-    /**
-     * IBM AIX
-     * @since 8.6
-     */
-    AIX
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.os;
