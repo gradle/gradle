@@ -16,13 +16,14 @@
 
 package org.gradle.buildinit.projectspecs.internal
 
+
 import org.gradle.buildinit.plugins.AbstractInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Ignore // TODO: Fails on CI where D-G included build is not available, remove when depending upon published version and not included build
 class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin {
     def "can specify 3rd party plugin using argument to init"() {
         when:
@@ -216,15 +217,17 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
     }
 
     @LeaksFileHandles
+    @Requires(UnitTestPreconditions.Jdk17OrLater) // D-G uses AGP, which requires Java 17
     def "can specify declarative plugin using argument to init"() {
         when:
-        initSucceedsWithPluginSupplyingSpec("org.gradle.experimental.jvm-ecosystem:0.1.10")
+        initSucceedsWithPluginSupplyingSpec("org.gradle.experimental.jvm-ecosystem:0.1.11")
 
         then:
-        assertResolvedPlugin("org.gradle.experimental.jvm-ecosystem", "0.1.10")
+        assertResolvedPlugin("org.gradle.experimental.jvm-ecosystem", "0.1.11")
         assertLoadedSpec("Declarative Java Library Project")
         assertLoadedSpec("Declarative Java Application Project")
 
+        // TODO: ensure the D-G prototype writes a settings file with the correct (to be published) version
         // Note: If running in non-interactive mode, first template is used
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {
     repositories {
@@ -275,7 +278,7 @@ public class Library {
         args << "--info"
         args << "--init-script" << "../init.gradle"
 
-        println "Executing: '${args.join(" ")}')"
+        println "Executing: '${args.join(" ")}'"
         println "Working Dir: '$targetDir'"
 
         executer.noDeprecationChecks() // TODO: We don't care about these here, they are from the declarative-prototype build, remove when depending upon published version and not included build

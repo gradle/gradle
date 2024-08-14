@@ -25,9 +25,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.internal.TextUtil
-import spock.lang.Ignore
 
-@Ignore // TODO: Fails on CI where D-G included build is not available, remove when depending upon published version and not included build
 class BuildInitPluginProjectSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin {
     @LeaksFileHandles
     def "prompts to choose dynamically loaded project type properly and generates project when selected"() {
