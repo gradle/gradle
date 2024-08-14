@@ -120,10 +120,3 @@ integTest.testJvmXmx = "1g"
 tasks.isolatedProjectsIntegTest {
     enabled = true
 }
-
-// Needed for tests including the D-G project, which requires Java 17 for AGP
-tasks.withType<Test>() {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
