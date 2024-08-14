@@ -168,5 +168,5 @@ fun publishNormalizedToLocalRepository() {
 tasks.register("promotionBuild") {
     description = "Build production distros, smoke test them and publish"
     group = "publishing"
-    dependsOn(":packageBuild", "publish")
+    dependsOn(":packageBuild", ":publishBuildLogic", "publish")
 }
