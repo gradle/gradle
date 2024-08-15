@@ -79,7 +79,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
-    private boolean ignoreCleanupAssertions
+    boolean ignoreCleanupAssertions
 
     private boolean enableProblemsApiCheck = false
     private BuildOperationsFixture buildOperationsFixture = null
@@ -133,7 +133,9 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         // See how this is done in SmokeTestGradleRunner
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                KnownProblemIds.assertIsKnown(it)
+                if(!ignoreCleanupAssertions) {
+                    KnownProblemIds.assertIsKnown(it)
+                }
             }
 
             if (getReceivedProblems().every { it == null }) {
@@ -145,7 +147,9 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
                         printCollectedProblems(problem, index)
                     }
                 }
-                throw new AssertionError("Not all received problems were validated")
+                if (!ignoreCleanupAssertions) {
+                    throw new AssertionError("Not all received problems were validated")
+                }
             }
         }
 
@@ -725,7 +729,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     /**
-     * Called by {@link ToBeFixedForConfigurationCacheExtension} when a test fails as expected so no further checks are applied.
+     * Called by {@link ToBeFixedSpecInterceptor} when a test fails as expected so no further checks are applied.
      */
     void ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true
