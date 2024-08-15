@@ -102,7 +102,7 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return String.format("'%s' (from %s)", getJavaHome().getAbsolutePath(), source.description);
+            return String.format("%s (from %s)", getJavaHome().getAbsolutePath(), source.description);
         }
     }
 
