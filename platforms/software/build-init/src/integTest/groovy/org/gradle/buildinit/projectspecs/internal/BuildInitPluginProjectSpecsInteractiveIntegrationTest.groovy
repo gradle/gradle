@@ -16,10 +16,9 @@
 
 package org.gradle.buildinit.projectspecs.internal
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.buildinit.plugins.AbstractInteractiveInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -33,7 +32,6 @@ class BuildInitPluginProjectSpecsInteractiveIntegrationTest extends AbstractInte
         publishTestPlugin()
 
         when:
-        executer.withJvm(AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_17)[0])
         def handle = startInteractiveInit()
 
         // Select 'yes'
