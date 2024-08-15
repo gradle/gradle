@@ -43,6 +43,7 @@ setupTimeoutMonitorOnCI()
 setupGlobalState()
 
 tasks.registerDistributionsPromotionTasks()
+tasks.registerPublishBuildLogicTasks()
 
 tasks.registerEarlyFeedbackRootLifecycleTasks()
 
@@ -107,6 +108,8 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
 
 /**
  * Task that are called by the (currently separate) promotion build running on CI.
+ * Promotion build runs `./gradlew promotionBuild`, which depends on this `:packageBuild` task.
+ * BuildDistribution job runs `./gradlew packageBuild` directly.
  */
 fun TaskContainer.registerDistributionsPromotionTasks() {
     register("packageBuild") {
@@ -115,6 +118,20 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         dependsOn(
             ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
             ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
+        )
+    }
+}
+
+/**
+ * To publish packages in build-logic we need to do it separately.
+ * Promotion build runs `./gradlew promotionBuild`, which depends on this `:publishBuildLogic` task.
+ */
+fun TaskContainer.registerPublishBuildLogicTasks() {
+    register("publishBuildLogic") {
+        description = "Publish subprojects in build-logic"
+        group = "build"
+        dependsOn(
+            gradle.includedBuild("build-logic").task(":java-api-extractor:publish")
         )
     }
 }
