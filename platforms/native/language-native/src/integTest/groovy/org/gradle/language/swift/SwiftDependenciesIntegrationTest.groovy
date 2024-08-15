@@ -53,7 +53,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
         assertAppHasOutputFor("release")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "can depend on swift libraries from VCS"() {
         given:
         createDirs("app")
