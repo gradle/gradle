@@ -65,7 +65,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
     def "tasks that access project through provider created at execution time emit problems"() {
         given:
-         buildFile """
+        buildFile """
             tasks.register("bypassesSafeguards") {
                  def providerFactory = providers
                 doLast { task ->
@@ -301,5 +301,46 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         then:
         result.assertTasksExecuted ':b', ':a'
+    }
+
+    def "clean task is scheduled correctly in the presence of finalizers with dependencies"() {
+        given:
+        buildFile '''
+            plugins {
+                id 'java'
+            }
+
+            abstract class TaskReader extends DefaultTask {
+                @InputFile abstract RegularFileProperty getFile()
+                @TaskAction def action() {}
+            }
+
+            abstract class TaskWriter extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getFile()
+                @TaskAction def action() {
+                    file.get().asFile.text = "foo"
+                }
+            }
+
+            tasks.register("a", DefaultTask) {
+                finalizedBy("b")
+            }
+
+            def taskWriter = tasks.register("c", TaskWriter) {
+                file = project.layout.buildDirectory.file("output.txt")
+            }
+
+            tasks.register("b", TaskReader) {
+                file = taskWriter.get().file
+            }
+        '''
+
+        when:
+        2.times {
+            configurationCacheRun 'clean', 'a'
+        }
+
+        then:
+        file('build/output.txt').text == 'foo'
     }
 }
