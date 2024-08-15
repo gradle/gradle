@@ -402,7 +402,6 @@ private val ignoreWithIsolatedProjectsExecuter = listOf(
     "plugins-distribution",
     "plugins-groovy",
     "plugins-java-base",
-    "plugins-java-library",
     "plugins-jvm-test-fixtures",
     "plugins-jvm-test-suite",
     "plugins-test-report-aggregation",
