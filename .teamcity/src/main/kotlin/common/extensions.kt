@@ -108,6 +108,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
+        testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports
         build/reports/dependency-verification/** => dependency-verification-reports
         build/*/problem-report.html => problem-reports
     """.trimIndent()
