@@ -18,12 +18,15 @@ package org.gradle.nativeplatform.test.cpp.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -138,12 +141,13 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
                 task.setDescription("Executes C++ unit tests.");
 
                 final InstallExecutable installTask = binary.getInstallTask().get();
-                task.onlyIf("Test executable installation directory exists", element -> binary.getInstallDirectory().get().getAsFile().exists());
+                DirectoryProperty installDirectory = binary.getInstallDirectory();
+                task.onlyIf("Test executable installation directory exists", new DirectoryExistsSpec(installDirectory));
                 task.getInputs()
-                    .dir(binary.getInstallDirectory())
+                    .dir(installDirectory)
                     .withPropertyName("installDirectory");
                 task.setExecutable(installTask.getRunScriptFile().get().getAsFile());
-                task.dependsOn(binary.getInstallDirectory());
+                task.dependsOn(installDirectory);
                 // TODO: Honor changes to build directory
                 task.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + binary.getNames().getDirName()).get().getAsFile());
             });
@@ -222,5 +226,18 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
         ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
         ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage)testedBinary;
         return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
+    }
+
+    private static class DirectoryExistsSpec implements Spec<Task> {
+        private final DirectoryProperty installDirectory;
+
+        public DirectoryExistsSpec(DirectoryProperty installDirectory) {
+            this.installDirectory = installDirectory;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(Task element) {
+            return installDirectory.get().getAsFile().exists();
+        }
     }
 }

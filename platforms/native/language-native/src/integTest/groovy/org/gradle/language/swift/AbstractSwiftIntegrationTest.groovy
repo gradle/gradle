@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement

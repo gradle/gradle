@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 
@@ -30,7 +29,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-application', '--dsl', scriptDsl.id)
@@ -58,7 +56,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
@@ -86,7 +83,6 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/cpp/hola.cpp") << """
