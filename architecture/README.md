@@ -9,7 +9,9 @@ The Gradle team uses ADRs to record architectural decisions that the team has ma
 See [Architecture decisions records](standards) for the list of ADRs.
 Be aware these are very technical descriptions of the decisions, and you might find the documentation below more useful as an introduction to the internals of Gradle.
 
-## Platform architecture
+## Architecture overview
+
+### Platform architecture
 
 Gradle is arranged into several coarse-grained components called "platforms".
 Each platform provides support for some kind of automation, such as building JVM software or building Gradle plugins.
@@ -19,7 +21,7 @@ By understanding the Gradle platforms and their relationships, you can get a fee
 
 See [Gradle platform architecture](platforms.md) for a list of the platforms and more details.
 
-## Gradle runtimes
+### Gradle runtimes
 
 Gradle is also made up of several different processes that work together to "run the build", such as the Gradle daemon and the `gradlew` command.
 
@@ -31,17 +33,20 @@ There is some assistance in the IDE for this plus a lot of validation that is ap
 
 See [Gradle runtimes](runtimes.md) for a list of these runtimes and more details.
 
-## Build execution model
+### Build execution model
 
-Gradle generally does some work in response to a client request. There are several different clients, each with its own runtime, that can send a request to a Gradle daemon.
+Gradle generally does some work in response to a client request. There are several different clients, for example the `gradlew` command or the tooling API client, 
+that can send requests to a Gradle daemon.
 Each daemon runs one request at a time. Generally speaking, the daemons only act in response to a request from a client and do not take any action on their own.
+There are some background actions that the daemon takes, for example monitoring system memory, watching for file changes or cleaning up caches.
+The daemon never runs any user code in the background.
 
 There are several different types of requests, such as a request to run a set of tasks, or to query a tooling model, or to stop.
 Some requests will require that the build is configured and maybe some work executed, and other requests might not.
 
 See [Build execution model](build-execution-model.md) for more details.
 
-## Build state model
+### Build state model
 
 As Gradle executes, it acts on various pieces of the build definition, such as each project in the build.
 Gradle tracks the state of each piece and transitions each piece through its lifecycle as the build runs.
