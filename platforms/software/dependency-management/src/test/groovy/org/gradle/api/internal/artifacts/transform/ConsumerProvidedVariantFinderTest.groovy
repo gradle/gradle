@@ -476,6 +476,48 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * attributeMatcher._
     }
 
+    def "does not calculate chain again when different transform with same attributes are given"() {
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+
+
+        def transform1 = registration(fromSource, compatible)
+        def transform2 = registration(fromSource, compatible)
+
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
+
+        given:
+        transformRegistry.registrations >> [transform1]
+
+        when:
+        def result = transformations.findTransformedVariants(transformRegistry, variants, requested)
+
+        then:
+        result.size() == 1
+        assertTransformChain(result.first(), sourceVariant, compatible, transform1)
+
+        and:
+        // sourceVariant can be transformed by a transform starting with fromSource attributes
+        attributeMatcher.isMatchingCandidate(sourceVariant.getAttributes(), fromSource) >> true
+        attributeMatcher.isMatchingCandidate(compatible, requested) >> true
+
+        0 * attributeMatcher._
+
+        when:
+        transformRegistry.registrations >> [transform2]
+        def result2 = transformations.findTransformedVariants(transformRegistry, variants, requested)
+
+        then:
+        result2.size() == 1
+        assertTransformChain(result2.first(), sourceVariant, compatible, transform2)
+
+        and:
+        0 * attributeMatcher._
+    }
+
     private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, TransformRegistration... registrations) {
         assert chain.root == source
         assert chain.attributes == finalAttributes

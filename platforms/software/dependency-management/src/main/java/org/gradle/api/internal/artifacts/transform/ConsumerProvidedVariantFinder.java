@@ -295,9 +295,10 @@ public class ConsumerProvidedVariantFinder {
             }
 
             List<CachedTransform> cachedTransforms = new ArrayList<>(transforms.size());
-            for (TransformRegistration registration : transforms) {
+            for (int i = 0; i < transforms.size(); i++) {
+                TransformRegistration registration = transforms.get(i);
                 cachedTransforms.add(new CachedTransform(
-                    transforms.indexOf(registration),
+                    i,
                     registration.getFrom(),
                     registration.getTo()
                 ));
