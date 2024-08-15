@@ -351,12 +351,10 @@ class ConfigurationCacheState(
             write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
-                stateFileFor(state.buildDefinition),
-                buildTreeState
-            )
-        }
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
+            stateFileFor(state.buildDefinition),
+            buildTreeState
+        )
     }
 
     private
@@ -386,12 +384,10 @@ class ConfigurationCacheState(
             write(state.owner.buildIdentifier)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
-                stateFileFor(state.buildDefinition),
-                buildTreeState
-            )
-        }
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
+            stateFileFor(state.buildDefinition),
+            buildTreeState
+        )
     }
 
     private
