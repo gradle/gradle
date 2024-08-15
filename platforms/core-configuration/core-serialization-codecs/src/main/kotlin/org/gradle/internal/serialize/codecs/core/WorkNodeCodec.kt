@@ -301,11 +301,14 @@ class WorkNodeCodec(
         nodes: List<Node>,
         nodeIds: Object2IntOpenHashMap<Node>
     ) {
-        runSafely(nodeOwner) {
+        val safeRun = safeRunnerFor(nodeOwner)
+        runWriteOperation {
             writeCollection(nodes) { node ->
                 val nodeId = nodeIds.getInt(node)
                 writeSmallInt(nodeId)
-                write(node)
+                safeRun {
+                    write(node)
+                }
                 if (node is LocalTaskNode) {
                     val prepareNodeId = nodeIds.getInt(node.prepareNode)
                     writeSmallInt(prepareNodeId)
@@ -333,15 +336,18 @@ class WorkNodeCodec(
     }
 
     private
-    fun WriteContext.runSafely(owner: NodeOwner, function: suspend () -> Unit) {
-        when (owner) {
-            is NodeOwner.None -> runWriteOperation {
-                function()
-            }
+    fun safeRunnerFor(owner: NodeOwner): suspend WriteContext.(suspend WriteContext.() -> Unit) -> Unit {
+        return when (owner) {
+            is NodeOwner.None -> { f -> f() }
 
-            is NodeOwner.Project -> owner.project.owner.applyToMutableState {
-                runWriteOperation {
-                    function()
+            is NodeOwner.Project -> {
+                val stateOwner = owner.project.owner
+                { f ->
+                    stateOwner.applyToMutableState {
+                        runWriteOperation {
+                            f()
+                        }
+                    }
                 }
             }
         }
