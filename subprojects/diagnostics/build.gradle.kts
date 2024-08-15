@@ -28,6 +28,7 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.platformBase)
+    api(projects.rendering)
     api(projects.reporting)
 
     api(libs.groovy)

@@ -30,6 +30,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
+    api(projects.rendering)
     api(projects.reporting)
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
