@@ -178,7 +178,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
     }
 
     @LeaksFileHandles
-    def "can specify custom plugin using argument to init"() {
+    def "can generate custom project type using argument to init"() {
         given:
         publishTestPlugin()
 
@@ -188,16 +188,16 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
         outputDoesNotContain("MyPlugin applied.")
-        assertLoadedSpec("Custom Project Type")
-        assertLoadedSpec("Custom Project Type 2")
+        assertLoadedSpec("First Project Type")
+        assertLoadedSpec("Second Project Type")
 
         // Note: If running in non-interactive mode, first template is automatically used
-        assertProjectFileGenerated("project.output", "MyGenerator created this Custom Project Type project.")
+        assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
         assertWrapperGenerated()
     }
 
     @LeaksFileHandles
-    def "can specify multiple plugins using argument to init"() {
+    def "can generate custom project type when specifying multiple custom plugins using arguments to init"() {
         given:
         publishTestPlugin()
 
@@ -208,17 +208,36 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         assertResolvedPlugin("org.example.myplugin", "1.0")
         assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
         outputDoesNotContain("MyPlugin applied.")
-        assertLoadedSpec("Custom Project Type")
-        assertLoadedSpec("Custom Project Type 2")
+        assertLoadedSpec("First Project Type")
+        assertLoadedSpec("Second Project Type")
 
         // Note: If running in non-interactive mode, first template is used
-        assertProjectFileGenerated("project.output", "MyGenerator created this Custom Project Type project.")
+        assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
         assertWrapperGenerated()
     }
 
     @LeaksFileHandles
-    @Requires(UnitTestPreconditions.Jdk17OrLater) // D-G uses AGP, which requires Java 17
-    def "can specify declarative plugin using argument to init"() {
+    def "can generate a custom project type non-interactively using --type if multiple types are available using argument to init"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0", "second-project-type")
+
+        then:
+        assertResolvedPlugin("org.example.myplugin", "1.0")
+        outputDoesNotContain("MyPlugin applied.")
+        assertLoadedSpec("First Project Type")
+        assertLoadedSpec("Second Project Type")
+
+        // Note: If running in non-interactive mode, first template is used
+        assertProjectFileGenerated("project.output", "MyGenerator created this Second Project Type project.")
+        assertWrapperGenerated()
+    }
+
+    @LeaksFileHandles
+    @Requires(UnitTestPreconditions.Jdk21OrLater) // D-G produces a project that requires Java 21
+    def "can generate declarative project type using argument to init"() {
         when:
         initSucceedsWithPluginSupplyingSpec("org.gradle.experimental.jvm-ecosystem:0.1.11")
 
@@ -227,8 +246,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         assertLoadedSpec("Declarative Java Library Project")
         assertLoadedSpec("Declarative Java Application Project")
 
-        // TODO: ensure the D-G prototype writes a settings file with the correct (to be published) version
-        // Note: If running in non-interactive mode, first template is used
+        // Note: If running in non-interactive mode, first available template is used
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {
     repositories {
         google() // for Android plugin
@@ -264,15 +282,20 @@ public class Library {
     }
 }
 """)
+
         assertWrapperGenerated()
+        canBuildGeneratedProject()
     }
 
-    private void initSucceedsWithPluginSupplyingSpec(String pluginsProp = null) {
+    private void initSucceedsWithPluginSupplyingSpec(String pluginsProp = null, String type = null) {
         targetDir = file("new-project").with { createDir() }
 
         def args = ["init"]
         if (pluginsProp) {
             args << "-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$pluginsProp".toString()
+        }
+        if (type) {
+            args << "--type" << type
         }
         args << "--overwrite"
         args << "--info"

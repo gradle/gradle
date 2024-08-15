@@ -327,16 +327,21 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private InitProjectConfig selectAndConfigureSpec(UserQuestions userQuestions) {
-        InitProjectSpec template = userQuestions.choice("Select project type", initProjectRegistry.get().getProjectSpecs())
-            .renderUsing(InitProjectSpec::getDisplayName)
-            .ask();
+        InitProjectSpec spec;
+        if (type == null) {
+            spec = userQuestions.choice("Select project type", initProjectRegistry.get().getProjectSpecs())
+                .renderUsing(InitProjectSpec::getDisplayName)
+                .ask();
+        }  else {
+            spec = initProjectRegistry.get().getProjectSpec(type);
+        }
 
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
         return new InitProjectConfig() {
             @Override
             @Nonnull
             public InitProjectSpec getProjectSpec() {
-                return template;
+                return spec;
             }
 
             @Override

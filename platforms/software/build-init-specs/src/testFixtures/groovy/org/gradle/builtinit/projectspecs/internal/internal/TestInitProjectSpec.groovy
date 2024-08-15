@@ -18,20 +18,33 @@ package org.gradle.builtinit.projectspecs.internal.internal
 
 import org.gradle.buildinit.projectspecs.InitProjectParameter
 import org.gradle.buildinit.projectspecs.InitProjectSpec
+import org.gradle.util.internal.GUtil
+import org.gradle.util.internal.TextUtil
 
 /**
  * A sample {@link InitProjectSpec} implementation for testing purposes.
  */
 class TestInitProjectSpec implements InitProjectSpec {
     private final String name
+    private final String type
 
-    TestInitProjectSpec(String name) {
+    TestInitProjectSpec(String name, String type = null) {
         this.name = name
+        this.type = type
     }
 
     @Override
     String getDisplayName() {
         return name
+    }
+
+    @Override
+    String getType() {
+        if (type) {
+            return type
+        } else {
+            return TextUtil.camelToKebabCase(GUtil.toCamelCase(getDisplayName()))
+        }
     }
 
     @Override

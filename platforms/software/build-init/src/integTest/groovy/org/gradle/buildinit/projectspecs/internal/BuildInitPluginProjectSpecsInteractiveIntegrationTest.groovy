@@ -40,10 +40,10 @@ class BuildInitPluginProjectSpecsInteractiveIntegrationTest extends AbstractInte
         }
         handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
 
-        // Select Custom Project Type
+        // Select First Project Type
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("1: Custom Project Type")
-            assert handle.standardOutput.contains("2: Custom Project Type 2")
+            assert handle.standardOutput.contains("1: First Project Type")
+            assert handle.standardOutput.contains("2: Second Project Type")
             assert !handle.standardOutput.contains("pom")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
@@ -51,7 +51,7 @@ class BuildInitPluginProjectSpecsInteractiveIntegrationTest extends AbstractInte
         closeInteractiveExecutor(handle)
 
         then:
-        assertProjectFileGenerated("project.output", "MyGenerator created this Custom Project Type project.")
+        assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
         assertWrapperGenerated()
     }
 
@@ -66,7 +66,6 @@ class BuildInitPluginProjectSpecsInteractiveIntegrationTest extends AbstractInte
         println "Executing: '${args.join(" ")}')"
         println "Working Dir: '$targetDir'"
 
-        executer.noDeprecationChecks() // TODO: We don't care about these here, they are from the declarative-prototype build, remove when depending upon published version and not included build
         return startInteractiveExecutorWithTasks(args)
     }
 }

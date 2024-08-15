@@ -34,7 +34,7 @@ class InitProjectRegistryTest extends Specification {
         when:
         def registry = new InitProjectRegistry([(generator.class) : [spec1, spec2]])
 
-        then: "loaded specs can be found"
+        then: "generators for loaded specs can be found"
         registry.getProjectGeneratorClass(spec1) == generator.class
         registry.getProjectGeneratorClass(spec2) == generator.class
 
@@ -51,5 +51,41 @@ class InitProjectRegistryTest extends Specification {
         then: "specs with the same display name can't be found - we're finding specs by instance"
         e = thrown(IllegalStateException)
         e.message == "Spec: 'spec1' was not found!"
+    }
+
+    def "registry can look up spec by type"() {
+        given:
+        def generator = new TestInitProjectGenerator()
+        def spec1 = new TestInitProjectSpec("spec1")
+        def spec2 = new TestInitProjectSpec("spec2")
+        def registry = new InitProjectRegistry([(generator.class) : [spec1, spec2]])
+
+        when: "loaded specs can be found by type"
+        def result = registry.getProjectSpec("spec1")
+
+        then:
+        result == spec1
+
+        when:
+        registry.getProjectSpec("unknown")
+
+        then: "Unknown spec type can't be found"
+        def e = thrown(IllegalStateException)
+        e.message == "Project spec with type: 'unknown' was not found!"
+    }
+
+    def "multiple specs with same type cause error upon lookup by type"() {
+        given:
+        def generator = new TestInitProjectGenerator()
+        def spec1 = new TestInitProjectSpec("spec1", "type1")
+        def spec2 = new TestInitProjectSpec("spec2", "type1")
+        def registry = new InitProjectRegistry([(generator.class) : [spec1, spec2]])
+
+        when:
+        registry.getProjectSpec("type1")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Multiple project specs with type: 'type1' were found!"
     }
 }

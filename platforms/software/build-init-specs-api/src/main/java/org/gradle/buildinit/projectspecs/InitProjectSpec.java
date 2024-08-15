@@ -18,6 +18,8 @@ package org.gradle.buildinit.projectspecs;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
+import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.List;
 
@@ -40,6 +42,22 @@ public interface InitProjectSpec extends Describable {
      */
     @Override
     String getDisplayName();
+
+    /**
+     * An identifier for the type of project this spec will generate.
+     * <p>
+     * This will be used to allow the user to select a project type when running the {@code init} task
+     * non-interactively by supplying the {@code --type} parameter to the init task.
+     * <p>
+     * Defaults to the lower-hyphen-case version of {@link #getDisplayName()}.
+     *
+     * @return type id for this type of project
+     * @implSpec Must be unique amongst all project types contributed by a plugin.
+     * @since 8.11
+     */
+    default String getType() {
+        return TextUtil.camelToKebabCase(GUtil.toCamelCase(getDisplayName()));
+    }
 
     /**
      * Returns the parameters that can be provided to configure this project during generation.

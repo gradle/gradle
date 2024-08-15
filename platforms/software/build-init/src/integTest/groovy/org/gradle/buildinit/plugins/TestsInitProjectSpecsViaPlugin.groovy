@@ -83,8 +83,8 @@ trait TestsInitProjectSpecsViaPlugin {
                 @Override
                 public List<InitProjectSpec> getProjectSpecs() {
                     return Arrays.asList(
-                        new MyProjectSpec("Custom Project Type"),
-                        new MyProjectSpec("Custom Project Type 2")
+                        new MyProjectSpec("First Project Type"),
+                        new MyProjectSpec("Second Project Type")
                     );
                 }
 
@@ -166,5 +166,12 @@ trait TestsInitProjectSpecsViaPlugin {
         def projectFile = file("new-project/$fileName")
         assert projectFile.exists(), "Project file '$fileName' does not exist."
         assert projectFile.text == content
+    }
+
+    void canBuildGeneratedProject() {
+        def generatedProjectDir = file("new-project")
+        executer.usingProjectDirectory(generatedProjectDir)
+
+        succeeds("build")
     }
 }

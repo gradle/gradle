@@ -44,6 +44,29 @@ public final class InitProjectRegistry {
     }
 
     /**
+     * Returns the {@link InitProjectSpec} in the registry with the given type; throwing
+     * an exception if there is not exactly one such spec.
+     *
+     * @param type the type of the project spec to find
+     * @return the project spec with the given type
+     */
+    public InitProjectSpec getProjectSpec(String type) {
+        List<InitProjectSpec> matchingSpecs = specsByGenerator.values().stream()
+            .flatMap(List::stream)
+            .filter(spec -> spec.getType().equals(type))
+            .collect(Collectors.toList());
+
+        switch (matchingSpecs.size()) {
+            case 0:
+                throw new IllegalStateException("Project spec with type: '" + type + "' was not found!");
+            case 1:
+                return matchingSpecs.get(0);
+            default:
+                throw new IllegalStateException("Multiple project specs with type: '" + type + "' were found!");
+        }
+    }
+
+    /**
      * Returns the {@link InitProjectGenerator} type that can be used to generate a project with the given {@link InitProjectSpec}.
      *
      * @param spec the project spec to find the generator for
