@@ -1036,6 +1036,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "rendering",
+    "path": "platforms/core-runtime/rendering",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "reporting",
     "path": "platforms/software/reporting",
     "unitTests": true,

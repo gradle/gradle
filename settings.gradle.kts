@@ -109,6 +109,7 @@ val core = platform("core") {
         subproject("native")
         subproject("process-memory-services")
         subproject("process-services")
+        subproject("rendering")
         subproject("serialization")
         subproject("service-lookup")
         subproject("service-provider")
