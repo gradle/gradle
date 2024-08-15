@@ -95,41 +95,55 @@ class WorkNodeCodec(
     private
     fun WriteContext.doWrite(work: ScheduledWork) {
         val nodes = work.scheduledNodes
+        val entryNodes = work.entryNodes
         val nodeCount = nodes.size
         val scheduledNodeIds = Object2IntOpenHashMap<Node>(nodeCount).apply {
             defaultReturnValue(-1)
         }
-        // Not all entry nodes are always scheduled.
-        // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
-        // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
-        // Not restoring them as entry points doesn't affect the resulting execution plan.
-        val scheduledEntryNodeIds = mutableListOf<Int>()
-        nodes.forEach { node ->
-            val nodeId = scheduledNodeIds.size
-            scheduledNodeIds[node] = nodeId
-            if (node in work.entryNodes) {
-                scheduledEntryNodeIds.add(nodeId)
-            }
-            if (node is LocalTaskNode) {
-                scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
+
+        val scheduledEntryNodeIds = assignNodeIds(scheduledNodeIds, nodes, entryNodes)
+        writeNodes(nodes, scheduledNodeIds)
+        writeEntryNodes(scheduledEntryNodeIds)
+
+        val idForNode: IdForNode = { node ->
+            scheduledNodeIds.getInt(node).also { nodeId ->
+                require(nodeId >= 0) {
+                    "Node id missing for node $node"
+                }
             }
         }
+        writeEdgesAndGroupMembership(nodes, idForNode)
+    }
 
-        writeNodes(nodes, scheduledNodeIds)
+    private
+    fun ReadContext.doRead(): ScheduledWork {
+        val nodeForId = readNodes()
+        val entryNodes = readEntryNodes(nodeForId)
+        val nodes = readEdgesAndGroupMembership(nodeForId)
+        return ScheduledWork(nodes, entryNodes)
+    }
 
+    private
+    fun WriteContext.writeEntryNodes(scheduledEntryNodeIds: MutableList<Int>) {
         // A large build may have many nodes but not so many entry nodes.
         // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
         writeCollection(scheduledEntryNodeIds) {
             writeSmallInt(it)
         }
-        val idForNode: IdForNode = { node ->
-            scheduledNodeIds.getInt(node).also {
-                require(it >= 0) {
-                    "Node id missing for node $it"
-                }
-            }
-        }
+    }
 
+    private
+    fun ReadContext.readEntryNodes(nodeForId: NodeForId) =
+        // Note that using the ImmutableSet retains the original ordering of entry nodes.
+        buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
+            add(nodeForId(readSmallInt()))
+        }.build()
+
+    private
+    fun WriteContext.writeEdgesAndGroupMembership(
+        nodes: ImmutableList<Node>,
+        idForNode: IdForNode
+    ) {
         owner.owner.projects.withMutableStateOfAllProjects {
             writeCollection(nodes) { node ->
                 writeSmallInt(idForNode(node))
@@ -140,22 +154,39 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.doRead(): ScheduledWork {
-        val nodeForId = readNodes()
-        // Note that using the ImmutableSet retains the original ordering of entry nodes.
-        val entryNodes =
-            buildCollection({ ImmutableSet.builderWithExpectedSize<Node>(it) }) {
-                add(nodeForId(readSmallInt()))
-            }.build()
-
-        val nodes = readList {
+    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId): List<Node> {
+        return readList {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
             node
         }
-        return ScheduledWork(nodes, entryNodes)
     }
+
+    private
+    fun assignNodeIds(
+        scheduledNodeIds: Object2IntOpenHashMap<Node>,
+        nodes: ImmutableList<Node>,
+        entryNodes: ImmutableSet<Node>
+    ): MutableList<Int> {
+        // Not all entry nodes are always scheduled.
+        // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
+        // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
+        // Not restoring them as entry points doesn't affect the resulting execution plan.
+        val scheduledEntryNodeIds = mutableListOf<Int>()
+        nodes.forEach { node ->
+            val nodeId = scheduledNodeIds.size
+            scheduledNodeIds[node] = nodeId
+            if (node in entryNodes) {
+                scheduledEntryNodeIds.add(nodeId)
+            }
+            if (node is LocalTaskNode) {
+                scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
+            }
+        }
+        return scheduledEntryNodeIds
+    }
+
 
     private
     fun WriteContext.writeNodes(
