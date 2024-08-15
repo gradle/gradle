@@ -210,7 +210,9 @@ class WorkNodeCodec(
                         }
 
                         override fun description(): BuildOperationDescriptor.Builder {
-                            return BuildOperationDescriptor.displayName("Nodes for $nodeOwner")
+                            return BuildOperationDescriptor
+                                .displayName("Storing $groupPath")
+                                .progressDisplayName(groupPath.path)
                         }
                     })
                 }
