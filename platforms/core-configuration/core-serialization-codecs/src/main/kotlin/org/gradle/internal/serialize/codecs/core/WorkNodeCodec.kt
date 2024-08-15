@@ -266,7 +266,7 @@ class WorkNodeCodec(
                 is BuildOperationInvocationException -> first.cause!!
                 else -> first
             }
-            e.causes.drop(0).forEach(cause::addSuppressed)
+            e.causes.subList(1, e.causes.size).forEach(cause::addSuppressed)
 
             when (cause) {
                 is GradleException -> throw cause
