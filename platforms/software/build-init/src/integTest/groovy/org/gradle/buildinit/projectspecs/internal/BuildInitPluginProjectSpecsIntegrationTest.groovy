@@ -23,6 +23,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin {
     def "can specify 3rd party plugin using argument to init"() {
@@ -235,6 +236,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         assertWrapperGenerated()
     }
 
+    @Ignore // TODO: No JDK 21 on CI yet, remove this when JDK 21 is available
     @LeaksFileHandles
     @Requires(UnitTestPreconditions.Jdk21OrLater) // D-G produces a project that requires Java 21
     def "can generate declarative project type using argument to init"() {
