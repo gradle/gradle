@@ -129,10 +129,13 @@ class WorkNodeCodec(
                 }
             }
         }
-        writeCollection(nodes) { node ->
-            writeSmallInt(idForNode(node))
-            writeSuccessorReferencesOf(node, idForNode)
-            writeNodeGroup(node.group, idForNode)
+
+        owner.owner.projects.withMutableStateOfAllProjects {
+            writeCollection(nodes) { node ->
+                writeSmallInt(idForNode(node))
+                writeSuccessorReferencesOf(node, idForNode)
+                writeNodeGroup(node.group, idForNode)
+            }
         }
     }
 
