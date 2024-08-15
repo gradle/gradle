@@ -27,7 +27,9 @@ abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extend
         """
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'XCTestWithApplicationDependenciesIntegrationTest'
+    ])
     def "can define implementation dependencies on production component"() {
         given:
         createDirs("lib")
