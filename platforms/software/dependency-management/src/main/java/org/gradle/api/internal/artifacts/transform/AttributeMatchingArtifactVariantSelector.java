@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -44,7 +45,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
     private final ImmutableAttributesSchema consumerSchema;
     private final TransformUpstreamDependenciesResolver dependenciesResolver;
-    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
+    private final VariantTransformRegistry transformRegistry;
     private final ImmutableAttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
@@ -53,7 +54,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     AttributeMatchingArtifactVariantSelector(
         ImmutableAttributesSchema consumerSchema,
         TransformUpstreamDependenciesResolver dependenciesResolver,
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        VariantTransformRegistry transformRegistry,
         ImmutableAttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
@@ -61,7 +62,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     ) {
         this.consumerSchema = consumerSchema;
         this.dependenciesResolver = dependenciesResolver;
-        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
+        this.transformRegistry = transformRegistry;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.transformedVariantFactory = transformedVariantFactory;
@@ -90,7 +91,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
-        List<TransformedVariant> transformedVariants = consumerProvidedVariantFinder.findTransformedVariants(variants, componentRequested);
+        List<TransformedVariant> transformedVariants = attributeSchemaServices.getTransformSelector(matcher).findTransformedVariants(transformRegistry, variants, componentRequested);
 
         // If there are multiple potential artifact transform variants, perform attribute matching to attempt to find the best.
         if (transformedVariants.size() > 1) {

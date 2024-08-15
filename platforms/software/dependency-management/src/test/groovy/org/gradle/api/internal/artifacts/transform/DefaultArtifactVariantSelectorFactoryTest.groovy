@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
@@ -48,12 +49,14 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def schemaServices = Mock(AttributeSchemaServices) {
         getMatcher(consumerSchema, producerSchema) >> attributeMatcher
+        getTransformSelector(attributeMatcher) >> matchingCache
     }
+    def transformRegistry = Mock(VariantTransformRegistry)
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def variantSelectionFailureProcessor = DependencyManagementTestUtil.newFailureHandler()
     def variantSelectorFactory = new DefaultVariantSelectorFactory(
-        matchingCache,
+        transformRegistry,
         AttributeTestUtil.attributesFactory(),
         schemaServices,
         transformedVariantFactory,
@@ -132,7 +135,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
 
         attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _, _) >> []
         attributeMatcher.matchMultipleCandidates(transformedVariants, _, _) >> transformedVariants
-        matchingCache.findTransformedVariants(_, _) >> transformedVariants
+        matchingCache.findTransformedVariants(_, _, _) >> transformedVariants
 
         def selector = newSelector()
 
@@ -169,7 +172,7 @@ Found the following transforms:
 
         attributeMatcher.matchMultipleCandidates(_, _, _) >> []
 
-        matchingCache.findTransformedVariants(_, _) >> []
+        matchingCache.findTransformedVariants(_, _, _) >> []
 
         expect:
         def result = newSelector().select(set, typeAttributes("dll"), true, factory)
@@ -193,7 +196,7 @@ Found the following transforms:
 
         attributeMatcher.matchMultipleCandidates(_, _, _) >> []
 
-        matchingCache.findTransformedVariants(_, _) >> []
+        matchingCache.findTransformedVariants(_, _, _) >> []
 
         when:
         def result = newSelector().select(set, typeAttributes("dll"), false, factory)

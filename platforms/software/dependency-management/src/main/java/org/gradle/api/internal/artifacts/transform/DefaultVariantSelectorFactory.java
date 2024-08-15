@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
@@ -35,7 +36,7 @@ import javax.inject.Inject;
 
 public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
 
-    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
+    private final VariantTransformRegistry transformRegistry;
     private final ImmutableAttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
@@ -46,7 +47,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
 
     @Inject
     public DefaultVariantSelectorFactory(
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        VariantTransformRegistry transformRegistry,
         ImmutableAttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
@@ -55,7 +56,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         TaskDependencyFactory taskDependencyFactory
     ) {
-        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
+        this.transformRegistry = transformRegistry;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.transformedVariantFactory = transformedVariantFactory;
@@ -91,7 +92,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         return new AttributeMatchingArtifactVariantSelector(
             consumerSchema,
             dependenciesResolver,
-            consumerProvidedVariantFinder,
+            transformRegistry,
             attributesFactory,
             attributeSchemaServices,
             transformedVariantFactory,

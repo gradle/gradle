@@ -33,8 +33,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * An {@link AttributeMatcher}, which optimizes for the case of only comparing 0 or 1 candidates
@@ -51,7 +51,12 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
      * cache the result of the query, because it's often the case that we ask for the same
      * disambiguation of attributes several times in a row (but with different candidates).
      */
-    private final ConcurrentMap<CachedQuery, int[]> cachedQueries = new ConcurrentHashMap<>();
+    private final Map<CachedQuery, int[]> cachedQueries = new ConcurrentHashMap<>();
+
+    /**
+     * Map of cached results of {@link #isMatchingCandidate(ImmutableAttributes, ImmutableAttributes)}.
+     */
+    private final Map<MatchingCacheKey, Boolean> matchingCandidateCache = new ConcurrentHashMap<>();
 
     public DefaultAttributeMatcher(AttributeSelectionSchema schema) {
         this.schema = schema;
@@ -64,7 +69,9 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
     @Override
     public boolean isMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested) {
-        return allCommonAttributesSatisfy(candidate, requested, schema::matchValue);
+        return matchingCandidateCache.computeIfAbsent(new MatchingCacheKey(candidate, requested), key ->
+            allCommonAttributesSatisfy(candidate, requested, schema::matchValue)
+        );
     }
 
     @Override
@@ -257,4 +264,35 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
                 '}';
         }
     }
+
+    private static class MatchingCacheKey {
+        private final ImmutableAttributes candidate;
+        private final ImmutableAttributes requested;
+        private final int hashCode;
+
+        public MatchingCacheKey(ImmutableAttributes candidate, ImmutableAttributes requested) {
+            this.candidate = candidate;
+            this.requested = requested;
+            this.hashCode = 31 * candidate.hashCode() + requested.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            MatchingCacheKey cacheKey = (MatchingCacheKey) o;
+            return candidate.equals(cacheKey.candidate) &&
+                requested.equals(cacheKey.requested);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+    }
+
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -32,6 +33,7 @@ import spock.lang.Specification
 
 class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
+    def transformRegistry = Mock(VariantTransformRegistry)
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def dependenciesResolver = Mock(TransformUpstreamDependenciesResolver)
@@ -39,6 +41,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     def consumerSchema = Mock(ImmutableAttributesSchema)
     def schemaServices = Mock(AttributeSchemaServices) {
         getMatcher(_, _) >> attributeMatcher
+        getTransformSelector(_) >> consumerProvidedVariantFinder
     }
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def requestedAttributes = AttributeTestUtil.attributes(['artifactType': 'jar'])
@@ -108,7 +111,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result == transformed
 
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findTransformedVariants(transformRegistry, variants, requestedAttributes) >> transformedVariants
         1 * factory.asTransformed(variant, transformedVariants[0].getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory) >> transformed
         0 * attributeMatcher._
     }
@@ -127,7 +130,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result == transformed
 
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findTransformedVariants(transformRegistry, variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [transformedVariants[resultNum]]
         1 * factory.asTransformed(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory) >> transformed
 
@@ -149,7 +152,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result.failure instanceof ArtifactSelectionException
 
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findTransformedVariants(transformRegistry, variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> transformedVariants
     }
 
@@ -157,7 +160,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         new AttributeMatchingArtifactVariantSelector(
             consumerSchema,
             dependenciesResolver,
-            consumerProvidedVariantFinder,
+            transformRegistry,
             attributesFactory,
             schemaServices,
             transformedVariantFactory,
