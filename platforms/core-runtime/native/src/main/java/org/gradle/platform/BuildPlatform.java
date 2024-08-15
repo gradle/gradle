@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,15 @@ package org.gradle.platform;
 import org.gradle.api.Incubating;
 
 /**
- * Constants for various processor architectures Gradle runs on.
+ * Information about the machine host Gradle is running on.
  *
  * @since 7.6
  */
 @Incubating
-public enum Architecture {
-    /**
-     * 32-bit complex instruction set computer (CISC) architectures, including "x32", "i386", "x86"..
-     */
-    X86,
+public interface BuildPlatform {
 
-    /**
-     * 64-bit variant of the X86 instruction set, including "x64", "x86_64", "amd64", "ia64".
-     */
-    X86_64,
+    OperatingSystem getOperatingSystem();
 
-    /**
-     * 64-bit reduced instruction set computer (RISC) architectures, including "aarch64", "arm64".
-     */
-    AARCH64
+    Architecture getArchitecture();
+
 }

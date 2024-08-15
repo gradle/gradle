@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.platform;
-
-import org.gradle.api.Incubating;
-
 /**
- * Information about the machine host Gradle is running on.
- *
- * @since 7.6
+ * Types to define build environment.
  */
-@Incubating
-public interface BuildPlatform {
-
-    OperatingSystem getOperatingSystem();
-
-    Architecture getArchitecture();
-
-}
+@org.gradle.api.Incubating
+package org.gradle.platform;
