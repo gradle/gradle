@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface EnvironmentChangeTracker {
@@ -38,4 +39,11 @@ public interface EnvironmentChangeTracker {
      * System properties overridden by passing CLI argument
      * */
     void systemPropertyOverridden(Object key);
+
+    /**
+     * Runs code and records all mutations to system properties it causes. All mutated system properties keep their new values after this method returns.
+     *
+     * @param action the code that may mutate system properties
+     */
+    <T> T withTrackingSystemPropertyChanges(Supplier<? extends T> action);
 }

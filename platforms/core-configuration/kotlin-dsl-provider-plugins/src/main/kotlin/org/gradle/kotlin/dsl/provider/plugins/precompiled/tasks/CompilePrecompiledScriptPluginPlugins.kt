@@ -33,6 +33,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
@@ -96,23 +97,29 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         kotlinCompilerOptions(gradleProperties).copy(jvmTarget = resolveJvmTarget())
     }
 
+    @get:Inject
+    internal
+    abstract val environmentChangeTracker: EnvironmentChangeTracker
+
     @TaskAction
     fun compile() {
         outputDir.withOutputDirectory { outputDir ->
             val scriptFiles = sourceFiles.map { it.path }
             if (scriptFiles.isNotEmpty())
-                compileKotlinScriptModuleTo(
-                    outputDir,
-                    compilerOptions.get(),
-                    kotlinModuleName,
-                    scriptFiles,
-                    scriptDefinitionFromTemplate(
-                        PrecompiledPluginsBlock::class,
-                        implicitImportsForPrecompiledScriptPlugins(implicitImports)
-                    ),
-                    classPathFiles.filter { it.exists() },
-                    logger,
-                ) { it } // TODO: translate paths
+                environmentChangeTracker.withTrackingSystemPropertyChanges {
+                    compileKotlinScriptModuleTo(
+                        outputDir,
+                        compilerOptions.get(),
+                        kotlinModuleName,
+                        scriptFiles,
+                        scriptDefinitionFromTemplate(
+                            PrecompiledPluginsBlock::class,
+                            implicitImportsForPrecompiledScriptPlugins(implicitImports)
+                        ),
+                        classPathFiles.filter { it.exists() },
+                        logger,
+                    ) { it } // TODO: translate paths
+                }
         }
     }
 

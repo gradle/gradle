@@ -28,6 +28,7 @@ import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
@@ -114,7 +115,8 @@ class StandardKotlinScriptEvaluator(
     private val gradlePropertiesController: GradlePropertiesController,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+    private val environmentChangeTracker: EnvironmentChangeTracker,
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -203,8 +205,10 @@ class StandardKotlinScriptEvaluator(
             buildOperationRunner.call(object : CallableBuildOperation<String> {
 
                 override fun call(context: BuildOperationContext): String =
-                    action().also {
-                        context.setResult(object : Result {})
+                    environmentChangeTracker.withTrackingSystemPropertyChanges {
+                        action().also {
+                            context.setResult(object : Result {})
+                        }
                     }
 
                 override fun description(): BuildOperationDescriptor.Builder {

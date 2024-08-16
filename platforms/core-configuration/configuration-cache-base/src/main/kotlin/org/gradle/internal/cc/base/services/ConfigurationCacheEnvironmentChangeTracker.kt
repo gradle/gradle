@@ -22,6 +22,7 @@ import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap
+import java.util.function.Supplier
 
 
 /**
@@ -64,6 +65,8 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
 
     fun systemPropertiesCleared() = mode.toTrackingMode().systemPropertiesCleared()
 
+    override fun <T : Any> withTrackingSystemPropertyChanges(action: Supplier<out T>): T = mode.maybeTracking().withTrackingSystemPropertyChanges(action)
+
     private
     inner class ModeHolder {
         // ModeHolder encapsulates concurrent mode updates.
@@ -82,12 +85,24 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
         fun toTrackingMode(): Tracking = setMode(TrackerMode::toTracking)
 
         fun toRestoringMode(): Restoring = setMode(TrackerMode::toRestoring)
+
+        // Moves to Tracking mode if we're not restored already.
+        fun maybeTracking(): MaybeTracking = setMode(TrackerMode::toTrackingIfNotRestored)
     }
 
     private
     sealed interface TrackerMode {
         fun toTracking(): Tracking
         fun toRestoring(): Restoring
+        fun toTrackingIfNotRestored(): MaybeTracking
+    }
+
+    /**
+     * These operations are tracking but can be called after restoring too.
+     */
+    private
+    sealed interface MaybeTracking : TrackerMode {
+        fun <T : Any> withTrackingSystemPropertyChanges(action: Supplier<out T>): T
     }
 
     private
@@ -99,10 +114,12 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
         override fun toRestoring(): Restoring {
             return Restoring(emptySet())
         }
+
+        override fun toTrackingIfNotRestored(): Tracking = toTracking()
     }
 
     private
-    inner class Tracking : TrackerMode {
+    inner class Tracking : TrackerMode, MaybeTracking {
         private
         val mutatedSystemProperties = ConcurrentHashMap<Any, SystemPropertyChange>()
 
@@ -121,6 +138,8 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
             // Overridden properties keys are passed to be excluded from the restoration process.
             return Restoring(mutatedSystemProperties.filterValues { it is SystemPropertyOverride }.keys)
         }
+
+        override fun toTrackingIfNotRestored(): Tracking = this
 
         fun isSystemPropertyMutated(key: String): Boolean {
             return systemPropertiesCleared || mutatedSystemProperties[key] is SystemPropertyMutate
@@ -177,10 +196,31 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
             systemPropertiesCleared = true
             mutatedSystemProperties.clear()
         }
+
+        override fun <T : Any> withTrackingSystemPropertyChanges(action: Supplier<out T>): T {
+            val beforeChanges = HashMap(System.getProperties())
+            try {
+                return action.get()
+            } finally {
+                val afterChanges = System.getProperties()
+                // Look up for changed and removed keys
+                beforeChanges.forEach { key, oldValue ->
+                    val newValue = afterChanges[key]
+                    when {
+                        (newValue == null) -> systemPropertyRemoved(key)
+                        (oldValue != newValue) -> systemPropertyChanged(key, newValue, null)
+                    }
+                }
+                // Look up for added keys
+                afterChanges.keys.subtract(beforeChanges.keys).forEach { newKey ->
+                    systemPropertyChanged(newKey, afterChanges[newKey], null)
+                }
+            }
+        }
     }
 
     private
-    class Restoring(private val overriddenSystemProperties: Set<Any>) : TrackerMode {
+    class Restoring(private val overriddenSystemProperties: Set<Any>) : TrackerMode, MaybeTracking {
         override fun toTracking(): Tracking {
             error("Cannot track state because it was restored")
         }
@@ -188,6 +228,8 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
         override fun toRestoring(): Restoring {
             error("Cannot restore state because it was already restored")
         }
+
+        override fun toTrackingIfNotRestored(): MaybeTracking = this
 
         fun loadFrom(storedState: CachedEnvironmentState) {
             if (storedState.cleared) {
@@ -209,6 +251,8 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
                 System.clearProperty(removal.key)
             }
         }
+
+        override fun <T : Any> withTrackingSystemPropertyChanges(action: Supplier<out T>): T = action.get()
     }
 
     class CachedEnvironmentState(val cleared: Boolean, val updates: List<SystemPropertySet>, val removals: List<SystemPropertyRemove>)

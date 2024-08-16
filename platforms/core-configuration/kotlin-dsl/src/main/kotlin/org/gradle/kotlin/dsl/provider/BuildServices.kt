@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
@@ -111,7 +112,8 @@ object BuildServices : ServiceRegistrationProvider {
         gradlePropertiesController: GradlePropertiesController,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-        propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+        environmentChangeTracker: EnvironmentChangeTracker,
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -137,7 +139,8 @@ object BuildServices : ServiceRegistrationProvider {
             gradlePropertiesController,
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
-            propertyUpgradeReportConfig
+            propertyUpgradeReportConfig,
+            environmentChangeTracker,
         )
 
     @Provides
