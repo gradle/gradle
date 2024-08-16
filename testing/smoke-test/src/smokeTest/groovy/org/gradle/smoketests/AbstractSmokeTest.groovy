@@ -82,7 +82,7 @@ abstract class AbstractSmokeTest extends Specification {
         static asciidoctor = Versions.of("3.3.2", "4.0.2")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "6.0.10"
+        static spotbugs = "6.0.20"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "9.4.0"
