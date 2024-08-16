@@ -186,7 +186,7 @@ abstract class AbstractSmokeTest extends Specification {
         static proguardGradle = "7.4.2"
 
         // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
-        static palantirConsistentVersions = "2.22.0"
+        static palantirConsistentVersions = "2.23.0"
 
         // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
         static teamCityGradlePluginRef = "v0.35"
