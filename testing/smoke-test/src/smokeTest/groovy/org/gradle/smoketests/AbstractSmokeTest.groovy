@@ -138,7 +138,7 @@ abstract class AbstractSmokeTest extends Specification {
         static undercouchDownload = Versions.of("5.6.0")
 
         // https://github.com/micronaut-projects/micronaut-gradle-plugin/releases
-        static micronaut = "4.3.6"
+        static micronaut = "4.4.2"
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
         static gradleGitProperties = Versions.of("2.4.2")
