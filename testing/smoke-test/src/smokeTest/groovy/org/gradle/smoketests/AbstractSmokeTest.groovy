@@ -168,7 +168,7 @@ abstract class AbstractSmokeTest extends Specification {
         static newNode = Versions.of("7.0.2")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("12.1.0")
+        static ktlint = Versions.of("12.1.1")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint-idea
         static ktlintIdea = Versions.of("11.6.1")
