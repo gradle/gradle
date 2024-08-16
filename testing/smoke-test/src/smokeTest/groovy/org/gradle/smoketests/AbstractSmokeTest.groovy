@@ -183,7 +183,7 @@ abstract class AbstractSmokeTest extends Specification {
         static jenkinsJpi = Versions.of("0.50.0")
 
         // https://mvnrepository.com/artifact/com.guardsquare/proguard-gradle
-        static proguardGradle = "7.4.2"
+        static proguardGradle = "7.5.0"
 
         // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
         static palantirConsistentVersions = "2.23.0"
