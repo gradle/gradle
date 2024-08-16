@@ -42,6 +42,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationInvocationException
+import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.Codec
@@ -54,7 +55,6 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
-import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
@@ -194,27 +194,24 @@ class WorkNodeCodec(
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
     ) {
         writeSmallInt(nodeIds.size)
+
+        val groupedNodes = nodes.groupBy(NodeOwner::of)
+        writeCollection(groupedNodes.keys) { nodeOwner ->
+            val groupPath = nodeOwner.path()
+            writeString(groupPath.path)
+        }
+
         val isolateOwner = isolate.owner
-        val groupedNodes = nodes.groupBy { NodeOwner.of(it) }
         val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
         unwrapBuildOperationExceptions("saving state nodes") {
-            buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
-                writeCollection(groupedNodes.entries) { (nodeOwner, groupNodes) ->
-                    val groupPath = pathFor(nodeOwner)
-                    writeString(groupPath.path)
-                    add(object : RunnableBuildOperation {
-                        override fun run(context: BuildOperationContext) {
-                            contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
-                                writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
-                            }
+            buildOperationExecutor.runAllWithAccessToProjectState {
+                groupedNodes.entries.forEach { (nodeOwner, groupNodes) ->
+                    val groupPath = nodeOwner.path()
+                    addOperation(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
+                        contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
+                            writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
                         }
-
-                        override fun description(): BuildOperationDescriptor.Builder {
-                            return BuildOperationDescriptor
-                                .displayName("Storing $groupPath")
-                                .progressDisplayName(groupPath.path)
-                        }
-                    })
+                    }
                 }
             }
         }
@@ -225,28 +222,23 @@ class WorkNodeCodec(
         val nodeIdCount = readSmallInt()
         val partialResultsRef = AtomicReference<PersistentList<List<NodeId>>>(PersistentList.of())
         val projectProvider = getSingletonProperty<ProjectProvider>()
+        val groupPaths = readCollectionInto<Path, MutableList<Path>>(::ArrayList) {
+            Path.path(readString())
+        }
+
         val buildOperationExecutor = isolate.owner.serviceOf<BuildOperationExecutor>()
         unwrapBuildOperationExceptions("reading state nodes") {
-            buildOperationExecutor.runAllWithAccessToProjectState<RunnableBuildOperation> {
-                readCollection {
-                    val groupPath = Path.path(readString())
-                    add(object : RunnableBuildOperation {
-                        override fun run(context: BuildOperationContext) {
-                            contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
-                                setSingletonProperty(projectProvider)
-                                val partialResult = readGroupedNodes()
-                                partialResultsRef.updateAndGet {
-                                    it.plus(partialResult)
-                                }
+            buildOperationExecutor.runAllWithAccessToProjectState {
+                groupPaths.forEach { groupPath ->
+                    addOperation(displayName = "Loading $groupPath", progressDisplayName = groupPath.path) {
+                        contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
+                            setSingletonProperty(projectProvider)
+                            val partialResult = readGroupedNodes()
+                            partialResultsRef.updateAndGet {
+                                it.plus(partialResult)
                             }
                         }
-
-                        override fun description(): BuildOperationDescriptor.Builder {
-                            return BuildOperationDescriptor
-                                .displayName("Loading $groupPath")
-                                .progressDisplayName(groupPath.path)
-                        }
-                    })
+                    }
                 }
             }
         }
@@ -289,11 +281,11 @@ class WorkNodeCodec(
     )
 
     private
-    fun pathFor(nodeOwner: NodeOwner): Path {
+    fun NodeOwner.path(): Path {
         // TODO:parallel-cc make sure there are no conflicts between project node and owner-less nodes
-        return when (nodeOwner) {
+        return when (this) {
             NodeOwner.None -> owner.identityPath.child("owner-less")
-            is NodeOwner.Project -> nodeOwner.project.identityPath
+            is NodeOwner.Project -> project.identityPath
         }
     }
 
@@ -553,4 +545,19 @@ sealed class NodeOwner {
             }
         }
     }
+}
+
+private
+fun BuildOperationQueue<RunnableBuildOperation>.addOperation(displayName: String, progressDisplayName: String? = null, action: (BuildOperationContext) -> Unit) {
+    add(object : RunnableBuildOperation {
+        override fun run(context: BuildOperationContext) {
+            action.invoke(context)
+        }
+
+        override fun description(): BuildOperationDescriptor.Builder {
+            return BuildOperationDescriptor
+                .displayName(displayName)
+                .progressDisplayName(progressDisplayName)
+        }
+    })
 }

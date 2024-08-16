@@ -145,7 +145,7 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
-        public Builder progressDisplayName(String progressDisplayName) {
+        public Builder progressDisplayName(@Nullable String progressDisplayName) {
             this.progressDisplayName = progressDisplayName;
             return this;
         }
