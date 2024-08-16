@@ -129,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
         static protobufTools = "4.26.1"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.5.8"
+        static testRetryPlugin = "1.5.10"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
         static aspectj = "8.6"
