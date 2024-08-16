@@ -66,7 +66,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
                 for (Project p : project.getAllprojects()) {
                     queue.add(new RunnableBuildOperation() {
                         @Override
-                        public void run(BuildOperationContext context) throws Exception {
+                        public void run(BuildOperationContext context) {
                             configure((ProjectInternal) p);
                         }
 

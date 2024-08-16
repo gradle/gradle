@@ -28,7 +28,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.start()
     }
 
-    def 'all projects are configured in parallel for #selector task selector'() {
+    def 'all projects are configured in parallel for #invocation'() {
         given:
         settingsFile """
             include(":a")
@@ -51,13 +51,13 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.expectConcurrent("configure-a", "configure-b")
 
         when:
-        isolatedProjectsRun(*selector)
+        isolatedProjectsRun(*invocation)
 
         then:
         result.assertTasksExecuted(expectedTasks)
 
         where:
-        selector                               | expectedTasks
+        invocation                             | expectedTasks
         ["build"]                              | [":a:build", ":b:build", ":build"]
         ["build", "--configure-on-demand"]     | [":a:build", ":b:build", ":build"]
         ["build", "--no-configure-on-demand"]  | [":a:build", ":b:build", ":build"]
