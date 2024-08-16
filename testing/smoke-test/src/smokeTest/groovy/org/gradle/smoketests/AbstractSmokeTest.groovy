@@ -144,7 +144,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleGitProperties = Versions.of("2.4.2")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
-        static flyway = Versions.of("10.11.0")
+        static flyway = Versions.of("10.17.1")
 
         // https://plugins.gradle.org/plugin/net.ltgt.apt
         static apt = Versions.of("0.21")
