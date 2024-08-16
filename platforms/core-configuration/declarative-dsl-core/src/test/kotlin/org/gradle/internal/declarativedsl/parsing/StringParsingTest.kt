@@ -185,6 +185,7 @@ class StringParsingTest {
         results.assert(expected)
     }
 
-    private fun readInputFromFile(fileName: String) = this::class.java.getResource(fileName)?.readText(Charsets.UTF_8)!!
+    private fun readInputFromFile(fileName: String) = this::class.java.getResource(fileName)?.readText(Charsets.UTF_8)
+        ?: error("unable to read from input file $fileName")
 
 }

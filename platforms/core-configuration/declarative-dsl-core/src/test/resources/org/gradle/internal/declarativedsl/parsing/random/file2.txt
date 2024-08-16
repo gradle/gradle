@@ -1,0 +1,6 @@
+pss=95
+anw {
+}
+
+pvm=null
+tbi="smahtgary"
