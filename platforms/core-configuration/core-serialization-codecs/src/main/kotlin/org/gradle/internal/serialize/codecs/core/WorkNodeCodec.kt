@@ -42,7 +42,6 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationInvocationException
-import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.Codec
@@ -77,7 +76,11 @@ class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
     private val ordinalGroups: OrdinalGroupFactory,
-    private val contextSource: IsolateContextSource
+    private val contextSource: IsolateContextSource,
+    /** Should we store work nodes in parallel? */
+    private val parallelStore: Boolean,
+    /** Should we load work nodes in parallel? */
+    private val parallelLoad: Boolean
 ) {
 
     fun WriteContext.writeWork(work: ScheduledWork) {
@@ -201,21 +204,19 @@ class WorkNodeCodec(
             writeString(groupPath.path)
         }
 
-        val isolateOwner = isolate.owner
-        val buildOperationExecutor = isolateOwner.serviceOf<BuildOperationExecutor>()
-        unwrapBuildOperationExceptions("saving state nodes") {
-            buildOperationExecutor.runAllWithAccessToProjectState {
-                groupedNodes.entries.forEach { (nodeOwner, groupNodes) ->
-                    val groupPath = nodeOwner.path()
-                    addOperation(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
-                        contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
-                            writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
-                        }
+        // TODO:parallel-cc is this message useful for the context where it may show?
+        runBuildOperations(parallelStore, "saving state nodes" ) {
+            groupedNodes.entries.map { (nodeOwner, groupNodes) ->
+                val groupPath = nodeOwner.path()
+                OperationInfo(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
+                    contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
+                        writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
                     }
                 }
             }
         }
     }
+
 
     private
     fun ReadContext.readNodes(): NodeForId {
@@ -226,17 +227,14 @@ class WorkNodeCodec(
             Path.path(readString())
         }
 
-        val buildOperationExecutor = isolate.owner.serviceOf<BuildOperationExecutor>()
-        unwrapBuildOperationExceptions("reading state nodes") {
-            buildOperationExecutor.runAllWithAccessToProjectState {
-                groupPaths.forEach { groupPath ->
-                    addOperation(displayName = "Loading $groupPath", progressDisplayName = groupPath.path) {
-                        contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
-                            setSingletonProperty(projectProvider)
-                            val partialResult = readGroupedNodes()
-                            partialResultsRef.updateAndGet {
-                                it.plus(partialResult)
-                            }
+        runBuildOperations(parallel = parallelLoad, message = "reading state nodes") {
+            groupPaths.map { groupPath ->
+                OperationInfo(displayName = "Loading $groupPath", progressDisplayName = groupPath.path) {
+                    contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
+                        setSingletonProperty(projectProvider)
+                        val partialResult = readGroupedNodes()
+                        partialResultsRef.updateAndGet {
+                            it.plus(partialResult)
                         }
                     }
                 }
@@ -528,6 +526,23 @@ class WorkNodeCodec(
             onSuccessor(successor)
         }
     }
+
+    private
+    fun IsolateContext.runBuildOperations(parallel: Boolean, message: String, operations: () -> Iterable<OperationInfo>) {
+        if (!parallel) {
+            logger.debug("${message} in-line")
+            operations().forEach { it.action() }
+            return
+        }
+
+        logger.debug("${message} in parallel")
+        val buildOperationExecutor = isolate.owner.serviceOf<BuildOperationExecutor>()
+        unwrapBuildOperationExceptions(message) {
+            buildOperationExecutor.runAllWithAccessToProjectState {
+                operations().forEach { add(asBuildOperation(it.displayName, it.progressDisplayName, it.action)) }
+            }
+        }
+    }
 }
 
 
@@ -547,11 +562,20 @@ sealed class NodeOwner {
     }
 }
 
+
 private
-fun BuildOperationQueue<RunnableBuildOperation>.addOperation(displayName: String, progressDisplayName: String? = null, action: (BuildOperationContext) -> Unit) {
-    add(object : RunnableBuildOperation {
+data class OperationInfo(
+    val displayName: String,
+    val progressDisplayName: String? = null,
+    val action: () -> Unit
+)
+
+
+private
+fun asBuildOperation(displayName: String, progressDisplayName: String? = null, action: () -> Unit): RunnableBuildOperation =
+    object : RunnableBuildOperation {
         override fun run(context: BuildOperationContext) {
-            action.invoke(context)
+            action.invoke()
         }
 
         override fun description(): BuildOperationDescriptor.Builder {
@@ -559,5 +583,4 @@ fun BuildOperationQueue<RunnableBuildOperation>.addOperation(displayName: String
                 .displayName(displayName)
                 .progressDisplayName(progressDisplayName)
         }
-    })
-}
+    }
