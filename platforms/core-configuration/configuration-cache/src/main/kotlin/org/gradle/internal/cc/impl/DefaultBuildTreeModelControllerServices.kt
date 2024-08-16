@@ -130,7 +130,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
             DefaultBuildModelParameters(
                 parallelProjectExecution = parallelProjectExecution,
-                configureOnDemand = isolatedProjects,
+                configureOnDemand = false,
                 configurationCache = isolatedProjects,
                 isolatedProjects = isolatedProjects,
                 requiresBuildModel = true,
@@ -141,7 +141,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
-            val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
+            val configureOnDemand = !isolatedProjects && startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)

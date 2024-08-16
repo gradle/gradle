@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
 
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
     def "option also enables configuration cache"() {
@@ -57,6 +58,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
     }
 
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "projects are configured on demand"() {
         settingsFile << """
             println "configuring settings"
@@ -83,7 +85,9 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer")
         fixture.assertStateStored {
-            projectsConfigured(":", ":b", ":a")
+            // TODO:isolated desired behavior
+//            projectsConfigured(":", ":b", ":a")
+            projectsConfigured(":", ":b", ":a", ":c")
         }
 
         when:

@@ -82,14 +82,16 @@ public class BuildInclusionCoordinator {
     }
 
     public void prepareForPluginResolution(IncludedBuildState build) {
-        if (!registering.add(build)) {
-            return;
-        }
-        try {
-            build.ensureProjectsConfigured();
-            makeSubstitutionsAvailableFor(build, new HashSet<>());
-        } finally {
-            registering.remove(build);
+        synchronized (registering) {
+            if (!registering.add(build)) {
+                return;
+            }
+            try {
+                build.ensureProjectsConfigured();
+                makeSubstitutionsAvailableFor(build, new HashSet<>());
+            } finally {
+                registering.remove(build);
+            }
         }
     }
 
@@ -98,28 +100,32 @@ public class BuildInclusionCoordinator {
         if (!seen.add(build)) {
             return;
         }
-        boolean added = registering.add(build);
-        try {
-            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
-                BuildState target = reference.getTarget();
-                if (!registering.contains(target) && target instanceof IncludedBuildState) {
-                    doRegisterSubstitutions((IncludedBuildState) target);
-                    makeSubstitutionsAvailableFor(target, seen);
+        synchronized (registering) {
+            boolean added = registering.add(build);
+            try {
+                for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+                    BuildState target = reference.getTarget();
+                    if (!registering.contains(target) && target instanceof IncludedBuildState) {
+                        doRegisterSubstitutions((IncludedBuildState) target);
+                        makeSubstitutionsAvailableFor(target, seen);
+                    }
                 }
-            }
-        } finally {
-            if (added) {
-                registering.remove(build);
+            } finally {
+                if (added) {
+                    registering.remove(build);
+                }
             }
         }
     }
 
     private void doRegisterSubstitutions(CompositeBuildParticipantBuildState build) {
-        registering.add(build);
-        try {
-            substitutionRegistry.registerSubstitutionsFor(build);
-        } finally {
-            registering.remove(build);
+        synchronized (registering) {
+            registering.add(build);
+            try {
+                substitutionRegistry.registerSubstitutionsFor(build);
+            } finally {
+                registering.remove(build);
+            }
         }
     }
 }

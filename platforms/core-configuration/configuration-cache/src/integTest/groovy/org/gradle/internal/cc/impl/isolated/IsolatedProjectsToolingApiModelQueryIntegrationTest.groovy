@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.internal.ToBeImplemented
 
 class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
@@ -94,6 +95,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fixture.assertStateLoaded()
     }
 
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "can cache models with tasks"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -118,7 +120,9 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
+            // TODO:isolated desired behavior
+//            projectsConfigured(":buildSrc", ":")
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
             modelsCreated(":")
         }
         outputContains("Configuration of dummyTask")

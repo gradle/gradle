@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
@@ -185,6 +186,7 @@ task checkCompileClasspath{
         succeeds('checkImplementation', 'checkCompileOnly', 'checkCompileClasspath')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "compile only dependencies from project dependency are non transitive"() {
         given:
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
@@ -227,6 +229,7 @@ project(':projectB') {
         succeeds('checkClasspath')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "correct configurations for compile only project dependency"() {
         given:
         createDirs("projectA", "projectB")
