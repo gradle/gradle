@@ -79,7 +79,7 @@ abstract class AbstractSmokeTest extends Specification {
         static shadowFork = "8.1.8"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
-        static asciidoctor = Versions.of("3.3.2", "4.0.2")
+        static asciidoctor = Versions.of("3.3.2", "4.0.3")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "6.0.20"
