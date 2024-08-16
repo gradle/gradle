@@ -106,8 +106,8 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.1.2", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8, javaMaxVersion: JavaVersion.VERSION_20],
-            [version: "4.1.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: "3.1.4", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8, javaMaxVersion: JavaVersion.VERSION_20],
+            [version: "4.1.5", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
