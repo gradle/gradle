@@ -23,9 +23,11 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.hamcrest.CoreMatchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
@@ -341,6 +343,18 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             return "macOS"
         } else {
             return osFamily
+        }
+    }
+
+    protected String getCurrentHostOperatingSystemName() {
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+    }
+
+    protected String getCurrentHostArchName() {
+        if (DefaultNativePlatform.getCurrentArchitecture().arm64) {
+            return "aarch64"
+        } else {
+            return "x86-64"
         }
     }
 
