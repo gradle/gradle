@@ -38,53 +38,35 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"testing-jvm",
-					"time",
-					"stdlib-kotlin-extensions",
-					"stdlib-java-extensions",
-					"service-registry-impl",
-					"service-registry-builder",
-					"serialization",
-					"logging-api",
-					"java-compiler-plugin",
-					"io",
-					"internal-testing"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
 					"launcher",
-					"input-tracking",
-					"hashing",
-					"functional",
-					"files",
-					"file-temp",
-					"concurrent",
-					"cli",
 					"build-state",
-					"build-process-services",
-					"build-option"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"scala",
-					"build-operations",
-					"build-cache-example-client",
-					"build-cache-base",
+					"time",
+					"logging-api",
 					"kotlin-dsl-plugins",
+					"serialization",
 					"toolchains-jvm-shared",
+					"build-process-services",
 					"docs-asciidoctor-extensions-base",
 					"internal-instrumentation-processor",
-					"security",
+					"security"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"testing-jvm",
+					"input-tracking",
+					"service-registry-impl",
 					"configuration-cache-base",
-					"base-ide-plugins"
+					"base-ide-plugins",
+					"files",
+					"stdlib-java-extensions",
+					"gradle-cli",
+					"build-cache-packaging",
+					"build-operations",
+					"build-cache-example-client"
 				]
 			},
 			{
@@ -93,16 +75,16 @@
 				},
 				"subprojects":[
 					"composite-builds",
-					"gradle-cli",
-					"build-cache-packaging",
 					"precondition-tester",
 					"tooling-api-builders",
 					"daemon-services",
+					"hashing",
+					"service-registry-builder",
 					"base-services-groovy",
 					"worker-main",
 					"kotlin-dsl-provider-plugins",
 					"native",
-					"test-suites-base"
+					"problems-rendering"
 				]
 			},
 			{
@@ -111,16 +93,34 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"java-compiler-plugin",
+					"file-temp",
+					"concurrent",
+					"functional",
+					"test-suites-base",
+					"internal-testing",
 					"client-services",
+					"io",
 					"testing-jvm-infrastructure",
+					"cli"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"scala",
 					"daemon-protocol",
+					"build-cache-base",
 					"normalization-java",
 					"docs",
+					"stdlib-kotlin-extensions",
+					"build-option",
 					"public-api-tests",
-					"ide-native",
 					"toolchains-jvm",
-					"resources",
-					"execution"
+					"execution",
+					"resources"
 				]
 			},
 			{
@@ -132,31 +132,13 @@
 					"resources-http",
 					"internal-performance-testing",
 					"unit-test-fixtures",
+					"internal-integ-testing",
 					"platform-jvm",
 					"build-cache-spi",
-					"snapshots",
-					"jvm-services",
 					"wrapper-shared",
-					"internal-integ-testing",
-					"flow-services"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"language-native",
-					"publish",
-					"process-services",
-					"base-services",
-					"testing-base-infrastructure",
-					"plugins-application",
-					"problems-api",
-					"build-cache",
-					"messaging",
-					"plugins-java-base",
-					"declarative-dsl-core"
+					"flow-services",
+					"snapshots",
+					"jvm-services"
 				]
 			},
 			{
@@ -165,16 +147,16 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"build-configuration",
-					"instrumentation-agent-services",
-					"war",
-					"plugins-distribution",
-					"problems",
-					"ear",
+					"process-memory-services",
+					"publish",
+					"problems-api",
+					"testing-base-infrastructure",
+					"base-services",
+					"build-cache",
+					"plugins-java-base",
+					"messaging",
 					"build-profile",
-					"build-cache-local",
-					"platform-base",
-					"resources-gcs"
+					"instrumentation-agent-services"
 				]
 			},
 			{
@@ -182,17 +164,35 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"maven",
-					"diagnostics",
-					"plugins-test-report-aggregation",
-					"resources-sftp",
-					"version-control",
+					"language-native",
+					"build-configuration",
+					"war",
+					"declarative-dsl-core",
+					"plugins-distribution",
+					"resources-gcs",
 					"java-platform",
-					"file-collections",
-					"testing-base",
+					"ear",
+					"problems",
+					"plugins-test-report-aggregation",
+					"build-events"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"model-core",
+					"plugins-version-catalog",
+					"build-cache-http",
+					"build-cache-local",
+					"resources-sftp",
+					"core-api",
+					"tooling-native",
+					"declarative-dsl-tooling-builders",
 					"wrapper-main",
-					"execution-e2e-tests",
-					"ide"
+					"testing-base",
+					"resources-s3"
 				]
 			},
 			{
@@ -201,44 +201,52 @@
 				},
 				"subprojects":[
 					"code-quality",
-					"model-core",
+					"model-groovy",
+					"plugins-jvm-test-fixtures",
+					"plugins-jvm-test-suite",
+					"instrumentation-reporting",
+					"reporting",
+					"antlr",
+					"language-jvm",
+					"plugins-java-library",
+					"plugins-application",
+					"platform-base"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
 					"workers",
 					"language-groovy",
-					"plugins-groovy",
 					"kotlin-dsl-tooling-builders",
+					"maven",
 					"logging",
+					"plugins-groovy",
 					"plugin-development",
+					"build-init",
 					"plugins-java",
 					"samples",
-					"kotlin-dsl",
-					"build-init",
-					"enterprise",
-					"testing-native",
-					"persistent-cache",
 					"integ-test",
-					"instrumentation-reporting",
-					"language-jvm",
-					"ide-plugins",
-					"platform-native",
+					"kotlin-dsl",
 					"ivy",
-					"plugins-jvm-test-suite",
-					"build-events",
-					"plugins-jvm-test-fixtures",
-					"reporting",
-					"plugins-java-library",
-					"declarative-dsl-tooling-builders",
-					"resources-s3",
+					"enterprise",
 					"file-watching",
-					"signing",
-					"core-api",
-					"plugins-version-catalog",
-					"model-groovy",
-					"tooling-native",
+					"testing-native",
 					"jacoco",
-					"antlr",
+					"ide-plugins",
+					"execution-e2e-tests",
+					"version-control",
+					"file-collections",
+					"platform-native",
 					"declarative-dsl-provider",
-					"build-cache-http",
-					"test-kit"
+					"test-kit",
+					"persistent-cache",
+					"signing",
+					"ide",
+					"diagnostics",
+					"ide-native"
 				]
 			}
 		],
@@ -324,7 +332,7 @@
 					"numberOfBatches":2
 				},
 				"subprojects":[
-					"scala"
+					"kotlin-dsl-tooling-builders"
 				]
 			},
 			{
@@ -333,7 +341,7 @@
 					"numberOfBatches":2
 				},
 				"subprojects":[
-					"kotlin-dsl-tooling-builders"
+					"scala"
 				]
 			},
 			{
@@ -342,7 +350,7 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"language-java",
+					"kotlin-dsl-integ-tests",
 					"build-state",
 					"time",
 					"logging-api",
@@ -361,13 +369,13 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"language-java",
 					"input-tracking",
 					"service-registry-impl",
 					"configuration-cache-base",
 					"base-ide-plugins",
-					"stdlib-java-extensions",
 					"files",
+					"stdlib-java-extensions",
 					"gradle-cli",
 					"build-cache-packaging",
 					"build-operations",
@@ -390,26 +398,7 @@
 					"worker-main",
 					"kotlin-dsl-provider-plugins",
 					"native",
-					"java-compiler-plugin"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"language-native",
-					"file-temp",
-					"concurrent",
-					"functional",
-					"test-suites-base",
-					"internal-testing",
-					"client-services",
-					"io",
-					"testing-jvm-infrastructure",
-					"cli",
-					"daemon-protocol"
+					"problems-rendering"
 				]
 			},
 			{
@@ -419,6 +408,26 @@
 				},
 				"subprojects":[
 					"model-core",
+					"java-compiler-plugin",
+					"file-temp",
+					"concurrent",
+					"functional",
+					"test-suites-base",
+					"internal-testing",
+					"client-services",
+					"io",
+					"testing-jvm-infrastructure",
+					"cli"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"language-native",
+					"daemon-protocol",
 					"build-cache-base",
 					"normalization-java",
 					"docs",
@@ -427,46 +436,7 @@
 					"public-api-tests",
 					"toolchains-jvm",
 					"execution",
-					"resources-http",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"maven",
-					"unit-test-fixtures",
-					"build-cache-spi",
-					"platform-jvm",
-					"snapshots",
-					"flow-services",
-					"process-services",
-					"resources",
-					"internal-integ-testing",
-					"wrapper-shared",
-					"problems-api"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"plugins-groovy",
-					"testing-base-infrastructure",
-					"jvm-services",
-					"wrapper-main",
-					"build-profile",
-					"messaging",
-					"publish",
-					"base-services",
-					"build-configuration",
-					"build-cache",
-					"plugins-java-base"
+					"resources-http"
 				]
 			},
 			{
@@ -476,16 +446,16 @@
 				},
 				"subprojects":[
 					"workers",
-					"war",
-					"plugins-distribution",
-					"problems",
-					"ear",
-					"build-cache-local",
-					"declarative-dsl-core",
-					"instrumentation-agent-services",
-					"plugins-test-report-aggregation",
-					"resources-gcs",
-					"java-platform"
+					"internal-performance-testing",
+					"unit-test-fixtures",
+					"build-cache-spi",
+					"platform-jvm",
+					"snapshots",
+					"process-memory-services",
+					"resources",
+					"flow-services",
+					"internal-integ-testing",
+					"wrapper-shared"
 				]
 			},
 			{
@@ -494,17 +464,17 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"logging",
-					"build-cache-http",
-					"resources-s3",
-					"core-api",
-					"testing-base",
-					"plugins-version-catalog",
-					"resources-sftp",
-					"build-events",
-					"plugins-jvm-test-fixtures",
-					"plugins-jvm-test-suite",
-					"tooling-native"
+					"maven",
+					"problems-api",
+					"declarative-dsl-core",
+					"testing-base-infrastructure",
+					"wrapper-main",
+					"jvm-services",
+					"messaging",
+					"publish",
+					"base-services",
+					"build-cache",
+					"build-configuration"
 				]
 			},
 			{
@@ -514,16 +484,54 @@
 				},
 				"subprojects":[
 					"build-init",
+					"plugins-java-base",
+					"build-profile",
+					"build-cache-local",
+					"plugins-distribution",
+					"instrumentation-agent-services",
+					"problems",
+					"war",
+					"resources-gcs",
+					"plugins-test-report-aggregation",
+					"java-platform"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"plugins-groovy",
+					"ear",
+					"resources-s3",
+					"build-cache-http",
+					"testing-base",
+					"build-events",
+					"core-api",
+					"plugins-version-catalog",
+					"tooling-native",
+					"resources-sftp",
+					"plugins-jvm-test-fixtures"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"logging",
 					"model-groovy",
+					"plugins-jvm-test-suite",
 					"reporting",
 					"plugins-application",
 					"signing",
+					"plugins-java-library",
+					"testing-native",
 					"declarative-dsl-tooling-builders",
 					"instrumentation-reporting",
-					"ide-native",
-					"language-jvm",
-					"testing-native",
-					"plugins-java-library"
+					"language-jvm"
 				]
 			},
 			{
@@ -533,12 +541,13 @@
 				},
 				"subprojects":[
 					"plugin-development",
-					"antlr",
-					"persistent-cache",
-					"ide",
-					"platform-base",
+					"ide-native",
 					"diagnostics",
-					"file-collections",
+					"persistent-cache",
+					"platform-base",
+					"declarative-dsl-provider",
+					"ide",
+					"antlr",
 					"test-kit"
 				]
 			},
@@ -549,11 +558,11 @@
 				},
 				"subprojects":[
 					"samples",
-					"declarative-dsl-provider",
-					"version-control",
+					"file-collections",
 					"platform-native",
+					"version-control",
 					"ide-plugins",
-					"file-watching"
+					"execution-e2e-tests"
 				]
 			},
 			{
@@ -562,11 +571,11 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"plugins-java",
-					"execution-e2e-tests",
+					"kotlin-dsl",
+					"file-watching",
 					"jacoco",
-					"integ-test",
-					"kotlin-dsl"
+					"ivy",
+					"enterprise"
 				]
 			},
 			{
@@ -575,9 +584,9 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"enterprise",
 					"language-groovy",
-					"ivy"
+					"plugins-java",
+					"integ-test"
 				]
 			}
 		],
@@ -614,7 +623,15 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"tooling-api",
+					"tooling-api"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"testing-jvm",
 					"build-state",
 					"time",
 					"logging-api",
@@ -632,13 +649,13 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"testing-jvm",
+					"language-java",
 					"input-tracking",
 					"service-registry-impl",
 					"configuration-cache-base",
 					"base-ide-plugins",
-					"stdlib-java-extensions",
 					"files",
+					"stdlib-java-extensions",
 					"gradle-cli",
 					"build-cache-packaging",
 					"build-operations",
@@ -650,7 +667,7 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"language-native",
+					"kotlin-dsl-integ-tests",
 					"precondition-tester",
 					"tooling-api-builders",
 					"daemon-services",
@@ -660,79 +677,7 @@
 					"worker-main",
 					"kotlin-dsl-provider-plugins",
 					"native",
-					"java-compiler-plugin"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"language-java",
-					"file-temp",
-					"concurrent",
-					"functional",
-					"test-suites-base",
-					"internal-testing",
-					"client-services",
-					"io",
-					"testing-jvm-infrastructure",
-					"cli",
-					"daemon-protocol"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"kotlin-dsl-integ-tests",
-					"build-cache-base",
-					"normalization-java",
-					"docs",
-					"stdlib-kotlin-extensions",
-					"build-option",
-					"toolchains-jvm",
-					"resources",
-					"execution",
-					"resources-http",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"build-init",
-					"internal-integ-testing",
-					"platform-jvm",
-					"build-cache-spi",
-					"process-services",
-					"snapshots",
-					"testing-base-infrastructure",
-					"wrapper-shared",
-					"flow-services",
-					"base-services",
-					"messaging"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"launcher",
-					"jvm-services",
-					"publish",
-					"problems-api",
-					"problems",
-					"build-profile",
-					"plugins-java-base",
-					"build-cache",
-					"plugins-test-report-aggregation",
-					"declarative-dsl-core",
-					"war"
+					"problems-rendering"
 				]
 			},
 			{
@@ -741,16 +686,70 @@
 				},
 				"subprojects":[
 					"plugin-use",
-					"testing-base",
-					"build-configuration",
-					"plugins-distribution",
-					"unit-test-fixtures",
-					"instrumentation-agent-services",
-					"public-api-tests",
-					"tooling-native",
-					"resources-gcs",
-					"declarative-dsl-tooling-builders",
-					"resources-s3"
+					"java-compiler-plugin",
+					"file-temp",
+					"concurrent",
+					"functional",
+					"test-suites-base",
+					"internal-testing",
+					"client-services",
+					"io",
+					"testing-jvm-infrastructure",
+					"cli"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"language-native",
+					"daemon-protocol",
+					"build-cache-base",
+					"normalization-java",
+					"docs",
+					"stdlib-kotlin-extensions",
+					"build-option",
+					"toolchains-jvm",
+					"resources",
+					"execution",
+					"resources-http"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"launcher",
+					"internal-performance-testing",
+					"internal-integ-testing",
+					"wrapper-shared",
+					"build-cache-spi",
+					"platform-jvm",
+					"process-memory-services",
+					"testing-base-infrastructure",
+					"snapshots",
+					"flow-services",
+					"publish"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"build-init",
+					"base-services",
+					"jvm-services",
+					"messaging",
+					"build-profile",
+					"plugins-java-base",
+					"problems-api",
+					"problems",
+					"declarative-dsl-core",
+					"build-cache",
+					"plugins-test-report-aggregation"
 				]
 			},
 			{
@@ -759,16 +758,16 @@
 				},
 				"subprojects":[
 					"scala",
+					"war",
+					"testing-base",
+					"build-configuration",
+					"resources-gcs",
+					"tooling-native",
+					"instrumentation-agent-services",
 					"java-platform",
-					"plugins-version-catalog",
-					"plugins-jvm-test-fixtures",
-					"build-cache-http",
-					"ear",
-					"build-events",
 					"resources-sftp",
-					"plugins-jvm-test-suite",
-					"language-jvm",
-					"core-api"
+					"ear",
+					"public-api-tests"
 				]
 			},
 			{
@@ -777,34 +776,16 @@
 				},
 				"subprojects":[
 					"model-core",
-					"reporting",
-					"instrumentation-reporting",
-					"model-groovy",
-					"persistent-cache",
-					"antlr",
-					"plugins-application",
-					"build-cache-local",
-					"signing",
-					"plugins-java-library",
-					"platform-base"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"code-quality",
-					"ide-plugins",
-					"diagnostics",
-					"ide",
-					"ide-native",
-					"execution-e2e-tests",
-					"version-control",
-					"declarative-dsl-provider",
-					"file-collections",
-					"jacoco",
-					"ivy"
+					"resources-s3",
+					"unit-test-fixtures",
+					"plugins-distribution",
+					"declarative-dsl-tooling-builders",
+					"build-events",
+					"build-cache-http",
+					"plugins-jvm-test-fixtures",
+					"language-jvm",
+					"plugins-version-catalog",
+					"core-api"
 				]
 			},
 			{
@@ -813,23 +794,45 @@
 				},
 				"subprojects":[
 					"plugin-development",
-					"composite-builds",
 					"workers",
-					"logging",
+					"code-quality",
+					"composite-builds",
 					"maven",
+					"logging",
 					"test-kit",
-					"language-groovy",
 					"kotlin-dsl",
 					"plugins-groovy",
 					"kotlin-dsl-tooling-builders",
 					"plugins-java",
 					"integ-test",
 					"samples",
-					"file-watching",
+					"execution-e2e-tests",
+					"ivy",
 					"testing-native",
 					"enterprise",
+					"file-watching",
+					"language-groovy",
 					"wrapper-main",
-					"platform-native"
+					"version-control",
+					"ide",
+					"file-collections",
+					"diagnostics",
+					"platform-native",
+					"declarative-dsl-provider",
+					"jacoco",
+					"ide-plugins",
+					"ide-native",
+					"platform-base",
+					"signing",
+					"plugins-java-library",
+					"persistent-cache",
+					"build-cache-local",
+					"plugins-application",
+					"antlr",
+					"model-groovy",
+					"reporting",
+					"plugins-jvm-test-suite",
+					"instrumentation-reporting"
 				]
 			}
 		],
@@ -840,7 +843,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":8
+					"numberOfBatches":9
 				},
 				"subprojects":[
 					"dependency-management"
@@ -849,7 +852,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":7
+					"numberOfBatches":6
 				},
 				"subprojects":[
 					"configuration-cache"
@@ -858,7 +861,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":5
+					"numberOfBatches":6
 				},
 				"subprojects":[
 					"core"
@@ -876,7 +879,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":3
+					"numberOfBatches":2
 				},
 				"subprojects":[
 					"testing-jvm"
@@ -897,7 +900,7 @@
 					"numberOfBatches":2
 				},
 				"subprojects":[
-					"plugin-use"
+					"launcher"
 				]
 			},
 			{
@@ -906,7 +909,7 @@
 					"numberOfBatches":2
 				},
 				"subprojects":[
-					"launcher"
+					"plugin-use"
 				]
 			},
 			{
@@ -934,13 +937,13 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"scala",
+					"kotlin-dsl-integ-tests",
 					"input-tracking",
 					"service-registry-impl",
 					"configuration-cache-base",
 					"base-ide-plugins",
-					"stdlib-java-extensions",
 					"files",
+					"stdlib-java-extensions",
 					"gradle-cli",
 					"build-cache-packaging",
 					"build-operations",
@@ -963,150 +966,7 @@
 					"worker-main",
 					"kotlin-dsl-provider-plugins",
 					"native",
-					"java-compiler-plugin"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"kotlin-dsl-integ-tests",
-					"file-temp",
-					"concurrent",
-					"functional",
-					"test-suites-base",
-					"internal-testing",
-					"client-services",
-					"io",
-					"testing-jvm-infrastructure",
-					"cli",
-					"daemon-protocol"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"plugin-development",
-					"build-cache-base",
-					"normalization-java",
-					"docs",
-					"stdlib-kotlin-extensions",
-					"build-option",
-					"toolchains-jvm",
-					"execution",
-					"resources-http",
-					"internal-performance-testing",
-					"internal-integ-testing"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"workers",
-					"build-cache-spi",
-					"process-services",
-					"platform-jvm",
-					"resources",
-					"wrapper-shared",
-					"declarative-dsl-core",
-					"testing-base-infrastructure",
-					"snapshots",
-					"problems",
-					"flow-services"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"code-quality",
-					"messaging",
-					"base-services",
-					"build-profile",
-					"jvm-services",
-					"publish",
-					"problems-api",
-					"build-cache",
-					"plugins-java-base",
-					"plugins-test-report-aggregation",
-					"build-configuration"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"language-groovy",
-					"java-platform",
-					"unit-test-fixtures",
-					"instrumentation-agent-services",
-					"testing-base",
-					"public-api-tests",
-					"tooling-native",
-					"war",
-					"plugins-distribution",
-					"resources-gcs",
-					"plugins-jvm-test-fixtures"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"composite-builds",
-					"declarative-dsl-tooling-builders",
-					"plugins-version-catalog",
-					"ear",
-					"resources-sftp",
-					"instrumentation-reporting",
-					"build-cache-http",
-					"reporting",
-					"language-jvm",
-					"build-events"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"logging",
-					"persistent-cache",
-					"plugins-jvm-test-suite",
-					"plugins-application",
-					"resources-s3",
-					"core-api",
-					"signing",
-					"antlr"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"maven",
-					"model-groovy",
-					"plugins-java-library",
-					"build-cache-local",
-					"declarative-dsl-provider",
-					"platform-base"
+					"problems-rendering"
 				]
 			},
 			{
@@ -1116,9 +976,16 @@
 				},
 				"subprojects":[
 					"plugins-java",
-					"file-collections",
-					"testing-native",
-					"ide-plugins"
+					"java-compiler-plugin",
+					"file-temp",
+					"concurrent",
+					"functional",
+					"test-suites-base",
+					"internal-testing",
+					"client-services",
+					"io",
+					"testing-jvm-infrastructure",
+					"cli"
 				]
 			},
 			{
@@ -1127,10 +994,93 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"build-init",
-					"version-control",
-					"ide",
-					"jacoco"
+					"plugin-development",
+					"daemon-protocol",
+					"build-cache-base",
+					"normalization-java",
+					"docs",
+					"stdlib-kotlin-extensions",
+					"build-option",
+					"toolchains-jvm",
+					"execution",
+					"resources-http",
+					"internal-performance-testing"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"composite-builds",
+					"internal-integ-testing",
+					"process-memory-services",
+					"build-cache-spi",
+					"platform-jvm",
+					"resources",
+					"problems",
+					"wrapper-shared",
+					"snapshots",
+					"testing-base-infrastructure",
+					"flow-services"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"workers",
+					"messaging",
+					"publish",
+					"build-profile",
+					"jvm-services",
+					"base-services",
+					"problems-api",
+					"declarative-dsl-core",
+					"plugins-java-base",
+					"build-cache",
+					"plugins-test-report-aggregation"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"logging",
+					"build-configuration",
+					"tooling-native",
+					"testing-base",
+					"instrumentation-agent-services",
+					"public-api-tests",
+					"java-platform",
+					"unit-test-fixtures",
+					"resources-gcs",
+					"war",
+					"build-events"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"maven",
+					"plugins-distribution",
+					"plugins-jvm-test-fixtures",
+					"resources-sftp",
+					"instrumentation-reporting",
+					"ear",
+					"declarative-dsl-tooling-builders",
+					"plugins-version-catalog",
+					"reporting",
+					"build-cache-http",
+					"language-jvm"
 				]
 			},
 			{
@@ -1140,7 +1090,38 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-tooling-builders",
-					"diagnostics",
+					"core-api",
+					"plugins-jvm-test-suite",
+					"persistent-cache",
+					"resources-s3",
+					"plugins-application",
+					"antlr",
+					"signing"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"language-groovy",
+					"model-groovy",
+					"plugins-java-library",
+					"build-cache-local",
+					"testing-native"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"build-init",
+					"declarative-dsl-provider",
+					"platform-base",
+					"file-collections",
 					"platform-native"
 				]
 			},
@@ -1151,8 +1132,9 @@
 				},
 				"subprojects":[
 					"plugins-groovy",
-					"file-watching",
-					"execution-e2e-tests"
+					"ide-plugins",
+					"version-control",
+					"ide"
 				]
 			},
 			{
@@ -1162,8 +1144,9 @@
 				},
 				"subprojects":[
 					"test-kit",
-					"samples",
-					"wrapper-main"
+					"jacoco",
+					"diagnostics",
+					"file-watching"
 				]
 			},
 			{
@@ -1173,8 +1156,8 @@
 				},
 				"subprojects":[
 					"integ-test",
-					"kotlin-dsl",
-					"enterprise"
+					"execution-e2e-tests",
+					"ide-native"
 				]
 			},
 			{
@@ -1183,8 +1166,29 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"ide-native",
-					"ivy"
+					"code-quality",
+					"wrapper-main",
+					"samples"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"scala",
+					"ivy",
+					"kotlin-dsl"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"enterprise"
 				]
 			}
 		],
@@ -1218,8 +1222,8 @@
 					"precondition-tester",
 					"model-groovy",
 					"toolchains-jvm",
-					"resources",
 					"execution",
+					"resources",
 					"resources-http",
 					"internal-performance-testing",
 					"internal-integ-testing",
@@ -1231,17 +1235,17 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"language-java",
+					"language-native",
+					"process-memory-services",
 					"platform-jvm",
 					"build-cache-spi",
-					"process-services",
-					"snapshots",
-					"jvm-services",
 					"testing-base-infrastructure",
+					"jvm-services",
+					"base-services",
 					"publish",
-					"flow-services",
 					"messaging",
-					"base-services"
+					"flow-services",
+					"snapshots"
 				]
 			},
 			{
@@ -1249,35 +1253,17 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
-					"declarative-dsl-core",
-					"problems",
-					"plugins-java-base",
+					"language-java",
 					"build-profile",
+					"problems-api",
+					"plugins-java-base",
+					"problems",
 					"platform-base",
+					"declarative-dsl-core",
 					"plugins-test-report-aggregation",
 					"build-cache",
-					"problems-api",
 					"resources-gcs",
-					"build-configuration"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"launcher",
-					"war",
-					"plugins-jvm-test-fixtures",
-					"public-api-tests",
-					"plugins-distribution",
-					"resources-sftp",
-					"unit-test-fixtures",
-					"ear",
-					"java-platform",
-					"testing-base",
-					"instrumentation-agent-services"
+					"testing-base"
 				]
 			},
 			{
@@ -1286,15 +1272,33 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"build-configuration",
+					"java-platform",
+					"plugins-distribution",
+					"instrumentation-agent-services",
+					"unit-test-fixtures",
+					"resources-sftp",
+					"public-api-tests",
+					"war",
+					"ear",
+					"build-events"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"launcher",
 					"resources-s3",
-					"reporting",
-					"plugins-version-catalog",
-					"build-cache-http",
-					"core-api",
-					"plugins-jvm-test-suite",
-					"build-events",
 					"language-jvm",
 					"instrumentation-reporting",
+					"plugins-jvm-test-suite",
+					"build-cache-http",
+					"plugins-version-catalog",
+					"reporting",
+					"plugins-jvm-test-fixtures",
+					"core-api",
 					"antlr"
 				]
 			},
@@ -1303,15 +1307,26 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"build-init",
+					"kotlin-dsl-integ-tests",
+					"plugins-java-library",
+					"persistent-cache",
 					"signing",
 					"plugins-application",
-					"persistent-cache",
-					"plugins-java-library",
-					"version-control",
 					"build-cache-local",
-					"tooling-api",
 					"ide-native",
+					"version-control"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"build-init",
+					"tooling-api",
+					"ide",
+					"platform-native",
+					"ide-plugins",
 					"jacoco"
 				]
 			},
@@ -1320,37 +1335,11 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"language-native",
-					"platform-native",
-					"ide-plugins",
-					"file-collections",
-					"ide",
-					"diagnostics",
-					"declarative-dsl-provider"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
 					"scala",
-					"execution-e2e-tests",
-					"samples",
-					"testing-native",
-					"integ-test",
-					"language-groovy"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"plugin-development",
+					"declarative-dsl-provider",
+					"diagnostics",
+					"file-collections",
 					"wrapper-main",
-					"file-watching",
-					"ivy",
 					"enterprise"
 				]
 			},
@@ -1359,9 +1348,32 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
+					"plugin-development",
+					"integ-test",
+					"execution-e2e-tests",
+					"language-groovy",
+					"testing-native"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"model-core",
+					"ivy",
+					"samples",
+					"file-watching"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
 					"workers",
-					"kotlin-dsl",
 					"plugins-java",
+					"kotlin-dsl",
 					"plugins-groovy"
 				]
 			},
@@ -1370,10 +1382,9 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"composite-builds",
+					"code-quality",
 					"test-kit",
-					"logging",
-					"maven"
+					"composite-builds"
 				]
 			},
 			{
@@ -1381,8 +1392,8 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"code-quality",
-					"model-core"
+					"maven",
+					"logging"
 				]
 			}
 		],
@@ -1478,7 +1489,7 @@
 					"precondition-tester",
 					"problems",
 					"problems-api",
-					"process-services",
+					"process-memory-services",
 					"public-api-tests",
 					"publish",
 					"reporting",
@@ -1540,17 +1551,17 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"language-java",
+					"testing-jvm",
+					"plugins-java",
+					"logging",
+					"language-groovy",
+					"composite-builds",
+					"code-quality",
 					"precondition-tester",
 					"toolchains-jvm",
 					"execution",
 					"resources",
-					"resources-http",
-					"internal-performance-testing",
-					"internal-integ-testing",
-					"build-cache-spi",
-					"platform-jvm",
-					"wrapper-shared"
+					"resources-http"
 				]
 			},
 			{
@@ -1558,17 +1569,17 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"testing-jvm",
-					"process-services",
+					"language-java",
+					"internal-performance-testing",
+					"internal-integ-testing",
+					"platform-jvm",
+					"process-memory-services",
+					"build-cache-spi",
+					"wrapper-shared",
 					"testing-base-infrastructure",
 					"snapshots",
-					"flow-services",
 					"base-services",
-					"publish",
-					"jvm-services",
-					"messaging",
-					"build-profile",
-					"problems"
+					"publish"
 				]
 			},
 			{
@@ -1577,16 +1588,16 @@
 				},
 				"subprojects":[
 					"language-native",
-					"plugins-java-base",
+					"jvm-services",
+					"flow-services",
+					"messaging",
+					"build-profile",
+					"problems",
 					"problems-api",
-					"plugins-test-report-aggregation",
+					"plugins-java-base",
 					"declarative-dsl-core",
 					"build-cache",
-					"instrumentation-agent-services",
-					"build-configuration",
-					"resources-gcs",
-					"java-platform",
-					"war"
+					"plugins-test-report-aggregation"
 				]
 			},
 			{
@@ -1595,16 +1606,16 @@
 				},
 				"subprojects":[
 					"launcher",
-					"plugins-distribution",
-					"public-api-tests",
-					"resources-s3",
 					"testing-base",
-					"plugins-jvm-test-fixtures",
+					"instrumentation-agent-services",
+					"build-configuration",
+					"war",
+					"java-platform",
 					"unit-test-fixtures",
-					"ear",
 					"resources-sftp",
-					"plugins-version-catalog",
-					"reporting"
+					"plugins-jvm-test-fixtures",
+					"plugins-distribution",
+					"ear"
 				]
 			},
 			{
@@ -1613,16 +1624,16 @@
 				},
 				"subprojects":[
 					"plugin-use",
-					"language-jvm",
-					"build-cache-http",
-					"build-events",
-					"plugins-jvm-test-suite",
-					"core-api",
+					"public-api-tests",
+					"plugins-version-catalog",
+					"resources-gcs",
+					"reporting",
 					"instrumentation-reporting",
-					"signing",
-					"antlr",
-					"model-groovy",
-					"persistent-cache"
+					"plugins-jvm-test-suite",
+					"build-cache-http",
+					"resources-s3",
+					"build-events",
+					"signing"
 				]
 			},
 			{
@@ -1631,33 +1642,16 @@
 				},
 				"subprojects":[
 					"build-init",
+					"language-jvm",
+					"core-api",
+					"model-groovy",
+					"antlr",
+					"persistent-cache",
 					"plugins-java-library",
+					"declarative-dsl-provider",
 					"plugins-application",
 					"build-cache-local",
-					"declarative-dsl-provider",
-					"ide-native",
-					"file-collections",
-					"platform-base",
-					"ide-plugins",
-					"execution-e2e-tests",
-					"jacoco"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"plugin-development",
-					"diagnostics",
-					"version-control",
-					"ide",
-					"platform-native",
-					"wrapper-main",
-					"file-watching",
-					"integ-test",
-					"tooling-api",
-					"samples"
+					"platform-base"
 				]
 			},
 			{
@@ -1666,34 +1660,51 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
+					"ide-plugins",
+					"file-collections",
+					"ide",
+					"ide-native",
+					"diagnostics",
+					"jacoco",
+					"execution-e2e-tests",
+					"version-control",
+					"platform-native",
+					"tooling-api"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"plugin-development",
+					"wrapper-main",
+					"file-watching",
 					"enterprise",
 					"ivy",
+					"integ-test",
+					"samples"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"scala",
 					"kotlin-dsl",
 					"testing-native",
+					"plugins-groovy",
+					"maven"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
 					"test-kit",
-					"plugins-groovy"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"plugins-java",
-					"logging",
-					"language-groovy",
-					"code-quality",
-					"composite-builds"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
 					"model-core",
-					"scala",
-					"maven",
 					"workers"
 				]
 			}
@@ -1732,16 +1743,16 @@
 				},
 				"subprojects":[
 					"language-native",
+					"workers",
+					"testing-native",
+					"plugins-java",
+					"logging",
 					"precondition-tester",
 					"toolchains-jvm",
 					"resources",
 					"execution",
 					"resources-http",
-					"internal-performance-testing",
-					"internal-integ-testing",
-					"file-watching",
-					"process-services",
-					"build-cache-spi"
+					"internal-performance-testing"
 				]
 			},
 			{
@@ -1750,16 +1761,16 @@
 				},
 				"subprojects":[
 					"testing-jvm",
-					"wrapper-shared",
+					"internal-integ-testing",
+					"file-watching",
+					"process-memory-services",
+					"build-cache-spi",
 					"platform-jvm",
+					"wrapper-shared",
 					"testing-base-infrastructure",
-					"problems",
 					"jvm-services",
 					"instrumentation-agent-services",
-					"declarative-dsl-core",
-					"build-profile",
-					"snapshots",
-					"base-services"
+					"declarative-dsl-core"
 				]
 			},
 			{
@@ -1768,16 +1779,16 @@
 				},
 				"subprojects":[
 					"language-java",
+					"build-profile",
+					"problems",
+					"snapshots",
+					"base-services",
 					"messaging",
-					"publish",
 					"flow-services",
+					"publish",
 					"plugins-java-base",
-					"unit-test-fixtures",
-					"public-api-tests",
-					"testing-base",
 					"plugins-test-report-aggregation",
-					"problems-api",
-					"java-platform"
+					"unit-test-fixtures"
 				]
 			},
 			{
@@ -1786,16 +1797,16 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
+					"public-api-tests",
+					"problems-api",
+					"testing-base",
 					"build-configuration",
+					"java-platform",
 					"build-cache",
-					"persistent-cache",
+					"instrumentation-reporting",
 					"plugins-jvm-test-fixtures",
 					"war",
-					"build-events",
-					"plugins-distribution",
-					"instrumentation-reporting",
-					"resources-gcs",
-					"reporting"
+					"build-events"
 				]
 			},
 			{
@@ -1804,16 +1815,16 @@
 				},
 				"subprojects":[
 					"maven",
-					"antlr",
+					"persistent-cache",
+					"resources-gcs",
+					"plugins-distribution",
+					"build-cache-local",
+					"reporting",
+					"ear",
 					"resources-sftp",
 					"plugins-version-catalog",
 					"resources-s3",
-					"ear",
-					"build-cache-local",
-					"language-jvm",
-					"plugins-jvm-test-suite",
-					"build-cache-http",
-					"core-api"
+					"antlr"
 				]
 			},
 			{
@@ -1822,33 +1833,16 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"language-jvm",
+					"core-api",
+					"plugins-jvm-test-suite",
+					"build-cache-http",
 					"wrapper-main",
 					"tooling-api",
-					"signing",
-					"plugins-application",
 					"model-groovy",
-					"plugins-java-library",
-					"jacoco",
-					"file-collections",
+					"plugins-application",
 					"declarative-dsl-provider",
-					"execution-e2e-tests"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"model-core",
-					"platform-base",
-					"version-control",
-					"ide-plugins",
-					"test-kit",
-					"launcher",
-					"ide",
-					"ide-native",
-					"language-groovy",
-					"diagnostics"
+					"plugins-java-library"
 				]
 			},
 			{
@@ -1857,12 +1851,28 @@
 				},
 				"subprojects":[
 					"build-init",
-					"code-quality",
+					"signing",
+					"jacoco",
+					"execution-e2e-tests",
+					"file-collections",
+					"platform-base",
+					"ide-plugins",
+					"test-kit",
+					"launcher"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"model-core",
+					"version-control",
+					"diagnostics",
+					"ide-native",
+					"ide",
 					"samples",
-					"integ-test",
-					"platform-native",
-					"enterprise",
-					"plugins-groovy"
+					"enterprise"
 				]
 			},
 			{
@@ -1871,10 +1881,11 @@
 				},
 				"subprojects":[
 					"composite-builds",
+					"integ-test",
+					"language-groovy",
+					"code-quality",
 					"kotlin-dsl",
-					"scala",
-					"ivy",
-					"plugin-development"
+					"scala"
 				]
 			},
 			{
@@ -1882,10 +1893,10 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"testing-native",
-					"logging",
-					"plugins-java",
-					"workers"
+					"plugin-development",
+					"plugins-groovy",
+					"ivy",
+					"platform-native"
 				]
 			}
 		],
@@ -1896,7 +1907,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":8
+					"numberOfBatches":9
 				},
 				"subprojects":[
 					"dependency-management"
@@ -1953,7 +1964,7 @@
 					"numberOfBatches":2
 				},
 				"subprojects":[
-					"plugins-java"
+					"maven"
 				]
 			},
 			{
@@ -1962,8 +1973,7 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"maven",
-					"gradle-cli",
+					"logging",
 					"precondition-tester",
 					"architecture-test",
 					"docs",
@@ -1972,6 +1982,7 @@
 					"resources-http",
 					"internal-performance-testing",
 					"internal-integ-testing",
+					"public-api-tests",
 					"file-watching"
 				]
 			},
@@ -1982,34 +1993,16 @@
 				},
 				"subprojects":[
 					"build-init",
-					"public-api-tests",
-					"process-services",
-					"testing-base-infrastructure",
-					"build-cache-spi",
+					"process-memory-services",
+					"declarative-dsl-core",
 					"resources",
+					"build-cache-spi",
 					"instrumentation-agent-services",
 					"wrapper-shared",
+					"testing-base-infrastructure",
 					"platform-jvm",
 					"build-profile",
-					"declarative-dsl-core"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"logging",
-					"problems",
-					"jvm-services",
-					"flow-services",
-					"snapshots",
-					"base-services",
-					"unit-test-fixtures",
-					"messaging",
-					"publish",
-					"declarative-dsl-tooling-builders"
+					"jvm-services"
 				]
 			},
 			{
@@ -2019,10 +2012,16 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"problems",
+					"snapshots",
+					"base-services",
+					"messaging",
+					"flow-services",
+					"publish",
+					"unit-test-fixtures",
 					"plugins-java-base",
 					"testing-base",
-					"plugins-test-report-aggregation",
-					"problems-api"
+					"plugins-test-report-aggregation"
 				]
 			},
 			{
@@ -2032,10 +2031,12 @@
 				},
 				"subprojects":[
 					"model-core",
+					"problems-api",
 					"java-platform",
-					"instrumentation-reporting",
+					"persistent-cache",
 					"build-cache",
-					"persistent-cache"
+					"instrumentation-reporting",
+					"build-configuration"
 				]
 			},
 			{
@@ -2045,9 +2046,11 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"build-configuration",
-					"reporting",
-					"plugins-jvm-test-fixtures"
+					"plugins-jvm-test-fixtures",
+					"build-events",
+					"war",
+					"plugins-distribution",
+					"resources-gcs"
 				]
 			},
 			{
@@ -2057,10 +2060,23 @@
 				},
 				"subprojects":[
 					"composite-builds",
-					"build-events",
-					"war",
-					"resources-gcs",
-					"plugins-distribution"
+					"resources-sftp",
+					"plugins-version-catalog",
+					"reporting",
+					"antlr"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"plugins-java",
+					"build-cache-local",
+					"ear",
+					"resources-s3",
+					"language-jvm"
 				]
 			},
 			{
@@ -2070,11 +2086,9 @@
 				},
 				"subprojects":[
 					"workers",
-					"resources-sftp",
-					"plugins-version-catalog",
-					"antlr",
-					"build-cache-local",
-					"ear"
+					"plugins-jvm-test-suite",
+					"build-cache-http",
+					"signing"
 				]
 			},
 			{
@@ -2085,10 +2099,9 @@
 				"subprojects":[
 					"plugin-development",
 					"plugins-application",
-					"build-cache-http",
-					"resources-s3",
-					"plugins-jvm-test-suite",
-					"language-jvm"
+					"core-api",
+					"wrapper-main",
+					"tooling-api"
 				]
 			},
 			{
@@ -2098,19 +2111,6 @@
 				},
 				"subprojects":[
 					"plugins-groovy",
-					"signing",
-					"core-api",
-					"tooling-api",
-					"wrapper-main"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"language-groovy",
 					"model-groovy",
 					"plugins-java-library",
 					"declarative-dsl-provider"
@@ -2122,10 +2122,10 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"ivy",
+					"language-groovy",
 					"jacoco",
-					"file-collections",
-					"testing-native"
+					"testing-native",
+					"file-collections"
 				]
 			},
 			{
@@ -2134,19 +2134,8 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"scala",
-					"platform-base",
-					"execution-e2e-tests"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"kotlin-dsl",
-					"test-kit",
+					"ivy",
+					"execution-e2e-tests",
 					"version-control"
 				]
 			},
@@ -2156,9 +2145,9 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"samples",
-					"ide-plugins",
-					"ide"
+					"scala",
+					"test-kit",
+					"platform-base"
 				]
 			},
 			{
@@ -2168,7 +2157,7 @@
 				},
 				"subprojects":[
 					"integ-test",
-					"ide-native",
+					"ide-plugins",
 					"platform-native"
 				]
 			},
@@ -2178,9 +2167,9 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"code-quality",
-					"launcher",
-					"diagnostics"
+					"kotlin-dsl",
+					"ide-native",
+					"ide"
 				]
 			},
 			{
@@ -2189,7 +2178,19 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"enterprise"
+					"samples",
+					"enterprise",
+					"launcher"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"code-quality",
+					"diagnostics"
 				]
 			}
 		],
@@ -2217,6 +2218,7 @@
 					"precondition-tester",
 					"snapshots",
 					"tooling-native",
+					"testing-native",
 					"platform-native"
 				]
 			},
@@ -2227,7 +2229,6 @@
 				},
 				"subprojects":[
 					"ide-native",
-					"testing-native",
 					"file-watching"
 				]
 			},
@@ -2275,16 +2276,16 @@
 				},
 				"subprojects":[
 					"launcher",
-					"public-api-tests",
+					"plugins-java",
+					"model-core",
+					"maven",
+					"language-groovy",
+					"enterprise",
 					"precondition-tester",
+					"public-api-tests",
 					"toolchains-jvm",
-					"resources",
 					"execution",
-					"resources-http",
-					"internal-performance-testing",
-					"unit-test-fixtures",
-					"wrapper-shared",
-					"build-cache-spi"
+					"resources"
 				]
 			},
 			{
@@ -2293,16 +2294,16 @@
 				},
 				"subprojects":[
 					"testing-jvm",
+					"resources-http",
+					"internal-performance-testing",
+					"unit-test-fixtures",
+					"build-cache-spi",
 					"platform-jvm",
-					"snapshots",
-					"internal-integ-testing",
-					"jvm-services",
-					"process-services",
+					"wrapper-shared",
+					"process-memory-services",
 					"flow-services",
-					"publish",
-					"base-services",
-					"build-cache",
-					"testing-base-infrastructure"
+					"snapshots",
+					"publish"
 				]
 			},
 			{
@@ -2311,16 +2312,16 @@
 				},
 				"subprojects":[
 					"plugin-use",
-					"plugins-java-base",
-					"wrapper-main",
-					"problems-api",
-					"build-configuration",
+					"internal-integ-testing",
+					"jvm-services",
+					"testing-base-infrastructure",
+					"base-services",
 					"messaging",
-					"war",
-					"build-profile",
-					"ear",
-					"java-platform",
-					"resources-gcs"
+					"build-cache",
+					"wrapper-main",
+					"plugins-java-base",
+					"problems-api",
+					"war"
 				]
 			},
 			{
@@ -2329,15 +2330,15 @@
 				},
 				"subprojects":[
 					"scala",
-					"build-cache-local",
-					"declarative-dsl-core",
-					"problems",
+					"build-configuration",
+					"build-profile",
+					"plugins-distribution",
+					"ear",
+					"resources-gcs",
+					"java-platform",
 					"resources-s3",
 					"instrumentation-agent-services",
-					"build-cache-http",
-					"plugins-distribution",
-					"core-api",
-					"plugins-version-catalog",
+					"build-cache-local",
 					"testing-base"
 				]
 			},
@@ -2346,17 +2347,35 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"code-quality",
-					"plugins-test-report-aggregation",
-					"resources-sftp",
-					"plugins-jvm-test-suite",
+					"language-native",
+					"declarative-dsl-core",
+					"problems",
+					"build-cache-http",
 					"model-groovy",
-					"plugins-jvm-test-fixtures",
+					"plugins-test-report-aggregation",
+					"plugins-version-catalog",
+					"resources-sftp",
 					"build-events",
+					"core-api",
+					"plugins-jvm-test-fixtures"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"kotlin-dsl-integ-tests",
+					"signing",
+					"plugins-jvm-test-suite",
 					"reporting",
-					"diagnostics",
 					"plugins-application",
-					"ide-native"
+					"platform-base",
+					"language-jvm",
+					"ide",
+					"ide-plugins",
+					"diagnostics",
+					"instrumentation-reporting"
 				]
 			},
 			{
@@ -2366,43 +2385,24 @@
 				"subprojects":[
 					"language-java",
 					"plugins-java-library",
-					"platform-base",
-					"instrumentation-reporting",
+					"ide-native",
 					"antlr",
-					"language-jvm",
-					"ide",
-					"signing",
-					"ide-plugins",
 					"persistent-cache",
-					"file-collections"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"language-native",
-					"integ-test",
-					"declarative-dsl-provider",
-					"platform-native",
-					"version-control",
+					"file-collections",
 					"test-kit",
+					"platform-native"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"code-quality",
 					"tooling-api",
-					"jacoco"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"kotlin-dsl-integ-tests",
-					"ivy",
-					"execution-e2e-tests",
-					"file-watching",
 					"samples",
-					"testing-native"
+					"testing-native",
+					"execution-e2e-tests"
 				]
 			},
 			{
@@ -2410,22 +2410,12 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"model-core",
-					"plugins-java",
-					"enterprise",
-					"maven",
-					"language-groovy"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"workers",
-					"plugin-development",
-					"kotlin-dsl",
-					"logging"
+					"composite-builds",
+					"version-control",
+					"ivy",
+					"file-watching",
+					"jacoco",
+					"declarative-dsl-provider"
 				]
 			},
 			{
@@ -2434,8 +2424,19 @@
 				},
 				"subprojects":[
 					"build-init",
-					"composite-builds",
-					"plugins-groovy"
+					"integ-test",
+					"plugin-development",
+					"kotlin-dsl"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"workers",
+					"plugins-groovy",
+					"logging"
 				]
 			}
 		],
@@ -2456,7 +2457,7 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"language-groovy"
+					"testing-jvm"
 				]
 			},
 			{
@@ -2464,7 +2465,7 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"testing-jvm"
+					"test-kit"
 				]
 			},
 			{
@@ -2480,15 +2481,7 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"scala"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TestDistribution"
-				},
-				"subprojects":[
-					"test-kit",
+					"scala",
 					"wrapper-shared",
 					"wrapper-main",
 					"workers",
@@ -2507,6 +2500,24 @@
 				},
 				"subprojects":[
 					"testing-native",
+					"snapshots",
+					"signing",
+					"samples",
+					"resources-sftp",
+					"resources-s3",
+					"resources-http",
+					"resources-gcs",
+					"resources",
+					"reporting",
+					"publish"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TestDistribution"
+				},
+				"subprojects":[
+					"language-groovy",
 					"platform-native",
 					"ide-native",
 					"jacoco",
@@ -2573,18 +2584,8 @@
 					"precondition-tester",
 					"problems",
 					"problems-api",
-					"process-services",
-					"public-api-tests",
-					"publish",
-					"reporting",
-					"resources",
-					"resources-gcs",
-					"resources-http",
-					"resources-s3",
-					"resources-sftp",
-					"samples",
-					"signing",
-					"snapshots"
+					"process-memory-services",
+					"public-api-tests"
 				]
 			}
 		],
@@ -2595,16 +2596,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":3
-				},
-				"subprojects":[
-					"dependency-management"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":3
+					"numberOfBatches":4
 				},
 				"subprojects":[
 					"testing-jvm"
@@ -2613,19 +2605,19 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":2
+					"numberOfBatches":3
 				},
 				"subprojects":[
-					"language-native"
+					"test-kit"
 				]
 			},
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":2
+					"numberOfBatches":3
 				},
 				"subprojects":[
-					"language-groovy"
+					"language-native"
 				]
 			},
 			{
@@ -2643,36 +2635,17 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"test-kit",
+					"scala",
 					"wrapper-shared",
 					"wrapper-main",
 					"workers",
 					"war",
 					"version-control",
+					"unit-test-fixtures",
 					"tooling-api",
 					"toolchains-jvm",
-					"testing-base",
-					"snapshots",
-					"signing"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"scala",
-					"samples",
-					"resources-sftp",
-					"resources-s3",
-					"resources-http",
-					"resources-gcs",
-					"resources",
-					"publish",
-					"process-services",
-					"problems-api",
-					"problems"
+					"testing-base-infrastructure",
+					"testing-base"
 				]
 			},
 			{
@@ -2682,23 +2655,34 @@
 				},
 				"subprojects":[
 					"ide-native",
+					"snapshots",
+					"signing",
+					"samples",
+					"resources-sftp",
+					"resources-s3",
+					"resources-http",
+					"resources-gcs",
+					"resources",
+					"reporting",
+					"publish"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"language-groovy",
 					"platform-native",
 					"testing-native",
 					"jacoco",
 					"launcher",
-					"plugins-application",
-					"reporting",
-					"declarative-dsl-tooling-builders",
-					"instrumentation-agent-services",
-					"testing-base-infrastructure",
-					"flow-services",
-					"unit-test-fixtures",
 					"plugins-java",
-					"architecture-test",
 					"precondition-tester",
-					"docs",
-					"gradle-cli",
 					"public-api-tests",
+					"architecture-test",
+					"docs",
 					"antlr",
 					"base-services",
 					"build-cache",
@@ -2715,6 +2699,7 @@
 					"core-api",
 					"declarative-dsl-core",
 					"declarative-dsl-provider",
+					"dependency-management",
 					"diagnostics",
 					"ear",
 					"enterprise",
@@ -2722,8 +2707,10 @@
 					"execution-e2e-tests",
 					"file-collections",
 					"file-watching",
+					"flow-services",
 					"ide",
 					"ide-plugins",
+					"instrumentation-agent-services",
 					"instrumentation-reporting",
 					"integ-test",
 					"internal-integ-testing",
@@ -2745,6 +2732,7 @@
 					"platform-jvm",
 					"plugin-development",
 					"plugin-use",
+					"plugins-application",
 					"plugins-distribution",
 					"plugins-groovy",
 					"plugins-java-base",
@@ -2752,7 +2740,10 @@
 					"plugins-jvm-test-fixtures",
 					"plugins-jvm-test-suite",
 					"plugins-test-report-aggregation",
-					"plugins-version-catalog"
+					"plugins-version-catalog",
+					"problems",
+					"problems-api",
+					"process-memory-services"
 				]
 			}
 		],
@@ -2763,7 +2754,7 @@
 			{
 				"parallelizationMethod":{
 					"name":"TeamCityParallelTests",
-					"numberOfBatches":4
+					"numberOfBatches":3
 				},
 				"subprojects":[
 					"dependency-management"
@@ -2775,6 +2766,15 @@
 					"numberOfBatches":3
 				},
 				"subprojects":[
+					"configuration-cache"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":2
+				},
+				"subprojects":[
 					"core"
 				]
 			},
@@ -2784,26 +2784,7 @@
 					"numberOfBatches":2
 				},
 				"subprojects":[
-					"configuration-cache"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"tooling-api",
-					"tooling-native",
-					"stdlib-java-extensions",
-					"input-tracking",
-					"build-state",
-					"base-ide-plugins",
-					"time",
-					"logging-api",
-					"kotlin-dsl-plugins",
-					"serialization",
-					"toolchains-jvm-shared"
+					"tooling-api"
 				]
 			},
 			{
@@ -2813,12 +2794,31 @@
 				},
 				"subprojects":[
 					"testing-jvm",
+					"tooling-native",
+					"build-state",
+					"time",
+					"logging-api",
+					"kotlin-dsl-plugins",
+					"serialization",
+					"toolchains-jvm-shared",
 					"build-process-services",
 					"docs-asciidoctor-extensions-base",
-					"internal-instrumentation-processor",
+					"internal-instrumentation-processor"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"language-java",
 					"security",
+					"input-tracking",
 					"service-registry-impl",
 					"configuration-cache-base",
+					"base-ide-plugins",
+					"stdlib-java-extensions",
 					"files",
 					"gradle-cli",
 					"build-cache-packaging",
@@ -2831,7 +2831,7 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"language-java",
+					"launcher",
 					"build-cache-example-client",
 					"precondition-tester",
 					"tooling-api-builders",
@@ -2850,7 +2850,8 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"launcher",
+					"kotlin-dsl-tooling-builders",
+					"problems-rendering",
 					"architecture-test",
 					"java-compiler-plugin",
 					"file-temp",
@@ -2859,27 +2860,7 @@
 					"test-suites-base",
 					"internal-testing",
 					"client-services",
-					"io",
-					"testing-jvm-infrastructure"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"composite-builds",
-					"cli",
-					"daemon-protocol",
-					"build-cache-base",
-					"normalization-java",
-					"docs",
-					"stdlib-kotlin-extensions",
-					"build-option",
-					"toolchains-jvm",
-					"execution",
-					"resources-http"
+					"io"
 				]
 			},
 			{
@@ -2889,16 +2870,35 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"testing-jvm-infrastructure",
+					"cli",
+					"daemon-protocol",
+					"build-cache-base",
+					"normalization-java",
+					"docs",
+					"stdlib-kotlin-extensions",
+					"build-option",
+					"toolchains-jvm",
+					"execution"
+				]
+			},
+			{
+				"parallelizationMethod":{
+					"name":"TeamCityParallelTests",
+					"numberOfBatches":1
+				},
+				"subprojects":[
+					"language-native",
+					"resources-http",
 					"resources",
-					"plugins-java-base",
 					"internal-performance-testing",
 					"internal-integ-testing",
 					"build-cache-spi",
-					"public-api-tests",
 					"platform-jvm",
+					"process-memory-services",
+					"public-api-tests",
 					"testing-base-infrastructure",
-					"process-services",
-					"flow-services"
+					"wrapper-shared"
 				]
 			},
 			{
@@ -2907,36 +2907,17 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"scala",
-					"snapshots",
-					"unit-test-fixtures",
-					"declarative-dsl-core",
-					"wrapper-shared",
+					"composite-builds",
 					"problems",
+					"build-profile",
+					"flow-services",
+					"snapshots",
 					"messaging",
+					"jvm-services",
 					"base-services",
 					"publish",
-					"build-profile",
-					"jvm-services"
-				]
-			},
-			{
-				"parallelizationMethod":{
-					"name":"TeamCityParallelTests",
-					"numberOfBatches":1
-				},
-				"subprojects":[
-					"kotlin-dsl-tooling-builders",
 					"problems-api",
-					"instrumentation-agent-services",
-					"ide-native",
-					"build-cache",
-					"build-configuration",
-					"plugins-test-report-aggregation",
-					"testing-native",
-					"testing-base",
-					"java-platform",
-					"plugins-distribution"
+					"build-cache"
 				]
 			},
 			{
@@ -2946,16 +2927,16 @@
 				},
 				"subprojects":[
 					"build-init",
-					"platform-native",
-					"ear",
-					"war",
-					"build-events",
-					"resources-gcs",
-					"plugins-version-catalog",
-					"resources-sftp",
-					"plugins-jvm-test-fixtures",
-					"language-jvm",
-					"resources-s3"
+					"ide-native",
+					"declarative-dsl-core",
+					"plugins-java-base",
+					"plugins-test-report-aggregation",
+					"testing-base",
+					"instrumentation-agent-services",
+					"plugins-distribution",
+					"java-platform",
+					"build-configuration",
+					"war"
 				]
 			},
 			{
@@ -2965,16 +2946,16 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"build-cache-http",
-					"instrumentation-reporting",
+					"unit-test-fixtures",
+					"platform-native",
+					"resources-gcs",
 					"declarative-dsl-tooling-builders",
-					"signing",
-					"reporting",
-					"plugins-jvm-test-suite",
-					"core-api",
-					"language-native",
-					"antlr",
-					"plugins-java-library"
+					"ear",
+					"plugins-jvm-test-fixtures",
+					"resources-sftp",
+					"resources-s3",
+					"plugins-version-catalog",
+					"build-events"
 				]
 			},
 			{
@@ -2983,36 +2964,47 @@
 					"numberOfBatches":1
 				},
 				"subprojects":[
-					"code-quality",
-					"language-groovy",
+					"scala",
 					"model-core",
-					"plugin-development",
-					"logging",
-					"maven",
 					"workers",
+					"maven",
+					"logging",
 					"plugins-java",
+					"plugin-development",
+					"language-groovy",
 					"plugins-groovy",
+					"code-quality",
 					"test-kit",
 					"integ-test",
 					"kotlin-dsl",
 					"ivy",
+					"enterprise",
 					"wrapper-main",
 					"samples",
-					"enterprise",
 					"file-watching",
+					"testing-native",
 					"execution-e2e-tests",
-					"ide-plugins",
-					"version-control",
-					"diagnostics",
 					"ide",
+					"diagnostics",
 					"jacoco",
-					"file-collections",
+					"version-control",
+					"ide-plugins",
 					"platform-base",
+					"file-collections",
 					"persistent-cache",
+					"plugins-application",
 					"build-cache-local",
 					"declarative-dsl-provider",
-					"plugins-application",
-					"model-groovy"
+					"antlr",
+					"plugins-java-library",
+					"signing",
+					"core-api",
+					"plugins-jvm-test-suite",
+					"model-groovy",
+					"language-jvm",
+					"reporting",
+					"instrumentation-reporting",
+					"build-cache-http"
 				]
 			}
 		],
