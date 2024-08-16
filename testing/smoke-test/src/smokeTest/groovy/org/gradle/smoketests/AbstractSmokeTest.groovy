@@ -141,7 +141,7 @@ abstract class AbstractSmokeTest extends Specification {
         static micronaut = "4.3.6"
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
-        static gradleGitProperties = Versions.of("2.4.1")
+        static gradleGitProperties = Versions.of("2.4.2")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
         static flyway = Versions.of("10.11.0")
