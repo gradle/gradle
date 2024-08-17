@@ -95,8 +95,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         target(new Intel32Architecture());
         target(new Intel64Architecture());
-        target(new OsxArm64Architecture());
-        target(new LinuxArm64Architecture());
+        target(new Arm64Architecture());
         configInsertLocation = 0;
     }
 
@@ -330,43 +329,24 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static class OsxArm64Architecture implements TargetPlatformConfiguration {
+    private static class Arm64Architecture implements TargetPlatformConfiguration {
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
-                && targetPlatform.getOperatingSystem().isMacOsX()
+					&& (targetPlatform.getOperatingSystem().isMacOsX()
+						|| targetPlatform.getOperatingSystem().isLinux())
                 && targetPlatform.getArchitecture().isArm();
         }
 
         @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            final String[] compilerArgs = new String[]{"-arch", "arm64"};
-            Action<List<String>> architectureArgs = new Action<List<String>>() {
-                @Override
-                public void execute(List<String> args) {
-                    args.addAll(Arrays.asList(compilerArgs));
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(architectureArgs);
-            gccToolChain.getcCompiler().withArguments(architectureArgs);
-            gccToolChain.getObjcCompiler().withArguments(architectureArgs);
-            gccToolChain.getObjcppCompiler().withArguments(architectureArgs);
-            gccToolChain.getLinker().withArguments(architectureArgs);
-            gccToolChain.getAssembler().withArguments(architectureArgs);
-        }
-    }
-
-    private static class LinuxArm64Architecture implements TargetPlatformConfiguration {
-        @Override
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent()
-                && targetPlatform.getOperatingSystem().isLinux()
-                && targetPlatform.getArchitecture().isArm();
-        }
-
-        @Override
-        public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            final String[] compilerArgs = new String[]{"-march=native"};
+            boolean isMacOsX = gccToolChain.getPlatform().getOperatingSystem().isMacOsX();
+            String[] compilerArgs;
+			if (isMacOsX) {
+				compilerArgs= new String[]{"-arch", "arm64"};
+			} else {
+				compilerArgs = new String[]{"-march=native"};
+			}
             Action<List<String>> architectureArgs = new Action<List<String>>() {
                 @Override
                 public void execute(List<String> args) {
