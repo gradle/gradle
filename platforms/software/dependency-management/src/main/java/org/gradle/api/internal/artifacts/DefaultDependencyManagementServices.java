@@ -91,6 +91,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFact
 import org.gradle.api.internal.artifacts.transform.DefaultVariantSelectorFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.IsolatingTransformFinder;
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
@@ -290,6 +291,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
             registration.add(DefaultVariantSelectorFactory.class);
+            registration.add(IsolatingTransformFinder.class);
             registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultComponentSelectorConverter.class);
             registration.add(DefaultArtifactResolutionQueryFactory.class);

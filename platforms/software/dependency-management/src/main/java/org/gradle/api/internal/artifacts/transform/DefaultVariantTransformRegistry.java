@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -47,6 +48,8 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings("unchecked")
     private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+
+    private ImmutableList<TransformRegistration> registrationSnapshot;
 
     public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
         this.instantiatorFactory = instantiatorFactory;
@@ -97,6 +100,9 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             validateAttributes(registration);
             TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
             registrations.add(finalizedRegistration);
+
+            // TODO: Warn/throw if registrationSnapshot is non-null and registrations have already been read.
+            registrationSnapshot = null;
         } catch (Exception e) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not register artifact transform ");
@@ -129,8 +135,11 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public List<TransformRegistration> getRegistrations() {
-        return registrations;
+    public ImmutableList<TransformRegistration> getRegistrations() {
+        if (registrationSnapshot == null) {
+            registrationSnapshot = ImmutableList.copyOf(registrations);
+        }
+        return registrationSnapshot;
     }
 
     public static abstract class RecordingRegistration {

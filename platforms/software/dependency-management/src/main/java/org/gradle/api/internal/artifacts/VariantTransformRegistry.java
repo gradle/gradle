@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -32,5 +33,5 @@ public interface VariantTransformRegistry {
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
-    List<TransformRegistration> getRegistrations();
+    ImmutableList<TransformRegistration> getRegistrations();
 }

@@ -39,6 +39,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     private final VariantTransformRegistry transformRegistry;
     private final ImmutableAttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
+    private final IsolatingTransformFinder transformFinder;
     private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
     private final DomainObjectContext domainObjectContext;
@@ -50,6 +51,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         VariantTransformRegistry transformRegistry,
         ImmutableAttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
+        IsolatingTransformFinder transformFinder,
         TransformedVariantFactory transformedVariantFactory,
         ResolutionFailureHandler failureProcessor,
         DomainObjectContext domainObjectContext,
@@ -59,6 +61,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         this.transformRegistry = transformRegistry;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
+        this.transformFinder = transformFinder;
         this.transformedVariantFactory = transformedVariantFactory;
         this.failureProcessor = failureProcessor;
         this.domainObjectContext = domainObjectContext;
@@ -95,6 +98,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
             transformRegistry,
             attributesFactory,
             attributeSchemaServices,
+            transformFinder,
             transformedVariantFactory,
             failureProcessor
         );

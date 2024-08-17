@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.dm
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -410,7 +411,7 @@ object EmptyVariantTransformRegistry : VariantTransformRegistry {
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun getRegistrations(): MutableList<TransformRegistration> {
+    override fun getRegistrations(): ImmutableList<TransformRegistration> {
         throw UnsupportedOperationException("Should not be called")
     }
 }

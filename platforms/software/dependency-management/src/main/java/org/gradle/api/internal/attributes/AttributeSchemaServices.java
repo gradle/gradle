@@ -27,9 +27,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * A collection of services for creating and working with immutable attribute schemas.
@@ -41,8 +41,7 @@ public class AttributeSchemaServices {
     private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
 
     private final ConcurrentIdentityCache<ImmutableAttributesSchema, AttributeMatcher> matchers = new ConcurrentIdentityCache<>();
-
-    private final Map<AttributeMatcher, ConsumerProvidedVariantFinder> transformers = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<AttributeMatcher, ConsumerProvidedVariantFinder> transformers = new ConcurrentHashMap<>();
 
     @Inject
     public AttributeSchemaServices(
@@ -85,6 +84,40 @@ public class AttributeSchemaServices {
         return transformers.computeIfAbsent(matcher, m ->
             new ConsumerProvidedVariantFinder(m, attributesFactory)
         );
+    }
+
+    /**
+     * A concurrent cache that bypasses the equals and hashcode methods of the key.
+     * Should be used only with keys that are known to be interned.
+     * <p>
+     * This is likely a more performant alternative to {@code Collections.synchronizedMap(new IdentityHashMap<>())}.
+     */
+    private static class ConcurrentIdentityCache<K, V> {
+        private final Map<IdentityKey<K>, V> map = new ConcurrentHashMap<>();
+
+        public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+            return map.computeIfAbsent(new IdentityKey<>(key), k -> mappingFunction.apply(key));
+        }
+    }
+
+    private static class IdentityKey<T> {
+
+        private final T value;
+
+        IdentityKey(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof IdentityKey && ((IdentityKey<?>) obj).value == value;
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(value);
+        }
+
     }
 
 }
