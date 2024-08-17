@@ -853,7 +853,7 @@ The core Gradle tool chains are able to target the following architectures out o
 | x86, x86_64, arm64 (macOS & linux Only)
 
 | Clang
-| x86, x86_64, arm64 (macOS only)
+| x86, x86_64, arm64 (macOS & linux only)
 
 | Visual C++
 | x86, x86_64, ia-64
