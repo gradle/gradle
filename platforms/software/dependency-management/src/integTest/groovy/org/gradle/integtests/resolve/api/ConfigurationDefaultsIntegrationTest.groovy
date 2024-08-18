@@ -317,7 +317,6 @@ conf.withDependencies { incoming ->
 }
 
 def confCopy = conf.copyRecursive()
-configurations.add(confCopy)
 
 conf.incoming.beforeResolve { incoming ->
     calls << "confBeforeResolve"

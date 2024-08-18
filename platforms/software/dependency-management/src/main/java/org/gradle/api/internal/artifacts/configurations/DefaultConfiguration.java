@@ -1255,20 +1255,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * will be not only a different instance, but also may return different deprecation values.
      */
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        // Begin by allowing everything, and setting deprecations for disallowed roles in a new role implementation
-        boolean deprecateConsumption = !canBeConsumed || consumptionDeprecated;
-        boolean deprecateResolution = !canBeResolved || resolutionDeprecated;
-        boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationDeprecated;
-        ConfigurationRole adjustedCurrentUsage = new DefaultConfigurationRole(
-            "adjusted current usage with deprecations",
-            true, true, true,
-            deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst
-        );
-
-
-        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage);
-        // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
-        // copying extendsFrom could mess up dependencies when copy was re-resolved
+        DefaultConfiguration copiedConfiguration = copyAsDetached();
 
         copiedConfiguration.visible = visible;
         copiedConfiguration.transitive = transitive;
@@ -1308,7 +1295,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return copiedConfiguration;
     }
 
-    private DefaultConfiguration newConfiguration(ConfigurationRole role) {
+    private DefaultConfiguration copyAsDetached() {
         String newName = getNameWithCopySuffix();
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
 
@@ -1316,12 +1303,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.newBuilder(componentIdentity, configurationsProvider);
 
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
+
+        @SuppressWarnings("deprecation")
         DefaultConfiguration copiedConfiguration = defaultConfigurationFactory.create(
             newName,
             configurationsProvider,
             childResolutionStrategy,
             rootComponentMetadataBuilder,
-            role
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
