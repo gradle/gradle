@@ -218,8 +218,8 @@ class RecordingVariantSet(
         return EmptySchema.INSTANCE
     }
 
-    override fun getVariants(): Set<ResolvedVariant> {
-        return setOf(this)
+    override fun getVariants(): List<ResolvedVariant> {
+        return listOf(this)
     }
 
     override fun getOverriddenAttributes(): ImmutableAttributes {

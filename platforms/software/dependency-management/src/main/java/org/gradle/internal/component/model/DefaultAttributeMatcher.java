@@ -89,13 +89,19 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return true;
         }
 
-        return requested.keySet().stream().map(schema::tryRehydrate).allMatch(attribute -> {
+        for (Attribute<?> attribute : requested.keySet()) {
+            AttributeValue<?> requestedAttributeValue = requested.findEntry(attribute);
             AttributeValue<?> candidateAttributeValue = candidate.findEntry(attribute.getName());
-            AttributeValue<?> requestedAttributeValue = requested.findEntry(attribute.getName());
 
-            return !candidateAttributeValue.isPresent() || !requestedAttributeValue.isPresent() ||
-                predicate.test(attribute, requestedAttributeValue, candidateAttributeValue);
-        });
+            if (candidateAttributeValue.isPresent()) {
+                Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
+                if (!predicate.test(typedAttribute, requestedAttributeValue, candidateAttributeValue)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
