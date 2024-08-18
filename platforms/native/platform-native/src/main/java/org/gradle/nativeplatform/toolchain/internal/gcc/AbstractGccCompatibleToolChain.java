@@ -333,8 +333,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
-					&& (targetPlatform.getOperatingSystem().isMacOsX()
-						|| targetPlatform.getOperatingSystem().isLinux())
+                    && (targetPlatform.getOperatingSystem().isMacOsX()
+                        || targetPlatform.getOperatingSystem().isLinux())
                 && targetPlatform.getArchitecture().isArm();
         }
 
@@ -342,11 +342,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
             boolean isMacOsX = gccToolChain.getPlatform().getOperatingSystem().isMacOsX();
             String[] compilerArgs;
-			if (isMacOsX) {
-				compilerArgs= new String[]{"-arch", "arm64"};
-			} else {
-				compilerArgs = new String[]{"-march=native"};
-			}
+            if (isMacOsX) {
+                compilerArgs= new String[]{"-arch", "arm64"};
+            } else {
+                compilerArgs = new String[]{"-march=native"};
+            }
             Action<List<String>> architectureArgs = new Action<List<String>>() {
                 @Override
                 public void execute(List<String> args) {
