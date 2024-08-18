@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -30,9 +30,9 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     private final ComponentIdentifier componentIdentifier;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributes selectionAttributes;
-    private final ImmutableSet<ResolvedVariant> variants;
+    private final ImmutableList<ResolvedVariant> variants;
 
-    public DefaultResolvedVariantSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ImmutableSet<ResolvedVariant> variants) {
+    public DefaultResolvedVariantSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ImmutableList<ResolvedVariant> variants) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
@@ -65,7 +65,7 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     }
 
     @Override
-    public ImmutableSet<ResolvedVariant> getVariants() {
+    public ImmutableList<ResolvedVariant> getVariants() {
         return variants;
     }
 }

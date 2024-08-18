@@ -93,7 +93,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         1 * variantSet.getSchema() >> attributesSchema
         1 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
-        2 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [variant, otherVariant]
+        1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [variant, otherVariant]
         2 * attributeMatcher.isMatchingValue(_, _, _) >> true
         0 * consumerProvidedVariantFinder._
     }
