@@ -726,15 +726,15 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Roles should be copied without modification.
+        // This is not desired behavior. Role should be same as detached configuration.
         copy.canBeDeclared
         copy.canBeResolved
         copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
         copy.deprecatedForConsumption
-        copy.deprecatedForResolution
-        copy.deprecatedForDeclarationAgainst
+        !copy.deprecatedForResolution
+        !copy.deprecatedForDeclarationAgainst
 
         where:
         baseRole << [
@@ -758,15 +758,15 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Roles and deprecations should be copied without modification.
+        // This is not desired behavior. Role should be same as detached configuration.
         copy.canBeDeclared
         copy.canBeResolved
         copy.canBeConsumed
         copy.declarationAlternatives == []
         copy.resolutionAlternatives == []
         copy.roleAtCreation.consumptionDeprecated
-        copy.roleAtCreation.resolutionDeprecated
-        copy.roleAtCreation.declarationAgainstDeprecated
+        !copy.roleAtCreation.resolutionDeprecated
+        !copy.roleAtCreation.declarationAgainstDeprecated
     }
 
     def "can copy with spec"() {

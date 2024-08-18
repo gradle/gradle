@@ -35,6 +35,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
@@ -47,6 +48,7 @@ import org.gradle.util.GradleVersion;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -136,6 +138,50 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
+    }
+
+    @Override
+    public boolean add(Configuration o) {
+        DeprecationLogger.deprecateBehaviour("Adding a configuration directly to the configuration container.")
+            .withAdvice("Use a factory method instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "adding_to_configuration_container")
+            .nagUser();
+        return super.add(o);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Configuration> c) {
+        DeprecationLogger.deprecateBehaviour("Adding a collection of configurations directly to the configuration container.")
+            .withAdvice("Use a factory method instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "adding_to_configuration_container")
+            .nagUser();
+        return super.addAll(c);
+    }
+
+    @Override
+    public void addLater(Provider<? extends Configuration> provider) {
+        DeprecationLogger.deprecateBehaviour("Adding a configuration provider directly to the configuration container.")
+            .withAdvice("Use a factory method instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "adding_to_configuration_container")
+            .nagUser();
+        super.addLater(provider);
+    }
+
+    @Override
+    public void addAllLater(Provider<? extends Iterable<Configuration>> provider) {
+        DeprecationLogger.deprecateBehaviour("Adding a provider of configurations directly to the configuration container.")
+            .withAdvice("Use a factory method instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "adding_to_configuration_container")
+            .nagUser();
+        super.addAllLater(provider);
+    }
+
+    private void addInternal(Configuration configuration) {
+        super.add(configuration);
     }
 
     @Override
@@ -363,7 +409,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
         Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
-        add(configuration);
+        addInternal(configuration);
         configureAction.execute(configuration);
         return configuration;
     }
@@ -374,7 +420,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
         NamedDomainObjectProvider<T> configuration = Cast.uncheckedCast(
             getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, this, name, publicType, configureAction, factory));
-        addLater(configuration);
+        doAddLater(configuration);
         return configuration;
     }
 
