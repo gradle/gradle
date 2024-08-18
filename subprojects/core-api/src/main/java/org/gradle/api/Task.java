@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import groovy.transform.stc.ClosureParams;
-import groovy.transform.stc.FromString;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
