@@ -190,6 +190,6 @@ By comparing these attributes with those of the `app`, we can see how Gradle use
 Artifact resolution takes the resolved graph and repository definitions as input and produces a set of files as output.
 
 [.text-right]
-**Next Step:** <<dependency_resolution_adv.adoc#understanding_dependency_resolution,Learn about Dependency Resolution>> >>
+**Next Step:** <<variant_aware_resolution.adoc#variant_aware_resolution,Learn about Variant Aware Dependency Resolution>> >>
 
 
