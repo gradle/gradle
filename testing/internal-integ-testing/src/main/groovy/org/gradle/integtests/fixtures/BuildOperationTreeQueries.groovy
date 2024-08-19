@@ -22,7 +22,10 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.BuildOperationTypes
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.intellij.lang.annotations.Language
 
+import javax.annotation.Nonnull
+import javax.annotation.Nullable
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
@@ -50,14 +53,17 @@ abstract class BuildOperationTreeQueries {
         return records.first()
     }
 
+    @Nullable
     BuildOperationRecord first(String displayName) {
         firstMatchingRegex(Pattern.quote(displayName))
     }
 
-    BuildOperationRecord firstMatchingRegex(String regex) {
+    @Nullable
+    BuildOperationRecord firstMatchingRegex(@Language('regexp') String regex) {
         first(Pattern.compile(regex))
     }
 
+    @Nullable
     abstract BuildOperationRecord first(Pattern displayName)
 
     abstract List<BuildOperationRecord> all();
@@ -68,10 +74,12 @@ abstract class BuildOperationTreeQueries {
 
     abstract List<BuildOperationRecord> all(Pattern displayName)
 
+    @Nonnull
     BuildOperationRecord only(String displayName) {
         return only(Pattern.compile(Pattern.quote(displayName)))
     }
 
+    @Nonnull
     abstract BuildOperationRecord only(Pattern displayName)
 
     abstract List<BuildOperationRecord> parentsOf(BuildOperationRecord child)
