@@ -55,13 +55,13 @@ abstract class AbstractSmokeTest extends Specification {
         static bnd = "7.0.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
-        static nebulaDependencyRecommender = "12.4.0"
+        static nebulaDependencyRecommender = "12.5.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
         static nebulaPluginPlugin = "20.11.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.lint
-        static nebulaLint = "19.0.1"
+        static nebulaLint = "19.0.3"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1.8"
@@ -70,28 +70,28 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyLock = Versions.of("15.1.0")
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
-        static nebulaResolutionRules = "11.2.0"
+        static nebulaResolutionRules = "11.3.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = "8.1.1"
 
         // https://plugins.gradle.org/plugin/io.github.goooler.shadow
-        static shadowFork = "8.1.7"
+        static shadowFork = "8.1.8"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
-        static asciidoctor = Versions.of("3.3.2", "4.0.2")
+        static asciidoctor = Versions.of("3.3.2", "4.0.3")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "6.0.10"
+        static spotbugs = "6.0.20"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "9.4.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.1.4"
+        static springDependencyManagement = "1.1.6"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "3.2.4"
+        static springBoot = "3.3.2"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "34.0.0"
@@ -106,8 +106,8 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.1.2", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8, javaMaxVersion: JavaVersion.VERSION_20],
-            [version: "4.1.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: "3.1.4", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8, javaMaxVersion: JavaVersion.VERSION_20],
+            [version: "4.1.5", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
@@ -126,10 +126,10 @@ abstract class AbstractSmokeTest extends Specification {
         static protobufPlugin = "0.9.4"
 
         // https://central.sonatype.com/artifact/com.google.protobuf/protobuf-java/versions
-        static protobufTools = "4.26.1"
+        static protobufTools = "4.27.3"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.5.8"
+        static testRetryPlugin = "1.5.10"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
         static aspectj = "8.6"
@@ -138,13 +138,13 @@ abstract class AbstractSmokeTest extends Specification {
         static undercouchDownload = Versions.of("5.6.0")
 
         // https://github.com/micronaut-projects/micronaut-gradle-plugin/releases
-        static micronaut = "4.3.6"
+        static micronaut = "4.4.2"
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
-        static gradleGitProperties = Versions.of("2.4.1")
+        static gradleGitProperties = Versions.of("2.4.2")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
-        static flyway = Versions.of("10.11.0")
+        static flyway = Versions.of("10.17.1")
 
         // https://plugins.gradle.org/plugin/net.ltgt.apt
         static apt = Versions.of("0.21")
@@ -156,7 +156,7 @@ abstract class AbstractSmokeTest extends Specification {
         static spotless = Versions.of("6.25.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
-        static jib = Versions.of("3.4.2")
+        static jib = Versions.of("3.4.3")
 
         // https://plugins.gradle.org/plugin/io.freefair.lombok
         static lombok = Versions.of("8.6")
@@ -168,7 +168,7 @@ abstract class AbstractSmokeTest extends Specification {
         static newNode = Versions.of("7.0.2")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("12.1.0")
+        static ktlint = Versions.of("12.1.1")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint-idea
         static ktlintIdea = Versions.of("11.6.1")
@@ -183,10 +183,10 @@ abstract class AbstractSmokeTest extends Specification {
         static jenkinsJpi = Versions.of("0.50.0")
 
         // https://mvnrepository.com/artifact/com.guardsquare/proguard-gradle
-        static proguardGradle = "7.4.2"
+        static proguardGradle = "7.5.0"
 
         // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
-        static palantirConsistentVersions = "2.22.0"
+        static palantirConsistentVersions = "2.23.0"
 
         // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
         static teamCityGradlePluginRef = "v0.35"
