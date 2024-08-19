@@ -12,7 +12,6 @@ errorprone {
         "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType", // 5 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
     )
 }
 
