@@ -100,7 +100,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         });
     }
 
-    // Temporary workaround to make incremental sync work. IDEA is requires to execute `help` task
+    // Temporary workaround to make incremental sync work. IDEA requires to execute `help` task
     // to prevent default tasks be executed during sync. This is forcing all projects configuration.
     // Must be removed as soon as IDEA will use appropriate API for avoiding any tasks to be executed.
     private Boolean isEligibleToRunTasks() {
