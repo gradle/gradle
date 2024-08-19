@@ -28,7 +28,7 @@ class HelpTest extends AbstractProjectBuilderSpec {
 
     def "gives decent error message for unknown tasks"() {
         when:
-        helpTask.setTaskPath("notexisting")
+        helpTask.getTaskPath().set("notexisting")
         helpTask.displayHelp()
         then:
         def e = thrown(TaskSelectionException)

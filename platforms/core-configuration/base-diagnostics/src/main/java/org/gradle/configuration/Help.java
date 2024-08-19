@@ -20,6 +20,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.execution.selection.BuildTaskSelector;
@@ -36,18 +38,17 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class Help extends DefaultTask {
-    private final Property<String> taskPath = getObjectFactory().property(String.class);
-
-    private final Property<TaskDetailsModel> taskModel = getObjectFactory().property(TaskDetailsModel.class).convention(taskPath.map(this::mapFromTaskPath));
+    private final Property<TaskDetailsModel> taskModel = getObjectFactory().property(TaskDetailsModel.class).convention(getTaskPath().map(this::mapFromTaskPath));
 
     public Help() {
         // optimization: so value does not need to be recomputed during execution
         taskModel.finalizeValueOnRead();
     }
 
-    private Property<String> getTaskPath() {
-        return taskPath;
-    }
+    @Input
+    @Optional
+    @Option(option = "task", description = "The task to show help for.")
+    public abstract Property<String> getTaskPath();
 
     @Inject
     protected ObjectFactory getObjectFactory() {
@@ -147,11 +148,6 @@ public abstract class Help extends DefaultTask {
         output.text("For troubleshooting, visit ");
         output.withStyle(UserInput).text("https://help.gradle.org");
         output.println();
-    }
-
-    @Option(option = "task", description = "The task to show help for.")
-    public void setTaskPath(String taskPath) {
-        this.getTaskPath().set(taskPath);
     }
 
     private TaskDetailsModel mapFromTaskPath(String taskPath) {
