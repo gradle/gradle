@@ -64,7 +64,7 @@ Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-config
 
 You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
 
-During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
 
 == 4. Centralizing Dependencies
 

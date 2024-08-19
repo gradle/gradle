@@ -90,7 +90,7 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 ====
 The order of declaration determines how Gradle will check for dependencies at runtime.
 If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_.
-You can learn more about the inner workings of <<dependency_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+You can learn more about the inner workings of <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
 ====
 
 === Strict limitation to declared repositories
@@ -150,7 +150,7 @@ These can be declared as local repositories, using a local filesystem path to ac
 
 The difference with the flat directory repository is that they do respect a format and contain metadata.
 
-When such a repository is configured, Gradle totally bypasses its <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>> for it as there can be no guarantee that content may not change between executions.
+When such a repository is configured, Gradle totally bypasses its <<dependency_resolution_adv.adoc#sec:dependency_cache,dependency cache>> for it as there can be no guarantee that content may not change between executions.
 Because of that limitation, they can have a performance impact.
 
 They also make build reproducibility much harder to achieve and their use should be limited to tinkering or prototyping.
@@ -197,7 +197,7 @@ See <<#sec:supported_transport_protocols>> for authentication options.
 Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
 
-NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
+NOTE: Gradle stores resolved dependencies in <<dependency_resolution_adv.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 
 WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
@@ -222,11 +222,11 @@ As a general advice, you should avoid adding `mavenLocal()` as a repository.
 There are different issues with using `mavenLocal()` that you should be aware of:
 
 * Maven uses it as a cache, not a repository, meaning it can contain partial modules.
-** For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found.
+** For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found.
 * As a <<sub:local-repos,local repository>>, Gradle does not trust its content, because:
 ** Origin of artifacts cannot be tracked, which is a correctness and security problem
 ** Artifacts can be easily overwritten, which is a security, correctness and reproducibility problem
-* To mitigate the fact that metadata and/or artifacts can be changed, Gradle does not perform <<dependency_resolution.adoc#sec:dependency_cache,any caching>> for <<sub:local-repos,local repositories>>
+* To mitigate the fact that metadata and/or artifacts can be changed, Gradle does not perform <<dependency_resolution_adv.adoc#sec:dependency_cache,any caching>> for <<sub:local-repos,local repositories>>
 ** As a consequence, your builds are slower
 ** Given that order of repositories is important, adding `mavenLocal()` _first_ means that all your builds are going to be slower
 

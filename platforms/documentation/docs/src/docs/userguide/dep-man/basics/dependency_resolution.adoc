@@ -1,0 +1,195 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[understanding_dependency_resolution]]
+= 6. Dependency Resolution
+
+Dependency resolution in Gradle can largely be thought of as a two-step process:
+
+1. _Graph resolution_
+2. _Artifact resolution_
+
+== 1. Graph Resolution
+
+Graph resolution is a process that consists of two phases, which are repeated until the dependency graph is complete:
+
+* When a new dependency is added to the graph, perform conflict resolution to determine which version should be added to the graph.
+* When a specific dependency, that is a module with a version, is identified as part of the graph, retrieve its metadata so that its dependencies can be added in turn.
+
+=== Phase 1: Add a new dependency
+
+A *module* is essentially a discrete unit of software that can be built and published such as `com.google.guava:guava`.
+
+Each version of a *module* is a *component*.
+A *component* refers to one published library version.
+
+In the following example of an arbitrary Java app, the *component* `com.google.guava:guava:33.0.0-jre` (the version `33.0.0-jre` of the `com.google.guava:guava` module) is added as a dependency to the `implementation` *configuration*:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("com.google.guava:guava:33.0.0-jre")
+}
+----
+
+While the user has declared version `33.0.0-jre` of the module, this may not be the version that will be downloaded and used in the project.
+The Gradle dependency resolution engine first performs conflict resolution to determine which version should _actually_ be used in the project.
+
+First, it looks in the repository of the `com.google.guava:guava` *module* to *find all existing versions*.
+Then, it looks through the project to *find all requested versions* of the same module.
+It is possible that other libraries or parts of the project also requested a version of `com.google.guava:guava` so conflict resolution is necessary.
+By default, the highest version is used unless Gradle APIs specify otherwise.
+
+=== Phase 2: Get the metadata
+
+Once Gradle has determined which version to use, it finds the *metadata* of the *component* from an `ivy`, `module`, or link:https://repo1.maven.org/maven2/com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.pom[`pom`] file in the repository of the dependency.
+
+Here is a snapshot of the *metadata* from `com.google.guava:guava:33.0.0-jre`:
+
+* Artifact: `guava-33.0.0-jre.jar`
+* Variants: 2
+** Compile Variant: `compileClasspath`
+*** Transitive Dependencies: 6
+**** `com.google.guava:failureaccess:1.0.1`
+**** `com.google.guava:listenablefuture:9999.0`
+**** `com.google.code.findbugs:jsr305:3.0.2`
+**** `org.checkerframework:checker-qual:3.12.0`
+**** `com.google.errorprone:error_prone_annotations:2.26.1`
+**** `com.google.j2objc:j2objc-annotations:2.8`
+** Runtime Variant: `runtimeClasspath`
+*** Transitive Dependencies: 5
+**** `com.google.guava:failureaccess:1.0.1`
+**** `com.google.guava:listenablefuture:9999.0`
+**** `com.google.code.findbugs:jsr305:3.0.2`
+**** `org.checkerframework:checker-qual:3.12.0`
+**** `com.google.errorprone:error_prone_annotations:2.26.1`
+
+What's important to note here is the two *variants* of `com.google.guava:guava:33.0.0-jre` that are available.
+Therefore, each *component* consists of one or more variants.
+
+A *variant* is a specific version of a *component* tailored for a particular use case or environment.
+Variants allow you to define different versions of your *module* depending on the context in which it is used.
+A *variant* consists of a set of artifacts and defines a set of dependencies.
+
+With the information from the *metadata*, Gradle builds a dependency graph made up of _nodes_:
+
+- each _node_ in the graph is a *variant*.
+- each one gets resolved to a *component*.
+
+The dependency resolution engine is variant-aware and selects one or more *variants* of each *component* based on your build requirements.
+It may fail if the *variant* selection result is ambiguous, meaning that Gradle does not have enough information to select one of multiple mutual exclusive variants.
+
+Graph resolution takes the set of dependency declarations and repository definitions as input and produces a resolved graph as output, where each node is a specific version of a component and the edges represents the dependencies between the components.
+
+Graph resolution itself is single threaded. We process the graph one node (variant) at a time. For each node we look at all its dependencies, determine what versions they target, and download the metadata for all dependencies (for that node) at once. So it’s a bunch of parallel downloads separated by single threaded logic, over and over again — for a single graph. See the logic.
+
+You can the dependency graph of our `Java app` by running `./gradlew app:dependencies`:
+
+[source,text]
+----
+$ ./gradlew app:dependencies
+
+[...]
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- com.google.guava:guava:33.0.0-jre
+     +--- com.google.guava:failureaccess:1.0.2
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.41.0
+     \--- com.google.errorprone:error_prone_annotations:2.23.0
+
+[...]
+----
+
+What it tells us is that for the runtimeClasspath the `app` will use version `33.0.0-jre` of `guava`.
+
+Let’s look at the attributes we find on the runtimeElements configuration on the `app`:
+
+[source,text]
+----
+$ ./gradlew :app:outgoingVariants --variant runtimeElements
+
+> Task :app:outgoingVariants
+
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Runtime elements for the 'main' feature.
+
+Capabilities
+    - artifact-tutorial:app:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Artifacts
+    - build/libs/app.jar (artifactType = jar)
+
+----
+
+What it tells us is that the `app` produces variants with 5 attributes:
+
+- `org.gradle.category` tells us that this variant represents a _library_
+- `org.gradle.dependency.bundling` tells us that the dependencies of this variant are found as jars (they are not, for example, repackaged inside the jar)
+- `org.gradle.jvm.version` tells us that the minimum Java version this library supports is Java 11
+- `org.gradle.libraryelements` tells us this variant contains all elements found in a jar (classes and resources)
+- `org.gradle.usage` says that this variant is a Java runtime, therefore suitable for a Java compiler but also at runtime
+
+Let’s look at the attributes we find on the runtimeClasspath configuration of `com.google.guava:guava:33.0.0-jre`:
+
+[source,text]
+----
+$ ./gradlew :app:dependencyInsight --configuration runtimeClasspath --dependency com.google.guava:guava:33.0.0-jre
+
+> Task :app:dependencyInsight
+
+com.google.guava:guava:33.0.0-jre
+  Variant jreRuntimeElements:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
+    | org.gradle.jvm.environment     | standard-jvm | standard-jvm |
+    | org.gradle.jvm.version         | 8            | 11           |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+
+com.google.guava:guava:33.0.0-jre
+\--- runtimeClasspath
+----
+
+What it tells us is that the `jreRuntimeElements` variant of `guava` has several key attributes:
+
+- `org.gradle.status` indicates that this is a _release_ variant of Guava.
+- `org.gradle.category` tells us that this variant also represents a _library_.
+- `org.gradle.dependency.bundling` confirms that Guava’s dependencies are _external_ and not repackaged inside the jar.
+- `org.gradle.jvm.environment` specifies that the Guava library targets a _standard JVM_ environment.
+- `org.gradle.jvm.version` tells us that Guava supports a minimum Java version of _8_, which is lower than the requested version (_11_) by the `app`.
+- `org.gradle.libraryelements` indicates that this variant contains elements found in a _jar_ (classes and resources).
+- `org.gradle.usage` specifies that this variant is suitable for a _Java runtime_.
+
+By comparing these attributes with those of the `app`, we can see how Gradle uses this information to determine compatibility between dependencies, ensuring that the correct artifacts are selected during dependency resolution. For example, despite the Java version difference (Java 8 vs. 11), the other attributes like usage and library elements align, making this variant suitable for the `runtimeClasspath` configuration of the `app`.
+
+== 2. Artifact Resolution
+
+Artifact resolution takes the resolved graph and repository definitions as input and produces a set of files as output.
+
+[.text-right]
+**Next Step:** <<dependency_resolution_adv.adoc#understanding_dependency_resolution,Learn about Dependency Resolution>> >>
+
+
