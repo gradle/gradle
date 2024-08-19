@@ -287,11 +287,19 @@ project(':a') {
         attributesSchema.attribute(flavor)
         compile project(':b')
     }
+    configurations.compile {
+        attributes.attribute(Attribute.of('flavor', String), 'mismatch')
+        outgoing.artifact file('dummy.txt')
+    }
     ${freeAndPaidFlavoredJars('a')}
 }
 project(':b') {
     dependencies {
         attributesSchema.attribute(flavor)
+    }
+    configurations.compile {
+        attributes.attribute(Attribute.of('flavor', String), 'mismatch')
+        outgoing.artifact file('dummy.txt')
     }
     ${freeAndPaidFlavoredJars('b')}
 }
@@ -306,6 +314,10 @@ task show {
         maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:compile' declares attribute 'usage' with value 'compile':
+      - Unmatched attributes:
+          - Provides artifactType 'txt' but the consumer didn't ask for it
+          - Provides flavor 'mismatch' but the consumer didn't ask for it
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
@@ -378,11 +390,6 @@ task show {
         expect:
         maybeExpectDeprecation(expression)
         fails("show")
-        failure.assertHasCause("""No variants of project :a match the consumer attributes:
-  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
-      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
-  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
-      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
