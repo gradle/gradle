@@ -16,16 +16,19 @@
 
 package org.gradle.api.isolated.models;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.provider.Provider;
 
 /**
  * TBD
  *
  * @since 8.11
  */
-@Incubating
-@ServiceScope(Scope.Build.class)
-public interface BuildIsolatedModelRegistry extends IsolatedModelRegistry {
+public interface IsolatedModelRegistry {
+
+    /**
+     * TBD
+     *
+     * @since 8.11
+     */
+    <T> void registerModel(String key, Class<T> type, Provider<T> provider);
 }

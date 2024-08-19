@@ -26,6 +26,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.11
  */
 @Incubating
-@ServiceScope(Scope.Build.class)
-public interface BuildIsolatedModelRegistry extends IsolatedModelRegistry {
+@ServiceScope(Scope.Project.class)
+public interface ProjectIsolatedModelRegistry extends IsolatedModelRegistry {
 }
