@@ -27,6 +27,7 @@ import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
+import org.gradle.internal.cc.impl.ConfigurationCacheRepository.ReadableConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
@@ -58,35 +59,38 @@ class ConfigurationCacheRepository(
 
     abstract class Layout {
         abstract fun fileForRead(stateType: StateType): ConfigurationCacheStateFile
-
         abstract fun fileFor(stateType: StateType): ConfigurationCacheStateFile
     }
 
     private
-    inner class WriteableLayout(
+    class WriteableLayout(
         private val cacheDir: File,
         private val onFileAccess: (File) -> Unit
     ) : Layout() {
-        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
+        override fun fileForRead(stateType: StateType) =
+            cacheDir.readableConfigurationCacheStateFile(stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
     }
 
     private
-    inner class ReadableLayout(
+    class ReadableLayout(
         private val cacheDir: File
     ) : Layout() {
-        override fun fileForRead(stateType: StateType) = fileFor(stateType)
+        override fun fileForRead(stateType: StateType) =
+            cacheDir.readableConfigurationCacheStateFile(stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile =
+            cacheDir.readableConfigurationCacheStateFile(stateType)
     }
 
     override fun stop() {
         cache.close()
     }
 
-    private
-    inner class ReadableConfigurationCacheStateFile(
+    internal
+    class ReadableConfigurationCacheStateFile(
         private val file: File,
         override val stateType: StateType
     ) : ConfigurationCacheStateFile {
@@ -100,7 +104,7 @@ class ConfigurationCacheRepository(
             throw UnsupportedOperationException()
 
         override fun inputStream(): InputStream =
-            file.also(::markAccessed).inputStream()
+            file.inputStream()
 
         override fun delete() {
             throw UnsupportedOperationException()
@@ -118,7 +122,7 @@ class ConfigurationCacheRepository(
     }
 
     private
-    inner class WriteableConfigurationCacheStateFile(
+    class WriteableConfigurationCacheStateFile(
         private val file: File,
         override val stateType: StateType,
         private val onFileAccess: (File) -> Unit
@@ -173,6 +177,7 @@ class ConfigurationCacheRepository(
 
         override fun <T : Any> useForStateLoad(action: (Layout) -> T): T {
             return withExclusiveAccessToCache(baseDir) { cacheDir ->
+                markAccessed(cacheDir)
                 action(ReadableLayout(cacheDir))
             }
         }
@@ -196,12 +201,6 @@ class ConfigurationCacheRepository(
                 }
             }
     }
-
-    private
-    fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
-        parentStateFile.run {
-            resolveSibling("$name.${build.name}")
-        }
 
     private
     val cleanupDepth = 1
@@ -255,11 +254,26 @@ class ConfigurationCacheRepository(
     private
     fun PersistentCache.baseDirFor(cacheKey: String) =
         baseDir.resolve(cacheKey)
-
-    private
-    val StateType.fileBaseName: String
-        get() = name.toDefaultLowerCase()
-
-    private
-    fun File.stateFile(stateType: StateType) = resolve("${stateType.fileBaseName}.bin")
 }
+
+
+private
+fun File.readableConfigurationCacheStateFile(stateType: StateType) =
+    ReadableConfigurationCacheStateFile(stateFile(stateType), stateType)
+
+
+private
+fun File.stateFile(stateType: StateType) =
+    resolve("${stateType.fileBaseName}.bin")
+
+
+private
+val StateType.fileBaseName: String
+    get() = name.toDefaultLowerCase()
+
+
+private
+fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
+    parentStateFile.run {
+        resolveSibling("$name.${build.name}")
+    }

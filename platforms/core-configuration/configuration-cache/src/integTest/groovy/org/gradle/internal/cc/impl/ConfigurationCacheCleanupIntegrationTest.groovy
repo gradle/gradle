@@ -19,40 +19,61 @@ package org.gradle.internal.cc.impl
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
-
+import spock.lang.Issue
 
 class ConfigurationCacheCleanupIntegrationTest
     extends AbstractConfigurationCacheIntegrationTest
     implements FileAccessTimeJournalFixture {
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3121')
+    @Issue('https://github.com/gradle/gradle/issues/23957')
     def "cleanup deletes old entries"() {
-        given:
+        given: 'there are two configuration cache entries'
         executer.requireIsolatedDaemons()
-        writeJournalInceptionTimestamp(daysAgo(8))
+        buildFile '''
+            task outdated
+            task recent
+        '''
+        configurationCacheRunAndStop 'outdated'
+        TestFile outdated = single(subDirsOf(cacheDir))
+        configurationCacheRunAndStop 'recent'
+        TestFile recent = single(subDirsOf(cacheDir) - outdated)
+
+        and: 'they are 15 days old'
+        file('.gradle/configuration-cache').listFiles().findAll { it.directory }.each { TestFile dir ->
+            writeLastFileAccessTimeToJournal dir, daysAgo(15)
+        }
+
+        and: 'but one was recently accessed'
+        configurationCacheRunAndStop 'recent'
+
+        and: 'the last cleanup was 8 days ago'
+        writeJournalInceptionTimestamp daysAgo(8)
         gcFile.createFile().lastModified = daysAgo(8)
 
-        and:
-        def outdated = createCacheEntryDir("outdated")
-        writeLastFileAccessTimeToJournal(outdated, daysAgo(15))
-
-        expect:
+        expect: 'Gradle to preserve the recent entry and to delete the outdated one'
+        boolean recentEntryIsReused = true
+        def cc = newConfigurationCacheFixture()
         ConcurrentTestUtil.poll(60, 0, 10) {
-            configurationCacheRun 'help'
+            configurationCacheRun 'recent'
+            recentEntryIsReused &= cc.reused
             run '--stop'
             assert !outdated.isDirectory()
         }
+        recentEntryIsReused
 
         and:
-        cacheDir.listFiles().length == 3 // gc file + cache properties + 'help' state
+        def remaining = cacheDir.listFiles().collect { it.name } as Set
+        def expected = [recent.name, 'gc.properties', 'configuration-cache.lock'] as Set
+        expected == remaining
     }
 
-    private TestFile createCacheEntryDir(String entry) {
-        TestFile dir = cacheDir.createDir(entry)
-        dir.createFile("state.bin")
-        dir.createFile("fingerprint.bin")
-        return dir
+    private void configurationCacheRunAndStop(String task) {
+        configurationCacheRun task
+        run '--stop'
+    }
+
+    private static List<TestFile> subDirsOf(TestFile dir) {
+        dir.listFiles().findAll { it.directory }
     }
 
     private TestFile getGcFile() {
@@ -61,5 +82,12 @@ class ConfigurationCacheCleanupIntegrationTest
 
     private TestFile getCacheDir() {
         return file(".gradle/configuration-cache")
+    }
+
+    private static <T> T single(List<T> list) {
+        list.with {
+            assert size() == 1
+            get(0)
+        }
     }
 }
