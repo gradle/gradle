@@ -167,7 +167,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration setExtendsFrom(Iterable<Configuration> superConfigs);
 
     /**
-     * Adds the given configurations to the set of configuration which this configuration extends from.
+     * Adds the configuration from the given provider to the set of configuration which this configuration extends from.
      * <p>
      * Configurations are only allowed to extend from other configurations in the same project.
      *

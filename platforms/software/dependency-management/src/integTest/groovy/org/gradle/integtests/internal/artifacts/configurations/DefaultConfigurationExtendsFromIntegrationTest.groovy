@@ -156,6 +156,30 @@ Extended Configurations
 """)
     }
 
+    def "extending a configuration with a Provider in Kotlin DSL is fine"() {
+        given:
+        buildKotlinFile << """
+            configurations {
+                resolvable("conf1")
+                resolvable("conf2") {
+                    extendsFrom(configurations.named("conf1"))
+                    extendsFrom(project.provider { configurations.getByName("conf1") })
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf2
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+""")
+    }
+
     def "extending a configuration with a lazily-calculated Provider in Kotlin DSL is fine"() {
         given:
         buildKotlinFile << """
@@ -165,7 +189,7 @@ Extended Configurations
                 resolvable("conf1")
                 resolvable("conf2")
                 resolvable("conf3") {
-                    extendsFrom(project.provider { if (x == 1) configurations.getByName("conf1") else configurations.getByName("conf2") })
+                    extendsFrom(project.provider { if (x == 1) configurations.named("conf1").get() else configurations.named("conf2").get() })
                 }
             }
 
