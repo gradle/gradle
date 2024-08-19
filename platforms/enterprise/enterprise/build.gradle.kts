@@ -10,10 +10,6 @@ errorprone {
     )
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}
-
 dependencies {
     api(projects.buildOperations)
     api(projects.baseServices)

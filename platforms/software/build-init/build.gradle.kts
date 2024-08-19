@@ -113,7 +113,3 @@ packageCycles {
 }
 
 integTest.testJvmXmx = "1g"
-
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}

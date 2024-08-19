@@ -322,9 +322,5 @@ tasks.compileTestGroovy {
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}
-
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
