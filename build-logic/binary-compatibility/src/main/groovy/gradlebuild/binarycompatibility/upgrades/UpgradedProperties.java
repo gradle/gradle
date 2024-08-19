@@ -46,8 +46,8 @@ public class UpgradedProperties {
     private static final Pattern SETTER_REGEX = Pattern.compile("set[A-Z].*");
     private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z].*");
     private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z].*");
-    public static final String OLD_ACCESSORS_OF_UPGRADED_PROPERTIES = "oldAccessorsOfUpgradedProperties";
-    public static final String SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES = "seenOldAccessorsOfUpgradedProperties";
+    public static final String OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES = "oldRemovedAccessorsOfUpgradedProperties";
+    public static final String SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES = "seenOldRemovedAccessorsOfUpgradedProperties";
     public static final String CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES = "currentAccessorsOfUpgradedProperties";
 
     public static List<UpgradedProperty> parse(String path) {
@@ -79,7 +79,7 @@ public class UpgradedProperties {
      */
     public static boolean shouldAcceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
         Map<AccessorKey, UpgradedProperty> currentAccessors = context.getUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES);
-        Map<AccessorKey, ReplacedAccessor> oldAccessors = context.getUserData(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldRemovedAccessors = context.getUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
 
         if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
             // We want to keep @since nagging for new methods, unless it's `getX` or `getIsX` method that replaces `isX` boolean method.
@@ -87,11 +87,11 @@ public class UpgradedProperties {
         }
 
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
-            return isOldSetterOfUpgradedProperty(jApiMethod, oldAccessors) || isOldGetterOfUpgradedProperty(jApiMethod, oldAccessors) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldAccessors);
+            return isOldSetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
-            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) && isOldGetterOfUpgradedProperty(jApiMethod, oldAccessors);
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) && isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
         }
 
         return false;
@@ -157,7 +157,7 @@ public class UpgradedProperties {
             return Optional.empty();
         }
         JApiMethod jApiMethod = (JApiMethod) jApiCompatibility;
-        Map<AccessorKey, ReplacedAccessor> oldMethods = context.getUserData(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldMethods = context.getUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
         AccessorKey key = AccessorKey.ofOldMethod(jApiMethod);
         return oldMethods.containsKey(key) ? Optional.of(key) : Optional.empty();
     }
