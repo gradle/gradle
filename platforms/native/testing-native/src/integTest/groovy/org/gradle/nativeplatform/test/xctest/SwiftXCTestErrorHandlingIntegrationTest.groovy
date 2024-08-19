@@ -36,6 +36,10 @@ import static org.gradle.util.Matchers.containsText
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def setup() {
+        // Need XCTest available to run these tests
+        XCTestInstallation.assumeInstalled()
+    }
 
     @ToBeFixedForConfigurationCache
     def "fails when working directory is invalid"() {
