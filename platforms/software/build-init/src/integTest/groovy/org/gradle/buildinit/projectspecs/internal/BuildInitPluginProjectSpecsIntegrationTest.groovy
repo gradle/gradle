@@ -241,46 +241,69 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
     @Requires(UnitTestPreconditions.Jdk21OrLater) // D-G produces a project that requires Java 21
     def "can generate declarative project type using argument to init"() {
         when:
-        initSucceedsWithPluginSupplyingSpec("org.gradle.experimental.jvm-ecosystem:0.1.11")
+        initSucceedsWithPluginSupplyingSpec("org.gradle.experimental.jvm-ecosystem:0.1.13")
 
         then:
-        assertResolvedPlugin("org.gradle.experimental.jvm-ecosystem", "0.1.11")
-        assertLoadedSpec("Declarative Java Library Project")
+        assertResolvedPlugin("org.gradle.experimental.jvm-ecosystem", "0.1.13")
         assertLoadedSpec("Declarative Java Application Project")
 
-        // Note: If running in non-interactive mode, first available template is used
+        // Smoke test 2 DCL files
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {
     repositories {
-        google() // for Android plugin
+        google() // Needed for the Android plugin, applied by the unified plugin
         gradlePluginPortal()
     }
 }
 
 plugins {
-    id("org.gradle.experimental.jvm-ecosystem") version "0.1.10"
+    id("org.gradle.experimental.jvm-ecosystem") version "0.1.13"
 }
-""")
 
-        assertProjectFileGenerated("build.gradle.dcl", """javaLibrary {
-    javaVersion = 21
+rootProject.name = "example-java-app"
 
-    dependencies {
-        implementation("com.google.guava:guava:32.1.3-jre")
+include("app")
+include("list")
+include("utilities")
+
+defaults {
+    javaLibrary {
+        javaVersion = 17
+
+        dependencies {
+            implementation("org.apache.commons:commons-text:1.11.0")
+        }
+
+        testing {
+            dependencies {
+                implementation("org.junit.jupiter:junit-jupiter:5.10.2")
+                runtimeOnly("org.junit.platform:junit-platform-launcher")
+            }
+        }
+    }
+
+    javaApplication {
+        javaVersion = 17
+
+        dependencies {
+            implementation("org.apache.commons:commons-text:1.11.0")
+        }
+
+        testing {
+            testJavaVersion = 21
+            dependencies {
+                implementation("org.junit.jupiter:junit-jupiter:5.10.2")
+                runtimeOnly("org.junit.platform:junit-platform-launcher")
+            }
+        }
     }
 }
 """)
+        assertProjectFileGenerated("app/build.gradle.dcl", """javaApplication {
+    mainClass = "org.example.app.App"
 
-        assertProjectFileGenerated("src/main/java/com/example/lib/Library.java", """package com.example.lib;
-
-import com.google.common.collect.ImmutableList;
-
-public class Library {
-    public Iterable<String> getMessages() {
-        // Verify that Guava is available
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.add("Hello from Java " + System.getProperty("java.version"));
-
-        return builder.build();
+    dependencies {
+        implementation("org.apache.commons:commons-text:1.11.0")
+        implementation(project(":utilities"))
     }
 }
 """)
