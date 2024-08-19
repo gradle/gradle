@@ -90,7 +90,7 @@ class BuildOperationTreeFixture extends BuildOperationTreeQueries {
 
     @Override
     List<BuildOperationRecord> all(Pattern displayName) {
-        return operations.records.values().findAll { it.displayName ==~ displayName }
+        return operations.records.values().findAll { it.displayName ==~ displayName }.toList()
     }
 
     @Override
