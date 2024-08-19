@@ -190,8 +190,6 @@ project(':b') {
         """
 
         when:
-        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
-        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -313,8 +311,6 @@ project(':b') {
         """
 
         when:
-        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
-        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -432,8 +428,6 @@ project(':b') {
         """
 
         when:
-        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
-        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         run 'show'
 
         then:
@@ -521,8 +515,6 @@ project(':b') {
         """
 
         when:
-        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
-        executer.expectDeprecationWarning("The configuration ':b:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'var1', 'var2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
@@ -959,7 +951,6 @@ project(':a') {
         m2.artifact.expectGetBroken()
 
         when:
-        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
@@ -1056,7 +1047,6 @@ project(':a') {
         m3.artifact.expectGet()
 
         expect:
-        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds 'resolveLenient'
 
         outputContains("failure 1: Could not find org:missing-module:1.0.")
@@ -1158,7 +1148,6 @@ task resolveLenient {
         m0.pom.expectGetMissing()
 
         expect:
-        executer.expectDeprecationWarning("The configuration ':a:default' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds 'resolveLenient'
         result.assertTasksScheduled(":c:jar1", ":resolveLenient")
     }

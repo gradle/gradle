@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -50,9 +49,8 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     // endregion No Secondary Variants
 
     // region Secondary Variant with No Artifacts
-    def "adding secondary variant with no artifact is deprecated"() {
+    def "adding secondary variant with no artifact works fine"() {
         expect:
-        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds("resolve", "-PregisterSecondaryVariant=true")
         assertResolved([])
     }
@@ -98,9 +96,8 @@ final class VariantsWithoutArtifactsWithSecondaryVariantsIntegrationTest extends
     // endregion Secondary Variant with no Artifacts with an Artifact explicitly added to main variant
 
     // region Secondary Variant with an Artifact
-    def "adding secondary variant with an artifact is deprecated"() {
+    def "adding secondary variant with an artifact works fine"() {
         expect:
-        executer.expectDeprecationWarning("The configuration ':consumableConfiguration' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'mySecondaryVariant' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         succeeds("resolve", "-PregisterSecondaryVariant=true", "-PregisterSecondaryArtifact=true")
         assertResolved([])
     }

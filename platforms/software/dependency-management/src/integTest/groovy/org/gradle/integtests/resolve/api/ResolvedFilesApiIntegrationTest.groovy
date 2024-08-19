@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -201,6 +200,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
+        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
@@ -270,6 +270,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
+        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
@@ -288,7 +289,23 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         buildFile << """
             $header
 
-            def flavor = Attribute.of('flavor', String)
+dependencies {
+    compile project(':a')
+}
+
+project(':a') {
+    dependencies {
+        attributesSchema.attribute(flavor)
+        compile project(':b')
+    }
+    ${freeAndPaidFlavoredJars('a')}
+}
+project(':b') {
+    dependencies {
+        attributesSchema.attribute(flavor)
+    }
+    ${freeAndPaidFlavoredJars('b')}
+}
 
             dependencies {
                 compile project(':a')
@@ -327,7 +344,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         expect:
         fails("show")
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
@@ -396,8 +413,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
+        maybeExpectDeprecation(expression)
         fails("show")
-        failure.assertHasCause("""No variants of project ':a' match the consumer attributes:
+        failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
   - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
@@ -593,7 +611,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         when:
         maybeExpectDeprecation(expression)
-        executer.expectDeprecationWarning("The configuration ':a:compile' has no artifacts and thus should not define any secondary variants. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Secondary variant(s): 'v1', 'v2' should be made directly consumable. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#variants_with_no_artifacts")
         fails 'show'
 
         then:
