@@ -51,6 +51,9 @@ apply plugin: 'xctest'
 """
         // TODO: Temporarily disable XCTests with Swift3 on macOS
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
+
+        // Need XCTest available to run these tests
+        XCTestInstallation.assumeInstalled()
     }
 
     @ToBeFixedForConfigurationCache

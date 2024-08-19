@@ -32,6 +32,9 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     def setup() {
         // TODO: Temporarily disable XCTests with Swift3 on macOS
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
+
+        // Need XCTest available to run these tests
+        XCTestInstallation.assumeInstalled()
     }
 
     def "check task warns when current operating system family is excluded"() {

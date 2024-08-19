@@ -25,6 +25,11 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest implements SwiftTaskNames {
+    def setup() {
+        // Need XCTest available to run these tests
+        XCTestInstallation.assumeInstalled()
+    }
+
     @Override
     protected void makeComponentWithLibrary() {
         buildFile << """
