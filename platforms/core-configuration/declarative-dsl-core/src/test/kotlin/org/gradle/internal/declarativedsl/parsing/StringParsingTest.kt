@@ -111,6 +111,26 @@ class StringParsingTest {
                     rhs = StringLiteral [indexes: 18..29, line/column: 2/5..4/5, file: test] (a
                 b
                 c)
+                )
+                Assignment [indexes: 30..42, line/column: 5/1..5/13, file: test] (
+                    lhs = PropertyAccess [indexes: 30..31, line/column: 5/1..5/2, file: test] (
+                        name = q
+                    )
+                    rhs = StringLiteral [indexes: 34..42, line/column: 5/5..5/13, file: test] (${'$'}1)
+                )
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = StringTemplates,
+                        potentialElementSource = indexes: 127..145, line/column: 6/5..6/23, file: test,
+                        erroneousSource = indexes: 130..142, line/column: 6/8..6/20, file: test
+                    )
+                )
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = StringTemplates,
+                        potentialElementSource = indexes: 192..201, line/column: 7/5..7/14, file: test,
+                        erroneousSource = indexes: 195..198, line/column: 7/8..7/11, file: test
+                    )
                 )""".trimIndent()
         results.assert(expected)
     }
