@@ -30,15 +30,18 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     private final BuildLifecycleController buildController;
     private final BuildState buildState;
     private final ToolingModelBuilderLookup buildScopeLookup;
+    private final ProjectToolingModelBuilderLookupPreparer projectToolingModelBuilderLookupPreparer;
 
     public DefaultBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup
+        ToolingModelBuilderLookup buildScopeLookup,
+        ProjectToolingModelBuilderLookupPreparer projectToolingModelBuilderLookupPreparer
     ) {
         this.buildState = buildState;
         this.buildController = buildController;
         this.buildScopeLookup = buildScopeLookup;
+        this.projectToolingModelBuilderLookupPreparer = projectToolingModelBuilderLookupPreparer;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     private ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
-        return new ProjectToolingScope(target, modelName, param);
+        return new ProjectToolingScope(projectToolingModelBuilderLookupPreparer, target, modelName, param);
     }
 
     private static abstract class AbstractToolingScope implements ToolingModelScope {
@@ -109,11 +112,18 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     private static class ProjectToolingScope extends AbstractToolingScope {
+        private final ProjectToolingModelBuilderLookupPreparer preparer;
         private final ProjectState target;
         private final String modelName;
         private final boolean parameter;
 
-        public ProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
+        public ProjectToolingScope(
+            ProjectToolingModelBuilderLookupPreparer preparer,
+            ProjectState target,
+            String modelName,
+            boolean parameter
+        ) {
+            this.preparer = preparer;
             this.target = target;
             this.modelName = modelName;
             this.parameter = parameter;
@@ -127,8 +137,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
-            // Force configuration of the target project to ensure all builders have been registered
-            target.ensureConfigured();
+            preparer.prepare(target);
             ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
             return lookup.locateForClientOperation(modelName, parameter, target);
         }
