@@ -14,34 +14,8 @@
  * limitations under the License.
  */
 
-import gradle.kotlin.dsl.accessors._13687bf53899272e089ef07734aa6040.check
-import gradle.kotlin.dsl.accessors._13687bf53899272e089ef07734aa6040.checkstyle
-import gradle.kotlin.dsl.accessors._13687bf53899272e089ef07734aa6040.codenarc
-import gradle.kotlin.dsl.accessors._caaef686956ef05d8c7d73205bf1c4b7.detekt
-import groovy.lang.GroovySystem
-import net.ltgt.gradle.errorprone.CheckSeverity
-import net.ltgt.gradle.errorprone.errorprone
-import org.gradle.api.artifacts.ComponentMetadataContext
-import org.gradle.api.artifacts.ComponentMetadataRule
-import org.gradle.api.attributes.LibraryElements
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.plugins.GroovyBasePlugin
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.plugins.quality.CodeNarc
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.GroovySourceDirectorySet
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.api.tasks.testing.Test
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
-import org.gradle.kotlin.dsl.*
-import org.gradle.plugin.devel.tasks.ValidatePlugins
-import org.gradle.util.internal.VersionNumber
-import javax.inject.Inject
 
 /*
  * Copyright 2022 the original author or authors.
