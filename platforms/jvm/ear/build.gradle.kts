@@ -8,7 +8,6 @@ description = "Adds support for assembling web application EAR files"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
     )
 }
 

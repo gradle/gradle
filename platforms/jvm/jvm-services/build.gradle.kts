@@ -23,7 +23,6 @@ description = "JVM invocation and inspection abstractions"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
     )
 }
 
