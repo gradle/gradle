@@ -18,7 +18,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Provides core types needed for building renderable reports"
+description = "Provides foundational types needed for building renderable reports"
 
 dependencies {
     api(projects.core)
@@ -27,4 +27,6 @@ dependencies {
     implementation(projects.logging)
 
     implementation(libs.commonsLang)
+
+    testImplementation(libs.jsoup)
 }

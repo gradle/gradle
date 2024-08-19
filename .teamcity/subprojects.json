@@ -1038,7 +1038,7 @@
   {
     "name": "rendering",
     "path": "platforms/core-runtime/rendering",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
