@@ -63,3 +63,5 @@ simpleIdentifier ::= id                                      // TODO: needs refi
 stringLiteral ::= string                                     // TODO: needs refining
 literalConstant ::= "null" | booleanLiteral | number         // TODO: needs refining
 booleanLiteral ::= "true" | "false"
+
+// TODO: update according to generation

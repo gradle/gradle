@@ -4,8 +4,6 @@ import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.empty
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,12 +36,17 @@ class RandomInputParsingTest(
 
     @Test
     fun test() {
-        val input = file.readText(Charsets.UTF_8)
+        val input = file.readText(Charsets.UTF_8).unescapeUnicode()
         val parsingResult = ParseTestUtil.parse(input)
         assertTrue(
             "Failures while parsing file $id: ${format(parsingResult.allFailures)}",
             parsingResult.allFailures.isEmpty()
         )
+    }
+
+    private
+    fun String.unescapeUnicode() = replace("\\\\u([0-9A-Fa-f]{4})".toRegex()) {
+        String(Character.toChars(it.groupValues[1].toInt(radix = 16)))
     }
 
     private
