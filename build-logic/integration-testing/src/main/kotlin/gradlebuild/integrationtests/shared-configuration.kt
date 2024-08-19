@@ -180,9 +180,9 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
 internal
 fun IntegrationTest.disableIfNeeded(projectName: String, testType: TestType, executer: String) {
     if (
-        ignoreWithIsolatedProjectsExecuter.contains(projectName) &&
         testType == TestType.INTEGRATION &&
-        executer == "isolatedProjects"
+        executer == "isolatedProjects" &&
+        ignoreWithIsolatedProjectsExecuter.contains(projectName)
     ) {
         isEnabled = false
     }
@@ -281,7 +281,7 @@ fun Project.resolver(name: String, libraryElements: String, extends: Configurati
     }
 }
 
-private val ignoreWithIsolatedProjectsExecuter: List<String> = listOf(
+private val ignoreWithIsolatedProjectsExecuter = listOf(
     "build-events",
     "diagnostics",
     "composite-builds",
