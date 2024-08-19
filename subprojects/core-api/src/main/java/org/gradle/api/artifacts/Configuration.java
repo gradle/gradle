@@ -174,7 +174,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param configProvider Provider of the super configuration.
      * @return this configuration
      *
-     * @since 8.10
+     * @since 8.11
      */
     @Incubating
     default Configuration setExtendsFrom(Provider<Configuration> configProvider) {
@@ -196,7 +196,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param configProvider Provider of the super configuration.
      * @return this configuration
      *
-     * @since 8.10
+     * @since 8.11
      */
     @Incubating
     default Configuration extendsFrom(Provider<Configuration> configProvider) {
