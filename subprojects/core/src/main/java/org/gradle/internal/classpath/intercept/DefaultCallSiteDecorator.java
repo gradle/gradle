@@ -246,7 +246,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         /**
          * The default Groovy implementation replaces the entry in the call site array with what it creates based on the call kind. <p>
          *
-         * For example, see this code path: <p>
+         * For example, see this code path:
          * <ul>
          *     <li> {@link AbstractCallSite#callCurrent(GroovyObject, Object[])}
          *     <li> {@link org.codehaus.groovy.runtime.callsite.CallSiteArray#defaultCallCurrent}

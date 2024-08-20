@@ -12,7 +12,8 @@ import static gradlebuild.basics.BuildParamsKt.shouldRunBrokenForConfigurationCa
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
 
 plugins {
-    id 'gradlebuild.internal.java'
+    id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
+    id("gradlebuild.jvm-library")
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.jvm.convert'
     id 'gradlebuild.documentation'

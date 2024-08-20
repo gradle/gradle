@@ -62,7 +62,7 @@ import java.util.Set;
  * and the task's name. Path elements are separated using the {@value org.gradle.api.Project#PATH_SEPARATOR}
  * character.</p>
  *
- * <h3>Task Actions</h3>
+ * <h2>Task Actions</h2>
  *
  * <p>A <code>Task</code> is made up of a sequence of {@link Action} objects. When the task is executed, each of the
  * actions is executed in turn, by calling {@link Action#execute}. You can add actions to a task by calling {@link
@@ -78,7 +78,7 @@ import java.util.Set;
  * next task by throwing a {@link org.gradle.api.tasks.StopExecutionException}. Using these exceptions allows you to
  * have precondition actions which skip execution of the task, or part of the task, if not true.</p>
  *
- * <a id="dependencies"></a><h3>Task Dependencies and Task Ordering</h3>
+ * <a id="dependencies"></a><h2>Task Dependencies and Task Ordering</h2>
  *
  * <p>A task may have dependencies on other tasks or might be scheduled to always run after another task.
  * Gradle ensures that all task dependencies and ordering rules are honored when executing tasks, so that the task is executed after
@@ -120,9 +120,9 @@ import java.util.Set;
  *
  * </ul>
  *
- * <h3>Using a Task in a Build File</h3>
+ * <h2>Using a Task in a Build File</h2>
  *
- * <a id="properties"></a> <h4>Dynamic Properties</h4>
+ * <a id="properties"></a> <h3>Dynamic Properties</h3>
  *
  * <p>A {@code Task} has 4 'scopes' for properties. You can access these properties by name from the build file or by
  * calling the {@link #property(String)} method. You can change the value of these properties by calling the {@link #setProperty(String, Object)} method.</p>
@@ -149,7 +149,7 @@ import java.util.Set;
  *
  * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link org.gradle.api.plugins.Convention} object.</p>
  *
- * <h4>Parallel Execution</h4>
+ * <h3>Parallel Execution</h3>
  * <p>
  * By default, tasks are not executed in parallel unless a task is waiting on asynchronous work and another task (which
  * is not dependent) is ready to execute.

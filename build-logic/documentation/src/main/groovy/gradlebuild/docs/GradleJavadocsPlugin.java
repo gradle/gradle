@@ -106,8 +106,6 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "});</script>"
             );
 
-            options.addBooleanOption("html5", true);
-
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             // TODO: This breaks the provider

@@ -122,3 +122,16 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+
+tasks.javadoc {
+    // This project accesses JDK internals.
+    // We would ideally add --add-exports flags for the required packages, however
+    // due to limitations in the javadoc modeling API, we cannot specify multiple
+    // flags for the same key.
+    // Instead, we disable failure on javadoc errors.
+    isFailOnError = false
+    options {
+        this as StandardJavadocDocletOptions
+        addBooleanOption("quiet", true)
+    }
+}
