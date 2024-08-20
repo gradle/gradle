@@ -169,7 +169,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Adds the configuration from the given provider to the set of configuration which this configuration extends from.
      * <p>
-     * Configurations are only allowed to extend from other configurations in the same project.
+     * Configurations are only allowed to extend from other configurations in the same project.  Note that this method
+     * will retrieve the configuration from the provider at the time this method is called, not lazily.
      *
      * @param configProvider Provider of the super configuration.
      * @return this configuration
@@ -192,6 +193,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Adds the configuration available via the given provider to the set of configurations which this
      * configuration extends from.
+     * <p>
+     * Note that this method will retrieve the configuration from the provider at the time this method is called, not lazily.
      *
      * @param configProvider Provider of the super configuration.
      * @return this configuration
