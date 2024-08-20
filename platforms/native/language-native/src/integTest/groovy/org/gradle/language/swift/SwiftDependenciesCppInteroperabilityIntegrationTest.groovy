@@ -25,7 +25,7 @@ import org.gradle.vcs.fixtures.GitFileRepository
 class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def app = new SwiftAppWithCppLibrary()
 
-    @ToBeFixedForConfigurationCache(because = "source dpendencies")
+    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "can depend on both swift and cpp libraries from VCS"() {
         given:
         createDirs("app")

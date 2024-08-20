@@ -19,6 +19,9 @@ package org.gradle.nativeplatform.test.xctest
 import org.gradle.internal.os.OperatingSystem
 import org.junit.Assume
 
+/**
+ * This class probes for an XCTest installation in a location where it will be discovered by the Swift plugins.
+ */
 class XCTestInstallation {
     static boolean isInstalled() {
         if (OperatingSystem.current().isMacOsX()) {

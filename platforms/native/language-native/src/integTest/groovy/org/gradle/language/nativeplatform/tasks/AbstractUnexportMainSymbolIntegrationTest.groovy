@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.tasks
 
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.IncrementalElement
