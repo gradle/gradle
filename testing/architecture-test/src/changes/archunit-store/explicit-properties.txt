@@ -61,8 +61,10 @@ Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoTimestamp()> is not abstra
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoVersionStamp()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsUse()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getSource()> is not abstract
-Method <org.gradle.api.tasks.javadoc.Javadoc.getClasspath()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Javadoc.getIsFailOnError()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Javadoc.getOptionsFile()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Javadoc.getOutputDirectory()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaCompile.getScalaClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaCompile.getScalaCompilerPlugins()> is not abstract
