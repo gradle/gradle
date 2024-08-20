@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
@@ -43,7 +44,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
         return new CppApp()
     }
 
-    @Requires(UnitTestPreconditions.HasXCode)
+    @Requires(value = [UnitTestPreconditions.HasXCode, IntegTestPreconditions.NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
     @ToBeFixedForConfigurationCache
     def "can create xcode project for unbuildable C++ application with library"() {
         useXcodebuildTool()
@@ -106,7 +107,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
         resultLib.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
     }
 
-    @Requires(UnitTestPreconditions.HasXCode)
+    @Requires(value = [UnitTestPreconditions.HasXCode, IntegTestPreconditions.NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
     @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application with unbuildable library"() {
         useXcodebuildTool()

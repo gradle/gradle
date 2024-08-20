@@ -29,10 +29,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-@Requires([
-    UnitTestPreconditions.CanInstallExecutable,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
     @Rule public final Sample assembler = sample(testDirProvider, 'assembler')

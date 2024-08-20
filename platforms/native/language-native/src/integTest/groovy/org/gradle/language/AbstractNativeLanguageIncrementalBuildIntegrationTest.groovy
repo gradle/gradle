@@ -386,7 +386,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'"
+        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-O0'" : "'-Xlinker', '-q'"
         linkerArgs = escapeString(linkerArgs)
         buildFile << """
         model {

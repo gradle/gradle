@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -28,19 +28,17 @@ import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def setup() {
-        // Need XCTest available to run these tests
-        XCTestInstallation.assumeInstalled()
-    }
-
     @ToBeFixedForConfigurationCache
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
@@ -116,7 +114,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         app.greeter.writeToProject(file("hello"))
         app.logger.writeToProject(file("log"))
 
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'log', 'hello'
             rootProject.name = "app"
         """

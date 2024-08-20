@@ -22,10 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires([
-    UnitTestPreconditions.CanInstallExecutable,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     static final DEFAULT = HelloWorldApp.HELLO_WORLD
     static final FRENCH = HelloWorldApp.HELLO_WORLD_FRENCH

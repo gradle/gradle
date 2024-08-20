@@ -78,18 +78,17 @@ public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
 
     /**
-     * Locates the tool chain that would be used as the default for the current machine, if any.
-     *
-     * @return null if there is no such tool chain.
+     * Locates the C++ tool chain that would be used as the default for the current machine. Asserts that there is a tool chain installed.
      */
-    @Nullable
-    public static InstalledToolChain getDefaultToolChain() {
-        for (ToolChainCandidate toolChain : getToolChains()) {
-            if (toolChain.isAvailable()) {
-                return (InstalledToolChain) toolChain;
+    public static InstalledCppToolChain getDefaultToolChain() {
+        List<ToolChainCandidate> toolChains = getToolChains();
+        for (ToolChainCandidate toolChain : toolChains) {
+            if (toolChain.isAvailable() && toolChain instanceof InstalledCppToolChain) {
+                System.out.println("Using C++ toolchain: " + toolChain);
+                return (InstalledCppToolChain) toolChain;
             }
         }
-        return null;
+        throw new IllegalStateException("Could not find an installed C++ toolchain. Found: " + Joiner.on(", ").join(toolChains));
     }
 
     /**
@@ -138,7 +137,8 @@ public class AvailableToolChains {
         //   We need to search for Clang differently on macOS because we need to know the Xcode version for x86 support.
         if (OperatingSystem.current().isMacOsX()) {
             toolChains.addAll(findXcodes().stream().map(InstalledXcode::getClang).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
-        } else {
+        }
+        if (toolChains.isEmpty()) {
             GccMetadataProvider versionDeterminer = GccMetadataProvider.forClang(TestFiles.execActionFactory());
             Set<File> clangCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("clang"));
             if (!clangCandidates.isEmpty()) {
@@ -477,7 +477,15 @@ public class AvailableToolChains {
         }
     }
 
-    public static abstract class GccCompatibleToolChain extends InstalledToolChain {
+    public static abstract class InstalledCppToolChain extends InstalledToolChain {
+        public InstalledCppToolChain(ToolFamily family, VersionNumber version) {
+            super(family, version);
+        }
+
+        abstract File getCppCompiler();
+    }
+
+    public static abstract class GccCompatibleToolChain extends InstalledCppToolChain {
         protected GccCompatibleToolChain(ToolFamily family, VersionNumber version) {
             super(family, version);
         }
@@ -496,8 +504,6 @@ public class AvailableToolChains {
         public File getStaticLibArchiver() {
             return find("ar");
         }
-
-        public abstract File getCppCompiler();
 
         public abstract File getCCompiler();
 
@@ -866,7 +872,7 @@ public class AvailableToolChains {
         }
     }
 
-    public static class InstalledVisualCpp extends InstalledToolChain {
+    public static class InstalledVisualCpp extends InstalledCppToolChain {
         private final String displayVersion;
         private VersionNumber version;
         private File installDir;
@@ -962,6 +968,7 @@ public class AvailableToolChains {
             return version;
         }
 
+        @Override
         public File getCppCompiler() {
             return cppCompiler;
         }
@@ -998,7 +1005,7 @@ public class AvailableToolChains {
                     return true;
                 case SUPPORTS_32:
                 case SUPPORTS_32_AND_64:
-                    return (!OperatingSystem.current().isMacOsX()) || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
+                    return !OperatingSystem.current().isMacOsX() || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
                 default:
                     return false;
             }
