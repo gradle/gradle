@@ -17,19 +17,28 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
+
+@Requires(
+    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    reason = "FileAccessTimeJournal is never closed in embedded mode"
+)
 class ConfigurationCacheCleanupIntegrationTest
     extends AbstractConfigurationCacheIntegrationTest
     implements FileAccessTimeJournalFixture {
 
+    def setup() {
+        requireOwnGradleUserHomeDir('needs its own journal')
+        executer.requireIsolatedDaemons()
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/23957')
     def "cleanup deletes old entries"() {
         given: 'there are two configuration cache entries'
-        executer.requireOwnGradleUserHomeDir('needs its own journal')
-        executer.requireIsolatedDaemons()
         buildFile '''
             task outdated
             task recent
@@ -47,19 +56,14 @@ class ConfigurationCacheCleanupIntegrationTest
         and: 'but one was recently accessed'
         configurationCacheRunNoDaemon 'recent'
 
-        and: 'the last cleanup was 2 days ago'
-        writeJournalInceptionTimestamp daysAgo(2)
-        gcFile.createFile().lastModified = daysAgo(2)
+        and: 'the last cleanup was long ago'
+        assert gcFile.createFile().setLastModified(0)
 
         expect: 'Gradle to preserve the recent entry and to delete the outdated one'
-        boolean recentEntryIsReused = true
         def cc = newConfigurationCacheFixture()
-        ConcurrentTestUtil.poll(120, 0.5, 5) {
-            configurationCacheRunNoDaemon 'recent'
-            recentEntryIsReused &= cc.reused
-            assert !outdated.exists()
-        }
-        recentEntryIsReused
+        configurationCacheRunNoDaemon 'recent'
+        cc.reused
+        !outdated.exists()
 
         and:
         def remaining = configurationCacheDir.list() as Set
