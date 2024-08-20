@@ -24,14 +24,14 @@ import org.gradle.internal.UncheckedException;
 public class IsolatedModelProvider<T> extends AbstractMinimalProvider<T> {
 
     private final IsolatedModelScope producer;
-    private final IsolatedModelKey<T> key;
+    private final DefaultIsolatedModelKey<T> key;
     private final IsolatedModelScope consumer;
 
     private final IsolatedModelStore store;
 
     public IsolatedModelProvider(
         IsolatedModelScope producer,
-        IsolatedModelKey<T> key,
+        DefaultIsolatedModelKey<T> key,
         IsolatedModelScope consumer,
         IsolatedModelStore store
     ) {

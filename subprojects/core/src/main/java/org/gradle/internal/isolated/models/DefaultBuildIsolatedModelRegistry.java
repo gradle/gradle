@@ -18,6 +18,7 @@ package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
+import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.provider.Provider;
 
 public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegistryInternal, BuildIsolatedModelLookup {
@@ -32,13 +33,13 @@ public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegi
 
     @Override
     public <T> void registerModel(String key, Class<T> type, Provider<T> provider) {
-        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
+        IsolatedModelKey<T> modelKey = new DefaultIsolatedModelKey<>(key, type);
         store.registerModel(modelKey, provider);
     }
 
     @Override
     public <T> Provider<T> getModel(String key, Class<T> type) {
-        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
+        DefaultIsolatedModelKey<T> modelKey = new DefaultIsolatedModelKey<>(key, type);
         return store.getModel(scope, modelKey, scope);
     }
 

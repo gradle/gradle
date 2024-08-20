@@ -35,7 +35,7 @@ public class BuildIsolatedModelProjectLookup implements BuildIsolatedModelLookup
 
     @Override
     public <T> Provider<T> getModel(String key, Class<T> type) {
-        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
+        DefaultIsolatedModelKey<T> modelKey = new DefaultIsolatedModelKey<>(key, type);
         return store.getModel(scope, modelKey, buildScope);
     }
 }

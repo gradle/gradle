@@ -18,6 +18,7 @@ package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -58,7 +59,7 @@ public class BuildIsolatedModelStore implements IsolatedModelStore {
     }
 
     @Override
-    public <T> ProviderInternal<T> getModel(IsolatedModelScope consumer, IsolatedModelKey<T> key, IsolatedModelScope producer) {
+    public <T> ProviderInternal<T> getModel(IsolatedModelScope consumer, DefaultIsolatedModelKey<T> key, IsolatedModelScope producer) {
         checkSameBuild(consumer, producer);
         if (producer.getProjectPath() != null) {
             throw new UnsupportedOperationException("Only build-scope isolated models can be requested");

@@ -17,6 +17,7 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.isolated.models.ProjectIsolatedModelRegistry;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.Path;
@@ -33,7 +34,7 @@ public class DefaultProjectIsolatedModelRegistry implements ProjectIsolatedModel
 
     @Override
     public <T> void registerModel(String key, Class<T> type, Provider<T> provider) {
-        IsolatedModelKey<T> modelKey = new IsolatedModelKey<>(key, type);
+        IsolatedModelKey<T> modelKey = new DefaultIsolatedModelKey<>(key, type);
 
     }
 }

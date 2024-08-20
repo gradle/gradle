@@ -16,22 +16,26 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.isolated.models.IsolatedModelKey;
+
 import java.util.Objects;
 
-public class IsolatedModelKey<T> {
+public class DefaultIsolatedModelKey<T> implements IsolatedModelKey<T> {
 
     private final String name;
     private final Class<T> type;
 
-    public IsolatedModelKey(String name, Class<T> type) {
+    public DefaultIsolatedModelKey(String name, Class<T> type) {
         this.name = name;
         this.type = type;
     }
 
+    @Override
     public Class<T> getType() {
         return type;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -41,10 +45,10 @@ public class IsolatedModelKey<T> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof IsolatedModelKey)) {
+        if (!(o instanceof DefaultIsolatedModelKey)) {
             return false;
         }
-        IsolatedModelKey<?> that = (IsolatedModelKey<?>) o;
+        DefaultIsolatedModelKey<?> that = (DefaultIsolatedModelKey<?>) o;
         return Objects.equals(name, that.name) && Objects.equals(type, that.type);
     }
 

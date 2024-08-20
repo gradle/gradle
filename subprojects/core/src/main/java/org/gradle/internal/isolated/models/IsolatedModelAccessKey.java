@@ -16,15 +16,17 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.isolated.models.IsolatedModelKey;
+
 public class IsolatedModelAccessKey<T> {
 
     private final IsolatedModelScope producer;
-    private final IsolatedModelKey<T> key;
+    private final DefaultIsolatedModelKey<T> key;
     private final IsolatedModelScope consumer;
 
     public IsolatedModelAccessKey(
         IsolatedModelScope producer,
-        IsolatedModelKey<T> key,
+        DefaultIsolatedModelKey<T> key,
         IsolatedModelScope consumer
     ) {
         this.producer = producer;
