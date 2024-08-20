@@ -155,7 +155,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     @Override
     public void addLater(final Provider<? extends T> provider) {
         assertCanMutate("addLater(Provider)");
-        super.addLater(provider);
+        doAddLater(provider);
+    }
+
+    @Override
+    protected void doAddLater(Provider<? extends T> provider) {
+        super.doAddLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
             index.putPending(named.getName(), Providers.internal(provider));

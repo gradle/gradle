@@ -49,6 +49,99 @@ The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.10
 
 Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backwards compatibility.
 
+=== Deprecations
+
+[[mutating_buildscript_configurations]]
+==== Deprecated mutating buildscript configurations
+
+Starting in Gradle 9.0, mutating configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript-groovy.lang.Closure-[buildscript] block will result in an error.
+This applies to project, settings, init, and standalone scripts.
+
+The buildscript configurations block is only intended to control buildscript classpath resolution.
+
+Consider the following script that creates a new buildscript configuration in a Settings script and resolves it:
+
+[source,kotlin]
+----
+buildscript {
+    configurations {
+        create("myConfig")
+    }
+    dependencies {
+        "myConfig"("org:foo:1.0")
+    }
+}
+
+val files = buildscript.configurations["myConfig"].files
+----
+
+This pattern is sometimes used to resolve dependencies in Settings, where there is no other way to obtain a Configuration.
+Resolving dependencies in this context is not recommended.
+Using a detached configuration is a possible yet discouraged alternative.
+
+The above example can be modified to use a detached configuration:
+
+[source,kotlin]
+----
+val myConfig = buildscript.configurations.detachedConfiguration(
+    buildscript.dependencies.create("org:foo:1.0")
+)
+
+val files = myConfig.files
+----
+
+==== Deprecated manually adding to configuration container
+
+Starting in Gradle 9.0, manually adding configuration instances to a configuration container will result in an error.
+Configurations should only be added to the container through the eager or lazy factory methods.
+Detached configurations and copied configurations should not be added to the container.
+
+Calling the following methods on link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html[ConfigurationContainer] will be forbidden:
+- add(Configuration)
+- addAll(Collection)
+- addLater(Provider)
+- addAllLater(Provider)
+
+==== Deprecated `AbstractOptions`
+
+The `AbstractOptions` class has been deprecated and will be removed in Gradle 9.0.
+All classes extending `AbstractOptions` will no longer extend it.
+
+As a result, the `AbstractOptions#define(Map)` method will no longer be present.
+This method exposes a non-type-safe API and unnecessarily relies on reflection.
+It can be replaced by directly setting the properties specified in the map.
+
+Additionally, `CompileOptions#fork(Map)`, `CompileOptions#debug(Map)`, and `GroovyCompileOptions#fork(Map)`, which depend on `define`, are also deprecated for removal in Gradle 9.0.
+
+Consider the following example of the deprecated behavior and its replacement:
+[source,groovy]
+----
+tasks.withType(JavaCompile) {
+    // Deprecated behavior
+    options.define(encoding: 'UTF-8')
+    options.fork(memoryMaximumSize: '1G')
+    options.debug(debugLevel: 'lines')
+
+    // Can be replaced by
+    options.encoding = 'UTF-8'
+
+    options.fork = true
+    options.forkOptions.memoryMaximumSize = '1G'
+
+    options.debug = true
+    options.debugOptions.debugLevel = 'lines'
+}
+----
+
+==== Deprecated `Dependency#contentEquals(Dependency)`
+
+The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
+
+The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
+The existing method does not behave as specified by its javadoc, and we do not plan to introduce a replacement that does.
+
+Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
@@ -99,45 +192,6 @@ We decided to upgrade the minimum version of the Java runtime for a number of re
 - Some of the most popular plugins already require JVM 17 or later.
 - Download metrics for Gradle distributions show that JVM 17 is widely used.
 
-[[mutating_buildscript_configurations]]
-==== Deprecated mutating buildscript configurations
-
-Starting in Gradle 9.0, mutating configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript-groovy.lang.Closure-[buildscript] block will result in an error.
-This applies to project, settings, init, and standalone scripts.
-
-The buildscript configurations block is only intended to control buildscript classpath resolution.
-
-Consider the following script that creates a new buildscript configuration in a Settings script and resolves it:
-
-[source,kotlin]
-----
-buildscript {
-    configurations {
-        create("myConfig")
-    }
-    dependencies {
-        "myConfig"("org:foo:1.0")
-    }
-}
-
-val files = buildscript.configurations["myConfig"].files
-----
-
-This pattern is sometimes used to resolve dependencies in Settings, where there is no other way to obtain a Configuration.
-Resolving dependencies in this context is not recommended.
-Using a detached configuration is a possible yet discouraged alternative.
-
-The above example can be modified to use a detached configuration:
-
-[source,kotlin]
-----
-val myConfig = buildscript.configurations.detachedConfiguration(
-    buildscript.dependencies.create("org:foo:1.0")
-)
-
-val files = myConfig.files
-----
-
 [[consuming_non_consumable_variants_from_ivy_component]]
 ==== Deprecated consuming non-consumable configurations from Ivy
 
@@ -159,52 +213,6 @@ Projects should also never access the mutable state of another project.
 Since Configurations are mutable, extending configurations across project boundaries restricts the parallelism that Gradle can apply.
 
 Extending configurations in different projects is deprecated and will result in an error in Gradle 9.0.
-
-==== Deprecated `AbstractOptions`
-
-The `AbstractOptions` class has been deprecated and will be removed in Gradle 9.0.
-All classes extending `AbstractOptions` will no longer extend it.
-
-As a result, the `AbstractOptions#define(Map)` method will no longer be present.
-This method exposes a non-type-safe API and unnecessarily relies on reflection.
-It can be replaced by directly setting the properties specified in the map.
-
-Additionally, `CompileOptions#fork(Map)`, `CompileOptions#debug(Map)`, and `GroovyCompileOptions#fork(Map)`, which depend on `define`, are also deprecated for removal in Gradle 9.0.
-
-Consider the following example of the deprecated behavior and its replacement:
-=====
-[.multi-language-sample]
-======
-.build.gradle
-[source,groovy]
-----
-tasks.withType(JavaCompile) {
-    // Deprecated behavior
-    options.define(encoding: 'UTF-8')
-    options.fork(memoryMaximumSize: '1G')
-    options.debug(debugLevel: 'lines')
-
-    // Can be replaced by
-    options.encoding = 'UTF-8'
-
-    options.fork = true
-    options.forkOptions.memoryMaximumSize = '1G'
-
-    options.debug = true
-    options.debugOptions.debugLevel = 'lines'
-}
-----
-======
-=====
-
-==== Deprecated `Dependency#contentEquals(Dependency)`
-
-The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
-
-The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
-The existing method does not behave as specified by its javadoc, and we do not plan to introduce a replacement that does.
-
-Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
 
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
