@@ -64,18 +64,18 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             package my
             import ${Plugin.name}
             import ${Settings.name}
-            import ${BuildIsolatedModelRegistry.name}
+            import ${IsolatedModelRouter.name}
             import ${Inject.name}
 
             abstract class MySettingsPlugin implements Plugin<Settings> {
                 @Inject
-                abstract ${BuildIsolatedModelRegistry.simpleName} getRegistry()
+                abstract ${IsolatedModelRouter.simpleName} getRegistry()
 
                 void apply(Settings s) {
-                    registry.registerModel("myValue", MyModel, s.providers.provider {
+                    registry.postModel(registry.key("myValue", MyModel), registry.work(s.providers.provider {
                         println("Computing myValue")
                         return new MyModel("hey")
-                    })
+                    }))
                 }
             }
         """
@@ -84,17 +84,17 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             package my
             import ${Plugin.name}
             import ${Project.name}
-            import ${BuildIsolatedModelLookup.name}
+            import ${IsolatedModelRouter.name}
             import ${Inject.name}
 
             abstract class MyProjectPlugin implements Plugin<Project> {
                 @Inject
-                abstract ${BuildIsolatedModelLookup.name} getRegistry()
+                abstract ${IsolatedModelRouter.name} getRegistry()
 
                 void apply(Project project) {
-                    def valueProvider = registry.getModel("myValue", MyModel)
+                    def valueProvider = registry.getBuildModel(registry.key("myValue", MyModel))
                     MyModel computedValue = valueProvider.get()
-                    println("Project '" + project.buildTreePath + "' got value '" + computedValue.value + "'")
+                    println("Project '" + project.path + "' got value '" + computedValue.value + "'")
                 }
             }
         """
@@ -126,16 +126,18 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
 
     def "can consume build-provided model of shared type from setting script in a build script"() {
         settingsFile """
-            settings.buildModelRegistry.registerModel("myValue", String, providers.provider {
+            def router = settings.services.get(IsolatedModelRouter)
+            router.postModel(router.key("myValue", String), router.work(providers.provider {
                 println("Computing myValue")
                 "hey"
-            })
+            }))
         """
 
         buildFile """
-            def modelProvider = project.buildIsolatedModels.getModel("myValue", String)
+            def router = project.services.get(IsolatedModelRouter)
+            def modelProvider = router.getBuildModel(router.key("myValue", String))
             def computedValue = modelProvider.get()
-            println("Project '" + project.buildTreePath + "' got value '" + computedValue + "'")
+            println("Project '" + project.path + "' got value '" + computedValue + "'")
 
             tasks.register("something")
         """
@@ -151,21 +153,20 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
     def "model provider is finalized lazily"() {
         settingsFile """
             settings.ext.foo = ["a"]
+            def fooList = foo
 
-            foo.tap { fooList ->
-                settings.buildModelRegistry.registerModel("myValue", String, providers.provider {
-                    fooList.add("c")
-                    fooList.toString()
-                })
-            }
+            def router = settings.services.get(IsolatedModelRouter)
+            router.postModel(router.key("myValue", String), router.work(providers.provider {
+                fooList.add("c")
+                fooList.toString()
+            }))
 
             foo.add("b")
             println("(before model) settings.foo = \$foo")
 
-            settings.buildModelRegistry.getModel("myValue", String).tap { myValueProvider ->
-                def myValue = myValueProvider.get()
-                println("settings.myValue = \${myValue}")
-            }
+            def myValueProvider = router.getBuildModel(router.key("myValue", String))
+            def myValue = myValueProvider.get()
+            println("settings.myValue = \${myValue}")
 
             println("(after model) settings.foo = \$foo")
         """
@@ -181,17 +182,18 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
 
     def "build-scope isolated model provider is evaluated only if model is realized"() {
         settingsFile """
-            settings.buildModelRegistry.registerModel("someKey", String, providers.provider {
+            def router = settings.services.get(IsolatedModelRouter)
+
+            router.postModel(router.key("someKey", String), router.work(providers.provider {
                 println("Producing model for someKey")
                 "someValue"
-            })
+            }))
 
             if (Boolean.getBoolean("realizeModel")) {
                 println("Realizing model for someKey")
-                settings.buildModelRegistry.getModel("someKey", String).tap { myValueProvider ->
-                    def value = myValueProvider.get()
-                    println("model[someKey] = \${value}")
-                }
+                def myValueProvider = router.getBuildModel(router.key("someKey", String))
+                def value = myValueProvider.get()
+                println("model[someKey] = \${value}")
             }
         """
 
@@ -210,19 +212,22 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
     def "build-scoped model is realized only once"() {
         settingsFile """
             include(":a")
-            settings.buildModelRegistry.registerModel("someKey", String, providers.provider {
+            def router = settings.services.get(IsolatedModelRouter)
+            router.postModel(router.key("someKey", String), router.work(providers.provider {
                 println("Computing model for someKey")
                 "someValue"
-            })
+            }))
         """
 
         buildFile """
-            def model = project.buildIsolatedModels.getModel("someKey", String).get()
+            def router = project.services.get(IsolatedModelRouter)
+            def model = router.getBuildModel(router.key("someKey", String)).get()
             println("project '\$path' model[someKey] = \$model")
         """
 
         buildFile "a/build.gradle", """
-            def model = project.buildIsolatedModels.getModel("someKey", String).get()
+            def router = project.services.get(IsolatedModelRouter)
+            def model = router.getBuildModel(router.key("someKey", String)).get()
             println("project '\$path' model[someKey] = \$model")
         """
 
@@ -240,10 +245,11 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = "root"
             include(":a")
 
-            settings.buildModelRegistry.registerModel("someKey", List<String>, providers.provider {
+            def router = settings.services.get(IsolatedModelRouter)
+            router.postModel(router.key("someKey", List<String>), router.work(providers.provider {
                 println("Computing model for someKey")
                 ["settings"]
-            })
+            }))
         """
 
         buildFile "buildSrc/build.gradle", """
@@ -251,11 +257,13 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile "buildSrc/src/main/groovy/my-plugin.gradle", """
-            def model1 = project.buildIsolatedModels.getModel("someKey", List<String>).get()
+            def router = project.services.get(IsolatedModelRouter)
+
+            def model1 = router.getBuildModel(router.key("someKey", List<String>)).get()
             model1 << project.name
             println("project '\$path' model[someKey] = \$model1")
 
-            def model2 = project.buildIsolatedModels.getModel("someKey", List<String>).get()
+            def model2 = router.getBuildModel(router.key("someKey", List<String>)).get()
             model2 << project.name
             println("project '\$path' model[someKey] = \$model2")
         """
