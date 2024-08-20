@@ -16,16 +16,18 @@
 
 package org.gradle.buildinit.projectspecs.internal
 
-
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.AbstractInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin {
+class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin, JavaToolchainFixture {
     def "can specify 3rd party plugin using argument to init"() {
         when:
         initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
@@ -309,6 +311,12 @@ defaults {
 """)
 
         assertWrapperGenerated()
+
+        when:
+        withInstallations(Jvm.current(), AvailableJavaHomes.getJdk(JavaVersion.VERSION_17))
+        withAutoDetection()
+
+        then:
         canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
     }
 
