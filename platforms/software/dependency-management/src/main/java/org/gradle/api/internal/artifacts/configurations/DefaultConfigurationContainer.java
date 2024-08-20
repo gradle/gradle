@@ -180,10 +180,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         super.addAllLater(provider);
     }
 
-    private void addInternal(Configuration configuration) {
-        super.add(configuration);
-    }
-
     @Override
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
@@ -409,7 +405,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
         Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
-        addInternal(configuration);
+        super.add(configuration);
         configureAction.execute(configuration);
         return configuration;
     }
