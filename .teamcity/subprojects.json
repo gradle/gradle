@@ -1036,8 +1036,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "rendering",
-    "path": "platforms/core-runtime/rendering",
+    "name": "report-rendering",
+    "path": "platforms/core-runtime/report-rendering",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
