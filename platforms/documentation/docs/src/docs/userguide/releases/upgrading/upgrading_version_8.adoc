@@ -51,6 +51,12 @@ Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 fo
 
 === Deprecations
 
+[[deprecated_fork_options_java_home]]
+==== Deprecated JavaHome property of ForkOptions
+The link:{javadocPath}/org/gradle/api.tasks/compile/ForkOptions.html#getJavaHome()}[JavaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.
+
+Use [JVM Toolchains](https://docs.gradle.org/8.11/userguide/toolchains.html), or the link:{javadocPath}/org/gradle/api.tasks/compile/ForkOptions.html#getExecutable()}[Executable] property instead.
+
 [[mutating_buildscript_configurations]]
 ==== Deprecated mutating buildscript configurations
 

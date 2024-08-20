@@ -399,19 +399,28 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
     }
 
     def "JAR task is skipped when compiler output is unchanged"() {
+        given:
         file("src/main/java/Main.java") << "public class Main {}\n"
         buildFile << """
             apply plugin: "java"
         """
 
+        when:
+        executer.expectDocumentedDeprecationWarning("The ForkOptions.getJavaHome() method has been deprecated. This is scheduled to be removed in Gradle 9.0. The JavaHome property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the Executable property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
         succeeds "jar"
 
+        then:
         file("src/main/java/Main.java") << "// This should not influence compiled output"
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ForkOptions.getJavaHome() method has been deprecated. This is scheduled to be removed in Gradle 9.0. The JavaHome property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the Executable property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
         succeeds "jar"
-        then:
+
+        and:
+        executer.expectDocumentedDeprecationWarning("The ForkOptions.getJavaHome() method has been deprecated. This is scheduled to be removed in Gradle 9.0. The JavaHome property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the Executable property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
         executedAndNotSkipped ":compileJava"
+
+        then:
         skipped ":jar"
     }
 
