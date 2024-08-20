@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.api.isolated.models;
 
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.isolated.models.IsolatedModelKey;
-
-public interface IsolatedModelStore {
-
-    <T> ProviderInternal<T> getModel(
-        IsolatedModelScope consumer,
-        IsolatedModelKey<T> key,
-        IsolatedModelScope producer
-    );
-
+/**
+ * TBD
+ *
+ * @since 8.11
+ */
+public interface IsolatedModelWork<T> {
 }

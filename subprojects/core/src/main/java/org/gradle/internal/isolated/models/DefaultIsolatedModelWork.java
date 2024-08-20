@@ -16,15 +16,18 @@
 
 package org.gradle.internal.isolated.models;
 
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.isolated.models.IsolatedModelKey;
+import org.gradle.api.isolated.models.IsolatedModelWork;
+import org.gradle.api.provider.Provider;
 
-public interface IsolatedModelStore {
+public class DefaultIsolatedModelWork<T> implements IsolatedModelWork<T> {
 
-    <T> ProviderInternal<T> getModel(
-        IsolatedModelScope consumer,
-        IsolatedModelKey<T> key,
-        IsolatedModelScope producer
-    );
+    private final Provider<T> provider;
 
+    public DefaultIsolatedModelWork(Provider<T> provider) {
+        this.provider = provider;
+    }
+
+    public Provider<T> getProvider() {
+        return provider;
+    }
 }

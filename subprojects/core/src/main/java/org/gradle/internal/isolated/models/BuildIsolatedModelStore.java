@@ -59,7 +59,7 @@ public class BuildIsolatedModelStore implements IsolatedModelStore {
     }
 
     @Override
-    public <T> ProviderInternal<T> getModel(IsolatedModelScope consumer, DefaultIsolatedModelKey<T> key, IsolatedModelScope producer) {
+    public <T> ProviderInternal<T> getModel(IsolatedModelScope consumer, IsolatedModelKey<T> key, IsolatedModelScope producer) {
         checkSameBuild(consumer, producer);
         if (producer.getProjectPath() != null) {
             throw new UnsupportedOperationException("Only build-scope isolated models can be requested");

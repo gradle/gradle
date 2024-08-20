@@ -34,6 +34,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.SoftwareTypeRegistrationPluginTarget;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
@@ -41,6 +42,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.models.DefaultSettingsIsolatedModelRouter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
@@ -77,6 +79,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
             services.registerSettingsServices(registration);
         }
         registration.add(DefaultProjectDescriptorRegistry.class);
+        registration.add(IsolatedModelRouter.class, DefaultSettingsIsolatedModelRouter.class);
     }
 
     @Provides

@@ -21,12 +21,12 @@ import org.gradle.api.isolated.models.IsolatedModelKey;
 public class IsolatedModelAccessKey<T> {
 
     private final IsolatedModelScope producer;
-    private final DefaultIsolatedModelKey<T> key;
+    private final IsolatedModelKey<T> key;
     private final IsolatedModelScope consumer;
 
     public IsolatedModelAccessKey(
         IsolatedModelScope producer,
-        DefaultIsolatedModelKey<T> key,
+        IsolatedModelKey<T> key,
         IsolatedModelScope consumer
     ) {
         this.producer = producer;
