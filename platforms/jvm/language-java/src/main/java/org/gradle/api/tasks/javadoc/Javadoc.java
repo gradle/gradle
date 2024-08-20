@@ -19,13 +19,18 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -47,6 +52,8 @@ import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -107,21 +114,11 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private File destinationDir;
-
-    private boolean failOnError = true;
-
-    private String title;
-
-    private String maxMemory;
-
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
-
-    private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
-
-    private String executable;
     private final Property<JavadocTool> javadocTool;
+    private final Provider<Directory> optionsDestinationDir;
+    private final Provider<RegularFile> optionsFile;
 
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -133,11 +130,16 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         this.javadocTool = objectFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
+        this.optionsDestinationDir = getObjectFactory().directoryProperty()
+            .fileProvider(getProviderFactory().provider(options::getDestinationDirectory));
+        this.optionsFile = getObjectFactory().fileProperty()
+            .fileProvider(getProviderFactory().provider(() -> new File(getTemporaryDir(), "javadoc.options")));
+        getFailOnError().convention(true);
     }
 
     @TaskAction
     protected void generate() {
-        File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDir().getAsFile().get();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
@@ -159,14 +161,15 @@ public abstract class Javadoc extends SourceTask {
             getProjectLayout().files(options.getBootClasspath()).getAsPath();
         }
 
-        if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
-            options.windowTitle(getTitle());
+        String title = getTitle().getOrNull();
+        if (!isTrue(options.getWindowTitle()) && isTrue(title)) {
+            options.windowTitle(title);
         }
-        if (!isTrue(options.getDocTitle()) && isTrue(getTitle())) {
-            options.setDocTitle(getTitle());
+        if (!isTrue(options.getDocTitle()) && isTrue(title)) {
+            options.setDocTitle(title);
         }
 
-        String maxMemory = getMaxMemory();
+        String maxMemory = getMaxMemory().getOrNull();
         if (maxMemory != null && options.getJFlags().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
             options.jFlags("-Xmx" + maxMemory);
         }
@@ -179,7 +182,7 @@ public abstract class Javadoc extends SourceTask {
 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
-        String customExecutable = getExecutable();
+        String customExecutable = getExecutable().getOrNull();
         JavaExecutableUtils.validateExecutable(
                 customExecutable, "Toolchain from `executable` property",
                 toolchainExecutable, "toolchain from `javadocTool` property");
@@ -203,9 +206,9 @@ public abstract class Javadoc extends SourceTask {
 
         JavadocSpec spec = new JavadocSpec();
         spec.setOptions(options);
-        spec.setIgnoreFailures(!isFailOnError());
+        spec.setIgnoreFailures(!getFailOnError().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
-        spec.setOptionsFile(getOptionsFile());
+        spec.setOptionsFile(getOptionsFile().get().getAsFile());
 
         JavadocToolAdapter javadocToolAdapter = getJavadocToolAdapter();
         spec.setExecutable(javadocToolAdapter.getExecutablePath().toString());
@@ -243,66 +246,31 @@ public abstract class Javadoc extends SourceTask {
      * @return The directory.
      */
     @Internal
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public File getDestinationDir() {
-        return destinationDir;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getDestinationDir();
 
     @OutputDirectory
-    protected File getOutputDirectory() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir == null) {
-            destinationDir = options.getDestinationDirectory();
-        }
-        return destinationDir;
-    }
-
-    /**
-     * <p>Sets the directory to generate the documentation into.</p>
-     */
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+    @ReplacesEagerProperty(adapter = OutputDirectoryAdapter.class)
+    protected Provider<Directory> getOutputDirectory() {
+        return getDestinationDir().orElse(optionsDestinationDir);
     }
 
     /**
      * Returns the amount of memory allocated to this task.
      */
     @Internal
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public String getMaxMemory() {
-        return maxMemory;
-    }
-
-    /**
-     * Sets the amount of memory allocated to this task.
-     *
-     * @param maxMemory The amount of memory
-     */
-    public void setMaxMemory(String maxMemory) {
-        this.maxMemory = maxMemory;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getMaxMemory();
 
     /**
      * <p>Returns the title for the generated documentation.</p>
      *
      * @return The title, possibly null.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTitle() {
-        return title;
-    }
-
-    /**
-     * <p>Sets the title for the generated documentation.</p>
-     */
-    public void setTitle(@Nullable String title) {
-        this.title = title;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTitle();
 
     /**
      * Returns whether Javadoc generation is accompanied by verbose output.
@@ -352,19 +320,8 @@ public abstract class Javadoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath to use to resolve type references in this source code.
-     *
-     * @param classpath The classpath. Must not be null.
-     */
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the module path handling of this javadoc task.
@@ -410,19 +367,20 @@ public abstract class Javadoc extends SourceTask {
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
 
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Deprecated
+    @ReplacedBy("getFailOnError()")
+    public Property<Boolean> getIsFailOnError() {
+        ProviderApiDeprecationLogger.logDeprecation(Javadoc.class, "getIsFailOnError()", "failOnError");
+        return getFailOnError();
     }
 
     @Internal
-    @ToBeReplacedByLazyProperty
-    public File getOptionsFile() {
-        return new File(getTemporaryDir(), "javadoc.options");
+    @ReplacesEagerProperty
+    public Provider<RegularFile> getOptionsFile() {
+        return optionsFile;
     }
 
     /**
@@ -432,17 +390,10 @@ public abstract class Javadoc extends SourceTask {
      * @return The executable. May be null.
      * @see #getJavadocTool()
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getExecutable() {
-        return executable;
-    }
-
-    public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getExecutable();
 
     @Inject
     protected Deleter getDeleter() {
@@ -472,5 +423,13 @@ public abstract class Javadoc extends SourceTask {
     @Inject
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    static class OutputDirectoryAdapter {
+        @Nullable
+        @BytecodeUpgrade
+        static File getOutputDirectory(Javadoc task) {
+            return task.getOutputDirectory().map(Directory::getAsFile).getOrNull();
+        }
     }
 }
