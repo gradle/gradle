@@ -370,8 +370,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.destinationDir == project.file("$project.docsDir/javadoc")
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.destinationDir.get().asFile == project.file("$project.docsDir/javadoc")
+        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
 
         when:
         task = project.tasks["buildArchives"]
