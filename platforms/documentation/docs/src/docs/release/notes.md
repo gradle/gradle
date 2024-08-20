@@ -60,7 +60,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 The Swift and C++ plugins are now configuration cache compatible.
 
-The `cpp-unit` and `xctest` plugins are not yet compatible.
+The `xctest` and `visual-studio` plugins are not yet compatible.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
