@@ -16,6 +16,7 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.isolated.models.IsolatedModelWork;
@@ -25,6 +26,17 @@ import java.util.Collection;
 import java.util.Map;
 
 public class DefaultSettingsIsolatedModelRouter implements IsolatedModelRouter {
+
+    private final IsolatedModelScope buildScope;
+    private final IsolatedModelController modelController;
+
+    public DefaultSettingsIsolatedModelRouter(
+        GradleInternal gradle,
+        IsolatedModelController modelController
+    ) {
+        this.buildScope = new IsolatedModelScope(gradle.getIdentityPath());
+        this.modelController = modelController;
+    }
 
     @Override
     public <T> IsolatedModelKey<T> key(String name, Class<T> type) {
@@ -43,11 +55,11 @@ public class DefaultSettingsIsolatedModelRouter implements IsolatedModelRouter {
 
     @Override
     public <T> Provider<T> getBuildModel(IsolatedModelKey<T> key) {
-        throw new UnsupportedOperationException();
+        return modelController.obtain(buildScope, key);
     }
 
     @Override
     public <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work) {
-        throw new UnsupportedOperationException();
+        modelController.register(buildScope, key, (IsolatedModelWorkInternal<T>) work);
     }
 }

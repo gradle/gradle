@@ -45,6 +45,10 @@ public class IsolatedModelScope {
         return projectPath;
     }
 
+    public IsolatedModelScope getBuildScope() {
+        return projectPath == null ? this : new IsolatedModelScope(buildPath);
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) {

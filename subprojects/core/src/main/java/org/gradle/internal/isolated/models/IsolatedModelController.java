@@ -16,18 +16,24 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public class DefaultIsolatedModelWork<T> implements IsolatedModelWorkInternal<T> {
+@ServiceScope(Scope.BuildTree.class)
+public class IsolatedModelController {
 
-    private final Provider<T> provider;
+    private IsolatedModelWorkInternal<?> work;
 
-    public DefaultIsolatedModelWork(Provider<T> provider) {
-        this.provider = provider;
+    @SuppressWarnings({"unused"})
+    public <T> void register(IsolatedModelScope scope, IsolatedModelKey<T> key, IsolatedModelWorkInternal<T> work) {
+        this.work = work;
     }
 
-    @Override
-    public Provider<T> prepare() {
-        return provider;
+    @SuppressWarnings({"unchecked", "unused"})
+    public <T> Provider<T> obtain(IsolatedModelScope scope, IsolatedModelKey<T> key) {
+        Provider<?> provider = work.prepare();
+        return (Provider<T>) provider;
     }
 }

@@ -16,18 +16,11 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.isolated.models.IsolatedModelWork;
 import org.gradle.api.provider.Provider;
 
-public class DefaultIsolatedModelWork<T> implements IsolatedModelWorkInternal<T> {
+public interface IsolatedModelWorkInternal<T> extends IsolatedModelWork<T> {
 
-    private final Provider<T> provider;
+    Provider<T> prepare();
 
-    public DefaultIsolatedModelWork(Provider<T> provider) {
-        this.provider = provider;
-    }
-
-    @Override
-    public Provider<T> prepare() {
-        return provider;
-    }
 }
