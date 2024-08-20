@@ -20,12 +20,15 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -52,6 +55,7 @@ import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -112,21 +116,9 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private boolean failOnError = true;
-
-    @Nullable
-    private String title;
-
-    @Nullable
-    private String maxMemory;
-
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
-
-    private FileCollection classpath = getObjectFactory().fileCollection();
     private final ModularitySpec modularity;
-
-    @Nullable
-    private String executable;
+    private final Provider<RegularFile> optionsFile;
 
     @SuppressWarnings("this-escape")
     public Javadoc() {
@@ -140,6 +132,9 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         getJavadocTool().convention(javadocToolConvention);
         getJavadocTool().finalizeValueOnRead();
+        this.optionsFile = getObjectFactory().fileProperty()
+            .fileProvider(getProviderFactory().provider(() -> new File(getTemporaryDir(), "javadoc.options")));
+        getFailOnError().convention(true);
     }
 
     @TaskAction
@@ -166,14 +161,15 @@ public abstract class Javadoc extends SourceTask {
             getProjectLayout().files(options.getBootClasspath()).getAsPath();
         }
 
-        if (!isTrue(options.getWindowTitle()) && isTrue(getTitle())) {
-            options.windowTitle(getTitle());
+        String title = getTitle().getOrNull();
+        if (!isTrue(options.getWindowTitle()) && isTrue(title)) {
+            options.windowTitle(title);
         }
-        if (!isTrue(options.getDocTitle()) && isTrue(getTitle())) {
-            options.setDocTitle(getTitle());
+        if (!isTrue(options.getDocTitle()) && isTrue(title)) {
+            options.setDocTitle(title);
         }
 
-        String maxMemory = getMaxMemory();
+        String maxMemory = getMaxMemory().getOrNull();
         if (maxMemory != null && options.getJFlags().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
             options.jFlags("-Xmx" + maxMemory);
         }
@@ -186,7 +182,7 @@ public abstract class Javadoc extends SourceTask {
 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
-        String customExecutable = getExecutable();
+        String customExecutable = getExecutable().getOrNull();
         JavaExecutableUtils.validateExecutable(
             customExecutable, "Toolchain from `executable` property",
             toolchainExecutable, "toolchain from `javadocTool` property");
@@ -210,9 +206,9 @@ public abstract class Javadoc extends SourceTask {
 
         JavadocSpec spec = new JavadocSpec();
         spec.setOptions(options);
-        spec.setIgnoreFailures(!isFailOnError());
+        spec.setIgnoreFailures(!getFailOnError().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
-        spec.setOptionsFile(getOptionsFile());
+        spec.setOptionsFile(getOptionsFile().get().getAsFile());
 
         JavadocToolAdapter javadocToolAdapter = getJavadocToolAdapter();
         spec.setExecutable(javadocToolAdapter.getExecutablePath().toString());
@@ -274,51 +270,21 @@ public abstract class Javadoc extends SourceTask {
     }
 
     /**
-     * <p>Sets the directory to generate the documentation into.</p>
-     */
-    public void setDestinationDir(@Nullable File destinationDir) {
-        getDestinationDirectory().set(destinationDir);
-        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
-    }
-
-    /**
      * Returns the amount of memory allocated to this task.
      */
     @Internal
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public String getMaxMemory() {
-        return maxMemory;
-    }
-
-    /**
-     * Sets the amount of memory allocated to this task.
-     *
-     * @param maxMemory The amount of memory
-     */
-    public void setMaxMemory(@Nullable String maxMemory) {
-        this.maxMemory = maxMemory;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getMaxMemory();
 
     /**
      * <p>Returns the title for the generated documentation.</p>
      *
      * @return The title, possibly null.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTitle() {
-        return title;
-    }
-
-    /**
-     * <p>Sets the title for the generated documentation.</p>
-     */
-    public void setTitle(@Nullable String title) {
-        this.title = title;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTitle();
 
     /**
      * Returns the classpath to use to resolve type references in the source code.
@@ -326,19 +292,8 @@ public abstract class Javadoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath to use to resolve type references in this source code.
-     *
-     * @param classpath The classpath. Must not be null.
-     */
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the module path handling of this javadoc task.
@@ -384,19 +339,20 @@ public abstract class Javadoc extends SourceTask {
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
 
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Deprecated
+    @ReplacedBy("getFailOnError()")
+    public Property<Boolean> getIsFailOnError() {
+        ProviderApiDeprecationLogger.logDeprecation(Javadoc.class, "getIsFailOnError()", "failOnError");
+        return getFailOnError();
     }
 
     @Internal
-    @ToBeReplacedByLazyProperty
-    public File getOptionsFile() {
-        return new File(getTemporaryDir(), "javadoc.options");
+    @ReplacesEagerProperty
+    public Provider<RegularFile> getOptionsFile() {
+        return optionsFile;
     }
 
     /**
@@ -406,17 +362,10 @@ public abstract class Javadoc extends SourceTask {
      * @return The executable. May be null.
      * @see #getJavadocTool()
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getExecutable() {
-        return executable;
-    }
-
-    public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getExecutable();
 
     @Inject
     protected abstract Deleter getDeleter();
