@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.isolated.models.DefaultIsolatedModelKey;
+import org.gradle.internal.isolated.models.IsolatedModelScope;
 
 public class IsolatedModelProvider<T> extends AbstractMinimalProvider<T> {
 

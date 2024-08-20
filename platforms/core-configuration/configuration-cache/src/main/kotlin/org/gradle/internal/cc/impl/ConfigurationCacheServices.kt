@@ -36,8 +36,8 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
-import org.gradle.internal.isolated.models.BuildIsolatedModelStore
-import org.gradle.internal.isolated.models.DefaultBuildIsolatedModelRegistry
+import org.gradle.internal.isolated.models.legacy.BuildIsolatedModelStore
+import org.gradle.internal.isolated.models.legacy.DefaultBuildIsolatedModelRegistry
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification

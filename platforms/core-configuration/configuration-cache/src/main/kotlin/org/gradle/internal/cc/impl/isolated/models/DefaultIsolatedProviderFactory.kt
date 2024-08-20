@@ -24,7 +24,7 @@ import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
 import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.serviceOf
-import org.gradle.internal.isolated.models.IsolatedProviderFactory
+import org.gradle.internal.isolated.models.legacy.IsolatedProviderFactory
 
 class DefaultIsolatedProviderFactory : IsolatedProviderFactory {
 

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.isolated.models.IsolatedProviderFactory.IsolatedProviderForGradle;
+import org.gradle.internal.isolated.models.legacy.IsolatedProviderFactory.IsolatedProviderForGradle;
 
 import javax.annotation.Nullable;
 

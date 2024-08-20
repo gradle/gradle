@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.isolated.models.IsolatedModelAccessKey;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 

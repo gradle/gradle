@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.isolated.models.BuildIsolatedModelRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface IsolatedProviderFactory {
+@ServiceScope(Scope.Build.class)
+public interface BuildIsolatedModelRegistryInternal extends BuildIsolatedModelRegistry {
 
-    <T> IsolatedProviderForGradle<T> isolate(Provider<T> provider, GradleInternal owner);
-
-    interface IsolatedProviderForGradle<T> {
-
-        Provider<T> instantiate(GradleInternal owner);
-
-    }
+    void isolateAllModelProviders();
 
 }

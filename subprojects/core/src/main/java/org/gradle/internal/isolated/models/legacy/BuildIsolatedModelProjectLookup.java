@@ -14,37 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
-import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.isolated.models.DefaultIsolatedModelKey;
+import org.gradle.internal.isolated.models.IsolatedModelScope;
 
-public class DefaultBuildIsolatedModelRegistry implements BuildIsolatedModelRegistryInternal, BuildIsolatedModelLookup {
+public class BuildIsolatedModelProjectLookup implements BuildIsolatedModelLookup {
 
     private final IsolatedModelScope scope;
+    private final IsolatedModelScope buildScope;
+
     private final BuildIsolatedModelStore store;
 
-    public DefaultBuildIsolatedModelRegistry(GradleInternal gradle, BuildIsolatedModelStore store) {
-        this.scope = new IsolatedModelScope(gradle.getIdentityPath());
+    public BuildIsolatedModelProjectLookup(ProjectInternal project, BuildIsolatedModelStore store) {
+        this.scope = new IsolatedModelScope(project.getBuildPath(), project.getProjectPath());
+        this.buildScope = new IsolatedModelScope(project.getBuildPath());
         this.store = store;
-    }
-
-    @Override
-    public <T> void registerModel(String key, Class<T> type, Provider<T> provider) {
-        IsolatedModelKey<T> modelKey = new DefaultIsolatedModelKey<>(key, type);
-        store.registerModel(modelKey, provider);
     }
 
     @Override
     public <T> Provider<T> getModel(String key, Class<T> type) {
         DefaultIsolatedModelKey<T> modelKey = new DefaultIsolatedModelKey<>(key, type);
-        return store.getModel(scope, modelKey, scope);
-    }
-
-    @Override
-    public void isolateAllModelProviders() {
-
+        return store.getModel(scope, modelKey, buildScope);
     }
 }

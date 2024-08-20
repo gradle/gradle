@@ -13,18 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.isolated.models.legacy;
 
-package org.gradle.internal.isolated.models;
-
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.isolated.models.IsolatedModelKey;
-
-public interface IsolatedModelStore {
-
-    <T> ProviderInternal<T> getModel(
-        IsolatedModelScope consumer,
-        IsolatedModelKey<T> key,
-        IsolatedModelScope producer
-    );
-
-}

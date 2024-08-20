@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
-import org.gradle.api.isolated.models.BuildIsolatedModelRegistry;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.isolated.models.IsolatedModelKey;
+import org.gradle.internal.isolated.models.IsolatedModelScope;
 
-@ServiceScope(Scope.Build.class)
-public interface BuildIsolatedModelRegistryInternal extends BuildIsolatedModelRegistry {
+public interface IsolatedModelStore {
 
-    void isolateAllModelProviders();
+    <T> ProviderInternal<T> getModel(
+        IsolatedModelScope consumer,
+        IsolatedModelKey<T> key,
+        IsolatedModelScope producer
+    );
 
 }
