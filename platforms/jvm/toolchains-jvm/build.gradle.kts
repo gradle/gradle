@@ -21,12 +21,6 @@ plugins {
 
 description = "Adds support for using JVM toolchains in projects"
 
-errorprone {
-    disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)

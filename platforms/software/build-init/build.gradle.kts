@@ -16,7 +16,6 @@ errorprone {
         "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 1 occurrences
         "ReferenceEquality", // 1 occurrences
-        "StringCaseLocaleUsage", // 5 occurrences
         "UnusedMethod", // 1 occurrences
     )
 }

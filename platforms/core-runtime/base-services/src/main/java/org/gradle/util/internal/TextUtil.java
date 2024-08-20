@@ -33,8 +33,6 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-// TODO Do not rely on default encoding
-@SuppressWarnings("StringCaseLocaleUsage")
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
@@ -42,7 +40,7 @@ public class TextUtil {
     private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
         @Override
         public String apply(String input) {
-            return input.toLowerCase();
+            return input.toLowerCase(Locale.ROOT);
         }
     };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");

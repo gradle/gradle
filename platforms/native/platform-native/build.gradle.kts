@@ -13,7 +13,6 @@ errorprone {
         "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 2 occurrences
         "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences

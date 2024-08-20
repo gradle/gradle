@@ -9,7 +9,6 @@ errorprone {
         "EmptyBlockTag", // 1 occurrences
         "LoopOverCharArray", // 1 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
-        "StringCaseLocaleUsage", // 2 occurrences
     )
 }
 

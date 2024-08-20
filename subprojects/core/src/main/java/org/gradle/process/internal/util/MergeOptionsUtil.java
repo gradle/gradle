@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class MergeOptionsUtil {
             return -1; // unspecified
         }
 
-        String normalized = heapSize.trim().toLowerCase();
+        String normalized = heapSize.trim().toLowerCase(Locale.ROOT);
         try {
             if (normalized.endsWith("m")) {
                 return Integer.parseInt(normalized.substring(0, normalized.length() - 1));

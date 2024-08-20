@@ -61,7 +61,6 @@ errorprone {
         "ReturnValueIgnored", // 1 occurrences
         "SameNameButDifferent", // 11 occurrences
         "StreamResourceLeak", // 6 occurrences
-        "StringCaseLocaleUsage", // 11 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
