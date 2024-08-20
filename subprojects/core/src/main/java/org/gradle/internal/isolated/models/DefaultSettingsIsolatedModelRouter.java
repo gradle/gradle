@@ -52,11 +52,11 @@ public class DefaultSettingsIsolatedModelRouter implements IsolatedModelRouter {
 
     @Override
     public <T> Provider<T> getBuildModel(IsolatedModelKey<T> key) {
-        return modelController.obtain(buildScope, key);
+        return modelController.obtain(buildScope, key, buildScope);
     }
 
     @Override
     public <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work) {
-        modelController.register(buildScope, key, (IsolatedModelWorkInternal<T>) work);
+        modelController.register(buildScope, key, work);
     }
 }

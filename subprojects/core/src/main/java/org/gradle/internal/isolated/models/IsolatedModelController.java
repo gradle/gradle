@@ -20,19 +20,56 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @ServiceScope(Scope.BuildTree.class)
 public class IsolatedModelController {
 
-    private IsolatedModelWorkInternal<?> work;
+    private final Map<Key<?>, IsolatedModelWork<?>> workByKey = new HashMap<>();
 
     @SuppressWarnings({"unused"})
-    public <T> void register(IsolatedModelScope scope, IsolatedModelKey<T> key, IsolatedModelWorkInternal<T> work) {
-        this.work = work;
+    public <T> void register(IsolatedModelScope producerScope, IsolatedModelKey<T> key, IsolatedModelWork<T> work) {
+        Key<T> workKey = new Key<>(producerScope, key);
+        workByKey.put(workKey, work);
     }
 
     @SuppressWarnings({"unchecked", "unused"})
-    public <T> Provider<T> obtain(IsolatedModelScope scope, IsolatedModelKey<T> key) {
+    public <T> Provider<T> obtain(IsolatedModelScope consumerScope, IsolatedModelKey<T> key, IsolatedModelScope producerScope) {
+        Key<T> workKey = new Key<>(producerScope, key);
+        IsolatedModelWork<?> work = workByKey.get(workKey);
         Provider<?> provider = work.prepare();
         return (Provider<T>) provider;
+    }
+
+    private static final class Key<T> {
+
+        private final IsolatedModelScope producerScope;
+        private final IsolatedModelKey<T> key;
+
+        private Key(IsolatedModelScope producerScope, IsolatedModelKey<T> key) {
+            this.producerScope = producerScope;
+            this.key = key;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Key)) {
+                return false;
+            }
+
+            Key<?> key1 = (Key<?>) o;
+            return producerScope.equals(key1.producerScope) && key.equals(key1.key);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = producerScope.hashCode();
+            result = 31 * result + key.hashCode();
+            return result;
+        }
     }
 }

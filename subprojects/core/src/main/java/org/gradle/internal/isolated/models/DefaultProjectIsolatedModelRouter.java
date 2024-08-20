@@ -17,22 +17,28 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 import java.util.Map;
 
+import static java.util.stream.Collectors.toMap;
+
 public class DefaultProjectIsolatedModelRouter implements IsolatedModelRouter {
 
     private final IsolatedModelScope projectScope;
     private final IsolatedModelController modelController;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
     public DefaultProjectIsolatedModelRouter(
         ProjectInternal project,
-        IsolatedModelController modelController
+        IsolatedModelController modelController,
+        ProjectRegistry<ProjectInternal> projectRegistry
     ) {
         this.projectScope = new IsolatedModelScope(project.getBuildPath(), project.getProjectPath());
         this.modelController = modelController;
+        this.projectRegistry = projectRegistry;
     }
 
     @Override
@@ -47,16 +53,25 @@ public class DefaultProjectIsolatedModelRouter implements IsolatedModelRouter {
 
     @Override
     public <T> Map<String, Provider<T>> getProjectModels(IsolatedModelKey<T> key, Collection<String> projectPaths) {
-        throw new UnsupportedOperationException();
+        return projectPaths.stream()
+            .map(projectRegistry::getProject)
+            .collect(toMap(
+                ProjectInternal::getPath,
+                it -> modelController.obtain(projectScope, key, scope(it))
+            ));
+    }
+
+    private static IsolatedModelScope scope(ProjectInternal project) {
+        return new IsolatedModelScope(project.getBuildPath(), project.getProjectPath());
     }
 
     @Override
     public <T> Provider<T> getBuildModel(IsolatedModelKey<T> key) {
-        return modelController.obtain(projectScope.getBuildScope(), key);
+        return modelController.obtain(projectScope, key, projectScope.getBuildScope());
     }
 
     @Override
     public <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work) {
-        throw new UnsupportedOperationException();
+        modelController.register(projectScope, key, work);
     }
 }

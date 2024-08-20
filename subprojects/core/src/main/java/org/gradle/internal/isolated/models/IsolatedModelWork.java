@@ -16,10 +16,15 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.provider.Provider;
+
 /**
  * TBD
  *
  * @since 8.11
  */
 public interface IsolatedModelWork<T> {
+
+    Provider<T> prepare();
+
 }

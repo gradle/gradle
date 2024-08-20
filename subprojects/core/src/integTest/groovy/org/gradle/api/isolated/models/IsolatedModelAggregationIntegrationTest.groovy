@@ -44,8 +44,8 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 Provider<RegularFile> taskOutput = numberTask.flatMap { it.output }
-                def projectModelRegistry = project.services.get(ProjectIsolatedModelRegistry)
-                projectModelRegistry.registerModel("numberFile", RegularFile, taskOutput)
+                def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
+                router.postModel(router.key("numberFile", RegularFile), router.work(taskOutput))
             }
         """
 
@@ -68,12 +68,14 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            tasks.register("sum", SummingTask) {
-                numbers = files(allprojects.collect {
-                    Provider<RegularFile> model = it.isolated.models.getModel("numberFile", RegularFile)
-                    model
-                })
+            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
 
+
+
+            tasks.register("sum", SummingTask) {
+                Map<String, Provider<RegularFile>> numberFiles =
+                    router.getProjectModels(router.key("numberFile", RegularFile), allprojects.collect { it.path })
+                numbers = files(numberFiles.values())
                 output = layout.buildDirectory.file("sum.txt")
             }
         """
