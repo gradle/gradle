@@ -523,7 +523,8 @@ sourceSets {
     @ToBeImplemented
     def "recompiles classes on file typo rename"() {
         // TODO: Delete this assume statement when fixed,
-        //  since for Java Cli mode it already "works", since Cli mode doesn't run compilation incrementally
+        //  since for Java Cli mode it already works accidentally,
+        //  since Cli mode doesn't track file to class mapping accurately
         assumeTrue(this.class != JavaSourceCliIncrementalCompilationIntegrationTest.class)
 
         def fileWithTypo = file("src/main/${languageName}/ATypo.${languageName}") << """
@@ -539,7 +540,7 @@ sourceSets {
         run language.compileTaskName
 
         then:
-        // TODO: Fix this, A.class should not be deleted or it should be recompiled, e.g.:
+        // TODO: Fix this, A should be recompiled, e.g.:
         //   outputs.hasFiles(file("A.class"))
         //   outputs.recompiled("A")
         outputs.deletedClasses("A")
