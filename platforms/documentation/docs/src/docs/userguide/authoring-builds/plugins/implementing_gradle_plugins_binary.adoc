@@ -666,6 +666,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====
 
+[[reporting_problems]]
 == Reporting problems
 
 Plugins can report problems through Gradle's problem-reporting APIs.
