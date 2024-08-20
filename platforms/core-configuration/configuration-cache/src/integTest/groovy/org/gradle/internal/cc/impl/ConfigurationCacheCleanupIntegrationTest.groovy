@@ -17,49 +17,80 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Issue
 
 
+@Requires(
+    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    reason = "FileAccessTimeJournal is never closed in embedded mode"
+)
 class ConfigurationCacheCleanupIntegrationTest
     extends AbstractConfigurationCacheIntegrationTest
     implements FileAccessTimeJournalFixture {
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3121')
-    def "cleanup deletes old entries"() {
-        given:
+    def setup() {
+        requireOwnGradleUserHomeDir('needs its own journal')
         executer.requireIsolatedDaemons()
-        writeJournalInceptionTimestamp(daysAgo(8))
-        gcFile.createFile().lastModified = daysAgo(8)
-
-        and:
-        def outdated = createCacheEntryDir("outdated")
-        writeLastFileAccessTimeToJournal(outdated, daysAgo(15))
-
-        expect:
-        ConcurrentTestUtil.poll(60, 0, 10) {
-            configurationCacheRun 'help'
-            run '--stop'
-            assert !outdated.isDirectory()
-        }
-
-        and:
-        cacheDir.listFiles().length == 3 // gc file + cache properties + 'help' state
     }
 
-    private TestFile createCacheEntryDir(String entry) {
-        TestFile dir = cacheDir.createDir(entry)
-        dir.createFile("state.bin")
-        dir.createFile("fingerprint.bin")
-        return dir
+    @Issue('https://github.com/gradle/gradle/issues/23957')
+    def "cleanup deletes old entries"() {
+        given: 'there are two configuration cache entries'
+        buildFile '''
+            task outdated
+            task recent
+        '''
+        configurationCacheRunNoDaemon 'outdated'
+        TestFile outdated = single(subDirsOf(configurationCacheDir))
+        configurationCacheRunNoDaemon 'recent'
+        TestFile recent = single(subDirsOf(configurationCacheDir) - outdated)
+
+        and: 'they are 8 days old'
+        subDirsOf(configurationCacheDir).each { TestFile dir ->
+            writeLastFileAccessTimeToJournal dir, daysAgo(8)
+        }
+
+        and: 'but one was recently accessed'
+        configurationCacheRunNoDaemon 'recent'
+
+        and: 'the last cleanup was long ago'
+        assert gcFile.createFile().setLastModified(0)
+
+        expect: 'Gradle to preserve the recent entry and to delete the outdated one'
+        def cc = newConfigurationCacheFixture()
+        configurationCacheRunNoDaemon 'recent'
+        cc.reused
+        !outdated.exists()
+
+        and:
+        def remaining = configurationCacheDir.list() as Set
+        def expected = [recent.name, 'gc.properties', 'configuration-cache.lock'] as Set
+        expected == remaining
+    }
+
+    private void configurationCacheRunNoDaemon(String task) {
+        configurationCacheRun task, '--no-daemon'
     }
 
     private TestFile getGcFile() {
-        return cacheDir.file("gc.properties")
+        return configurationCacheDir.file('gc.properties')
     }
 
-    private TestFile getCacheDir() {
-        return file(".gradle/configuration-cache")
+    private TestFile getConfigurationCacheDir() {
+        return file('.gradle/configuration-cache')
+    }
+
+    private static List<TestFile> subDirsOf(TestFile dir) {
+        dir.listFiles().findAll { it.directory }
+    }
+
+    private static <T> T single(List<T> list) {
+        list.with {
+            assert size() == 1
+            get(0)
+        }
     }
 }
