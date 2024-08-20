@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * Describe a certain type of resolution failure, by providing concise and specific human-readable
@@ -48,11 +48,12 @@ public interface ResolutionFailureDescriber<FAILURE extends ResolutionFailure> {
      * for the given failure.
      *
      * @param failure the failure to describe
-     * @param schema the schema of the attributes that were used to select the variant, if available
+     * @param attributeDescribers describes individual attributes
+     *
      * @return the exception that describes the failure
      *
      * @implSpec Testing {@link #canDescribeFailure(ResolutionFailure)} should <strong>NOT</strong> be done by
      * implementations of this method; ensuring this is done first is the responsibility of the caller.
      */
-    AbstractResolutionFailureException describeFailure(FAILURE failure, @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<AttributesSchemaInternal> schema);
+    AbstractResolutionFailureException describeFailure(FAILURE failure, List<AttributeDescriber> attributeDescribers);
 }

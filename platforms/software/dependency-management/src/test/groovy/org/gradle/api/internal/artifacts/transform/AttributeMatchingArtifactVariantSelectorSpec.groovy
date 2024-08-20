@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -25,11 +25,11 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
-
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
@@ -60,8 +60,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     }
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
-    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems))
+    def failureProcessor = new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(TestUtil.services()), Stub(InternalProblems))
 
     def 'direct match on variant means no finder interaction'() {
         given:

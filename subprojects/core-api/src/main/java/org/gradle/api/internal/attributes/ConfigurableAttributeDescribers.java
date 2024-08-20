@@ -15,13 +15,7 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.AttributesSchema;
-
-import java.util.List;
-
-public interface AttributesSchemaWithDescribers extends AttributesSchema {
-
-    List<AttributeDescriber> getConsumerDescribers();
+public interface ConfigurableAttributeDescribers {
 
     void addConsumerDescriber(AttributeDescriber describer);
 }

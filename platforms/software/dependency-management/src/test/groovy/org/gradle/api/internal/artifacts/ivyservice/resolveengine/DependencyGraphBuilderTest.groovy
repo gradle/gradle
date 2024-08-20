@@ -51,7 +51,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -71,6 +70,7 @@ import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -132,8 +132,7 @@ class DependencyGraphBuilderTest extends Specification {
         TestUtil.calculatedValueContainerFactory()
     )
 
-    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems)))
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(TestUtil.services()), Stub(InternalProblems)))
 
     DependencyGraphBuilder builder = new DependencyGraphBuilder(
         moduleExclusions,

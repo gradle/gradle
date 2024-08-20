@@ -27,10 +27,6 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -52,23 +48,16 @@ import java.util.stream.IntStream;
 public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
-    private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
 
     private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = new HashMap<>();
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
-    private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
 
     private final Map<AttributesSchemaInternal, AttributeMatcher> matcherCache = new ConcurrentHashMap<>();
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-        this(instantiatorFactory, instantiatorFactory.inject(), isolatableFactory);
-    }
-
-    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, InstanceGenerator instanceGenerator, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
     }
 
     @Override
@@ -139,16 +128,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public List<AttributeDescriber> getConsumerDescribers() {
-        return consumerAttributeDescribers;
-    }
-
-    @Override
-    public void addConsumerDescriber(AttributeDescriber describer) {
-        consumerAttributeDescribers.add(describer);
-    }
-
-    @Override
     public void attributeDisambiguationPrecedence(Attribute<?>... attributes) {
         for (Attribute<?> attribute : attributes) {
             if (!precedence.add(attribute)) {
@@ -172,16 +151,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return attributesByName.get(name);
-    }
-
-    @Override
-    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {
-        failureDescriberRegistry.registerDescriber(failureType, describerType);
-    }
-
-    @Override
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getFailureDescribers(Class<FAILURE> failureType) {
-        return failureDescriberRegistry.getDescribers(failureType);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

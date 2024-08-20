@@ -32,10 +32,9 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     def setup() {
         // apply Java ecosystem rules
         buildFile << """
-            org.gradle.api.internal.artifacts.JavaEcosystemSupport.configureSchema(
-                dependencies.attributesSchema,
-                project.objects
-            )
+            plugins {
+                id("jvm-ecosystem")
+            }
         """
     }
 
@@ -82,8 +81,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
 
         repos += [(repoType): repo]
         """
-        repositories { 
-            ${isMaven ? 'maven' : 'ivy'} { 
+        repositories {
+            ${isMaven ? 'maven' : 'ivy'} {
                 url "${repo.uri}"
                 metadataSources { ${gradleMetadata ? 'gradleMetadata()' : isMaven ? 'mavenPom()' : 'ivyDescriptor()'} }
             }
