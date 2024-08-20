@@ -118,7 +118,7 @@ public class JvmPluginsHelper {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
                 javadoc.setDescription("Generates Javadoc API documentation for the " + displayName + ".");
                 javadoc.setGroup(JvmConstants.DOCUMENTATION_GROUP);
-                javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
+                javadoc.getClasspath().setFrom(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
                     javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());

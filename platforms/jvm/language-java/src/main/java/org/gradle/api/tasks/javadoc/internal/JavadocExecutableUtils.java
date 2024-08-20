@@ -27,7 +27,7 @@ public class JavadocExecutableUtils {
 
     @Nullable
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(Javadoc task, ObjectFactory objectFactory) {
-        String customExecutable = task.getExecutable();
+        String customExecutable = task.getExecutable().getOrNull();
         if (customExecutable != null) {
             return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
         }
