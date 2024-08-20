@@ -16,6 +16,9 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 /**
@@ -168,9 +171,10 @@ trait TestsInitProjectSpecsViaPlugin {
         assert projectFile.text == content
     }
 
-    void canBuildGeneratedProject() {
+    void canBuildGeneratedProject(Jvm jvm = AvailableJavaHomes.getAvailableJdks(JavaVersion.current()).get(0)) {
         def generatedProjectDir = file("new-project")
         executer.usingProjectDirectory(generatedProjectDir)
+        executer.withJvm(jvm)
 
         succeeds("build")
     }

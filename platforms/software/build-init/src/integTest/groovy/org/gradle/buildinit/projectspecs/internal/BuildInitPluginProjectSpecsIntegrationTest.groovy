@@ -19,11 +19,11 @@ package org.gradle.buildinit.projectspecs.internal
 
 import org.gradle.buildinit.plugins.AbstractInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 
 class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin {
     def "can specify 3rd party plugin using argument to init"() {
@@ -236,11 +236,11 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         assertWrapperGenerated()
     }
 
-    @Ignore // TODO: No JDK 21 on CI yet, remove this when JDK 21 is available
     @LeaksFileHandles
-    @Requires(UnitTestPreconditions.Jdk21OrLater) // D-G produces a project that requires Java 21
+    @Requires(UnitTestPreconditions.Jdk17OrLater) // D-G produces a project that requires Java 21
     def "can generate declarative project type using argument to init"() {
         when:
+        executer.withJvm(AvailableJavaHomes.getJdk21())
         initSucceedsWithPluginSupplyingSpec("org.gradle.experimental.jvm-ecosystem:0.1.13")
 
         then:
@@ -309,7 +309,7 @@ defaults {
 """)
 
         assertWrapperGenerated()
-        canBuildGeneratedProject()
+        canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
     }
 
     private void initSucceedsWithPluginSupplyingSpec(String pluginsProp = null, String type = null) {
