@@ -33,18 +33,18 @@ class ConfigurationCacheCleanupIntegrationTest
             task outdated
             task recent
         '''
-        configurationCacheRunAndStop 'outdated'
-        TestFile outdated = single(subDirsOf(cacheDir))
-        configurationCacheRunAndStop 'recent'
-        TestFile recent = single(subDirsOf(cacheDir) - outdated)
+        configurationCacheRunNoDaemon 'outdated'
+        TestFile outdated = single(subDirsOf(configurationCacheDir))
+        configurationCacheRunNoDaemon 'recent'
+        TestFile recent = single(subDirsOf(configurationCacheDir) - outdated)
 
         and: 'they are 15 days old'
-        file('.gradle/configuration-cache').listFiles().findAll { it.directory }.each { TestFile dir ->
+        subDirsOf(configurationCacheDir).each { TestFile dir ->
             writeLastFileAccessTimeToJournal dir, daysAgo(15)
         }
 
         and: 'but one was recently accessed'
-        configurationCacheRunAndStop 'recent'
+        configurationCacheRunNoDaemon 'recent'
 
         and: 'the last cleanup was 8 days ago'
         writeJournalInceptionTimestamp daysAgo(8)
@@ -54,34 +54,32 @@ class ConfigurationCacheCleanupIntegrationTest
         boolean recentEntryIsReused = true
         def cc = newConfigurationCacheFixture()
         ConcurrentTestUtil.poll(60, 0, 10) {
-            configurationCacheRun 'recent'
+            configurationCacheRunNoDaemon 'recent'
             recentEntryIsReused &= cc.reused
-            run '--stop'
             assert !outdated.isDirectory()
         }
         recentEntryIsReused
 
         and:
-        def remaining = cacheDir.listFiles().collect { it.name } as Set
+        def remaining = configurationCacheDir.list() as Set
         def expected = [recent.name, 'gc.properties', 'configuration-cache.lock'] as Set
         expected == remaining
     }
 
-    private void configurationCacheRunAndStop(String task) {
-        configurationCacheRun task
-        run '--stop'
+    private void configurationCacheRunNoDaemon(String task) {
+        configurationCacheRun task, '--no-daemon'
+    }
+
+    private TestFile getGcFile() {
+        return configurationCacheDir.file("gc.properties")
+    }
+
+    private TestFile getConfigurationCacheDir() {
+        return file(".gradle/configuration-cache")
     }
 
     private static List<TestFile> subDirsOf(TestFile dir) {
         dir.listFiles().findAll { it.directory }
-    }
-
-    private TestFile getGcFile() {
-        return cacheDir.file("gc.properties")
-    }
-
-    private TestFile getCacheDir() {
-        return file(".gradle/configuration-cache")
     }
 
     private static <T> T single(List<T> list) {
