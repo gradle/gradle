@@ -620,7 +620,7 @@ Joe!""")
                 id("java")
             }
             tasks.javadoc {
-                destinationDir = null
+                destinationDir = null as File
                 title = null
                 maxMemory = null
                 executable = null
