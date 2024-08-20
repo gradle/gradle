@@ -26,7 +26,6 @@ dependencies {
 
     api(libs.inject)
     api(libs.jsr305)
-    api(projects.internalInstrumentationApi)
 
     implementation(projects.baseServices)
     implementation(projects.fileOperations)

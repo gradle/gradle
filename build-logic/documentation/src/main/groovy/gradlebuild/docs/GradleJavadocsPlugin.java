@@ -19,6 +19,7 @@ package gradlebuild.docs;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
@@ -29,9 +30,12 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Generates Javadocs in a particular way.
@@ -65,7 +69,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
-            task.setTitle("Gradle API " + version);
+            new JavadocSupport(task).setTitle("Gradle API " + version);
 
             Javadocs javadocs = extension.getJavadocs();
 
@@ -117,7 +121,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
             task.source(extension.getDocumentedSource().filter(f -> f.getName().endsWith(".java")));
 
-            task.setClasspath(extension.getClasspath());
+            new JavadocSupport(task).setClasspath(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
             DirectoryProperty generatedJavadocDirectory = objects.directoryProperty();
@@ -125,7 +129,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
             // TODO: This breaks the provider
-            task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
+            new JavadocSupport(task).setDestinationDir(generatedJavadocDirectory.get().getAsFile());
 
         });
 
@@ -144,5 +148,63 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setClasspath(layout.files());
             task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
         });
+    }
+
+    /**
+     * Used to bridge Gradle 8 and Gradle 9 APIs for Gradleception.
+     *
+     * TODO: Remove after Gradle 9
+     */
+    private static class JavadocSupport {
+
+        private final Javadoc javadoc;
+
+        public JavadocSupport(Javadoc javadoc) {
+            this.javadoc = javadoc;
+        }
+
+        public void setTitle(String title) {
+            setProperty("setTitle", title);
+        }
+
+        public void setClasspath(FileCollection classpath) {
+            setProperty("setClasspath", classpath);
+        }
+
+        public void setDestinationDir(File destinationDir) {
+            setProperty("setDestinationDir", destinationDir);
+        }
+
+        private <T> void setProperty(String setterName, T value) {
+            if (GradleVersion.current().compareTo(GradleVersion.version("9.0")) < 0) {
+                setPropertyPreGradle9(setterName, value);
+            } else {
+                setPropertyPostGradle9(setterName, value);
+            }
+        }
+
+        private void setPropertyPostGradle9(String setterName, Object value) {
+            try {
+                // Javadoc is Javadoc_Decorated, so it has set<Property>(Object) setter
+                javadoc.getClass().getMethod(setterName, Object.class).invoke(javadoc, value);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private void setPropertyPreGradle9(String setterName, Object value) {
+            try {
+                for (Method method : javadoc.getClass().getMethods()) {
+                    if (method.getParameters().length == 1
+                        && method.getName().equals(setterName)
+                        && method.getParameters()[0].getType().isAssignableFrom(value.getClass())) {
+                        method.invoke(javadoc, value);
+                        return;
+                    }
+                }
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
