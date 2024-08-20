@@ -24,13 +24,18 @@
     RP=')'
     LB='{'
     RB='}'
-    USC='_'
 
     space='regexp:\s+'
     comment='regexp://.*|/\*[^/*]*\*/'
-    number='regexp:\d+(\.\d*)?'
-    id='regexp:\p{Alpha}\w*'
-    string="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
+    id='regexp:\p{Alpha}\w*'                                    // TODO: doesn't work with all unicode characters, no idea how to fix it ...
+    string='regexp:("""[^\"]*"""|"[^"\\]*")'                    // TODO: still simplistic ...
+
+    integerLiteral='regexp:[1-9]([0-9_]*[0-9])?|[0-9]'
+    binaryLiteral='regexp:0[bB][01]([01_]*[01])?'
+    hexLiteral='regexp:0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?'
+    longLiteral='regexp:[1-9]([0-9_]*[0-9])?[lL]|[0-9][lL]|0[bB][01]([01_]*[01])?[lL]|0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?[lL]'
+
+    backtickIdentifier='regexp:`[^`\r\n]*`'
   ]
 }
 
@@ -59,7 +64,9 @@ valueArgument ::= (simpleIdentifier EQ)? primaryExpression postfixUnarySuffixes?
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
 primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
-simpleIdentifier ::= id                                      // TODO: needs refining
-stringLiteral ::= string                                     // TODO: needs refining
-literalConstant ::= "null" | booleanLiteral | number         // TODO: needs refining
-booleanLiteral ::= "true" | "false"
+literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
+booleanLiteral ::= "true" | "false" {pin=1}
+
+stringLiteral ::= string
+
+simpleIdentifier ::= id | backtickIdentifier
