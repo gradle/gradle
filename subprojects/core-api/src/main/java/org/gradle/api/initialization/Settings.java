@@ -25,7 +25,6 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.isolated.models.BuildIsolatedModelRegistry;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
@@ -440,12 +439,4 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @Incubating
     void defaults(Action<? super SharedModelDefaults> action);
-
-    /**
-     * TBD
-     *
-     * @since 8.11
-     */
-    @Incubating
-    BuildIsolatedModelRegistry getBuildModelRegistry();
 }

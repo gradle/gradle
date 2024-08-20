@@ -47,7 +47,6 @@ import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.isolated.models.BuildIsolatedModelLookup;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
@@ -1614,14 +1613,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Incubating
     DependencyFactory getDependencyFactory();
-
-    /**
-     * TBD
-     *
-     * @since 8.11
-     */
-    @Incubating
-    BuildIsolatedModelLookup getBuildIsolatedModels();
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
