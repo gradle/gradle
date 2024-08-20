@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.isolated.models.legacy;
+
+import org.gradle.api.provider.Provider;
+
 /**
- * Models that can be safely shared between projects and builds
+ * TBD
+ *
+ * @since 8.11
  */
-@org.gradle.api.NonNullApi
-package org.gradle.api.isolated.models;
+public interface IsolatedModelRegistry {
+
+    /**
+     * TBD
+     *
+     * @since 8.11
+     */
+    <T> void registerModel(String key, Class<T> type, Provider<T> provider);
+}

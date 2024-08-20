@@ -16,7 +16,6 @@
 
 package org.gradle.internal.isolated.models;
 
-import org.gradle.api.isolated.models.IsolatedModelKey;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;

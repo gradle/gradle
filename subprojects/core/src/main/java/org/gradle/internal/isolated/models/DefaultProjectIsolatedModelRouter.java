@@ -17,9 +17,6 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.isolated.models.IsolatedModelKey;
-import org.gradle.api.isolated.models.IsolatedModelRouter;
-import org.gradle.api.isolated.models.IsolatedModelWork;
 import org.gradle.api.provider.Provider;
 
 import java.util.Collection;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;

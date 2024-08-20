@@ -16,8 +16,6 @@
 
 package org.gradle.internal.isolated.models;
 
-import org.gradle.api.isolated.models.IsolatedModelKey;
-
 public class IsolatedModelAccessKey<T> {
 
     private final IsolatedModelScope producer;

@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.isolated.models;
+package org.gradle.internal.isolated.models;
 
 /**
  * TBD
  *
  * @since 8.11
  */
-public interface IsolatedModelKey<T> {
-
-    /**
-     * TBD
-     *
-     * @since 8.11
-     */
-    String getName();
-
-    /**
-     * TBD
-     *
-     * @since 8.11
-     */
-    Class<T> getType();
+public interface IsolatedModelWork<T> {
 }

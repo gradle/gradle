@@ -16,7 +16,6 @@
 
 package org.gradle.internal.isolated.models;
 
-import org.gradle.api.isolated.models.IsolatedModelWork;
 import org.gradle.api.provider.Provider;
 
 public interface IsolatedModelWorkInternal<T> extends IsolatedModelWork<T> {

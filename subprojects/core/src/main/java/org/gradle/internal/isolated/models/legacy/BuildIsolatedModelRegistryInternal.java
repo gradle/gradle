@@ -16,7 +16,6 @@
 
 package org.gradle.internal.isolated.models.legacy;
 
-import org.gradle.api.isolated.models.BuildIsolatedModelRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 

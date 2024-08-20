@@ -21,6 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.isolated.models.IsolatedModelRouter
 
 import javax.inject.Inject
 
@@ -126,7 +127,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
 
     def "can consume build-provided model of shared type from setting script in a build script"() {
         settingsFile """
-            def router = settings.services.get(IsolatedModelRouter)
+            def router = settings.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             router.postModel(router.key("myValue", String), router.work(providers.provider {
                 println("Computing myValue")
                 "hey"
@@ -134,7 +135,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile """
-            def router = project.services.get(IsolatedModelRouter)
+            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             def modelProvider = router.getBuildModel(router.key("myValue", String))
             def computedValue = modelProvider.get()
             println("Project '" + project.path + "' got value '" + computedValue + "'")
@@ -155,7 +156,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             settings.ext.foo = ["a"]
             def fooList = foo
 
-            def router = settings.services.get(IsolatedModelRouter)
+            def router = settings.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             router.postModel(router.key("myValue", String), router.work(providers.provider {
                 fooList.add("c")
                 fooList.toString()
@@ -182,7 +183,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
 
     def "build-scope isolated model provider is evaluated only if model is realized"() {
         settingsFile """
-            def router = settings.services.get(IsolatedModelRouter)
+            def router = settings.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
 
             router.postModel(router.key("someKey", String), router.work(providers.provider {
                 println("Producing model for someKey")
@@ -212,7 +213,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
     def "build-scoped model is realized only once"() {
         settingsFile """
             include(":a")
-            def router = settings.services.get(IsolatedModelRouter)
+            def router = settings.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             router.postModel(router.key("someKey", String), router.work(providers.provider {
                 println("Computing model for someKey")
                 "someValue"
@@ -220,13 +221,13 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile """
-            def router = project.services.get(IsolatedModelRouter)
+            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             def model = router.getBuildModel(router.key("someKey", String)).get()
             println("project '\$path' model[someKey] = \$model")
         """
 
         buildFile "a/build.gradle", """
-            def router = project.services.get(IsolatedModelRouter)
+            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             def model = router.getBuildModel(router.key("someKey", String)).get()
             println("project '\$path' model[someKey] = \$model")
         """
@@ -245,7 +246,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = "root"
             include(":a")
 
-            def router = settings.services.get(IsolatedModelRouter)
+            def router = settings.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
             router.postModel(router.key("someKey", List<String>), router.work(providers.provider {
                 println("Computing model for someKey")
                 ["settings"]
@@ -257,7 +258,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile "buildSrc/src/main/groovy/my-plugin.gradle", """
-            def router = project.services.get(IsolatedModelRouter)
+            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
 
             def model1 = router.getBuildModel(router.key("someKey", List<String>)).get()
             model1 << project.name

@@ -18,7 +18,7 @@ package org.gradle.internal.isolated.models.legacy;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.isolated.models.IsolatedModelKey;
+import org.gradle.internal.isolated.models.IsolatedModelKey;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.isolated.models.IsolatedModelAccessKey;
 import org.gradle.internal.isolated.models.IsolatedModelScope;

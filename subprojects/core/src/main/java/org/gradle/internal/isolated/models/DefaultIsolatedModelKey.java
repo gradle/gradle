@@ -16,8 +16,6 @@
 
 package org.gradle.internal.isolated.models;
 
-import org.gradle.api.isolated.models.IsolatedModelKey;
-
 import java.util.Objects;
 
 public class DefaultIsolatedModelKey<T> implements IsolatedModelKey<T> {

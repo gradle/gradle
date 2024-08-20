@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.isolated.models;
+package org.gradle.internal.isolated.models.legacy;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * TBD
  *
  * @since 8.11
  */
-public interface IsolatedModelRegistry {
+@ServiceScope(Scope.Project.class)
+@Incubating
+public interface BuildIsolatedModelLookup {
 
     /**
      * TBD
      *
      * @since 8.11
      */
-    <T> void registerModel(String key, Class<T> type, Provider<T> provider);
+    <T> Provider<T> getModel(String key, Class<T> type);
+
 }
