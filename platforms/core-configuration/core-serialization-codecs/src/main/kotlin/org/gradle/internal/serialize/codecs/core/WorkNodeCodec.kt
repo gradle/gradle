@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.gradle.api.GradleException
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.ActionNode
@@ -32,6 +31,7 @@ import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
+import org.gradle.execution.plan.PostExecutionNodeAwareActionNode
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.cc.base.serialize.ProjectProvider
@@ -62,6 +62,7 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.util.Path
+import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 private
@@ -105,7 +106,7 @@ class WorkNodeCodec(
         }
 
         val scheduledEntryNodeIds = assignNodeIds(scheduledNodeIds, nodes, entryNodes)
-        writeNodes(nodes, scheduledNodeIds)
+        val actionNodePostExecutionSuccessors = writeNodes(nodes, scheduledNodeIds)
         writeEntryNodes(scheduledEntryNodeIds)
 
         val idForNode: IdForNode = { node ->
@@ -115,7 +116,7 @@ class WorkNodeCodec(
                 }
             }
         }
-        writeEdgesAndGroupMembership(nodes, idForNode)
+        writeEdgesAndGroupMembership(nodes, actionNodePostExecutionSuccessors, idForNode)
     }
 
     private
@@ -145,14 +146,13 @@ class WorkNodeCodec(
     private
     fun WriteContext.writeEdgesAndGroupMembership(
         nodes: ImmutableList<Node>,
+        actionNodePostExecutionSuccessors: Map<ActionNode, List<Node>>,
         idForNode: IdForNode
     ) {
-        owner.owner.projects.withMutableStateOfAllProjects {
-            writeCollection(nodes) { node ->
-                writeSmallInt(idForNode(node))
-                writeSuccessorReferencesOf(node, idForNode)
-                writeNodeGroup(node.group, idForNode)
-            }
+        writeCollection(nodes) { node ->
+            writeSmallInt(idForNode(node))
+            writeSuccessorReferencesOf(node, actionNodePostExecutionSuccessors, idForNode)
+            writeNodeGroup(node.group, idForNode)
         }
     }
 
@@ -195,7 +195,7 @@ class WorkNodeCodec(
     fun WriteContext.writeNodes(
         nodes: ImmutableList<Node>,
         nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
-    ) {
+    ): Map<ActionNode, List<Node>> {
         writeSmallInt(nodeIds.size)
 
         val groupedNodes = nodes.groupBy(NodeOwner::of)
@@ -204,17 +204,32 @@ class WorkNodeCodec(
             writeString(groupPath.path)
         }
 
+        val partialResultsRef = AtomicReference<PersistentList<List<PostExecutionNodes>>>(PersistentList.of())
+
         // TODO:parallel-cc is this message useful for the context where it may show?
         runBuildOperations(parallelStore, "saving state nodes" ) {
             groupedNodes.entries.map { (nodeOwner, groupNodes) ->
                 val groupPath = nodeOwner.path()
                 OperationInfo(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
                     contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
-                        writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
+                        val postExecutionSuccessors = writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
+                        if (postExecutionSuccessors.isNotEmpty()) {
+                            partialResultsRef.updateAndGet {
+                                it.plus(postExecutionSuccessors)
+                            }
+                        }
                     }
                 }
             }
         }
+
+        val result = IdentityHashMap<ActionNode, List<Node>>()
+        partialResultsRef.get().forEach { nodeAndPostExecutionNodes ->
+            nodeAndPostExecutionNodes.forEach { (node, postExecutionNodes) ->
+                result[node] = postExecutionNodes
+            }
+        }
+        return result
     }
 
 
@@ -292,14 +307,18 @@ class WorkNodeCodec(
         nodeOwner: NodeOwner,
         nodes: List<Node>,
         nodeIds: Object2IntOpenHashMap<Node>
-    ) {
+    ): List<PostExecutionNodes> {
         val safeRun = safeRunnerFor(nodeOwner)
+        val postExecutionSuccessors = mutableListOf<PostExecutionNodes>()
         runWriteOperation {
             writeCollection(nodes) { node ->
                 val nodeId = nodeIds.getInt(node)
                 writeSmallInt(nodeId)
                 safeRun {
                     write(node)
+                    if (node is ActionNode) {
+                        collectPostExecutionNodes(node, postExecutionSuccessors)
+                    }
                 }
                 if (node is LocalTaskNode) {
                     val prepareNodeId = nodeIds.getInt(node.prepareNode)
@@ -307,6 +326,7 @@ class WorkNodeCodec(
                 }
             }
         }
+        return postExecutionSuccessors
     }
 
     private
@@ -326,6 +346,32 @@ class WorkNodeCodec(
         }
         return nodeIds
     }
+
+    private
+    fun WriteContext.collectPostExecutionNodes(
+        node: ActionNode,
+        postExecutionSuccessors: MutableList<PostExecutionNodes>
+    ) {
+        val setupNode = node.action?.preExecutionNode
+        // Could probably add some abstraction for nodes that can be executed eagerly and discarded
+        if (setupNode is PostExecutionNodeAwareActionNode) {
+            setupNode.run(object : NodeExecutionContext {
+                override fun <T : Any> getService(type: Class<T>): T {
+                    return ownerService(type)
+                }
+            })
+            val postExecutionNodes = setupNode.postExecutionNodes
+            if (postExecutionNodes.isNotEmpty()) {
+                postExecutionSuccessors.add(PostExecutionNodes(node, postExecutionNodes))
+            }
+        }
+    }
+
+    private
+    data class PostExecutionNodes(
+        val node: ActionNode,
+        val postExecutionNodes: List<Node>
+    )
 
     private
     fun safeRunnerFor(owner: NodeOwner): suspend WriteContext.(suspend WriteContext.() -> Unit) -> Unit {
@@ -445,8 +491,8 @@ class WorkNodeCodec(
         }
 
     private
-    fun WriteContext.writeSuccessorReferencesOf(node: Node, scheduledNodeIds: IdForNode) {
-        writeSuccessorReferences(dependencySuccessorsOf(node), scheduledNodeIds)
+    fun WriteContext.writeSuccessorReferencesOf(node: Node, actionNodePostExecutionSuccessors: Map<ActionNode, List<Node>>, scheduledNodeIds: IdForNode) {
+        writeSuccessorReferences(dependencySuccessorsOf(node, actionNodePostExecutionSuccessors), scheduledNodeIds)
         when (node) {
             is TaskNode -> {
                 writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
@@ -486,18 +532,11 @@ class WorkNodeCodec(
     }
 
     private
-    fun WriteContext.dependencySuccessorsOf(node: Node): MutableSet<Node> {
+    fun dependencySuccessorsOf(node: Node, actionNodePostExecutionSuccessors: Map<ActionNode, List<Node>>): MutableSet<Node> {
         var successors = node.dependencySuccessors
         if (node is ActionNode) {
-            val setupNode = node.action?.preExecutionNode
-            // Could probably add some abstraction for nodes that can be executed eagerly and discarded
-            if (setupNode is DefaultTransformUpstreamDependenciesResolver.FinalizeTransformDependenciesFromSelectedArtifacts.CalculateFinalDependencies) {
-                setupNode.run(object : NodeExecutionContext {
-                    override fun <T : Any> getService(type: Class<T>): T {
-                        return ownerService(type)
-                    }
-                })
-                successors = successors + setupNode.postExecutionNodes
+            actionNodePostExecutionSuccessors[node]?.let {
+                successors = successors + it
             }
         }
         return successors
@@ -530,12 +569,12 @@ class WorkNodeCodec(
     private
     fun IsolateContext.runBuildOperations(parallel: Boolean, message: String, operations: () -> Iterable<OperationInfo>) {
         if (!parallel) {
-            logger.debug("${message} in-line")
+            logger.debug("$message in-line")
             operations().forEach { it.action() }
             return
         }
 
-        logger.debug("${message} in parallel")
+        logger.debug("$message in parallel")
         val buildOperationExecutor = isolate.owner.serviceOf<BuildOperationExecutor>()
         unwrapBuildOperationExceptions(message) {
             buildOperationExecutor.runAllWithAccessToProjectState {
