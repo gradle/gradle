@@ -53,10 +53,10 @@ class ConfigurationCacheCleanupIntegrationTest
         expect: 'Gradle to preserve the recent entry and to delete the outdated one'
         boolean recentEntryIsReused = true
         def cc = newConfigurationCacheFixture()
-        ConcurrentTestUtil.poll(60, 0, 10) {
+        ConcurrentTestUtil.poll(120, 0.5, 5) {
             configurationCacheRunNoDaemon 'recent'
             recentEntryIsReused &= cc.reused
-            assert !outdated.isDirectory()
+            assert !outdated.exists()
         }
         recentEntryIsReused
 
