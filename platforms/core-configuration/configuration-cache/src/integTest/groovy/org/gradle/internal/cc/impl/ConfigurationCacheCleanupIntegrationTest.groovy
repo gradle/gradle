@@ -28,6 +28,7 @@ class ConfigurationCacheCleanupIntegrationTest
     @Issue('https://github.com/gradle/gradle/issues/23957')
     def "cleanup deletes old entries"() {
         given: 'there are two configuration cache entries'
+        executer.requireOwnGradleUserHomeDir('needs its own journal')
         executer.requireIsolatedDaemons()
         buildFile '''
             task outdated
@@ -38,17 +39,17 @@ class ConfigurationCacheCleanupIntegrationTest
         configurationCacheRunNoDaemon 'recent'
         TestFile recent = single(subDirsOf(configurationCacheDir) - outdated)
 
-        and: 'they are 15 days old'
+        and: 'they are 8 days old'
         subDirsOf(configurationCacheDir).each { TestFile dir ->
-            writeLastFileAccessTimeToJournal dir, daysAgo(15)
+            writeLastFileAccessTimeToJournal dir, daysAgo(8)
         }
 
         and: 'but one was recently accessed'
         configurationCacheRunNoDaemon 'recent'
 
-        and: 'the last cleanup was 8 days ago'
-        writeJournalInceptionTimestamp daysAgo(8)
-        gcFile.createFile().lastModified = daysAgo(8)
+        and: 'the last cleanup was 2 days ago'
+        writeJournalInceptionTimestamp daysAgo(2)
+        gcFile.createFile().lastModified = daysAgo(2)
 
         expect: 'Gradle to preserve the recent entry and to delete the outdated one'
         boolean recentEntryIsReused = true
@@ -71,11 +72,11 @@ class ConfigurationCacheCleanupIntegrationTest
     }
 
     private TestFile getGcFile() {
-        return configurationCacheDir.file("gc.properties")
+        return configurationCacheDir.file('gc.properties')
     }
 
     private TestFile getConfigurationCacheDir() {
-        return file(".gradle/configuration-cache")
+        return file('.gradle/configuration-cache')
     }
 
     private static List<TestFile> subDirsOf(TestFile dir) {
