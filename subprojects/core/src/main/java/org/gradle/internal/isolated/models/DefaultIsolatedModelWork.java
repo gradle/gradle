@@ -28,6 +28,8 @@ public class DefaultIsolatedModelWork<T> implements IsolatedModelWork<T> {
 
     @Override
     public Provider<T> prepare() {
-        return provider;
+        // Mapping here to enforce task dependencies check,
+        // so that task-dependency-carrying properties cannot be evaluated at configuration time
+        return provider.map(it -> it);
     }
 }
