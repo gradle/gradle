@@ -32,7 +32,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.persistentCache)
-    api(projects.rendering)
+    api(projects.reportRendering)
     api(projects.time)
     api(projects.toolingApi)
 

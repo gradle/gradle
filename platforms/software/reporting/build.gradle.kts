@@ -23,7 +23,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.rendering)
+    api(projects.reportRendering)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
