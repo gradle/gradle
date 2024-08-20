@@ -294,8 +294,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.destinationDir == project.file("$project.docsDir/javadoc")
-        javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        javadoc.destinationDir.get().asFile == project.file("$project.docsDir/javadoc")
+        javadoc.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
     def "applies mappings to custom jar tasks"() {
