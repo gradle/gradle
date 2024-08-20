@@ -125,9 +125,13 @@ integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
     // This project accesses JDK internals.
-    // We need to add --add-exports flags for multiple packages to make this task pass.
-    // The javadoc options modeling API does not allow specifying multiple flags with
-    // the same key, meaning we cannot specify more than one exported package.
-    // Therefore, we disable failure on javadoc errors.
+    // We would ideally add --add-exports flags for the required packages, however
+    // due to limitations in the javadoc modeling API, we cannot specify multiple
+    // flags for the same key.
+    // Instead, we disable failure on javadoc errors.
     isFailOnError = false
+    options {
+        this as StandardJavadocDocletOptions
+        addBooleanOption("quiet", true)
+    }
 }
