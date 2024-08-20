@@ -16,8 +16,11 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
+import junit.framework.AssertionFailedError
 import org.gradle.integtests.fixtures.BuildOperationTreeQueries
 import org.gradle.internal.operations.trace.BuildOperationRecord
+
+import java.util.regex.Pattern
 
 import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
@@ -66,10 +69,18 @@ class ConfigurationCacheBuildOperationsFixture {
     }
 
     private BuildOperationRecord loadOperation() {
-        operations.firstMatchingRegex("Load (configuration cache|instant execution) state")
+        return onlyOrNone("Load (configuration cache|instant execution) state")
     }
 
     private BuildOperationRecord storeOperation() {
-        operations.firstMatchingRegex("Store (configuration cache|instant execution) state.*")
+        return onlyOrNone("Store (configuration cache|instant execution) state.*")
+    }
+
+    private BuildOperationRecord onlyOrNone(String regex) {
+        def ops = operations.all(Pattern.compile(regex))
+        if (ops.size() > 1) {
+            throw new AssertionFailedError("Expected at most one operation, got ${ops.size()}")
+        }
+        return ops.find()
     }
 }
