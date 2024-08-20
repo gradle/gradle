@@ -51,6 +51,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -232,8 +233,8 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
-        public Set<ResolvedVariant> getVariants() {
-            return Collections.singleton(this);
+        public List<ResolvedVariant> getVariants() {
+            return Collections.singletonList(this);
         }
 
         @Override
