@@ -76,7 +76,7 @@ object KotlinMetadataQueries {
     private
     fun queryKotlinMetadata(ctClass: CtClass, query: (KotlinClassMetadata) -> Boolean): Boolean =
         ctClass.metadata
-            ?.let { KotlinClassMetadata.read(it) }
+            ?.let { KotlinClassMetadata.readStrict(it) }
             ?.let { query(it) }
             ?: false
 
