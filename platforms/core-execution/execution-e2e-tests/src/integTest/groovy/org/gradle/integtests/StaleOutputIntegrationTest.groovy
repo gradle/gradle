@@ -113,7 +113,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskWithSources.taskPath)
 
         then:
-        overlappingOutputFile.exists()
+        overlappingOutputFile.parentFile.exists()
         taskWithSources.onlyOutputFileHasBeenRemoved()
         executedAndNotSkipped(taskWithSources.taskPath)
     }
