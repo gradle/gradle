@@ -28,7 +28,9 @@ import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.buildRunningOnCi
+import gradlebuild.basics.testDistributionDogfoodingTag
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testDistributionServerUrl
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
 import gradlebuild.basics.testing.excludeSpockAnnotation
@@ -266,7 +268,7 @@ fun configureTests() {
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
-            server = uri("https://ge.gradle.org")
+            server = uri(testDistributionServerUrl.orElse("https://ge.gradle.org"))
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
                 enabled = true
@@ -276,14 +278,15 @@ fun configureTests() {
                 maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
                 maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
+                val dogfoodingTag = testDistributionDogfoodingTag.getOrElse("gbt-dogfooding")
                 if (BuildEnvironment.isCiServer) {
                     when {
-                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding")
-                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding")
-                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding")
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", dogfoodingTag)
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", dogfoodingTag)
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", dogfoodingTag)
                     }
                 } else {
-                    requirements = listOf("gbt-dogfooding")
+                    requirements = listOf(dogfoodingTag)
                 }
             }
         }
