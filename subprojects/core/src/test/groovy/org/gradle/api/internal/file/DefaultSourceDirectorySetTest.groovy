@@ -262,6 +262,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         def trees = set.getSrcDirTrees()
         trees.size() == 2
         trees.collect { it.getDir() } == [srcDir1, srcDir2] // Dirs aren't filtered
+        set.getSrcDirs() == [srcDir1, srcDir2] as Set
 
         DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
         tree1.getDir() == srcDir1
@@ -291,6 +292,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         def trees = set.getSrcDirTrees()
         trees.size() == 2
         trees.collect { it.getDir() } == [srcDir1, srcDir2] // Dirs aren't filtered
+        set.getSrcDirs() == [srcDir1, srcDir2] as Set
 
         DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
         tree1.getDir() == srcDir1
