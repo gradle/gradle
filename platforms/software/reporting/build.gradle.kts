@@ -20,10 +20,11 @@ repositories {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.reportRendering)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
