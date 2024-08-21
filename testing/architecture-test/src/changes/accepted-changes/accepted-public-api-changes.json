@@ -1,6 +1,120 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Class org.gradle.api.plugins.ApplicationPlugin",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field APPLICATION_GROUP",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field APPLICATION_PLUGIN_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_DIST_TAR_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_DIST_ZIP_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_RUN_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Field TASK_START_SCRIPTS_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Method org.gradle.api.plugins.ApplicationPlugin.apply(org.gradle.api.Project)",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Class org.gradle.api.plugins.JavaApplicationPlugin",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Constructor org.gradle.api.plugins.JavaApplicationPlugin()",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field APPLICATION_GROUP",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field APPLICATION_PLUGIN_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_DIST_TAR_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_DIST_ZIP_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_RUN_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplicationPlugin",
+            "member": "Field TASK_START_SCRIPTS_NAME",
+            "acceptation": "Renaming application plugin to java-application",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Method org.gradle.api.tasks.compile.CompileOptions.debugOptions(org.gradle.api.Action)",
             "acceptation": "No need to incubate",
