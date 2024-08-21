@@ -35,6 +35,7 @@ import org.gradle.util.internal.TextUtil;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -120,7 +121,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
                         .contextualLabel(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
-                        .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(ANNOTATION_INVALID_IN_CONTEXT)))
+                        .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
                         .details("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the property")
@@ -142,7 +143,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().property())
                             .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
-                            .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(INCOMPATIBLE_ANNOTATIONS)))
+                            .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
                             .details("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
@@ -152,7 +153,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
                             .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
-                            .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(ANNOTATION_INVALID_IN_CONTEXT)))
+                            .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
                             .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
                             .solution("Use a different annotation, e.g one of " + toListOfAnnotations(allowedPropertyModifiers))

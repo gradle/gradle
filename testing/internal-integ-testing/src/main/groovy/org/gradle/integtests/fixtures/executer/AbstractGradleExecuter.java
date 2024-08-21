@@ -63,7 +63,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -1116,11 +1115,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (consoleType != null) {
-            allArgs.add("--console=" + TextUtil.toLowerCaseLocaleSafe(consoleType.toString()));
+            String s = consoleType.toString();
+            allArgs.add("--console=" + s.toLowerCase(Locale.ROOT));
         }
 
         if (warningMode != null) {
-            allArgs.add("--warning-mode=" + TextUtil.toLowerCaseLocaleSafe(warningMode.toString()));
+            String s = warningMode.toString();
+            allArgs.add("--warning-mode=" + s.toLowerCase(Locale.ROOT));
         }
 
         if (disableToolchainDownload) {
