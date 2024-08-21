@@ -100,7 +100,6 @@ public abstract class Wrapper extends DefaultTask {
     private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
-    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
@@ -116,6 +115,9 @@ public abstract class Wrapper extends DefaultTask {
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
         File propertiesFile = getPropertiesFile();
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
+        Integer networkTimeout = existingProperties != null && existingProperties.containsKey("networkTimeout") 
+            ? existingProperties.get("networkTimeout") 
+            : null;
 
         checkProperties(existingProperties);
         validateDistributionUrl(propertiesFile.getParentFile());
@@ -129,7 +131,7 @@ public abstract class Wrapper extends DefaultTask {
             unixScript, getBatchScript(),
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
+            networkTimeout
         );
     }
 
@@ -486,7 +488,6 @@ public abstract class Wrapper extends DefaultTask {
      * @since 7.6
      */
     @Input
-    @Incubating
     @Optional
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
     public Property<Integer> getNetworkTimeout() {
