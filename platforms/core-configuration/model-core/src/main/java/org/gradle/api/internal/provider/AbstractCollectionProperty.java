@@ -29,13 +29,13 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
@@ -341,7 +341,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        String typeDisplayName = TextUtil.toLowerCaseLocaleSafe(collectionType.getSimpleName());
+        String typeDisplayName = collectionType.getSimpleName().toLowerCase(Locale.ROOT);
         return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
