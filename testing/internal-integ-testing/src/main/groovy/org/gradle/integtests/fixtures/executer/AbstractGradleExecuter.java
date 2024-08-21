@@ -1119,6 +1119,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("--console=" + TextUtil.toLowerCaseLocaleSafe(consoleType.toString()));
         }
 
+        // Rich console output is difficult to check, so we disable warnings
+        WarningMode warningMode = isRichConsole() ? WarningMode.None : this.warningMode;
         if (warningMode != null) {
             allArgs.add("--warning-mode=" + TextUtil.toLowerCaseLocaleSafe(warningMode.toString()));
         }
@@ -1360,12 +1362,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected Action<ExecutionResult> getResultAssertion() {
         boolean shouldCheckDeprecations = checkDeprecations;
 
-        // Rich consoles mess with our deprecation log scraping
-        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
-        if ((isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED) ||
-            consoleType == ConsoleOutput.Verbose ||
-            consoleType == ConsoleOutput.Rich
-        ) {
+        // Rich consoles mess with our deprecation log scraping,
+        // and we anyway set --warning-mode=none for rich consoles, see #getAllArgs()
+        if (isRichConsole()) {
             shouldCheckDeprecations = false;
         }
 
@@ -1389,6 +1388,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             shouldCheckDeprecations,
             jdkWarningChecksOn
         );
+    }
+
+    private boolean isRichConsole() {
+        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
+        return isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED
+            || consoleType == ConsoleOutput.Verbose
+            || consoleType == ConsoleOutput.Rich;
     }
 
     @Override
