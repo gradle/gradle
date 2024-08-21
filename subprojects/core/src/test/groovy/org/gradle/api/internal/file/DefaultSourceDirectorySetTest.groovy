@@ -248,11 +248,9 @@ class DefaultSourceDirectorySetTest extends Specification {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))
-        touch(new File(srcDir1, 'subdir/ignored.txt'))
         File srcDir2 = new File(testDir, 'dir2')
         touch(new File(srcDir2, 'subdir2/file1.txt'))
         touch(new File(srcDir2, 'subdir2/file2.txt'))
-        touch(new File(srcDir2, 'subdir2/ignored.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -267,11 +265,40 @@ class DefaultSourceDirectorySetTest extends Specification {
 
         DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
         tree1.getDir() == srcDir1
-        assertSetContainsForAllTypes(tree1, 'subdir/file2.txt', 'subdir/ignored.txt')
+        assertSetContainsForAllTypes(tree1, 'subdir/file2.txt')
 
         DirectoryFileTree tree2 = set.getSrcDirTrees().last() as DirectoryFileTree
         tree2.getDir() == srcDir2
-        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt', 'subdir2/ignored.txt')
+        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
+    }
+
+    void "can use patterns to include only certain files but not directories with getSrcDirTrees method"() {
+        File srcDir1 = new File(testDir, 'dir1')
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir2/file2.txt'))
+        touch(new File(srcDir1, 'subdir3/file3.txt'))
+        File srcDir2 = new File(testDir, 'dir2')
+        touch(new File(srcDir2, 'subdir/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file2.txt'))
+        touch(new File(srcDir1, 'subdir3/file3.txt'))
+
+        when:
+        set.srcDir 'dir1'
+        set.srcDir 'dir2'
+        set.include'**/subdir2/**' // Only include subdir2
+
+        then:
+        def trees = set.getSrcDirTrees()
+        trees.size() == 2
+        trees.collect { it.getDir() } == [srcDir1, srcDir2] // Dirs aren't filtered
+
+        DirectoryFileTree tree1 = set.getSrcDirTrees().first() as DirectoryFileTree
+        tree1.getDir() == srcDir1
+        assertSetContainsForAllTypes(tree1, 'subdir2/file2.txt')
+
+        DirectoryFileTree tree2 = set.getSrcDirTrees().last() as DirectoryFileTree
+        tree2.getDir() == srcDir2
+        assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
     }
 
     void canUseFilterPatternsToFilterCertainFiles() {
