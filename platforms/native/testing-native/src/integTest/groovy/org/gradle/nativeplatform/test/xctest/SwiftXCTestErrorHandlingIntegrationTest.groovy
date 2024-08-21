@@ -27,12 +27,19 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrariesAndXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def setup() {
+        // Need XCTest available to run these tests
+        XCTestInstallation.assumeInstalled()
+    }
 
     @ToBeFixedForConfigurationCache
     def "fails when working directory is invalid"() {
@@ -76,7 +83,10 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
         testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("finished with non-zero exit value"))
         if (OperatingSystem.current().isMacOsX()) {
-            testFailure.assertStderr(containsText("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources"))
+            if (toolChain.version < VersionNumber.version(5, 9)) {
+                testFailure.assertStderr(containsText("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources"))
+            }
+            // Else, there is no stderr/stdout produced by newer versions
         } else {
             testFailure.assertStderr(containsText("cannot open shared object file"))
         }

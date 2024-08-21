@@ -57,7 +57,13 @@ class CppUnitTestWithoutComponentIntegrationTest extends AbstractCppUnitTestInte
         // Ok
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
+        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
+        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
+        'SwiftXCTestWithApplicationIntegrationTest',
+        'SwiftXCTestWithoutComponentIntegrationTest'
+    ])
     def "test fails when test executable returns non-zero status"() {
         buildFile << """
             apply plugin: 'cpp-unit-test'

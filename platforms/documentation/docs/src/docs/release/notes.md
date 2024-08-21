@@ -54,13 +54,15 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 <a name="native-plugin-improvements"></a>
-### Swift and C++ plugin improvements
+### Core plugin improvements
 
-#### Configuration cache compatibility
+Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
 
-The Swift and C++ plugins are now configuration cache compatible.
+#### Configuration cache compatibility for Swift and C++ plugins
 
-The `cpp-unit` and `xctest` plugins are not yet compatible.
+The [Swift](userguide/swift_application_plugin.html) and [C++](userguide/cpp_application_plugin.html) core plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible.
+
+The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/visual_studio_plugin.html) plugins are not yet compatible.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
