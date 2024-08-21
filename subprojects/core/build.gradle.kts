@@ -126,7 +126,6 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
-    api(libs.nativePlatform)
 
     implementation(projects.io)
     implementation(projects.inputTracking)
@@ -134,6 +133,7 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.problemsRendering)
 
+    implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
