@@ -262,10 +262,10 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
+            compile.getScalaClasspath().convention(project.provider(() -> scalaRuntime.inferScalaClasspath(compile.getClasspath())));
+            compile.getZincClasspath().convention(project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
+            compile.getScalaCompilerPlugins().convention(project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
-            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
-            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
             conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
             conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, compile).toString());
             compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
