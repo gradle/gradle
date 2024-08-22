@@ -23,7 +23,6 @@ Method <org.gradle.api.tasks.javadoc.Groovydoc.getClasspath()> does not have raw
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (Groovydoc.java:0)
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (Javadoc.java:0)
 Method <org.gradle.api.tasks.scala.ScalaDoc.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (ScalaDoc.java:0)
-Method <org.gradle.api.tasks.scala.ScalaDoc.getScalaClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (ScalaDoc.java:0)
 Method <org.gradle.api.tasks.scala.ScalaDoc.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (ScalaDoc.java:0)
 Method <org.gradle.api.tasks.testing.Test.getBootstrapClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (Test.java:0)
