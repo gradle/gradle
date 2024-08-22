@@ -37,10 +37,10 @@ class Scala3PluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         task instanceof ScalaDoc
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
-        task.destinationDir == project.file("$project.docsDir/scaladoc")
+        task.destinationDir.asFile.get() == project.file("$project.docsDir/scaladoc")
         // This assertion is a little tricky, because `task.source` is an empty list since we didn't compile these files, so we check here if [] == []
         task.source as List  == project.sourceSets.main.output.findAll { it.name.endsWith(".tasty") } as List // We take output of main (with tasty files)
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 }
