@@ -17,12 +17,14 @@
 package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
@@ -30,7 +32,6 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -58,9 +59,12 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
+     *
+     * Note: this is not a @Classpath since the ablosute paths are written to the metadata file.
      * @since 2.13
      */
-    @Classpath
+    @InputFiles
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public abstract ConfigurableFileCollection getPluginClasspath();
 
     /**
@@ -89,7 +93,10 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     private String implementationClasspath() {
         StringBuilder implementationClasspath = new StringBuilder();
-        Joiner.on(File.pathSeparator).appendTo(implementationClasspath, getPaths());
+        Joiner.on(File.pathSeparator).appendTo(
+            implementationClasspath,
+            collect(getPluginClasspath(), file -> FilenameUtils.separatorsToUnix(file.getAbsolutePath()))
+        );
         return implementationClasspath.toString();
     }
 
@@ -101,13 +108,4 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
         }
     }
 
-    /**
-     * Returns the paths.
-     *
-     * @since 4.4
-     */
-    @Input
-    protected List<String> getPaths() {
-        return collect(getPluginClasspath(), file -> file.getAbsolutePath().replaceAll("\\\\", "/"));
-    }
 }
