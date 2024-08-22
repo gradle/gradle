@@ -63,7 +63,8 @@ class ResolveTaskMutationsBuildOperationTypeIntegrationTest extends AbstractInte
         if (GradleContextualExecuter.configCache) {
             // Configuration caching resolves the outputs when storing to the configuration cache
             // This fails already, so we don't even get to resolving the mutations.
-            failureDescriptionStartsWith("BOOM!")
+            failureDescriptionStartsWith("Configuration cache state could not be cached: Gradle runtime: Error while saving state nodes")
+            failureCauseContains("BOOM!")
         } else {
             assertResolveTaskMutationsBuildOperationEmitted(":t")
             failureDescriptionStartsWith("Execution failed for task ':t'.")
