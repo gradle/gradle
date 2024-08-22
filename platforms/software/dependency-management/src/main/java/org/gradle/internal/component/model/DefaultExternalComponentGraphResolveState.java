@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -30,6 +31,7 @@ import org.gradle.internal.component.external.model.ExternalComponentGraphResolv
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
@@ -238,8 +240,24 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
 
         @Nullable
         @Override
+        public VariantGraphResolveState getLegacyVariant() {
+            return doGetVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
+        }
+
+        @Nullable
+        @Override
         public VariantGraphResolveState getVariantByConfigurationName(String name) {
-            // TODO: Deprecate this method for non-ivy components.
+
+            DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-ivy external component.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "selecting_variant_by_configuration_name")
+                .nagUser();
+
+            return doGetVariantByConfigurationName(name);
+        }
+
+        @Nullable
+        private VariantGraphResolveState doGetVariantByConfigurationName(String name) {
             ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) component.getMetadata().getConfiguration(name);
             if (configuration == null) {
                 return null;

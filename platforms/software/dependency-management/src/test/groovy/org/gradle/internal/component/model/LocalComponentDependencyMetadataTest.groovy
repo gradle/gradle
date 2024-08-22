@@ -386,6 +386,11 @@ Configuration 'bar':
         }
 
         @Override
+        VariantGraphResolveState getLegacyVariant() {
+            getVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION)
+        }
+
+        @Override
         VariantGraphResolveState getVariantByConfigurationName(String name) {
             variants.find { it -> it.name == name }
         }

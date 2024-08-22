@@ -110,6 +110,7 @@ dependencies {
 """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -154,6 +155,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -202,6 +204,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -258,6 +261,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -298,6 +302,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -327,6 +332,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -355,6 +361,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
@@ -375,6 +382,7 @@ dependencies {
 }
 """
         expect:
+        executer.expectDocumentedDeprecationWarning("Selecting a variant by configuration name from a non-ivy external component. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#selecting_variant_by_configuration_name")
         fails 'checkDep'
         failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
         failure.assertHasCause("A dependency was declared on configuration 'x86_windows' of 'test:target:1.0' but no variant with that configuration name exists.")
