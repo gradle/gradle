@@ -66,15 +66,11 @@ Method <org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOptionsFile()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOutputDirectory()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> is not abstract
-Method <org.gradle.api.tasks.scala.ScalaCompile.getScalaClasspath()> is not abstract
-Method <org.gradle.api.tasks.scala.ScalaCompile.getScalaCompilerPlugins()> is not abstract
-Method <org.gradle.api.tasks.scala.ScalaCompile.getZincClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getFilteredCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()> is not abstract
-Method <org.gradle.api.tasks.scala.ScalaDoc.getScalaClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getSource()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getBootstrapClasspath()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getCandidateClassFiles()> is not abstract
