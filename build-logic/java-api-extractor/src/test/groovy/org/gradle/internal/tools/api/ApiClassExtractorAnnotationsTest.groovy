@@ -310,6 +310,44 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         annotation.annotationType() == extractedAnn
         def stringValues = annotation.names()
         stringValues == ['foo', 'bar']
+    }
 
+    void "default values for annotations are retained"() {
+        given:
+        def api = toApi([
+            A  : '@Ann public class A {}',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                public @interface Ann {
+                    String value() default "default-value";
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.annotations
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def annClazz = api.classes.Ann
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.annotations
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        annotations[0].annotationType().methods[0].name == 'value'
+        annotations[0].annotationType().methods[0].defaultValue == 'default-value'
+        annotations[0].value() == 'default-value'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].annotationType().methods[0].name == 'value'
+        extractedAnnotations[0].annotationType().methods[0].defaultValue == 'default-value'
+        extractedAnnotations[0].value() == 'default-value'
     }
 }
