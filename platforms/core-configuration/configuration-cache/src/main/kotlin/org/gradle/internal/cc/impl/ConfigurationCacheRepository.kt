@@ -44,6 +44,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.Collections
 import java.util.function.Supplier
 
 
@@ -202,7 +203,8 @@ class ConfigurationCacheRepository(
                 Files.createDirectories(cacheDir.toPath())
                 chmod(cacheDir, 448) // octal 0700
                 markAccessed(cacheDir)
-                val stateFiles = mutableListOf<File>()
+                // this needs to be thread-safe as we may have multiple adding threads
+                val stateFiles = Collections.synchronizedList(mutableListOf<File>())
                 val layout = WriteableLayout(cacheDir, stateFiles::add)
                 try {
                     action(layout)
