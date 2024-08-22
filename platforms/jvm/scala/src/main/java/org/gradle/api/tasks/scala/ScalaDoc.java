@@ -40,6 +40,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -61,8 +62,6 @@ import java.util.List;
 public abstract class ScalaDoc extends SourceTask {
 
     private FileCollection classpath;
-    private FileCollection scalaClasspath;
-    private String title;
 
     /**
      * Creates a new {@code ScalaDoc}.
@@ -151,7 +150,7 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.8
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -170,19 +169,8 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 0.9
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getScalaClasspath() {
-        return scalaClasspath;
-    }
-
-    /**
-     * Sets the scala classpath.
-     *
-     * @since 0.9
-     */
-    public void setScalaClasspath(FileCollection scalaClasspath) {
-        this.scalaClasspath = scalaClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getScalaClasspath();
 
     /**
      * Returns the ScalaDoc generation options.
@@ -204,22 +192,10 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the documentation title.
      * @since 0.8
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTitle() {
-        return title;
-    }
-
-    /**
-     * Sets the title.
-     *
-     * @since 0.8
-     */
-    public void setTitle(@Nullable String title) {
-        this.title = title;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTitle();
 
     /**
      * Returns the amount of memory allocated to this task.
@@ -246,7 +222,7 @@ public abstract class ScalaDoc extends SourceTask {
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
         if (!GUtil.isTrue(options.getDocTitle())) {
-            options.setDocTitle(getTitle());
+            options.setDocTitle(getTitle().getOrNull());
         }
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
