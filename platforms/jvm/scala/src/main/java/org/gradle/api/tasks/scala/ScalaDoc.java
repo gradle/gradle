@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -38,6 +39,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -57,15 +59,11 @@ import java.util.List;
 @CacheableTask
 public abstract class ScalaDoc extends SourceTask {
 
-    private File destinationDir;
-
-    private FileCollection classpath;
-    private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions;
-    private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
     private final ConfigurableFileCollection compilationOutputs;
+    private FileCollection classpath;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -80,14 +78,8 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the directory to generate the API documentation into.
      */
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getDestinationDir();
 
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
@@ -137,7 +129,7 @@ public abstract class ScalaDoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
+    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -150,14 +142,8 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the classpath to use to load the ScalaDoc tool.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getScalaClasspath() {
-        return scalaClasspath;
-    }
-
-    public void setScalaClasspath(FileCollection scalaClasspath) {
-        this.scalaClasspath = scalaClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getScalaClasspath();
 
     /**
      * Returns the ScalaDoc generation options.
@@ -195,17 +181,10 @@ public abstract class ScalaDoc extends SourceTask {
     /**
      * Returns the documentation title.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(@Nullable String title) {
-        this.title = title;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTitle();
 
     /**
      * Returns the amount of memory allocated to this task.
@@ -231,7 +210,7 @@ public abstract class ScalaDoc extends SourceTask {
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
         if (!GUtil.isTrue(options.getDocTitle())) {
-            options.setDocTitle(getTitle());
+            options.setDocTitle(getTitle().getOrNull());
         }
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
