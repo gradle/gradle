@@ -216,7 +216,7 @@ public class ApiMemberSelector extends ClassVisitor {
         return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
     }
 
-    private String nameOrValue(String name) {
+    private static String nameOrValue(String name) {
         return name == null ? "value" : name;
     }
 }

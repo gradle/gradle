@@ -16,6 +16,8 @@
 
 package org.gradle.internal.tools.api
 
+import java.lang.reflect.Method
+
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
     void "annotations on class are retained"() {
@@ -324,8 +326,13 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
                 @Retention(RetentionPolicy.RUNTIME)
                 @Target({ElementType.TYPE})
-                public @interface Ann {
+                @interface Ann {
+                    // Deprecated child() default @Deprecated;
+                    // ElementType enum0() default ElementType.TYPE;
+                    // int[] arr() default {};
+                    String name() default "name";
                     Class<?> type() default Integer.class;
+                    int value() default 42;
                 }
             '''
         ])
@@ -340,17 +347,25 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
         then:
         annotations.size() == 1
-        def annotation = annotations[0].annotationType()
-        annotation.name == 'Ann'
-        annotation.methods[0].name == 'type'
-        annotation.methods[0].defaultValue == Integer
-        annotations[0].type() == Integer
+        def annotation = annotations[0]
+        annotation.annotationType().name == 'Ann'
+        def methods = mapMethods(annotation.annotationType().methods)
+        methods["type"].defaultValue == Integer
+        annotation.type() == Integer
+        methods["value"].defaultValue == 42
+        annotation.value() == 42
 
         extractedAnnotations.size() == 1
         def extractedAnnotation = extractedAnnotations[0]
         extractedAnnotation.annotationType() == extractedAnn
-        extractedAnnotation.annotationType().methods[0].name == 'type'
-        extractedAnnotation.annotationType().methods[0].defaultValue == Integer
+        def extractedMethods = mapMethods(extractedAnnotation.annotationType().methods)
+        extractedMethods["type"].defaultValue == Integer
         extractedAnnotation.type() == Integer
+        extractedMethods["value"].defaultValue == 42
+        extractedAnnotation.value() == 42
+    }
+
+    private static Map<String, Method> mapMethods(Method[] methods) {
+        methods.collectEntries { [it.name, it] }
     }
 }
