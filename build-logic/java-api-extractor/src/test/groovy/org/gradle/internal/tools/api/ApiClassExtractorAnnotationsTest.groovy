@@ -351,6 +351,8 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def annotation = annotations[0]
         annotation.annotationType().name == 'Ann'
         def methods = mapMethods(annotation.annotationType().methods)
+        methods["arr"].defaultValue == []
+        annotation.arr() == []
         methods["child"].defaultValue.annotationType() == Deprecated
         methods["child"].defaultValue.since() == "1.5"
         annotation.child().annotationType() == Deprecated
@@ -367,6 +369,8 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotation = extractedAnnotations[0]
         extractedAnnotation.annotationType() == extractedAnn
         def extractedMethods = mapMethods(extractedAnnotation.annotationType().methods)
+        extractedMethods["arr"].defaultValue == []
+        extractedAnnotation.arr() == []
         extractedMethods["child"].defaultValue.annotationType() == Deprecated
         extractedMethods["child"].defaultValue.since() == "1.5"
         extractedMethods["enum0"].defaultValue == ElementType.TYPE

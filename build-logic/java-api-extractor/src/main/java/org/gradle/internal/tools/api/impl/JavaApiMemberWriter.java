@@ -75,15 +75,12 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
 
     @Override
     public void writeMethod(MethodMember method) {
-        System.out.printf("!! writeMethod %s %s %s %s %s %s%n",
-            method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(), method.getExceptions(), method.getAnnotations());
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
         method.getAnnotationDefaultValue().ifPresent(value -> {
-            System.out.printf("!! visitAnnotationDefault %s (%s)%n", value, value.getClass().getName());
             AnnotationVisitor av = mv.visitAnnotationDefault();
             writeAnnotationValue(av, value);
             av.visitEnd();
@@ -147,11 +144,10 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             arrayVisitor.visitEnd();
         } else if (value instanceof AnnotationAnnotationValue) {
             AnnotationMember annotation = ((AnnotationAnnotationValue) value).getValue();
-            System.out.printf("!! visitAnnotation %s %s%n", name, annotation.getName());
-            AnnotationVisitor annVisitor = new LoggingAnnotationVisitor(annotationVisitor.visitAnnotation(name, annotation.getName()));
+            AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(name, annotation.getName());
             writeAnnotationValues(annotation, annVisitor);
         } else {
-            System.out.printf("!! Not sure what this is %s %s (%s)%n", name, value, value.getClass().getName());
+            throw new AssertionError("Unknown annotation value type: " + value.getClass().getName());
         }
     }
 }
