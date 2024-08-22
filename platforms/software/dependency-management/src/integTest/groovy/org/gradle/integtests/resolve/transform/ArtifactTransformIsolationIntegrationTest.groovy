@@ -261,7 +261,7 @@ class Resolve extends Copy {
         when:
         fails ':consumer:resolve'
         then:
-        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve'.")
+        failureDescriptionContains(isConfigCache ? "Configuration cache state could not be cached: Gradle runtime: Error while reading state nodes" : "Execution failed for task ':consumer:resolve'.")
         failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
     }
 }
