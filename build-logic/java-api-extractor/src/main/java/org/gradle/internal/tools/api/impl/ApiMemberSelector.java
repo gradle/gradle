@@ -110,6 +110,41 @@ public class ApiMemberSelector extends ClassVisitor {
                 }
 
                 @Override
+                public AnnotationVisitor visitAnnotationDefault() {
+                    return new AnnotationVisitor(Opcodes.ASM9) {
+                        @Override
+                        public void visit(String name, Object value) {
+                            methodMember.setAnnotationDefaultValue(new SimpleAnnotationValue(nameOrValue(name), value));
+                        }
+
+                        @Override
+                        public void visitEnum(String name, String descriptor, String value) {
+                            methodMember.setAnnotationDefaultValue(new EnumAnnotationValue(nameOrValue(name), descriptor, value));
+                        }
+
+                        @Override
+                        public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+                            AnnotationMember annotation = new AnnotationMember(desc, true);
+                            AnnotationAnnotationValue annotationValue = new AnnotationAnnotationValue(nameOrValue(name), annotation);
+                            methodMember.setAnnotationDefaultValue(annotationValue);
+                            return new SortingAnnotationVisitor(
+                                annotation,
+                                super.visitAnnotation(name, desc));
+                        }
+
+                        @Override
+                        public AnnotationVisitor visitArray(String name) {
+                            AnnotationMember annotation = new AnnotationMember(desc, true);
+                            AnnotationAnnotationValue annotationValue = new AnnotationAnnotationValue(nameOrValue(name), annotation);
+                            methodMember.setAnnotationDefaultValue(annotationValue);
+                            return new SortingAnnotationVisitor(
+                                annotation,
+                                super.visitAnnotation(name, desc));
+                        }
+                    };
+                }
+
+                @Override
                 public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
                     ParameterAnnotationMember ann = new ParameterAnnotationMember(desc, visible, parameter);
                     methodMember.addParameterAnnotation(ann);
@@ -179,5 +214,9 @@ public class ApiMemberSelector extends ClassVisitor {
 
     private static boolean isPackagePrivateMember(int access) {
         return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
+    }
+
+    private String nameOrValue(String name) {
+        return name == null ? "value" : name;
     }
 }

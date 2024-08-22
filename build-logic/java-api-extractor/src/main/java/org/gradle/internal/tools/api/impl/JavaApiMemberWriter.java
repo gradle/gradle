@@ -80,6 +80,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
+        method.getAnnotationDefaultValue().ifPresent(value -> writeAnnotationValue(mv.visitAnnotationDefault(), value));
         mv.visitEnd();
     }
 

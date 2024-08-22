@@ -325,7 +325,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
                 @Retention(RetentionPolicy.RUNTIME)
                 @Target({ElementType.TYPE})
                 public @interface Ann {
-                    String value() default "default-value";
+                    Class<?> type() default Integer.class;
                 }
             '''
         ])
@@ -340,14 +340,17 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
         then:
         annotations.size() == 1
-        annotations[0].annotationType().name == 'Ann'
-        annotations[0].annotationType().methods[0].name == 'value'
-        annotations[0].annotationType().methods[0].defaultValue == 'default-value'
-        annotations[0].value() == 'default-value'
+        def annotation = annotations[0].annotationType()
+        annotation.name == 'Ann'
+        annotation.methods[0].name == 'type'
+        annotation.methods[0].defaultValue == Integer
+        annotations[0].type() == Integer
+
         extractedAnnotations.size() == 1
-        extractedAnnotations[0].annotationType() == extractedAnn
-        extractedAnnotations[0].annotationType().methods[0].name == 'value'
-        extractedAnnotations[0].annotationType().methods[0].defaultValue == 'default-value'
-        extractedAnnotations[0].value() == 'default-value'
+        def extractedAnnotation = extractedAnnotations[0]
+        extractedAnnotation.annotationType() == extractedAnn
+        extractedAnnotation.annotationType().methods[0].name == 'type'
+        extractedAnnotation.annotationType().methods[0].defaultValue == Integer
+        extractedAnnotation.type() == Integer
     }
 }
