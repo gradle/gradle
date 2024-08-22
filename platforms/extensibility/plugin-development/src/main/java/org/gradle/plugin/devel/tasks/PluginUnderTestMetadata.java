@@ -17,20 +17,21 @@
 package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -45,24 +46,21 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
-    private final ConfigurableFileCollection pluginClasspath = getProject().files();
-    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
+     *
+     * Note: this is not a @Classpath since the ablosute paths are written to the metadata file.
      */
-    @Classpath
-    public ConfigurableFileCollection getPluginClasspath() {
-        return pluginClasspath;
-    }
+    @InputFiles
+    @PathSensitive(PathSensitivity.ABSOLUTE)
+    public abstract ConfigurableFileCollection getPluginClasspath();
 
     /**
      * The target output directory used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name"}.
      */
     @OutputDirectory
-    public DirectoryProperty getOutputDirectory() {
-        return outputDirectory;
-    }
+    public abstract DirectoryProperty getOutputDirectory();
 
     @TaskAction
     public void generate() {
@@ -78,7 +76,10 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     private String implementationClasspath() {
         StringBuilder implementationClasspath = new StringBuilder();
-        Joiner.on(File.pathSeparator).appendTo(implementationClasspath, getPaths());
+        Joiner.on(File.pathSeparator).appendTo(
+            implementationClasspath,
+            collect(getPluginClasspath(), file -> FilenameUtils.separatorsToUnix(file.getAbsolutePath()))
+        );
         return implementationClasspath.toString();
     }
 
@@ -90,8 +91,4 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
         }
     }
 
-    @Input
-    protected List<String> getPaths() {
-        return collect(getPluginClasspath(), file -> file.getAbsolutePath().replaceAll("\\\\", "/"));
-    }
 }
