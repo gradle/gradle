@@ -64,6 +64,14 @@ The [Swift](userguide/swift_application_plugin.html) and [C++](userguide/cpp_app
 
 The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/visual_studio_plugin.html) plugins are not yet compatible.
 
+### Other improvements
+
+#### Help task
+
+In any version of Gradle, you can run `gradle help --task <task-name>` to get help on a specific task.
+You can now get the same result with `gradle <task-name> --help`, e.g. `gradle init --help`.
+This is slightly more convenient and consistent with other command-line tools.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

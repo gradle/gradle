@@ -177,6 +177,8 @@ class BuildActionsFactoryTest extends Specification {
 
     def convert(String... args) {
         def parser = new CommandLineParser()
+        // configure the --help option
+        new DefaultCommandLineActionFactory.BuiltInActionCreator().configureCommandLineParser(parser)
         BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
             new BuildLayoutFactory(),
             basicServices.get(FileCollectionFactory.class))

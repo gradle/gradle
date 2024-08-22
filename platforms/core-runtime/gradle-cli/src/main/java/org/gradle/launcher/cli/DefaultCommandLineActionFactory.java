@@ -66,7 +66,7 @@ import java.util.List;
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
 public class DefaultCommandLineActionFactory implements CommandLineActionFactory {
-    private static final String HELP = "h";
+    public static final String HELP_OPTION = "h";
     private static final String VERSION = "v";
     private static final String VERSION_CONTINUE = "V";
 
@@ -130,7 +130,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class BuiltInActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
-            parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
+            parser.option(HELP_OPTION, "?", "help").hasDescription("Shows this help message.");
             parser.option(VERSION, "version").hasDescription("Print version info and exit.");
             parser.option(VERSION_CONTINUE, "show-version").hasDescription("Print version info and continue.");
         }
@@ -138,8 +138,13 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         @Override
         @Nullable
         public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
-            if (commandLine.hasOption(HELP)) {
-                return new ShowUsageAction(parser);
+            if (commandLine.hasOption(HELP_OPTION)) {
+                if (commandLine.getExtraArguments().isEmpty()) {
+                    return new ShowUsageAction(parser);
+                } else {
+                    // delegating to help task, See BuildActionsFactory.createAction
+                    return null;
+                }
             }
             if (commandLine.hasOption(VERSION)) {
                 return new ShowVersionAction(parameters);

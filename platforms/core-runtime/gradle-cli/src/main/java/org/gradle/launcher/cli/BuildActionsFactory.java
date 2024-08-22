@@ -17,7 +17,9 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -66,6 +68,9 @@ import java.lang.management.ManagementFactory;
 import java.util.Properties;
 import java.util.UUID;
 
+import static org.gradle.api.internal.project.ProjectInternal.HELP_TASK;
+import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.HELP_OPTION;
+
 class BuildActionsFactory implements CommandLineActionCreator {
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
@@ -86,6 +91,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
     @Override
     public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
         StartParameterInternal startParameter = parameters.getStartParameter();
+        if (commandLine.hasOption(HELP_OPTION) && !startParameter.getTaskRequests().isEmpty()) {
+            TaskExecutionRequest task = startParameter.getTaskRequests().get(0);
+            startParameter.setTaskNames(ImmutableList.of(HELP_TASK, "--task", task.getArgs().get(0)));
+        }
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
 
         if (daemonParameters.isStop()) {

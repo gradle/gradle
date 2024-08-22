@@ -631,4 +631,12 @@ Options
 
      --no-valueC     Disables option --valueC."""
     }
+
+    def "shows help for task if invoked with --help"() {
+        when:
+        executer.requireDaemon().requireIsolatedDaemons()
+        run "init", "--help"
+        then:
+        output.contains "Detailed task information for init"
+    }
 }
