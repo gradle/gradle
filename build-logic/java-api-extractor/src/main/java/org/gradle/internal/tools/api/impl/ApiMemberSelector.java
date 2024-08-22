@@ -119,7 +119,7 @@ public class ApiMemberSelector extends ClassVisitor {
 
                         @Override
                         public void visitEnum(String name, String descriptor, String value) {
-                            methodMember.setAnnotationDefaultValue(new EnumAnnotationValue(nameOrValue(name), descriptor, value));
+                            methodMember.setAnnotationDefaultValue(new EnumAnnotationValue(nameOrValue(name), value, descriptor));
                         }
 
                         @Override

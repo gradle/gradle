@@ -16,6 +16,7 @@
 
 package org.gradle.internal.tools.api
 
+import java.lang.annotation.ElementType
 import java.lang.reflect.Method
 
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
@@ -328,7 +329,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
                 @Target({ElementType.TYPE})
                 @interface Ann {
                     // Deprecated child() default @Deprecated;
-                    // ElementType enum0() default ElementType.TYPE;
+                    ElementType enum0() default ElementType.TYPE;
                     // int[] arr() default {};
                     String name() default "name";
                     Class<?> type() default Integer.class;
@@ -350,6 +351,8 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def annotation = annotations[0]
         annotation.annotationType().name == 'Ann'
         def methods = mapMethods(annotation.annotationType().methods)
+        methods["enum0"].defaultValue == ElementType.TYPE
+        annotation.enum0() == ElementType.TYPE
         methods["type"].defaultValue == Integer
         annotation.type() == Integer
         methods["value"].defaultValue == 42
@@ -359,6 +362,8 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotation = extractedAnnotations[0]
         extractedAnnotation.annotationType() == extractedAnn
         def extractedMethods = mapMethods(extractedAnnotation.annotationType().methods)
+        extractedMethods["enum0"].defaultValue == ElementType.TYPE
+        extractedAnnotation.enum0() == ElementType.TYPE
         extractedMethods["type"].defaultValue == Integer
         extractedAnnotation.type() == Integer
         extractedMethods["value"].defaultValue == 42
