@@ -45,6 +45,8 @@ public final class TempFiles {
         if(prefix.length() <= 3) {
             prefix = "tmp-" + prefix;
         }
-        return File.createTempFile(prefix, suffix, directory);
+        File result = File.createTempFile(prefix, suffix, directory);
+        result.deleteOnExit();
+        return result;
     }
 }
