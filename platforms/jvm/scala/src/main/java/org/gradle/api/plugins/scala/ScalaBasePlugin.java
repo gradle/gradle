@@ -51,6 +51,7 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reporting.internal.ReportUtilities;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
@@ -68,8 +69,6 @@ import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
@@ -418,15 +417,16 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         ScalaPluginExtension scalaPluginExtension,
         Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath
     ) {
+        ProviderFactory providers = project.getProviders();
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> getScalaToolchainClasspath(
+            scalaDoc.getScalaClasspath().convention(providers.provider(() -> getScalaToolchainClasspath(
                 scalaPluginExtension,
                 scalaToolchainRuntimeClasspath,
                 scalaRuntime,
                 scalaDoc.getClasspath()
-            ));
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
-            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> ReportUtilities.getApiDocTitleFor(project));
+            )));
+            scalaDoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("scaladoc"));
+            scalaDoc.getTitle().convention(providers.provider(() -> ReportUtilities.getApiDocTitleFor(project)));
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }
