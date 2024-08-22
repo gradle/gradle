@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getPaths()",
+            "acceptation": "The actual Input property is getPluginClasspath",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}
