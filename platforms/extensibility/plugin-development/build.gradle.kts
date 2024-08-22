@@ -60,6 +60,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.guava)
+    implementation(libs.commonsIo)
 
     testImplementation(projects.fileCollections)
     testImplementation(projects.enterpriseOperations)
