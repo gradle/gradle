@@ -328,9 +328,9 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
                 @Retention(RetentionPolicy.RUNTIME)
                 @Target({ElementType.TYPE})
                 @interface Ann {
-                    // Deprecated child() default @Deprecated;
+                    int[] arr() default {};
+                    Deprecated child() default @Deprecated(since = "1.5");
                     ElementType enum0() default ElementType.TYPE;
-                    // int[] arr() default {};
                     String name() default "name";
                     Class<?> type() default Integer.class;
                     int value() default 42;
@@ -351,6 +351,11 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def annotation = annotations[0]
         annotation.annotationType().name == 'Ann'
         def methods = mapMethods(annotation.annotationType().methods)
+        methods["child"].defaultValue.annotationType() == Deprecated
+        methods["child"].defaultValue.since() == "1.5"
+        annotation.child().annotationType() == Deprecated
+        annotation.child().since() == "1.5"
+        methods["child"].defaultValue
         methods["enum0"].defaultValue == ElementType.TYPE
         annotation.enum0() == ElementType.TYPE
         methods["type"].defaultValue == Integer
@@ -362,6 +367,8 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         def extractedAnnotation = extractedAnnotations[0]
         extractedAnnotation.annotationType() == extractedAnn
         def extractedMethods = mapMethods(extractedAnnotation.annotationType().methods)
+        extractedMethods["child"].defaultValue.annotationType() == Deprecated
+        extractedMethods["child"].defaultValue.since() == "1.5"
         extractedMethods["enum0"].defaultValue == ElementType.TYPE
         extractedAnnotation.enum0() == ElementType.TYPE
         extractedMethods["type"].defaultValue == Integer

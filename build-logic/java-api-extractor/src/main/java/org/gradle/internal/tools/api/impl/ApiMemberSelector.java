@@ -124,22 +124,24 @@ public class ApiMemberSelector extends ClassVisitor {
 
                         @Override
                         public AnnotationVisitor visitAnnotation(String name, String descriptor) {
-                            AnnotationMember annotation = new AnnotationMember(desc, true);
-                            AnnotationAnnotationValue annotationValue = new AnnotationAnnotationValue(nameOrValue(name), annotation);
-                            methodMember.setAnnotationDefaultValue(annotationValue);
-                            return new SortingAnnotationVisitor(
-                                annotation,
-                                super.visitAnnotation(name, desc));
+                            System.out.printf("visitAnnotation %s %s%n", name, descriptor);
+                            AnnotationMember annotation = new AnnotationMember(descriptor, true);
+                            methodMember.setAnnotationDefaultValue(
+                                new AnnotationAnnotationValue(nameOrValue(name), annotation)
+                            );
+                            return new LoggingAnnotationVisitor(new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, descriptor)));
                         }
 
                         @Override
                         public AnnotationVisitor visitArray(String name) {
-                            AnnotationMember annotation = new AnnotationMember(desc, true);
-                            AnnotationAnnotationValue annotationValue = new AnnotationAnnotationValue(nameOrValue(name), annotation);
-                            methodMember.setAnnotationDefaultValue(annotationValue);
-                            return new SortingAnnotationVisitor(
-                                annotation,
-                                super.visitAnnotation(name, desc));
+                            System.out.printf("visitArray %s%n", name);
+                            return new LoggingAnnotationVisitor(this);
+                        }
+
+                        @Override
+                        public void visitEnd() {
+                            System.out.printf("visitEnd%n");
+                            super.visitEnd();
                         }
                     };
                 }
