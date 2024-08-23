@@ -45,7 +45,6 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
@@ -289,9 +288,8 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
-        ProviderFactory providers = project.getProviders();
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getScalaClasspath().convention(providers.provider(() -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath())));
+            scalaDoc.getScalaClasspath().convention(scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
             scalaDoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("scaladoc"));
             scalaDoc.getTitle().convention(project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
