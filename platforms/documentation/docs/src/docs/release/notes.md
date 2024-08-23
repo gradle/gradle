@@ -66,11 +66,13 @@ The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/vis
 
 ### Other improvements
 
-#### Help task
+#### Updates to task-specific help on the CLI
 
-In any version of Gradle, you can run `gradle help --task <task-name>` to get help on a specific task.
-You can now get the same result with `gradle <task-name> --help`, e.g. `gradle init --help`.
-This is slightly more convenient and consistent with other command-line tools.
+Previously, you could run `gradle help --task <task-name>` to get help on a specific task.
+Now, you can achieve the same result more conveniently with `gradle <task-name> --help`.
+For example, use `gradle init --help` to get information about the `init` task.
+
+This approach is not only more concise but also aligns with the conventions of other command-line tools.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
