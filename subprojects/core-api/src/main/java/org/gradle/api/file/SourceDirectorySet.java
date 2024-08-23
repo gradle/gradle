@@ -15,11 +15,11 @@
  */
 package org.gradle.api.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
@@ -39,8 +39,8 @@ import java.util.function.Function;
  * You can create an instance of {@code SourceDirectorySet} using the {@link org.gradle.api.model.ObjectFactory#sourceDirectorySet(String, String)}
  * method.
  * <p>
- * You can filter the <strong>files</strong> that are obtainable in this set using patterns via {@link #exclude(String...)}
- * and {@link #include(Closure)} (or any overload of these methods).  The set of included source directories themselves are
+ * You can filter the <strong>files</strong> that are obtainable in this set using patterns via {@link #include(Spec)}
+ * and {@link #include(Spec)} (or any overload of these methods).  The set of included source directories themselves are
  * <strong>not filtered</strong>.
  */
 @UnmanagedStruct
@@ -72,7 +72,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     /**
      * Returns the source directories that make up this set.
      * <p>
-     * Note that filtering via patterns using {@link #exclude(String...)} and {@link #include(Closure)} (or any overload of these methods) only
+     * Note that filtering via patterns using {@link #include(Spec)} and {@link #include(Spec)} (or any overload of these methods) only
      * filters <strong>files</strong> within the {@link DirectoryTree}s returned by this method and <strong>does not filter</strong>
      * the set of source directory trees themselves.  This result should agree with {@link #getSrcDirTrees()}.
      * <p>
@@ -109,11 +109,15 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     /**
      * Returns the source directory trees that make up this set.
      * <p>
-     * Note that filtering via patterns using {@link #exclude(String...)} and {@link #include(Closure)} (or any overload of these methods) only
+     * Note that filtering via patterns using {@link #exclude(Spec)} and {@link #include(Spec)} (or any overload of these methods) only
      * filters <strong>files</strong> within the {@link DirectoryTree}s returned by this method and <strong>does not filter</strong>
      * the set of source directory trees themselves.  This result should agree with {@link #getSrcDirs()}.
      * <p>
      * Does not filter source directories that do not exist.
+     * <p>
+     * Note that if there are multiple source directories added to this set that include the same dir,
+     * we use the patterns from the first one we find (in the order they were added) to filter files in the returned
+     * {@link DirectoryTree}s.  It is discouraged to add multiple source directories that include the same dir to the same set.
      *
      * @return The source directory trees. Returns an empty set when this set contains no source directories.
      */
