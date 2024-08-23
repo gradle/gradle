@@ -33,12 +33,14 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
@@ -139,14 +141,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:Internal
     internal
-    lateinit var plugins: List<PrecompiledScriptPlugin>
+    abstract val plugins: ListProperty<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
-    val scriptFiles: Set<File>
+    val scriptFiles: Provider<Set<File>>
         get() = scriptPluginFilesOf(plugins)
 
     @get:Input
@@ -219,7 +221,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             it.scriptPlugin.id
         }
 
-        val pluginGraph = plugins.associate {
+        val pluginGraph = plugins.get().associate {
             it.id to pluginsAppliedBy(it, scriptPluginsById)
         }
 
@@ -323,7 +325,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         plugin.compiledScriptTypeName.replace('.', '/') + ".class"
 
     private
-    fun selectProjectScriptPlugins() = plugins.filter { it.scriptType == KotlinScriptType.PROJECT }
+    fun selectProjectScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.PROJECT }
 
     private
     fun createPluginsClassLoader(): ClassLoader =

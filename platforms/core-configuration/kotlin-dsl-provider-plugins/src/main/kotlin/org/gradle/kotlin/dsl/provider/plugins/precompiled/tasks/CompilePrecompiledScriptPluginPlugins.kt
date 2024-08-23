@@ -18,10 +18,9 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileTree
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -67,20 +66,18 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
-    @Transient
-    private
-    val sourceDirectorySet: SourceDirectorySet = project.objects.sourceDirectorySet(
-        kotlinModuleName,
-        "Precompiled script plugin plugins"
-    )
-
     @get:InputFiles
     @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val sourceFiles: FileTree = sourceDirectorySet
+    val sourceFiles: ConfigurableFileCollection = project.files(
+        project.objects.sourceDirectorySet(
+            kotlinModuleName,
+            "Precompiled script plugin plugins"
+        )
+    )
 
     fun sourceDir(dir: Provider<Directory>) {
-        sourceDirectorySet.srcDir(dir)
+        sourceFiles.from(dir)
     }
 
     @get:Nested
@@ -95,8 +92,11 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 
     @get:Input
     protected
-    val compilerOptions: KotlinCompilerOptions by lazy {
-        kotlinCompilerOptions(gradleProperties).copy(jvmTarget = resolveJvmTarget())
+    abstract val compilerOptions: Property<KotlinCompilerOptions>
+
+    init {
+        @Suppress("LeakingThis")
+        compilerOptions.convention(project.provider { kotlinCompilerOptions(gradleProperties).copy(jvmTarget = resolveJvmTarget()) })
     }
 
     @TaskAction
@@ -106,7 +106,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
             if (scriptFiles.isNotEmpty())
                 compileKotlinScriptModuleTo(
                     outputDir,
-                    compilerOptions,
+                    compilerOptions.get(),
                     kotlinModuleName,
                     scriptFiles,
                     scriptDefinitionFromTemplate(
