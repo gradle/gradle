@@ -18,21 +18,21 @@ package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Options for Scala platform compilation.
@@ -42,33 +42,21 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
 
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean deprecation = true;
-
-    private boolean unchecked = true;
-
-    private String debugLevel;
-
-    private boolean optimize;
-
-    private String encoding;
-
-    private boolean force;
-
-    private final List<String> additionalParameters = new ArrayList<>();
-
-    private boolean listFiles;
-
-    private String loggingLevel;
-
-    private List<String> loggingPhases;
-
     private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
     private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
     private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
+
+    @Inject
+    public BaseScalaCompileOptions() {
+        getFailOnError().convention(true);
+        getDeprecation().convention(true);
+        getUnchecked().convention(true);
+        getOptimize().convention(false);
+        getForce().convention(false);
+        getListFiles().convention(false);
+    }
 
     @Inject
     protected ObjectFactory getObjectFactory() {
@@ -79,82 +67,74 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
      * Fail the build on compilation errors.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
 
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsFailOnError() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnError()", "getFailOnError()");
+        return getFailOnError();
     }
 
     /**
      * Generate deprecation information.
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isDeprecation() {
-        return deprecation;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
 
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsDeprecation() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsDeprecation()", "getDeprecation()");
+        return getDeprecation();
     }
 
     /**
      * Generate unchecked information.
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isUnchecked() {
-        return unchecked;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getUnchecked();
 
-    public void setUnchecked(boolean unchecked) {
-        this.unchecked = unchecked;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsUnchecked() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUnchecked()", "getUnchecked()");
+        return getUnchecked();
     }
 
     /**
      * Generate debugging information.
      * Legal values: none, source, line, vars, notailcalls
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getDebugLevel() {
-        return debugLevel;
-    }
-
-    public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDebugLevel();
 
     /**
      * Run optimizations.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isOptimize() {
-        return optimize;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getOptimize();
 
-    public void setOptimize(boolean optimize) {
-        this.optimize = optimize;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsOptimize() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsOptimize()", "getOptimize()");
+        return getOptimize();
     }
 
     /**
      * Encoding of source files.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Whether to force the compilation of all files.
@@ -163,13 +143,14 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
      * - true (always recompile all files)
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isForce() {
-        return force;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getForce();
 
-    public void setForce(boolean force) {
-        this.force = force;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsForce() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsForce()", "getForce()");
+        return getForce();
     }
 
     /**
@@ -180,34 +161,21 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
      */
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getAdditionalParameters() {
-        return additionalParameters;
-    }
-
-    /**
-     * Sets the additional parameters.
-     * <p>
-     * Setting this property will clear any previously set additional parameters.
-     */
-    public void setAdditionalParameters(List<String> additionalParameters) {
-        this.additionalParameters.clear();
-        if (additionalParameters != null) {
-            this.additionalParameters.addAll(additionalParameters);
-        }
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getAdditionalParameters();
 
     /**
      * List files to be compiled.
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isListFiles() {
-        return listFiles;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
 
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsListFiles() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsListFiles()", "getListFiles()");
+        return getListFiles();
     }
 
     /**
@@ -215,14 +183,8 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
      * Legal values:  none, verbose, debug
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public String getLoggingLevel() {
-        return loggingLevel;
-    }
-
-    public void setLoggingLevel(String loggingLevel) {
-        this.loggingLevel = loggingLevel;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getLoggingLevel();
 
     /**
      * Phases of the compiler to log.
@@ -230,14 +192,8 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
      *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public List<String> getLoggingPhases() {
-        return loggingPhases;
-    }
-
-    public void setLoggingPhases(List<String> loggingPhases) {
-        this.loggingPhases = loggingPhases;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getLoggingPhases();
 
     /**
      * Options for running the Scala compiler in a separate process.
