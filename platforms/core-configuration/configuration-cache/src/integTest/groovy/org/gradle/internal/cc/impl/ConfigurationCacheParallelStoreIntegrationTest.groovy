@@ -37,8 +37,9 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-store=false")
 
         then:
+        // we allow disabling parallel storing it as a safety measure for builds that might be broken by parallelism
         output.contains("[org.gradle.configurationcache] saving state nodes in-line")
-        // reading is always in parallel
+        // loading is still parallel
         output.contains("[org.gradle.configurationcache] reading state nodes in parallel")
     }
 
@@ -50,8 +51,9 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-load=false")
 
         then:
+        // storing is still parallel
         output.contains("[org.gradle.configurationcache] saving state nodes in parallel")
-        // reading is always in parallel
+        // parallel loading should always be safe, however we will (temporarily) allow disabling it for benchmarking
         output.contains("[org.gradle.configurationcache] reading state nodes in-line")
     }
 }
