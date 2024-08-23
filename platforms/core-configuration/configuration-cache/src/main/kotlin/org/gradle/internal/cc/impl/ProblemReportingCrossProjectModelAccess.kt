@@ -163,18 +163,10 @@ class ProblemReportingCrossProjectModelAccess(
             onIsolationViolation(what)
         }
 
-        override fun equals(other: Any?): Boolean {
-            if (other === this) {
-                return true
-            }
-            if (other == null || other.javaClass != javaClass) {
-                return false
-            }
+        override fun wrapperEquals(other: Any): Boolean {
             val project = other as ProblemReportingProject
             return delegate == project.delegate && referrer == project.referrer // do not include `access`
         }
-
-        override fun hashCode(): Int = delegate.hashCode()
 
         override fun toString(): String = delegate.toString()
 

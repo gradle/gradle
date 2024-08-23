@@ -95,23 +95,8 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null) {
-            return false;
-        }
-        if (other instanceof LifecycleAwareProject) {
-            LifecycleAwareProject lifecycleAwareProject = (LifecycleAwareProject) other;
-            return delegate.equals(lifecycleAwareProject.delegate) && referrer.equals(lifecycleAwareProject.referrer);
-        } else {
-            return delegate.equals(other);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return delegate.hashCode();
+    protected boolean wrapperEquals(Object other) {
+        LifecycleAwareProject lifecycleAwareProject = (LifecycleAwareProject) other;
+        return delegate.equals(lifecycleAwareProject.delegate) && referrer.equals(lifecycleAwareProject.referrer);
     }
 }

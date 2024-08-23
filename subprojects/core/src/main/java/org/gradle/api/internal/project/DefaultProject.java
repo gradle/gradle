@@ -598,6 +598,24 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object otherProject) {
+        if (otherProject == null) {
+            return false;
+        }
+        if (otherProject instanceof MutableStateAccessAwareProject) {
+            ProjectInternal delegate = ((MutableStateAccessAwareProject) otherProject).getDelegate();
+            // It could be a few layers of wrapping, so recursively unwrap until raw DefaultProject
+            return equals(delegate);
+        }
+        return this == otherProject;
+    }
+
+    @Override
     public String absoluteProjectPath(String path) {
         return getProjectPath().absolutePath(path);
     }
