@@ -22,19 +22,18 @@ Dependency resolution in Gradle can largely be thought of as a two-step process:
 
 == 1. Graph Resolution
 
-Graph resolution is a process that consists of two phases, which are repeated until the dependency graph is complete:
+During the first phase of Gradle's dependency resolution process, known as **graph resolution**, the following steps occur:
 
-* When a new dependency is added to the graph, perform conflict resolution to determine which version should be added to the graph.
-* When a specific dependency, that is a module with a version, is identified as part of the graph, retrieve its metadata so that its dependencies can be added in turn.
+=== 1. **Dependency Declaration Parsing:**
 
-=== Phase 1: Add a new dependency
+Gradle first reads all the dependencies declared in the build script.
 
 A *module* is essentially a discrete unit of software that can be built and published such as `com.google.guava:guava`.
 
 Each version of a *module* is a *component*.
-A *component* refers to one published library version.
+A *component* refers to one published library version such as `com.google.guava:guava:33.3.0-jre`.
 
-In the following example of an arbitrary Java app, the *component* `com.google.guava:guava:33.0.0-jre` (the version `33.0.0-jre` of the `com.google.guava:guava` module) is added as a dependency to the `implementation` *configuration*:
+In the following example of an arbitrary Java app, the *component* `com.google.guava:guava:33.0.0-jre` (the version `33.0.0-jre` of the `com.google.guava:guava` module) is added as a dependency to the `implementation` *configuration* in the build file:
 
 [source,kotlin]
 ----
@@ -43,21 +42,33 @@ dependencies {
 }
 ----
 
-While the user has declared version `33.0.0-jre` of the module, this may not be the version that will be downloaded and used in the project.
-The Gradle dependency resolution engine first performs conflict resolution to determine which version should _actually_ be used in the project.
+=== 2. **Dependency MetaData:**
 
-First, it looks in the repository of the `com.google.guava:guava` *module* to *find all existing versions*.
-Then, it looks through the project to *find all requested versions* of the same module.
-It is possible that other libraries or parts of the project also requested a version of `com.google.guava:guava` so conflict resolution is necessary.
-By default, the highest version is used unless Gradle APIs specify otherwise.
+Gradle constructs a dependency graph, which is a representation of all the project’s dependencies and how they relate to each other.
++
+This graph includes both direct dependencies (those explicitly declared in the build script) and transitive dependencies (those brought in by the direct dependencies).
++
+In the case of `com.google.guava:guava`, the following transitive dependencies are added:
 
-=== Phase 2: Get the metadata
+* `com.google.guava:failureaccess`
+* `com.google.guava:listenablefuture`
+* `com.google.code.findbugs:jsr305`
+* `org.checkerframework:checker-qual`
+* `com.google.errorprone:error_prone_annotations`
+* `com.google.j2objc:j2objc-annotations`
 
-Once Gradle has determined which version to use, it finds the *metadata* of the *component* from an `ivy`, `module`, or link:https://repo1.maven.org/maven2/com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.pom[`pom`] file in the repository of the dependency.
+3. **Conflict Resolution:**
+- Gradle identifies and resolves any version conflicts that may arise when different modules in the graph depend on different versions of the same library.
++
+This is where Gradle's conflict resolution strategy (e.g., picking the highest version by default) comes into play.
++
+In the example, Gradle picks the *component* `com.google.guava:guava:33.0.0-jre` (the version `33.0.0-jre` of the `com.google.guava:guava` module).
 
-Here is a snapshot of the *metadata* from `com.google.guava:guava:33.0.0-jre`:
+4. **Variant Selection:**
+- Gradle finds the *metadata* of the *component* from an `ivy`, `module`, or link:https://repo1.maven.org/maven2/com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.pom[`pom`] file in the repository of the dependency.
++
+In the example, a snapshot of the *metadata* from `com.google.guava:guava:33.0.0-jre`:
 
-* Artifact: `guava-33.0.0-jre.jar`
 * Variants: 2
 ** Compile Variant: `compileClasspath`
 *** Transitive Dependencies: 6
@@ -75,17 +86,59 @@ Here is a snapshot of the *metadata* from `com.google.guava:guava:33.0.0-jre`:
 **** `org.checkerframework:checker-qual:3.12.0`
 **** `com.google.errorprone:error_prone_annotations:2.26.1`
 
-What's important to note here is the two *variants* of `com.google.guava:guava:33.0.0-jre` that are available.
++
+What's important to note here is the two *variants* of `com.google.guava:guava:33.0.0-jre` are available.
 Therefore, each *component* consists of one or more variants.
-
 A *variant* is a specific version of a *component* tailored for a particular use case or environment.
 Variants allow you to define different versions of your *module* depending on the context in which it is used.
 A *variant* consists of a set of artifacts and defines a set of dependencies.
+
+- If the project has multiple variants (like `apiElements`, `runtimeElements`, or custom variants), Gradle selects the appropriate variant of each dependency based on attributes. This is especially relevant for projects with different configurations for different environments (e.g., Java versions, platforms, etc.).
+
+5. **Resolution Rules:**
+- Gradle applies resolution rules that may be configured, such as forcing a specific version of a dependency, blacklisting versions, or substituting modules.
+- Gradle applies any dependency substitution rules defined in the build script. These rules can replace one dependency with another, modify versions, or even redirect to a different module.
+- If any dependencies are defined with dynamic versions (e.g., `1.0.+`) or version ranges (e.g., `[1.0, 2.0)`), Gradle resolves these to specific versions by consulting the repositories.
+- If dependency locking is enabled, Gradle checks the lock files to ensure that the same versions are used across builds, preventing unexpected changes in dependencies.
+
 
 With the information from the *metadata*, Gradle builds a dependency graph made up of _nodes_:
 
 - each _node_ in the graph is a *variant*.
 - each one gets resolved to a *component*.
+
+== 2. Artifact Resolution
+
+In the dependency resolution process, the second step, **artifact resolution**, occurs after the dependency graph has been constructed.
+
+Here's what happens during artifact resolution:
+
+1. **Fetching Artifacts:** Gradle locates and downloads the actual artifacts (such as JAR files, ZIP files, etc.) required by the project. These artifacts correspond to the dependencies identified during graph resolution.
+
+2. **Repository Interaction:** Gradle queries the repositories specified in the build script (like Maven Central, JCenter, or a custom repository) to find and fetch the artifacts. This may involve resolving the exact version of the artifacts if dynamic versions or version ranges are used.
+
+3. **Artifact Caching:** Once an artifact is downloaded, Gradle stores it in its local cache (usually in the `~/.gradle` directory). This ensures that subsequent builds don't need to re-download the same artifacts, improving build performance.
+
+4. **Verification and Integrity Checks:** Gradle may perform checksum verification or other integrity checks to ensure that the downloaded artifacts are not corrupted.
+
+5. **Artifact Resolution Rules:** If any artifact resolution rules are defined in the build script, they are applied at this stage. These rules might involve substituting one artifact for another or enforcing specific artifact versions.
+
+6. **Failure Handling:** If Gradle cannot resolve an artifact (due to network issues, missing repositories, etc.), it will fail the build with a descriptive error message. Depending on the configuration, Gradle might retry the download or fall back to alternative repositories.
+
+Artifact resolution takes the resolved graph and repository definitions as input and produces a set of files as output.
+
+In summary, artifact resolution is all about fetching the physical files (artifacts) necessary for the build, ensuring they are available, valid, and correctly versioned. This process is crucial for executing the build with the right dependencies.
+
+
+[.text-right]
+**Next Step:** <<variant_aware_resolution.adoc#variant_aware_resolution,Learn about Variant Aware Dependency Resolution>> >>
+
+
+
+
+
+
+
 
 The dependency resolution engine is variant-aware and selects one or more *variants* of each *component* based on your build requirements.
 It may fail if the *variant* selection result is ambiguous, meaning that Gradle does not have enough information to select one of multiple mutual exclusive variants.
@@ -184,12 +237,3 @@ What it tells us is that the `jreRuntimeElements` variant of `guava` has several
 - `org.gradle.usage` specifies that this variant is suitable for a _Java runtime_.
 
 By comparing these attributes with those of the `app`, we can see how Gradle uses this information to determine compatibility between dependencies, ensuring that the correct artifacts are selected during dependency resolution. For example, despite the Java version difference (Java 8 vs. 11), the other attributes like usage and library elements align, making this variant suitable for the `runtimeClasspath` configuration of the `app`.
-
-== 2. Artifact Resolution
-
-Artifact resolution takes the resolved graph and repository definitions as input and produces a set of files as output.
-
-[.text-right]
-**Next Step:** <<variant_aware_resolution.adoc#variant_aware_resolution,Learn about Variant Aware Dependency Resolution>> >>
-
-
