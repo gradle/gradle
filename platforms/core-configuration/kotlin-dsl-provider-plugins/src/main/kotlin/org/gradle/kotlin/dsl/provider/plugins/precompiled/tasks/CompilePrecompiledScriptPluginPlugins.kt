@@ -92,11 +92,8 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 
     @get:Input
     protected
-    abstract val compilerOptions: Property<KotlinCompilerOptions>
-
-    init {
-        @Suppress("LeakingThis")
-        compilerOptions.convention(project.provider { kotlinCompilerOptions(gradleProperties).copy(jvmTarget = resolveJvmTarget()) })
+    val compilerOptions: Provider<KotlinCompilerOptions> = project.provider {
+        kotlinCompilerOptions(gradleProperties).copy(jvmTarget = resolveJvmTarget())
     }
 
     @TaskAction
