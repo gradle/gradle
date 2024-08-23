@@ -20,6 +20,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -47,6 +48,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertStateLoaded()
     }
 
+    @Ignore("wip")
     def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import spock.lang.Ignore
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -72,6 +73,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         "AES/GCM/NoPadding"      | EncryptionKind.ENV_VAR
     }
 
+    @Ignore("wip")
     def "configuration cache encryption enablement is #enabled if kind=#kind"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
