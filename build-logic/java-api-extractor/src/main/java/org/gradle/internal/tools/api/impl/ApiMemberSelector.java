@@ -110,6 +110,11 @@ public class ApiMemberSelector extends ClassVisitor {
                 }
 
                 @Override
+                public AnnotationVisitor visitAnnotationDefault() {
+                    return new AnnotationDefaultVisitor(methodMember);
+                }
+
+                @Override
                 public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
                     ParameterAnnotationMember ann = new ParameterAnnotationMember(desc, visible, parameter);
                     methodMember.addParameterAnnotation(ann);
@@ -179,5 +184,45 @@ public class ApiMemberSelector extends ClassVisitor {
 
     private static boolean isPackagePrivateMember(int access) {
         return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
+    }
+
+    private static String nameOrValue(String name) {
+        return name == null ? "value" : name;
+    }
+
+    private static class AnnotationDefaultVisitor extends AnnotationVisitor {
+        private final MethodMember methodMember;
+
+        public AnnotationDefaultVisitor(MethodMember methodMember) {
+            super(Opcodes.ASM9);
+            this.methodMember = methodMember;
+        }
+
+        @Override
+        public void visit(String name, Object value) {
+            super.visit(name, value);
+            methodMember.setAnnotationDefaultValue(new SimpleAnnotationValue(nameOrValue(name), value));
+        }
+
+        @Override
+        public void visitEnum(String name, String descriptor, String value) {
+            super.visitEnum(name, descriptor, value);
+            methodMember.setAnnotationDefaultValue(new EnumAnnotationValue(nameOrValue(name), value, descriptor));
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+            AnnotationMember annotation = new AnnotationMember(descriptor, true);
+            methodMember.setAnnotationDefaultValue(
+                new AnnotationAnnotationValue(nameOrValue(name), annotation)
+            );
+            return new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, descriptor));
+        }
+
+        @Override
+        public AnnotationVisitor visitArray(String name) {
+            methodMember.setAnnotationDefaultValue(new ArrayAnnotationValue(nameOrValue(name), new AnnotationValue[0]));
+            return super.visitArray(name);
+        }
     }
 }
