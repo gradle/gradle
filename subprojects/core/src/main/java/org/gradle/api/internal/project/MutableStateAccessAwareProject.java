@@ -98,6 +98,17 @@ import java.util.function.Function;
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
  * <p>
+ * It's important to keep these wrappers "transparent" in terms of equality to the wrapped delegate.
+ * That's it, for each wrapper implementation conditions:
+ * <pre>
+ * {@code
+ * delegate.equals(wrapper) == true
+ * wrapper.equals(delegate) == true
+ * wrapper.hashCode == delegate.hashCode
+ * }
+ * </pre>
+ * must be preserved.
+ * <p>
  * This class enables dynamic property and method dispatch on the `this` bean rather than on the {@link #delegate}.
  * If the dispatch on `this` fails, the control flow is delegated to {@link #propertyMissing(String)}, {@link #propertyMissing(String, Object)},
  * {@link #methodMissing(String, Object)} and {@link #hasPropertyMissing(String)} methods.
@@ -128,11 +139,30 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     protected abstract void onMutableStateAccess(String what);
 
-    @Override
-    public abstract boolean equals(Object obj);
+    /**
+     * Checks equality against an object of the same wrapper class.
+     */
+    protected abstract boolean wrapperEquals(Object other);
 
     @Override
-    public abstract int hashCode();
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (getClass() == other.getClass()) {
+            return wrapperEquals(other);
+        } else {
+            return delegate.equals(other);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return delegate.hashCode();
+    }
 
     @Nullable
     @SuppressWarnings("unused") // used by Groovy dynamic dispatch
@@ -152,6 +182,10 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     protected boolean hasPropertyMissing(String name) {
         onMutableStateAccess("hasProperty");
         return delegate.hasProperty(name);
+    }
+
+    public ProjectInternal getDelegate() {
+        return delegate;
     }
 
     @Override

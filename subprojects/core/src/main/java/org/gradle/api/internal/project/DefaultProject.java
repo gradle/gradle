@@ -597,6 +597,24 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object otherProject) {
+        if (otherProject == null) {
+            return false;
+        }
+        if (otherProject instanceof MutableStateAccessAwareProject) {
+            ProjectInternal delegate = ((MutableStateAccessAwareProject) otherProject).getDelegate();
+            // It could be a few layers of wrapping, so recursively unwrap until raw DefaultProject
+            return equals(delegate);
+        }
+        return this == otherProject;
+    }
+
+    @Override
     public String absoluteProjectPath(String path) {
         return getProjectPath().absolutePath(path);
     }
@@ -1473,7 +1491,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     /**
      * Assert that the current thread is not running a lazy action on a domain object within this project.
-     *  This method should be called by methods that must not be called in lazy actions.
+     * This method should be called by methods that must not be called in lazy actions.
      */
     private void assertEagerContext(String methodName) {
         getProjectConfigurator().getLazyBehaviorGuard().assertEagerContext(methodName, this, Project.class);
