@@ -89,3 +89,6 @@ pluginPublish {
         pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins"
     )
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

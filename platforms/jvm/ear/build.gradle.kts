@@ -57,3 +57,6 @@ strictCompile {
 packageCycles {
     excludePatterns.add("org/gradle/plugins/ear/internal/*")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

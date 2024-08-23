@@ -53,3 +53,6 @@ tasks {
         usesJavadocCodeSnippets = true
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

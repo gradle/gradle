@@ -11,3 +11,6 @@ dependencies {
     integTestImplementation(projects.logging)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

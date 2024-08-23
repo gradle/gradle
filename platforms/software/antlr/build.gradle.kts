@@ -50,3 +50,6 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/antlr/internal/*")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

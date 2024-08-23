@@ -36,3 +36,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

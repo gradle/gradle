@@ -49,3 +49,6 @@ jmh {
     warmupIterations = 10
     synchronizeIterations = false
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

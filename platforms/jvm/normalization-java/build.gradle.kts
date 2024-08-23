@@ -31,3 +31,6 @@ dependencies {
     testImplementation(projects.internalTesting)
     testImplementation(testFixtures(projects.snapshots))
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

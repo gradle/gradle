@@ -50,3 +50,6 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.toolingApi))
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

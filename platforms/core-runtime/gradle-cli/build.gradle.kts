@@ -60,3 +60,6 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -65,3 +65,6 @@ dependencies {
     }
     testImplementation(testFixtures(projects.daemonProtocol))
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

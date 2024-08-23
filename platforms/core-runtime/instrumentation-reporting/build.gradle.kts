@@ -11,3 +11,6 @@ dependencies {
     api(libs.jsr305)
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

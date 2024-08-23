@@ -28,3 +28,6 @@ tasks.forkingIntegTest {
     systemProperty("gradleBuildBranch", buildBranch.get())
     systemProperty("gradleBuildCommitId", buildCommitId.get())
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

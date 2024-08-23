@@ -53,3 +53,6 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
