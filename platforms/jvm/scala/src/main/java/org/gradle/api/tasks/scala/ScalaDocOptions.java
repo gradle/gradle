@@ -15,171 +15,110 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.jspecify.annotations.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * Options for the ScalaDoc tool.
  */
 public abstract class ScalaDocOptions implements Serializable {
-    private boolean deprecation = true;
-    private boolean unchecked = true;
-    private String windowTitle;
-    private String docTitle;
-    private String header;
-    private String footer;
-    private String top;
-    private String bottom;
-    private List<String> additionalParameters;
+
+    @Inject
+    public ScalaDocOptions() {
+        getDeprecation().convention(true);
+        getUnchecked().convention(true);
+    }
 
     /**
      * Tells whether to generate deprecation information.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isDeprecation() {
-        return deprecation;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
 
-    /**
-     * Sets whether to generate deprecation information.
-     */
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsDeprecation() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsDeprecation()", "getDeprecation()");
+        return getDeprecation();
     }
 
     /**
      * Tells whether to generate unchecked information.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isUnchecked() {
-        return unchecked;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getUnchecked();
 
-    /**
-     * Sets whether to generate unchecked information.
-     */
-    public void setUnchecked(boolean unchecked) {
-        this.unchecked = unchecked;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsUnchecked() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUnchecked()", "getUnchecked()");
+        return getUnchecked();
     }
 
     /**
      * Returns the text to appear in the window title.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getWindowTitle() {
-        return windowTitle;
-    }
-
-    /**
-     * Sets the text to appear in the window title.
-     */
-    public void setWindowTitle(@Nullable String windowTitle) {
-        this.windowTitle = windowTitle;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getWindowTitle();
 
     /**
      * Returns the HTML text to appear in the main frame title.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getDocTitle() {
-        return docTitle;
-    }
-
-    /**
-     * Sets the HTML text to appear in the main frame title.
-     */
-    public void setDocTitle(@Nullable String docTitle) {
-        this.docTitle = docTitle;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getDocTitle();
 
     /**
      * Returns the HTML text to appear in the header for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getHeader() {
-        return header;
-    }
-
-    /**
-     * Sets the HTML text to appear in the header for each page.
-     */
-    public void setHeader(@Nullable String header) {
-        this.header = header;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getHeader();
 
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getFooter() {
-        return footer;
-    }
-
-    /**
-     * Sets the HTML text to appear in the footer for each page.
-     */
-    public void setFooter(@Nullable String footer) {
-        this.footer = footer;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getFooter();
 
     /**
      * Returns the HTML text to appear in the top text for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getTop() {
-        return top;
-    }
-
-    /**
-     * Sets the HTML text to appear in the top text for each page.
-     */
-    public void setTop(@Nullable String top) {
-        this.top = top;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getTop();
 
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getBottom() {
-        return bottom;
-    }
-
-    /**
-     * Sets the HTML text to appear in the bottom text for each page.
-     */
-    public void setBottom(@Nullable String bottom) {
-        this.bottom = bottom;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getBottom();
 
     /**
      * Returns the additional parameters passed to the compiler.
      * Each parameter starts with '-'.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public List<String> getAdditionalParameters() {
-        return additionalParameters;
-    }
-
-    /**
-     * Sets the additional parameters passed to the compiler.
-     * Each parameter must start with '-'.
-     */
-    public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
-    }
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getAdditionalParameters();
 }
