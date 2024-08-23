@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -55,7 +57,7 @@ public class ScalaCompileOptionsConfigurer {
     private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
     private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
+    public static void configure(MinimalScalaCompileOptions compileOptions, ScalaCompileOptions userConfiguredCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }
@@ -74,12 +76,16 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
+        List<String> additionalParameters = userConfiguredCompileOptions.getAdditionalParameters().get();
+        if (hasTargetDefiningParameter(additionalParameters)) {
             return;
         }
 
         String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
-        scalaCompileOptions.getAdditionalParameters().add(targetParameter);
+        compileOptions.setAdditionalParameters(ImmutableList.<String>builder()
+            .addAll(additionalParameters)
+            .add(targetParameter)
+            .build());
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
