@@ -16,10 +16,12 @@
 
 package org.gradle.scala.compile.internal
 
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.language.scala.tasks.KeepAliveMode
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,17 +31,18 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = newInitializedScalaCompileOptions()
         scalaCompileOptions.additionalParameters = ["-some-other-flag"].asImmutable()
         def isScala3 = scalaLibraryVersion.startsWith("3.")
         File scalaLibrary = new File(isScala3 ? "scala3-library_3-${scalaLibraryVersion}.jar" : "scala-library-${scalaLibraryVersion}.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
+        def minimalCompileOptions = new MinimalScalaCompileOptions(scalaCompileOptions)
+        ScalaCompileOptionsConfigurer.configure(minimalCompileOptions, scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters.last() == expectedTarget
+        minimalCompileOptions.additionalParameters.last() == expectedTarget
 
         where:
         javaToolchain | fallbackToolchain | scalaLibraryVersion | expectedTarget
@@ -90,28 +93,30 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if toolchain is not present'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = newInitializedScalaCompileOptions()
         File scalaLibrary = new File("scala-library-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
+        def minimalCompileOptions = new MinimalScalaCompileOptions(scalaCompileOptions)
+        ScalaCompileOptionsConfigurer.configure(minimalCompileOptions, scalaCompileOptions, null, classpath)
 
         then:
-        !scalaCompileOptions.additionalParameters
+        !minimalCompileOptions.additionalParameters
     }
 
     def 'does not configure target jvm if scala library is not present or invalid'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = newInitializedScalaCompileOptions()
         File scalaLibrary = new File("scala-invalid-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8, false), classpath)
+        def minimalCompileOptions = new MinimalScalaCompileOptions(scalaCompileOptions)
+        ScalaCompileOptionsConfigurer.configure(minimalCompileOptions, scalaCompileOptions, createToolchain(8, false), classpath)
 
         then:
-        !scalaCompileOptions.additionalParameters
+        !minimalCompileOptions.additionalParameters
 
         where:
         scalaFileName << [
@@ -122,16 +127,17 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala compiler already has a configured target via #targetFlagName flag'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = newInitializedScalaCompileOptions()
         scalaCompileOptions.additionalParameters = targetFlagParts.toList()
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(17, false), classpath)
+        def minimalCompileOptions = new MinimalScalaCompileOptions(scalaCompileOptions)
+        ScalaCompileOptionsConfigurer.configure(minimalCompileOptions, scalaCompileOptions, createToolchain(17, false), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters.find { it == targetFlagParts[0] }
-        scalaCompileOptions.additionalParameters.find { it.contains("17") } == null
+        minimalCompileOptions.additionalParameters.find { it == targetFlagParts[0] }
+        minimalCompileOptions.additionalParameters.find { it.contains("17") } == null
 
         where:
         targetFlagParts                          | _
@@ -159,5 +165,11 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
             getLanguageVersion() >> JavaLanguageVersion.of(javaVersion)
             isFallbackToolchain() >> isFallback
         }
+    }
+
+    private static ScalaCompileOptions newInitializedScalaCompileOptions() {
+        def scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        scalaCompileOptions.keepAliveMode = KeepAliveMode.SESSION
+        return scalaCompileOptions
     }
 }
