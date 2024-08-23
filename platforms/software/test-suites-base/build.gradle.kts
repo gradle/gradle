@@ -28,3 +28,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

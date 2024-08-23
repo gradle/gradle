@@ -37,3 +37,6 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.problemsApi)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

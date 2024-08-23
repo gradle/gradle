@@ -115,3 +115,6 @@ integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

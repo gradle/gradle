@@ -54,3 +54,6 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

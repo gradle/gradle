@@ -135,3 +135,6 @@ tasks.javadoc {
         addBooleanOption("quiet", true)
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

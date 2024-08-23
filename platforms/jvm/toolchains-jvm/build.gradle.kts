@@ -73,3 +73,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

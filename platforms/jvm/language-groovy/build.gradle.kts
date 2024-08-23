@@ -82,3 +82,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

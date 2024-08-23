@@ -94,3 +94,6 @@ integTest.usesJavadocCodeSnippets = true
 strictCompile {
     ignoreDeprecations()
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

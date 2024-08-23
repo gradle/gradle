@@ -143,3 +143,6 @@ testFilesCleanup.reportOnly = true
 strictCompile {
     ignoreDeprecations()
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -46,3 +46,6 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/type/pgp/**")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

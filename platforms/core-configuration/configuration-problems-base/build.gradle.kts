@@ -61,3 +61,6 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

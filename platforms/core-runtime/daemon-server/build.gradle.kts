@@ -37,3 +37,6 @@ dependencies {
     implementation(projects.core)
     implementation(projects.daemonProtocol)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

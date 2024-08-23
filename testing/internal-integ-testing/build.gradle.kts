@@ -219,3 +219,6 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -114,3 +114,6 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

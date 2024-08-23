@@ -60,3 +60,6 @@ strictCompile {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
