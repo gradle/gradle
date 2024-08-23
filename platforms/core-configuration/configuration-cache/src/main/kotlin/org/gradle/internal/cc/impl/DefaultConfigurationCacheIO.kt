@@ -46,9 +46,13 @@ import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.InlineStringDecoder
+import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.StringDecoder
+import org.gradle.internal.serialize.graph.StringEncoder
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.getSingletonProperty
@@ -211,9 +215,14 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(stateFile) { codecs ->
-            ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
-                action(this)
+        val file = stateFile.relatedStateFile(Path.path(".strings"))
+        return inputStreamFor(file.stateType, file::inputStream).use { stringStream ->
+            ParallelStringDecoder(stringStream).use {
+                withReadContextFor(stateFile, it) { codecs ->
+                    ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
+                        action(this)
+                    }
+                }
             }
         }
     }
@@ -226,8 +235,13 @@ class DefaultConfigurationCacheIO internal constructor(
         val profile = {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
-        return withWriteContextFor(stateFile, profile) { codecs ->
-            action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
+        val file = stateFile.relatedStateFile(Path.path(".strings"))
+        return outputStreamFor(file.stateType, file::outputStream).use { stringStream ->
+            ParallelStringEncoder(stringStream).use {
+                withWriteContextFor(stateFile, profile, it) { codecs ->
+                    action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
+                }
+            }
         }
     }
 
@@ -250,8 +264,9 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun writeContextFor(
         stateFile: ConfigurationCacheStateFile,
+        stringEncoder: StringEncoder,
         profile: () -> String
-    ) = writeContextFor(stateFile.stateType, stateFile::outputStream, profile)
+    ) = writeContextFor(stateFile.stateType, stateFile::outputStream, profile, stringEncoder)
 
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
@@ -259,13 +274,15 @@ class DefaultConfigurationCacheIO internal constructor(
     override fun writeContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
-        profile: () -> String
+        profile: () -> String,
+        stringEncoder: StringEncoder,
     ): Pair<CloseableWriteContext, Codecs> =
         encoderFor(stateType, outputStream).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
-                codecs
+                codecs,
+                stringEncoder
             ) to codecs
         }
 
@@ -325,51 +342,61 @@ class DefaultConfigurationCacheIO internal constructor(
     override fun <R> withReadContextFor(
         stateType: StateType,
         inputStream: () -> InputStream,
+        stringDecoder: StringDecoder,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(stateType, inputStream)
+        readContextFor(stateType, inputStream, stringDecoder)
             .let { (context, codecs) ->
                 withReadContextFor(context, codecs, readOperation)
             }
 
-    override fun <R> withReadContextFor(readContext: CloseableReadContext, codecs: Codecs, readOperation: suspend MutableReadContext.(Codecs) -> R): R =
+    override fun <R> withReadContextFor(
+        readContext: CloseableReadContext,
+        codecs: Codecs,
+        readOperation: suspend MutableReadContext.(Codecs) -> R
+    ): R =
         readContext.readWith(codecs, readOperation)
 
     override fun <R> withWriteContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String,
+        stringEncoder: StringEncoder,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        writeContextFor(stateType, outputStream, profile)
+        writeContextFor(stateType, outputStream, profile, stringEncoder)
             .let { (context, codecs) ->
                 context.writeWith(codecs, writeOperation)
             }
 
     private fun readContextFor(
-        stateFile: ConfigurationCacheStateFile
-    ) = readContextFor(stateFile.stateType, stateFile::inputStream)
+        stateFile: ConfigurationCacheStateFile,
+        stringDecoder: StringDecoder = InlineStringDecoder
+    ) = readContextFor(stateFile.stateType, stateFile::inputStream, stringDecoder)
 
     private fun readContextFor(
         stateType: StateType,
-        inputStream: () -> InputStream
-    ) = readContextFor(decoderFor(stateType, inputStream))
+        inputStream: () -> InputStream,
+        stringDecoder: StringDecoder
+    ) = readContextFor(decoderFor(stateType, inputStream), stringDecoder)
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
-        val (context, codecs) = readContextFor(decoder)
+        val (context, codecs) = readContextFor(decoder, InlineStringDecoder)
         return context.runReadOperation { readOperation(codecs) }
     }
 
     private
     fun readContextFor(
         decoder: Decoder,
-    ) = readContextFor(decoder, codecs) to codecs
+        stringDecoder: StringDecoder
+    ) = readContextFor(decoder, codecs, stringDecoder) to codecs
 
     private
     fun writeContextFor(
         encoder: Encoder,
         tracer: Tracer?,
-        codecs: Codecs
+        codecs: Codecs,
+        stringEncoder: StringEncoder = InlineStringEncoder,
     ): CloseableWriteContext = DefaultWriteContext(
         codecs.userTypesCodec(),
         encoder,
@@ -378,37 +405,41 @@ class DefaultConfigurationCacheIO internal constructor(
         tracer,
         problems,
         DefaultClassEncoder(scopeRegistryListener),
+        stringEncoder = stringEncoder
     )
 
     private
     fun readContextFor(
         decoder: Decoder,
-        codecs: Codecs
+        codecs: Codecs,
+        stringDecoder: StringDecoder
     ): CloseableReadContext = DefaultReadContext(
         codecs.userTypesCodec(),
         decoder,
         beanStateReaderLookup,
         logger,
         problems,
-        DefaultClassDecoder()
+        DefaultClassDecoder(),
+        stringDecoder,
     )
 
     /**
      * Provides R/W isolate contexts based on some other context.
      */
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
-        override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext {
-            return baseFile.relatedStateFile(path).let {
-                readContextFor(it).also { (subContext, subCodecs) ->
+        override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
+            baseFile.relatedStateFile(path).let {
+                require(baseContext is DefaultReadContext)
+                readContextFor(it, baseContext.stringDecoder).also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                     subContext.setSingletonProperty(baseContext.getSingletonProperty<ProjectProvider>())
                 }.first
             }
-        }
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
-                writeContextFor(it) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                require(baseContext is DefaultWriteContext)
+                writeContextFor(it, baseContext.stringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
