@@ -68,8 +68,13 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
+        ScalaCompileOptionsConfigurer.configure(
+            spec.getScalaCompileOptions(),
+            getScalaCompileOptions(),
+            getToolchain(),
+            getScalaClasspath().getFiles()
+        );
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));
         }
