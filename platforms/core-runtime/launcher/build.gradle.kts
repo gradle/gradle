@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.fileTemp)
+    implementation(projects.processServices)
 
     implementation(libs.slf4jApi)
 
