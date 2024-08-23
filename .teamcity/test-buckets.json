@@ -209,7 +209,7 @@
 					"antlr",
 					"language-jvm",
 					"plugins-java-library",
-					"plugins-application",
+					"plugins-java-application",
 					"platform-base"
 				]
 			},
@@ -828,7 +828,7 @@
 					"plugins-java-library",
 					"persistent-cache",
 					"build-cache-local",
-					"plugins-application",
+					"plugins-java-application",
 					"antlr",
 					"model-groovy",
 					"reporting",
@@ -1311,7 +1311,7 @@
 					"plugins-java-library",
 					"persistent-cache",
 					"signing",
-					"plugins-application",
+					"plugins-java-application",
 					"build-cache-local",
 					"ide-native",
 					"version-control"
@@ -1491,7 +1491,7 @@
 					"platform-native",
 					"plugin-development",
 					"plugin-use",
-					"plugins-application",
+					"plugins-java-application",
 					"plugins-distribution",
 					"plugins-groovy",
 					"plugins-java",
@@ -1855,7 +1855,7 @@
 					"wrapper-main",
 					"tooling-api",
 					"model-groovy",
-					"plugins-application",
+					"plugins-java-application",
 					"declarative-dsl-provider",
 					"plugins-java-library"
 				]

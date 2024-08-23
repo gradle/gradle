@@ -16,13 +16,18 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-
 /**
  * This type exists so that existing plugins that reference it continue to work.
  *
  * All plugins should update to use {@link JavaApplicationPlugin} instead.
  */
+@SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
-public abstract class ApplicationPlugin implements Plugin<Project>  { /* empty */ }
+public abstract class ApplicationPlugin extends AbstractApplicationPlugin {
+    public static final String APPLICATION_PLUGIN_NAME = "application";
+    public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
+    public static final String TASK_RUN_NAME = "run";
+    public static final String TASK_START_SCRIPTS_NAME = "startScripts";
+    public static final String TASK_DIST_ZIP_NAME = "distZip";
+    public static final String TASK_DIST_TAR_NAME = "distTar";
+}

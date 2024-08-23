@@ -28,8 +28,8 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.stdlibJavaExtensions)
-    implementation(projects.pluginsJavaBase)
+    api(projects.stdlibJavaExtensions)
+    api(projects.pluginsJavaBase)
     implementation(projects.baseServices)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
