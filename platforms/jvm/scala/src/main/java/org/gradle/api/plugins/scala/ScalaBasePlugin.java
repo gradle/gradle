@@ -62,7 +62,6 @@ import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
@@ -289,7 +288,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getScalaClasspath().convention(scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
+            scalaDoc.getScalaClasspath().convention(project.provider(() -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath())));
             scalaDoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("scaladoc"));
             scalaDoc.getTitle().convention(project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
