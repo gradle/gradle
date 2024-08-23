@@ -1,0 +1,3 @@
+[submodule "gradle-fileevents"]
+	path = gradle-fileevents
+	url = https://github.com/lptr/gradle-fileevents

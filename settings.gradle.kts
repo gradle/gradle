@@ -36,6 +36,12 @@ plugins {
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
+includeBuild("gradle-fileevents") {
+    dependencySubstitution {
+        substitute(module("org.gradle.fileevents:gradle-fileevents")).using(project(":"))
+    }
+}
+
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()

@@ -142,7 +142,7 @@ dependencies {
         api(libs.maven3SettingsBuilder) { version { strictly(mavenVersion); because("required to load/build poms and repository settings") }}
         api(libs.minlog)                { version { strictly("1.2") }}
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
-        api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
+        // api(libs.gradleFileEvents)      { version { strictly("1.0") }}
         api(libs.objenesis)             { version { strictly("2.6") }}
         api(libs.plexusCipher)          { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
