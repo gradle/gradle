@@ -18,21 +18,21 @@ package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.jspecify.annotations.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Options for Scala platform compilation.
@@ -43,90 +43,63 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
+    private final ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
-    private boolean deprecation = true;
+    private final IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
-    private boolean unchecked = true;
-
-    private String debugLevel;
-
-    private boolean optimize;
-
-    private String encoding;
-
-    private boolean force;
-
-    private final List<String> additionalParameters = new ArrayList<>();
-
-    private boolean listFiles;
-
-    private String loggingLevel;
-
-    private List<String> loggingPhases;
-
-    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
-
-    private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
+    @Inject
+    public BaseScalaCompileOptions() {
+        getFailOnError().convention(true);
+        getDeprecation().convention(true);
+        getUnchecked().convention(true);
+        getOptimize().convention(false);
+        getForce().convention(false);
+        getListFiles().convention(false);
+    }
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Fail the build on compilation errors.
-     * @since 2.3
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
 
-    /**
-     * Sets the fail on error.
-     *
-     * @since 2.3
-     */
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsFailOnError() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnError()", "getFailOnError()");
+        return getFailOnError();
     }
 
     /**
      * Generate deprecation information.
-     * @since 2.3
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isDeprecation() {
-        return deprecation;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getDeprecation();
 
-    /**
-     * Sets the deprecation.
-     *
-     * @since 2.3
-     */
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsDeprecation() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsDeprecation()", "getDeprecation()");
+        return getDeprecation();
     }
 
     /**
      * Generate unchecked information.
-     * @since 2.3
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isUnchecked() {
-        return unchecked;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getUnchecked();
 
-    /**
-     * Sets the unchecked.
-     *
-     * @since 2.3
-     */
-    public void setUnchecked(boolean unchecked) {
-        this.unchecked = unchecked;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsUnchecked() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUnchecked()", "getUnchecked()");
+        return getUnchecked();
     }
 
     /**
@@ -134,83 +107,49 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Legal values: none, source, line, vars, notailcalls
      * @since 2.3
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getDebugLevel() {
-        return debugLevel;
-    }
-
-    /**
-     * Sets the debug level.
-     *
-     * @since 2.3
-     */
-    public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDebugLevel();
 
     /**
      * Run optimizations.
-     * @since 2.3
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isOptimize() {
-        return optimize;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getOptimize();
 
-    /**
-     * Sets the optimize.
-     *
-     * @since 2.3
-     */
-    public void setOptimize(boolean optimize) {
-        this.optimize = optimize;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsOptimize() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsOptimize()", "getOptimize()");
+        return getOptimize();
     }
 
     /**
      * Encoding of source files.
      * @since 2.3
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable
     @Optional
     @Input
-    public String getEncoding() {
-        return encoding;
-    }
-
-    /**
-     * Sets the encoding.
-     *
-     * @since 2.3
-     */
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Whether to force the compilation of all files.
      * Legal values:
      * - false (only compile modified files)
      * - true (always recompile all files)
-     * @since 2.12
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isForce() {
-        return force;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getForce();
 
-    /**
-     * Sets the force.
-     *
-     * @since 2.12
-     */
-    public void setForce(boolean force) {
-        this.force = force;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsForce() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsForce()", "getForce()");
+        return getForce();
     }
 
     /**
@@ -222,41 +161,21 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      */
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getAdditionalParameters() {
-        return additionalParameters;
-    }
-
-    /**
-     * Sets the additional parameters.
-     * <p>
-     * Setting this property will clear any previously set additional parameters.
-     * @since 2.3
-     */
-    public void setAdditionalParameters(List<String> additionalParameters) {
-        this.additionalParameters.clear();
-        if (additionalParameters != null) {
-            this.additionalParameters.addAll(additionalParameters);
-        }
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getAdditionalParameters();
 
     /**
      * List files to be compiled.
-     * @since 2.3
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isListFiles() {
-        return listFiles;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
 
-    /**
-     * Sets the list files.
-     *
-     * @since 2.3
-     */
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsListFiles() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsListFiles()", "getListFiles()");
+        return getListFiles();
     }
 
     /**
@@ -265,19 +184,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * @since 2.3
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public String getLoggingLevel() {
-        return loggingLevel;
-    }
-
-    /**
-     * Sets the logging level.
-     *
-     * @since 2.3
-     */
-    public void setLoggingLevel(String loggingLevel) {
-        this.loggingLevel = loggingLevel;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getLoggingLevel();
 
     /**
      * Phases of the compiler to log.
@@ -286,19 +194,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * @since 2.3
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public List<String> getLoggingPhases() {
-        return loggingPhases;
-    }
-
-    /**
-     * Sets the logging phases.
-     *
-     * @since 2.3
-     */
-    public void setLoggingPhases(List<String> loggingPhases) {
-        this.loggingPhases = loggingPhases;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getLoggingPhases();
 
     /**
      * Options for running the Scala compiler in a separate process.
