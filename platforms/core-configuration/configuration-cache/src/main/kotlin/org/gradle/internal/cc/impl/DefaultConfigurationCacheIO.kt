@@ -197,16 +197,16 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
-    override fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
-        writeConfigurationCacheState(stateFile) { cacheState ->
+    override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
+        writeConfigurationCacheStateWithStringEncoder(currentStringEncoder, stateFile) { cacheState ->
             cacheState.run {
                 writeBuildContent(host.currentBuild, buildTreeState)
             }
         }
     }
 
-    override fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
-        readConfigurationCacheState(stateFile) { state ->
+    override fun ReadContext.readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
+        readConfigurationCacheStateWithStringDecoder(currentStringDecoder, stateFile) { state ->
             state.run {
                 readBuildContent(includedBuild)
             }
@@ -217,14 +217,10 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
-        val file = stateFile.relatedStateFile(Path.path(".strings"))
-        return inputStreamFor(file.stateType, file::inputStream).use { stringStream ->
-            ParallelStringDecoder(stringStream).use {
-                withReadContextFor(stateFile, it) { codecs ->
-                    ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
-                        action(this)
-                    }
-                }
+        val stringsFile = stateFile.relatedStateFile(Path.path(".strings"))
+        return inputStreamFor(stringsFile.stateType, stringsFile::inputStream).use { stringStream ->
+            ParallelStringDecoder(stringStream).use { stringEncoder ->
+                readConfigurationCacheStateWithStringDecoder(stringEncoder, stateFile, action)
             }
         }
     }
@@ -234,16 +230,36 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
+        val stringsFile = stateFile.relatedStateFile(Path.path(".strings"))
+        return outputStreamFor(stringsFile.stateType, stringsFile::outputStream).use { stringStream ->
+            ParallelStringEncoder(stringStream).use { stringEncoder ->
+                writeConfigurationCacheStateWithStringEncoder(stringEncoder, stateFile, action)
+            }
+        }
+    }
+
+    private
+    fun <T> readConfigurationCacheStateWithStringDecoder(
+        stringEncoder: StringDecoder,
+        stateFile: ConfigurationCacheStateFile,
+        action: suspend MutableReadContext.(ConfigurationCacheState) -> T
+    ) = withReadContextFor(stateFile, stringEncoder) { codecs ->
+        ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
+            action(this)
+        }
+    }
+
+    private
+    fun <T> writeConfigurationCacheStateWithStringEncoder(
+        stringEncoder: StringEncoder,
+        stateFile: ConfigurationCacheStateFile,
+        action: suspend WriteContext.(ConfigurationCacheState) -> T
+    ): T {
         val profile = {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
-        val file = stateFile.relatedStateFile(Path.path(".strings"))
-        return outputStreamFor(file.stateType, file::outputStream).use { stringStream ->
-            ParallelStringEncoder(stringStream).use {
-                withWriteContextFor(stateFile, profile, it) { codecs ->
-                    action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
-                }
-            }
+        return withWriteContextFor(stateFile, profile, stringEncoder) { codecs ->
+            action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
         }
     }
 
@@ -431,8 +447,7 @@ class DefaultConfigurationCacheIO internal constructor(
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
         override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
-                require(baseContext is DefaultReadContext)
-                readContextFor(it, baseContext.stringDecoder).also { (subContext, subCodecs) ->
+                readContextFor(it, baseContext.currentStringDecoder).also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                     subContext.setSingletonProperty(baseContext.getSingletonProperty<ProjectProvider>())
                 }.first
@@ -440,12 +455,25 @@ class DefaultConfigurationCacheIO internal constructor(
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
-                require(baseContext is DefaultWriteContext)
-                writeContextFor(it, baseContext.stringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                writeContextFor(it, baseContext.currentStringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
     }
+
+    private
+    val WriteContext.currentStringEncoder: StringEncoder
+        get() {
+            require(this is DefaultWriteContext)
+            return this.stringEncoder
+        }
+
+    private
+    val ReadContext.currentStringDecoder: StringDecoder
+        get() {
+            require(this is DefaultReadContext)
+            return this.stringDecoder
+        }
 
     private
     fun codecs(): Codecs =
