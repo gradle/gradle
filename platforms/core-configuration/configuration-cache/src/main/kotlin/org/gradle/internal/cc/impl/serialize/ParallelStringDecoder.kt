@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.internal.cc.impl.serialize
 
 import com.esotericsoftware.kryo.io.Input
-import com.esotericsoftware.kryo.io.Output
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.StringDecoder
-import org.gradle.internal.serialize.graph.StringEncoder
 import java.io.InputStream
-import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -31,44 +27,7 @@ import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
 
 
-class ParallelStringEncoder(stream: OutputStream) : StringEncoder, AutoCloseable {
-
-    private
-    val strings = ConcurrentHashMap<String, Int>()
-
-    private
-    val output = Output(stream)
-
-    private
-    var nextId = 1
-
-    override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
-        if (string == null) {
-            encoder.writeSmallInt(0)
-        } else {
-            writeString(encoder, string)
-        }
-    }
-
-    override fun writeString(encoder: Encoder, string: CharSequence) {
-        val id = strings.computeIfAbsent(string.toString()) { key ->
-            synchronized(output) {
-                val id = nextId++
-                output.writeVarInt(id, true)
-                output.writeString(key)
-                id
-            }
-        }
-        encoder.writeSmallInt(id)
-    }
-
-    override fun close() {
-        output.writeVarInt(0, true)
-        output.close()
-    }
-}
-
-
+internal
 class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable {
 
     private
@@ -80,16 +39,16 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
         private
         var string: String? = null
 
+        fun complete(s: String) {
+            string = s
+            latch.countDown()
+        }
+
         fun get(): String {
             if (!latch.await(1, TimeUnit.MINUTES)) {
                 throw TimeoutException("Timeout while waiting for string")
             }
             return string!!
-        }
-
-        fun complete(s: String) {
-            string = s
-            latch.countDown()
         }
     }
 
@@ -98,12 +57,12 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
 
     private
     val reader = thread(isDaemon = true) {
-        Input(stream).use { decoder ->
+        Input(stream).use { input ->
             while (true) {
-                val id = decoder.readVarInt(true)
+                val id = input.readVarInt(true)
                 if (id == 0) break
 
-                val string = decoder.readString()
+                val string = input.readString()
                 strings.compute(id) { _, value ->
                     when (value) {
                         is FutureString -> value.complete(string)
@@ -129,7 +88,7 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
         when (val it = strings.computeIfAbsent(id) { FutureString() }) {
             is String -> it
             is FutureString -> it.get()
-            else -> error("$it is invalid")
+            else -> error("$it is unexpected")
         }
 
     override fun close() {
