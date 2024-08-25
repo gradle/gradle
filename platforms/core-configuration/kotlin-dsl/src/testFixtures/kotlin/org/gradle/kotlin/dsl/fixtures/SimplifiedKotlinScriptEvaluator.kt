@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -39,11 +40,13 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
 import java.net.URLClassLoader
+import java.util.function.Supplier
 
 
 /**
@@ -198,8 +201,8 @@ class SimplifiedKotlinScriptEvaluator(
         override fun hashOf(classPath: ClassPath): HashCode =
             TestHashCodes.hashCodeFrom(0)
 
-        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
-            action()
+        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: KotlinCompilerEnvironment.() -> String): String =
+            withTestCompilerEnvironment(action)
 
         override fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>) = Unit
 
@@ -231,3 +234,29 @@ class DummyCompiledScript(override val program: Class<*>) : CompiledScript {
 val testRuntimeClassPath: ClassPath by lazy {
     ClasspathUtil.getClasspath(SimplifiedKotlinScriptEvaluator::class.java.classLoader)
 }
+
+
+private
+object TestEnvironmentChangeTracker : EnvironmentChangeTracker {
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
+        // Do nothing
+    }
+
+    override fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) {
+        // Do nothing
+    }
+
+    override fun systemPropertyOverridden(key: Any) {
+        // Do nothing
+    }
+
+    override fun <T : Any> withTrackingSystemPropertyChanges(action: Supplier<out T>): T {
+        return action.get()
+    }
+}
+
+
+/**
+ * Runs the action in the test compiler environment and returns its result.
+ */
+fun <T> withTestCompilerEnvironment(action: KotlinCompilerEnvironment.() -> T): T = KotlinCompilerEnvironment.withEnvironment(TestEnvironmentChangeTracker, action)

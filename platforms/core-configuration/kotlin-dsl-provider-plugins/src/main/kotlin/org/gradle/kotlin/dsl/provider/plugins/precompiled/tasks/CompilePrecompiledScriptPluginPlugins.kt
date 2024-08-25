@@ -38,6 +38,7 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
@@ -106,7 +107,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         outputDir.withOutputDirectory { outputDir ->
             val scriptFiles = sourceFiles.map { it.path }
             if (scriptFiles.isNotEmpty())
-                environmentChangeTracker.withTrackingSystemPropertyChanges {
+                KotlinCompilerEnvironment.withEnvironment(environmentChangeTracker) {
                     compileKotlinScriptModuleTo(
                         outputDir,
                         compilerOptions.get(),

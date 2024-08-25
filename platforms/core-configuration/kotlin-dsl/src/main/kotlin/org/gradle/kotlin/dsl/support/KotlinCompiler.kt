@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -90,7 +91,7 @@ import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
 @Suppress("LongParameterList")
-fun compileKotlinScriptModuleTo(
+fun KotlinCompilerEnvironment.compileKotlinScriptModuleTo(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     moduleName: String,
@@ -136,7 +137,7 @@ fun scriptDefinitionFromTemplate(
 
 
 internal
-fun compileKotlinScriptToDirectory(
+fun KotlinCompilerEnvironment.compileKotlinScriptToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     scriptFile: File,
@@ -161,7 +162,7 @@ fun compileKotlinScriptToDirectory(
 
 
 private
-fun compileKotlinScriptModuleTo(
+fun KotlinCompilerEnvironment.compileKotlinScriptModuleTo(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     moduleName: String,
@@ -182,7 +183,7 @@ fun compileKotlinScriptModuleTo(
                 classPath.forEach { addJvmClasspathRoot(it) }
             }
 
-            val environment = kotlinCoreEnvironmentFor(configuration).apply {
+            val environment = kotlinCoreEnvironmentFor(this, configuration).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
                 KotlinAssignmentCompilerPlugin.apply(project)
             }
@@ -221,7 +222,7 @@ object HasImplicitReceiverCompilerPlugin {
 
 @VisibleForTesting
 internal
-fun compileToDirectory(
+fun KotlinCompilerEnvironment.compileToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     moduleName: String,
@@ -239,7 +240,7 @@ fun compileToDirectory(
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
             }
-            val environment = kotlinCoreEnvironmentFor(configuration)
+            val environment = kotlinCoreEnvironmentFor(this, configuration)
             return compileBunchOfSources(environment)
         }
     }
@@ -420,15 +421,16 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
 }
 
 
+@Suppress("UnusedReceiverParameter")  // KotlinCompilerEnvironment serves as a token to mark the scope in which it is safe to run this configuration.
 private
-fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
-    org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
+fun KotlinCompilerEnvironment.kotlinCoreEnvironmentFor(project: Disposable, configuration: CompilerConfiguration): KotlinCoreEnvironment {
+    setIdeaIoUseFallback()
     return SystemProperties.getInstance().withSystemProperty(
         KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
         "true"
     ) {
         KotlinCoreEnvironment.createForProduction(
-            this,
+            project,
             configuration,
             EnvironmentConfigFiles.JVM_CONFIG_FILES
         )

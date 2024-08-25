@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.normalization
 import org.gradle.internal.tools.api.ApiClassExtractionException
 import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.withTestCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -310,14 +311,16 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         val sourceFile = newFile("$scriptName.kt", scriptBody)
 
         val binDir = newFolder("bin")
-        compileToDirectory(
-            binDir,
-            KotlinCompilerOptions(),
-            "test",
-            listOf(sourceFile),
-            loggerFor<KotlinApiClassExtractorTest>(),
-            emptyList()
-        )
+        withTestCompilerEnvironment {
+            compileToDirectory(
+                binDir,
+                KotlinCompilerOptions(),
+                "test",
+                listOf(sourceFile),
+                loggerFor<KotlinApiClassExtractorTest>(),
+                emptyList()
+            )
+        }
 
         return ClassFixture(scriptBody, binDir.toPath().resolve(scriptClass).toFile().readBytes())
     }

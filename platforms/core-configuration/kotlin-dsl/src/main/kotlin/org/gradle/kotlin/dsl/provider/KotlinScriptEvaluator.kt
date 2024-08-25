@@ -65,6 +65,7 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -160,7 +161,7 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        when(propertyUpgradeReportConfig.isEnabled) {
+        when (propertyUpgradeReportConfig.isEnabled) {
             true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
             false -> Interpreter(InterpreterHost(gradlePropertiesController))
         }
@@ -200,16 +201,17 @@ class StandardKotlinScriptEvaluator(
                     ).bin
                 } ?: ClassPath.EMPTY
 
-        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
+        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: KotlinCompilerEnvironment.() -> String): String =
 
             buildOperationRunner.call(object : CallableBuildOperation<String> {
 
                 override fun call(context: BuildOperationContext): String =
-                    environmentChangeTracker.withTrackingSystemPropertyChanges {
+                    KotlinCompilerEnvironment.withEnvironment(environmentChangeTracker) {
                         action().also {
                             context.setResult(object : Result {})
                         }
                     }
+
 
                 override fun description(): BuildOperationDescriptor.Builder {
                     val name = "Compile script ${scriptPath.substringAfterLast(File.separator)} ($stage)"

@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
+import org.gradle.kotlin.dsl.fixtures.withTestCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.junit.Test
 import java.io.File
@@ -117,7 +118,7 @@ class InterpreterTest : TestWithTempFiles() {
 
             on { startCompilerOperation(any()) } doReturn compilerOperation
 
-            on { runCompileBuildOperation(any(), any(), any()) } doAnswer { it.getArgument<() -> String>(2)() }
+            on { runCompileBuildOperation(any(), any(), any()) } doAnswer { withTestCompilerEnvironment(it.getArgument(2)) }
 
             on {
                 cachedDirFor(

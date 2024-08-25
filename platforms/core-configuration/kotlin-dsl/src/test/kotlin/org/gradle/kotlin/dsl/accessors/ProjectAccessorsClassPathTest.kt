@@ -51,6 +51,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
+import org.gradle.kotlin.dsl.fixtures.withTestCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -256,14 +257,16 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             newFolder("ignored")
         )
         require(
-            compileToDirectory(
-                binDir,
-                KotlinCompilerOptions(),
-                "bin",
-                kotlinFilesIn(srcDir),
-                loggerFor<ProjectAccessorsClassPathTest>(),
-                classPath.asFiles
-            )
+            withTestCompilerEnvironment {
+                compileToDirectory(
+                    binDir,
+                    KotlinCompilerOptions(),
+                    "bin",
+                    kotlinFilesIn(srcDir),
+                    loggerFor<ProjectAccessorsClassPathTest>(),
+                    classPath.asFiles
+                )
+            }
         )
     }
 

@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.kotlin.dsl.support.KotlinCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -133,7 +134,7 @@ class Interpreter(val host: Host) {
 
         fun hashOf(classPath: ClassPath): HashCode
 
-        fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String
+        fun runCompileBuildOperation(scriptPath: String, stage: String, action: KotlinCompilerEnvironment.() -> String): String
 
         fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>)
 

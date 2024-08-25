@@ -22,7 +22,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import org.gradle.api.Incubating
-import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
@@ -32,10 +31,12 @@ import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.IncubatingFunction
 import org.gradle.kotlin.dsl.fixtures.codegen.IncubatingType
+import org.gradle.kotlin.dsl.fixtures.withTestCompilerEnvironment
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.gradle.kotlin.dsl.support.compileToDirectory
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -474,16 +475,19 @@ fun compileKotlinApiExtensionsTo(
     logger: Logger,
 ) {
 
-    val success = compileToDirectory(
-        outputDirectory,
-        KotlinCompilerOptions(
-            jvmTarget = GradleJvmVersion.minimalJavaVersion
-        ),
-        "gradle-api-extensions",
-        sourceFiles,
-        logger,
-        classPath = classPath
-    )
+    val success = withTestCompilerEnvironment {
+        compileToDirectory(
+            outputDirectory,
+            KotlinCompilerOptions(
+                jvmTarget = GradleJvmVersion.minimalJavaVersion
+            ),
+            "gradle-api-extensions",
+            sourceFiles,
+            logger,
+            classPath = classPath
+        )
+    }
+
 
     if (!success) {
         throw IllegalStateException(

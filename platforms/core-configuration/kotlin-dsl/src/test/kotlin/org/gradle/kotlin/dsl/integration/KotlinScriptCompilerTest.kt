@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
+import org.gradle.kotlin.dsl.fixtures.withTestCompilerEnvironment
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
@@ -86,15 +87,17 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
         script: String,
         scriptDefinition: ScriptDefinition
     ) {
-        compileKotlinScriptToDirectory(
-            outputDir,
-            KotlinCompilerOptions(),
-            file("script.kts").apply {
-                writeText(script)
-            },
-            scriptDefinition,
-            testRuntimeClassPath.asFiles,
-            mock()
-        ) { it }
+        withTestCompilerEnvironment {
+            compileKotlinScriptToDirectory(
+                outputDir,
+                KotlinCompilerOptions(),
+                file("script.kts").apply {
+                    writeText(script)
+                },
+                scriptDefinition,
+                testRuntimeClassPath.asFiles,
+                mock()
+            ) { it }
+        }
     }
 }
