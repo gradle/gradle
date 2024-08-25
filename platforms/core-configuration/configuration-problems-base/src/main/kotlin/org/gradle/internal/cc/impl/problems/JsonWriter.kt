@@ -23,7 +23,6 @@ class JsonWriter(private val writer: Writer) {
     private var nextItemNeedsComma = false
 
     fun jsonObject(body: () -> Unit) {
-        elementSeparator()
         beginObject()
         body()
         endObject()
@@ -79,6 +78,7 @@ class JsonWriter(private val writer: Writer) {
         jsonObjectList(list.iterator(), body)
     }
 
+    private
     fun <T> jsonObjectList(list: Iterator<T>, body: (T) -> Unit) {
         jsonList(list) {
             jsonObject {
@@ -134,11 +134,25 @@ class JsonWriter(private val writer: Writer) {
     private
     fun write(c: Char) = writer.append(c)
 
+    fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
+        jsonList(list.iterator(), body)
+    }
+
+    private
     fun <T> jsonList(list: Iterator<T>, body: (T) -> Unit) {
         beginArray()
         list.forEach {
-            body(it)
+            jsonListItem {
+                body(it)
+            }
         }
         endArray()
+    }
+
+    fun jsonListItem(body: () -> Unit) {
+        elementSeparator()
+        increaseLevel()
+        body()
+        decreaseLevel()
     }
 }
