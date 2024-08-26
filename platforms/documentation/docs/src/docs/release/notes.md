@@ -3,7 +3,7 @@ The Gradle team is excited to announce Gradle @version@.
 This is the first patch release for Gradle 8.10.
 
 It fixes the following issues:
-* TODO
+* [#30239](https://github.com/gradle/gradle/issues/30239) Gradle 8.10 Significantly Slower Due to Dependency Resolution
 
 We recommend users upgrade to @version@ instead of 8.10.
 
