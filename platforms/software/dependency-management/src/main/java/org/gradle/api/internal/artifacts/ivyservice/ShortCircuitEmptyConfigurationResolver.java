@@ -179,7 +179,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<File> getFiles() {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+                .withAdvice("Use a lenient ArtifactView instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+                .nagUser();
+
             return Collections.emptySet();
         }
 
