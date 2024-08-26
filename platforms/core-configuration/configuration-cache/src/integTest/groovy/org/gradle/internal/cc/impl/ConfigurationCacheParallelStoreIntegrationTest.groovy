@@ -25,8 +25,8 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         configurationCacheRun("help", "-d")
 
         then:
-        output.contains("[org.gradle.configurationcache] saving state nodes in parallel")
-        output.contains("[org.gradle.configurationcache] reading state nodes in parallel")
+        output.contains("[org.gradle.configurationcache] saving work graph in parallel")
+        output.contains("[org.gradle.configurationcache] reading work graph in parallel")
     }
 
     def "parallel store may be opted out"() {
@@ -38,9 +38,9 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
 
         then:
         // we allow disabling parallel storing it as a safety measure for builds that might be broken by parallelism
-        output.contains("[org.gradle.configurationcache] saving state nodes sequentially")
+        output.contains("[org.gradle.configurationcache] saving work graph sequentially")
         // loading is still parallel
-        output.contains("[org.gradle.configurationcache] reading state nodes in parallel")
+        output.contains("[org.gradle.configurationcache] reading work graph in parallel")
     }
 
     def "parallel load may be opted out"() {
@@ -52,8 +52,8 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
 
         then:
         // storing is still parallel
-        output.contains("[org.gradle.configurationcache] saving state nodes in parallel")
+        output.contains("[org.gradle.configurationcache] saving work graph in parallel")
         // parallel loading should always be safe, however we will (temporarily) allow disabling it for benchmarking
-        output.contains("[org.gradle.configurationcache] reading state nodes sequentially")
+        output.contains("[org.gradle.configurationcache] reading work graph sequentially")
     }
 }

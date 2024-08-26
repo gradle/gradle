@@ -122,9 +122,9 @@ class WorkNodeCodec(
         }
 
         writeSmallInt(scheduledNodeIds.size)
-        val actionNodePostExecutionSuccessors = writeNodes(nodes, idForNode)
+        val actionNodeSuccessors = writeNodes(nodes, idForNode)
         writeEntryNodes(scheduledEntryNodeIds)
-        writeEdgesAndGroupMembership(nodes, actionNodePostExecutionSuccessors, idForNode)
+        writeEdgesAndGroupMembership(nodes, actionNodeSuccessors, idForNode)
     }
 
     private
@@ -155,12 +155,12 @@ class WorkNodeCodec(
     private
     fun WriteContext.writeEdgesAndGroupMembership(
         nodes: ImmutableList<Node>,
-        actionNodePostExecutionSuccessors: Map<ActionNode, List<Node>>,
+        actionNodeSuccessors: (ActionNode) -> List<Node>?,
         idForNode: IdForNode
     ) {
         writeCollection(nodes) { node ->
             writeSmallInt(idForNode(node))
-            writeSuccessorReferencesOf(node, actionNodePostExecutionSuccessors, idForNode)
+            writeSuccessorReferencesOf(node, actionNodeSuccessors, idForNode)
             writeNodeGroup(node.group, idForNode)
         }
     }
@@ -178,7 +178,7 @@ class WorkNodeCodec(
     private
     fun assignNodeIds(
         scheduledNodeIds: Object2IntOpenHashMap<Node>,
-        nodes: ImmutableList<Node>,
+        nodes: List<Node>,
         entryNodes: ImmutableSet<Node>
     ): List<Int> {
         // Not all entry nodes are always scheduled.
@@ -202,26 +202,26 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeNodes(
-        nodes: ImmutableList<Node>, // Map<Node, NodeId>
+        nodes: List<Node>,
         idForNode: IdForNode
-    ): Map<ActionNode, List<Node>> {
+    ): (ActionNode) -> List<Node>? {
         val groupedNodes = nodes.groupBy(NodeOwner::of)
         writeCollection(groupedNodes.keys) { nodeOwner ->
             val groupPath = nodeOwner.path()
             writeString(groupPath.path)
         }
 
-        val partialResultsRef = AtomicReference<PersistentList<List<PostExecutionNodes>>>(PersistentList.of())
+        val batchedActionNodeSuccessors =
+            AtomicReference<PersistentList<Iterable<PostExecutionNodes>>>(PersistentList.of())
 
-        // TODO:parallel-cc is this message useful for the context where it may show?
-        runBuildOperations(parallelStore, "saving state nodes" ) {
+        runBuildOperations(parallelStore, "saving work graph") {
             groupedNodes.entries.map { (nodeOwner, groupNodes) ->
                 val groupPath = nodeOwner.path()
                 OperationInfo(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
                     contextSource.writeContextFor(this, groupPath).useToRun {
                         val postExecutionSuccessors = writeGroupedNodes(nodeOwner, groupNodes, idForNode)
                         if (postExecutionSuccessors.isNotEmpty()) {
-                            partialResultsRef.updateAndGet {
+                            batchedActionNodeSuccessors.updateAndGet {
                                 it.plus(postExecutionSuccessors)
                             }
                         }
@@ -230,44 +230,53 @@ class WorkNodeCodec(
             }
         }
 
-        val result = IdentityHashMap<ActionNode, List<Node>>()
-        partialResultsRef.get().forEach { nodeAndPostExecutionNodes ->
-            nodeAndPostExecutionNodes.forEach { (node, postExecutionNodes) ->
-                result[node] = postExecutionNodes
-            }
-        }
-        return result
+        return combineActionNodeSuccessors(batchedActionNodeSuccessors)::get
     }
 
+    private
+    fun combineActionNodeSuccessors(batchedActionNodeSuccessors: AtomicReference<PersistentList<Iterable<PostExecutionNodes>>>) =
+        batchedActionNodeSuccessors.get()
+            .combineInto(IdentityHashMap<ActionNode, List<Node>>()) { (node, successors) ->
+                this[node] = successors
+            }
 
     private
     fun ReadContext.readNodes(nodeIdCount: Int): NodeForId {
-        val partialResultsRef = AtomicReference<PersistentList<List<NodeId>>>(PersistentList.of())
+        val batchedGroupNodes = AtomicReference<PersistentList<List<NodeWithId>>>(PersistentList.of())
         val projectProvider = getSingletonProperty<ProjectProvider>()
         val groupPaths = readCollectionInto<Path, MutableList<Path>>(::ArrayList) {
             Path.path(readString())
         }
 
-        runBuildOperations(parallel = parallelLoad, message = "reading state nodes") {
+        runBuildOperations(parallel = parallelLoad, message = "reading work graph") {
             groupPaths.map { groupPath ->
                 OperationInfo(displayName = "Loading $groupPath", progressDisplayName = groupPath.path) {
                     contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
                         setSingletonProperty(projectProvider)
-                        val partialResult = readGroupedNodes()
-                        partialResultsRef.updateAndGet {
-                            it.plus(partialResult)
+                        val nodesInGroup = readGroupedNodes()
+                        batchedGroupNodes.updateAndGet {
+                            it.plus(nodesInGroup)
                         }
                     }
                 }
             }
         }
-        val nodesById = Array<Node?>(nodeIdCount) { null }
-        partialResultsRef.get().forEach { ids ->
-            ids.forEach { (node, id) ->
-                nodesById[id] = node
-            }
+
+        val nodesById = batchedGroupNodes.get()
+            .combineInto(Array<Node?>(nodeIdCount) { null }) { (node, id) ->
+            this[id] = node
         }
         return { id: Int -> nodesById[id]!! }
+    }
+
+    private
+    inline fun <T, O> Iterable<Iterable<T>>.combineInto(destination: O, combine: O.(T) -> Unit): O {
+        this.forEach { batch ->
+            batch.forEach {
+                destination.combine(it)
+            }
+        }
+        return destination
     }
 
     private
@@ -294,7 +303,8 @@ class WorkNodeCodec(
             }
         }
 
-    data class NodeId(
+    private
+    data class NodeWithId(
         val node: Node,
         val id: Int
     )
@@ -315,7 +325,7 @@ class WorkNodeCodec(
         idForNode: IdForNode
     ): List<PostExecutionNodes> {
         val safeRun = safeRunnerFor(nodeOwner)
-        val postExecutionSuccessors = mutableListOf<PostExecutionNodes>()
+        val actionNodeSuccessors = mutableListOf<PostExecutionNodes>()
         runWriteOperation {
             writeCollection(nodes) { node ->
                 val nodeId = idForNode(node)
@@ -323,7 +333,7 @@ class WorkNodeCodec(
                 safeRun {
                     write(node)
                     if (node is ActionNode) {
-                        collectPostExecutionNodes(node, postExecutionSuccessors)
+                        collectPostExecutionNodes(node, actionNodeSuccessors)
                     }
                 }
                 if (node is LocalTaskNode) {
@@ -332,25 +342,25 @@ class WorkNodeCodec(
                 }
             }
         }
-        return postExecutionSuccessors
+        return actionNodeSuccessors
     }
 
     private
-    suspend fun ReadContext.readGroupedNodes(): List<NodeId> {
+    suspend fun ReadContext.readGroupedNodes(): List<NodeWithId> {
         val size = readSmallInt()
-        val nodeIds = ArrayList<NodeId>(size)
+        val nodes = ArrayList<NodeWithId>(size)
         repeat(size) {
             val nodeId = readSmallInt()
             val node = readNode()
-            nodeIds.add(NodeId(node, nodeId))
+            nodes.add(NodeWithId(node, nodeId))
             if (node is LocalTaskNode) {
                 val prepareNodeId = readSmallInt()
                 val prepareNode = node.prepareNode
                 prepareNode.require()
-                nodeIds.add(NodeId(prepareNode, prepareNodeId))
+                nodes.add(NodeWithId(prepareNode, prepareNodeId))
             }
         }
-        return nodeIds
+        return nodes
     }
 
     private
@@ -497,8 +507,8 @@ class WorkNodeCodec(
         }
 
     private
-    fun WriteContext.writeSuccessorReferencesOf(node: Node, actionNodePostExecutionSuccessors: Map<ActionNode, List<Node>>, scheduledNodeIds: IdForNode) {
-        writeSuccessorReferences(dependencySuccessorsOf(node, actionNodePostExecutionSuccessors), scheduledNodeIds)
+    fun WriteContext.writeSuccessorReferencesOf(node: Node, actionNodeSuccessors: (ActionNode) -> List<Node>?, scheduledNodeIds: IdForNode) {
+        writeSuccessorReferences(dependencySuccessorsOf(node, actionNodeSuccessors), scheduledNodeIds)
         when (node) {
             is TaskNode -> {
                 writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
@@ -538,10 +548,10 @@ class WorkNodeCodec(
     }
 
     private
-    fun dependencySuccessorsOf(node: Node, actionNodePostExecutionSuccessors: Map<ActionNode, List<Node>>): MutableSet<Node> {
+    fun dependencySuccessorsOf(node: Node, actionNodeSuccessors: (ActionNode) -> List<Node>?): MutableSet<Node> {
         var successors = node.dependencySuccessors
         if (node is ActionNode) {
-            actionNodePostExecutionSuccessors[node]?.let {
+            actionNodeSuccessors(node)?.let {
                 successors = successors + it
             }
         }
