@@ -45,24 +45,28 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         """
         file("buildSrc/src/main/groovy/TestTask.groovy") << """
             import org.gradle.api.*
+            import org.gradle.api.provider.*
             import org.gradle.api.tasks.*
             import org.gradle.api.reporting.*
             import org.gradle.api.reporting.internal.*
 
-            class TestTask extends DefaultTask {
+            abstract class TestTask extends DefaultTask {
                 @Nested
                 TaskReportContainer reports = project.services.get(org.gradle.internal.reflect.Instantiator).newInstance(TestTaskReportContainer, this)
+
+                @Input
+                abstract Property<String> getValue()
 
                 @TaskAction
                 def doStuff() {
                     reports.enabled.each {
                          if (it.outputType == Report.OutputType.FILE) {
                              assert it.outputLocation.asFile.get().parentFile.exists() && it.outputLocation.asFile.get().parentFile.directory
-                             it.outputLocation.asFile.get() << project.value
+                             it.outputLocation.asFile.get() << value.get()
                          } else {
                              assert it.outputLocation.asFile.get().exists() && it.outputLocation.asFile.get().directory
-                             new File(it.outputLocation.asFile.get(), "file1") << project.value
-                             new File(it.outputLocation.asFile.get(), "file2") << project.value
+                             new File(it.outputLocation.asFile.get(), "file1") << value.get()
+                             new File(it.outputLocation.asFile.get(), "file2") << value.get()
                          }
                     }
                 }
@@ -73,7 +77,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
             ext.value = "bar"
 
             task createReports(type: TestTask) { task ->
-                inputs.property "foo", { project.value }
+                value = provider { project.value }
                 reports.all {
                     it.required = true
                     outputLocation.set(it.outputType == Report.OutputType.DIRECTORY ? file(it.name) : file("\$it.name/file"))
@@ -83,7 +87,6 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "task up to date when no reporting configuration change"() {
         expect:
         succeeds(task)
@@ -95,7 +98,6 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache
     def "task not up to date when enabled set changes"() {
         expect:
         succeeds(task)
@@ -112,7 +114,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/6619") // file1.outputLocation doesn't carry task dependency and cannot be serialized by CC when used as value
     def "task not up to date when enabled set changes but output files stays the same"() {
         given:
         buildFile << """
