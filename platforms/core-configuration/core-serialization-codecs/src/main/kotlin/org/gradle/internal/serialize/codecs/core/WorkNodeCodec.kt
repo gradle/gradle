@@ -628,7 +628,8 @@ fun asBuildOperation(displayName: String, progressDisplayName: String? = null, a
 
         override fun description(): BuildOperationDescriptor.Builder {
             return BuildOperationDescriptor
-                .displayName(displayName)
-                .progressDisplayName(progressDisplayName)
+                .displayName(displayName).also { builder ->
+                    progressDisplayName?.also(builder::progressDisplayName)
+                }
         }
     }
