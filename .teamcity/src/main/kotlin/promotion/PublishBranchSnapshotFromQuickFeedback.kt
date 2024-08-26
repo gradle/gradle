@@ -16,11 +16,13 @@
 
 package promotion
 
+import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import vcsroots.gradlePromotionBranches
 
-object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBuild(
+class PublishBranchSnapshotFromQuickFeedback(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
     promotedBranch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
     prepTask = "prepSnapshot",
@@ -45,6 +47,30 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBui
                 display = ParameterDisplay.PROMPT,
                 allowEmpty = false
             )
+        }
+
+        // schedule nightly snapshots for provider API migration https://github.com/gradle/build-tool-roadmap/issues/28
+        if (branch.isMaster) {
+            branch.nightlyPromotionTriggerHour?.let { triggerHour ->
+                triggers {
+                    schedule {
+                        schedulingPolicy = daily {
+                            this.hour = triggerHour + 1 // trigger after the nightly build on the default branch
+                        }
+                        triggerBuild = always()
+                        withPendingChangesOnly = true
+                        enabled = branch.enableVcsTriggers
+                        // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
+                        // We want it to be triggered only when there are pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
+                        triggerRules = "+:root=${VersionedSettingsBranch.fromDslContext().vcsRootId()}:."
+                        // The promotion itself will be triggered on gradle-promote's master branch
+                        branchFilter = "+:master"
+                        buildParams {
+                            param("branch.qualifier", "provider-api-migration/public-api-changes")
+                        }
+                    }
+                }
+            }
         }
     }
 }

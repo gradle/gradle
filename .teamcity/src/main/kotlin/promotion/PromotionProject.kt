@@ -19,7 +19,7 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     buildType(PublishNightlySnapshotFromQuickFeedbackStepCheckReady(branch))
     buildType(PublishNightlySnapshotFromQuickFeedbackStepUpload(branch))
     buildType(PublishNightlySnapshotFromQuickFeedbackStepPromote(branch))
-    buildType(PublishBranchSnapshotFromQuickFeedback)
+    buildType(PublishBranchSnapshotFromQuickFeedback(branch))
     buildType(PublishMilestone(branch))
 
     if (branch.isMaster) {
