@@ -29,7 +29,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'root'
             include(":a")
         """
-        buildFile"""
+        buildFile """
             allprojects {
                 ext.foo = "bar"
             }
@@ -52,7 +52,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile"""
+        buildFile """
             project(':a') {
                 println("a contains foo: \${it.hasProperty('foo')}")
             }
@@ -72,7 +72,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile"""
+        buildFile """
             project(':a') {
                 foo='bar1'
             }
@@ -86,5 +86,40 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains "a foo=bar1"
+    }
+
+    def 'LifecycleAwareProject wrappers are symmetrically equals to wrapped projects and to each other'() {
+        given:
+        settingsFile """
+            include(":a")
+        """
+
+        buildFile """
+            ext["wrappedBySubprojects"] = subprojects.toList().get(0)
+            ext["wrappedByAllprojects"] = allprojects.toList().get(1)
+            ext["wrappedByProject"] = project(":a")
+        """
+
+        buildFile("a/build.gradle", """
+                def wrappedBySubprojectsAccess = rootProject.ext["wrappedBySubprojects"]
+                def wrappedByAllprojectsAccess = rootProject.ext["wrappedByAllprojects"]
+                def wrappedByProjectAccess = rootProject.ext["wrappedByProject"]
+
+                def projects = [wrappedByAllprojectsAccess, wrappedBySubprojectsAccess, wrappedByProjectAccess, project]
+
+                [projects, projects].combinations()
+                    .findAll { a, b -> a.class != b.class }
+                    .forEach { a, b ->
+                        if (!a.equals(b)) {
+                            println("Equality contract is broken for \${a.class} and \${b.class}")
+                        }
+                    }
+        """)
+
+        when:
+        run "help"
+
+        then:
+        outputDoesNotContain("Equality contract is broken for ")
     }
 }
