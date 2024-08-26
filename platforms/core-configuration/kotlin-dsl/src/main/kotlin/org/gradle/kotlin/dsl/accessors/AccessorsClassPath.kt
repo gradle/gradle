@@ -285,8 +285,10 @@ fun availableProjectSchemaFor(projectSchema: TypedProjectSchema, classPath: Clas
 
 
 sealed class TypeAccessibility {
-    data class Accessible(val type: SchemaType) : TypeAccessibility()
-    data class Inaccessible(val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
+    abstract val type: SchemaType
+
+    data class Accessible(override val type: SchemaType) : TypeAccessibility()
+    data class Inaccessible(override val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
 }
 
 

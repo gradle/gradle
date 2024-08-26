@@ -173,6 +173,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType)
         else -> emptyList()
     }
 }
@@ -197,6 +198,8 @@ sealed class Accessor {
     data class ForTask(val spec: TypedAccessorSpec) : Accessor()
 
     data class ForModelDefault(val spec: TypedAccessorSpec) : Accessor()
+
+    data class ForContainerElementFactory(val spec: TypedContainerElementFactoryEntry) : Accessor()
 }
 
 
@@ -217,6 +220,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
+            yieldAll(uniqueContainerElementFactories(containerElementFactories.map(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
         }
     }
 }
@@ -230,6 +234,8 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<out TypeAccessibility>) =
+    TypedContainerElementFactoryEntry(AccessorNameSpec(containerElementFactoryEntry.factoryName), containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
 
 private
 inline fun <reified T> accessibleType() =

@@ -31,10 +31,12 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
+import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -44,6 +46,9 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
+import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.jvmErasure
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
@@ -65,6 +70,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                         ?.let { accessibleConfigurationsOf(it) }
                         ?: emptyList(),
                     targetSchema.modelDefaults,
+                    targetSchema.containerElementFactories,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -84,7 +90,8 @@ data class TargetTypedSchema(
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>
+    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
 
 
@@ -96,6 +103,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
@@ -133,6 +141,8 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
             }
         }
+
+        collectNestedContainerFactories(target, containerElementFactories::add)
     }
 
     collectSchemaOf(target, targetType)
@@ -142,10 +152,31 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         conventions,
         tasks,
         containerElements,
-        buildModelDefaults
+        buildModelDefaults,
+        containerElementFactories
     )
 }
 
+// FIXME this goes over properties of model types; it might be expensive performance-wise and does not reach transitively nested types anyway;
+// this is also not consistent with element schema generation implemented above in terms of which containers get visited
+private fun collectNestedContainerFactories(containerOwner: Any, addFactory: (ContainerElementFactoryEntry<TypeOf<*>>) -> Unit) {
+    val memberPropertiesAndGetters =
+        containerOwner::class.memberProperties + containerOwner::class.memberFunctions.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
+
+    val elementTypes = memberPropertiesAndGetters.mapNotNullTo(hashSetOf()) {
+        DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.returnType)
+    }
+
+    elementTypes.forEach { elementKType ->
+        // it is safe to use `jvmErasure`, as we assume that the type is non-parameterized; `javaType` fails to work here, though, for some reason
+        val elementType = TypeOf.typeOf<Any>(elementKType.jvmErasure.java)
+        val scopeReceiverType = TypeOf.parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType)
+
+        val factoryName = DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(elementKType)
+
+        addFactory(ContainerElementFactoryEntry(factoryName, scopeReceiverType, elementType))
+    }
+}
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
