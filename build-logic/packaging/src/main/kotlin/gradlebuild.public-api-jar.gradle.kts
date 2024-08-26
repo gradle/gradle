@@ -60,6 +60,11 @@ enum class Filtering {
 
 val filteredAttribute: Attribute<Filtering> = Attribute.of("org.gradle.apijar.filtered", Filtering::class.java)
 
+val shrinkerRuntimeClasspath by configurations.creating {
+    description = "Classpath for the public API shrinker"
+    dependencies.add(project.dependencies.create("org.gradle:java-api-extractor"))
+}
+
 dependencies {
     artifactTypes.getByName("jar") {
         attributes.attribute(filteredAttribute, Filtering.ALL)
@@ -70,6 +75,9 @@ dependencies {
         from.attribute(filteredAttribute, Filtering.ALL)
             .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
         to.attribute(filteredAttribute, Filtering.PUBLIC_API)
+        parameters {
+            shrinkerClasspath = shrinkerRuntimeClasspath
+        }
     }
 }
 
@@ -96,6 +104,7 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
 }
 
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
+
 val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
 val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
 components.add(gradleApiComponent)

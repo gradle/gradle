@@ -21,18 +21,26 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkerExecutor
 import java.io.File
 import java.io.InputStream
 import java.util.Optional
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import javax.inject.Inject
 
 
 /**
@@ -51,13 +59,44 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
     interface Parameters : TransformParameters {
         @get:Input
         val packages: SetProperty<String>
+
+        @get:Classpath
+        val shrinkerClasspath: ConfigurableFileCollection
     }
 
     @get:InputArtifact
     @get:Classpath
     abstract val inputArtifact: Provider<FileSystemLocation>
 
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
+
+    interface WorkerInjector {
+        @get:Inject
+        val workerExecutor: WorkerExecutor
+    }
+
     override fun transform(outputs: TransformOutputs) {
+        val workerExecutor = objectFactory.newInstance(WorkerInjector::class.java).workerExecutor
+        workerExecutor
+            .classLoaderIsolation { classpath.from(parameters.shrinkerClasspath) }
+            .submit(ShrinkAction::class.java) {
+                packages.set(parameters.packages)
+                inputArtifact.set(inputArtifact)
+                outputDir.set(outputs.dir("public-api"))
+            }
+        workerExecutor.await()
+    }
+}
+
+abstract class ShrinkAction : WorkAction<ShrinkAction.Params> {
+    interface Params : WorkParameters {
+        val packages: SetProperty<String>
+        val inputArtifact: Property<FileSystemLocation>
+        val outputDir: DirectoryProperty
+    }
+
+    override fun execute() {
         val apiClassExtractor = with(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())) {
             val publicApiPackages = parameters.packages.get()
             if (publicApiPackages.isNotEmpty()) {
@@ -65,9 +104,9 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
             }
             build()
         }
-        val jarFile = inputArtifact.get().asFile
+        val outputRoot = parameters.outputDir.get().asFile
+        val jarFile = parameters.inputArtifact.get().asFile
         val zipFile = ZipFile(jarFile)
-        val outputRoot = outputs.dir("public-api")
         zipFile.stream().forEach { entry ->
             entry.filtering().ifPresent { filtering ->
                 zipFile.getInputStream(entry).use { input ->
