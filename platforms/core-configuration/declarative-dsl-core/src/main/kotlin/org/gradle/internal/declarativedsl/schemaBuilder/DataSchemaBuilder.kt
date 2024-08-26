@@ -54,7 +54,7 @@ class DataSchemaBuilder(
 
         return DefaultAnalysisSchema(
             dataTypes.single { it.name == topLevelReceiverName },
-            dataTypes.associateBy { it.name },
+            dataTypes.associateBy { it.name } + preIndex.syntheticTypes.associateBy { it.name },
             extFunctions,
             extObjects,
             defaultImports.toSet()
@@ -75,6 +75,11 @@ class DataSchemaBuilder(
         private
         val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KFunction<*>>>()
 
+        private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
+
+        fun getOrRegisterSyntheticType(id: String, produceType: () -> DataClass): DataClass =
+            mutableSyntheticTypes.getOrPut(id, produceType)
+
         fun addType(kClass: KClass<*>) {
             properties.getOrPut(kClass) { mutableMapOf() }
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }
@@ -88,6 +93,9 @@ class DataSchemaBuilder(
         fun claimFunction(kClass: KClass<*>, kFunction: KFunction<*>) {
             claimedFunctions.getOrPut(kClass) { mutableSetOf() }.add(kFunction)
         }
+
+        val syntheticTypes: List<DataClass>
+            get() = mutableSyntheticTypes.values.toList()
 
         val types: Iterable<KClass<*>>
             get() = properties.keys

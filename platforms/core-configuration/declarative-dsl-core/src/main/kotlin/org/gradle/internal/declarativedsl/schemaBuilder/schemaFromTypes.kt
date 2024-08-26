@@ -20,6 +20,7 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
+import org.gradle.declarative.dsl.model.annotations.NestedDeclarativeModel
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.FqName
@@ -56,4 +57,8 @@ val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
         member.annotationsWithGetters.any {
             it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue
         }
+}
+
+val isPublicAndNestedModel: MemberFilter = MemberFilter { member: KCallable<*> ->
+    member.visibility == KVisibility.PUBLIC && member.annotationsWithGetters.any { it is NestedDeclarativeModel }
 }

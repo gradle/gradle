@@ -28,27 +28,25 @@ dependencies {
     api(projects.declarativeDslToolingModels)
     api(libs.kotlinStdlib)
 
-
-    implementation(libs.inject)
-    testImplementation(libs.mockitoKotlin2)
-
+    implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-
+    implementation(libs.inject)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
+
+    testImplementation(libs.mockitoKotlin2)
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.logging)
     integTestImplementation(testFixtures(projects.declarativeDslProvider))
+    integTestImplementation(testFixtures(projects.toolingApi))
 
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
-
-    integTestImplementation(testFixtures(projects.toolingApi))
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
