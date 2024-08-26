@@ -1,5 +1,14 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 8.10.
+
+It fixes the following issues:
+* TODO
+
+We recommend users upgrade to @version@ instead of 8.10.
+
+***
+
 Gradle now supports running on [Java 23](#java-23).
 
 This release introduces performance and reporting improvements to the [configuration cache](#config-cache), including a significant reduction in the cache file size and accelerated cache loading times. There are also [updates to build authoring APIs](#build-authoring).
