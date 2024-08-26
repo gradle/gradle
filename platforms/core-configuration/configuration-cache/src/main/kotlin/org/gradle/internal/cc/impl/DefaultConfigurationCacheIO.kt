@@ -217,11 +217,12 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
-        val stringsFile = stateFile.relatedStateFile(Path.path(".strings"))
-        return inputStreamFor(stringsFile.stateType, stringsFile::inputStream).use { stringStream ->
-            ParallelStringDecoder(stringStream).use { stringEncoder ->
+        return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
+            withParallelStringDecoderFor(stateFile) { stringEncoder ->
                 readConfigurationCacheStateWithStringDecoder(stringEncoder, stateFile, action)
             }
+        } else {
+            readConfigurationCacheStateWithStringDecoder(InlineStringDecoder, stateFile, action)
         }
     }
 
@@ -230,13 +231,38 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val stringsFile = stateFile.relatedStateFile(Path.path(".strings"))
-        return outputStreamFor(stringsFile.stateType, stringsFile::outputStream).use { stringStream ->
-            ParallelStringEncoder(stringStream).use { stringEncoder ->
+        return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
+            withParallelStringEncoderFor(stateFile) { stringEncoder ->
                 writeConfigurationCacheStateWithStringEncoder(stringEncoder, stateFile, action)
             }
+        } else {
+            writeConfigurationCacheStateWithStringEncoder(InlineStringEncoder, stateFile, action)
         }
     }
+
+    private
+    fun <T> withParallelStringEncoderFor(stateFile: ConfigurationCacheStateFile, action: (StringEncoder) -> T): T =
+        stringsFileFor(stateFile).let { stringsFile ->
+            outputStreamFor(stringsFile.stateType, stringsFile::outputStream).use { stringStream ->
+                ParallelStringEncoder(stringStream).use { stringEncoder ->
+                    action(stringEncoder)
+                }
+            }
+        }
+
+    private
+    fun <T> withParallelStringDecoderFor(stateFile: ConfigurationCacheStateFile, action: (StringDecoder) -> T): T =
+        stringsFileFor(stateFile).let { stringsFile ->
+            inputStreamFor(stringsFile.stateType, stringsFile::inputStream).use { stringStream ->
+                ParallelStringDecoder(stringStream).use { stringDecoder ->
+                    action(stringDecoder)
+                }
+            }
+        }
+
+    private
+    fun stringsFileFor(stateFile: ConfigurationCacheStateFile) =
+        stateFile.relatedStateFile(Path.path(".strings"))
 
     private
     fun <T> readConfigurationCacheStateWithStringDecoder(
@@ -307,14 +333,14 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
         outputStreamFor(stateType, outputStream).let { stream ->
-            if (startParameter.isDeduplicatingStrings) StringDeduplicatingKryoBackedEncoder(stream)
+            if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedEncoder(stream)
             else KryoBackedEncoder(stream)
         }
 
     private
     fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
         inputStreamFor(stateType, inputStream).let { stream ->
-            if (startParameter.isDeduplicatingStrings) StringDeduplicatingKryoBackedDecoder(stream)
+            if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedDecoder(stream)
             else KryoBackedDecoder(stream)
         }
 
@@ -330,6 +356,18 @@ class DefaultConfigurationCacheIO internal constructor(
     fun <I : Closeable, O : I> maybeEncrypt(stateType: StateType, inner: () -> I, outer: (I) -> O): I =
         if (stateType.encryptable) safeWrap(inner, outer)
         else inner()
+
+    /**
+     * For the [work graph state][StateType.Work], we use the parallel string deduplication strategy since it spans multiple files,
+     * for everything else we use the sequential, per encoder/decoder, deduplication strategy.
+     */
+    private
+    fun isUsingParallelStringDeduplicationStrategy(stateFile: ConfigurationCacheStateFile) =
+        stateFile.stateType == StateType.Work && startParameter.isDeduplicatingStrings
+
+    private
+    fun isUsingSequentialStringDeduplicationStrategy(stateType: StateType) =
+        stateType != StateType.Work && startParameter.isDeduplicatingStrings
 
     private
     fun loggingTracerFor(profile: () -> String, encoder: PositionAwareEncoder) =

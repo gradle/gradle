@@ -27,6 +27,9 @@ import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
 
 
+/**
+ * Decodes deduplicated strings from a given stream produced by [ParallelStringEncoder].
+ */
 internal
 class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable {
 
