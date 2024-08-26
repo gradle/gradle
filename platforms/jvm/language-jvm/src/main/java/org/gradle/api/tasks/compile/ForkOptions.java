@@ -75,7 +75,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Nullable
     public File getJavaHome() {
         DeprecationLogger.deprecateMethod(ForkOptions.class, "getJavaHome()")
-            .withAdvice("The JavaHome property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the Executable property instead.")
+            .withAdvice("The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_fork_options_java_home")
             .nagUser();
