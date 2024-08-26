@@ -22,6 +22,7 @@ import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
@@ -50,6 +51,7 @@ import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
@@ -395,12 +397,14 @@ class DefaultConfigurationCacheIO internal constructor(
      * Provides R/W isolate contexts based on some other context.
      */
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
-        override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
-            baseFile.relatedStateFile(path).let {
+        override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext {
+            return baseFile.relatedStateFile(path).let {
                 readContextFor(it).also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
+                    subContext.setSingletonProperty(baseContext.getSingletonProperty<ProjectProvider>())
                 }.first
             }
+        }
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {

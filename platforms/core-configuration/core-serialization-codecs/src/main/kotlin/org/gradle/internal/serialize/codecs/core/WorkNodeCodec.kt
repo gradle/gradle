@@ -34,7 +34,6 @@ import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.PostExecutionNodeAwareActionNode
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
-import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.collect.PersistentList
 import org.gradle.internal.extensions.stdlib.useToRun
@@ -53,7 +52,6 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
-import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readList
@@ -243,7 +241,6 @@ class WorkNodeCodec(
     private
     fun ReadContext.readNodes(nodeIdCount: Int): NodeForId {
         val batchedGroupNodes = AtomicReference<PersistentList<List<NodeWithId>>>(PersistentList.of())
-        val projectProvider = getSingletonProperty<ProjectProvider>()
         val groupPaths = readCollectionInto<Path, MutableList<Path>>(::ArrayList) {
             Path.path(readString())
         }
@@ -252,7 +249,6 @@ class WorkNodeCodec(
             groupPaths.map { groupPath ->
                 OperationInfo(displayName = "Loading $groupPath", progressDisplayName = groupPath.path) {
                     contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
-                        setSingletonProperty(projectProvider)
                         val nodesInGroup = readGroupedNodes()
                         batchedGroupNodes.updateAndGet {
                             it.plus(nodesInGroup)
