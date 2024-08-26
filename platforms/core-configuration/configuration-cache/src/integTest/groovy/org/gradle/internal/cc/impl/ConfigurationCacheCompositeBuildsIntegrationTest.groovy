@@ -16,11 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
-
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -48,7 +46,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertStateLoaded()
     }
 
-    @Ignore("wip")
     def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -67,7 +64,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def confCacheDir = file("./app/.gradle/configuration-cache")
         confCacheDir.isDirectory()
         def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
-        confCacheFiles.size() == 9 // header, 2 * fingerprint, root build state file, included build state file, 2 * project state file, 2 * owner-less node state files
+        confCacheFiles.size() == 10 // header, 2 * fingerprint, build strings file, root build state file, included build state file, 2 * project state file, 2 * owner-less node state files
         if (!OperatingSystem.current().isWindows()) {
             confCacheFiles.forEach {
                 assert confCacheDir.file(it).mode == 384
