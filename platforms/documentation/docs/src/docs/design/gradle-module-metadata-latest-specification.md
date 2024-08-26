@@ -14,7 +14,7 @@ The module metadata file is intended to be machine-generated rather than written
 
 The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository format to be added, for example.
 
-In version 1.0, the module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings may be added in later versions.
+The module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings may be added in later versions.
 
 ## Usage in a Maven repository
 
@@ -119,7 +119,7 @@ Existing metadata must remain compatible and thus tools supporting the Gradle Mo
 
 This value, nested in `variants`, must contain an object with the following values:
 
-- `url`: The location of the metadata file that describes the variant. A string. In version 1.0 and 1.1, this must be a path relative to the module.
+- `url`: The location of the metadata file that describes the variant. A string. This must be a path relative to the module.
 - `group`: The group of the module. A string
 - `module`: The name of the module. A string
 - `version`: The version of the module. A string
@@ -174,7 +174,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `name`: The name of the file. A string. This will be used to calculate the identity of the file in the cache, which means it must be unique across variants for different files.
-- `url`: The location of the file. A string. In version 1.0, this must be a path relative to the module.
+- `url`: The location of the file. A string. This must be a path relative to the module.
 - `size`: The size of the file in bytes. A number.
 - `sha1`: The SHA1 hash of the file content. A hex string.
 - `sha256`: The SHA-256 hash of the file content. A hex string.
