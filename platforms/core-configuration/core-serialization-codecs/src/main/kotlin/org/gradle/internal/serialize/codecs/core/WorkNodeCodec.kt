@@ -106,9 +106,6 @@ class WorkNodeCodec(
         }
 
         val scheduledEntryNodeIds = assignNodeIds(scheduledNodeIds, nodes, entryNodes)
-        val actionNodePostExecutionSuccessors = writeNodes(nodes, scheduledNodeIds)
-        writeEntryNodes(scheduledEntryNodeIds)
-
         val idForNode: IdForNode = { node ->
             scheduledNodeIds.getInt(node).also { nodeId ->
                 require(nodeId >= 0) {
@@ -116,19 +113,24 @@ class WorkNodeCodec(
                 }
             }
         }
+
+        writeSmallInt(scheduledNodeIds.size)
+        val actionNodePostExecutionSuccessors = writeNodes(nodes, idForNode)
+        writeEntryNodes(scheduledEntryNodeIds)
         writeEdgesAndGroupMembership(nodes, actionNodePostExecutionSuccessors, idForNode)
     }
 
     private
     fun ReadContext.doRead(): ScheduledWork {
-        val nodeForId = readNodes()
+        val nodeIdCount = readSmallInt()
+        val nodeForId = readNodes(nodeIdCount)
         val entryNodes = readEntryNodes(nodeForId)
         val nodes = readEdgesAndGroupMembership(nodeForId)
         return ScheduledWork(nodes, entryNodes)
     }
 
     private
-    fun WriteContext.writeEntryNodes(scheduledEntryNodeIds: MutableList<Int>) {
+    fun WriteContext.writeEntryNodes(scheduledEntryNodeIds: List<Int>) {
         // A large build may have many nodes but not so many entry nodes.
         // To save some disk space, we're only saving entry node ids rather than writing "entry/non-entry" boolean for every node.
         writeCollection(scheduledEntryNodeIds) {
@@ -171,7 +173,7 @@ class WorkNodeCodec(
         scheduledNodeIds: Object2IntOpenHashMap<Node>,
         nodes: ImmutableList<Node>,
         entryNodes: ImmutableSet<Node>
-    ): MutableList<Int> {
+    ): List<Int> {
         // Not all entry nodes are always scheduled.
         // In particular, it happens when the entry node is a task of the included plugin build that runs as part of building the plugin.
         // Such tasks do not rerun when configuration cache is re-used, even if specified on the command line.
@@ -193,11 +195,9 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeNodes(
-        nodes: ImmutableList<Node>,
-        nodeIds: Object2IntOpenHashMap<Node> // Map<Node, NodeId>
+        nodes: ImmutableList<Node>, // Map<Node, NodeId>
+        idForNode: IdForNode
     ): Map<ActionNode, List<Node>> {
-        writeSmallInt(nodeIds.size)
-
         val groupedNodes = nodes.groupBy(NodeOwner::of)
         writeCollection(groupedNodes.keys) { nodeOwner ->
             val groupPath = nodeOwner.path()
@@ -211,8 +211,8 @@ class WorkNodeCodec(
             groupedNodes.entries.map { (nodeOwner, groupNodes) ->
                 val groupPath = nodeOwner.path()
                 OperationInfo(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
-                    contextSource.writeContextFor(this@writeNodes, groupPath).useToRun {
-                        val postExecutionSuccessors = writeGroupedNodes(nodeOwner, groupNodes, nodeIds)
+                    contextSource.writeContextFor(this, groupPath).useToRun {
+                        val postExecutionSuccessors = writeGroupedNodes(nodeOwner, groupNodes, idForNode)
                         if (postExecutionSuccessors.isNotEmpty()) {
                             partialResultsRef.updateAndGet {
                                 it.plus(postExecutionSuccessors)
@@ -234,8 +234,7 @@ class WorkNodeCodec(
 
 
     private
-    fun ReadContext.readNodes(): NodeForId {
-        val nodeIdCount = readSmallInt()
+    fun ReadContext.readNodes(nodeIdCount: Int): NodeForId {
         val partialResultsRef = AtomicReference<PersistentList<List<NodeId>>>(PersistentList.of())
         val projectProvider = getSingletonProperty<ProjectProvider>()
         val groupPaths = readCollectionInto<Path, MutableList<Path>>(::ArrayList) {
@@ -306,13 +305,13 @@ class WorkNodeCodec(
     fun WriteContext.writeGroupedNodes(
         nodeOwner: NodeOwner,
         nodes: List<Node>,
-        nodeIds: Object2IntOpenHashMap<Node>
+        idForNode: IdForNode
     ): List<PostExecutionNodes> {
         val safeRun = safeRunnerFor(nodeOwner)
         val postExecutionSuccessors = mutableListOf<PostExecutionNodes>()
         runWriteOperation {
             writeCollection(nodes) { node ->
-                val nodeId = nodeIds.getInt(node)
+                val nodeId = idForNode(node)
                 writeSmallInt(nodeId)
                 safeRun {
                     write(node)
@@ -321,7 +320,7 @@ class WorkNodeCodec(
                     }
                 }
                 if (node is LocalTaskNode) {
-                    val prepareNodeId = nodeIds.getInt(node.prepareNode)
+                    val prepareNodeId = idForNode(node.prepareNode)
                     writeSmallInt(prepareNodeId)
                 }
             }
