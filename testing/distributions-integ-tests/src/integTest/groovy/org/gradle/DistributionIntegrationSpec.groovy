@@ -69,6 +69,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-evaluator",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
+        "declarative-dsl-internal-utils",
         "enterprise-logging",
         "enterprise-operations",
         "enterprise-workers",
