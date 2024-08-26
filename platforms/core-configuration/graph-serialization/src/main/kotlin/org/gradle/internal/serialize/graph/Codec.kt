@@ -25,7 +25,6 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import org.gradle.util.Path
 
 
 /**
@@ -170,12 +169,6 @@ interface IsolateContext {
 interface IsolateOwner {
     val delegate: Any
     fun <T> service(type: Class<T>): T
-}
-
-
-interface IsolateContextSource {
-    fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext
-    fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext
 }
 
 

@@ -44,9 +44,10 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationInvocationException
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.serialize.graph.CloseableReadContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.IsolateContext
-import org.gradle.internal.serialize.graph.IsolateContextSource
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.buildCollection
@@ -71,6 +72,12 @@ typealias NodeForId = (Int) -> Node
 
 private
 typealias IdForNode = (Node) -> Int
+
+
+interface IsolateContextSource {
+    fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext
+    fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext
+}
 
 
 class WorkNodeCodec(

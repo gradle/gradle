@@ -68,6 +68,7 @@ import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCode
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.IntersectionPatternSetCodec
+import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.codecs.core.IsolatedArrayCodec
 import org.gradle.internal.serialize.codecs.core.IsolatedEnumValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.IsolatedImmutableManagedValueCodec
@@ -127,7 +128,6 @@ import org.gradle.internal.serialize.codecs.dm.transform.TransformedExternalArti
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedProjectArtifactSetCodec
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.IsolateContextSource
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.BeanSpecCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
