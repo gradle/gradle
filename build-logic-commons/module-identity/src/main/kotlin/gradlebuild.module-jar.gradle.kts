@@ -36,11 +36,20 @@ fun configureClasspathManifestGeneration() {
         }.get()
     }
     val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
-        this.projectDependencies.from(runtimeClasspath.incoming.artifactView {
-            componentFilter {
-                it is ProjectComponentIdentifier
-            }
-        }.files)
+        this.projects.set(
+            runtimeClasspath.incoming
+                .artifactView {
+                    componentFilter {
+                        it is ProjectComponentIdentifier
+                    }
+                }
+                .artifacts
+                .resolvedArtifacts.map { artifacts ->
+                    artifacts
+                        .map { it.id }
+                        .filterIsInstance<ModuleComponentIdentifier>()
+                        .map { it.module }
+                })
         this.externalDependencies.from(runtimeClasspath.incoming.artifactView {
             componentFilter {
                 externalComponents.contains(it)
