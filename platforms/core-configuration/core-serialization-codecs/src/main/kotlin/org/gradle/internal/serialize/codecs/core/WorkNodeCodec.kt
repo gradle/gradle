@@ -576,7 +576,7 @@ class WorkNodeCodec(
                     // each operation as a proper build operation
                     operations().forEach { add(asBuildOperation(it.displayName, it.progressDisplayName, it.action)) }
                 } else {
-                    logger.debug("$message in-line")
+                    logger.debug("$message sequentially")
                     // all operations under a single build operation
                     add(asBuildOperation(message) {
                         operations().forEach { it.action() }
