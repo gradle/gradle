@@ -31,10 +31,12 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
+import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -65,6 +67,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                         ?.let { accessibleConfigurationsOf(it) }
                         ?: emptyList(),
                     targetSchema.modelDefaults,
+                    targetSchema.containerElementFactories,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -84,7 +87,8 @@ data class TargetTypedSchema(
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>
+    val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
 
 
@@ -96,6 +100,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
@@ -133,6 +138,8 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
             }
         }
+
+        collectNestedContainerFactories(targetType.concreteClass).forEach(containerElementFactories::add)
     }
 
     collectSchemaOf(target, targetType)
@@ -142,10 +149,25 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         conventions,
         tasks,
         containerElements,
-        buildModelDefaults
+        buildModelDefaults,
+        containerElementFactories
     )
 }
 
+private fun collectNestedContainerFactories(containerClass: Class<*>): List<ContainerElementFactoryEntry<TypeOf<*>>> {
+    val getters = containerClass.methods.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
+
+    val elementTypes = getters.mapNotNullTo(hashSetOf()) {
+        DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.genericReturnType)
+    }
+
+    return elementTypes.map { type ->
+        val elementType = TypeOf.typeOf<Any>(type)
+        val scopeReceiverType = TypeOf.parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType)
+        val factoryName = DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(elementType.concreteClass.kotlin)
+        ContainerElementFactoryEntry(factoryName, scopeReceiverType, elementType)
+    }
+}
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =

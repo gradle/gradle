@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
+    implementation(projects.declarativeDslInternalUtils)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false

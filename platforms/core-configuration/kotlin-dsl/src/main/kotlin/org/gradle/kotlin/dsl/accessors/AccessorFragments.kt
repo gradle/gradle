@@ -18,9 +18,11 @@ package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmType
+import kotlinx.metadata.KmTypeProjection
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
+import org.gradle.api.Action
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -65,8 +67,63 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
+    is Accessor.ForContainerElementFactory -> fragmentsForContainerElementFactory(accessor)
 }
 
+private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerElementFactory): Fragments = accessor.run {
+    val elementFactoryName = accessor.spec.name.original
+    val className = "${accessor.spec.name.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val (kotlinElementType, _) = accessibleTypesFor(accessor.spec.elementType)
+    val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
+    val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString
+
+    className to sequenceOf(
+        AccessorFragment(
+            source = elementFactoryName.run {
+                """
+                    /**
+                     * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
+                     */
+                    fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
+                        name: String,
+                        configure: Action<in $elementTypeKotlinString>
+                    ) {
+                        if (name in names) {
+                            named(name, configure)
+                        } else {
+                            register(name, configure)
+                        }
+                    }
+                """.trimIndent()
+            },
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    ALOAD(1)
+                    ALOAD(2)
+                    invokeRuntime("maybeRegister", signature.desc)
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    receiverType = kotlinReceiverType,
+                    valueParameters = listOf(
+                        newValueParameterOf("name", KotlinType.string),
+                        newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinElementType)))
+                    ),
+                    returnType = KotlinType.unit,
+                    name = elementFactoryName,
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                elementFactoryName,
+                "(L$jvmReceiverType;Ljava/lang/String;Lorg/gradle/api/Action;)V"
+            )
+        )
+    )
+}
 
 @Suppress("LongMethod")
 private

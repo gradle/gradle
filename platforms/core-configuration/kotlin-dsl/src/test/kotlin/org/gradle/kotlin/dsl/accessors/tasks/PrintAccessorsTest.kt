@@ -65,7 +65,8 @@ class PrintAccessorsTest {
                         ),
                         modelDefaults = listOf(
                             entry<SharedModelDefaults, TestSoftwareType>("softwareType")
-                        )
+                        ),
+                        containerElementFactories = listOf()
                     )
                 )
             }.withoutTrailingWhitespace(),
