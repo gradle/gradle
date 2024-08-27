@@ -16,35 +16,24 @@
 
 package org.gradle.api.tasks.testing.junit;
 
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * The JUnit specific test options.
  * @since 0.7
  */
 public abstract class JUnitOptions extends TestFrameworkOptions {
-    private Set<String> includeCategories = new LinkedHashSet<String>();
-
-    private Set<String> excludeCategories = new LinkedHashSet<String>();
 
     /**
      * Copies the options from the source options into the current one.
      * @since 8.0
      */
     public void copyFrom(JUnitOptions other) {
-        replace(this.includeCategories, other.includeCategories);
-        replace(this.excludeCategories, other.excludeCategories);
-    }
-
-    private static void replace(Set<String> target, Set<String> source) {
-        target.clear();
-        target.addAll(source);
+        getIncludeCategories().set(other.getIncludeCategories());
+        getExcludeCategories().set(other.getExcludeCategories());
     }
 
     /**
@@ -53,7 +42,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     public JUnitOptions includeCategories(String... includeCategories) {
-        this.includeCategories.addAll(Arrays.asList(includeCategories));
+        this.getIncludeCategories().addAll(includeCategories);
         return this;
     }
 
@@ -63,7 +52,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     public JUnitOptions excludeCategories(String... excludeCategories) {
-        this.excludeCategories.addAll(Arrays.asList(excludeCategories));
+        this.getExcludeCategories().addAll(excludeCategories);
         return this;
     }
 
@@ -72,36 +61,14 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
      * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludeCategories() {
-        return includeCategories;
-    }
-
-    /**
-     * The set of categories to run.
-     * @since 1.6
-     */
-    public void setIncludeCategories(Set<String> includeCategories) {
-        this.includeCategories = includeCategories;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getIncludeCategories();
 
     /**
      * The set of categories to exclude.
      * @since 1.6
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludeCategories() {
-        return excludeCategories;
-    }
-
-    /**
-     * The set of categories to exclude.
-     * @since 1.6
-     */
-    public void setExcludeCategories(Set<String> excludeCategories) {
-        this.excludeCategories = excludeCategories;
-    }
-
-
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getExcludeCategories();
 }
