@@ -18,15 +18,14 @@ package org.gradle.nativeplatform.test.cpp.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -142,7 +141,7 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
 
                 final InstallExecutable installTask = binary.getInstallTask().get();
                 DirectoryProperty installDirectory = binary.getInstallDirectory();
-                task.onlyIf("Test executable installation directory exists", new DirectoryExistsSpec(installDirectory));
+                task.onlyIf("Test executable installation directory exists", SerializableLambdas.spec(t -> installDirectory.get().getAsFile().exists()));
                 task.getInputs()
                     .dir(installDirectory)
                     .withPropertyName("installDirectory");
@@ -226,18 +225,5 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
         ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
         ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage)testedBinary;
         return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
-    }
-
-    private static class DirectoryExistsSpec implements Spec<Task> {
-        private final DirectoryProperty installDirectory;
-
-        public DirectoryExistsSpec(DirectoryProperty installDirectory) {
-            this.installDirectory = installDirectory;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(Task element) {
-            return installDirectory.get().getAsFile().exists();
-        }
     }
 }
