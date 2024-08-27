@@ -25,11 +25,8 @@ configurations {
 
 // tag::compatibility-rule-use[]
 dependencies {
-    // The attributesSchema block adds a custom compatibility rule for the LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE attribute.
     attributesSchema {
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE) {
-            // Without this rule, Gradle would consider the regular "jar" and the
-            // "instrumented-jar" incompatible and fail to resolve the dependency.
             compatibilityRules.add(InstrumentedJarsRule::class.java)
         }
     }
