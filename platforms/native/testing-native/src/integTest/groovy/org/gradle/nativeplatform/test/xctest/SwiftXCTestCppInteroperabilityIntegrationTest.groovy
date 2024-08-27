@@ -25,8 +25,12 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+
+import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
+@Requires(HasXCTest)
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
         buildFile << """

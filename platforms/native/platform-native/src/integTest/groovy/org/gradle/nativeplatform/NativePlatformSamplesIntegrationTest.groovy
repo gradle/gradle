@@ -30,10 +30,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_3
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.junit.Assume.assumeTrue
 
-@Requires([
-    UnitTestPreconditions.CanInstallExecutable,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
     @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
