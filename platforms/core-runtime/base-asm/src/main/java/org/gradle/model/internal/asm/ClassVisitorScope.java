@@ -106,7 +106,6 @@ public class ClassVisitorScope extends ClassVisitor {
     /**
      * Adds a getter that returns the value that the given code leaves on the top of the stack.
      */
-    @SuppressWarnings("Convert2Lambda")
     protected void addGetter(final String methodName, final Type returnType, final String methodDescriptor, @Nullable final String signature, final BytecodeFragment body) {
         publicMethod(methodName, methodDescriptor, signature, new BytecodeFragment() {
             @Override

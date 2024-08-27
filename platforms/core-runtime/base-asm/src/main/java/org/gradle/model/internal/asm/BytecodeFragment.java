@@ -20,7 +20,6 @@ import org.objectweb.asm.MethodVisitor;
 
 public interface BytecodeFragment {
 
-    @SuppressWarnings("Convert2Lambda")
     BytecodeFragment NO_OP = new BytecodeFragment() {
         @Override
         public void emit(MethodVisitor visitor) {}
