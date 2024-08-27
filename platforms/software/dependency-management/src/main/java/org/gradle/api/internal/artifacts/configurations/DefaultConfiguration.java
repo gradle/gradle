@@ -73,15 +73,12 @@ import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
@@ -240,7 +237,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
-    private TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
     /**
@@ -666,7 +662,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionHost getHost() {
-            return new DefaultResolutionHost();
+            return new DefaultResolutionHost(DefaultConfiguration.this);
         }
 
         @Override
@@ -927,34 +923,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
-        warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
-        if (dependenciesResolverFactory == null) {
-            ResolutionResultProvider<ResolvedComponentResult> rootComponentProvider =
-                new ResolverResultsResolutionResultProvider(true)
-                    .map(results -> results.getVisitedGraph().getResolutionResult().getRootSource().get());
+    public ResolutionResultProvider<ResolverResults> getResolverResults() {
+        return new ResolverResultsResolutionResultProvider(false);
+    }
 
-            dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(
-                getIdentity(),
-                rootComponentProvider,
-                domainObjectContext,
-                calculatedValueContainerFactory,
-                (attributes, filter) -> {
-                    ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ResolutionBackedFileCollection(
-                        new ResolverResultsResolutionResultProvider(false).map(resolverResults ->
-                            resolverResults.getVisitedArtifacts().select(new ArtifactSelectionSpec(
-                                fullAttributes, filter, false, false, getResolutionStrategy().getSortOrder()
-                            ))
-                        ),
-                        false,
-                        getResolutionHost(),
-                        taskDependencyFactory
-                    );
-                }
-            );
-        }
-        return dependenciesResolverFactory;
+    @Override
+    public ResolutionResultProvider<ResolverResults> getStrictResolverResults() {
+        return new ResolverResultsResolutionResultProvider(true);
     }
 
     @Override
@@ -1526,7 +1501,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    public ConfigurationIdentity getIdentity() {
+    @Override
+    public ConfigurationIdentity getConfigurationIdentity() {
         String name = getName();
         ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
         String projectPath = projectId == null ? null : projectId.getProjectPath().getPath();
@@ -1970,18 +1946,43 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolutionHost getResolutionHost() {
-        return new DefaultResolutionHost();
+        return new DefaultResolutionHost(this);
     }
 
-    private class DefaultResolutionHost implements ResolutionHost {
+    private static class DefaultResolutionHost implements ResolutionHost {
+
+        private final DefaultConfiguration configuration;
+
+        public DefaultResolutionHost(DefaultConfiguration configuration) {
+            this.configuration = configuration;
+        }
+
         @Override
         public DisplayName displayName() {
-            return DefaultConfiguration.this.displayName;
+            return configuration.displayName;
         }
 
         @Override
         public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
-            return Optional.ofNullable(exceptionMapper.mapFailures(failures, type, DefaultConfiguration.this.getDisplayName()));
+            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, type, configuration.getDisplayName()));
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DefaultResolutionHost that = (DefaultResolutionHost) o;
+            return configuration == that.configuration;
+        }
+
+        @Override
+        public int hashCode() {
+            return configuration.hashCode();
         }
     }
 

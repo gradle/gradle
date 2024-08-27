@@ -33,7 +33,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def dependenciesResolverFactory = Mock(TransformUpstreamDependenciesResolverFactory)
+    def dependenciesResolver = Mock(TransformUpstreamDependenciesResolver)
     def attributeMatcher = Mock(AttributeMatcher)
     def attributesSchema = Mock(AttributesSchemaInternal) {
         withProducer(_) >> attributeMatcher
@@ -63,7 +63,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
         def variants = [variant]
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
+        def selector = newSelector()
 
         when:
         def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
@@ -78,7 +78,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     def 'multiple match on variant results in ambiguous exception'() {
         given:
         def variantSet = variantSetOf([variant, otherVariant])
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
+        def selector = newSelector()
 
         when:
         def result = selector.select(variantSet, requestedAttributes, false, factory)
@@ -99,7 +99,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
+        def selector = newSelector()
 
         when:
         def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
@@ -109,7 +109,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
-        1 * factory.asTransformed(variant, transformedVariants[0].getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
+        1 * factory.asTransformed(variant, transformedVariants[0].getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory) >> transformed
         0 * attributeMatcher._
     }
 
@@ -118,7 +118,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant, otherVariant, yetAnotherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
+        def selector = newSelector()
 
         when:
         def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
@@ -129,7 +129,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [transformedVariants[resultNum]]
-        1 * factory.asTransformed(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory) >> transformed
+        1 * factory.asTransformed(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory) >> transformed
 
         where:
         resultNum << [0, 1, 2]
@@ -139,7 +139,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         given:
         def variants = [variant, otherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
+        def selector = newSelector()
 
         when:
         def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
@@ -151,6 +151,17 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> transformedVariants
+    }
+
+    private AttributeMatchingArtifactVariantSelector newSelector() {
+        new AttributeMatchingArtifactVariantSelector(
+            attributesSchema,
+            dependenciesResolver,
+            consumerProvidedVariantFinder,
+            attributesFactory,
+            transformedVariantFactory,
+            failureProcessor
+        )
     }
 
     ResolvedVariantSet variantSetOf(List<ResolvedVariant> variants) {

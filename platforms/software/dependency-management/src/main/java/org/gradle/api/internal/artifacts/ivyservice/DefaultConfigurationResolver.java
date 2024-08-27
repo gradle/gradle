@@ -211,7 +211,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
 
         ResolutionHost resolutionHost = resolveContext.getResolutionHost();
-        ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(resolveContext);
         VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsBuilder.complete(), artifactSetResolver, artifactVariantSelector);
 
         ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
@@ -305,7 +305,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             lockingVisitor.writeLocks();
         }
 
-        ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(resolveContext);
         VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsResults, artifactSetResolver, artifactVariantSelector);
 
         // Legacy results
@@ -343,6 +343,17 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolvedVariantCache,
             graphVariantSelector,
             consumerSchema
+        );
+    }
+
+    private ArtifactVariantSelector artifactVariantSelectorFor(ResolveContext resolveContext) {
+        return variantSelectorFactory.create(
+            resolveContext.getResolutionHost(),
+            resolveContext.getAttributes().asImmutable(),
+            resolveContext.getConfigurationIdentity(),
+            resolveContext.getResolutionStrategy().getSortOrder(),
+            resolveContext.getResolverResults(),
+            resolveContext.getStrictResolverResults()
         );
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -53,6 +54,8 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     void runDependencyActions();
 
     void markAsObserved(InternalState requestedState);
+
+    DomainObjectContext getDomainObjectContext();
 
     void addMutationValidator(MutationValidator validator);
 
