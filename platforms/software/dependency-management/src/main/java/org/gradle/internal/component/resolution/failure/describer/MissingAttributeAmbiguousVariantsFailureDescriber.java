@@ -18,11 +18,13 @@ package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +48,13 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
      * Each failure will be added once (by identity), then removed during failure description.
      */
     private final IdentityHashMap<AmbiguousVariantsFailure, String> suggestableDistinctAttributes = new IdentityHashMap<>();
+
+    @Inject
+    public MissingAttributeAmbiguousVariantsFailureDescriber(
+        AttributeDescriberRegistry attributeDescribers
+    ) {
+        super(attributeDescribers);
+    }
 
     @Override
     public boolean canDescribeFailure(AmbiguousVariantsFailure failure) {

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
@@ -24,6 +25,7 @@ import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsF
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -33,9 +35,18 @@ public abstract class AmbiguousArtifactsFailureDescriber extends AbstractResolut
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
+    private final AttributeDescriberRegistry attributeDescribers;
+
+    @Inject
+    public AmbiguousArtifactsFailureDescriber(
+        AttributeDescriberRegistry attributeDescribers
+    ) {
+        this.attributeDescribers = attributeDescribers;
+    }
+
     @Override
-    public ArtifactSelectionException describeFailure(AmbiguousArtifactsFailure failure, List<AttributeDescriber> attributeDescribers) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
+    public ArtifactSelectionException describeFailure(AmbiguousArtifactsFailure failure) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers.getDescribers());
         String message = buildFailureMsg(failure, describer);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactSelectionException(message, failure, resolutions);

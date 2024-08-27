@@ -37,7 +37,7 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
         dependencyResolutionServices = factory.create();
         this.sharedRepositories = sharedRepositories;
 
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
+        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
 
         RepositoryHandler repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
         for (ArtifactRepository repository : sharedRepositories) {

@@ -26,14 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -161,7 +159,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(TestUtil.services()), Stub(InternalProblems)))
+        def variantSelector = new GraphVariantSelector(DependencyManagementTestUtil.newFailureHandler())
 
         def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]
         variant.metadata.dependencies

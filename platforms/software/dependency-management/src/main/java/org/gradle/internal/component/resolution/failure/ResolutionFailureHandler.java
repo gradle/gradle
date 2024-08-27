@@ -22,9 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ConfigurableAttributeDescribers;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -55,7 +53,6 @@ import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSele
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -83,14 +80,13 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * @implNote The methods for reporting failures via this class are ordered to match the stages of the variant selection process and
  * within those stages alphabetically, with names aligned with the failure type hierarchy.  This makes it much easier to navigate.
  */
-public class ResolutionFailureHandler implements ConfigurableAttributeDescribers {
+public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final InternalProblems problemsService;
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
 
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
-    private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
 
     public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problemsService) {
         this.problemsService = problemsService;
@@ -228,11 +224,6 @@ public class ResolutionFailureHandler implements ConfigurableAttributeDescribers
         customFailureDescribers.registerDescriber(failureType, describerType);
     }
 
-    @Override
-    public void addConsumerDescriber(AttributeDescriber describer) {
-        consumerAttributeDescribers.add(describer);
-    }
-
     private <FAILURE extends ResolutionFailure> AbstractResolutionFailureException describeFailure(FAILURE failure) {
         @SuppressWarnings("unchecked")
         Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
@@ -242,7 +233,7 @@ public class ResolutionFailureHandler implements ConfigurableAttributeDescribers
             )
             .filter(describer -> describer.canDescribeFailure(failure))
             .findFirst()
-            .map(describer -> describer.describeFailure(failure, consumerAttributeDescribers))
+            .map(describer -> describer.describeFailure(failure))
             .map(this::reportExceptionAsProblem)
             .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
     }

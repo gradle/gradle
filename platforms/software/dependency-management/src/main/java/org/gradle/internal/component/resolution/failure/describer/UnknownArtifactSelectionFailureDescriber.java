@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
@@ -31,7 +30,7 @@ import java.util.List;
  */
 public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<UnknownArtifactSelectionFailure> {
     @Override
-    public ArtifactSelectionException describeFailure(UnknownArtifactSelectionFailure failure, List<AttributeDescriber> attributeDescribers) {
+    public ArtifactSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
         final ArtifactSelectionException result;
         if (failure.getCause() instanceof ArtifactSelectionException) {
             result = (ArtifactSelectionException) failure.getCause();

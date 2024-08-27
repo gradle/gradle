@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -24,14 +25,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
@@ -48,7 +46,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(TestUtil.services()), Stub(InternalProblems))
+    def variantSelectionFailureProcessor = DependencyManagementTestUtil.newFailureHandler()
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {

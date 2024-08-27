@@ -100,7 +100,7 @@ import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ConfigurableAttributeDescribers;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -231,6 +231,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultArtifactResolutionQueryFactory.class);
             registration.add(DependencyGraphResolver.class);
             registration.add(DependencyGraphBuilder.class);
+            registration.add(AttributeDescriberRegistry.class);
         }
 
         @Provides
@@ -694,8 +695,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Override
-        public ConfigurableAttributeDescribers getAttributeDescribers() {
-            return services.get(ResolutionFailureHandler.class);
+        public AttributeDescriberRegistry getAttributeDescribers() {
+            return services.get(AttributeDescriberRegistry.class);
         }
     }
 

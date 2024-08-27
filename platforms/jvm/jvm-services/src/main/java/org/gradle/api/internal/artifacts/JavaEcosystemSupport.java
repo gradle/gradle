@@ -33,7 +33,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
-import org.gradle.api.internal.attributes.ConfigurableAttributeDescribers;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -86,7 +86,15 @@ public abstract class JavaEcosystemSupport {
     @Deprecated
     public static final String DEPRECATED_JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
 
-    public static void configureSchema(AttributesSchema attributesSchema, ConfigurableAttributeDescribers attributeDescribers, final ObjectFactory objectFactory) {
+    /**
+     * Configure the dependency management services so that they properly participate
+     * in dependency resolution for the Jvm ecosystem.
+     */
+    public static void configureServices(
+        AttributesSchema attributesSchema,
+        AttributeDescriberRegistry attributeDescribers,
+        ObjectFactory objectFactory
+    ) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
@@ -103,8 +111,8 @@ public abstract class JavaEcosystemSupport {
         );
     }
 
-    private static void configureConsumerDescriptors(ConfigurableAttributeDescribers describers) {
-        describers.addConsumerDescriber(new JavaEcosystemAttributesDescriber());
+    private static void configureConsumerDescriptors(AttributeDescriberRegistry describers) {
+        describers.addDescriber(new JavaEcosystemAttributesDescriber());
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {

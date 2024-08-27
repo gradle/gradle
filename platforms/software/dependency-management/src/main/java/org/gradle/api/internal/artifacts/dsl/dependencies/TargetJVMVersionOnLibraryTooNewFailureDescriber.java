@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
@@ -56,7 +55,7 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
     }
 
     @Override
-    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure, List<AttributeDescriber> attributeDescribers) {
+    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure) {
         JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         JavaVersion requestedJVMVersion = getJVMVersion(failure);
 

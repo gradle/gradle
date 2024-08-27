@@ -15,7 +15,20 @@
  */
 package org.gradle.api.internal.attributes;
 
-public interface ConfigurableAttributeDescribers {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-    void addConsumerDescriber(AttributeDescriber describer);
+public class AttributeDescriberRegistry {
+
+    private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
+
+    public void addDescriber(AttributeDescriber describer) {
+        consumerAttributeDescribers.add(describer);
+    }
+
+    public List<AttributeDescriber> getDescribers() {
+        return Collections.unmodifiableList(consumerAttributeDescribers);
+    }
+
 }

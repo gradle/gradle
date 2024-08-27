@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.TargetJVMVersionOnLibraryTooNewFailureDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -68,7 +69,9 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
         AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
 
         ResolutionFailureHandler handler = project.getServices().get(ResolutionFailureHandler.class);
-        JavaEcosystemSupport.configureSchema(attributesSchema, handler, objectFactory);
+        AttributeDescriberRegistry attributeDescribers = project.getServices().get(AttributeDescriberRegistry.class);
+
+        JavaEcosystemSupport.configureServices(attributesSchema, attributeDescribers, objectFactory);
         handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
 
         project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()

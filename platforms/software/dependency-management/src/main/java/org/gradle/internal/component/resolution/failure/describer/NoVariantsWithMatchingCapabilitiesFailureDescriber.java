@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
 import org.gradle.internal.component.resolution.failure.formatting.CapabilitiesDescriber;
@@ -29,7 +28,7 @@ import java.util.List;
  */
 public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoVariantsWithMatchingCapabilitiesFailure> {
     @Override
-    public VariantSelectionByAttributesException describeFailure(NoVariantsWithMatchingCapabilitiesFailure failure, List<AttributeDescriber> attributeDescribers) {
+    public VariantSelectionByAttributesException describeFailure(NoVariantsWithMatchingCapabilitiesFailure failure) {
         String message = buildFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
         return new VariantSelectionByAttributesException(message, failure, resolutions);

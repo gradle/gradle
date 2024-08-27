@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
@@ -50,7 +49,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
     }
 
     @Override
-    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure, List<AttributeDescriber> attributeDescribers) {
+    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure) {
         GradleVersion minGradleApiVersionSupportedByPlugin = findMinGradleVersionSupportedByPlugin(failure.getCandidates());
         String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.describeRequestTarget(), minGradleApiVersionSupportedByPlugin);
         List<String> resolutions = buildResolutions(suggestUpdateGradle(minGradleApiVersionSupportedByPlugin), suggestDowngradePlugin(failure.describeRequestTarget()));

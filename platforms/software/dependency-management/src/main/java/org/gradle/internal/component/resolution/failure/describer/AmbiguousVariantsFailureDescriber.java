@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
@@ -25,6 +26,7 @@ import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFa
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -38,9 +40,18 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
+    private final AttributeDescriberRegistry attributeDescribers;
+
+    @Inject
+    public AmbiguousVariantsFailureDescriber(
+        AttributeDescriberRegistry attributeDescribers
+    ) {
+        this.attributeDescribers = attributeDescribers;
+    }
+
     @Override
-    public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure, List<AttributeDescriber> attributeDescribers) {
-        String message = buildFailureMsg(failure, attributeDescribers);
+    public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure) {
+        String message = buildFailureMsg(failure, attributeDescribers.getDescribers());
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
