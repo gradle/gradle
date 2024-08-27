@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.attributes.matching;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,11 +55,6 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
 
     public DefaultAttributeMatcher(AttributeSelectionSchema schema) {
         this.schema = schema;
-    }
-
-    @Override
-    public AttributeSelectionSchema getSelectionSchema() {
-        return schema;
     }
 
     @Override

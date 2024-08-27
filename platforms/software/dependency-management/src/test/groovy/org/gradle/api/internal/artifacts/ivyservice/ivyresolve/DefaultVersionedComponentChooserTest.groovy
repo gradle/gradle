@@ -31,7 +31,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
-import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.ComponentSelectionContext

@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model
+package org.gradle.api.internal.attributes.matching
 
-import com.google.common.collect.LinkedListMultimap
-import com.google.common.collect.Multimap
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.SnapshotTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import java.util.stream.Collectors
-import java.util.stream.IntStream
+import javax.inject.Inject
 
 import static org.gradle.util.AttributeTestUtil.attributes
 import static org.gradle.util.AttributeTestUtil.attributesTyped
@@ -36,16 +40,14 @@ import static org.gradle.util.TestUtil.objectFactory
 
 class DefaultAttributeMatcherTest extends Specification {
 
-    def schema = new TestSchema()
     def factory = AttributeTestUtil.attributesFactory()
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
 
     def "selects candidate with same set of attributes and whose values match"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of('usage', String)
-        schema.attribute(usage)
+        def matcher = newMatcher {
+            attribute(Attribute.of('usage', String))
+        }
 
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
@@ -61,12 +63,10 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "selects candidate with subset of attributes and whose values match"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of('usage', String)
-        schema.attribute(usage)
-        def other = Attribute.of('other', String)
-        schema.attribute(other)
+        def matcher = newMatcher {
+            attribute(Attribute.of('usage', String))
+            attribute(Attribute.of('other', String))
+        }
 
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
@@ -87,12 +87,10 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "selects candidate with additional attributes and whose values match"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of('usage', String)
-        schema.attribute(usage)
-        def other = Attribute.of('other', String)
-        schema.attribute(other)
+        def matcher = newMatcher {
+            attribute(Attribute.of('usage', String))
+            attribute(Attribute.of('other', String))
+        }
 
         def candidate1 = attributes(usage: "match", other: "dont care")
         def candidate2 = attributes(usage: "no match")
@@ -108,12 +106,10 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "selects multiple candidates with compatible values"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of('usage', String)
-        schema.attribute(usage)
-        def other = Attribute.of('other', String)
-        schema.attribute(other)
+        def matcher = newMatcher {
+            attribute(Attribute.of('usage', String))
+            attribute(Attribute.of('other', String))
+        }
 
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
@@ -129,18 +125,19 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "applies disambiguation rules and selects intersection of best matches for each attribute"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
+        def matcher = newMatcher {
+            def usage = Attribute.of('usage', String)
+            attribute(usage)
+            accept(usage, "requested", "compatible")
+            accept(usage, "requested", "best")
+            prefer(usage, "best")
 
-        def usage = Attribute.of('usage', String)
-        schema.attribute(usage)
-        schema.accept(usage, "requested", "compatible")
-        schema.accept(usage, "requested", "best")
-        schema.prefer(usage, "best")
-        def other = Attribute.of('other', String)
-        schema.attribute(other)
-        schema.accept(other, "requested", "compatible")
-        schema.accept(other, "requested", "best")
-        schema.prefer(other, "best")
+            def other = Attribute.of('other', String)
+            attribute(other)
+            accept(other, "requested", "compatible")
+            accept(other, "requested", "best")
+            prefer(other, "best")
+        }
 
         def candidate1 = attributes(usage: "best", other: "compatible")
         def candidate2 = attributes(usage: "no match", other: "no match")
@@ -157,25 +154,26 @@ class DefaultAttributeMatcherTest extends Specification {
         matcher.matchMultipleCandidates([candidate2, candidate4], requested, explanationBuilder) == [candidate4]
     }
 
-    def "rule can disambiguate based on requested value"() {
-        given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of('usage', String)
-        def rule = new AttributeDisambiguationRule<String>() {
-            @Override
-            void execute(MultipleCandidatesDetails details) {
-                if (details.consumerValue == null) {
-                    details.closestMatch("compatible")
-                } else if (details.consumerValue == "requested") {
-                    details.closestMatch("best")
-                }
+    static class DefaultToCompatible implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            if (details.consumerValue == null) {
+                details.closestMatch("compatible")
+            } else if (details.consumerValue == "requested") {
+                details.closestMatch("best")
             }
         }
-        schema.attribute(usage)
-        schema.accept(usage, "requested", "compatible")
-        schema.accept(usage, "requested", "best")
-        schema.select(usage, rule)
+    }
+
+    def "rule can disambiguate based on requested value"() {
+        given:
+        def usage = Attribute.of('usage', String)
+
+        def matcher = newMatcher {
+            attribute(usage).disambiguationRules.add(DefaultToCompatible)
+            accept(usage, "requested", "compatible")
+            accept(usage, "requested", "best")
+        }
 
         def candidate1 = attributes(usage: "compatible")
         def candidate2 = attributes(usage: "no match")
@@ -184,29 +182,29 @@ class DefaultAttributeMatcherTest extends Specification {
         def requested1 = attributes(usage: "requested")
         def requested2 = ImmutableAttributes.EMPTY
 
-
         expect:
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested1, explanationBuilder) == [candidate3]
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested2, explanationBuilder) == [candidate1]
     }
 
-    def "disambiguation rule is presented with all non-null candidate values"() {
-        given:
-        def matcher = new DefaultAttributeMatcher(schema)
-        def usage = Attribute.of("usage", String)
-        def rule = new AttributeDisambiguationRule<String>() {
-            @Override
-            void execute(MultipleCandidatesDetails details) {
-                if (details.consumerValue == "requested") {
-                    assert details.candidateValues == ["best", "compatible"] as Set
-                    details.closestMatch("best")
-                }
+    static class ChooseBest implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            if (details.consumerValue == "requested") {
+                assert details.candidateValues == ["best", "compatible"] as Set
+                details.closestMatch("best")
             }
         }
-        schema.attribute(usage)
-        schema.accept(usage, "requested", "best")
-        schema.accept(usage, "requested", "compatible")
-        schema.select(usage, rule)
+    }
+
+    def "disambiguation rule is presented with all non-null candidate values"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def matcher = newMatcher {
+            attribute(usage).disambiguationRules.add(ChooseBest)
+            accept(usage, "requested", "best")
+            accept(usage, "requested", "compatible")
+        }
 
         def candidate1 = attributes(usage: "best")
         def candidate2 = attributes(usage: "compatible")
@@ -219,12 +217,10 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "prefers match with superset of matching attributes"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of('usage', String)
-        schema.attribute(usage)
-        def other = Attribute.of('other', String)
-        schema.attribute(other)
+        def matcher = newMatcher {
+            attribute(Attribute.of('usage', String))
+            attribute(Attribute.of('other', String))
+        }
 
         def candidate1 = attributes(usage: "match")
         def candidate2 = attributes(usage: "no match")
@@ -243,12 +239,13 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "disambiguates multiple matches using extra attributes from producer"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-        def usage = Attribute.of("usage", String)
-        def other = Attribute.of("other", String)
-        schema.attribute(usage)
-        schema.attribute(other)
-        schema.prefer(other, "best")
+        def matcher = newMatcher {
+            attribute(Attribute.of('usage', String))
+
+            def other = Attribute.of('other', String)
+            attribute(other)
+            prefer(other, "best")
+        }
 
         def candidate1 = attributes(usage: "match", other: "ignored")
         def candidate2 = attributes(usage: "match", other: "best")
@@ -261,17 +258,17 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "ignores extra attributes if match is found after disambiguation requested attributes"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
+        def matcher = newMatcher {
+            def usage = Attribute.of("usage", String)
+            attribute(usage)
+            accept(usage, "foo", "compatible")
+            accept(usage, "foo", "best")
+            prefer(usage, "best")
 
-        def usage = Attribute.of("usage", String)
-        schema.attribute(usage)
-        schema.accept(usage, "foo", "compatible")
-        schema.accept(usage, "foo", "best")
-        schema.prefer(usage, "best")
-
-        def other = Attribute.of("other", String)
-        schema.attribute(other)
-        schema.prefer(other, "best")
+            def other = Attribute.of("other", String)
+            attribute(other)
+            prefer(other, "best")
+        }
 
         def candidate1 = attributes(usage: "compatible", other: "ignored")
         def candidate2 = attributes(usage: "best", other: "best")
@@ -284,10 +281,9 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "empty consumer attributes match any producer attributes"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of("usage", String)
-        schema.attribute(usage)
+        def matcher = newMatcher {
+            attribute(Attribute.of("usage", String))
+        }
 
         def candidate1 = ImmutableAttributes.EMPTY
         def candidate2 = attributes(usage: "ignored")
@@ -305,7 +301,7 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "non-empty consumer attributes match empty producer attributes"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
+        def matcher = newMatcher()
 
         def candidate = ImmutableAttributes.EMPTY
         def requested = attributes(usage: "dont care", other: "dont care")
@@ -317,11 +313,12 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "can match when consumer uses more general type for attribute"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", Number)
         def producer = Attribute.of("a", Integer)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): 1)
         def candidate2 = attributesTyped((producer): 2)
@@ -333,11 +330,12 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "can match when producer uses desugared attribute of type Named"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", NamedTestAttribute)
         def producer = Attribute.of("a", String)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): "name1")
         def candidate2 = attributesTyped((producer): "name2")
@@ -349,11 +347,12 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "can match when consumer uses desugared attribute of type Named"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", NamedTestAttribute)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): objectFactory().named(NamedTestAttribute, "name1"))
         def candidate2 = attributesTyped((producer): objectFactory().named(NamedTestAttribute, "name2"))
@@ -365,11 +364,12 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "can match when producer uses desugared attribute of type Enum"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", EnumTestAttribute)
         def producer = Attribute.of("a", String)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): "NAME1")
         def candidate2 = attributesTyped((producer): "NAME2")
@@ -381,11 +381,12 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "can match when consumer uses desugared attribute of type Enum"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", EnumTestAttribute)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): EnumTestAttribute.NAME1)
         def candidate2 = attributesTyped((producer): EnumTestAttribute.NAME2)
@@ -397,11 +398,12 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "cannot match when producer uses desugared attribute of unsupported type"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
         def producer = Attribute.of("a", String)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): "name1")
         def candidate2 = attributesTyped((producer): "name2")
@@ -412,16 +414,17 @@ class DefaultAttributeMatcherTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type org.gradle.internal.component.model.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute but found a value of type java.lang.String."
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type org.gradle.api.internal.attributes.matching.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute but found a value of type java.lang.String."
     }
 
     def "cannot match when consumer uses desugared attribute of unsupported type"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate1 = attributesTyped((producer): new NotSerializableInGradleMetadataAttribute("name1"))
         def candidate2 = attributesTyped((producer): new NotSerializableInGradleMetadataAttribute("name2"))
@@ -432,16 +435,17 @@ class DefaultAttributeMatcherTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type org.gradle.internal.component.model.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute."
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type org.gradle.api.internal.attributes.matching.DefaultAttributeMatcherTest\$NotSerializableInGradleMetadataAttribute."
     }
 
     def "matching fails when attribute has incompatible types in consumer and producer"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", Number)
-        schema.attribute(consumer)
+
+        def matcher = newMatcher {
+            attribute(consumer)
+        }
 
         def candidate = attributesTyped((producer): 1)
         def requested = attributesTyped((consumer): "1")
@@ -456,12 +460,10 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "prefers a strict match with requested values"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
-
-        def usage = Attribute.of("usage", String)
-        def other = Attribute.of("other", String)
-        schema.attribute(usage)
-        schema.attribute(other)
+        def matcher = newMatcher {
+            attribute(Attribute.of("usage", String))
+            attribute(Attribute.of("other", String))
+        }
 
         def candidate1 = attributes(usage: 'match')
         def candidate2 = attributes(usage: 'match', other: 'foo')
@@ -474,16 +476,15 @@ class DefaultAttributeMatcherTest extends Specification {
 
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         given:
-        def matcher = new DefaultAttributeMatcher(schema)
+        def matcher = newMatcher {
+            def usage = Attribute.of("usage", String)
+            def bundling = Attribute.of("bundling", type)
+            def status = Attribute.of("status", String)
 
-        def usage = Attribute.of("usage", String)
-        def bundling = Attribute.of("bundling", type)
-        def status = Attribute.of("status", String)
-
-        schema.with {
             attribute(usage)
             attribute(bundling)
             attribute(status)
+
             accept(usage, 'java-api', 'java-api-extra')
             accept(usage, 'java-api', 'java-runtime-extra')
             prefer(usage, 'java-api-extra')
@@ -543,85 +544,65 @@ class DefaultAttributeMatcherTest extends Specification {
         }
     }
 
-    private static class TestSchema implements AttributeSelectionSchema {
-        Set<Attribute<?>> attributes = []
-        Map<String, Attribute<?>> attributesByName = [:]
-        Map<Attribute<?>, Object> preferredValue = [:]
-        Map<Attribute<?>, AttributeDisambiguationRule> rules = [:]
-        Map<Attribute<?>, Multimap<Object, Object>> compatibleValues = [:]
+    private AttributeMatcher newMatcher(@DelegatesTo(TestSchema) Closure<?> action = {}) {
+        def mutable = new TestSchema()
 
-        void attribute(Attribute<?> attribute) {
-            attributes.add(attribute)
-            attributesByName.put(attribute.getName(), attribute)
+        action.delegate = mutable
+        action(mutable)
+
+        def selectionSchema = new DefaultAttributeSelectionSchema(mutable, EmptySchema.INSTANCE)
+        new DefaultAttributeMatcher(selectionSchema)
+    }
+
+    private class TestSchema extends DefaultAttributesSchema {
+        TestSchema() {
+            super(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         }
 
         void accept(Attribute<?> attribute, Object consumer, Object producer) {
-            if (!compatibleValues.containsKey(attribute)) {
-                compatibleValues.put(attribute, LinkedListMultimap.create())
+            this.attribute(attribute).compatibilityRules.add(AcceptingCompatibilityRule) {
+                params(consumer, producer)
             }
-            compatibleValues.get(attribute).put(consumer, producer)
-        }
-
-        void select(Attribute<?> attribute, AttributeDisambiguationRule rule) {
-            rules.put(attribute, rule)
         }
 
         void prefer(Attribute<?> attribute, Object value) {
-            preferredValue.put(attribute, value)
+            this.attribute(attribute).disambiguationRules.add(PreferredDisambiguationRule) {
+                params(value)
+            }
         }
 
-        @Override
-        boolean hasAttribute(Attribute<?> attribute) {
-            return attributes.contains(attribute)
-        }
+        static class AcceptingCompatibilityRule implements AttributeCompatibilityRule<Object> {
+            Object consumer
+            Object producer
 
-        @Override
-        Attribute<?> getAttribute(String name) {
-            return attributesByName.get(name)
-        }
+            @Inject
+            AcceptingCompatibilityRule(Object consumer, Object producer) {
+                this.consumer = consumer
+                this.producer = producer
+            }
 
-        @Override
-        boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
-            if (attributes.contains(attribute)) {
-                if (compatibleValues.containsKey(attribute)) {
-                    if (compatibleValues.get(attribute).get(requested).contains(candidate)) {
-                        return true
-                    }
-                }
-                if (requested == candidate) {
-                    return true
+            @Override
+            void execute(CompatibilityCheckDetails<Object> details) {
+                if (details.consumerValue == consumer && details.producerValue == producer) {
+                    details.compatible()
                 }
             }
-
-            return false
         }
 
-        @Override
-        Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
-            def result = new DefaultMultipleCandidateResult(requested, candidates)
+        static class PreferredDisambiguationRule implements AttributeDisambiguationRule<Object> {
+            Object value
 
-            def rule = rules.get(attribute)
-            if (rule != null) {
-                rule.execute(result)
-                return result.matches
+            @Inject
+            PreferredDisambiguationRule(Object value) {
+                this.value = value
             }
 
-            def preferred = preferredValue.get(attribute)
-            if (preferred != null && candidates.contains(preferred)) {
-                return [preferred]
+            @Override
+            void execute(MultipleCandidatesDetails<Object> details) {
+                if (details.candidateValues.contains(value)) {
+                    details.closestMatch(value)
+                }
             }
-
-            null
-        }
-
-        @Override
-        Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested) {
-            AttributeSelectionUtils.collectExtraAttributes(this, candidates, requested)
-        }
-
-        @Override
-        PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
-            return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()))
         }
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -25,7 +25,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Exposes operations for working with attributes. These operations are intended to be
+ * backed by rules defined in a {@link org.gradle.api.attributes.AttributesSchema}.
+ */
 public interface AttributeSelectionSchema {
+
+    /**
+     * Return true iff the given attribute is present in this schema.
+     */
     boolean hasAttribute(Attribute<?> attribute);
 
     /**

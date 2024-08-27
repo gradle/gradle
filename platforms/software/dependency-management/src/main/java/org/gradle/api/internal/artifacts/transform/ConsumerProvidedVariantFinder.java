@@ -23,7 +23,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.collections.ImmutableFilteredList;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

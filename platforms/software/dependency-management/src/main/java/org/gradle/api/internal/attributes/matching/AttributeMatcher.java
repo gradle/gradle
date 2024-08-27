@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.attributes.matching;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface AttributeMatcher {
-
-    @VisibleForTesting
-    AttributeSelectionSchema getSelectionSchema();
 
     /**
      * Determines whether the given candidate is compatible with the requested criteria.

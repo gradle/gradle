@@ -29,7 +29,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;

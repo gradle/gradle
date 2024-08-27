@@ -26,9 +26,9 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
-import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.inject.Inject;
