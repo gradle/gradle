@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManage
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
@@ -36,6 +37,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -58,14 +60,16 @@ public class JUnitTestFramework implements TestFramework {
     private final boolean useImplementationDependencies;
     private final Factory<File> testTaskTemporaryDir;
     private final Provider<Boolean> dryRun;
+    private final ObjectFactory objects;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter, boolean useImplementationDependencies) {
-        this(filter, useImplementationDependencies, new JUnitOptions(), testTask.getTemporaryDirFactory(), testTask.getDryRun());
+        this(filter, useImplementationDependencies, testTask.getProject().getObjects().newInstance(JUnitOptions.class), testTask.getTemporaryDirFactory(), testTask.getDryRun(), testTask.getProject().getObjects());
     }
 
-    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun) {
+    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun, ObjectFactory objects) {
         this.filter = filter;
         this.useImplementationDependencies = useImplementationDependencies;
+        this.objects = objects;
         this.options = options;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.detector = new JUnitDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
@@ -75,7 +79,7 @@ public class JUnitTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitOptions copiedOptions = new JUnitOptions();
+        JUnitOptions copiedOptions = objects.newInstance(JUnitOptions.class);
         copiedOptions.copyFrom(options);
 
         return new JUnitTestFramework(
@@ -83,7 +87,8 @@ public class JUnitTestFramework implements TestFramework {
             useImplementationDependencies,
             copiedOptions,
             testTaskTemporaryDir,
-            dryRun
+            dryRun,
+            objects
         );
     }
 
@@ -91,7 +96,13 @@ public class JUnitTestFramework implements TestFramework {
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         validateOptions();
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
-            filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories(), dryRun.get()));
+            filter.toSpec(),
+            // JUnitSpec get serialized to worker, so we create a copy of original set,
+            // to avoid serialization issues on worker for ImmutableSet that SetProperty returns
+            new LinkedHashSet<>(options.getIncludeCategories().get()),
+            new LinkedHashSet<>(options.getExcludeCategories().get()),
+            dryRun.get()
+        ));
     }
 
     @Override
@@ -135,8 +146,8 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(options.getIncludeCategories());
-        intersection.retainAll(options.getExcludeCategories());
+        Set<String> intersection = Sets.newHashSet(options.getIncludeCategories().get());
+        intersection.retainAll(options.getExcludeCategories().get());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  " +
