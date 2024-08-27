@@ -2610,7 +2610,7 @@ beforeSettings {
 =====
 ====
 
-[no_relative_paths_for_java_executables]
+[[no_relative_paths_for_java_executables]]
 ==== Deprecated using relative paths to specify Java executables
 Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
 This is done to reduce confusion about what such relative paths should resolve against.
