@@ -22,12 +22,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.plugin.software.internal.ModelDefault;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
@@ -41,17 +43,19 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
+    private final ServiceRegistry internalServices;
 
-    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme) {
+    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, ServiceRegistry internalServices) {
         this.softwareTypeRegistry = softwareTypeRegistry;
         this.inspectionScheme = inspectionScheme;
+        this.internalServices = internalServices;
     }
 
     @Override
     public <T> void apply(T target, String softwareTypeName, Plugin<? super T> plugin) {
         SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
 
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, internalServices.get(AdditionalDataBuilderFactory.class));
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
             typeValidationContext,

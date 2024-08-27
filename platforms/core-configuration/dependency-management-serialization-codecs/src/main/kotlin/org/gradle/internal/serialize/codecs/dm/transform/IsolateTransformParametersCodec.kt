@@ -29,6 +29,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.service.ServiceRegistry
 
 
 class IsolateTransformParametersCodec(
@@ -37,7 +38,8 @@ class IsolateTransformParametersCodec(
     val buildOperationRunner: BuildOperationRunner,
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     val fileCollectionFactory: FileCollectionFactory,
-    val documentationRegistry: DocumentationRegistry
+    val documentationRegistry: DocumentationRegistry,
+    val internalServices: ServiceRegistry
 ) : Codec<DefaultTransform.IsolateTransformParameters> {
     override suspend fun WriteContext.encode(value: DefaultTransform.IsolateTransformParameters) {
         write(value.parameterObject)
@@ -59,7 +61,8 @@ class IsolateTransformParametersCodec(
             isolatableFactory,
             buildOperationRunner,
             classLoaderHierarchyHasher,
-            fileCollectionFactory
+            fileCollectionFactory,
+            internalServices
         )
     }
 }

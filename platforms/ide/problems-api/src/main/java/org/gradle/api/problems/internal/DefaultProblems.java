@@ -37,6 +37,7 @@ public class DefaultProblems implements InternalProblems {
     private final Collection<ProblemEmitter> emitter;
     private final InternalProblemReporter internalReporter;
     private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
+    private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
 
     public DefaultProblems(Collection<ProblemEmitter> emitter, CurrentBuildOperationRef currentBuildOperationRef) {
         this(emitter, null, currentBuildOperationRef);
@@ -62,7 +63,7 @@ public class DefaultProblems implements InternalProblems {
     }
 
     private DefaultProblemReporter createReporter(Collection<ProblemEmitter> emitter, ProblemStream problemStream, Multimap<Throwable, Problem> problems) {
-        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, problems);
+        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, problems, additionalDataBuilderFactory);
     }
 
     @Override
@@ -73,5 +74,10 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public Multimap<Throwable, Problem> getProblemsForThrowables() {
         return problemsForThrowables;
+    }
+
+    @Override
+    public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
+        return additionalDataBuilderFactory;
     }
 }

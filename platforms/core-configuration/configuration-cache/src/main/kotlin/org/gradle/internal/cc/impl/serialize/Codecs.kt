@@ -136,6 +136,7 @@ import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.reentrant
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 
 
@@ -174,7 +175,8 @@ class Codecs(
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
     val parallelStore: Boolean = true,
-    val parallelLoad: Boolean = true
+    val parallelLoad: Boolean = true,
+    internalServices: ServiceRegistry
 ) {
     private
     val userTypesBindings: Bindings
@@ -221,7 +223,7 @@ class Codecs(
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
+            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry, internalServices))
             bind(FinalizeTransformDependenciesNodeCodec())
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)

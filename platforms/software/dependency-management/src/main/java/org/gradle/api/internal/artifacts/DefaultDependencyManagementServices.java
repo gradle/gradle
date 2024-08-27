@@ -367,6 +367,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             CalculatedValueContainerFactory calculatedValueContainerFactory,
             FileCollectionFactory fileCollectionFactory,
             FileLookup fileLookup,
+            InternalProblems problems,
             ServiceRegistry internalServices
         ) {
             return new DefaultTransformRegistrationFactory(
@@ -381,6 +382,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 domainObjectContext,
                 parameterScheme,
                 actionScheme,
+                problems,
                 internalServices
             );
         }

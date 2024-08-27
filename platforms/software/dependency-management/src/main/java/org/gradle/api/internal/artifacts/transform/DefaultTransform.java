@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Provider;
@@ -157,7 +158,7 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher,
-                fileCollectionFactory));
+                fileCollectionFactory, internalServices));
     }
 
     /**
@@ -297,9 +298,10 @@ public class DefaultTransform implements Transform {
         PropertyWalker propertyWalker,
         Hasher hasher,
         Object parameterObject,
-        boolean cacheable
+        boolean cacheable,
+        ServiceLookup internalServices
     ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, (AdditionalDataBuilderFactory) internalServices.get(AdditionalDataBuilderFactory.class));
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -568,6 +570,7 @@ public class DefaultTransform implements Transform {
         private final FileCollectionFactory fileCollectionFactory;
         private final boolean cacheable;
         private final Class<?> implementationClass;
+        private final ServiceLookup internalServices;
 
         public IsolateTransformParameters(
             @Nullable TransformParameters parameterObject,
@@ -578,7 +581,8 @@ public class DefaultTransform implements Transform {
             IsolatableFactory isolatableFactory,
             BuildOperationRunner buildOperationRunner,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            ServiceLookup internalServices
         ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
@@ -589,6 +593,7 @@ public class DefaultTransform implements Transform {
             this.buildOperationRunner = buildOperationRunner;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.fileCollectionFactory = fileCollectionFactory;
+            this.internalServices = internalServices;
         }
 
         @Nullable
@@ -695,7 +700,8 @@ public class DefaultTransform implements Transform {
                             parameterPropertyWalker,
                             hasher,
                             isolatedTransformParameters,
-                            cacheable
+                            cacheable,
+                            internalServices
                         );
                         context.setResult(FingerprintTransformInputsOperation.Result.INSTANCE);
                     }

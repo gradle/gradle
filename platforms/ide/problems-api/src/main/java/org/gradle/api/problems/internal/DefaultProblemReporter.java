@@ -31,29 +31,32 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Multimap<Throwable, Problem> problems;
+    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
     public DefaultProblemReporter(
         Collection<ProblemEmitter> emitters,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
-        Multimap<Throwable, Problem> problems
+        Multimap<Throwable, Problem> problems,
+        AdditionalDataBuilderFactory additionalDataBuilderFactory
     ) {
         this.emitters = emitters;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problems = problems;
+        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
     }
 
     @Override
     public void reporting(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
 
     @Override
     public RuntimeException throwing(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
         RuntimeException exception = problem.getException();
@@ -72,7 +75,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         problemBuilder.withException(e);
         throw throwError(e, problemBuilder.build());
@@ -80,7 +83,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public Problem create(Action<InternalProblemSpec> action) {
-        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream);
+        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
     }

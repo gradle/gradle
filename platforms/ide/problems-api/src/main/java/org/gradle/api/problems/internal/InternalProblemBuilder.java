@@ -79,4 +79,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
 
     @Override
     InternalProblemBuilder severity(Severity severity);
+
+    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
 }

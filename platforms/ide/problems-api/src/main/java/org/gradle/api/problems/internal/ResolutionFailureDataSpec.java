@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-
-import javax.annotation.Nullable;
-
-/**
- * Plugin ID location.
- */
-public interface PluginIdLocation extends ProblemLocation {
-
-    /**
-     * The plugin ID.
-     *
-     * @return the plugin ID
-     */
-    @Nullable
-    String getPluginId();
+public interface ResolutionFailureDataSpec extends AdditionalDataSpec {
+    ResolutionFailureDataSpec from(Object failure);
 }
