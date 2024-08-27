@@ -29,9 +29,11 @@ import java.util.Map;
  *
  * @since 8.11
  */
-@ServiceScope({Scope.Settings.class, Scope.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 @Incubating
 public interface IsolatedModelRouter {
+
+    // TODO: the key can be defined by the producer
 
     /**
      * TBD

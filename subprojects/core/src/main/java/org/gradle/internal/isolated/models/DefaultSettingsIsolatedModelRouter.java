@@ -17,22 +17,28 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DefaultSettingsIsolatedModelRouter implements IsolatedModelRouter {
 
     private final IsolatedModelScope buildScope;
     private final IsolatedModelController modelController;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
     public DefaultSettingsIsolatedModelRouter(
         GradleInternal gradle,
-        IsolatedModelController modelController
+        IsolatedModelController modelController,
+        ProjectRegistry<ProjectInternal> projectRegistry
     ) {
         this.buildScope = new IsolatedModelScope(gradle.getIdentityPath());
         this.modelController = modelController;
+        this.projectRegistry = projectRegistry;
     }
 
     @Override
@@ -47,7 +53,16 @@ public class DefaultSettingsIsolatedModelRouter implements IsolatedModelRouter {
 
     @Override
     public <T> Map<String, Provider<T>> getProjectModels(IsolatedModelKey<T> key, Collection<String> projectPaths) {
-        throw new UnsupportedOperationException();
+        return projectPaths.stream()
+            .map(projectRegistry::getProject)
+            .collect(Collectors.toMap(
+                ProjectInternal::getPath,
+                it -> modelController.obtain(buildScope, key, scope(it))
+            ));
+    }
+
+    private static IsolatedModelScope scope(ProjectInternal project) {
+        return new IsolatedModelScope(project.getBuildPath(), project.getProjectPath());
     }
 
     @Override

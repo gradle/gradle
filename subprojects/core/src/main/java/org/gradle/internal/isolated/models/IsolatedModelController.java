@@ -16,6 +16,7 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -38,7 +39,7 @@ public class IsolatedModelController {
     public <T> Provider<T> obtain(IsolatedModelScope consumerScope, IsolatedModelKey<T> key, IsolatedModelScope producerScope) {
         Key<T> workKey = new Key<>(producerScope, key);
         IsolatedModelWork<?> work = workByKey.get(workKey);
-        Provider<?> provider = work.prepare();
+        Provider<?> provider = work == null ? Providers.notDefined() : work.prepare();
         return (Provider<T>) provider;
     }
 
