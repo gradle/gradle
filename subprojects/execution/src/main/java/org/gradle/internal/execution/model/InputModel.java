@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.model;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;
@@ -32,16 +31,17 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * A view of the inputs of a unit of work.
  */
 public interface InputModel extends InstanceModel {
-    ImmutableCollection<NestedPropertyModel> getNested();
+    Collection<NestedPropertyModel> getNested();
 
-    ImmutableCollection<ScalarInputPropertyModel> getScalarInputs();
+    Collection<ScalarInputPropertyModel> getScalarInputs();
 
-    ImmutableCollection<FileInputPropertyModel> getFileInputs();
+    Collection<FileInputPropertyModel> getFileInputs();
 
     abstract class Extractor<M extends InstanceModel> {
         private final FileCollectionResolver fileCollectionResolver;
@@ -71,8 +71,8 @@ public interface InputModel extends InstanceModel {
         protected interface Builder<M extends InstanceModel> {
             M build(
                 ImmutableList<NestedPropertyModel> nestedPropertyModels,
-                ImmutableCollection<ScalarInputPropertyModel> scalarInputs,
-                ImmutableCollection<FileInputPropertyModel> fileInputs
+                ImmutableList<ScalarInputPropertyModel> scalarInputs,
+                ImmutableList<FileInputPropertyModel> fileInputs
             );
         }
 
@@ -117,15 +117,15 @@ public interface InputModel extends InstanceModel {
     }
 
     abstract class AbstractInputModel<S extends WorkInstanceSchema> extends AbstractInstanceModel<S> implements InputModel {
-        private final ImmutableCollection<NestedPropertyModel> nested;
-        private final ImmutableCollection<ScalarInputPropertyModel> scalarInputs;
-        private final ImmutableCollection<FileInputPropertyModel> fileInputs;
+        private final ImmutableList<NestedPropertyModel> nested;
+        private final ImmutableList<ScalarInputPropertyModel> scalarInputs;
+        private final ImmutableList<FileInputPropertyModel> fileInputs;
 
         public AbstractInputModel(
             S schema,
-            ImmutableCollection<NestedPropertyModel> nested,
-            ImmutableCollection<ScalarInputPropertyModel> scalarInputs,
-            ImmutableCollection<FileInputPropertyModel> fileInputs
+            ImmutableList<NestedPropertyModel> nested,
+            ImmutableList<ScalarInputPropertyModel> scalarInputs,
+            ImmutableList<FileInputPropertyModel> fileInputs
         ) {
             super(schema);
             this.nested = nested;
@@ -135,17 +135,17 @@ public interface InputModel extends InstanceModel {
 
 
         @Override
-        public ImmutableCollection<NestedPropertyModel> getNested() {
+        public ImmutableList<NestedPropertyModel> getNested() {
             return nested;
         }
 
         @Override
-        public ImmutableCollection<ScalarInputPropertyModel> getScalarInputs() {
+        public ImmutableList<ScalarInputPropertyModel> getScalarInputs() {
             return scalarInputs;
         }
 
         @Override
-        public ImmutableCollection<FileInputPropertyModel> getFileInputs() {
+        public ImmutableList<FileInputPropertyModel> getFileInputs() {
             return fileInputs;
         }
     }

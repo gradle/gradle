@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskRequiredServices
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -94,6 +95,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.compareTo(_ as TaskInternal) >> { TaskInternal taskInternal ->
             return path.compareTo(taskInternal.identityPath)
         }
+        task.instanceSchema >> emptyInstanceSchema()
         task.outputs >> emptyTaskOutputs()
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
@@ -132,6 +134,10 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         Mock(TaskDependencyContainerInternal) {
             visitDependencies(_) >> { TaskDependencyResolveContext context -> tasks.forEach { context.add(it) } }
         }
+    }
+
+    private TaskInstanceSchema emptyInstanceSchema() {
+        Stub(TaskInstanceSchema)
     }
 
     private TaskOutputsInternal emptyTaskOutputs() {

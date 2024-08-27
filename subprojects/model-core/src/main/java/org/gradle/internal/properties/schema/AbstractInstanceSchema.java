@@ -16,10 +16,11 @@
 
 package org.gradle.internal.properties.schema;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+
+import javax.annotation.Nullable;
 
 public abstract class AbstractInstanceSchema implements InstanceSchema {
     private final ReplayingTypeValidationContext validationProblems;
@@ -36,12 +37,12 @@ public abstract class AbstractInstanceSchema implements InstanceSchema {
     }
 
     @Override
-    public ImmutableCollection<NestedPropertySchema> getNestedProperties() {
+    public ImmutableList<NestedPropertySchema> getNestedProperties() {
         return nestedProperties;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.model;
 
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.internal.execution.model.FileCollectionResolver;
@@ -53,9 +53,9 @@ public interface TaskInputModel extends InputModel, TaskModel {
     class DefaultTaskInputModel extends AbstractInputModel<TaskInstanceSchema> implements TaskInputModel {
         public DefaultTaskInputModel(
             TaskInstanceSchema schema,
-            ImmutableCollection<NestedPropertyModel> nested,
-            ImmutableCollection<ScalarInputPropertyModel> scalarInputs,
-            ImmutableCollection<FileInputPropertyModel> fileInputs
+            ImmutableList<NestedPropertyModel> nested,
+            ImmutableList<ScalarInputPropertyModel> scalarInputs,
+            ImmutableList<FileInputPropertyModel> fileInputs
         ) {
             super(schema, nested, scalarInputs, fileInputs);
         }

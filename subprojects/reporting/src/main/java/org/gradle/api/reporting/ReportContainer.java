@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.util.Configurable;
@@ -92,6 +93,12 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
      *
      * @since 4.7
      */
+    @Internal
+    default Map<String, T> getEnabledReports() {
+        return getEnabledReportsInternal().get();
+    }
+
     @Nested
-    Map<String, T> getEnabledReports();
+    MapProperty<String, T> getEnabledReportsInternal();
+
 }

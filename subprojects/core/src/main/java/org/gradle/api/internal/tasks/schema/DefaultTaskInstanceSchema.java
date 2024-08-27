@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.schema;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.schema.AbstractWorkInstanceSchema;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;
@@ -50,22 +49,22 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
     }
 
     @Override
-    public ImmutableCollection<FileOutputPropertySchema> getOutputs() {
+    public ImmutableList<FileOutputPropertySchema> getOutputs() {
         return outputs;
     }
 
     @Override
-    public ImmutableCollection<LocalStatePropertySchema> getLocalStates() {
+    public ImmutableList<LocalStatePropertySchema> getLocalStates() {
         return localStates;
     }
 
     @Override
-    public ImmutableCollection<DestroysPropertySchema> getDestroys() {
+    public ImmutableList<DestroysPropertySchema> getDestroys() {
         return destroys;
     }
 
     @Override
-    public ImmutableCollection<ServiceReferencePropertySchema> getServiceReferences() {
+    public ImmutableList<ServiceReferencePropertySchema> getServiceReferences() {
         return serviceReferences;
     }
 

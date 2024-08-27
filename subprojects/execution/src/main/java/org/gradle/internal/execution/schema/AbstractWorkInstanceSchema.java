@@ -16,11 +16,12 @@
 
 package org.gradle.internal.execution.schema;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.schema.AbstractInstanceSchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+
+import javax.annotation.Nullable;
 
 public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implements WorkInstanceSchema {
     private final ImmutableList<ScalarInputPropertySchema> inputs;
@@ -38,17 +39,17 @@ public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implement
     }
 
     @Override
-    public ImmutableCollection<ScalarInputPropertySchema> getScalarInputs() {
+    public ImmutableList<ScalarInputPropertySchema> getScalarInputs() {
         return inputs;
     }
 
     @Override
-    public ImmutableCollection<FileInputPropertySchema> getFileInputs() {
+    public ImmutableList<FileInputPropertySchema> getFileInputs() {
         return fileInputs;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
