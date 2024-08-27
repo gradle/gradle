@@ -101,7 +101,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems.getAdditionalDataBuilderFactory());
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation

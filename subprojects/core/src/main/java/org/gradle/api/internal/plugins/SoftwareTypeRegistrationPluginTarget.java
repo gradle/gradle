@@ -102,7 +102,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     }
 
     void validateSoftwareTypePluginExposesExactlyOneSoftwareType(Class<? extends Plugin<Project>> softwareTypePluginImplClass, Class<?> registeringPlugin) {
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareTypePluginImplClass, false, problems.getAdditionalDataBuilderFactory());
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareTypePluginImplClass, false, problems);
         TypeToken<?> softwareTypePluginImplType = TypeToken.of(softwareTypePluginImplClass);
         TypeMetadata softwareTypePluginImplMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(softwareTypePluginImplType.getRawType());
         softwareTypePluginImplMetadata.visitValidationFailures(null, typeValidationContext);

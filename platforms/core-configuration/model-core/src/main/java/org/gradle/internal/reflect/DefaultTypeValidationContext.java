@@ -19,9 +19,9 @@ package org.gradle.internal.reflect;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -37,16 +37,16 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     private final boolean reportCacheabilityProblems;
     private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        return new DefaultTypeValidationContext(rootType, cacheable, additionalDataBuilderFactory);
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
+        return new DefaultTypeValidationContext(rootType, cacheable, problems);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        return new DefaultTypeValidationContext(null, reportCacheabilityProblems, additionalDataBuilderFactory);
+    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, InternalProblems problems) {
+        return new DefaultTypeValidationContext(null, reportCacheabilityProblems, problems);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        super(rootType, Optional::empty, additionalDataBuilderFactory);
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
+        super(rootType, Optional::empty, problems);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
