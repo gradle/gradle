@@ -85,7 +85,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
-                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + AdditionalDataBuilderFactory.getSupportedTypes());
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
         }
 
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
@@ -255,7 +255,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (AdditionalDataBuilderFactory.hasProviderForSpec(specType)) {
+        if (additionalDataBuilderFactory.hasProviderForSpec(specType)) {
             AdditionalDataBuilder<?> additionalDataBuilder = additionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDataBuilder);
             additionalData = additionalDataBuilder.build();

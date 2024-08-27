@@ -18,20 +18,66 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 @ServiceScope(Scope.Build.class)
-public class AdditionalDataBuilderFactory {
+public final class AdditionalDataBuilderFactory {
+    private final Map<Class<?>, DataTypeAndProvider> additionalDataProviders = new HashMap<Class<?>, DataTypeAndProvider>();
 
-    public static String getSupportedTypes() {
+    public AdditionalDataBuilderFactory() {
+        additionalDataProviders.put(GeneralDataSpec.class, new DataTypeAndProvider(
+            GeneralData.class,
+            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+                @Override
+                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
+                    return DefaultGeneralData.builder((GeneralData) instance);
+                }
+            }));
+        additionalDataProviders.put(DeprecationDataSpec.class, new DataTypeAndProvider(
+            DeprecationData.class,
+            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+                @Override
+                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
+                    return DefaultDeprecationData.builder((DeprecationData) instance);
+                }
+            }));
+        additionalDataProviders.put(TypeValidationDataSpec.class, new DataTypeAndProvider(
+            TypeValidationData.class,
+            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+                @Override
+                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
+                    return DefaultTypeValidationData.builder((TypeValidationData) instance);
+                }
+            }));
+        additionalDataProviders.put(PropertyTraceDataSpec.class, new DataTypeAndProvider(
+            PropertyTraceData.class,
+            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+                @Override
+                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
+                    return DefaultPropertyTraceData.builder((PropertyTraceData) instance);
+                }
+            }));
+    }
+
+    /**
+     * Registers a provider for additional data of the given type.
+     *
+     * @param dataType The type of additional data to provide
+     * @param provider The builder function, which will be called to create a builder for the given additional data type
+     */
+    public void registerAdditionalDataProvider(Class<?> dataType, Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> provider) {
+        additionalDataProviders.put(dataType, new DataTypeAndProvider(dataType, provider));
+    }
+
+    public String getSupportedTypes() {
         StringBuilder result = new StringBuilder();
-        for (Class<?> key : ADDITIONAL_DATA_BUILDER_PROVIDERS.keySet()) {
+        for (Class<?> key : additionalDataProviders.keySet()) {
             if (result.length() > 0) {
                 result.append(", ");
             }
@@ -40,63 +86,10 @@ public class AdditionalDataBuilderFactory {
         return result.toString();
     }
 
-    private static class DataTypeAndProvider {
-        final Class<?> dataType;
-        final Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider;
-
-        DataTypeAndProvider(Class<?> dataType, Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider) {
-            this.dataType = dataType;
-            this.builderProvider = builderProvider;
-        }
-    }
-
-    private static final Map<Class<?>, DataTypeAndProvider> ADDITIONAL_DATA_BUILDER_PROVIDERS = ImmutableMap.<Class<?>, DataTypeAndProvider>builder()
-        .put(GeneralDataSpec.class, new DataTypeAndProvider(
-            GeneralData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
-                @Override
-                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
-                    return DefaultGeneralData.builder((GeneralData) instance);
-                }
-            }))
-        .put(DeprecationDataSpec.class, new DataTypeAndProvider(
-            DeprecationData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
-                @Override
-                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
-                    return DefaultDeprecationData.builder((DeprecationData) instance);
-                }
-            }))
-        .put(TypeValidationDataSpec.class, new DataTypeAndProvider(
-            TypeValidationData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
-                @Override
-                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
-                    return DefaultTypeValidationData.builder((TypeValidationData) instance);
-                }
-            }))
-        .put(PropertyTraceDataSpec.class, new DataTypeAndProvider(
-            PropertyTraceData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
-                @Override
-                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
-                    return DefaultPropertyTraceData.builder((PropertyTraceData) instance);
-                }
-            }))
-        .put(ResolutionFailureDataSpec.class, new DataTypeAndProvider(
-            ResolutionFailureData.class,
-            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
-                @Override
-                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
-                    return DefaultResolutionFailureData.builder((ResolutionFailureData) instance);
-                }
-            }))
-        .build();
-
     @SuppressWarnings("unchecked")
-    private static <S extends AdditionalData, U extends AdditionalDataSpec> AdditionalDataBuilder<S> builderFor(Class<? extends U> specType, @Nullable S instance, String illegalArgumentMessage) {
+    private <S extends AdditionalData, U extends AdditionalDataSpec> AdditionalDataBuilder<S> builderFor(Class<? extends U> specType, @Nullable S instance, String illegalArgumentMessage) {
         Preconditions.checkNotNull(specType);
-        DataTypeAndProvider dataTypeAndProvider = ADDITIONAL_DATA_BUILDER_PROVIDERS.get(specType);
+        DataTypeAndProvider dataTypeAndProvider = additionalDataProviders.get(specType);
         if (dataTypeAndProvider != null) {
             return (AdditionalDataBuilder<S>) dataTypeAndProvider.builderProvider.apply(instance);
         }
@@ -113,12 +106,22 @@ public class AdditionalDataBuilderFactory {
         throw new IllegalArgumentException("Additional data of type " + additionalData.getClass() + " is already set");
     }
 
-    public static <U extends AdditionalDataSpec> boolean hasProviderForSpec(Class<? extends U> specType) {
-        return ADDITIONAL_DATA_BUILDER_PROVIDERS.containsKey(specType);
+    public <U extends AdditionalDataSpec> boolean hasProviderForSpec(Class<? extends U> specType) {
+        return additionalDataProviders.containsKey(specType);
     }
 
-    private static <U extends AdditionalDataSpec> boolean isCompatible(Class<? extends U> specType, @Nonnull AdditionalData additionalData) {
-        DataTypeAndProvider dataTypeAndProvider = ADDITIONAL_DATA_BUILDER_PROVIDERS.get(specType);
+    private <U extends AdditionalDataSpec> boolean isCompatible(Class<? extends U> specType, @Nonnull AdditionalData additionalData) {
+        DataTypeAndProvider dataTypeAndProvider = additionalDataProviders.get(specType);
         return dataTypeAndProvider != null && dataTypeAndProvider.dataType.isInstance(additionalData);
+    }
+
+    private static class DataTypeAndProvider {
+        final Class<?> dataType;
+        final Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider;
+
+        private DataTypeAndProvider(Class<?> dataType, Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> builderProvider) {
+            this.dataType = dataType;
+            this.builderProvider = builderProvider;
+        }
     }
 }
