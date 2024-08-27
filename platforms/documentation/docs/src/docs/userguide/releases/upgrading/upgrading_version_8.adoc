@@ -40,6 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== `JavaCompile` tasks may fail when using a JRE even if compilation is not necessary
+
+The `JavaCompile` tasks may fail when using a JRE instead of a JDK in more cases. The toolchain resolution code was changed to enforce the presence of a compiler when being asked for one. However, the `java-base` plugin used the `JavaCompile` compiler to determine the default source and target compatibility when `sourceCompatibility`/`targetCompatibility` or `release` were not set. Now that the compiler cannot be resolved, this default causes the build to fail when only given a JRE, even if no compilation needs to occur (for example, with no sources).
+
+This can be fixed by setting the `sourceCompatibility`/`targetCompatibility` explicitly in the `java` extension, or by setting `sourceCompatibility`/`targetCompatibility` or `release` in the relevant task(s).
+
 ==== Upgrade to Kotlin 1.9.24
 
 The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.24[Kotlin 1.9.24].
