@@ -35,8 +35,8 @@ class JUnitOptionsTest extends Specification {
 
         then:
         with(target) {
-            includeCategories =~ ["sourceIncludedCategory"]
-            excludeCategories =~ ["sourceExcludedCategory"]
+            assert includeCategories.get() =~ ["sourceIncludedCategory"]
+            assert excludeCategories.get() =~ ["sourceExcludedCategory"]
         }
     }
 
