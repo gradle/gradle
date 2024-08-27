@@ -708,10 +708,6 @@ tasks.named("docsTest") { task ->
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             def testsForUnsupportedFeatures = [
-                "building-cpp-applications_groovy_build.sample",
-                "building-cpp-applications_kotlin_build.sample",
-                "building-cpp-libraries_groovy_build.sample",
-                "building-cpp-libraries_kotlin_build.sample",
                 "snippet-ant-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget.sample",
                 "snippet-ant-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget.sample",
                 "snippet-ant-depends-on-ant-target_groovy_dependsOnAntTarget.sample",
