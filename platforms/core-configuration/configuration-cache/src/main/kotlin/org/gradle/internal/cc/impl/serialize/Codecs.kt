@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.OrdinalGroupFactory
@@ -136,7 +137,6 @@ import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.reentrant
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 
 
@@ -176,7 +176,8 @@ class Codecs(
     transformStepNodeFactory: TransformStepNodeFactory,
     val parallelStore: Boolean = true,
     val parallelLoad: Boolean = true,
-    internalServices: ServiceRegistry
+    internalServices: ServiceRegistry,
+    problems: InternalProblems
 ) {
     private
     val userTypesBindings: Bindings
@@ -223,7 +224,7 @@ class Codecs(
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry, internalServices))
+            bind(IsolateTransformParametersCodec(parameterScheme, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry, problems))
             bind(FinalizeTransformDependenciesNodeCodec())
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)

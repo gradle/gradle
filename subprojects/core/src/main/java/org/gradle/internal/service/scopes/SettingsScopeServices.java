@@ -112,7 +112,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
             softwareTypeRegistry,
             pluginScheme.getInspectionScheme(),
-            settingsScopeServiceRegistry
+            problems
         );
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }

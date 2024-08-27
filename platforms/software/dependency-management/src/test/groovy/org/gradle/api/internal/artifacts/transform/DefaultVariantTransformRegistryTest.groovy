@@ -89,9 +89,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
             ),
             inspectionScheme
         ),
-        Stub(InternalProblems),
-        Stub(ServiceLookup)
-
+        Stub(ServiceLookup) {
+            get(InternalProblems) >> Mock(InternalProblems)
+        }
     )
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 

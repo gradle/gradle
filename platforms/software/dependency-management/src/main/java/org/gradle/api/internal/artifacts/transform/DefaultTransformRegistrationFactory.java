@@ -66,7 +66,6 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
-    private final InternalProblems internalProblems;
 
     public DefaultTransformRegistrationFactory(
         BuildOperationRunner buildOperationRunner,
@@ -80,7 +79,6 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         DomainObjectContext owner,
         TransformParameterScheme parameterScheme,
         TransformActionScheme actionScheme,
-        InternalProblems internalProblems,
         ServiceLookup internalServices
     ) {
         this.buildOperationRunner = buildOperationRunner;
@@ -95,7 +93,6 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         this.actionInstantiationScheme = actionScheme.getInstantiationScheme();
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
         this.parametersPropertyWalker = parameterScheme.getInspectionScheme().getPropertyWalker();
-        this.internalProblems = internalProblems;
         this.internalServices = internalServices;
     }
 
@@ -103,7 +100,8 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, internalProblems.getAdditionalDataBuilderFactory());
+        InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems.getAdditionalDataBuilderFactory());
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation

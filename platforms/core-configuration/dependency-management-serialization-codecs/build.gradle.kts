@@ -36,12 +36,13 @@ dependencies {
     api(projects.hashing)
     api(projects.logging)
     api(projects.modelCore)
-    api(projects.serviceLookup)
+    api(projects.problemsApi)
     api(projects.snapshots)
 
     api(libs.kotlinStdlib)
 
     implementation(projects.configurationCacheBase)
+    implementation(projects.serviceLookup)
     implementation(projects.serialization)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
