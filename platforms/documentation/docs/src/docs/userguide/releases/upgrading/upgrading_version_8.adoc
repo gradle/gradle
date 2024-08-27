@@ -90,6 +90,7 @@ val myConfig = buildscript.configurations.detachedConfiguration(
 val files = myConfig.files
 ----
 
+[[adding_to_configuration_container]]
 ==== Deprecated manually adding to configuration container
 
 Starting in Gradle 9.0, manually adding configuration instances to a configuration container will result in an error.
@@ -102,6 +103,7 @@ Calling the following methods on link:{javadocPath}/org/gradle/api/artifacts/Con
 - addLater(Provider)
 - addAllLater(Provider)
 
+[[deprecated_abstract_options]]
 ==== Deprecated `AbstractOptions`
 
 The `AbstractOptions` class has been deprecated and will be removed in Gradle 9.0.
@@ -133,6 +135,7 @@ tasks.withType(JavaCompile) {
 }
 ----
 
+[[deprecated_content_equals]]
 ==== Deprecated `Dependency#contentEquals(Dependency)`
 
 The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
