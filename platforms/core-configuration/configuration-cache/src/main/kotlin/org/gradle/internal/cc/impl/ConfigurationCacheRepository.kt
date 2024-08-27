@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.CacheBuilder
@@ -76,7 +77,7 @@ class ConfigurationCacheRepository(
             WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
     }
 
-    private
+    internal
     class ReadableLayout(
         private val cacheDir: File
     ) : Layout() {
@@ -273,7 +274,8 @@ class ConfigurationCacheRepository(
 }
 
 
-private
+@VisibleForTesting
+internal
 fun File.readableConfigurationCacheStateFile(stateType: StateType) =
     ReadableConfigurationCacheStateFile(stateFile(stateType), stateType)
 
@@ -298,5 +300,5 @@ fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
 private
 fun relatedStateFileFor(parentStateFile: File, path: Path) =
     parentStateFile.run {
-        resolveSibling("${path.segments().joinToString("_", "_")}.$name")
+        resolveSibling("${path.segments().joinToString("_", if (path.isAbsolute) "_" else "")}.$name")
     }

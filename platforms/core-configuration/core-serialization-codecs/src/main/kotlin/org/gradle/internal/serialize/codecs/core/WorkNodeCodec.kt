@@ -260,8 +260,8 @@ class WorkNodeCodec(
 
         val nodesById = batchedGroupNodes.get()
             .combineInto(Array<Node?>(nodeIdCount) { null }) { (node, id) ->
-            this[id] = node
-        }
+                this[id] = node
+            }
         return { id: Int -> nodesById[id]!! }
     }
 
@@ -295,6 +295,7 @@ class WorkNodeCodec(
                     // never runs
                     error(Unit)
                 }
+
                 else -> throw e
             }
         }
@@ -305,11 +306,13 @@ class WorkNodeCodec(
         val id: Int
     )
 
+    /**
+     * Returns a path that uniquely identifies this node owner.
+     */
     private
     fun NodeOwner.path(): Path {
-        // TODO:parallel-cc make sure there are no conflicts between project node and owner-less nodes
         return when (this) {
-            NodeOwner.None -> owner.identityPath.child("owner-less")
+            NodeOwner.None -> Path.path("build").append(owner.identityPath)
             is NodeOwner.Project -> project.identityPath
         }
     }
