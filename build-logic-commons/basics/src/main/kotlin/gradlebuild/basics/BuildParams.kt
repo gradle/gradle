@@ -20,14 +20,12 @@ import gradlebuild.basics.BuildParams.AUTO_DOWNLOAD_ANDROID_STUDIO
 import gradlebuild.basics.BuildParams.BUILD_BRANCH
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_DISTRIBUTION
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_ID
-import gradlebuild.basics.BuildParams.BUILD_CONFIGURATION_ID
 import gradlebuild.basics.BuildParams.BUILD_FINAL_RELEASE
 import gradlebuild.basics.BuildParams.BUILD_ID
 import gradlebuild.basics.BuildParams.BUILD_IGNORE_INCOMING_BUILD_RECEIPT
 import gradlebuild.basics.BuildParams.BUILD_MILESTONE_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_PROMOTION_COMMIT_ID
 import gradlebuild.basics.BuildParams.BUILD_RC_NUMBER
-import gradlebuild.basics.BuildParams.BUILD_SERVER_URL
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
@@ -55,8 +53,10 @@ import gradlebuild.basics.BuildParams.RETRY_BUILD
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
+import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_DOGFOODING_TAG
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
+import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_SERVER_URL
 import gradlebuild.basics.BuildParams.TEST_JAVA_VENDOR
 import gradlebuild.basics.BuildParams.TEST_JAVA_VERSION
 import gradlebuild.basics.BuildParams.TEST_SPLIT_EXCLUDE_TEST_CLASSES
@@ -80,14 +80,12 @@ object BuildParams {
     const val BUILD_BRANCH = "BUILD_BRANCH"
     const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
     const val BUILD_COMMIT_DISTRIBUTION = "buildCommitDistribution"
-    const val BUILD_CONFIGURATION_ID = "BUILD_TYPE_ID"
     const val BUILD_FINAL_RELEASE = "finalRelease"
     const val BUILD_ID = "BUILD_ID"
     const val BUILD_IGNORE_INCOMING_BUILD_RECEIPT = "ignoreIncomingBuildReceipt"
     const val BUILD_MILESTONE_NUMBER = "milestoneNumber"
     const val BUILD_PROMOTION_COMMIT_ID = "promotionCommitId"
     const val BUILD_RC_NUMBER = "rcNumber"
-    const val BUILD_SERVER_URL = "BUILD_SERVER_URL"
     const val BUILD_TIMESTAMP = "buildTimestamp"
     const val BUILD_VCS_NUMBER = "BUILD_VCS_NUMBER"
     const val BUILD_VERSION_QUALIFIER = "versionQualifier"
@@ -121,8 +119,10 @@ object BuildParams {
     const val RERUN_ALL_TESTS = "rerunAllTests"
     const val RETRY_BUILD = "retryBuild"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
+    const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
+    const val TEST_DISTRIBUTION_SERVER_URL = "testDistributionServerUrl"
     const val TEST_SPLIT_INCLUDE_TEST_CLASSES = "includeTestClasses"
     const val TEST_SPLIT_EXCLUDE_TEST_CLASSES = "excludeTestClasses"
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
@@ -218,10 +218,6 @@ val Project.isBuildCommitDistribution: Boolean
     get() = gradleProperty(BUILD_COMMIT_DISTRIBUTION).map { it.toBoolean() }.orElse(false).get()
 
 
-val Project.buildConfigurationId: Provider<String>
-    get() = environmentVariable(BUILD_CONFIGURATION_ID)
-
-
 val Project.buildFinalRelease: Provider<String>
     get() = gradleProperty(BUILD_FINAL_RELEASE)
 
@@ -236,10 +232,6 @@ val Project.buildRcNumber: Provider<String>
 
 val Project.buildRunningOnCi: Provider<Boolean>
     get() = environmentVariable(CI_ENVIRONMENT_VARIABLE).presence()
-
-
-val Project.buildServerUrl: Provider<String>
-    get() = environmentVariable(BUILD_SERVER_URL)
 
 
 val Project.buildMilestoneNumber: Provider<String>
@@ -373,9 +365,15 @@ val Project.predictiveTestSelectionEnabled: Provider<Boolean>
             enabled && !rerunAllTests
         }
 
+val Project.testDistributionDogfoodingTag: Provider<String>
+    get() = gradleProperty(TEST_DISTRIBUTION_DOGFOODING_TAG)
 
 val Project.testDistributionEnabled: Boolean
     get() = systemProperty(TEST_DISTRIBUTION_ENABLED).orNull?.toBoolean() == true
+
+
+val Project.testDistributionServerUrl: Provider<String>
+    get() = gradleProperty(TEST_DISTRIBUTION_SERVER_URL)
 
 
 // Controls the test distribution partition size. The test classes smaller than this value will be merged into a "partition"

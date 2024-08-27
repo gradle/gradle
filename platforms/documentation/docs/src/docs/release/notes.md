@@ -1,5 +1,14 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 8.10.
+
+It fixes the following issues:
+* [#30239](https://github.com/gradle/gradle/issues/30239) Gradle 8.10 Significantly Slower Due to Dependency Resolution
+
+We recommend users upgrade to @version@ instead of 8.10.
+
+***
+
 Gradle now supports running on [Java 23](#java-23).
 
 This release introduces performance and reporting improvements to the [configuration cache](#config-cache), including a significant reduction in the cache file size and accelerated cache loading times. There are also [updates to build authoring APIs](#build-authoring).
@@ -205,6 +214,14 @@ With this release, Gradle will start emitting warnings when using older JVM vers
 ```text
 Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.
 ```
+
+### Matching specific vendors with daemon JVM criteria
+
+[Daemon JVM critiera](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) supports specifying the JVM vendor. When considering available JVM toolchains, Gradle will only choose a toolchain compatible with both the specified JVM vendor and version. 
+
+If no JVM vendor is specified in the criteria, any vendor is considered compatible. 
+
+This feature is still incubating and may change in future versions of Gradle. 
 
 ## Promoted features
 
