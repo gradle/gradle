@@ -35,6 +35,6 @@ class JUnitTestFrameworkTest extends Specification {
         } as Action<JUnitOptions>)
 
         then:
-        (testTask.options as JUnitOptions).includeCategories == ['ExcludedCategory'] as Set
+        (testTask.options as JUnitOptions).includeCategories.get() == ['ExcludedCategory'] as Set
     }
 }
