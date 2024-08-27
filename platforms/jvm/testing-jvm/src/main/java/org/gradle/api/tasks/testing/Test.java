@@ -1313,8 +1313,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
         if (JUnitOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitOptions junitOptions = (JUnitOptions) frameworkOptions;
-            return junitOptions.getIncludeCategories().isEmpty()
-                && junitOptions.getExcludeCategories().isEmpty();
+            return junitOptions.getIncludeCategories().get().isEmpty()
+                && junitOptions.getExcludeCategories().get().isEmpty();
         } else if (JUnitPlatformOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitPlatformOptions junitPlatformOptions = (JUnitPlatformOptions) frameworkOptions;
             return junitPlatformOptions.getIncludeTags().isEmpty()
