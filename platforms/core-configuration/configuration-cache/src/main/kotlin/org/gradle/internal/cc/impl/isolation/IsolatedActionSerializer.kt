@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl.isolation
 
 import org.gradle.api.IsolatedAction
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.impl.ConfigurationCacheError
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.configuration.problems.PropertyProblem
