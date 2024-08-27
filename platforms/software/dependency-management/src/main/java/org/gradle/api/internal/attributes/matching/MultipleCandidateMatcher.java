@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.attributes.matching;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
@@ -22,6 +22,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
