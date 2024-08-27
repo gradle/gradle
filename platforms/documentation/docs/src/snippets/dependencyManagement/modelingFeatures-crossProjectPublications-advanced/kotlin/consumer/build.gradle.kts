@@ -2,7 +2,6 @@ plugins {
     `java-library`
 }
 
-
 repositories {
     mavenCentral()
 }
@@ -26,8 +25,11 @@ configurations {
 
 // tag::compatibility-rule-use[]
 dependencies {
+    // The attributesSchema block adds a custom compatibility rule for the LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE attribute.
     attributesSchema {
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE) {
+            // Without this rule, Gradle would consider the regular "jar" and the
+            // "instrumented-jar" incompatible and fail to resolve the dependency.
             compatibilityRules.add(InstrumentedJarsRule::class.java)
         }
     }
@@ -36,7 +38,6 @@ dependencies {
 
 // tag::compatibility-rule[]
 abstract class InstrumentedJarsRule: AttributeCompatibilityRule<LibraryElements> {
-
     override fun execute(details: CompatibilityCheckDetails<LibraryElements>) = details.run {
         if (consumerValue?.name == "instrumented-jar" && producerValue?.name == "jar") {
             compatible()

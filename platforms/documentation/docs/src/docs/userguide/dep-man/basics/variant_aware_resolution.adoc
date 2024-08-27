@@ -16,68 +16,96 @@
 = 7. Variant Aware Dependency Resolution
 
 In Gradle, the traditional method of sharing artifacts between projects involves the producer defining a configuration, and the consumer explicitly stating which configuration to depend on.
-However, this method isn't ideal when you want to automate the selection of variants based on the consumer's needs without specifying a particular configuration.
+However, this method isn't ideal when you want to automate the selection of *variants* based on the consumer's needs without specifying a particular configuration.
 
 Gradle allows for a more dynamic approach called **variant-aware resolution**, where both the producer and consumer define their requirements using **attributes**.
-By doing this, Gradle can automatically select the correct variant without the consumer explicitly specifying which one to use.
-For instance, if you're working with different architectures (like `arm64` and `i386`), Gradle can choose the appropriate version of a library (`myLib`) for each architecture.
 
-To make this practical, consider a Java library project where you create a new variant (`instrumentedJars`) and want to ensure it’s selected for testing:
+By doing this, Gradle can automatically select the correct *variant* without the consumer explicitly specifying which one to use.
 
-- **Producer Side**: You define the `instrumentedJars` configuration with attributes similar to those of the default runtime variant but specifying that this variant contains instrumented classes.
-- **Consumer Side**: You adjust the consumer’s configuration (`testRuntimeClasspath`) to request the `instrumented-jar` variant instead of the default runtime jar.
+For instance, if you're working with different architectures (like `arm64` and `i386`), Gradle can choose the appropriate version of a library (`myLib`) for each architecture:
 
-Finally, to handle dependencies that don’t provide instrumented versions, you write a compatibility rule that allows Gradle to fall back on the regular jar if necessary.
+1. The *producer*, `myLib`, sets up configurations (`arm64Jars`, `i386Jars`) with specific *attributes* (e.g., `ArchType.ARM64`, `ArchType.I386`).
+2. The *consumer*, `myApp`, specifies the required *attributes* (e.g., `ArchType.ARM64`) in its configuration (`testRuntimeClasspath`).
+3. If the *consumer*, `myApp`, needs `arm64` architecture, Gradle will automatically pick the `arm64Jars` *variant* from the `myLib` *producer* and use the corresponding *artifact*.
 
-By following this approach, Gradle can intelligently select the correct variants during dependency resolution, optimizing your build based on the context.
+== A coded example
 
-== Producer side
+Consider a Java library where you create a new *variant* called `instrumentedJars` and want to ensure it’s selected for testing:
 
-As a consequence, if we want our instrumented classes to be used in place of this variant when executing tests, we need to attach similar attributes to our variant.
-In fact, the attribute we care about is `org.gradle.libraryelements` which explains _what the variant contains_, so we can setup the variant this way:
+1. *Producer Project*: Creates a specialized `instrumentedJars` *variant* marked with specific attributes.
+2. *Consumer Project*: Configured to request the `instrumented-jar` *variant* for testing.
+3. *Compatibility Rule*: Ensures that if the `instrumented-jar` isn’t available, Gradle falls back on the regular `jar`.
 
-.Declaring the variant attributes
+Let's look at the build files of the producer and consumer.
+
+== The producer side
+
+=== 1. Create an instrumented JAR:
+
+Our Java library has a task called `instrumentedJar` which produces a JAR file with the classifier "instrumented."
+We expect other projects to consume this JAR file.
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=declare-task]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-task]"]
+====
+
+=== 2. Create a custom outgoing configuration:
+
+We want our instrumented classes to be used when executing tests, so we need to attach proper *attributes* to our *variant*.
+We create a new configuration named `instrumentedJars`.
+This configuration:
+
+- Can be consumed by other projects.
+- Cannot be resolved (i.e., it’s meant to be used as an output, not an input).
+- Has specific *attributes*, including `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` set to "instrumented-jar", which explains what the *variant* contains.
+
 ====
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=declare-outgoing-configuration]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
 ====
 
-[NOTE]
+=== 3. Attach the Artifact:
+
+The `instrumentedJar` task’s output is added to the `instrumentedJars` configuration as an *artifact*.
+This makes it available for other projects to consume.
+
 ====
-Choosing the right attributes to set is the hardest thing in this process, because they carry the semantics of the variant.
-Therefore, before adding _new attributes_, you should always ask yourself if there isn't an attribute which carries the semantics you need.
-If there isn't, then you may add a new attribute.
-When adding new attributes, you must also be careful because it's possible that it creates ambiguity during selection.
-Often adding an attribute means adding it to _all_ existing variants.
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact]"]
 ====
 
-What we have done here is that we have added a _new_ variant, which can be used _at runtime_, but contains instrumented classes instead of the normal classes.
+What we have done here is that we have added a _new_ *variant*, which can be used _at runtime_, but contains instrumented classes instead of the normal classes.
 However, it now means that for runtime, the consumer has to choose between two variants:
 
-- `runtimeElements`, the regular variant offered by the `java-library` plugin
-- `instrumentedJars`, the variant we have created
+1. `runtimeElements`, the regular variant offered by the `java-library` plugin
+2. `instrumentedJars`, the variant we have created
 
-== Consumer side
+== The consumer side
 
-In particular, say we want the instrumented classes on the test runtime classpath.
-We can now, on the consumer, declare our dependency as a regular project dependency:
+=== 1. Add dependencies:
+
+First, on the consumer side, like any other project, we define the Java library as a dependency:
 
 ====
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=test_dependency]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=test_dependency]"]
 ====
 
-If we stop here, Gradle will still select the `runtimeElements` variant in place of our `instrumentedJars` variant.
-This is because the `testRuntimeClasspath` configuration asks for a configuration which `libraryelements` attribute is `jar`, and our new `instrumented-jars` value is _not compatible_.
+At this point, Gradle will still select the default `runtimeElements` *variant* for your dependencies.
+This is because the `testRuntimeClasspath` configuration is requesting *artifacts* with the `jar` library elements *attribute*, while the producer defines the `instrumentedJars` *variant* with a different *attribute*.
 
-So we need to change the requested attributes so that we now look for instrumented jars:
+=== 2. Adjust the requested attributes:
+
+The `testRuntimeClasspath` configuration is modified to ask for "instrumented-jar" versions of the dependencies.
+This means that when Gradle resolves dependencies for this configuration, it will prefer JAR files that are marked as "instrumented":
 
 ====
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=ask-for-instrumented-classes]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=ask-for-instrumented-classes]"]
 ====
 
-We can look at another report _on the consumer side_ to view exactly what attributes of each dependency will be requested:
+We can look at a report on the consumer side to view exactly what *attributes* of each dependency will be requested:
 
 [source,text]
 ----
@@ -91,13 +119,11 @@ Attributes
     - org.gradle.usage               = java-runtime
 ----
 
-The `resolvableConfigurations` report is the complement of the `outgoingVariants` report.
-By running both of these reports on the consumer and producer sides of a relationship, respectively, you can see exactly what attributes are involved in matching during dependency resolution and better predict the outcome when configurations are resolved.
+In this case, we see the `testRuntimeClasspath` configuration requests _instrumented classes_.
 
-Now, we're saying that whenever we're going to resolve the test runtime classpath, what we are looking for is _instrumented classes_.
-There is a problem though: in our dependencies list, we have JUnit, which, obviously, is _not_ instrumented.
-So if we stop here, Gradle is going to fail, explaining that there's no variant of JUnit which provide instrumented classes.
-This is because we didn't explain that it's fine to use the regular jar, if no instrumented version is available.
+=== 3. Handle missing variants with compatibility rules:
+
+Since not all dependencies (like `junit`) will provide instrumented classes, you need to define a compatibility rule that allows Gradle to fall back on the regular `jar` if an `instrumented-jar` is not available.
 
 To do this, we need to write a _compatibility rule_:
 
@@ -112,3 +138,5 @@ Which we need to declare on the attributes schema:
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule-use]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule-use]"]
 ====
+
+By following these steps, Gradle will intelligently select the correct *variants* based on the configuration and *attributes*, while also handling cases where specialized *variants* are not available.
