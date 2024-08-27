@@ -273,6 +273,11 @@ The affected properties are:
 - link:{javadocPath}/org/gradle/language/scala/tasks/BaseScalaCompileOptions.html#getForkOptions()[BaseScalaCompileOptions.getForkOptions]
 - link:{javadocPath}/org/gradle/language/scala/tasks/BaseScalaCompileOptions.html#getIncrementalOptions()[BaseScalaCompileOptions.getIncrementalOptions]
 
+[[deprecated_javadoc_verbose]]
+==== Deprecated `Javadoc.isVerbose()` and `Javadoc.setVerbose(boolean)`
+
+These methods duplicate the functionality of `Javadoc.getOptions().isVerbose()` and `Javadoc.getOptions().verbose()`, and do not document that setting `false` does not do anything.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 

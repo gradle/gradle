@@ -45,7 +45,9 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -309,8 +311,13 @@ public abstract class Javadoc extends SourceTask {
      * @see #setVerbose(boolean)
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "deprecated and replaced by options.verbose")
     public boolean isVerbose() {
+        DeprecationLogger.deprecateMethod(Javadoc.class, "isVerbose()")
+            .withAdvice("Please use the getOptions().isVerbose() method instead. It may be necessary to cast the options to CoreJavadocOptions to access the replacement method.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
+            .nagUser();
         return options.isVerbose();
     }
 
@@ -322,7 +329,18 @@ public abstract class Javadoc extends SourceTask {
      */
     public void setVerbose(boolean verbose) {
         if (verbose) {
+            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(true)")
+                .withAdvice("Please use the getOptions().verbose() method instead. It may be necessary to cast the options to CoreJavadocOptions to access the replacement method.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
+                .nagUser();
             options.verbose();
+        } else {
+            DeprecationLogger.deprecateMethod(Javadoc.class, "setVerbose(false)")
+                .withAdvice("Passing false to this method does nothing. You may want to call getOptions().quiet(). It may be necessary to cast the options to CoreJavadocOptions to access this method.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_javadoc_verbose")
+                .nagUser();
         }
     }
 
