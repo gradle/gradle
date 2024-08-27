@@ -23,10 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.Describables
-
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
@@ -60,8 +57,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     }
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
-    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def failureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems))
+    def failureProcessor = DependencyManagementTestUtil.newFailureHandler()
 
     def 'direct match on variant means no finder interaction'() {
         given:

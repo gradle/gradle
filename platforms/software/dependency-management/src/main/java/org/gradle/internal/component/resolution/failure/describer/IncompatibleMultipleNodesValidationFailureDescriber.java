@@ -19,7 +19,6 @@ package org.gradle.internal.component.resolution.failure.describer;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.GraphValidationException;
@@ -27,7 +26,6 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipl
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodesValidationFailure}.
@@ -37,7 +35,7 @@ public abstract class IncompatibleMultipleNodesValidationFailureDescriber extend
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public GraphValidationException describeFailure(IncompatibleMultipleNodesValidationFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public GraphValidationException describeFailure(IncompatibleMultipleNodesValidationFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new GraphValidationException(msg, failure, resolutions);

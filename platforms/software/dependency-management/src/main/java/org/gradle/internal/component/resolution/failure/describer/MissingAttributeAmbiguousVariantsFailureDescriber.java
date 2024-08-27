@@ -18,12 +18,13 @@ package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,13 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
      * Each failure will be added once (by identity), then removed during failure description.
      */
     private final IdentityHashMap<AmbiguousVariantsFailure, String> suggestableDistinctAttributes = new IdentityHashMap<>();
+
+    @Inject
+    public MissingAttributeAmbiguousVariantsFailureDescriber(
+        AttributeDescriberRegistry attributeDescribers
+    ) {
+        super(attributeDescribers);
+    }
 
     @Override
     public boolean canDescribeFailure(AmbiguousVariantsFailure failure) {
@@ -75,11 +83,11 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
     }
 
     @Override
-    protected String buildFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
+    protected String buildFailureMsg(AmbiguousVariantsFailure failure, List<AttributeDescriber> attributeDescribers) {
         String distinguishingAttribute = suggestableDistinctAttributes.remove(failure);
         assert distinguishingAttribute != null;
 
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
         TreeFormatter formatter = new TreeFormatter();
         summarizeAmbiguousVariants(failure, describer, formatter, false);
         buildSpecificAttributeSuggestionMsg(failure, distinguishingAttribute, formatter);

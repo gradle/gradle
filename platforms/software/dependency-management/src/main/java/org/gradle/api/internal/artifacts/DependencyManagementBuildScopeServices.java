@@ -43,12 +43,10 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSe
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
@@ -81,7 +79,6 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -95,17 +92,12 @@ import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -147,9 +139,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(FileResourceConnector.class);
-        registration.add(DependencyGraphResolver.class);
         registration.add(ResolvedArtifactSetResolver.class);
-        registration.add(DependencyGraphBuilder.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
     }
 
@@ -352,18 +342,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
                 return map.computeIfAbsent(key, mappingFunction);
             }
         };
-    }
-
-    @Provides
-    ResolutionFailureHandler createResolutionFailureProcessor(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
-        InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
-        ResolutionFailureDescriberRegistry failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
-        return new ResolutionFailureHandler(failureDescriberRegistry, problemsService);
-    }
-
-    @Provides
-    GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
-        return new GraphVariantSelector(resolutionFailureHandler);
     }
 
     @Provides

@@ -81,7 +81,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.classLoaderScope = classLoaderScope;
         this.dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
         this.buildLogicBuilder = buildLogicBuilder;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
+        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
     }
 
     @Override

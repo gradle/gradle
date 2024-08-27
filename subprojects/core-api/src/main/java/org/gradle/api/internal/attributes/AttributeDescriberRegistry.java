@@ -15,13 +15,20 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.AttributesSchema;
-
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public interface AttributesSchemaWithDescribers extends AttributesSchema {
+public class AttributeDescriberRegistry {
 
-    List<AttributeDescriber> getConsumerDescribers();
+    private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
 
-    void addConsumerDescriber(AttributeDescriber describer);
+    public void addDescriber(AttributeDescriber describer) {
+        consumerAttributeDescribers.add(describer);
+    }
+
+    public List<AttributeDescriber> getDescribers() {
+        return Collections.unmodifiableList(consumerAttributeDescribers);
+    }
+
 }

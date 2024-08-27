@@ -514,7 +514,7 @@ public class DependencyGraphBuilder {
             Set<VariantGraphResolveMetadata> incompatibleNodeMetadatas = incompatibleNodes.stream()
                 .map(NodeState::getMetadata)
                 .collect(Collectors.toSet());
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected.getMetadata(), incompatibleNodeMetadatas);
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

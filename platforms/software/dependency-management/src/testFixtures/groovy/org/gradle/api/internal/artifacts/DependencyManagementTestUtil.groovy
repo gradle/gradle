@@ -16,17 +16,18 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
 import org.gradle.internal.component.model.ComponentIdGenerator
-import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
@@ -58,11 +59,10 @@ class DependencyManagementTestUtil {
         return new TestComponentDescriptorFactory()
     }
 
-    static ResolutionFailureDescriberRegistry standardResolutionFailureDescriberRegistry() {
-        def registry = new DefaultServiceRegistry().with {
-            add(DocumentationRegistry.class, new DocumentationRegistry())
+    static ResolutionFailureHandler newFailureHandler() {
+        def services = TestUtil.createTestServices {
+            it.add(AttributeDescriberRegistry)
         }
-        return ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory().inject(registry))
+        new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(services), new DefaultProblems([new NoOpProblemEmitter()]))
     }
-
 }

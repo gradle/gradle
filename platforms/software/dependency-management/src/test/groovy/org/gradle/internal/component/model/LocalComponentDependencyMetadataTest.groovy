@@ -32,8 +32,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
@@ -49,7 +47,7 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
-    GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry(), Stub(InternalProblems)))
+    GraphVariantSelector variantSelector = new GraphVariantSelector(DependencyManagementTestUtil.newFailureHandler())
 
     ComponentIdentifier toComponentId = Stub(ComponentIdentifier) {
         getDisplayName() >> "[target]"

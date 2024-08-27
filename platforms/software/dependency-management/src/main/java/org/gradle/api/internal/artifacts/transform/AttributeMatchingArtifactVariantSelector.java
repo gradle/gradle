@@ -68,7 +68,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         try {
             return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, requestAttributes, t));
+            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
@@ -81,7 +81,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
-            throw failureProcessor.ambiguousArtifactsFailure(schema, matcher, producer, componentRequested, matches);
+            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -98,14 +98,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformsFailure(schema, producer, componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noCompatibleArtifactFailure(schema, matcher, producer, componentRequested, variants);
+        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants);
     }
 
     /**
