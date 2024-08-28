@@ -60,7 +60,7 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
             htmlDependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> getProjectFile(project))));
             htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
             htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(htmlDependencyReportTask.getProjectReportDirectory().dir("dependencies"));
-            htmlDependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+            htmlDependencyReportTask.getProjects().convention(WrapUtil.toSet(project));
         });
 
         project.getTasks().register(PROJECT_REPORT, projectReportTask -> {
@@ -77,7 +77,7 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
     private static void configureReportTask(Project project, ConventionReportTask reportTask, String outputFileName, String description) {
         reportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> getProjectFile(project))));
         reportTask.setDescription("Generates a report about your " + description + " project.");
-        reportTask.conventionMapping("outputFile", () -> reportTask.getProjectReportDirectory().file(outputFileName).get().getAsFile());
-        reportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+        reportTask.getOutputFile().convention(reportTask.getProjectReportDirectory().file(outputFileName));
+        reportTask.getProjects().convention(WrapUtil.toSet(project));
     }
 }
