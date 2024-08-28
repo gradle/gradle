@@ -40,7 +40,7 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
 
     private ProjectBasedReportModel<T> calculateReportModel() {
         Map<ProjectDetails, T> map = new LinkedHashMap<>();
-        for (Project project : getProjects()) {
+        for (Project project : getProjects().get()) {
             map.put(
                 ProjectDetails.of(project),
                 calculateReportModelFor(project)
