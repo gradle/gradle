@@ -20,6 +20,8 @@ plugins {
 
 description = "Base asm classes and utilities for Gradle's internal use"
 
+gradlebuildJava.usedInWorkers()
+
 dependencies {
     api(libs.asm)
     api(libs.jsr305)
