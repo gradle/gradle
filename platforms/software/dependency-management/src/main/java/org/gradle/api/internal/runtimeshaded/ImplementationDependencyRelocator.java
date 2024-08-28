@@ -50,9 +50,6 @@ class ImplementationDependencyRelocator extends Remapper {
                 }
             }
         });
-        // TODO Find a better name for `org.gradle.fileevents` so don't need to explicitly include it here
-        //      Something not under `org.gradle` would be ideal.
-        builder.addWord("org/gradle/fileevents");
         return builder.build();
     }
 
