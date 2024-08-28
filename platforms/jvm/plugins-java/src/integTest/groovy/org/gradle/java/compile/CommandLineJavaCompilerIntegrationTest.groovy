@@ -27,7 +27,7 @@ class CommandLineJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegra
         """
             compileJava.options.with {
                 fork = true
-                forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(Jvm.current().javaHome.toString())}")
+                forkOptions.executable = file("${TextUtil.normaliseFileSeparators(Jvm.current().getJavacExecutable().toPath().toString())}")
             }
         """
     }
