@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -56,12 +57,12 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {
 
-    private final TextReportRenderer renderer = new TextReportRenderer();
+    public ProjectReportTask() {
+        getRenderer().convention(new TextReportRenderer()).finalizeValueOnRead();
+    }
 
     @Override
-    protected TextReportRenderer getRenderer() {
-        return renderer;
-    }
+    protected abstract Property<TextReportRenderer> getRenderer();
 
     @Inject
     public abstract BuildStateRegistry getBuildStateRegistry();
@@ -157,7 +158,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     @Override
     protected void generateReportHeaderFor(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
         renderProjectTypeInfo(modelsByProjectDetails);
-        renderSectionTitle("Projects", getRenderer().getTextOutput());
+        renderSectionTitle("Projects", getRenderer().get().getTextOutput());
     }
 
     private void renderProjectTypeInfo(Map<ProjectDetails, ProjectReportModel> modelsByProjectDetails) {
@@ -166,7 +167,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             .sorted(Comparator.comparing(ProjectFeatureImplementation::getFeatureName))
             .collect(Collectors.toList());
 
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
+        StyledTextOutput textOutput = getRenderer().get().getTextOutput();
         if (!projectFeatures.isEmpty()) {
             renderSectionTitle("Available project types", textOutput);
             textOutput.println();
@@ -182,7 +183,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     @Override
     protected void generateReportFor(ProjectDetails project, ProjectReportModel model) {
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
+        StyledTextOutput textOutput = getRenderer().get().getTextOutput();
         renderRootProjectLocation(model, textOutput);
         renderRootProjectDescription(model, textOutput);
 
@@ -254,7 +255,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private void renderProjectType(ProjectReportModel model) {
         if (!model.projectTypes.isEmpty()) {
-            StyledTextOutput textOutput = getRenderer().getTextOutput();
+            StyledTextOutput textOutput = getRenderer().get().getTextOutput();
             assert model.projectTypes.size() == 1;
             textOutput.append(" (").append(model.projectTypes.get(0).getFeatureName()).append(")");
         }
