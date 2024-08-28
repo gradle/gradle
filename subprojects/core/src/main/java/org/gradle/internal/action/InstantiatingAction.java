@@ -66,6 +66,24 @@ public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        InstantiatingAction<?> that = (InstantiatingAction<?>) o;
+        return rules.equals(that.rules);
+    }
+
+    @Override
+    public int hashCode() {
+        return rules.hashCode();
+    }
+
     public ConfigurableRules<DETAILS> getRules() {
         return rules;
     }

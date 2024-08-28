@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ImmutableModuleSources;
@@ -46,7 +46,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends VirtualComponentIdentifier> platformOwners;
-    private final AttributesSchemaInternal schema;
+    private final ImmutableAttributesSchema schema;
     private final VariantDerivationStrategy variantDerivationStrategy;
     private final boolean externalVariant;
     private final boolean isComponentMetadataRuleCachingEnabled;
@@ -147,7 +147,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public AttributesSchemaInternal getAttributesSchema() {
+    public ImmutableAttributesSchema getAttributesSchema() {
         return schema;
     }
 

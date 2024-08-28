@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversChain;
@@ -87,8 +88,8 @@ import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -117,7 +118,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ResolutionResultsStoreFactory storeFactory;
     private final boolean buildProjectDependencies;
-    private final AttributesSchemaInternal consumerSchema;
     private final VariantSelectorFactory variantSelectorFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -144,7 +144,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         GlobalDependencyResolutionRules metadataHandler,
         ResolutionResultsStoreFactory storeFactory,
         StartParameter startParameter,
-        AttributesSchemaInternal consumerSchema,
         VariantSelectorFactory variantSelectorFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         BuildOperationExecutor buildOperationExecutor,
@@ -170,7 +169,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.metadataHandler = metadataHandler;
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = startParameter.isBuildProjectDependencies();
-        this.consumerSchema = consumerSchema;
         this.variantSelectorFactory = variantSelectorFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -200,18 +198,21 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
-        ComponentResolvers resolvers = getResolvers(resolveContext, Collections.emptyList());
-        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, resolvers);
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
+        ImmutableAttributesSchema consumerSchema = rootComponent.getRootComponent().getMetadata().getAttributesSchema();
+
+        ComponentResolvers resolvers = getResolvers(resolveContext, Collections.emptyList(), consumerSchema);
+        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, resolvers, consumerSchema);
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
-        doResolve(resolveContext, resolvers, false, IS_LOCAL_EDGE, visitors);
+        doResolve(resolveContext, rootComponent, resolutionStrategy, resolvers, false, IS_LOCAL_EDGE, visitors);
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
 
         ResolutionHost resolutionHost = resolveContext.getResolutionHost();
-        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(resolveContext);
+        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(consumerSchema, resolveContext);
         VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsBuilder.complete(), artifactSetResolver, artifactVariantSelector);
 
         ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
@@ -266,13 +267,16 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             dependencyLockingProvider.confirmNotLocked(resolveContext.getDependencyLockingId());
         }
 
-        ComponentResolvers resolvers = getResolvers(resolveContext, getFilteredRepositories(resolveContext));
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
+        ImmutableAttributesSchema consumerSchema = rootComponent.getRootComponent().getMetadata().getAttributesSchema();
+
+        ComponentResolvers resolvers = getResolvers(resolveContext, getFilteredRepositories(resolveContext), consumerSchema);
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
             oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
-        graphVisitors.add(artifactVisitorFor(artifactVisitors, resolvers));
+        graphVisitors.add(artifactVisitorFor(artifactVisitors, resolvers, consumerSchema));
 
-        doResolve(resolveContext, resolvers, true, Specs.satisfyAll(), graphVisitors.build());
+        doResolve(resolveContext, rootComponent, resolutionStrategy, resolvers, true, Specs.satisfyAll(), graphVisitors.build());
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
 
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
@@ -305,7 +309,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             lockingVisitor.writeLocks();
         }
 
-        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(resolveContext);
+        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(consumerSchema, resolveContext);
         VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsResults, artifactSetResolver, artifactVariantSelector);
 
         // Legacy results
@@ -334,7 +338,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
     }
 
-    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolvers resolvers) {
+    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolvers resolvers, ImmutableAttributesSchema consumerSchema) {
         return new ResolvedArtifactsGraphVisitor(
             artifactsVisitor,
             artifactTypeRegistry,
@@ -346,10 +350,14 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         );
     }
 
-    private ArtifactVariantSelector artifactVariantSelectorFor(ResolveContext resolveContext) {
+    private ArtifactVariantSelector artifactVariantSelectorFor(
+        ImmutableAttributesSchema consumerSchema,
+        ResolveContext resolveContext
+    ) {
         return variantSelectorFactory.create(
             resolveContext.getResolutionHost(),
             resolveContext.getAttributes().asImmutable(),
+            consumerSchema,
             resolveContext.getConfigurationIdentity(),
             resolveContext.getResolutionStrategy().getSortOrder(),
             resolveContext.getResolverResults(),
@@ -367,13 +375,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
      */
     private void doResolve(
         ResolveContext resolveContext,
+        RootComponentMetadataBuilder.RootComponentState rootComponent,
+        ResolutionStrategyInternal resolutionStrategy,
         ComponentResolvers resolvers,
         boolean includeSyntheticDependencies,
         Spec<DependencyMetadata> edgeFilter,
         ImmutableList<DependencyGraphVisitor> visitors
     ) {
-        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-
         if (resolutionStrategy.isDependencyLockingEnabled()) {
             if (resolutionStrategy.isFailingOnDynamicVersions()) {
                 throw new InvalidUserCodeException(
@@ -391,10 +399,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolveContext.getSyntheticDependencies() : Collections.emptyList();
 
         dependencyGraphResolver.resolve(
-            resolveContext.toRootComponent(),
+            rootComponent,
             syntheticDependencies,
             edgeFilter,
-            consumerSchema,
             componentSelectorConverter,
             resolvers.getComponentIdResolver(),
             resolvers.getComponentResolver(),
@@ -417,7 +424,11 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     /**
      * Get component resolvers that resolve local and external components.
      */
-    private ComponentResolvers getResolvers(ResolveContext resolveContext, List<ResolutionAwareRepository> repositories) {
+    private ComponentResolvers getResolvers(
+        ResolveContext resolveContext,
+        List<ResolutionAwareRepository> repositories,
+        ImmutableAttributesSchema consumerSchema
+    ) {
         List<ComponentResolvers> resolvers = new ArrayList<>(3);
         for (ResolverProviderFactory factory : resolverFactories) {
             factory.create(resolvers, localComponentRegistry);

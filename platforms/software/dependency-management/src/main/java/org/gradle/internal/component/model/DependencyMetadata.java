@@ -18,8 +18,8 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import javax.annotation.Nullable;
@@ -30,7 +30,7 @@ import java.util.List;
  * A dependency that can participate in dependency resolution.
  * Note that various subtypes provide additional details, but these are not required by the core resolution engine.
  *
- * @implSpec See the specification note on {@link #selectVariants(GraphVariantSelector, ImmutableAttributes, ComponentGraphResolveState, AttributesSchemaInternal, Collection)}
+ * @implSpec See the specification note on {@link #selectVariants(GraphVariantSelector, ImmutableAttributes, ComponentGraphResolveState, ImmutableAttributesSchema, Collection)}
  */
 public interface DependencyMetadata {
     /**
@@ -47,7 +47,7 @@ public interface DependencyMetadata {
      * any failures during selection should be routed through that handler. This is done to keep all failure handling done
      * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
      */
-    GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
+    GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
 
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.

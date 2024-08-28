@@ -42,10 +42,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -82,6 +83,7 @@ public class DependencyGraphBuilder {
 
     private final ModuleExclusions moduleExclusions;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final AttributeDesugaring attributeDesugaring;
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
@@ -94,6 +96,7 @@ public class DependencyGraphBuilder {
     public DependencyGraphBuilder(
         ModuleExclusions moduleExclusions,
         ImmutableAttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         AttributeDesugaring attributeDesugaring,
         VersionSelectorScheme versionSelectorScheme,
         VersionComparator versionComparator,
@@ -104,6 +107,7 @@ public class DependencyGraphBuilder {
     ) {
         this.moduleExclusions = moduleExclusions;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.attributeDesugaring = attributeDesugaring;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
@@ -117,7 +121,6 @@ public class DependencyGraphBuilder {
         RootComponentMetadataBuilder.RootComponentState rootComponent,
         List<? extends DependencyMetadata> syntheticDependencies,
         Spec<? super DependencyMetadata> edgeFilter,
-        AttributesSchemaInternal consumerSchema,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyToComponentIdResolver componentIdResolver,
         ComponentMetaDataResolver componentMetaDataResolver,
@@ -141,10 +144,10 @@ public class DependencyGraphBuilder {
             componentIdResolver,
             componentMetaDataResolver,
             edgeFilter,
-            consumerSchema,
             moduleExclusions,
             componentSelectorConverter,
             attributesFactory,
+            attributeSchemaServices,
             attributeDesugaring,
             dependencySubstitutionApplicator,
             versionSelectorScheme,
@@ -365,7 +368,7 @@ public class DependencyGraphBuilder {
     }
 
     private static void validateGraph(ResolveState resolveState, boolean denyDynamicSelectors, boolean denyChangingModules) {
-        AttributesSchemaInternal consumerSchema = resolveState.getAttributesSchema();
+        ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
@@ -380,7 +383,7 @@ public class DependencyGraphBuilder {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        validateMultipleNodeSelection(consumerSchema, module, selected, resolutionFailureHandler);
+                        validateMultipleNodeSelection(consumerSchema, module, selected, resolutionFailureHandler, resolveState.getAttributeSchemaServices());
                     }
                     if (denyDynamicSelectors) {
                         validateDynamicSelectors(selected);
@@ -486,7 +489,13 @@ public class DependencyGraphBuilder {
      * Validates that all selected nodes of a single component have compatible attributes,
      * when using variant aware resolution.
      */
-    private static void validateMultipleNodeSelection(AttributesSchemaInternal consumerSchema, ModuleResolveState module, ComponentState selected, ResolutionFailureHandler resolutionFailureHandler) {
+    private static void validateMultipleNodeSelection(
+        ImmutableAttributesSchema consumerSchema,
+        ModuleResolveState module,
+        ComponentState selected,
+        ResolutionFailureHandler resolutionFailureHandler,
+        AttributeSchemaServices attributeSchemaServices
+    ) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
             .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
             .collect(Collectors.toSet());
@@ -498,7 +507,7 @@ public class DependencyGraphBuilder {
         Set<Set<NodeState>> combinations = Sets.combinations(selectedNodes, 2);
         Set<NodeState> incompatibleNodes = new HashSet<>();
 
-        AttributeMatcher matcher = consumerSchema.withProducer(selected.getMetadata().getAttributesSchema());
+        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, selected.getMetadata().getAttributesSchema());
         for (Set<NodeState> combination : combinations) {
             Iterator<NodeState> it = combination.iterator();
             NodeState first = it.next();

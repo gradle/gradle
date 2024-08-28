@@ -21,8 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Broke
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.internal.Describables
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
@@ -35,10 +36,9 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def dependenciesResolver = Mock(TransformUpstreamDependenciesResolver)
     def attributeMatcher = Mock(AttributeMatcher)
-    def attributesSchema = Mock(AttributesSchemaInternal) {
-        withProducer(_) >> attributeMatcher
-        getConsumerDescribers() >> []
-        getFailureDescribers(_) >> []
+    def consumerSchema = Mock(ImmutableAttributesSchema)
+    def schemaServices = Mock(AttributeSchemaServices) {
+        getMatcher(_, _) >> attributeMatcher
     }
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def requestedAttributes = AttributeTestUtil.attributes(['artifactType': 'jar'])
@@ -87,7 +87,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result instanceof BrokenResolvedArtifactSet
         result.failure instanceof ArtifactSelectionException
 
-        1 * variantSet.getSchema() >> attributesSchema
+        1 * variantSet.getSchema() >> ImmutableAttributesSchema.EMPTY
         1 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
         1 * attributeMatcher.matchMultipleCandidates(_, _, _) >> [variant, otherVariant]
         2 * attributeMatcher.isMatchingValue(_, _, _) >> true
@@ -155,10 +155,11 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     private AttributeMatchingArtifactVariantSelector newSelector() {
         new AttributeMatchingArtifactVariantSelector(
-            attributesSchema,
+            consumerSchema,
             dependenciesResolver,
             consumerProvidedVariantFinder,
             attributesFactory,
+            schemaServices,
             transformedVariantFactory,
             failureProcessor
         )

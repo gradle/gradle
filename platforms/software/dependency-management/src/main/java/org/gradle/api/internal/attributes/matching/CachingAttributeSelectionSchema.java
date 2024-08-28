@@ -47,12 +47,12 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
 
     @Nullable
     @Override
-    public Set<Object> disambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates) {
+    public <T> Set<T> disambiguate(Attribute<T> attribute, @Nullable T requested, Set<T> candidates) {
         return delegate.disambiguate(attribute, requested, candidates);
     }
 
     @Override
-    public boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
+    public <T> boolean matchValue(Attribute<T> attribute, T requested, T candidate) {
         return delegate.matchValue(attribute, requested, candidate);
     }
 

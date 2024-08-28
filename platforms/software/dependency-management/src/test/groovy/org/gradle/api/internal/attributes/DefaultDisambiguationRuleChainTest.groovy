@@ -58,7 +58,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
         ruleChain.add(SelectionRule)
 
         when:
-        ruleChain.execute(details)
+        ruleChain.getRules().first().execute(details)
 
         then:
         1 * details.candidateValues >> (["value1", "value2"] as Set)
@@ -72,7 +72,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
         ruleChain.add(SelectionRuleWithParams) { it.params("p1") }
 
         when:
-        ruleChain.execute(details)
+        ruleChain.getRules().first().execute(details)
 
         then:
         1 * details.candidateValues >> (["value1", "value2"] as Set)
@@ -96,7 +96,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
         ruleChain.add(BrokenRule)
 
         when:
-        ruleChain.execute(details)
+        ruleChain.getRules().first().execute(details)
 
         then:
         def e = thrown(AttributeMatchException)
@@ -124,7 +124,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
         ruleChain.add(CannotCreateRule)
 
         when:
-        ruleChain.execute(details)
+        ruleChain.getRules().first().execute(details)
 
         then:
         def e = thrown(AttributeMatchException)
