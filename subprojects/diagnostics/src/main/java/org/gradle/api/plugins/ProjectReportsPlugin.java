@@ -51,31 +51,31 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
         });
 
         project.getTasks().register(TASK_REPORT, TaskReportTask.class, taskReportTask -> {
-            taskReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() -> convention.getProjectReportDir()))));
+            taskReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(convention::getProjectReportDir))));
             taskReportTask.setDescription("Generates a report about your tasks.");
-            taskReportTask.conventionMapping("outputFile", () -> taskReportTask.getProjectReportDirectory().file("tasks.txt").get().getAsFile());
-            taskReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+            taskReportTask.getOutputFile().convention(taskReportTask.getProjectReportDirectory().file("tasks.txt"));
+            taskReportTask.getProjects().convention(WrapUtil.toSet(project));
         });
 
         project.getTasks().register(PROPERTY_REPORT, PropertyReportTask.class, propertyReportTask -> {
-            propertyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() ->convention.getProjectReportDir()))));
+            propertyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(convention::getProjectReportDir))));
             propertyReportTask.setDescription("Generates a report about your properties.");
-            propertyReportTask.conventionMapping("outputFile", () -> propertyReportTask.getProjectReportDirectory().file("properties.txt").get().getAsFile());
-            propertyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+            propertyReportTask.getOutputFile().convention(propertyReportTask.getProjectReportDirectory().file("properties.txt"));
+            propertyReportTask.getProjects().convention(WrapUtil.toSet(project));
         });
 
         project.getTasks().register(DEPENDENCY_REPORT, DependencyReportTask.class, dependencyReportTask -> {
-            dependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() ->convention.getProjectReportDir()))));
+            dependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(convention::getProjectReportDir))));
             dependencyReportTask.setDescription("Generates a report about your library dependencies.");
-            dependencyReportTask.conventionMapping("outputFile", () -> dependencyReportTask.getProjectReportDirectory().file("dependencies.txt").get().getAsFile());
-            dependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+            dependencyReportTask.getOutputFile().convention(dependencyReportTask.getProjectReportDirectory().file("dependencies.txt"));
+            dependencyReportTask.getProjects().convention(WrapUtil.toSet(project));
         });
 
         project.getTasks().register(HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask.class, htmlDependencyReportTask -> {
-            htmlDependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(() ->convention.getProjectReportDir()))));
+            htmlDependencyReportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(convention::getProjectReportDir))));
             htmlDependencyReportTask.setDescription("Generates an HTML report about your library dependencies.");
             htmlDependencyReportTask.getReports().getHtml().getOutputLocation().convention(htmlDependencyReportTask.getProjectReportDirectory().dir("dependencies"));
-            htmlDependencyReportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+            htmlDependencyReportTask.getProjects().convention(WrapUtil.toSet(project));
         });
 
         project.getTasks().register(PROJECT_REPORT, projectReportTask -> {
