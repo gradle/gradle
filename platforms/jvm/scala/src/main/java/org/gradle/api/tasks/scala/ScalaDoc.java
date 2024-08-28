@@ -36,6 +36,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -165,7 +166,21 @@ public abstract class ScalaDoc extends SourceTask {
         return scalaDocOptions;
     }
 
+    /**
+     * Sets the ScalaDoc generation options.
+     *
+     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
+     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
+     * Set the individual properties of the nested object instead.
+     */
+    @Deprecated
     public void setScalaDocOptions(ScalaDocOptions scalaDocOptions) {
+        DeprecationLogger.deprecateMethod(ScalaDoc.class, "setScalaDocOptions(ScalaDocOptions)")
+            .withAdvice("Set the individual properties of the nested object instead.")
+            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.scalaDocOptions = scalaDocOptions;
     }
 

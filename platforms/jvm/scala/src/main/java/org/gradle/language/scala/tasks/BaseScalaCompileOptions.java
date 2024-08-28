@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -64,7 +65,7 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
 
     private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
-    private IncrementalCompileOptions incrementalOptions;
+    private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
     private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
 
@@ -245,7 +246,21 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
         return forkOptions;
     }
 
+    /**
+     * Options for running the Scala compiler in a separate process.
+     *
+     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
+     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
+     * Set the individual properties of the nested object instead.
+     */
+    @Deprecated
     public void setForkOptions(ScalaForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setForkOptions(ScalaForkOptions)")
+            .withAdvice("Set the individual properties of the nested object instead.")
+            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
     }
 
@@ -257,7 +272,21 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
         return incrementalOptions;
     }
 
+    /**
+     * Options for incremental compilation of Scala code.
+     *
+     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
+     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
+     * Set the individual properties of the nested object instead.
+     */
+    @Deprecated
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
+        DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setIncrementalOptions(IncrementalCompileOptions)")
+            .withAdvice("Set the individual properties of the nested object instead.")
+            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.incrementalOptions = incrementalOptions;
     }
 

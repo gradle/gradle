@@ -272,8 +272,19 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     /**
      * Sets options for running the Groovy compiler in a separate process. These options only take effect
      * if {@code fork} is set to {@code true}.
+     *
+     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
+     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
+     * Set the individual properties of the nested object instead.
      */
+    @Deprecated
     public void setForkOptions(GroovyForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "setForkOptions(GroovyForkOptions)")
+            .withAdvice("Set the individual properties of the nested object instead.")
+            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
     }
 

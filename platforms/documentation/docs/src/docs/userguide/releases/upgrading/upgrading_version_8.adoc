@@ -253,6 +253,22 @@ This method was originally intended to customize logs printed by Gradle.
 However, it only allows intercepting a subset of the logs and cannot work with the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache>>.
 We do not plan to introduce a replacement for this feature.
 
+[[deprecated_nested_properties_setters]]
+==== Deprecated certain `@Nested` properties' setters on core Gradle types
+
+Some properties that use `@Nested` annotations contain properties that will be migrated to be `Property`-based in future Gradle versions.
+In order for the inner properties to have consistent references that can be used as the source for other lazy APIs, the setters for these `@Nested` properties will be removed in Gradle 9.0.
+Instead, the inner properties of the `@Nested` property should be set individually.
+
+The affected properties are:
+
+- link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getDebugOptions()[CompileOptions.getDebugOptions]
+- link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getForkOptions()[CompileOptions.getForkOptions]
+- link:{javadocPath}/org/gradle/api/tasks/compile/GroovyCompileOptions.html#getForkOptions()[GroovyCompileOptions.getForkOptions]
+- link:{javadocPath}/org/gradle/api/tasks/scala/ScalaDoc.html#getScalaDocOptions()[ScalaDoc.getScalaDocOptions]
+- link:{javadocPath}/org/gradle/language/scala/tasks/BaseScalaCompileOptions.html#getForkOptions()[BaseScalaCompileOptions.getForkOptions]
+- link:{javadocPath}/org/gradle/language/scala/tasks/BaseScalaCompileOptions.html#getIncrementalOptions()[BaseScalaCompileOptions.getIncrementalOptions]
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 

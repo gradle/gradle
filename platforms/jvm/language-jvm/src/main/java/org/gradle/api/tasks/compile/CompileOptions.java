@@ -246,8 +246,19 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets options for generating debugging information.
+     *
+     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
+     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
+     * Set the individual properties of the nested object instead.
      */
+    @Deprecated
     public void setDebugOptions(DebugOptions debugOptions) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "setDebugOptions(DebugOptions)")
+            .withAdvice("Set the individual properties of the nested object instead.")
+            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.debugOptions = debugOptions;
     }
 
@@ -290,8 +301,19 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets options for running the compiler in a child process.
+     *
+     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
+     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
+     * Set the individual properties of the nested object instead.
      */
+    @Deprecated
     public void setForkOptions(ForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "setForkOptions(ForkOptions)")
+            .withAdvice("Set the individual properties of the nested object instead.")
+            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
     }
 
