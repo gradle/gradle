@@ -34,6 +34,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -98,15 +99,27 @@ public class TestNGTestFramework implements TestFramework {
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = toSpec(options, filter);
-        return new TestNgTestClassProcessorFactory(this.options.getOutputDirectory(), spec, suiteFiles);
+        return new TestNgTestClassProcessorFactory(this.options.getOutputDirectory().getAsFile().get(), spec, suiteFiles);
     }
 
     private TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
         return new TestNGSpec(filter.toSpec(),
-            options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(), options.getSuiteThreadPoolSize().get(),
-            options.getUseDefaultListeners(), options.getThreadPoolFactoryClass(),
-            options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
-            options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances(), dryRun.get()
+            options.getSuiteName().get(),
+            options.getTestName().get(),
+            options.getParallel().getOrNull(),
+            options.getThreadCount().get(),
+            options.getSuiteThreadPoolSize().get(),
+            options.getUseDefaultListeners().get(),
+            options.getThreadPoolFactoryClass().getOrNull(),
+            // TestNGSpec get serialized to worker, so we create a copy of original sets,
+            // to avoid serialization issues on worker for ImmutableSet that SetProperty returns
+            new LinkedHashSet<>(options.getIncludeGroups().get()),
+            new LinkedHashSet<>(options.getExcludeGroups().get()),
+            new LinkedHashSet<>(options.getListeners().get()),
+            options.getConfigFailurePolicy().get(),
+            options.getPreserveOrder().get(),
+            options.getGroupByInstances().get(),
+            dryRun.get()
         );
     }
 
