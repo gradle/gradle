@@ -97,24 +97,16 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected VersionSelectorScheme getVersionSelectorScheme() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionSelectorScheme getVersionSelectorScheme();
 
     @Inject
-    protected VersionComparator getVersionComparator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionComparator getVersionComparator();
 
     @Inject
-    protected  VersionParser getVersionParser() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionParser getVersionParser();
 
     /**
      * Required for decorating reports container callbacks for tracing user code application.
@@ -141,7 +133,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
 
     private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
         return ProjectsWithConfigurations.from(
-            getProjects(),
+            getProjects().get(),
             ProjectDetails::withNameAndPath,
             HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
         );

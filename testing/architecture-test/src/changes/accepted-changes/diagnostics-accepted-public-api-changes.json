@@ -1,0 +1,92 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getObjectFactory()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionComparator()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionParser()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionSelectorScheme()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getClientMetaData()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getRenderer()",
+            "acceptation": "This is protected method and the change is needed for proper inheritance",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getTextOutputFactory()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getBuildStateRegistry()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getRenderer()",
+            "acceptation": "It was made abstract to support idiomatic property getter",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        }
+    ]
+}
