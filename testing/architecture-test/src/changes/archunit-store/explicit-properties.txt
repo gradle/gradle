@@ -52,12 +52,10 @@ Method <org.gradle.api.tasks.compile.GroovyCompile.getStableSources()> is not ab
 Method <org.gradle.api.tasks.compile.JavaCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getSource()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getStableSources()> is not abstract
-Method <org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfiguration()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getRootComponentProperty()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getShowingAllVariants()> is not abstract
-Method <org.gradle.api.tasks.diagnostics.PropertyReportTask.getProperty()> is not abstract
-Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoTimestamp()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoVersionStamp()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsUse()> is not abstract
