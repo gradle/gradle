@@ -96,6 +96,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
         return reports;
     }
 
+    @Override
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
@@ -131,7 +132,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
 
     private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
         return ProjectsWithConfigurations.from(
-            getProjects(),
+            getProjects().get(),
             ProjectDetails::withNameAndPath,
             HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
         );
