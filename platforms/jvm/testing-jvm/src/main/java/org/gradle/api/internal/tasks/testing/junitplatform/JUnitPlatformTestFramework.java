@@ -35,6 +35,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,8 +73,14 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
-            filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
+            filter.toSpec(),
+            // JUnitPlatformSpec get serialized to worker, so we create a copy of original sets,
+            // to avoid serialization issues on worker for ImmutableSet that SetProperty returns
+            new LinkedHashSet<>(getOptions().getIncludeEngines().get()),
+            new LinkedHashSet<>(getOptions().getExcludeEngines().get()),
+            new LinkedHashSet<>(getOptions().getIncludeTags().get()),
+            new LinkedHashSet<>(getOptions().getExcludeTags().get()),
+            dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
         ));
     }
 
@@ -97,8 +104,8 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeTags());
-        intersection.retainAll(getOptions().getExcludeTags());
+        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeTags().get());
+        intersection.retainAll(getOptions().getExcludeTags().get());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +
