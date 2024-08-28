@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
@@ -35,6 +36,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -67,13 +69,15 @@ public class JUnitPlatformTestFramework implements TestFramework {
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
     private final Provider<Boolean> dryRun;
+    private final ObjectFactory objects;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, Provider<Boolean> dryRun) {
-        this(filter, useImplementationDependencies, new JUnitPlatformOptions(), dryRun);
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, ObjectFactory objectFactory, boolean useImplementationDependencies, Provider<Boolean> dryRun) {
+        this(filter, objectFactory, useImplementationDependencies, objectFactory.newInstance(JUnitPlatformOptions.class), dryRun);
     }
 
-    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, ObjectFactory objectFactory, boolean useImplementationDependencies, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
         this.filter = filter;
+        this.objects = objectFactory;
         this.useImplementationDependencies = useImplementationDependencies;
         this.options = options;
         this.dryRun = dryRun;
@@ -82,11 +86,12 @@ public class JUnitPlatformTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitPlatformOptions copiedOptions = new JUnitPlatformOptions();
+        JUnitPlatformOptions copiedOptions = objects.newInstance(JUnitPlatformOptions.class);
         copiedOptions.copyFrom(options);
 
         return new JUnitPlatformTestFramework(
             (DefaultTestFilter) newTestFilters,
+            objects,
             useImplementationDependencies,
             copiedOptions,
             dryRun
@@ -100,8 +105,14 @@ public class JUnitPlatformTestFramework implements TestFramework {
         }
         validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
-            filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
-            options.getIncludeTags(), options.getExcludeTags(), dryRun.get()
+            filter.toSpec(),
+            // JUnitPlatformSpec get serialized to worker, so we create a copy of original sets,
+            // to avoid serialization issues on worker for ImmutableSet that SetProperty returns
+            new LinkedHashSet<>(options.getIncludeEngines().get()),
+            new LinkedHashSet<>(options.getExcludeEngines().get()),
+            new LinkedHashSet<>(options.getIncludeTags().get()),
+            new LinkedHashSet<>(options.getExcludeTags().get()),
+            dryRun.get()
         ));
     }
 
@@ -136,8 +147,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(options.getIncludeTags());
-        intersection.retainAll(options.getExcludeTags());
+        Set<String> intersection = Sets.newHashSet(options.getIncludeTags().get());
+        intersection.retainAll(options.getExcludeTags().get());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +
