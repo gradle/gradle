@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+
 public interface ResolutionFailureDataSpec extends AdditionalDataSpec {
-    ResolutionFailureDataSpec from(Object failure);
+    ResolutionFailureDataSpec from(ResolutionFailure failure);
 }

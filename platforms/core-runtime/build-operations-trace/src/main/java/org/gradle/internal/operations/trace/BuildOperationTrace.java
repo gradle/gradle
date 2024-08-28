@@ -511,6 +511,7 @@ public class BuildOperationTrace implements Stoppable {
         return new JsonGenerator.Options()
             .addConverter(new JsonClassConverter())
             .addConverter(new JsonThrowableConverter())
+            .addConverter(new JsonResolutionFailureDataConverter())
             .build();
     }
 
@@ -531,6 +532,23 @@ public class BuildOperationTrace implements Stoppable {
             }
             builder.put("stackTrace", Throwables.getStackTraceAsString(throwable));
             return builder.build();
+        }
+    }
+
+    /**
+     * A custom serializer for resolution failure data.
+     *
+     * This is needed as the DefaultImmutableAttributes class does not want to be serialized - it causes a stack overflow.
+     */
+    private static class JsonResolutionFailureDataConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return type.getName().equals("org.gradle.api.problems.internal.DefaultResolutionFailureData");
+        }
+
+        @Override
+        public Object convert(Object o, String s) {
+            return "ResolutionFailure - additional data here";
         }
     }
 

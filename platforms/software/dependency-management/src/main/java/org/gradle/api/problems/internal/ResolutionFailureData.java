@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+
 public interface ResolutionFailureData extends AdditionalData {
-    Object getResolutionFailure();
+    ResolutionFailure getResolutionFailure();
 }

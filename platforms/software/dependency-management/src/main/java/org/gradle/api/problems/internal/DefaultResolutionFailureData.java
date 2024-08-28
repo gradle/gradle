@@ -16,11 +16,13 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+
 import javax.annotation.Nullable;
 
 public class DefaultResolutionFailureData implements ResolutionFailureData {
 
-    private final Object resolutionFailure;
+    private final ResolutionFailure resolutionFailure;
 
     public static AdditionalDataBuilder<ResolutionFailureData> builder(@Nullable ResolutionFailureData resolutionFailure) {
         if (resolutionFailure == null) {
@@ -29,17 +31,17 @@ public class DefaultResolutionFailureData implements ResolutionFailureData {
         return new DefaultResolutionFailureDataBuilder(resolutionFailure);
     }
 
-    public DefaultResolutionFailureData(Object resolutionFailure) {
+    public DefaultResolutionFailureData(ResolutionFailure resolutionFailure) {
         this.resolutionFailure = resolutionFailure;
     }
 
     @Override
-    public Object getResolutionFailure() {
+    public ResolutionFailure getResolutionFailure() {
         return resolutionFailure;
     }
 
     private static class DefaultResolutionFailureDataBuilder implements ResolutionFailureDataSpec, AdditionalDataBuilder<ResolutionFailureData> {
-        private Object failure;
+        private ResolutionFailure failure;
 
         public DefaultResolutionFailureDataBuilder(ResolutionFailureData from) {
             this.failure = from.getResolutionFailure();
@@ -49,7 +51,7 @@ public class DefaultResolutionFailureData implements ResolutionFailureData {
         }
 
         @Override
-        public ResolutionFailureDataSpec from(Object failure){
+        public ResolutionFailureDataSpec from(ResolutionFailure failure){
             this.failure = failure;
             return this;
         }
