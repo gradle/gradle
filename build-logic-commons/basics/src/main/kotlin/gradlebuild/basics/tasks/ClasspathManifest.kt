@@ -18,14 +18,15 @@ package gradlebuild.basics.tasks
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.file.RegularFileProperty
+
 import java.util.Properties
 
 
@@ -35,14 +36,17 @@ abstract class ClasspathManifest : DefaultTask() {
     @get:Input
     abstract val optionalProjects: ListProperty<String>
 
+    @get:Internal
+    abstract val projectDependencies: ConfigurableFileCollection
+
     @Input
     val runtime = externalDependencies.elements.map { it.map { it.asFile.name }.sorted() }
 
     @get:Internal
     abstract val externalDependencies: ConfigurableFileCollection
 
-    @get:Input
-    abstract val projects: SetProperty<String>
+    @Input
+    val projects = projectDependencies.elements.map { it.map { it.toGradleModuleName() }.sorted() }
 
     @get:OutputFile
     abstract val manifestFile: RegularFileProperty
@@ -55,11 +59,14 @@ abstract class ClasspathManifest : DefaultTask() {
     private
     fun createProperties() = Properties().also { properties ->
         properties["runtime"] = runtime.get().joinToString(",")
-        properties["projects"] = projects.get().sorted().joinToString(",")
+        properties["projects"] = projects.get().joinToString(",")
         optionalProjects.get().takeIf { it.isNotEmpty() }?.let { optional ->
             properties["optional"] = optional.joinForProperties()
         }
     }
+
+    private
+    fun FileSystemLocation.toGradleModuleName(): String = asFile.name.run { substring(0, lastIndexOf('-')) }
 
     private
     fun Iterable<String>.joinForProperties() = sorted().joinToString(",")

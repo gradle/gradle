@@ -1,8 +1,5 @@
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.identity.extension.ModuleIdentityExtension
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.model.ComponentArtifactMetadata
 import java.util.jar.Attributes
 
 plugins {
@@ -39,20 +36,11 @@ fun configureClasspathManifestGeneration() {
         }.get()
     }
     val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
-        this.projects.set(
-            runtimeClasspath.incoming
-                .artifactView {
-                    componentFilter {
-                        it is ProjectComponentIdentifier
-                    }
-                }
-                .artifacts
-                .resolvedArtifacts.map { artifacts ->
-                    artifacts
-                        .map { it.id }
-                        .filterIsInstance<ComponentArtifactMetadata>()
-                        .map { it.name.name }
-                })
+        this.projectDependencies.from(runtimeClasspath.incoming.artifactView {
+            componentFilter {
+                it is ProjectComponentIdentifier
+            }
+        }.files)
         this.externalDependencies.from(runtimeClasspath.incoming.artifactView {
             componentFilter {
                 externalComponents.contains(it)
