@@ -39,8 +39,8 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
         task = TestUtil.create(temporaryFolder).task(DependencyReportTask.class);
 
         expect:
-        task.renderer instanceof AsciiDependencyReportRenderer
-        task.configurations == null
+        task.renderer.get() instanceof AsciiDependencyReportRenderer
+        !task.configurations.isPresent()
     }
 
     def "renders all configurations in the project"() {
@@ -73,10 +73,10 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
         def bConf = project.configurations.create("b")
 
         when:
-        task.configuration = "b"
+        task.selectedConfiguration.set("b")
 
         then:
-        task.configurations == [bConf] as Set
+        task.configurations.get() == [bConf] as Set
     }
 
     def "configuration to render could be specified by camelCase shortcut"() {
@@ -85,10 +85,10 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
         def confB = project.configurations.create("confBravo")
 
         when:
-        task.configuration = "coB"
+        task.selectedConfiguration.set("coB")
 
         then:
-        task.configurations == [confB] as Set
+        task.configurations.get() == [confB] as Set
     }
 
     def "ambiguous configuration selection by camelCase shortcut fails"() {
@@ -97,10 +97,12 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
         project.configurations.create("confAlfa")
 
         when:
-        task.configuration = "coA"
+        task.selectedConfiguration.set("coA")
+        task.configurations.get()
 
         then:
-        thrown InvalidUserDataException
+        def exception = thrown(Exception)
+        exception.cause instanceof InvalidUserDataException
     }
 
     def "rule-defined configuration should be found"() {
@@ -115,9 +117,9 @@ class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
 
         when:
         project.evaluate()
-        task.configuration = "confBravo"
+        task.selectedConfiguration = "confBravo"
 
         then:
-        task.configurations == [project.configurations.confBravo] as Set
+        task.configurations.get() == [project.configurations.confBravo] as Set
     }
 }
