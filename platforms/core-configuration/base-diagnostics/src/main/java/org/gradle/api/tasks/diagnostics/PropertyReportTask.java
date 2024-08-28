@@ -23,10 +23,10 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Pair;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
@@ -44,8 +44,9 @@ import java.util.TreeMap;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
-    private PropertyReportRenderer renderer = new PropertyReportRenderer();
-    private final Property<String> property = getProject().getObjects().property(String.class);
+    public PropertyReportTask() {
+        getRenderer().convention(new PropertyReportRenderer()).finalizeValueOnRead();
+    }
 
     /**
      * Defines a specific property to report. If not set then all properties will appear in the report.
@@ -56,20 +57,14 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Input
     @Optional
     @Option(option = "property", description = "A specific property to output")
-    public Property<String> getProperty() {
-        return property;
-    }
+    public abstract Property<String> getProperty();
 
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public ReportRenderer getRenderer() {
-        return renderer;
-    }
-
-    public void setRenderer(PropertyReportRenderer renderer) {
-        this.renderer = renderer;
-    }
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setRenderer", originalType = PropertyReportRenderer.class)
+    })
+    public abstract Property<PropertyReportRenderer> getRenderer();
 
     @Override
     protected PropertyReportModel calculateReportModelFor(Project project) {
@@ -79,8 +74,8 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
         PropertyReportModel model = new PropertyReportModel();
         Map<String, ?> projectProperties = project.getProperties();
-        if (property.isPresent()) {
-            String propertyName = property.get();
+        if (getProperty().isPresent()) {
+            String propertyName = getProperty().get();
             if ("properties".equals(propertyName)) {
                 model.putProperty(propertyName, "{...}");
             } else {
@@ -107,7 +102,7 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
             );
         }
         for (Pair<String, String> entry : model.properties) {
-            renderer.addProperty(entry.getLeft(), entry.getRight());
+            getRenderer().get().addProperty(entry.getLeft(), entry.getRight());
         }
     }
 
