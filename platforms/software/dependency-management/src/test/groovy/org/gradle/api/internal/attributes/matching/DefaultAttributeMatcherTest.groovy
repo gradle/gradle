@@ -24,8 +24,8 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -550,8 +550,9 @@ class DefaultAttributeMatcherTest extends Specification {
         action.delegate = mutable
         action(mutable)
 
-        def selectionSchema = new DefaultAttributeSelectionSchema(mutable, EmptySchema.INSTANCE)
-        new DefaultAttributeMatcher(selectionSchema)
+        def services = AttributeTestUtil.services()
+        def immutable = services.getSchemaFactory().create(mutable)
+        services.getMatcher(immutable, ImmutableAttributesSchema.EMPTY)
     }
 
     private class TestSchema extends DefaultAttributesSchema {

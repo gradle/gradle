@@ -297,6 +297,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DependencyGraphResolver.class);
             registration.add(DependencyGraphBuilder.class);
             registration.add(AttributeDescriberRegistry.class);
+            registration.add(GraphVariantSelector.class);
         }
 
         @Provides
@@ -612,18 +613,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
-            return new GraphVariantSelector(resolutionFailureHandler);
-        }
-
-        @Provides
         ConfigurationResolver createDependencyResolver(
             DependencyGraphResolver dependencyGraphResolver,
             RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
             ResolutionResultsStoreFactory resolutionResultsStoreFactory,
             StartParameter startParameter,
-            AttributesSchemaInternal attributesSchema,
             VariantSelectorFactory variantSelectorFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             BuildOperationExecutor buildOperationExecutor,
@@ -651,7 +646,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 metadataHandler,
                 resolutionResultsStoreFactory,
                 startParameter,
-                attributesSchema,
                 variantSelectorFactory,
                 moduleIdentifierFactory,
                 buildOperationExecutor,

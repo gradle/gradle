@@ -17,6 +17,8 @@
 package org.gradle.api.internal.attributes.matching
 
 import com.google.common.collect.ImmutableMap
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
@@ -26,12 +28,8 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -406,11 +404,8 @@ class DefaultAttributeSelectionSchemaTest extends Specification {
         mutable.asImmutable()
     }
 
-    private static AttributeSelectionSchema newSelectionSchema(@DelegatesTo(AttributesSchema) Closure<?> action = {}) {
-        AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
-        action.delegate = attributesSchema
-        action(attributesSchema)
-        new DefaultAttributeSelectionSchema(attributesSchema, EmptySchema.INSTANCE)
+    private static AttributeSelectionSchema newSelectionSchema(@DelegatesTo(AttributesSchema) @ClosureParams(value = SimpleType, options = ["org.gradle.api.attributes.AttributesSchema"]) Closure<?> action = {}) {
+        new DefaultAttributeSelectionSchema(AttributeTestUtil.immutableSchema(action))
     }
 
     static interface Flavor extends Named {}

@@ -26,9 +26,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -65,7 +65,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private MutableModuleSources moduleSources;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
-    private final AttributesSchemaInternal schema;
+    private final ImmutableAttributesSchema schema;
 
     private final VariantMetadataRules variantMetadataRules;
     private final VariantDerivationStrategy variantDerivationStrategy;
@@ -77,7 +77,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory,
                                                             ModuleVersionIdentifier moduleVersionId,
                                                             ModuleComponentIdentifier componentIdentifier,
-                                                            AttributesSchemaInternal schema) {
+                                                            ImmutableAttributesSchema schema) {
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
@@ -270,7 +270,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         return attributesFactory;
     }
 
-    public AttributesSchemaInternal getAttributesSchema() {
+    public ImmutableAttributesSchema getAttributesSchema() {
         return schema;
     }
 

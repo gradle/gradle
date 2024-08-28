@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -368,7 +367,7 @@ class DefaultIvyPublicationTest extends Specification {
             it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(PlatformSupport, DependencyManagementTestUtil.platformSupport())
             it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
-            it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
+            it.add(AttributesSchemaInternal, AttributeTestUtil.mutableSchema())
             it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
             it.add(DefaultDependencyCoordinateResolverFactory)
         }.get(ObjectFactory)

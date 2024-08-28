@@ -26,11 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.Describables
-import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
@@ -42,19 +43,19 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def matchingCache = Mock(ConsumerProvidedVariantFinder)
-    def producerSchema = Mock(AttributesSchemaInternal)
-    def consumerSchema = Mock(AttributesSchemaInternal) {
-        getConsumerDescribers() >> []
-        getFailureDescribers(_) >> []
-    }
+    def producerSchema = Mock(ImmutableAttributesSchema)
+    def consumerSchema = Mock(ImmutableAttributesSchema)
     def attributeMatcher = Mock(AttributeMatcher)
+    def schemaServices = Mock(AttributeSchemaServices) {
+        getMatcher(consumerSchema, producerSchema) >> attributeMatcher
+    }
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def variantSelectionFailureProcessor = DependencyManagementTestUtil.newFailureHandler()
     def variantSelectorFactory = new DefaultVariantSelectorFactory(
         matchingCache,
-        consumerSchema,
         AttributeTestUtil.attributesFactory(),
+        schemaServices,
         transformedVariantFactory,
         variantSelectionFailureProcessor,
         StandaloneDomainObjectContext.ANONYMOUS,
@@ -76,7 +77,6 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("jar")
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
@@ -99,7 +99,6 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variant2.asDescribable() >> Describables.of('<variant2>')
         variant2.attributes >> typeAttributes("jar")
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
         attributeMatcher.isMatchingValue(_, _, _) >> true
 
@@ -131,7 +130,6 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _, _) >> []
         attributeMatcher.matchMultipleCandidates(transformedVariants, _, _) >> transformedVariants
         matchingCache.findTransformedVariants(_, _) >> transformedVariants
@@ -169,7 +167,6 @@ Found the following transforms:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_, _, _) >> []
 
         matchingCache.findTransformedVariants(_, _) >> []
@@ -194,7 +191,6 @@ Found the following transforms:
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_, _, _) >> []
 
         matchingCache.findTransformedVariants(_, _) >> []
@@ -216,6 +212,7 @@ Found the following transforms:
         variantSelectorFactory.create(
             Mock(ResolutionHost),
             ImmutableAttributes.EMPTY,
+            consumerSchema,
             null,
             ResolutionStrategy.SortOrder.DEFAULT,
             Mock(ResolutionResultProvider),

@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.RejectRemainingCandidates;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UserConfiguredCapabilityResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
@@ -96,7 +95,6 @@ public class DependencyGraphResolver {
         RootComponentMetadataBuilder.RootComponentState rootComponent,
         List<? extends DependencyMetadata> syntheticDependencies,
         Spec<? super DependencyMetadata> edgeFilter,
-        AttributesSchemaInternal consumerSchema,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyToComponentIdResolver componentIdResolver,
         ComponentMetaDataResolver componentMetaDataResolver,
@@ -122,7 +120,6 @@ public class DependencyGraphResolver {
             rootComponent,
             syntheticDependencies,
             edgeFilter,
-            consumerSchema,
             componentSelectorConverter,
             componentIdResolver,
             clientModuleResolver,
