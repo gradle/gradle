@@ -18,16 +18,27 @@ package org.gradle.ide.visualstudio.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
+import java.util.List;
+import java.util.Set;
+
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Task for generating a Visual Studio filters file (e.g. {@code foo.vcxproj.filters}).
@@ -35,7 +46,9 @@ import java.io.File;
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
-    private DefaultVisualStudioProject visualStudioProject;
+    private transient DefaultVisualStudioProject visualStudioProject;
+    private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getFiltersFile().getLocation()));
+    private final Cached<FiltersSpec> spec = Cached.of(this::calculateSpec);
 
     @Override
     protected boolean getIncremental() {
@@ -46,9 +59,20 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
-    @Nested
+    @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
+    }
+
+    /**
+     * Returns the {@link FiltersSpec} for this task.
+     *
+     * @since 8.11
+     */
+    @Nested
+    @Incubating
+    protected FiltersSpec getFilterSpec() {
+        return spec.get();
     }
 
     @Override
@@ -58,28 +82,88 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
 
     @Override
     public File getOutputFile() {
-        return visualStudioProject.getFiltersFile().getLocation();
+        return outputFile.get();
     }
 
     @Override
     protected void configure(final VisualStudioFiltersFile filtersFile) {
-        DefaultVisualStudioProject vsProject = visualStudioProject;
+        FiltersSpec spec = this.spec.get();
 
-        for (File sourceFile : vsProject.getSourceFiles()) {
+        for (File sourceFile : spec.sourceFiles) {
             filtersFile.addSource(sourceFile);
         }
 
-        for (File headerFile : vsProject.getHeaderFiles()) {
+        for (File headerFile : spec.headerFiles) {
             filtersFile.addHeader(headerFile);
         }
 
-        for (Action<? super XmlProvider> xmlAction : vsProject.getFiltersFile().getXmlActions()) {
+        for (Action<? super XmlProvider> xmlAction : spec.actions) {
             getXmlTransformer().addAction(xmlAction);
         }
     }
 
     @Override
     protected VisualStudioFiltersFile create() {
-        return new VisualStudioFiltersFile(getXmlTransformer(), RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getFiltersFile().getLocation()));
+        return new VisualStudioFiltersFile(getXmlTransformer(), spec.get().fileNameTransformer);
+    }
+
+    private FiltersSpec calculateSpec() {
+        return new FiltersSpec(visualStudioProject.getSourceFiles(),
+            visualStudioProject.getHeaderFiles(),
+            visualStudioProject.getFiltersFile().getXmlActions(),
+            RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getFiltersFile().getLocation()));
+    }
+
+    /**
+     * The data to use to generate the filters file.
+     *
+     * @since 8.11
+     */
+    @Incubating
+    protected static class FiltersSpec {
+        private final FileCollection sourceFiles;
+        private final FileCollection headerFiles;
+        private final List<Action<? super XmlProvider>> actions;
+        private final Transformer<String, File> fileNameTransformer;
+
+        private FiltersSpec(FileCollection sourceFiles, FileCollection headerFiles, List<Action<? super XmlProvider>> actions, Transformer<String, File> fileNameTransformer) {
+            this.sourceFiles = sourceFiles;
+            this.headerFiles = headerFiles;
+            this.actions = actions;
+            this.fileNameTransformer = fileNameTransformer;
+        }
+
+        /**
+         * The source files to include in the filter.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Provider<Set<String>> getSourceFilePaths() {
+            return sourceFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+        }
+
+        /**
+         * The header files to include in the filter.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Provider<Set<String>> getHeaderFilesPaths() {
+            return headerFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+        }
+
+        /**
+         * Additional XML generation actions.
+         *
+         * @since 8.11
+         */
+        @Nested
+        @Incubating
+        public List<Action<? super XmlProvider>> getActions() {
+            return actions;
+        }
     }
 }
