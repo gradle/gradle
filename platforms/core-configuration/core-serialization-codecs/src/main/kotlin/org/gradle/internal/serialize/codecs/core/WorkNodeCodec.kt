@@ -19,7 +19,7 @@ package org.gradle.internal.serialize.codecs.core
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
-import org.gradle.api.GradleException
+import org.apache.commons.lang3.StringUtils
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
@@ -34,13 +34,13 @@ import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.PostExecutionNodeAwareActionNode
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.plan.TaskNode
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheException
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.collect.PersistentList
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationInvocationException
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.graph.CloseableReadContext
@@ -212,10 +212,10 @@ class WorkNodeCodec(
         val batchedActionNodeSuccessors =
             AtomicReference<PersistentList<Iterable<PostExecutionNodes>>>(PersistentList.of())
 
-        runBuildOperations(parallelStore, "saving work graph") {
+        runBuildOperations(parallelStore, "saving task graph") {
             groupedNodes.entries.map { (nodeOwner, groupNodes) ->
                 val groupPath = nodeOwner.path()
-                OperationInfo(displayName = "Storing $groupPath", progressDisplayName = groupPath.path) {
+                OperationInfo(displayName = "Storing configuration for $groupPath", context = groupPath) {
                     contextSource.writeContextFor(this, groupPath).useToRun {
                         val postExecutionSuccessors = writeGroupedNodes(nodeOwner, groupNodes, idForNode)
                         if (postExecutionSuccessors.isNotEmpty()) {
@@ -245,9 +245,9 @@ class WorkNodeCodec(
             Path.path(readString())
         }
 
-        runBuildOperations(parallel = parallelLoad, message = "reading work graph") {
+        runBuildOperations(parallel = parallelLoad, message = "reading task graph") {
             groupPaths.map { groupPath ->
-                OperationInfo(displayName = "Loading $groupPath", progressDisplayName = groupPath.path) {
+                OperationInfo(displayName = "Loading configuration for $groupPath", context = groupPath) {
                     contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
                         val nodesInGroup = readGroupedNodes()
                         batchedGroupNodes.updateAndGet {
@@ -276,29 +276,23 @@ class WorkNodeCodec(
     }
 
     private
-    fun <R> IsolateContext.unwrapBuildOperationExceptions(message: String, action: () -> R): R =
+    fun <R> handleBuildOperationExceptions(message: String, action: () -> R): R =
         try {
             action()
-        } catch (e: MultipleBuildOperationFailures) {
-            val cause = when (val first = e.causes.first()) {
-                is BuildOperationInvocationException -> first.cause!!
-                else -> first
+        } catch (@Suppress("SwallowedException") e: MultipleBuildOperationFailures) {
+            if (e.causes.size == 1) {
+                throw e.causes[0].maybeUnwrapOperationException()
             }
-            e.causes.subList(1, e.causes.size).forEach(cause::addSuppressed)
-
-            when (cause) {
-                is GradleException -> throw cause
-                is Exception -> {
-                    onError(cause) {
-                        text("Error while $message")
-                    }
-                    // never runs
-                    error(Unit)
-                }
-
-                else -> throw e
-            }
+            throw ConfigurationCacheException({ "Error while $message" }, e.causes)
         }
+
+    private
+    fun Throwable.maybeUnwrapOperationException(): Throwable {
+        if (this is OperationException) {
+            return this.cause!!
+        }
+        return this
+    }
 
     private
     data class NodeWithId(
@@ -584,16 +578,16 @@ class WorkNodeCodec(
     private
     fun IsolateContext.runBuildOperations(parallel: Boolean, message: String, operations: () -> Iterable<OperationInfo>) {
         val buildOperationExecutor = isolate.owner.serviceOf<BuildOperationExecutor>()
-        unwrapBuildOperationExceptions(message) {
+        handleBuildOperationExceptions(message) {
             buildOperationExecutor.runAllWithAccessToProjectState {
                 if (parallel) {
                     logger.debug("$message in parallel")
                     // each operation as a proper build operation
-                    operations().forEach { add(asBuildOperation(it.displayName, it.progressDisplayName, it.action)) }
+                    operations().forEach { add(asBuildOperation(it.displayName, it.context, it.action)) }
                 } else {
                     logger.debug("$message sequentially")
                     // all operations under a single build operation
-                    add(asBuildOperation(message) {
+                    add(asBuildOperation(message, Path.ROOT) {
                         operations().forEach { it.action() }
                     })
                 }
@@ -623,22 +617,29 @@ sealed class NodeOwner {
 private
 data class OperationInfo(
     val displayName: String,
-    val progressDisplayName: String? = null,
+    val context: Path,
     val action: () -> Unit
 )
 
 
 private
-fun asBuildOperation(displayName: String, progressDisplayName: String? = null, action: () -> Unit): RunnableBuildOperation =
+class OperationException(message: String, cause: Throwable): RuntimeException(message, cause)
+
+
+private
+fun asBuildOperation(displayName: String, contextPath: Path, action: () -> Unit): RunnableBuildOperation =
     object : RunnableBuildOperation {
         override fun run(context: BuildOperationContext) {
-            action.invoke()
+            try {
+                action.invoke()
+            } catch (e: Exception) {
+                throw OperationException("Exception while ${StringUtils.uncapitalize(displayName)}: ${e.message}", e)
+            }
         }
 
         override fun description(): BuildOperationDescriptor.Builder {
             return BuildOperationDescriptor
-                .displayName(displayName).also { builder ->
-                    progressDisplayName?.also(builder::progressDisplayName)
-                }
+                .displayName(displayName)
+                .progressDisplayName(contextPath.path)
         }
     }
