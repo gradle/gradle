@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.internal.component.resolution.failure
 
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
@@ -75,6 +76,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
         }
     }
 
@@ -113,6 +115,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
         }
     }
 
@@ -141,6 +144,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
         }
     }
 
@@ -168,6 +172,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
         }
     }
 
@@ -198,6 +203,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
         }
     }
 
@@ -225,6 +231,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:configuration-not-compatible'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.CONFIGURATION_NOT_COMPATIBLE.name()
         }
     }
 
@@ -250,6 +257,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
         }
     }
 
@@ -274,6 +282,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:configuration-does-not-exist'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.CONFIGURATION_DOES_NOT_EXIST.name()
         }
     }
     // endregion Variant Selection failure
@@ -305,6 +314,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES.name()
         }
     }
 
@@ -330,9 +340,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-artifact'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:no-compatible-artifact'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
         }
     }
 
@@ -371,9 +383,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
         }
     }
 
@@ -397,9 +411,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
         }
     }
     // endregion Artifact Selection failures
@@ -433,6 +449,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-variants-with-matching-capabilities'
+            additionalData.asMap['resolutionFailure']['problemId'] == ResolutionFailureProblemId.NO_VARIANTS_WITH_MATCHING_CAPABILITIES.name()
         }
     }
     // endregion dependencyInsight failures
