@@ -551,7 +551,9 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public Object convert(Object o, String s) {
-            return "ResolutionFailure - additional data here";
+            Map<String, Object> result = new HashMap<>();
+            result.put("summary", "Resolution failure additional data");
+            return result;
         }
     }
 
