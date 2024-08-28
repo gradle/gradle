@@ -38,7 +38,9 @@ import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -94,6 +96,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (commandLine.hasOption(HELP_OPTION) && !startParameter.getTaskRequests().isEmpty()) {
             TaskExecutionRequest task = startParameter.getTaskRequests().get(0);
             startParameter.setTaskNames(ImmutableList.of(HELP_TASK, "--task", task.getArgs().get(0)));
+            if (startParameter.getTaskRequests().size() > 1 || task.getArgs().size() > 1) {
+                loggingServices.get(StyledTextOutputFactory.class).create(ConsoleRenderer.class)
+                    .println("Multiple tasks are specified with the `--help` flag. The help is shown for the first task only.");
+            }
         }
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
 

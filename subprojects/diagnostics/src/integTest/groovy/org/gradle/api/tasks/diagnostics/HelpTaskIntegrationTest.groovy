@@ -638,5 +638,16 @@ Options
         run "init", "--help"
         then:
         output.contains "Detailed task information for init"
+        !output.contains("Multiple tasks are specified")
+    }
+
+    def "shows warning about multiple tasks if invoked with --help"() {
+        when:
+        executer.requireDaemon().requireIsolatedDaemons()
+        run "init", "build", "--help"
+        then:
+        output.contains "Detailed task information for init"
+        !output.contains("Detailed task information for build")
+        output.contains("Multiple tasks are specified with the `--help` flag. The help is shown for the first task only.")
     }
 }
