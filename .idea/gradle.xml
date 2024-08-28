@@ -120,6 +120,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/flow-services" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/graph-isolation" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/graph-serialization" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/groovy-support" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/guava-serialization-codecs" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/input-tracking" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/isolated-action-services" />
