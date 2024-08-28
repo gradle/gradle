@@ -535,11 +535,14 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
+    // TODO: Figure out how to deal with this
     /**
      * A custom serializer for resolution failure data.
      *
-     * This is needed as the DefaultImmutableAttributes class does not want to be serialized - it causes a stack overflow.
+     * This is needed as the DefaultImmutableAttributes type which some ResolutionRailures contain
+     * can not be serialized; attempting to do so causes a stack overflow.
      */
+    @NonNullApi
     private static class JsonResolutionFailureDataConverter implements JsonGenerator.Converter {
         @Override
         public boolean handles(Class<?> type) {
