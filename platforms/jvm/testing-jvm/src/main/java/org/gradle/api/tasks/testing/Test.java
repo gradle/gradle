@@ -1321,8 +1321,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 && junitPlatformOptions.getExcludeTags().get().isEmpty();
         } else if (TestNGOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             TestNGOptions testNGOptions = (TestNGOptions) frameworkOptions;
-            return testNGOptions.getIncludeGroups().isEmpty()
-                && testNGOptions.getExcludeGroups().isEmpty();
+            return testNGOptions.getIncludeGroups().get().isEmpty()
+                && testNGOptions.getExcludeGroups().get().isEmpty();
         } else {
             throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
         }
