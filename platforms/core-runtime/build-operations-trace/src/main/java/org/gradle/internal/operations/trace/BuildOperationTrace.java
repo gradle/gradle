@@ -27,6 +27,9 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -511,7 +514,8 @@ public class BuildOperationTrace implements Stoppable {
         return new JsonGenerator.Options()
             .addConverter(new JsonClassConverter())
             .addConverter(new JsonThrowableConverter())
-            .addConverter(new JsonResolutionFailureDataConverter())
+            .addConverter(new JsonAttributeContainerConverter())
+            .addConverter(new JsonBuildIdentifierConverter())
             .build();
     }
 
@@ -535,25 +539,44 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    // TODO: Figure out how to deal with this
     /**
-     * A custom serializer for resolution failure data.
+     * A custom {@link JsonGenerator.Converter} is needed to deal with the fact that our {@link AttributeContainer} implementations
+     * have {@link AttributeContainer#getAttributes()} methods that return {@code this}.
      *
-     * This is needed as the DefaultImmutableAttributes type which some ResolutionRailures contain
-     * can not be serialized; attempting to do so causes a stack overflow.
+     * Attempting to serialize any of these causes a stack overflow, so
+     * just convert them to an easily serializable {@link Map} first.
      */
     @NonNullApi
-    private static class JsonResolutionFailureDataConverter implements JsonGenerator.Converter {
+    private static final class JsonAttributeContainerConverter implements JsonGenerator.Converter {
         @Override
         public boolean handles(Class<?> type) {
-            return type.getName().equals("org.gradle.api.problems.internal.DefaultResolutionFailureData");
+            return AttributeContainer.class.isAssignableFrom(type);
         }
 
         @Override
-        public Object convert(Object o, String s) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("summary", "Resolution failure additional data");
-            return result;
+        public Object convert(Object value, String key) {
+            return ((AttributeContainerInternal) value).asMap();
+        }
+    }
+
+    /**
+     * Avoid calling deprecated methods on {@link BuildIdentifier} when serializing it, which cause noise output in tests that
+     * feature resolution failures that contain this type as fields.
+     *
+     * TODO: Remove this in Gradle 9, once {@link BuildIdentifier#isCurrentBuild()} and {@link BuildIdentifier#getName()} are removed.
+     */
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @NonNullApi
+    private static final class JsonBuildIdentifierConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return BuildIdentifier.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            return ((BuildIdentifier) value).getBuildPath();
         }
     }
 
