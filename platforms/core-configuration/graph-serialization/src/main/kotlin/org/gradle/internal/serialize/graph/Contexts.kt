@@ -184,9 +184,9 @@ class DefaultReadContext(
     private
     val classDecoder: ClassDecoder,
 
-    val stringDecoder: StringDecoder = InlineStringDecoder,
+    val stringDecoder: StringDecoder = InlineStringDecoder
 
-    ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
 
