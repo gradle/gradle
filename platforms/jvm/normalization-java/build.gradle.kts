@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.jmh")
 }
 
 description = "API extraction for Java"
@@ -30,6 +31,9 @@ dependencies {
     testImplementation(projects.baseServices)
     testImplementation(projects.internalTesting)
     testImplementation(testFixtures(projects.snapshots))
+
+    jmhImplementation("org.gradle:java-api-extractor")
+    jmhImplementation(libs.guava)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
