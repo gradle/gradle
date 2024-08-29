@@ -159,7 +159,7 @@ public class ImmutableAttributesSchemaFactory {
         ImmutableAttributesSchema producer
     ) {
         ImmutableMap.Builder<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> builder = ImmutableMap.builder();
-        for (Attribute<?> attribute : Sets.union(consumer.strategies.keySet(), producer.strategies.keySet())) {
+        for (Attribute<?> attribute : Sets.union(producer.strategies.keySet(), consumer.strategies.keySet())) {
             builder.put(attribute, mergeStrategyFor(attribute, consumer, producer));
         }
         return builder.build();
