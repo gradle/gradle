@@ -22,6 +22,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -46,6 +48,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@NonExtensible
+@NoConventionMapping
 public class DefaultConfigurationPublications implements ConfigurationPublications, FinalizableValue {
     private final DisplayName displayName;
     private final PublishArtifactSet artifacts;
