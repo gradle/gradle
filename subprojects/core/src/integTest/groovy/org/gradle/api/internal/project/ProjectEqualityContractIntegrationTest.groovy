@@ -78,7 +78,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
                 def check() {
                     def projectsToCheck = getService().get().getProjectsToCheck()
                     [projectsToCheck.entrySet(), projectsToCheck.entrySet()].combinations()
-                        .findAll { a, b -> a.value.class != b.value.class }
+                        .findAll { a, b -> a.key != b.key }
                         .forEach { a, b -> println("\${a.key} equals to \${b.key}: \${a.value.equals(b.value)}") }
                 }
             }
@@ -86,34 +86,59 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile """
             include(":a")
+            include(":b")
         """
 
         buildFile """
-            def equalsContractChecker = gradle.getSharedServices().registerIfAbsent("equalsContractChecker", EqualsContractCheckerService.class)
-            equalsContractChecker.get().addProjectToCheck("wrapped by subprojects", subprojects.toList().get(0))
-            equalsContractChecker.get().addProjectToCheck("wrapped by allprojects", allprojects.toList().get(1))
-            equalsContractChecker.get().addProjectToCheck("wrapped by project", project(":a"))
+            def equalsContractCheckerProvider = gradle.getSharedServices().registerIfAbsent("equalsContractChecker", EqualsContractCheckerService.class)
+            def equalsContractChecker = equalsContractCheckerProvider.get()
+            equalsContractChecker.addProjectToCheck(":a wrapped by :root#subprojects", subprojects.toList().get(0))
+            equalsContractChecker.addProjectToCheck(":a wrapped by :root#allprojects", allprojects.toList().get(1))
+            equalsContractChecker.addProjectToCheck(":a wrapped by :root#project", project(":a"))
 
             def registry = services.get(BuildEventsListenerRegistry)
-            registry.onOperationCompletion(equalsContractChecker)
+            registry.onOperationCompletion(equalsContractCheckerProvider)
         """
 
         buildFile("a/build.gradle", """
             def equalsContractChecker = gradle.getSharedServices().registerIfAbsent("equalsContractChecker", EqualsContractCheckerService.class).get()
-            equalsContractChecker.addProjectToCheck("raw", project)
+            equalsContractChecker.addProjectToCheck("raw :a", project)
 
             tasks.register("checkEqualsContract", EqualsContractCheckerTask.class)
+        """)
+
+        buildFile("b/build.gradle", """
+            def equalsContractChecker = gradle.getSharedServices().registerIfAbsent("equalsContractChecker", EqualsContractCheckerService.class).get()
+            equalsContractChecker.addProjectToCheck(":a wrapped by :b#project", project(":a"))
         """)
 
         when:
         run ":a:checkEqualsContract"
 
         then:
-        outputContains("raw equals to wrapped by subprojects: true")
-        outputContains("raw equals to wrapped by allprojects: true")
-        outputContains("raw equals to wrapped by project: true")
-        outputContains("wrapped by subprojects equals to raw: true")
-        outputContains("wrapped by allprojects equals to raw: true")
-        outputContains("wrapped by project equals to raw: true")
+        outputContains(":a wrapped by :root#allprojects equals to :a wrapped by :root#subprojects: true")
+        outputContains(":a wrapped by :root#allprojects equals to :a wrapped by :root#project: true")
+        outputContains(":a wrapped by :root#allprojects equals to :a wrapped by :b#project: true")
+        outputContains(":a wrapped by :root#allprojects equals to raw :a: true")
+
+        outputContains(":a wrapped by :b#project equals to :a wrapped by :root#allprojects: true")
+        outputContains(":a wrapped by :b#project equals to :a wrapped by :root#subprojects: true")
+        outputContains(":a wrapped by :b#project equals to :a wrapped by :root#project: true")
+        outputContains(":a wrapped by :b#project equals to raw :a: true")
+
+        outputContains(":a wrapped by :root#project equals to :a wrapped by :root#allprojects: true")
+        outputContains(":a wrapped by :root#project equals to :a wrapped by :root#subprojects: true")
+        outputContains(":a wrapped by :root#project equals to :a wrapped by :b#project: true")
+        outputContains(":a wrapped by :root#project equals to raw :a: true")
+
+        outputContains(":a wrapped by :root#subprojects equals to :a wrapped by :root#allprojects: true")
+        outputContains(":a wrapped by :root#subprojects equals to :a wrapped by :root#project: true")
+        outputContains(":a wrapped by :root#subprojects equals to :a wrapped by :b#project: true")
+        outputContains(":a wrapped by :root#subprojects equals to raw :a: true")
+
+        outputContains("raw :a equals to :a wrapped by :root#subprojects: true")
+        outputContains("raw :a equals to :a wrapped by :root#allprojects: true")
+        outputContains("raw :a equals to :a wrapped by :root#project: true")
+        outputContains("raw :a equals to :a wrapped by :b#project: true")
     }
 }
