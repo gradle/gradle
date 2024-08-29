@@ -29,13 +29,13 @@ This metadata is typically stored in files like `pom.xml` for Maven or `ivy.xml`
 This metadata plays a crucial role in dependency resolution, ensuring that the right versions and variants of modules are used in a build.
 
 [[sec:supported-metadata-formats]]
-== Supported Metadata formats
+== Supported metadata formats
 
 External module dependencies require module metadata so that Gradle can determine the transitive dependencies of a module.
 Gradle supports various metadata formats to achieve this.
 
 [[sub:supported-md-gradle]]
-=== Gradle Module Metadata files
+=== Gradle Module Metadata (GMM) files
 
 Gradle Module Metadata is specifically designed to support all features of Gradle's dependency management model, making it the preferred format.
 
@@ -91,12 +91,14 @@ Gradle will first look for an `ivy.xml` file, but if this file contains a specia
 
 When searching for a module in a repository, Gradle checks for supported metadata file formats by default.
 
-In a Maven repository, Gradle looks for `.pom` files, in an Ivy repository, it checks for `ivy.xml` files, and in a flat directory repository, it looks directly for `.jar` files without expecting any metadata.
+In a Maven repository, Gradle looks for `.pom` files.
+In an Ivy repository, it checks for `ivy.xml` files.
+And in a flat directory repository, it looks directly for `.jar` files without expecting any metadata.
 Starting with Gradle 5.0, Gradle also looks for `.module` (Gradle module metadata) files.
 
 If you define a custom repository, you can configure how Gradle searches for metadata.
 For instance, you can set up a Maven repository that only contains JAR files without POM files.
-This is done by configuring metadata sources for the repository.
+This is done by configuring metadata sources for the repository:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-metadata-sources]"]

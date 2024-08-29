@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[dependency-configurations]]
-= Dependency configurations
+= Using and Creating Dependency Configurations
 
 [[sec:what-are-dependency-configurations]]
 In Gradle, dependencies are associated with specific scopes, such as compile-time or runtime.

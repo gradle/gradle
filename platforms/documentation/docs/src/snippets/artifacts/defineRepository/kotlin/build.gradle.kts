@@ -3,7 +3,6 @@ repositories {
     maven {
         url = uri("http://repo.mycompany.com/maven2")
     }
-
     ivy {
         url = uri("http://repo.mycompany.com/repo")
     }

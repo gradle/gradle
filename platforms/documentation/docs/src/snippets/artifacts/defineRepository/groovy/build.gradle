@@ -3,7 +3,6 @@ repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
     }
-
     ivy {
         url "http://repo.mycompany.com/repo"
     }
