@@ -51,8 +51,6 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final VariantArtifactResolver variantResolver;
     private final ComponentGraphResolveState component;
     private final VariantGraphResolveState variant;
-    private final ComponentIdentifier componentId;
-    private final ImmutableAttributesSchema producerSchema;
     private final ImmutableAttributes overriddenAttributes;
     private final List<IvyArtifactName> artifacts;
     private final ExcludeSpec exclusions;
@@ -73,8 +71,6 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.variantResolver = variantResolver;
         this.component = component;
         this.variant = variant;
-        this.componentId = component.getId();
-        this.producerSchema = component.getMetadata().getAttributesSchema();
         this.overriddenAttributes = dependency.getAttributes();
         this.artifacts = dependency.getDependencyMetadata().getArtifacts();
         this.exclusions = dependency.getExclusions();
@@ -88,6 +84,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         ArtifactVariantSelector variantSelector,
         ArtifactSelectionSpec spec
     ) {
+        ComponentIdentifier componentId = component.getId();
         if (!spec.getComponentFilter().isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
@@ -113,12 +110,19 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
                 return ResolvedArtifactSet.EMPTY;
             }
 
+            ImmutableAttributesSchema producerSchema = component.getMetadata().getAttributesSchema();
             ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, variants);
             return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed);
         }
     }
 
-    private ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolver dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
+    private ResolvedArtifactSet asTransformed(
+        ResolvedVariant sourceVariant,
+        VariantDefinition variantDefinition,
+        TransformUpstreamDependenciesResolver dependenciesResolver,
+        TransformedVariantFactory transformedVariantFactory
+    ) {
+        ComponentIdentifier componentId = component.getId();
         if (componentId instanceof ProjectComponentIdentifier) {
             return transformedVariantFactory.transformedProjectArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
         } else {

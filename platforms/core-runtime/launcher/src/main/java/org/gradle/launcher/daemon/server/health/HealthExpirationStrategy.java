@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.base.Joiner;
+import com.sun.management.HotSpotDiagnosticMXBean;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -29,8 +30,13 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStr
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.MBeanServer;
+import java.io.File;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,6 +67,13 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
     public static final String DISABLE_PERFORMANCE_LOGGING = "org.gradle.daemon.performance.disable-logging";
 
     /**
+     * A system property which disables logging upon expiration events. Defaults to false.
+     * <p>
+     * <strong>This feature is non-stable and may be removed at any time.</strong>
+     */
+    public static final String CAPTURE_HEAP_DUMP = "org.gradle.internal.daemon.performance.capture-heap-dump-on-oom";
+
+    /**
      * The prefix for the message logged when an unhealthy condition is detected.
      * Used to strip this message from the logs during integration testing.
      */
@@ -73,6 +86,7 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
      * memory condition persists.
      */
     private DaemonExpirationStatus mostSevereStatus = DO_NOT_EXPIRE;
+    private final AtomicBoolean capturedHeapDump = new AtomicBoolean(false);
     private final Lock statusLock = new ReentrantLock();
 
     private final DaemonHealthStats stats;
@@ -127,8 +141,12 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
         // We've encountered an unhealthy condition. Log if necessary.
 
         String reason = Joiner.on(" and ").join(reasons);
-        if (shouldPrintLog(expirationStatus)) {
+        if (!updateStatus(expirationStatus) || expirationStatus.ordinal() < GRACEFUL_EXPIRE.ordinal()) {
+            // The status did not change or is not significant. Return without triggering side effects.
+            return new DaemonExpirationResult(expirationStatus, reason);
+        }
 
+        if (shouldPrintLog()) {
             String when = expirationStatus == GRACEFUL_EXPIRE ? "after the build" : "immediately";
             String extraInfo = expirationStatus == GRACEFUL_EXPIRE
                 ? "The daemon will restart for the next build, which may increase subsequent build times"
@@ -147,16 +165,29 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
                 + "To disable this warning, set '" + DISABLE_PERFORMANCE_LOGGING + "=true'.");
         }
 
+        if (shouldCaptureHeapDump()) {
+            File destinationFile = new File("gradle-heap-dump-" + System.currentTimeMillis() + ".hprof");
+            try {
+                logger.warn("Capturing heap dump");
+                MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+                HotSpotDiagnosticMXBean mxBean = ManagementFactory.newPlatformMXBeanProxy(
+                    server, "com.sun.management:type=HotSpotDiagnostic", HotSpotDiagnosticMXBean.class);
+                mxBean.dumpHeap(destinationFile.getAbsolutePath(), true);
+                logger.warn("Heap dump captured at {}", destinationFile.getAbsolutePath());
+            } catch (IOException e) {
+                logger.warn("Failed to capture heap dump", e);
+            }
+        }
+
         logger.debug("Daemon health: {}", stats.getHealthInfo());
 
         return new DaemonExpirationResult(expirationStatus, reason);
     }
 
-    private boolean shouldPrintLog(DaemonExpirationStatus newStatus) {
-        if (Boolean.getBoolean(DISABLE_PERFORMANCE_LOGGING)) {
-            return false;
-        }
-
+    /**
+     * Return true iff the status was updated to a more severe status.
+     */
+    private boolean updateStatus(DaemonExpirationStatus newStatus) {
         statusLock.lock();
         try {
             DaemonExpirationStatus previous = mostSevereStatus;
@@ -165,6 +196,17 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
         } finally {
             statusLock.unlock();
         }
+    }
+
+    private static boolean shouldPrintLog() {
+        return !Boolean.getBoolean(DISABLE_PERFORMANCE_LOGGING);
+    }
+
+    private boolean shouldCaptureHeapDump() {
+        if (capturedHeapDump.getAndSet(true)) {
+            return false;
+        }
+        return Boolean.getBoolean(CAPTURE_HEAP_DUMP);
     }
 
 }
