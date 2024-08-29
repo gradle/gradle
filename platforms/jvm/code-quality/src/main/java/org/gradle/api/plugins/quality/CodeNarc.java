@@ -17,8 +17,8 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl;
@@ -81,10 +81,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
      */
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * The CodeNarc configuration file to use.

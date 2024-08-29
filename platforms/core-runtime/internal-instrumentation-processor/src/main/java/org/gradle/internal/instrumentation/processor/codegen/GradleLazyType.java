@@ -22,7 +22,9 @@ import com.squareup.javapoet.TypeName;
 
 public enum GradleLazyType {
     CONFIGURABLE_FILE_COLLECTION("org.gradle.api.file.ConfigurableFileCollection"),
+    CONFIGURABLE_FILE_TREE("org.gradle.api.file.ConfigurableFileTree"),
     FILE_COLLECTION("org.gradle.api.file.FileCollection"),
+    FILE_TREE("org.gradle.api.file.FileTree"),
     DIRECTORY_PROPERTY("org.gradle.api.file.DirectoryProperty"),
     REGULAR_FILE_PROPERTY("org.gradle.api.file.RegularFileProperty"),
     LIST_PROPERTY("org.gradle.api.provider.ListProperty"),

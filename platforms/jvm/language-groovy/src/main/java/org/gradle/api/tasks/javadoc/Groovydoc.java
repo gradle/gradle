@@ -18,9 +18,9 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
@@ -139,10 +139,7 @@ public abstract class Groovydoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * Returns the directory to generate the documentation into.

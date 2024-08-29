@@ -67,7 +67,7 @@ public class JvmPluginsHelper {
     @Deprecated
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        compile.setSource(sourceSet.getJava());
+        compile.getSource().setFrom(sourceSet.getJava());
 
         compileAgainstJavaOutputs(compile, sourceSet, target.getObjects());
         configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
@@ -120,7 +120,7 @@ public class JvmPluginsHelper {
                 javadoc.setDescription("Generates Javadoc API documentation for the " + displayName + ".");
                 javadoc.setGroup(JvmConstants.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
-                javadoc.setSource(sourceSet.getAllJava());
+                javadoc.getSource().setFrom(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
                     javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());
                     javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());

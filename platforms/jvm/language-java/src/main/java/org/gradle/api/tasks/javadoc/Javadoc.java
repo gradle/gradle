@@ -19,8 +19,8 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -221,10 +221,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * Configures the javadoc executable to be used to generate javadoc documentation.

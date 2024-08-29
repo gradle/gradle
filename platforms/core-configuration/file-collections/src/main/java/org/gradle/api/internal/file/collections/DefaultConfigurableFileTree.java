@@ -16,100 +16,192 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.CompositeFileTree;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.file.AbstractFileTree;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.provider.HasConfigurableValueInternal;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.state.Managed;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
-    private Object dir;
+public class DefaultConfigurableFileTree extends AbstractFileTree implements ConfigurableFileTreeInternal, FileTreeInternal, Managed, HasConfigurableValueInternal, LazyGroovySupport {
+    private final ConfigurableFileCollectionInternal roots;
     private final PatternSet patternSet;
-    private final PathToFileResolver resolver;
-    private final DefaultTaskDependency buildDependency;
+    private final FileTreeInternal tree;
     private final FileCollectionObservationListener listener;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     public DefaultConfigurableFileTree(
-        PathToFileResolver resolver,
-        FileCollectionObservationListener listener,
+        ConfigurableFileCollectionInternal roots,
         Factory<PatternSet> patternSetFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        DirectoryFileTreeFactory directoryFileTreeFactory
+        FileCollectionObservationListener listener,
+        TaskDependencyFactory taskDependencyFactory
     ) {
-        super(taskDependencyFactory);
-        this.resolver = resolver;
+        super(taskDependencyFactory, patternSetFactory);
+        this.roots = roots;
+        this.patternSet = patternSetFactory.create();
+        assert patternSet != null;
+        this.tree = roots.getAsFileTree().matching(patternSet);
         this.listener = listener;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
-        patternSet = patternSetFactory.create();
-        buildDependency = taskDependencyFactory.configurableDependency();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return roots.getDisplayName();
     }
 
     @Override
     public Set<File> getFiles() {
         listener.fileCollectionObserved(this);
-        return super.getFiles();
+        return tree.getFiles();
     }
 
     @Override
     public boolean isEmpty() {
         listener.fileCollectionObserved(this);
-        return super.isEmpty();
+        return tree.isEmpty();
     }
 
     @Override
     public boolean contains(File file) {
         listener.fileCollectionObserved(this);
-        return super.contains(file);
+        return tree.contains(file);
     }
 
     @Override
-    public FileTree visit(FileVisitor visitor) {
+    public ConfigurableFileTree visit(FileVisitor visitor) {
         listener.fileCollectionObserved(this);
-        return super.visit(visitor);
+        tree.visit(visitor);
+        return this;
     }
 
     @Override
-    public PatternSet getPatterns() {
+    public ConfigurableFileTree visit(Action<? super FileVisitDetails> visitor) {
+        listener.fileCollectionObserved(this);
+        tree.visit(visitor);
+        return this;
+    }
+
+    @Override
+    public DefaultConfigurableFileTree from(Object... dir) {
+        roots.from(dir);
+        return this;
+    }
+
+    @Override
+    public Set<Object> getFrom() {
+        return roots.getFrom();
+    }
+
+    @Override
+    public void setFrom(Iterable<?> paths) {
+        roots.setFrom(paths);
+    }
+
+    @Override
+    public void setFrom(Object... paths) {
+        roots.setFrom(paths);
+    }
+
+    @Override
+    public void setFromAnyValue(Object object) {
+        roots.setFrom(object);
+    }
+
+    public File getDir() {
+        // TODO Deprecate
+        return roots.getSingleFile();
+    }
+
+    public void setDir(Object dir) {
+        // TODO Deprecate
+        roots.setFrom(dir);
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        return roots.unset();
+    }
+
+    @Override
+    public SupportsConvention unsetConvention() {
+        return roots.unsetConvention();
+    }
+
+    @Override
+    @Incubating
+    public ConfigurableFileTree convention(Iterable<?> paths) {
+        roots.convention(paths);
+        return this;
+    }
+
+    @Override
+    @Incubating
+    public ConfigurableFileTree convention(Object... paths) {
+        roots.convention(paths);
+        return this;
+    }
+
+    @Override
+    public PatternSet getPatternSet() {
         return patternSet;
     }
 
     @Override
-    public DefaultConfigurableFileTree setDir(Object dir) {
-        from(dir);
+    public FileTree matching(Closure filterConfigClosure) {
+        return tree.matching(filterConfigClosure);
+    }
+
+    @Override
+    public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
+        return tree.matching(filterConfigAction);
+    }
+
+    @Override
+    public FileTree visit(Closure visitor) {
+        return tree.visit(visitor);
+    }
+
+    @Override
+    public FileTree plus(FileTree fileTree) {
+        // TODO Is this how we want this to be implemented?
+        return tree.plus(fileTree);
+    }
+
+    @Override
+    public FileTreeInternal getAsFileTree() {
         return this;
     }
 
     @Override
-    public File getDir() {
-        if (dir == null) {
-            throw new InvalidUserDataException("A base directory must be specified in the task or via a method argument!");
-        }
-        return resolver.resolve(dir);
+    public FileTreeInternal matching(PatternFilterable patterns) {
+        return tree.matching(patterns);
     }
 
     @Override
-    public DefaultConfigurableFileTree from(Object dir) {
-        this.dir = dir;
-        return this;
+    public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
+        tree.visitContentsAsFileTrees(visitor);
     }
 
     @Override
-    public String getDisplayName() {
-        return "directory '" + dir + "'";
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        roots.visitDependencies(context);
     }
 
     @Override
@@ -183,30 +275,76 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        File dir = getDir();
-        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), listener, taskDependencyFactory, patternSetFactory));
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(buildDependency);
-    }
-
-    @Override
     public ConfigurableFileTree builtBy(Object... tasks) {
-        buildDependency.add(tasks);
+        roots.builtBy(tasks);
         return this;
     }
 
     @Override
     public Set<Object> getBuiltBy() {
-        return buildDependency.getMutableValues();
+        return roots.getBuiltBy();
     }
 
     @Override
     public ConfigurableFileTree setBuiltBy(Iterable<?> tasks) {
-        buildDependency.setValues(tasks);
+        roots.setBuiltBy(tasks);
         return this;
+    }
+
+    @Override
+    public void finalizeValue() {
+        roots.finalizeValue();
+    }
+
+    @Override
+    public void finalizeValueOnRead() {
+        roots.finalizeValueOnRead();
+    }
+
+    @Override
+    public void implicitFinalizeValue() {
+        roots.implicitFinalizeValue();
+        // TODO Finalize pattern set?
+    }
+
+    @Override
+    public void disallowChanges() {
+        roots.disallowChanges();
+    }
+
+    @Override
+    public void disallowUnsafeRead() {
+        roots.disallowUnsafeRead();
+    }
+
+    @Nullable
+    @Override
+    public Object unpackState() {
+        return new State(roots.getFiles(), patternSet);
+    }
+
+    @Override
+    public boolean isImmutable() {
+        return false;
+    }
+
+    @Override
+    public Class<?> publicType() {
+        return ConfigurableFileTree.class;
+    }
+
+    @Override
+    public int getFactoryId() {
+        return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
+    }
+
+    public static class State {
+        public final Set<File> roots;
+        public final PatternSet patternSet;
+
+        public State(Set<File> roots, PatternSet patternSet) {
+            this.roots = roots;
+            this.patternSet = patternSet;
+        }
     }
 }

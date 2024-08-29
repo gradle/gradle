@@ -170,6 +170,7 @@ public interface FileCollectionFactory {
     /**
      * Creates a {@link ConfigurableFileTree} instance with no base dir specified.
      */
+    // TODO Rename to `configurableFileTree()`
     ConfigurableFileTree fileTree();
 
     /**

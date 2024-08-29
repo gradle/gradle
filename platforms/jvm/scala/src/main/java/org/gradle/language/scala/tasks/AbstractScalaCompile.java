@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -51,7 +51,6 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -246,10 +245,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     @Override
     // Java source files are supported, too. Therefore, we should care about the relative path.
     @PathSensitive(PathSensitivity.RELATIVE)
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * The Java major version of the JVM the Scala compiler is running on.

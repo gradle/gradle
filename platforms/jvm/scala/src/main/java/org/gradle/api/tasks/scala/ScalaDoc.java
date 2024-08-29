@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -98,10 +99,7 @@ public abstract class ScalaDoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * Returns the compilation outputs needed by Scaladoc filtered to include <a href="https://docs.scala-lang.org/scala3/guides/tasty-overview.html">TASTy</a> files.

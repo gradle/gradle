@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -45,15 +45,11 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -84,7 +80,6 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
-    private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final Property<JavaLauncher> javaLauncher;
     private File previousCompilationDataFile;
 
@@ -172,7 +167,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
             IncrementalCompilerFactory factory = getIncrementalCompilerFactory();
             return factory.makeIncremental(
                 cleaningGroovyCompiler,
-                getStableSources().getAsFileTree(),
+                getSource().getAsFileTree(),
                 createRecompilationSpecProvider(inputChanges)
             );
         } else {
@@ -181,28 +176,14 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     }
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges) {
-        FileCollection stableSources = getStableSources();
+        FileCollection source = getSource();
         return new GroovyRecompilationSpecProvider(
             getDeleter(),
             getServices().get(FileOperations.class),
-            stableSources.getAsFileTree(),
+            source.getAsFileTree(),
             inputChanges.isIncremental(),
-            () -> inputChanges.getFileChanges(stableSources).iterator()
+            () -> inputChanges.getFileChanges(source).iterator()
         );
-    }
-
-    /**
-     * The sources for incremental change detection.
-     *
-     * @since 5.6
-     */
-    @SkipWhenEmpty
-    @IgnoreEmptyDirectories
-    // Java source files are supported, too. Therefore, we should care about the relative path.
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    protected FileCollection getStableSources() {
-        return stableSources;
     }
 
     private FileCollection determineGroovyCompileClasspath() {
@@ -227,11 +208,11 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
         assert spec != null;
 
-        FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
-        List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(stableSourcesAsFileTree);
+        FileTreeInternal sourcesAsFileTree = (FileTreeInternal) getSource().getAsFileTree();
+        List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(sourcesAsFileTree);
 
         spec.setSourcesRoots(sourceRoots);
-        spec.setSourceFiles(stableSourcesAsFileTree);
+        spec.setSourceFiles(sourcesAsFileTree);
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
@@ -301,11 +282,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * {@inheritDoc}
      */
     @Override
-    @Internal("tracked via stableSources")
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * Gets the options for the Groovy compilation. To set specific options for the nested Java compilation, use {@link

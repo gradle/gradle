@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
@@ -327,8 +327,8 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static File toDirectory(PropertyValidationContext context, Object value) {
-        if (value instanceof ConfigurableFileTree) {
-            return ((ConfigurableFileTree) value).getDir();
+        if (value instanceof FileTree) {
+            return ((FileTree) value).getSingleFile();
         }
         return toFile(context, value);
     }

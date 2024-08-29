@@ -46,7 +46,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-
 import java.util.function.Supplier;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -159,7 +158,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             JvmPluginsHelper.compileAgainstJavaOutputs(groovyCompile, sourceSet, objectFactory);
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, groovySource, groovyCompile.getOptions(), project);
             groovyCompile.setDescription("Compiles the " + groovySource + ".");
-            groovyCompile.setSource(groovySource);
+            groovyCompile.getSource().setFrom(groovySource);
             groovyCompile.getJavaLauncher().convention(getJavaLauncher(project));
 
             groovyCompile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));

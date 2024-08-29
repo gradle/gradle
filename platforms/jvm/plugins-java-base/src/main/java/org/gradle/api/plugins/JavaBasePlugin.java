@@ -28,10 +28,10 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -222,7 +222,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, javaSource, javaCompile.getOptions(), project);
             javaCompile.setDescription("Compiles " + javaSource + ".");
-            javaCompile.setSource(javaSource);
+            javaCompile.getSource().setFrom(javaSource);
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
                 JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(javaCompile, objectFactory));

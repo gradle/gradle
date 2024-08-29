@@ -137,6 +137,6 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     protected void configureForSourceSet(final SourceSet sourceSet, Checkstyle task) {
         task.setDescription("Run Checkstyle analysis for " + sourceSet.getName() + " classes");
         task.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
-        task.setSource(sourceSet.getAllJava());
+        task.getSource().setFrom(sourceSet.getAllJava());
     }
 }

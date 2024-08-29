@@ -38,7 +38,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -317,7 +317,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
-        with(aCompileJava.stableSources) {
+        with(aCompileJava.source) {
             hash != null
             normalization == "RELATIVE_PATH"
             attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS']
@@ -376,7 +376,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 !containsKey("children")
             }
         }
-        with(bCompileJava.stableSources) {
+        with(bCompileJava.source) {
             hash != null
             roots.size() == 2
             with(roots[0]) {

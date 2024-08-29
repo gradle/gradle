@@ -70,7 +70,7 @@ public abstract class ScalaPlugin implements Plugin<Project> {
                 files.from(feature.getSourceSet().getCompileClasspath());
                 return files;
             });
-            scalaDoc.setSource(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
+            scalaDoc.getSource().setFrom(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
             scalaDoc.getCompilationOutputs().from(feature.getSourceSet().getOutput());
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {

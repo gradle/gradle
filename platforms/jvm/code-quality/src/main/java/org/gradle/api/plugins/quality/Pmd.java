@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
@@ -178,10 +178,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * The class path containing the PMD library to be used.

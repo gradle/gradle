@@ -91,6 +91,7 @@ import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyType.FILE_COLLECTION;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyType.FILE_TREE;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.isAssignableToFileSystemLocation;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.isAnnotationOfType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
@@ -503,6 +504,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         switch (gradleLazyType) {
             case CONFIGURABLE_FILE_COLLECTION:
                 return FILE_COLLECTION.asClassName();
+            case CONFIGURABLE_FILE_TREE:
+                return FILE_TREE.asClassName();
             case DIRECTORY_PROPERTY:
             case REGULAR_FILE_PROPERTY:
                 return ClassName.get(File.class);

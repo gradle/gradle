@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.base.Objects;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.state.ManagedFactory;
 
@@ -25,8 +26,7 @@ import javax.annotation.Nullable;
 
 public class ManagedFactories {
     public static class ConfigurableFileCollectionManagedFactory implements ManagedFactory {
-        private static final Class<?> PUBLIC_TYPE = ConfigurableFileCollection.class;
-        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        public static final int FACTORY_ID = Objects.hashCode(ConfigurableFileCollectionManagedFactory.class.getName());
 
         private final FileCollectionFactory fileCollectionFactory;
 
@@ -37,11 +37,19 @@ public class ManagedFactories {
         @Nullable
         @Override
         public <T> T fromState(Class<T> type, Object state) {
-            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
-                return null;
+            if (type.isAssignableFrom(ConfigurableFileCollection.class)) {
+                // TODO - should retain display name
+                return type.cast(fileCollectionFactory.configurableFiles().from(state));
             }
-            // TODO - should retain display name
-            return type.cast(fileCollectionFactory.configurableFiles().from(state));
+            if (type.isAssignableFrom(ConfigurableFileTree.class)) {
+                // TODO - should retain display name
+                DefaultConfigurableFileTree.State fileTreeState = (DefaultConfigurableFileTree.State) state;
+                ConfigurableFileTreeInternal fileTree = (ConfigurableFileTreeInternal) fileCollectionFactory.fileTree();
+                fileTree.from(fileTreeState.roots);
+                fileTree.getPatternSet().copyFrom(fileTreeState.patternSet);
+                return type.cast(fileTree);
+            }
+            return null;
         }
 
         @Override

@@ -17,11 +17,11 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
@@ -29,14 +29,11 @@ import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
@@ -54,7 +51,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -74,7 +70,6 @@ public abstract class AntlrTask extends SourceTask {
     private File outputDirectory;
     private String maxHeapSize;
     private FileCollection sourceSetDirectories;
-    private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -217,10 +212,10 @@ public abstract class AntlrTask extends SourceTask {
     @TaskAction
     public void execute(InputChanges inputChanges) {
         Set<File> grammarFiles = new HashSet<>();
-        FileCollection stableSources = getStableSources();
+        FileTree source = getSource();
         if (inputChanges.isIncremental()) {
             boolean rebuildRequired = false;
-            for (FileChange fileChange : inputChanges.getFileChanges(stableSources)) {
+            for (FileChange fileChange : inputChanges.getFileChanges(source)) {
                 if (fileChange.getFileType() == FileType.FILE) {
                     if (fileChange.getChangeType() == ChangeType.REMOVED) {
                         rebuildRequired = true;
@@ -235,10 +230,10 @@ public abstract class AntlrTask extends SourceTask {
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }
-                grammarFiles.addAll(stableSources.getFiles());
+                grammarFiles.addAll(source.getFiles());
             }
         } else {
-            grammarFiles.addAll(stableSources.getFiles());
+            grammarFiles.addAll(source.getFiles());
         }
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
@@ -265,61 +260,11 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
-     * Sets the source for this task. Delegates to {@link #setSource(Object)}.
-     *
-     * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
-     * is used to determine the relative output path of the generated source
-     * If the source is not of type {@link SourceDirectorySet}, then the generated source files end up
-     * flattened in the specified output directory.
-     *
-     * @param source The source.
-     * @since 4.0
-     */
-    @Override
-    public void setSource(FileTree source) {
-        setSource((Object) source);
-    }
-
-    /**
-     * Sets the source for this task. Delegates to {@link SourceTask#setSource(Object)}.
-     *
-     * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
-     * is used to determine the relative output path of the generated source
-     * If the source is not of type {@link SourceDirectorySet}, then the generated source files end up
-     * flattened in the specified output directory.
-     *
-     * @param source The source.
-     */
-    @Override
-    public void setSource(Object source) {
-        super.setSource(source);
-        if (source instanceof SourceDirectorySet) {
-            this.sourceSetDirectories = ((SourceDirectorySet) source).getSourceDirectories();
-        }
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
-    @Internal("tracked via stableSources")
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
-
-    /**
-     * The sources for incremental change detection.
-     *
-     * @since 6.0
-     */
-    @SkipWhenEmpty
-    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    protected FileCollection getStableSources() {
-        return stableSources;
-    }
+    public abstract ConfigurableFileTree getSource();
 
     @Inject
     protected Deleter getDeleter() {

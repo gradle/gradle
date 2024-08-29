@@ -222,7 +222,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             JvmPluginsHelper.compileAgainstJavaOutputs(scalaCompile, sourceSet, objectFactory);
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, scalaSource, scalaCompile.getOptions(), project);
             scalaCompile.setDescription("Compiles the " + scalaSource + ".");
-            scalaCompile.setSource(scalaSource);
+            scalaCompile.getSource().setFrom(scalaSource);
             scalaCompile.getJavaLauncher().convention(getJavaLauncher(project));
 
             configureIncrementalAnalysis(project, sourceSet, incrementalAnalysis, scalaCompile);

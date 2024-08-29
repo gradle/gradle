@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -44,15 +45,11 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -70,12 +67,10 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
-import org.gradle.work.NormalizeLineEndings;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Compiles Java source files.
@@ -94,7 +89,6 @@ import java.util.concurrent.Callable;
 @CacheableTask
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final CompileOptions compileOptions;
-    private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
     private final Property<JavaCompiler> javaCompiler;
@@ -118,11 +112,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * {@inheritDoc}
      */
     @Override
-    @Internal("tracked via stableSources")
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * Configures the java compiler to be used to compile the Java source.
@@ -160,16 +151,15 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
 
         Compiler<JavaCompileSpec> compiler = createCompiler();
-        compiler = makeIncremental(inputs, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources());
+        compiler = makeIncremental(inputs, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getSource());
         performCompilation(spec, compiler);
     }
 
-    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, CleaningJavaCompiler<JavaCompileSpec> compiler, FileCollection stableSources) {
-        FileTree sources = stableSources.getAsFileTree();
+    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, CleaningJavaCompiler<JavaCompileSpec> compiler, FileTree source) {
         return getIncrementalCompilerFactory().makeIncremental(
             compiler,
-            sources,
-            createRecompilationSpec(inputs, sources)
+            source,
+            createRecompilationSpec(inputs, source)
         );
     }
 
@@ -179,7 +169,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             getServices().get(FileOperations.class),
             sources,
             inputs.isIncremental(),
-            () -> inputs.getFileChanges(getStableSources()).iterator()
+            () -> inputs.getFileChanges(getSource()).iterator()
         );
     }
 
@@ -189,7 +179,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
     private void performFullCompilation(DefaultJavaCompileSpec spec) {
         Compiler<JavaCompileSpec> compiler;
-        spec.setSourceFiles(getStableSources());
+        spec.setSourceFiles(getSource());
         compiler = createCompiler();
         performCompilation(spec, compiler);
     }
@@ -227,7 +217,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @VisibleForTesting
     DefaultJavaCompileSpec createSpec() {
         validateForkOptionsMatchToolchain();
-        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
+        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
         boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
@@ -350,20 +340,6 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return super.getClasspath();
-    }
-
-    /**
-     * The sources for incremental change detection.
-     *
-     * @since 6.0
-     */
-    @SkipWhenEmpty
-    @IgnoreEmptyDirectories
-    @NormalizeLineEndings
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    protected FileCollection getStableSources() {
-        return stableSources;
     }
 
     @Inject

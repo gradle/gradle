@@ -453,14 +453,14 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         outputContains("Appending additional implementation to build cache key:")
         outputContains("Appending input value fingerprint for 'options.fork'")
         outputContains("Appending input file fingerprints for 'classpath'")
-        def sourcesDebugLogging = "Appending input file fingerprints for 'stableSources' to build cache key: "
+        def sourcesDebugLogging = "Appending input file fingerprints for 'source' to build cache key: "
         outputContains(sourcesDebugLogging)
         outputContains("Build cache key for task ':compileJava' is ")
         outputContains("Appending output property name to build cache key: destinationDir")
 
-        def stableInputsFingerprintLog = result.getOutputLineThatContains(sourcesDebugLogging)
-        stableInputsFingerprintLog.contains("RELATIVE_PATH{${testDirectory.absolutePath}")
-        stableInputsFingerprintLog.contains("Hello.java='Hello.java' / ")
+        def inputsFingerprintLog = result.getOutputLineThatContains(sourcesDebugLogging)
+        inputsFingerprintLog.contains("RELATIVE_PATH{${testDirectory.absolutePath}")
+        inputsFingerprintLog.contains("Hello.java='Hello.java' / ")
     }
 
     def "only the build cache key is reported at the info level"() {

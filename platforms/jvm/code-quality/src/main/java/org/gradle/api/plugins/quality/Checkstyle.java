@@ -19,9 +19,9 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
@@ -182,11 +182,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * executed.</p>
      */
     @Override
-    @ToBeReplacedByLazyProperty
     @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getSource() {
-        return super.getSource();
-    }
+    public abstract ConfigurableFileTree getSource();
 
     /**
      * The class path containing the Checkstyle library to be used.

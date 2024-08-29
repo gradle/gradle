@@ -50,7 +50,7 @@ public abstract class GroovyPlugin implements Plugin<Project> {
             groovyDoc.setClasspath(mainFeature.getSourceSet().getOutput().plus(mainFeature.getSourceSet().getCompileClasspath()));
 
             SourceDirectorySet groovySourceSet = mainFeature.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);
-            groovyDoc.setSource(groovySourceSet);
+            groovyDoc.getSource().setFrom(groovySourceSet);
         });
     }
 }

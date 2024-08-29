@@ -19,8 +19,8 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.internal.file.collections.ConfigurableFileCollectionInternal;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -109,18 +109,19 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public ConfigurableFileCollection configurableFiles() {
+    public ConfigurableFileCollectionInternal configurableFiles() {
         return new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
     }
 
     @Override
-    public ConfigurableFileCollection configurableFiles(String displayName) {
+    public ConfigurableFileCollectionInternal configurableFiles(String displayName) {
         return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
     }
 
     @Override
     public ConfigurableFileTree fileTree() {
-        return new DefaultConfigurableFileTree(fileResolver, listener, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory);
+        // TODO Add overload with a display name
+        return new DefaultConfigurableFileTree(configurableFiles(), patternSetFactory, listener, taskDependencyFactory);
     }
 
     @Override
@@ -318,7 +319,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
             if (item instanceof FileCollectionInternal) {
                 ((FileCollectionInternal) item).describeContents(formatter);
             } else if (item instanceof ArrayList) {
-                for (Object child : (List) item) {
+                for (Object child : (List<?>) item) {
                     appendItem(formatter, child);
                 }
             } else {

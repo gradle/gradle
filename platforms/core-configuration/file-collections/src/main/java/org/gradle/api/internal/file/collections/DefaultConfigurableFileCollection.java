@@ -60,7 +60,7 @@ import java.util.function.Supplier;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal, LazyGroovySupport {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollectionInternal, Managed, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
     private final String displayName;

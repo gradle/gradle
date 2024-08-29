@@ -208,7 +208,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, final Pmd task) {
         task.setDescription("Run PMD analysis for " + sourceSet.getName() + " classes");
-        task.setSource(sourceSet.getAllJava());
+        task.getSource().setFrom(sourceSet.getAllJava());
         ConventionMapping taskMapping = task.getConventionMapping();
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
