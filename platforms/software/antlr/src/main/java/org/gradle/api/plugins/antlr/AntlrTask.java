@@ -17,16 +17,21 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -40,6 +45,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.work.ChangeType;
@@ -50,9 +56,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -63,90 +67,78 @@ import java.util.concurrent.Callable;
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
 
-    private boolean trace;
-    private boolean traceLexer;
-    private boolean traceParser;
-    private boolean traceTreeWalker;
-    private List<String> arguments = new ArrayList<>();
-
-    private FileCollection antlrClasspath;
-
-    private File outputDirectory;
-    private String maxHeapSize;
     private FileCollection sourceSetDirectories;
     private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
+
+    public AntlrTask() {
+        getTrace().convention(false);
+        getTraceLexer().convention(false);
+        getTraceParser().convention(false);
+        getTraceTreeWalker().convention(false);
+    }
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isTrace() {
-        return trace;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getTrace();
 
-    public void setTrace(boolean trace) {
-        this.trace = trace;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsTrace() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTrace()", "getTrace()");
+        return getTrace();
     }
 
     /**
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isTraceLexer() {
-        return traceLexer;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getTraceLexer();
 
-    public void setTraceLexer(boolean traceLexer) {
-        this.traceLexer = traceLexer;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsTraceLexer() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTraceLexer()", "getTraceLexer()");
+        return getTraceLexer();
     }
 
     /**
      * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isTraceParser() {
-        return traceParser;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getTraceParser();
 
-    public void setTraceParser(boolean traceParser) {
-        this.traceParser = traceParser;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsTraceParser() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTraceParser()", "getTraceParser()");
+        return getTraceParser();
     }
 
     /**
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isTraceTreeWalker() {
-        return traceTreeWalker;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getTraceTreeWalker();
 
-    public void setTraceTreeWalker(boolean traceTreeWalker) {
-        this.traceTreeWalker = traceTreeWalker;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsTraceTreeWalker() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTraceTreeWalker()", "getTraceTreeWalker()");
+        return getTraceTreeWalker();
     }
 
     /**
      * The maximum heap size for the forked antlr process (ex: '1g').
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getMaxHeapSize() {
-        return maxHeapSize;
-    }
-
-    public void setMaxHeapSize(String maxHeapSize) {
-        this.maxHeapSize = maxHeapSize;
-    }
-
-    public void setArguments(List<String> arguments) {
-        if (arguments != null) {
-            this.arguments = arguments;
-        }
-    }
-
+    @ReplacesEagerProperty
+    public abstract Property<String> getMaxHeapSize();
 
     /**
      * List of command-line arguments passed to the antlr process
@@ -154,10 +146,8 @@ public abstract class AntlrTask extends SourceTask {
      * @return The antlr command-line arguments
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getArguments() {
-        return arguments;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getArguments();
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -165,19 +155,8 @@ public abstract class AntlrTask extends SourceTask {
      * @return The output directory.
      */
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    /**
-     * Specifies the directory to generate the parser source files into.
-     *
-     * @param outputDirectory The output directory. Must not be null.
-     */
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getOutputDirectory();
 
     /**
      * Returns the classpath containing the Ant ANTLR task implementation.
@@ -185,19 +164,8 @@ public abstract class AntlrTask extends SourceTask {
      * @return The Ant task implementation classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty(unreported = true, comment = "Setter has protected access")
-    public FileCollection getAntlrClasspath() {
-        return antlrClasspath;
-    }
-
-    /**
-     * Specifies the classpath containing the Ant ANTLR task implementation.
-     *
-     * @param antlrClasspath The Ant task implementation classpath. Must not be null.
-     */
-    protected void setAntlrClasspath(FileCollection antlrClasspath) {
-        this.antlrClasspath = antlrClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getAntlrClasspath();
 
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
@@ -231,7 +199,7 @@ public abstract class AntlrTask extends SourceTask {
             }
             if (rebuildRequired) {
                 try {
-                    getDeleter().ensureEmptyDirectory(outputDirectory);
+                    getDeleter().ensureEmptyDirectory(getOutputDirectory().getAsFile().get());
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }
