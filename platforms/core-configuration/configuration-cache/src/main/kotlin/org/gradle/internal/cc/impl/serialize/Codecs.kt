@@ -68,6 +68,7 @@ import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCode
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.IntersectionPatternSetCodec
+import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.codecs.core.IsolatedArrayCodec
 import org.gradle.internal.serialize.codecs.core.IsolatedEnumValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.IsolatedImmutableManagedValueCodec
@@ -172,6 +173,8 @@ class Codecs(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
+    val parallelStore: Boolean = true,
+    val parallelLoad: Boolean = true
 ) {
     private
     val userTypesBindings: Bindings
@@ -382,6 +385,6 @@ class Codecs(
         bind(PatternSetCodec(patternSetFactory))
     }
 
-    fun workNodeCodecFor(gradle: GradleInternal) =
-        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory)
+    fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =
+        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory, contextSource, parallelStore, parallelLoad)
 }

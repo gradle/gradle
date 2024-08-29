@@ -108,12 +108,12 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             dependency.getExclusions().mayExcludeArtifacts()
         ) {
             int id = nextId++;
-            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphVariantSelector, consumerSchema));
+            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphVariantSelector, consumerSchema, calculatedValueContainerFactory));
         }
 
         return artifactsByNodeId.computeIfAbsent(toNode.getNodeId(), (LongFunction<ArtifactsForNode>) value -> {
             int id = nextId++;
-            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphVariantSelector, consumerSchema));
+            return new ArtifactsForNode(id, new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphVariantSelector, consumerSchema, calculatedValueContainerFactory));
         });
     }
 

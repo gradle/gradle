@@ -22,6 +22,7 @@ import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
@@ -33,12 +34,12 @@ import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.encryption.EncryptionService
-import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.PositionAwareEncoder
+import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.CloseableReadContext
@@ -50,14 +51,17 @@ import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
+import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
@@ -207,8 +211,8 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(stateFile.stateType, stateFile::inputStream) { codecs ->
-            ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
+        return withReadContextFor(stateFile) { codecs ->
+            ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
                 action(this)
             }
         }
@@ -219,13 +223,11 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
-        val (context, codecs) = writeContextFor(stateFile.stateType, stateFile::outputStream) {
+        val profile = {
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
-        return context.useToRun {
-            runWriteOperation {
-                action(ConfigurationCacheState(codecs, stateFile, eventEmitter, host))
-            }
+        return withWriteContextFor(stateFile, profile) { codecs ->
+            action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
         }
     }
 
@@ -244,6 +246,12 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
     }
+
+    private
+    fun writeContextFor(
+        stateFile: ConfigurationCacheStateFile,
+        profile: () -> String
+    ) = writeContextFor(stateFile.stateType, stateFile::outputStream, profile)
 
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
@@ -319,16 +327,33 @@ class DefaultConfigurationCacheIO internal constructor(
         inputStream: () -> InputStream,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        readContextFor(decoderFor(stateType, inputStream))
+        readContextFor(stateType, inputStream)
             .let { (context, codecs) ->
-                context.useToRun {
-                    runReadOperation {
-                        readOperation(codecs)
-                    }.also {
-                        finish()
-                    }
-                }
+                withReadContextFor(context, codecs, readOperation)
             }
+
+    override fun <R> withReadContextFor(readContext: CloseableReadContext, codecs: Codecs, readOperation: suspend MutableReadContext.(Codecs) -> R): R =
+        readContext.readWith(codecs, readOperation)
+
+    override fun <R> withWriteContextFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        profile: () -> String,
+        writeOperation: suspend WriteContext.(Codecs) -> R
+    ): R =
+        writeContextFor(stateType, outputStream, profile)
+            .let { (context, codecs) ->
+                context.writeWith(codecs, writeOperation)
+            }
+
+    private fun readContextFor(
+        stateFile: ConfigurationCacheStateFile
+    ) = readContextFor(stateFile.stateType, stateFile::inputStream)
+
+    private fun readContextFor(
+        stateType: StateType,
+        inputStream: () -> InputStream
+    ) = readContextFor(decoderFor(stateType, inputStream))
 
     override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
         val (context, codecs) = readContextFor(decoder)
@@ -368,6 +393,27 @@ class DefaultConfigurationCacheIO internal constructor(
         DefaultClassDecoder()
     )
 
+    /**
+     * Provides R/W isolate contexts based on some other context.
+     */
+    inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
+        override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext {
+            return baseFile.relatedStateFile(path).let {
+                readContextFor(it).also { (subContext, subCodecs) ->
+                    subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
+                    subContext.setSingletonProperty(baseContext.getSingletonProperty<ProjectProvider>())
+                }.first
+            }
+        }
+
+        override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
+            baseFile.relatedStateFile(path).let {
+                writeContextFor(it) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                    subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
+                }.first
+            }
+    }
+
     private
     fun codecs(): Codecs =
         Codecs(
@@ -402,6 +448,8 @@ class DefaultConfigurationCacheIO internal constructor(
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
             transformStepNodeFactory = service(),
+            parallelStore = startParameter.isParallelStore,
+            parallelLoad = startParameter.isParallelLoad
         )
 
     private

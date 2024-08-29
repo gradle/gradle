@@ -39,9 +39,11 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
+    implementation(projects.buildOperations)
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
+    implementation(projects.functional)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
@@ -52,6 +54,7 @@ dependencies {
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)
+    implementation(libs.commonsLang3)
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)

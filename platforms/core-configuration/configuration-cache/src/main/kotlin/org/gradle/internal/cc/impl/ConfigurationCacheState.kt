@@ -66,6 +66,7 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -140,6 +141,7 @@ interface ConfigurationCacheStateFile {
     // Replace the contents of this state file, by moving the given file to the location of this state file
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
+    fun relatedStateFile(path: Path): ConfigurationCacheStateFile
 }
 
 
@@ -148,6 +150,7 @@ internal
 class ConfigurationCacheState(
     private val codecs: Codecs,
     private val stateFile: ConfigurationCacheStateFile,
+    private val contextSource: IsolateContextSource,
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val host: ConfigurationCacheHost
 ) {
@@ -348,12 +351,10 @@ class ConfigurationCacheState(
             write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
-                stateFileFor(state.buildDefinition),
-                buildTreeState
-            )
-        }
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
+            stateFileFor(state.buildDefinition),
+            buildTreeState
+        )
     }
 
     private
@@ -383,12 +384,10 @@ class ConfigurationCacheState(
             write(state.owner.buildIdentifier)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
-                stateFileFor(state.buildDefinition),
-                buildTreeState
-            )
-        }
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
+            stateFileFor(state.buildDefinition),
+            buildTreeState
+        )
     }
 
     private
@@ -491,14 +490,14 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
+    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
         workNodeCodec(gradle).run {
             writeWork(scheduledWork)
         }
     }
 
     private
-    suspend fun ReadContext.readWorkGraph(gradle: GradleInternal) =
+    fun ReadContext.readWorkGraph(gradle: GradleInternal) =
         workNodeCodec(gradle).run {
             readWork()
         }
@@ -524,7 +523,7 @@ class ConfigurationCacheState(
 
     private
     fun workNodeCodec(gradle: GradleInternal) =
-        codecs.workNodeCodecFor(gradle)
+        codecs.workNodeCodecFor(gradle, contextSource)
 
     private
     suspend fun WriteContext.writeRequiredBuildServicesOf(build: BuildState, buildTreeState: StoredBuildTreeState) {

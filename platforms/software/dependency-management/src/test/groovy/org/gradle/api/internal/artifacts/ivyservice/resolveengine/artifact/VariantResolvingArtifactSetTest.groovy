@@ -32,7 +32,9 @@ import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.VariantArtifactResolveState
 import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.component.model.VariantResolveMetadata
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class VariantResolvingArtifactSetTest extends Specification {
@@ -43,6 +45,7 @@ class VariantResolvingArtifactSetTest extends Specification {
     DependencyGraphEdge dependency
     GraphVariantSelector graphSelector
     AttributesSchemaInternal consumerSchema
+    CalculatedValueContainerFactory calculatedValueContainerFactory
 
     def selector = Mock(ArtifactVariantSelector)
 
@@ -70,11 +73,12 @@ class VariantResolvingArtifactSetTest extends Specification {
             }
         }
         consumerSchema = Mock(AttributesSchemaInternal)
+        calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     }
 
     def "returns empty set when component id does not match spec"() {
         when:
-        def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema)
+        def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema, calculatedValueContainerFactory)
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { false }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
         def selected = artifactSet.select(selector, spec)
 
@@ -96,7 +100,7 @@ class VariantResolvingArtifactSetTest extends Specification {
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, false, false, ResolutionStrategy.SortOrder.DEFAULT)
-        def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema)
+        def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema, calculatedValueContainerFactory)
         artifactSet.select(new ArtifactVariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ArtifactVariantSelector.ResolvedArtifactTransformer factory) {
@@ -122,7 +126,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         }
 
         def artifacts = Stub(ResolvedArtifactSet)
-        def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema)
+        def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema, calculatedValueContainerFactory)
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
