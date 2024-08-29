@@ -604,15 +604,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public boolean equals(Object otherProject) {
+        if (this == otherProject) {
+            return true;
+        }
         if (otherProject == null) {
             return false;
         }
-        if (otherProject instanceof MutableStateAccessAwareProject) {
-            ProjectInternal delegate = ((MutableStateAccessAwareProject) otherProject).getDelegate();
-            // It could be a few layers of wrapping, so recursively unwrap until raw DefaultProject
-            return equals(delegate);
+        if (otherProject instanceof ProjectInternal) {
+            return getIdentityPath().equals(((ProjectInternal) otherProject).getIdentityPath());
         }
-        return this == otherProject;
+        return false;
     }
 
     @Override

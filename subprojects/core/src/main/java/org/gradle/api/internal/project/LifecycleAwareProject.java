@@ -93,10 +93,4 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
     public String toString() {
         return delegate.toString();
     }
-
-    @Override
-    protected boolean wrapperEquals(Object other) {
-        LifecycleAwareProject lifecycleAwareProject = (LifecycleAwareProject) other;
-        return delegate.equals(lifecycleAwareProject.delegate) && referrer.equals(lifecycleAwareProject.referrer);
-    }
 }

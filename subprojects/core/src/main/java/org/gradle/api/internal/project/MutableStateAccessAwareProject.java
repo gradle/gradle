@@ -138,24 +138,10 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     protected abstract void onMutableStateAccess(String what);
 
-    /**
-     * Checks equality against an object of the same wrapper class.
-     */
-    protected abstract boolean wrapperEquals(Object other);
-
     @Override
+    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
     public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null) {
-            return false;
-        }
-        if (getClass() == other.getClass()) {
-            return wrapperEquals(other);
-        } else {
-            return delegate.equals(other);
-        }
+        return delegate.equals(other);
     }
 
     @Override
