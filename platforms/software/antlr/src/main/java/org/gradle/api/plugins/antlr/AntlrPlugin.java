@@ -93,7 +93,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                             antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
                             // 4) set up convention mapping for default sources (allows user to not have to specify)
                             antlrTask.setSource(antlrSourceSet);
-                            antlrTask.setOutputDirectory(outputDirectory);
+                            antlrTask.getOutputDirectory().set(outputDirectory);
                         }
                     });
 
