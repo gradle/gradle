@@ -57,7 +57,7 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder, AutoCloseable
     }
 
     override fun close() {
-        output.writeStringId(0)
+        output.writeStringId(0) // EOF
         output.close()
     }
 
