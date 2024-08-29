@@ -1,0 +1,149 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-configurations]]
+= Dependency configurations
+
+[[sec:what-are-dependency-configurations]]
+In Gradle, dependencies are associated with specific scopes, such as compile-time or runtime.
+These scopes are represented by configurations, each identified by a unique name.
+
+image::dependency-management-configurations.png[]
+
+Gradle plugins often add pre-defined link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[configuration] to your project.
+For example, the Java plugin adds configurations for source code compilation, test execution, and more:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=dependencies]"]
+====
+
+This example highlights project and module dependencies declared on the `implementation` configuration.
+In a Java project, the `implementation` configuration is used to specify dependencies required to compile and run the main source code.
+See the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin documentation>> for details.
+
+[[sub:config-inheritance-composition]]
+== Understanding configuration inheritance
+
+Configurations can inherit from other configurations, creating an inheritance hierarchy.
+Child configurations inherit all dependencies declared in their parent configurations.
+
+Configuration inheritance is commonly used by Gradle core plugins, such as the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin>>.
+For instance, the `testImplementation` configuration extends the `implementation` configuration.
+
+image::dependency-management-configuration-inheritance.png[]
+
+This hierarchy ensures that dependencies needed for both compiling tests and the source code under test are included.
+For example, a Java project using JUnit for tests might also need Guava if it's used in the production code.
+
+Internally, configurations form an inheritance hierarchy using the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration++[]++)[`Configuration.extendsFrom(Configuration...)`] method.
+A configuration can extend any other configuration, regardless of how it is defined in the build script or plugin.
+
+For instance, if you want to create a suite of smoke tests that verify a web service endpoint using JUnit, you can define a new configuration named `smokeTest` that extends from `testImplementation` to reuse the existing test framework dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
+include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
+====
+
+NOTE: Configurations can only extend configurations within the same project.
+
+[[sec:defining-custom-configurations]]
+== Creating custom configurations
+
+You can define custom configurations to separate the scope of dependencies for specific purposes.
+
+For example, to use the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for pre-compiling JSP files without including it in the classpath for compiling your source code, you can create and use a custom configuration:
+
+====
+include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-custom/kotlin",files="build.gradle.kts[tags=custom-configuration]"]
+include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-custom/groovy",files="build.gradle[tags=custom-configuration]"]
+====
+
+You can manage custom configurations using the `configurations` object.
+Configurations can have names and can extend each other.
+For more details, refer to the link:{groovyDslPath}/org.gradle.api.artifacts.ConfigurationContainer.html[`ConfigurationContainer`] API.
+
+Remember that configurations are intended to be used for a single role: declaring dependencies, performing resolution, or defining consumable variants.
+
+[[sec:resolvable-consumable-configs]]
+== Resolvable and consumable configurations
+
+Configurations aren't used just for declaring dependencies, they serve various roles in dependency management:
+
+- *Declaring Dependencies*: Configurations define a set of dependencies.
+- *Consumer Role*: Configurations are used to resolve dependencies into artifacts.
+- *Producer Role*: Configurations expose artifacts for consumption by other projects.
+
+=== Configurations for declaring dependencies
+
+To express that an application `app` _depends on_ library `lib`, _at least_ one configuration is required:
+
+====
+include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=declare-configuration]"]
+====
+
+*Configurations used for declaring dependencies* define and organize the dependencies required for different aspects of a project.
+
+=== Configurations for consumers (resolvable configuration)
+
+To specify how dependencies are used, you can create companion configurations:
+
+====
+include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=concrete-classpath]"]
+====
+
+Now, `someConfiguration` declares dependencies, while `compileClasspath` and `runtimeClasspath` are resolvable configurations for specific purposes.
+When resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
+
+*Resolvable configurations* are those that can be resolved to produce a set of files or artifacts.
+These configurations are used to define the classpath for different stages of a build process, such as compilation or runtime.
+
+=== Configurations for producers (consumable configuration)
+
+To specify what is exposed to consumers, you can create consumable configurations:
+
+====
+include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
+include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=setup-configurations]"]
+====
+
+Here, a library exposes configurations for its API and runtime.
+The `apiElements` configuration provides the API for compilation, while the `runtimeElements` configuration offers the runtime dependencies.
+These configurations are consumable but not resolvable, as indicated by the `canBeConsumed` and `canBeResolved` flags.
+
+*Consumable Configurations* expose artifacts for other projects to consume.
+They are not intended to be resolved directly but are meant to provide dependencies or resources that other projects can depend on.
+
+=== Configuration flags and roles
+
+Configurations have two key flags:
+
+- **`canBeResolved`:** Determines if a configuration can be resolved to a dependency graph. A configuration with `canBeResolved` set to `true` can be resolved, while one with `false` is only for declaring dependencies.
+- **`canBeConsumed`:** Indicates if a configuration is meant for consumers. A configuration with `canBeConsumed` set to `true` is exposed to other projects.
+
+In short, a configuration's role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
+
+.Configuration roles
+|===
+|Configuration role|can be resolved|can be consumed
+|Dependency Scope|false|false
+|Resolve for certain usage|true|false
+|Exposed to consumers|false|true
+|Legacy, don't use|true|true
+|===
+
+For backwards compatibility, both flags have a default value of `true`, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
