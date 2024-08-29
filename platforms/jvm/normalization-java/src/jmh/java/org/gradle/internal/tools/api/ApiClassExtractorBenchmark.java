@@ -16,6 +16,8 @@
 package org.gradle.internal.tools.api;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.tools.api.impl.JavaApiMemberWriter;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -38,6 +40,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -60,6 +63,8 @@ public class ApiClassExtractorBenchmark {
     public static class BenchmarkState {
         ApiClassExtractor apiClassExtractor;
         List<byte[]> classpath;
+        AtomicLong fileCount = new AtomicLong(0);
+        AtomicLong processedFileCount = new AtomicLong(0);
         AtomicLong byteCount = new AtomicLong(0);
 
         @Setup(Level.Trial)
@@ -84,12 +89,18 @@ public class ApiClassExtractorBenchmark {
 
         @Setup(Level.Iteration)
         public void setupIteration() {
+            fileCount.set(0);
+            processedFileCount.set(0);
             byteCount.set(0);
         }
 
         @TearDown(Level.Iteration)
         public void tearDown() {
-            System.out.println("Processed " + NumberFormat.getNumberInstance(Locale.ROOT).format(byteCount.get()) + " bytes");
+            System.out.println(MessageFormat.format("Processed {0} bytes in {1} files (out of {2} files)",
+                byteCount.get(), processedFileCount.get(), fileCount.get()));
+            fileCount.set(0);
+            processedFileCount.set(0);
+            byteCount.set(0);
         }
 
         private static byte[] readAllBytes(Path path) {
@@ -125,9 +136,15 @@ public class ApiClassExtractorBenchmark {
 
     private static void readClass(String name, InputStream zip, BenchmarkState state, Blackhole blackhole) {
         try {
+            state.fileCount.incrementAndGet();
             byte[] classBytes = ByteStreams.toByteArray(zip);
-            Optional<byte[]> result = state.apiClassExtractor.extractApiClassFrom(classBytes);
+            Optional<HashCode> result = state.apiClassExtractor.extractApiClassFrom(classBytes)
+                .map(Hashing::hashBytes);
             blackhole.consume(result);
+            if (!result.isPresent()) {
+                blackhole.consume(Hashing.hashBytes(classBytes));
+            }
+            state.processedFileCount.incrementAndGet();
             state.byteCount.addAndGet(classBytes.length);
         } catch (IllegalArgumentException e) {
             // Ignore
