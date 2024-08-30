@@ -71,7 +71,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
             long rangeStart = skip + round * rangeSize;
             HttpClientResponse response = provider.get(uri, revalidate, rangeStart, rangeStart + rangeSize);
             int code = response.getStatusLine().getStatusCode();
-            if (code == HttpStatus.SC_OK) { // server dose not support range request
+            if (code == HttpStatus.SC_OK) { // server does not support range request
                 return wrapResponse(location, response);
             } else if (code == HttpStatus.SC_PARTIAL_CONTENT) { // server support range request
 
