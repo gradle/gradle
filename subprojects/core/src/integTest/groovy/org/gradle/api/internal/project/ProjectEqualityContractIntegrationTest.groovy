@@ -46,6 +46,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
             import ${Project.name}
             import ${BuildOperationListener.name}
 
+            // We need this build service insnance to survive after configuration. The only way to have it is implement `BuildOperationListener`
             public abstract class EqualsContractCheckerService implements BuildService<BuildServiceParameters.None>, BuildOperationListener {
                 private Map<String, Project> projectsToCheck = [:]
 
@@ -113,7 +114,8 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        run ":a:checkEqualsContract"
+        // run help firstly to configure all projects in the build
+        run "help", ":a:checkEqualsContract"
 
         then:
         outputContains(":a wrapped by :root#allprojects equals to :a wrapped by :root#subprojects: true")
