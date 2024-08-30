@@ -89,11 +89,6 @@ public class DefaultProblem implements Serializable, Problem {
         return additionalData;
     }
 
-    @Override
-    public InternalProblemBuilder toBuilder() {
-        return new DefaultProblemBuilder(this);
-    }
-
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }

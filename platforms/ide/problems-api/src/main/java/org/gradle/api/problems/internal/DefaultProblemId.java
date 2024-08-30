@@ -61,28 +61,4 @@ public class DefaultProblemId implements ProblemId, Serializable {
         ProblemGroup parent = group.getParent();
         return groupPath(parent) + group.getName() + ":";
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || o.getClass().isAssignableFrom(ProblemId.class)) {
-            return false;
-        }
-
-        ProblemId that = (ProblemId) o;
-
-        if (!id.equals(that.getName())) {
-            return false;
-        }
-        return parent.equals(that.getGroup());
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + parent.hashCode();
-        return result;
-    }
 }

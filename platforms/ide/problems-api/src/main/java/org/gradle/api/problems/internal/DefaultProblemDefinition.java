@@ -23,7 +23,6 @@ import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Arrays;
 
 @NonNullApi
 public class DefaultProblemDefinition implements Serializable, ProblemDefinition {
@@ -58,28 +57,4 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
     public DocLink getDocumentationLink() {
         return documentationLink;
     }
-
-    private static boolean equals(@Nullable Object a, @Nullable Object b) {
-        return (a == b) || (a != null && a.equals(b));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultProblemDefinition that = (DefaultProblemDefinition) o;
-        return severity == that.severity &&
-            equals(id, that.id) &&
-            equals(documentationLink, that.documentationLink);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(new Object[]{id, severity, documentationLink});
-    }
-
 }
