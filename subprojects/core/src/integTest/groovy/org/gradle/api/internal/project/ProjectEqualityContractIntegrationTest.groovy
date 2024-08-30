@@ -33,7 +33,7 @@ import org.gradle.internal.operations.OperationStartEvent
 
 class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
-    def '2Symmetrical equality between raw and wrapped projects'() {
+    def 'Symmetrical equality between raw and wrapped projects'() {
         given:
         buildFile("buildSrc/build.gradle", """
             plugins {
