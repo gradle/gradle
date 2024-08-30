@@ -121,6 +121,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathElementTransformFactoryForAgent.class);
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
         registration.add(DefaultCachedClasspathTransformer.class);
+        registration.add(GroovyDslWorkspaceProvider.class);
         for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
             services.registerGradleUserHomeServices(registration);
         }
@@ -277,14 +278,5 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
         return objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
-    }
-
-    @Provides
-    GroovyDslWorkspaceProvider createGroovyDslWorkspaceProvider(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations
-    ) {
-       return new GroovyDslWorkspaceProvider(cacheBuilderFactory, fileAccessTimeJournal, cacheConfigurations);
     }
 }

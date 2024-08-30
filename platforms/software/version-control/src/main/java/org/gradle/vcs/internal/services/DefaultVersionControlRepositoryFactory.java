@@ -17,8 +17,7 @@
 package org.gradle.vcs.internal.services;
 
 import org.gradle.api.GradleException;
-import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -44,22 +43,18 @@ import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_
 import static org.gradle.internal.hash.Hashing.hashString;
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
 
-public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
+class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+    DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         this.vcsWorkingDirCache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("vcs-1")
             .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .withDisplayName("VCS Checkout Cache")
-            .withCleanupStrategy(createCacheCleanupStrategy())
+            .withCleanupStrategy(cacheCleanupStrategyFactory.daily(
+                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
+            ))
             .open();
-    }
-
-    private CacheCleanupStrategy createCacheCleanupStrategy() {
-        return DefaultCacheCleanupStrategy.from(
-            new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
-        );
     }
 
     @Override
