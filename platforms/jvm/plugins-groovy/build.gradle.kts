@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.fileCollections)
+    implementation(projects.jvmServices)
     implementation(projects.languageGroovy)
     implementation(projects.languageJvm)
     implementation(projects.logging)
