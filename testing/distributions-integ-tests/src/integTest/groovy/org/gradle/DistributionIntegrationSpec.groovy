@@ -50,6 +50,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-cache-spi",
         "build-events",
         "build-operations",
+        "build-operations-trace",
         "build-option",
         "build-process-services",
         "build-state",

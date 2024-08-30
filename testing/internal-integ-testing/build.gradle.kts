@@ -20,6 +20,7 @@ dependencies {
     }
     api(projects.buildCacheBase)
     api(projects.buildOperations)
+    api(projects.buildOperationsTrace)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
