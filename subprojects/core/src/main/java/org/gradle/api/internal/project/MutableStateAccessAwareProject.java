@@ -169,10 +169,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.hasProperty(name);
     }
 
-    public ProjectInternal getDelegate() {
-        return delegate;
-    }
-
     @Override
     public DynamicObject getAsDynamicObject() {
         return dynamicObject;

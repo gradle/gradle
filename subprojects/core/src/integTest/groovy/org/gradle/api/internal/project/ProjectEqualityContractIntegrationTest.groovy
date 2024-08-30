@@ -33,20 +33,20 @@ import org.gradle.internal.operations.OperationStartEvent
 
 class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'Symmetrical equality between raw and wrapped projects'() {
+    def '2Symmetrical equality between raw and wrapped projects'() {
         given:
         buildFile("buildSrc/build.gradle", """
             plugins {
                 id 'groovy'
             }
         """)
-        file("buildSrc/src/main/groovy/EqualsContractCheckerService.groovy") << """
-            import ${BuildService.name};
-            import ${BuildServiceParameters.name};
+        groovyFile("buildSrc/src/main/groovy/EqualsContractCheckerService.groovy", """
+            import ${BuildService.name}
+            import ${BuildServiceParameters.name}
             import ${Project.name}
             import ${BuildOperationListener.name}
 
-            // We need this build service insnance to survive after configuration. The only way to have it is implement `BuildOperationListener`
+            // We need this build service instance to survive after configuration. The only way to have it is to implement `BuildOperationListener`
             public abstract class EqualsContractCheckerService implements BuildService<BuildServiceParameters.None>, BuildOperationListener {
                 private Map<String, Project> projectsToCheck = [:]
 
@@ -64,8 +64,8 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent){}
             }
-        """
-        file("buildSrc/src/main/groovy/EqualsContractCheckerTask.groovy") << """
+        """)
+        groovyFile("buildSrc/src/main/groovy/EqualsContractCheckerTask.groovy", """
             import ${ServiceReference.name}
             import ${DefaultTask.name}
             import ${Property.name}
@@ -83,7 +83,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
                         .forEach { a, b -> println("\${a.key} equals to \${b.key}: \${a.value.equals(b.value)}") }
                 }
             }
-        """
+        """)
 
         settingsFile """
             include(":a")
@@ -114,8 +114,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        // run help firstly to configure all projects in the build
-        run "help", ":a:checkEqualsContract"
+        run "checkEqualsContract"
 
         then:
         outputContains(":a wrapped by :root#allprojects equals to :a wrapped by :root#subprojects: true")
