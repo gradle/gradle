@@ -22,6 +22,18 @@ dependencyResolutionManagement {
     }
 }
 
+if (providers.systemProperty("create0").getOrNull() != null) {
+    // tag::super_simple_catalog[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                library("groovy-core", "org.codehaus.groovy:groovy:3.0.5")
+            }
+        }
+    }
+    // end::super_simple_catalog[]
+}
+
 if (providers.systemProperty("create1").getOrNull() != null) {
     // tag::simple_catalog[]
     dependencyResolutionManagement {

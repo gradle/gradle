@@ -22,6 +22,16 @@ dependencyResolutionManagement {
     }
 }
 
+// tag::super_simple_catalog[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            library('groovy-core', 'org.codehaus.groovy:groovy:3.0.5')
+        }
+    }
+}
+// end::super_simple_catalog[]
+
 // tag::simple_catalog[]
 dependencyResolutionManagement {
     versionCatalogs {
