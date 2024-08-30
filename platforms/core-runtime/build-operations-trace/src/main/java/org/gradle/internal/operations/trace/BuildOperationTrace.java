@@ -27,9 +27,17 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -516,6 +524,15 @@ public class BuildOperationTrace implements Stoppable {
             .addConverter(new JsonThrowableConverter())
             .addConverter(new JsonAttributeContainerConverter())
             .addConverter(new JsonBuildIdentifierConverter())
+            .addConverter(new JsonConfigurationConverter())
+            .addConverter(new JsonProjectConverter())
+            .excludeFieldsByType(DependencyLockingHandler.class)
+            .excludeFieldsByType(ClassLoaderScope.class)
+            .excludeFieldsByType(AttributesSchema.class)
+            .excludeFieldsByType(PluginContainer.class)
+            .excludeFieldsByType(ProjectStateRegistry.class)
+            .excludeFieldsByType(org.gradle.api.internal.project.ProjectState.class)
+            .excludeFieldsByType(Gradle.class)
             .build();
     }
 
@@ -577,6 +594,44 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public Object convert(Object value, String key) {
             return ((BuildIdentifier) value).getBuildPath();
+        }
+    }
+
+    /**
+     * A custom {@link JsonGenerator.Converter} is needed to deal with the fact that {@link Configuration}s will be resolved
+     * by the serialization logic
+     *
+     * This is undesirable, as some configurations are not resolvable, so just print the name.
+     */
+    @NonNullApi
+    private static final class JsonConfigurationConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return Configuration.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            return ((Configuration) value).getName();
+        }
+    }
+
+    /**
+     * A custom {@link JsonGenerator.Converter} is needed to deal with the fact that {@link Project}s will be resolved
+     * by the serialization logic
+     *
+     * This is undesirable, as they contain circular references, so just print the path to id them.
+     */
+    @NonNullApi
+    private static final class JsonProjectConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return Project.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            return ((Project) value).getBuildTreePath();
         }
     }
 
