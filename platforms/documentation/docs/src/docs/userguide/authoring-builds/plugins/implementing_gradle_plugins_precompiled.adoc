@@ -148,9 +148,9 @@ include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main
 ====
 
 `extension.message.convention(...)` sets a convention for the `message` property of the extension.
-This convention specifies that the value of `message` should default to the content of a file named `defaultGreeting.txt` located in the build directory of the project.
+This convention specifies that the value of `message` should default to `"Hello from Gradle"`.
 
-If the `message` property is not explicitly set, its value will be automatically set to the content of `defaultGreeting.txt`.
+If the `message` property is not explicitly set, its value will be automatically set to `"Hello from Gradle"`.
 
 [[sec:mapping_extension_properties_to_task_properties]]
 == Mapping extension properties to task properties
