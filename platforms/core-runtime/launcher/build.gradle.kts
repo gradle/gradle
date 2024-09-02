@@ -50,7 +50,6 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.io)
     implementation(projects.problemsApi)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)

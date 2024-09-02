@@ -61,3 +61,9 @@ dependencies {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+packageCycles {
+    // Needed for the factory methods in the interface since the implementation is in an internal package
+    // which in turn references the interface.
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
+}
