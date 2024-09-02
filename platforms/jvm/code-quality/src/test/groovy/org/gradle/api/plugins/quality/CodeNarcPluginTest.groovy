@@ -53,9 +53,9 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         codenarc.maxPriority2Violations == 0
         codenarc.maxPriority3Violations == 0
         codenarc.reportFormat == "html"
-        codenarc.reportsDir == project.file("build/reports/codenarc")
-        codenarc.sourceSets == []
-        !codenarc.ignoreFailures
+        codenarc.reportsDir.asFile.get() == project.file("build/reports/codenarc")
+        codenarc.sourceSets.get() == []
+        !codenarc.ignoreFailures.get()
     }
 
     def "configures any additional codenarc tasks"() {
