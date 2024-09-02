@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.compile
+package org.gradle.api.internal.tasks.compile
 
 
 import spock.lang.Specification
 
-public class BaseForkOptionsTest extends Specification {
+public class MinimalCompilerDaemonForkOptionsTest extends Specification {
     def 'JVM options are filtered properly even with bad input'() {
-	    def options = new BaseForkOptions()
+	    def options = new MinimalCompilerDaemonForkOptions()
 
         options.jvmArgs = ['', '', '']
 
@@ -29,13 +29,14 @@ public class BaseForkOptionsTest extends Specification {
     }
 
     def 'JVM options are preserved if they are not bad'() {
-        def options = new BaseForkOptions()
+        def options = new MinimalCompilerDaemonForkOptions()
 
         options.jvmArgs = ['x', '', 'y']
 
         expect:
-        options.jvmArgs.size() == 2
-        options.jvmArgs[0] == 'x'
-        options.jvmArgs[1] == 'y'
+        def jvmArgs = options.jvmArgs
+        jvmArgs.size() == 2
+        jvmArgs[0] == 'x'
+        jvmArgs[1] == 'y'
     }
 }
