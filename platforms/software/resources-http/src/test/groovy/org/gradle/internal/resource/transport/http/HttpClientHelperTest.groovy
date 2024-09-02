@@ -21,11 +21,11 @@ import org.apache.http.HttpStatus
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import org.junit.jupiter.api.Nested
 
 class HttpClientHelperTest extends AbstractHttpClientTest {
     @Rule
@@ -102,49 +102,74 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         }
     }
 
-    @Nested
-    class RangeGet {
-        def "get valid range"() {
-            def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
+    def "get valid range"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        def client = new HttpClientHelper(new DocumentationRegistry(), settings)
 
-            when:
-            def source = "https://gradle.org/icon/favicon.ico" // 5083 bytes at 2024-08-30
-            def response = client.performGet(source, true, 0, 100)
+        when:
+        def source = "https://gradle.org/icon/favicon.ico" // 5083 bytes at 2024-08-30
+        def response = client.performGet(source, true, 0, 100)
 
-            then:
-            response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
+        then:
+        assert response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
 
-            def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
-            contentRange != null
+        def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
+        assert contentRange != null
 
-            contentRange.matches("bytes 0-100/\\d+")
+        assert contentRange.matches("bytes 0-100/\\d+")
 
-            response.getHeader(HttpHeaders.CONTENT_LENGTH) == null
-        }
+        assert response.getHeader(HttpHeaders.CONTENT_LENGTH) == null
+    }
 
-        def "get invalid range"() {
-            def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
+    def "get invalid range"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        def client = new HttpClientHelper(new DocumentationRegistry(), settings)
 
-            when:
-            def source = "https://gradle.org/icon/favicon.ico" // 5083 bytes at 2024-08-30
-            def requestRangeStart = 0
-            def requestRangeEnd = 6000
-            def response = client.performGet(source, true, requestRangeStart, requestRangeEnd)
+        when:
+        def source = "https://gradle.org/icon/favicon.ico" // 5083 bytes at 2024-08-30
+        def requestRangeStart = 0
+        def requestRangeEnd = 6000
+        def response = client.performGet(source, true, requestRangeStart, requestRangeEnd)
 
-            then:
-            response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
+        then:
+        assert response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
 
-            def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
-            contentRange != null
+        def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
+        assert contentRange != null
 
-            def split = contentRange.replace("bytes ", "").split("/")
-            def receivedBytesRange = split[0].split("-")
-            def totalBytes = split[1]
-            receivedBytesRange[0] == requestRangeStart.toString()
-            receivedBytesRange[1] != requestRangeEnd
-            receivedBytesRange[1] == Long.parseLong(totalBytes) - 1
+        def split = contentRange.replace("bytes ", "").split("/")
+        def receivedBytesRangeStrs = split[0].split("-")
+        def totalBytes = split[1]
+        assert receivedBytesRangeStrs[0] == requestRangeStart.toString()
+        assert receivedBytesRangeStrs[1] != requestRangeEnd
 
-            response.getHeader(HttpHeaders.CONTENT_LENGTH) == null
-        }
+        def receivedBytesRange = Long.parseLong(receivedBytesRangeStrs[1])
+        assert receivedBytesRange == Long.parseLong(totalBytes) - 1
+
+        assert response.getHeader(HttpHeaders.CONTENT_LENGTH) == null
+        assert response.getContent().bytes.length == receivedBytesRange // fixme
+    }
+
+    def "apache http client cannot handle range request ?"() {
+        when:
+        def request = new HttpGet("https://gradle.org/icon/favicon.ico")
+        request.setHeader(HttpHeaders.RANGE, "bytes=0-5000")
+
+        then:
+        def response = HttpClients.createDefault().execute(request)
+
+        def inputStream = response.entity.content
+        println(inputStream.available())
+        println(inputStream.bytes.length) // fixme
     }
 }
