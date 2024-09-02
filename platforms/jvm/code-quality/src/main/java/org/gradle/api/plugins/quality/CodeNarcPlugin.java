@@ -75,7 +75,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("codenarc", CodeNarcExtension.class, project);
-        extension.setToolVersion(DEFAULT_CODENARC_VERSION);
+        extension.getToolVersion().convention(DEFAULT_CODENARC_VERSION);
         extension.setConfig(project.getResources().getText().fromFile(getRootProjectDirectory().file(DEFAULT_CONFIG_FILE_PATH)));
         extension.setMaxPriority1Violations(0);
         extension.setMaxPriority2Violations(0);
@@ -105,7 +105,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()))
+            dependencies.addLater(extension.getToolVersion().map(version -> project.getDependencies().create("org.codenarc:CodeNarc:" + version)))
         );
     }
 
@@ -116,7 +116,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         taskMapping.map("maxPriority1Violations", () -> extension.getMaxPriority1Violations());
         taskMapping.map("maxPriority2Violations", () -> extension.getMaxPriority2Violations());
         taskMapping.map("maxPriority3Violations", () -> extension.getMaxPriority3Violations());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {
