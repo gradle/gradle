@@ -24,6 +24,6 @@ import java.io.Serializable;
 public class MinimalScalaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
     public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {
         super(forkOptions);
-        setJvmArgs(forkOptions.getAllJvmArgs());
+        setJvmArgs(forkOptions.getAllJvmArgs().get());
     }
 }
