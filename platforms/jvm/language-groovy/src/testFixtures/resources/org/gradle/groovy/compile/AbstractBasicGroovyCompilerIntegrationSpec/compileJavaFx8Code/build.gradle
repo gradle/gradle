@@ -7,6 +7,6 @@ repositories {
 compileGroovy {
     if (JavaVersion.current().isJava9()) {
         options.compilerArgs += ['--add-modules', 'javafx.graphics']
-        groovyOptions.forkOptions.jvmArgs += ['--add-modules', 'javafx.graphics']
+        groovyOptions.forkOptions.jvmArgs.addAll(['--add-modules', 'javafx.graphics'])
     }
 }
