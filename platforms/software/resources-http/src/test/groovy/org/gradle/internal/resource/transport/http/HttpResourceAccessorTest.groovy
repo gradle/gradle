@@ -16,11 +16,15 @@
 
 package org.gradle.internal.resource.transport.http
 
+import groovy.util.logging.Slf4j
 import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
+@Slf4j
 class HttpResourceAccessorTest extends Specification {
     def uri = new URI("http://somewhere")
     def name = new ExternalResourceName(uri)
@@ -36,6 +40,31 @@ class HttpResourceAccessorTest extends Specification {
 
         then:
         1 * response.close()
+    }
+
+    def "when cache position is valid, then perform range request"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
+        def tempFile = File.createTempFile("favicon", ".ico", File.createTempDir("http-resource-accessor"))
+        def url = "https://gradle.org/icon/favicon.ico" // ~ 5 Kb
+        def resource = new ExternalResourceName(url.toURI())
+        def accessor = new HttpResourceAccessor(client, tempFile)
+        accessor.setRangeSize(2) // 2 Kb
+
+        when:
+        accessor.<Void> withContent(resource, true, (ExternalResource.ContentAction) (content) -> {
+            println "cache saved into " + tempFile.getAbsolutePath()
+            return null;
+        })
+
+        then:
+        assert client.performGet(url, true).content.bytes.length == tempFile.bytes.length // fixme
+        tempFile.delete() // comment if you want to verify the file manually
     }
 
     private CloseableHttpResponse mockHttpResponse() {
