@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.BaseForkOptions",
+            "member": "Class org.gradle.api.tasks.compile.BaseForkOptions",
+            "acceptation": "Changed to abstract after property upgrades",
+            "changes": [
+                "Class is now abstract"
+            ]
+        }
+    ]
+}
