@@ -62,8 +62,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         extension.configDirectory.get().getAsFile() == project.file("config/checkstyle")
         extension.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         extension.configProperties == [:]
-        extension.reportsDir == project.file("build/reports/checkstyle")
-        !extension.ignoreFailures
+        extension.reportsDir.asFile.get() == project.file("build/reports/checkstyle")
+        !extension.ignoreFailures.get()
     }
 
     def "configures checkstyle task for each source set"() {
