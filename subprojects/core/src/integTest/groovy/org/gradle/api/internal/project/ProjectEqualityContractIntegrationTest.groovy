@@ -217,7 +217,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        run"collectProjects"
+        run "collectProjects"
 
         then:
         outputContains("Last collected value for project ':a' is null")
