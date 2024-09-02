@@ -63,7 +63,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
-        extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
+        extension.getToolVersion().convention(DEFAULT_CHECKSTYLE_VERSION);
         Directory directory = getRootProjectDirectory().dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
@@ -87,7 +87,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()))
+            dependencies.addLater(extension.getToolVersion().map(version -> project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + version)))
         );
     }
 
@@ -101,7 +101,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
