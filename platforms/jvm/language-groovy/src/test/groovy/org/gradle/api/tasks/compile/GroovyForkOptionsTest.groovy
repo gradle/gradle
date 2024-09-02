@@ -33,9 +33,9 @@ class GroovyForkOptionsTest {
 
     @Test
     void testCompileOptions() {
-        assertNull(forkOptions.memoryInitialSize)
-        assertNull(forkOptions.memoryMaximumSize)
-        assertTrue(forkOptions.jvmArgs.empty)
+        assertNull(forkOptions.memoryInitialSize.getOrNull())
+        assertNull(forkOptions.memoryMaximumSize.getOrNull())
+        assertTrue(forkOptions.jvmArgs.get().empty)
     }
 
     @Test
@@ -44,6 +44,6 @@ class GroovyForkOptionsTest {
             map[prop] = "${prop}Value" as String
             map
         })
-        PROPS.keySet().each {assertEquals("${it}Value" as String, forkOptions."${it}")}
+        PROPS.keySet().each {assertEquals("${it}Value" as String, forkOptions."${it}".get())}
     }
 }

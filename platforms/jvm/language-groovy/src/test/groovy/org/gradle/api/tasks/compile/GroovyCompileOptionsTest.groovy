@@ -58,11 +58,11 @@ class GroovyCompileOptionsTest {
     @Test
     void testFork() {
         compileOptions.fork = false
-        assertNull(compileOptions.forkOptions.memoryMaximumSize)
+        assertNull(compileOptions.forkOptions.memoryMaximumSize.getOrNull())
 
         compileOptions.fork([memoryMaximumSize: '1g'])
         assertTrue(compileOptions.fork.get())
-        assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
+        assertEquals(compileOptions.forkOptions.memoryMaximumSize.get(), '1g')
     }
 
     @Test

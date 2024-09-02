@@ -36,7 +36,7 @@ import java.util.List;
  * @since 7.1
  */
 @Incubating
-public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
+public abstract class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
 
     private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<>();
 
@@ -61,7 +61,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
     @ToBeReplacedByLazyProperty
     public List<String> getAllJvmArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(CollectionUtils.stringize(getJvmArgs()));
+        builder.addAll(CollectionUtils.stringize(getJvmArgs().get()));
         for (CommandLineArgumentProvider argumentProvider : getJvmArgumentProviders()) {
             builder.addAll(argumentProvider.asArguments());
         }
