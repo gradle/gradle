@@ -30,10 +30,10 @@ class ForkOptionsTest extends Specification {
         expect:
         forkOptions.executable == null
         forkOptions.javaHome == null
-        forkOptions.memoryInitialSize == null
-        forkOptions.memoryMaximumSize == null
+        forkOptions.memoryInitialSize.getOrNull() == null
+        forkOptions.memoryMaximumSize.getOrNull() == null
         forkOptions.tempDir == null
-        forkOptions.jvmArgs == []
+        forkOptions.jvmArgs.get() == []
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32606")
