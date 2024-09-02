@@ -40,7 +40,7 @@ public class JavaCompileExecutableUtils {
             return SpecificInstallationToolchainSpec.fromJavaHome(propertyFactory, customJavaHome);
         }
 
-        String customExecutable = forkOptions.getExecutable();
+        String customExecutable = forkOptions.getExecutable().getOrNull();
         if (customExecutable != null) {
             return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
         }
