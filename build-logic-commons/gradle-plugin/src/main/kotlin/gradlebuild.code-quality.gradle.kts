@@ -135,6 +135,9 @@ checkstyle {
 
 plugins.withType<GroovyBasePlugin> {
     the<SourceSetContainer>().all {
+        // TODO: Remove after Gradle 9: this is only used to bridge checkstyle.reportsDir.resolve() during upgrade
+        @Suppress("unused")
+        fun DirectoryProperty.resolve(subPath: String) = this.file(subPath)
         tasks.register<Checkstyle>(getTaskName("checkstyle", "groovy")) {
             config = configFile("checkstyle-groovy.xml")
             source(allGroovy)
