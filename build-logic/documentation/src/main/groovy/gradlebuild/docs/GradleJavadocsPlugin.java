@@ -24,8 +24,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.PathSensitivity;
@@ -153,19 +156,33 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
+        ObjectFactory objects = project.getObjects();
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
             task.source(extension.getDocumentedSource());
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
             task.setClasspath(layout.files());
-            task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
+            task.getReports().getXml().getOutputLocation().set(getCheckstyleOutputLocation(checkstyle, objects));
         });
     }
 
     /**
-     * Used to bridge Gradle 8 and Gradle 9 APIs for Gradleception.
+     * TODO: Remove this workaround after Gradle 9
+     */
+    @SuppressWarnings({"ConstantValue", "CastCanBeRemovedNarrowingVariableType"})
+    private static Provider<RegularFile> getCheckstyleOutputLocation(CheckstyleExtension checkstyle, ObjectFactory objects) {
+        Object reportsDir = checkstyle.getReportsDir();
+        if (reportsDir instanceof File) {
+            return objects.fileProperty().fileValue(new File((File) reportsDir, "checkstyle-api.xml"));
+        } else {
+            return ((DirectoryProperty) reportsDir).file("checkstyle-api.xml");
+        }
+    }
+
+    /**
+     * Used to bridge Gradle 9 and Gradle 10 APIs for Gradleception.
      *
-     * TODO: Remove after Gradle 9
+     * TODO: Remove this workaround after Gradle 10
      */
     private static class JavadocSupport {
 
