@@ -49,7 +49,7 @@ class ForkOptionsTest extends Specification {
 
         expect:
         commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
-        forkOptions.allJvmArgs.size() == 1
-        forkOptions.allJvmArgs[0] instanceof String
+        forkOptions.allJvmArgs.get().size() == 1
+        forkOptions.allJvmArgs.get()[0] instanceof String
     }
 }

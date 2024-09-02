@@ -35,7 +35,7 @@ public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonF
         @SuppressWarnings("deprecation")
         File customJavaHome = forkOptions.getJavaHome();
         this.javaHome = customJavaHome;
-        setJvmArgs(forkOptions.getAllJvmArgs());
+        setJvmArgs(forkOptions.getAllJvmArgs().get());
     }
 
     @Nullable
