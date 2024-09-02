@@ -126,6 +126,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.buildOperationsTrace)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)

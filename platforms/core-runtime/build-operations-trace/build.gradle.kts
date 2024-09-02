@@ -16,28 +16,21 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
-description = "Types for build process and session state management"
+description = "Produces traces from build operations"
 
 dependencies {
-    api(projects.instrumentationAgentServices)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.serviceRegistryBuilder)
-    api(projects.core)
-    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.concurrent)
+    api(projects.coreApi)
     api(projects.stdlibJavaExtensions)
-    api(projects.daemonProtocol)
-    api(projects.logging)
 
-    implementation(projects.buildOperationsTrace)
-    implementation(projects.coreApi)
-    implementation(projects.messaging)
-    implementation(projects.concurrent)
-    implementation(projects.loggingApi)
-    implementation(projects.problemsApi)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+    api(libs.guava)
+
+    implementation(projects.baseServices)
+
+    implementation(libs.groovyJson)
+    implementation(libs.jsr305)
 }

@@ -113,7 +113,7 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String FILTER_SEPARATOR = ";";
 
-    private static final byte[] NEWLINE = "\n".getBytes();
+    private static final byte[] NEWLINE = {(byte) '\n'};
 
     private final boolean outputTree;
     private final BuildOperationListener listener;
