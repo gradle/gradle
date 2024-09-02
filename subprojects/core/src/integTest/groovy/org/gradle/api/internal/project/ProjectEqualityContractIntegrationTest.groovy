@@ -142,4 +142,88 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         outputContains("raw :a equals to :a wrapped by :root#project: true")
         outputContains("raw :a equals to :a wrapped by :b#project: true")
     }
+
+    def 'Raw and wrapped projects are interchangeable when using as keys in hashCode-based data structures'() {
+        given:
+        buildFile("buildSrc/build.gradle", """
+            plugins {
+                id 'groovy'
+            }
+        """)
+        groovyFile("buildSrc/src/main/groovy/MapCollectorService.groovy", """
+            import ${BuildService.name}
+            import ${BuildServiceParameters.name}
+            import ${Project.name}
+            import ${BuildOperationListener.name}
+
+            // We need this build service instance to survive after configuration. The only way to have it is to implement `BuildOperationListener`
+            public abstract class MapCollectorService implements BuildService<BuildServiceParameters.None>, BuildOperationListener {
+                private Map<Project, String> collectedProjects = [:]
+
+                public def collectProject(Project project, String description) {
+                    def last = collectedProjects.put(project, description)
+                    println("Last collected value for \$project is \$last")
+                }
+
+                public Map<String, Project> getCollectedProjects() {
+                    return collectedProjects
+                }
+
+                void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent){}
+
+                void progress($OperationIdentifier.name operationIdentifier, $OperationProgressEvent.name progressEvent){}
+
+                void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent){}
+            }
+        """)
+        groovyFile("buildSrc/src/main/groovy/MapCollectorTask.groovy", """
+            import ${ServiceReference.name}
+            import ${DefaultTask.name}
+            import ${Property.name}
+            import ${TaskAction.name}
+
+            public abstract class MapCollectorTask extends DefaultTask {
+                @ServiceReference("mapCollector")
+                abstract Property<MapCollectorService> getService()
+
+                @TaskAction
+                def collect() {
+                    def collectedProjects = getService().get().getCollectedProjects()
+                    println("Collected projects: \$collectedProjects")
+                }
+            }
+        """)
+
+        settingsFile """
+            include(":a")
+        """
+
+        buildFile """
+            def mapCollectorServiceProvider = gradle.getSharedServices().registerIfAbsent("mapCollector", MapCollectorService.class)
+            def mapCollectorService = mapCollectorServiceProvider.get()
+            mapCollectorService.collectProject(subprojects.toList().get(0), ":a wrapped by :root#subprojects")
+            mapCollectorService.collectProject(allprojects.toList().get(1), ":a wrapped by :root#allprojects")
+            mapCollectorService.collectProject(project(":a"), ":a wrapped by :root#project")
+
+            def registry = services.get(BuildEventsListenerRegistry)
+            registry.onOperationCompletion(mapCollectorServiceProvider)
+        """
+
+        buildFile("a/build.gradle", """
+            def mapCollectorService = gradle.getSharedServices().registerIfAbsent("mapCollector", MapCollectorService.class).get()
+            mapCollectorService.collectProject(project, "raw :a")
+
+            tasks.register("collectProjects", MapCollectorTask.class)
+        """)
+
+        when:
+        run"collectProjects"
+
+        then:
+        outputContains("Last collected value for project ':a' is null")
+        outputContains("Last collected value for project ':a' is :a wrapped by :root#subprojects")
+        outputContains("Last collected value for project ':a' is :a wrapped by :root#allprojects")
+        outputContains("Last collected value for project ':a' is :a wrapped by :root#project")
+        outputContains("Collected projects: [project ':a':raw :a]")
+    }
 }

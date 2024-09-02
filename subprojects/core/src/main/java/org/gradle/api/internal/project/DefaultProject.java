@@ -599,7 +599,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return getIdentityPath().hashCode();
     }
 
     @Override
