@@ -19,7 +19,6 @@ import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
@@ -66,7 +65,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
-        extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
+        extension.getToolVersion().convention(DEFAULT_CHECKSTYLE_VERSION);
         Directory directory = getRootProjectDirectory().dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
@@ -90,7 +89,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()))
+            dependencies.addLater(extension.getToolVersion().map(version -> project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + version)))
         );
     }
 
@@ -104,13 +103,13 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
         ProjectLayout layout = project.getLayout();
         ProviderFactory providers = project.getProviders();
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        Provider<Directory> reportsDir = extension.getReportsDir();
         task.getReports().all(action(report -> {
             report.getRequired().convention(!report.getName().equals("sarif"));
             report.getOutputLocation().convention(
