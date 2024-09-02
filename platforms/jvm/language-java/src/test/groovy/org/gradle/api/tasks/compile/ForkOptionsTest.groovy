@@ -28,10 +28,10 @@ class ForkOptionsTest extends Specification {
         expect:
         forkOptions.executable == null
         forkOptions.javaHome == null
-        forkOptions.memoryInitialSize == null
-        forkOptions.memoryMaximumSize == null
+        forkOptions.memoryInitialSize.getOrNull() == null
+        forkOptions.memoryMaximumSize.getOrNull() == null
         forkOptions.tempDir == null
-        forkOptions.jvmArgs == []
+        forkOptions.jvmArgs.get() == []
     }
 
     def 'options can be defined via a map'() {
