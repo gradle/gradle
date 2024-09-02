@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.gradle.api.resources.ResourceException;
@@ -32,17 +34,26 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 
 public class HttpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
+    private final File cachePosition;
 
     private long rangeSize = 2 * 1024 * 1024;// 2 Mb
 
     public HttpResourceAccessor(HttpClientHelper http) {
+        this(http, null);
+    }
+
+    public HttpResourceAccessor(HttpClientHelper http, @Nullable File cachePosition) {
         this.http = http;
+        this.cachePosition = cachePosition;
     }
 
     @Override
@@ -63,13 +74,25 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         String uri = location.toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        long skip = 0;// TODO 2024/8/30: read file size from partially downloaded file
+        if (cachePosition == null) {
+            // cache is disabled
+            return wrapResponse(location, provider.get(uri, revalidate, null, null));
+        }
+
+        try {
+            FileUtils.forceMkdir(cachePosition.getParentFile());
+        } catch (IOException e) {
+            throw new ResourceException(location, "Unable to create cache directory", e);
+        }
+
+        long skip = cachePosition.isFile() && cachePosition.exists() ? cachePosition.length() : 0; // read file size from partially downloaded file
         int round = 0;
         Long totalBytes = null;
-        long receivedBytes;
+        long totalReceivedBytes;
         do {
             long rangeStart = skip + round * rangeSize;
-            HttpClientResponse response = provider.get(uri, revalidate, rangeStart, rangeStart + rangeSize);
+            long rangeEnd = rangeStart + rangeSize;
+            HttpClientResponse response = provider.get(uri, revalidate, rangeStart, rangeEnd);
             int code = response.getStatusLine().getStatusCode();
             if (code == HttpStatus.SC_OK) { // server does not support range request
                 return wrapResponse(location, response);
@@ -82,14 +105,18 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
                     totalBytes = Long.parseLong(split[1]);
                 }
                 String[] receivedRange = split[0].split("-"); // ["0", "100"]
-                receivedBytes = Long.parseLong(receivedRange[1]);
+                totalReceivedBytes = Long.parseLong(receivedRange[1]);
+                try {
+                    IOUtils.copy(response.getContent(), new FileOutputStream(cachePosition, true));
+                } catch (IOException e) {
+                    throw new ResourceException(location, String.format("Unable to save partial content from bytes %d to %d", rangeStart, rangeEnd), e);
+                }
                 round++;
-                // TODO 2024/8/30: amend response content to the temp file
             } else {
-                throw new ResourceException("Unexpected response code: " + code + " when fetching resource: " + location);
+                throw new ResourceException(location, String.format("Unexpected response code %d when fetching bytes from %d to %d", code, rangeStart, rangeEnd));
             }
-        } while (receivedBytes != totalBytes - 1);
-        return new UrlExternalResource().openResource(new ExternalResourceName("THE TEMP FILE PATH"), revalidate);
+        } while (totalReceivedBytes != totalBytes - 1);
+        return new UrlExternalResource().openResource(new ExternalResourceName(cachePosition.toURI()), revalidate);
     }
 
     @Override
@@ -121,6 +148,6 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
 
     private interface HttpClientResponseProvider {
         @Nonnull
-        HttpClientResponse get(final String location, boolean revalidate, long rangeStart, long rangeEnd);
+        HttpClientResponse get(final String location, boolean revalidate, @Nullable Long rangeStart, @Nullable Long rangeEnd);
     }
 }
