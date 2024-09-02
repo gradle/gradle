@@ -23,6 +23,6 @@ import java.io.Serializable;
 public class MinimalGroovyCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
     public MinimalGroovyCompilerDaemonForkOptions(GroovyForkOptions forkOptions) {
         super(forkOptions);
-        setJvmArgs(forkOptions.getAllJvmArgs());
+        setJvmArgs(forkOptions.getAllJvmArgs().get());
     }
 }
