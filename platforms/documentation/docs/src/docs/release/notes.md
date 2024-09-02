@@ -76,9 +76,7 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+* Build Features API
 
 ## Fixed issues
 
