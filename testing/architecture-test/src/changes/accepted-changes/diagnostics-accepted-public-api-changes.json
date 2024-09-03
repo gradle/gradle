@@ -65,6 +65,68 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
+            "acceptation": "It's a spec on a diagnostic task, it should not be used",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getErrorHandler()",
+            "acceptation": "The method is internal",
+            "changes": [
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getTextOutputFactory()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionComparator()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionSelectorScheme()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setConfiguration(java.lang.String)",
+            "acceptation": "Was only used for CLI, replaced by setConfigurationName",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setConfigurationName(java.lang.String)",
+            "acceptation": "It's only for CLI",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getBuildStateRegistry()",
             "acceptation": "Changed to idiomatic injection",
