@@ -72,7 +72,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     /**
      * Returns the source directories that make up this set.
      * <p>
-     * Note that filtering via patterns using {@link #include(Spec)} and {@link #include(Spec)} (or any overload of these methods) only
+     * Note that filtering via patterns using {@link #exclude(Spec)} and {@link #include(Spec)} (or any overload of these methods) only
      * filters <strong>files</strong> within the {@link DirectoryTree}s returned by this method and <strong>does not filter</strong>
      * the set of source directory trees themselves.  This result should agree with {@link #getSrcDirTrees()}.
      * <p>
