@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
@@ -36,7 +37,6 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
-import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
@@ -77,6 +77,7 @@ internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
 
 internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     private val containerByAccessorId = mutableMapOf<String, ContainerProperty>()
+    private val elementFactoryFunctions = hashSetOf<SchemaMemberFunction>()
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         // For subtypes of NDOC<T>, generate the element factory function as a member:
@@ -85,7 +86,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                 if (kClass.isSubclassOf(NamedDomainObjectContainer::class) && kClass != NamedDomainObjectContainer::class) {
                     val elementType = elementTypeFromNdocContainerType(kClass.createType(kClass.typeParameters.map { KTypeProjection(null, null) }))
                     if (elementType != null) {
-                        listOf(elementRegisteringFunction(kClass.toDataTypeRef(), elementType, context = kClass))
+                        listOf(newElementFactoryFunction(kClass.toDataTypeRef(), elementType, inContext = kClass))
                     } else emptyList()
                 } else emptyList()
         },
@@ -138,13 +139,9 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         object : RuntimeFunctionResolver {
-            override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution =
-                if (receiverClass.isSubclassOf(NamedDomainObjectContainer::class)
-                    && parameterValueBinding.providesConfigureBlock
-                    && parameterValueBinding.bindingMap.size == 1
-                ) {
-                    // FIXME: we should validate the signature against the ones collected in schema building;
-                    // For now, we assume that the only function that can be invoked on an NDOC is the DCL element factory, which is not true for NDOC subtypes
+            override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution =
+                // TODO: this check relies on the hashing+equality implementation of the schema functions; if those get proxied (e.g. to TAPI), it won't work; We do not need that for now, though.
+                if (schemaFunction in elementFactoryFunctions) {
                     RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
                         override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                             val result = (receiver as NamedDomainObjectContainer<*>).maybeCreate(binding.values.single() as String)
@@ -155,7 +152,10 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         }
     )
 
-    private data class ContainerProperty(
+    private fun newElementFactoryFunction(receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any) =
+        elementFactoryFunction(receiverTypeRef, elementKType, inContext).also(elementFactoryFunctions::add)
+
+    private inner class ContainerProperty(
         val ownerType: KClass<*>,
         val name: String,
         val containerType: KType,
@@ -186,10 +186,9 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             syntheticTypeName(),
             emptySet(),
             emptyList(),
-            listOf(elementRegisteringFunction(syntheticContainerTypeRef(), elementType, context = originDeclaration.callable)),
+            listOf(newElementFactoryFunction(syntheticContainerTypeRef(), elementType, inContext = originDeclaration.callable)),
             emptyList()
         )
-
     }
 
     sealed interface ContainerPropertyDeclaration {
@@ -227,7 +226,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     }
 }
 
-private fun elementRegisteringFunction(
+private fun elementFactoryFunction(
     receiverTypeRef: DataTypeRef,
     elementType: KType,
     context: Any
