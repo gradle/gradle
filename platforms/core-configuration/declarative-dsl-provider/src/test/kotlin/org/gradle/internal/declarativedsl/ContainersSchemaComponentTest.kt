@@ -22,6 +22,7 @@ import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import org.gradle.declarative.dsl.model.annotations.NestedDeclarativeModel
 import org.gradle.declarative.dsl.model.annotations.Restricted
@@ -103,6 +104,9 @@ class ContainersSchemaComponentTest {
                                 customFactoryName("nameThreeHundred") {
                                     z = 300
                                 }
+                                configuringInSubtype { // check that the runtime function resolver distinguishes between the synthetic element factory and other functions
+                                    z = 301
+                                }
                                 w = 4
                             }
                         }
@@ -126,7 +130,7 @@ class ContainersSchemaComponentTest {
             )
 
             assertEquals(
-                setOf("nameThreeHundred" to 300),
+                setOf("nameThreeHundred" to 300, "configuringInSubtype" to 301),
                 containerSubtype.map { it.name to it.z }.toSet()
             )
             assertEquals(4, containerSubtype.w)
@@ -173,9 +177,15 @@ class ContainersSchemaComponentTest {
         override fun getName(): String = name
     }
 
-    class NdocSubtype(val container: NamedDomainObjectContainer<Three>): NamedDomainObjectContainer<Three> by container {
+    class NdocSubtype(container: NamedDomainObjectContainer<Three>): NamedDomainObjectContainer<Three> by container {
         @get:Restricted
         var w: Int = 0
+
+        @Suppress("unused")
+        @Configuring
+        fun configuringInSubtype(configure: Three.() -> Unit) {
+            maybeCreate("configuringInSubtype").let(configure)
+        }
     }
 }
 
