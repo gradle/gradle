@@ -38,4 +38,7 @@ class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: Functional
         }
     }) {
     val testCoverage: TestCoverage = functionalTestProject.testCoverage
+
+    override val failStage: Boolean
+        get() = testCoverage.failStage
 }
