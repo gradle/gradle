@@ -162,8 +162,6 @@ class ProblemReportingCrossProjectModelAccess(
             onIsolationViolation(what)
         }
 
-        override fun toString(): String = delegate.toString()
-
         override fun propertyMissing(name: String): Any? {
             onProjectsCoupled()
             return withDelegateDynamicCallReportingConfigurationOrder(

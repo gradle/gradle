@@ -88,9 +88,4 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
         throw dynamicDelegate.methodMissingException(name, varargs);
     }
-
-    @Override
-    public String toString() {
-        return delegate.toString();
-    }
 }

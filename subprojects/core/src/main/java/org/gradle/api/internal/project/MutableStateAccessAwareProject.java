@@ -139,13 +139,18 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     protected abstract void onMutableStateAccess(String what);
 
     @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
+    @Override
     @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
-    public boolean equals(Object other) {
+    public final boolean equals(Object other) {
         return delegate.equals(other);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return delegate.hashCode();
     }
 

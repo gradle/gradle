@@ -603,15 +603,15 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public boolean equals(Object otherProject) {
-        if (this == otherProject) {
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
-        if (otherProject == null) {
+        if (other == null) {
             return false;
         }
-        if (otherProject instanceof ProjectInternal) {
-            return getIdentityPath().equals(((ProjectInternal) otherProject).getIdentityPath());
+        if (other instanceof ProjectInternal) {
+            return getIdentityPath().equals(((ProjectInternal) other).getIdentityPath());
         }
         return false;
     }
