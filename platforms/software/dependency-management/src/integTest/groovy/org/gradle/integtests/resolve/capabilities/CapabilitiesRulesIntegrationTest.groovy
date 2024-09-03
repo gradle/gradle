@@ -241,11 +241,13 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
     def "can detect conflict between local project and capability from external dependency"() {
         given:
         repository {
-            'org:test:1.0'()
+            'org:external:1.0'()
         }
 
         buildFile << """
             apply plugin: 'java-library'
+
+            group = "org"
 
             class CapabilityRule implements ComponentMetadataRule {
 
@@ -260,25 +262,23 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             }
 
             configurations.api.outgoing {
+                capability 'org:test:1.0'
                 capability 'org:capability:1.0'
             }
 
             dependencies {
-                conf 'org:test:1.0'
+                conf(project)
+                conf("org:external:1.0")
 
                 components {
-                   withModule('org:test', CapabilityRule)
+                   withModule('org:external', CapabilityRule)
                 }
-            }
-
-            configurations {
-                conf.extendsFrom(api)
             }
         """
 
         when:
         repositoryInteractions {
-            'org:test:1.0' {
+            'org:external:1.0' {
                 expectGetMetadata()
             }
         }
@@ -286,7 +286,9 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(conf)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [org:external:1.0(${runtimeVariant})]""")
+        failure.assertHasCause("""Module 'org:external' has been rejected:
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [org:test:unspecified(runtimeElements)]""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")

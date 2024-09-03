@@ -50,46 +50,34 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         def expectedIds = [cs1, cs2].collect { it.id.module }
 
         when:
-        conflict = handler.registerCandidate(
-            candidate(capability, cs1)
-        )
+        List<PotentialConflict> conflicts = handler.registerNode(node(cs1, capability))
 
         then:
-        !conflict.conflictExists()
+        conflicts.empty
 
         when:
-        conflict = handler.registerCandidate(
-            candidate(capability, cs2)
-        )
+        conflicts = handler.registerNode(node(cs2, capability))
 
         then:
-        conflict.conflictExists()
+        conflicts.size() == 1
+        conflicts.first().conflictExists()
 
         when:
         // use a reasonably high number so that the test becomes at best flaky if we break the contract
         50.times {
             ComponentState cs = component("group", "m_${it}")
             expectedIds << cs.id.module
-            conflict = handler.registerCandidate(
-                candidate(capability, cs)
-            )
+            conflicts = handler.registerNode(node(cs, capability))
         }
 
         then:
         def actualIds = []
-        conflict.withParticipatingModules {
+        conflicts.size() == 1
+        conflicts.first().withParticipatingModules {
             actualIds << it
         }
 
         actualIds == expectedIds
-    }
-
-    CapabilitiesConflictHandler.Candidate candidate(CapabilityInternal cap, ComponentState co) {
-        Mock(CapabilitiesConflictHandler.Candidate) {
-            getNode() >> node(co)
-            getCapability() >> cap
-            getImplicitCapabilityProviders() >> []
-        }
     }
 
     ComponentState component(String group="group", String name="name", String version="1.0") {
@@ -108,10 +96,10 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         new DefaultImmutableCapability(group, name, null)
     }
 
-    NodeState node(ComponentState cs) {
+    NodeState node(ComponentState cs, CapabilityInternal capability) {
         def metadata = Mock(VariantGraphResolveMetadata) {
             getDependencies() >> []
-            getCapabilities() >> ImmutableCapabilities.of([])
+            getCapabilities() >> ImmutableCapabilities.of([capability])
         }
         def state = Mock(VariantGraphResolveState) {
             getMetadata() >> metadata

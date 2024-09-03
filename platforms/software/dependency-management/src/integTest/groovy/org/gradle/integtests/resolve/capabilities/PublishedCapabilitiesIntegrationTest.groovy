@@ -113,9 +113,9 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
     def "can detect conflict between local project and capability from external dependency"() {
         given:
         repository {
-            'org:test:1.0' {
+            id('org:external:1.0') {
                 variant("runtime") {
-                    capability('org', 'test', '1.0')
+                    capability('org', 'external', '1.0')
                     capability('org', 'capability', '1.0')
                 }
             }
@@ -124,22 +124,22 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             apply plugin: 'java-library'
 
+            group = "org"
+
             configurations.api.outgoing {
-                capability 'org:capability:1.0'
+                capability("org:test:1.0")
+                capability("org:capability:1.0")
             }
 
             dependencies {
-                conf 'org:test:1.0'
-            }
-
-            configurations {
-                conf.extendsFrom(api)
+                conf(project)
+                conf("org:external:1.0")
             }
         """
 
         when:
         repositoryInteractions {
-            'org:test:1.0' {
+            'org:external:1.0' {
                 expectGetMetadata()
             }
         }
@@ -147,7 +147,9 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(conf)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [org:external:1.0(runtime)]""")
+        failure.assertHasCause("""Module 'org:external' has been rejected:
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [org:test:unspecified(runtimeElements)]""")
     }
 
     /**

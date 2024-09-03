@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -43,7 +42,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -64,13 +62,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class DependencyGraphBuilder {
@@ -177,6 +173,10 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
+                if (!node.isSelected()) {
+                    capabilitiesConflictHandler.unregisterNode(node);
+                }
+
                 // TODO: Why is this not node.isSelected()?
                 // It seems that node.isSelected can return true while component.isSelected() returns false
                 if (!node.getComponent().isSelected()) {
@@ -184,8 +184,7 @@ public class DependencyGraphBuilder {
                     continue;
                 }
 
-                // Register capabilities for this node
-                if (registerCapabilities(resolveState, node)) {
+                if (registerCapabilitiesForNode(node, resolveState)) {
                     // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
                     // There is no reason to continue processing this node otherwise.
                     continue;
@@ -210,53 +209,22 @@ public class DependencyGraphBuilder {
     }
 
     /**
-     * Detect and register capability conflicts for the given node, deselecting the node if
-     * it is involved in a conflict.
+     * Detect and register capability conflicts for the given node, deselecting the node
+     * and those that it conflicts with if it is involved in a conflict.
      *
      * @return true iff a conflict was detected.
      */
-    private static boolean registerCapabilities(final ResolveState resolveState, final NodeState node) {
-        AtomicBoolean foundConflict = new AtomicBoolean(false);
-        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
-
-        node.forEachCapability(capabilitiesConflictHandler, new Action<CapabilityInternal>() {
-            @Override
-            public void execute(CapabilityInternal capability) {
-                // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
-                // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
-                // then we try to find a module which provides the same capability. It that module has been found, then we register it.
-                // Otherwise, we have nothing to do. This avoids most of registrations.
-                Collection<NodeState> implicitProvidersForCapability = Collections.emptyList();
-                for (ModuleResolveState state : resolveState.getModules()) {
-                    if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
-                        Collection<ComponentState> versions = state.getVersions();
-                        implicitProvidersForCapability = new ArrayList<>(versions.size());
-                        for (ComponentState version : versions) {
-                            List<NodeState> nodes = version.getNodes();
-                            for (NodeState nodeState : nodes) {
-                                // Collect nodes as implicit capability providers if different than current node, selected and not having explicit capabilities
-                                if (node != nodeState && nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
-                                    implicitProvidersForCapability.add(nodeState);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-                PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
-                    DefaultCapabilitiesConflictHandler.candidate(node, capability, implicitProvidersForCapability)
-                );
-                if (c.conflictExists()) {
-                    c.withParticipatingModules(resolveState.getDeselectVersionAction());
-                    foundConflict.set(true);
-                }
+    private static boolean registerCapabilitiesForNode(NodeState node, ResolveState resolveState) {
+        List<PotentialConflict> conflicts = resolveState.getCapabilitiesConflictHandler().registerNode(node);
+        if (!conflicts.isEmpty()) {
+            for (PotentialConflict conflict : conflicts) {
+                conflict.withParticipatingModules(participant -> resolveState.getModule(participant).clearSelection());
             }
 
-            private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
-                return nodeState.getMetadata().getCapabilities().asSet().isEmpty();
-            }
-        });
-        return foundConflict.get();
+            return true;
+        }
+
+        return false;
     }
 
     private boolean resolveEdges(
@@ -334,9 +302,10 @@ public class DependencyGraphBuilder {
             // We have a conflict
             LOGGER.debug("Found new conflicting module {}", module);
 
-            // For each module participating in the conflict, deselect the currently selection, and remove all outgoing edges from the version.
+            // For each module participating in the conflict, deselect the current selection
+            // and remove all outgoing edges from the version.
             // This will propagate through the graph and prune configurations that are no longer required.
-            c.withParticipatingModules(resolveState.getDeselectVersionAction());
+            c.withParticipatingModules(participant -> resolveState.getModule(participant).clearSelection());
         }
     }
 

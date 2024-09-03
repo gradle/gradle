@@ -18,12 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 
-public interface ConflictHandler<CANDIDATE, RESULT> {
-
-    /**
-     * Registers new module and returns information about any potential conflict
-     */
-    PotentialConflict registerCandidate(CANDIDATE candidate);
+public interface ConflictHandler<RESULT> {
 
     /**
      * Informs whether there is any conflict at present

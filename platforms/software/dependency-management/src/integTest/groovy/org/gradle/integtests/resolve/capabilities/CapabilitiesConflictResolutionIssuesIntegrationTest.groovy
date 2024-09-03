@@ -345,6 +345,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             root(":", ":test:") {
                 edge("org.codehaus.woodstox:wstx-asl:4.0.6", "org.codehaus.woodstox:woodstox-core-asl:4.4.1") {
                     byConflictResolution("latest version of capability woodstox:wstx-asl")
+                    byConflictResolution("between versions 4.4.1 and 4.0.6")
                     edge("javax.xml.stream:stax-api:1.0-2", "stax:stax-api:1.0.1")
                 }
                 edge("javax.xml.stream:stax-api:1.0", "stax:stax-api:1.0.1")

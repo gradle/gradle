@@ -80,7 +80,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ConflictResolution conflictResolution;
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
-    private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
@@ -274,10 +273,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ModuleExclusions getModuleExclusions() {
         return moduleExclusions;
-    }
-
-    public DeselectVersionAction getDeselectVersionAction() {
-        return deselectVersionAction;
     }
 
     public ReplaceSelectionWithConflictResultAction getReplaceSelectionWithConflictResultAction() {

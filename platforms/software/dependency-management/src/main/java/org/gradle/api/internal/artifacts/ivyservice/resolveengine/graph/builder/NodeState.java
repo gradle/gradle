@@ -22,7 +22,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,9 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -1160,35 +1157,6 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super CapabilityInternal> action) {
-        ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
-        // If there's more than one node selected for the same component, we need to add
-        // the implicit capability to the list, in order to make sure we can discover conflicts
-        // between variants of the same module.
-        // We also need to add the implicit capability if it was seen before as an explicit
-        // capability in order to detect the conflict between the two.
-        // Note that the fact that the implicit capability is not included in other cases
-        // is not a bug but a performance optimization.
-        boolean defaultCapabilityHasConflict = capabilitiesConflictHandler.hasSeenNonDefaultCapabilityExplicitly(component.getImplicitCapability());
-        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || defaultCapabilityHasConflict)) {
-            action.execute(component.getImplicitCapability());
-        } else {
-            // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
-            // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
-            // so just adding this check has a significant impact because most components do not declare any capability
-            if (!capabilities.isEmpty()) {
-                for (CapabilityInternal capability : capabilities) {
-                    // Only process non-default capabilities
-                    // Or, for the default capability if we have seen that capability on a node for which it is not the default
-                    // Or, the component has multiple selected variants, in which case two nodes in that component may conflict with each other
-                    if (!capability.equals(component.getImplicitCapability()) || defaultCapabilityHasConflict || component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        action.execute(capability);
-                    }
-                }
-            }
-        }
-    }
-
     @Nullable
     public Capability findCapability(String group, String name) {
         Capability onComponent = component.findCapability(group, name);
@@ -1224,7 +1192,7 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    boolean isSelectedByVariantAwareResolution() {
+    public boolean isSelectedByVariantAwareResolution() {
         // the order is strange logically but here for performance optimization
         return selectedByVariantAwareResolution && isSelected();
     }
