@@ -137,7 +137,7 @@ No dependencies matching given input were found in configuration ':conf'
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf2' }
+                dependencySpec { it.requested.module == 'leaf2' }
                 configuration = configurations.conf
             }
         """
@@ -586,7 +586,7 @@ org:leaf:2.0 -> 1.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
@@ -649,7 +649,7 @@ org:leaf:latest.integration -> 1.0
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { true }
+                dependencySpec { true }
             }
         """
 
@@ -715,7 +715,7 @@ org:foo:1.0 -> org:bar:2.0
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { true }
+                dependencySpec { true }
             }
         """
 
@@ -792,7 +792,7 @@ org:foo:1.0 -> 2.0
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { true }
+                dependencySpec { true }
             }
         """
 
@@ -854,7 +854,7 @@ org:foo:1.0 -> org:bar:1.0
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
             }
         """
 
@@ -907,7 +907,7 @@ org:leaf:2.0 -> org:new-leaf:77
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { true }
+                dependencySpec { true }
             }
         """
 
@@ -966,7 +966,7 @@ org:foo:1.0 -> 2.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
@@ -1018,7 +1018,7 @@ org:leaf:latest.integration -> 1.6
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
             }
         """
 
@@ -1069,7 +1069,7 @@ org:leaf:1.0 -> 2.0
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
             }
         """
 
@@ -1119,7 +1119,7 @@ org:leaf:2.0 -> 1.5
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
             }
         """
 
@@ -1154,7 +1154,7 @@ org:leaf:1.4 -> 2.0
         buildFile << """
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf2' }
+                dependencySpec { it.requested.module == 'leaf2' }
             }
         """
 
@@ -1173,7 +1173,7 @@ org:leaf:1.4 -> 2.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'whatever' }
+                dependencySpec { it.requested.module == 'whatever' }
                 configuration = configurations.conf
             }
         """
@@ -1201,7 +1201,7 @@ org:leaf:1.4 -> 2.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'foo.unknown' }
+                dependencySpec { it.requested.module == 'foo.unknown' }
                 configuration = configurations.conf
             }
         """
@@ -1229,7 +1229,7 @@ org:leaf:1.4 -> 2.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'middle' }
+                dependencySpec { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -1267,7 +1267,7 @@ org:middle:1.0 FAILED
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'middle' }
+                dependencySpec { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -1307,7 +1307,7 @@ org:middle:1.0 -> 2.0 FAILED
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'middle' }
+                dependencySpec { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -1347,7 +1347,7 @@ org:middle:1.0 -> 2.0 FAILED
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'middle' }
+                dependencySpec { it.requested.module == 'middle' }
                 configuration = configurations.conf
             }
         """
@@ -1391,7 +1391,7 @@ org:middle:1.0 -> 2.0+ FAILED
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf' }
+                dependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
             }
         """
@@ -1502,7 +1502,7 @@ project :C FAILED
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf2' }
+                dependencySpec { it.requested.module == 'leaf2' }
                 configuration = configurations.conf
             }
         """
@@ -1552,7 +1552,7 @@ org:leaf2:1.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { true }
+                dependencySpec { true }
                 configuration = configurations.runtimeClasspath
             }
         """
@@ -1616,7 +1616,7 @@ root project :
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
+                dependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
                 configuration = configurations.runtimeClasspath
             }
         """
@@ -1673,7 +1673,7 @@ org:leaf2:1.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested instanceof ProjectComponentSelector && it.requested.projectPath == ':impl' }
+                dependencySpec { it.requested instanceof ProjectComponentSelector && it.requested.projectPath == ':impl' }
                 configuration = configurations.compileClasspath
             }
         """
@@ -2519,7 +2519,7 @@ org.test:leaf:1.0
             }
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
-                setDependencySpec { it.requested.module == 'leaf2' }
+                dependencySpec { it.requested.module == 'leaf2' }
                 configuration = configurations.conf
             }
         """
@@ -3004,5 +3004,105 @@ org:foo:1.2 -> 1.5
 \\--- org:bar:1.0
      \\--- compileClasspath
 """)
+    }
+
+    def "shows deprecation warning for setDependencySpec"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = false
+                setDependencySpec { it.requested.module == 'leaf2' }
+                configuration = configurations.conf
+            }
+        """
+
+        executer.expectDeprecationWarning("The DependencyInsightReportTask.setDependencySpec(Spec<DependencyResult>) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the dependencySpec(Spec<DependencyResult>) method instead.")
+
+        when:
+        run "insight"
+
+        then:
+        outputContains """
+org:leaf2:1.0
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.category        | library      |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+
+org:leaf2:1.0
++--- org:middle:1.0
+|    \\--- org:top:1.0
+|         \\--- conf
+\\--- org:top:1.0 (*)
+"""
+
+    }
+
+    def "cli option has higher precendence over dependencySpec"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                showingAllVariants = false
+                dependencySpec { it.requested.module == 'leaf1' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight", "--dependency", "leaf2"
+
+        then:
+        outputContains """
+org:leaf2:1.0
+  Variant runtime:
+    | Attribute Name             | Provided     | Requested |
+    |----------------------------|--------------|-----------|
+    | org.gradle.category        | library      |           |
+    | org.gradle.libraryelements | jar          |           |
+    | org.gradle.status          | release      |           |
+    | org.gradle.usage           | java-runtime |           |
+
+org:leaf2:1.0
++--- org:middle:1.0
+|    \\--- org:top:1.0
+|         \\--- conf
+\\--- org:top:1.0 (*)
+"""
+
     }
 }

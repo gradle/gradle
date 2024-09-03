@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -56,11 +58,12 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
@@ -106,29 +109,25 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * That is, it is an inverted view of the regular dependencies report.
  * <p>
  * The task requires setting the dependency spec and the configuration.
- * For more information on how to configure those please refer to docs for {@link #setDependencySpec(Object)} and
- * {@link #setConfiguration(String)}.
+ * For more information on how to configure those please refer to docs for {@link #getEffectiveDependencySpec()} and
+ * {@link #getConfiguration()}.
  * <p>
  * The task can also be configured from the command line.
- * For more information please refer to {@link #setDependencySpec(Object)}, {@link #setConfiguration(String)},
- * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
+ * For more information please refer to {@link #getEffectiveDependencySpec()}}, {@link #setConfigurationName(String)},
+ * {@link #getShowSinglePathToDependency()}, and {@link #getShowingAllVariants()}.
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class DependencyInsightReportTask extends DefaultTask {
 
-    private Spec<DependencyResult> dependencySpec;
-    private boolean showSinglePathToDependency;
-    private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
-    private transient Configuration configuration;
-    private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
+    @Nullable
+    private Spec<DependencyResult> configuredDependencySpec;
 
-    // this field is named with a starting `z` to be serialized after `rootComponentProperty`
-    // because the serialization of `rootComponentProperty` can still trigger callback that can affect
-    // a value of `configuration.getAttributes()`.
-    // TODO:configuration-cache find a way to clean up this #23732
-    private Provider<AttributeContainer> zConfigurationAttributes;
-    private String configurationName;
-    private String configurationDescription;
+    public DependencyInsightReportTask() {
+        getShowSinglePathToDependency().convention(false);
+        getRootComponentProperty().convention(
+            getConfiguration().zip(getEffectiveDependencySpec(), this::getRootComponentPropertyValue)
+        );
+    }
 
     /**
      * The root component of the dependency graph to be inspected.
@@ -137,36 +136,62 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
-    public Property<ResolvedComponentResult> getRootComponentProperty() {
-        // Required to maintain DslObject mapping
-        Configuration configuration = getConfiguration();
-        if (!rootComponentProperty.isPresent() && configuration != null && dependencySpec != null) {
-            if (getShowingAllVariants().get()) {
-                ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
-                if (!configurationInternal.isCanBeMutated()) {
-                    throw new IllegalStateException(
-                        "The configuration '" + configuration.getName() + "' is not mutable. " +
-                            "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
-                    );
-                }
-                configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
-            }
-            configurationName = configuration.getName();
-            configurationDescription = configuration.toString();
-            zConfigurationAttributes = getProject().provider(configuration::getAttributes);
+    public abstract Property<ResolvedComponentResult> getRootComponentProperty();
 
-            rootComponentProperty.set(configuration.getIncoming().getResolutionResult().getRootComponent());
+    private ResolvedComponentResult getRootComponentPropertyValue(Configuration configuration, Spec<DependencyResult> dependencySpec) {
+        if (getShowingAllVariants().get()) {
+            ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
+            if (!configurationInternal.isCanBeMutated()) {
+                throw new IllegalStateException(
+                    "The configuration '" + configuration.getName() + "' is not mutable. " +
+                            "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
+                );
+            }
+            configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
         }
-        return rootComponentProperty;
+
+        return configuration.getIncoming().getResolutionResult().getRootComponent().get();
+    }
+
+    /**
+     * The effective dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
+     * The spec receives an instance of {@link DependencyResult} as parameter.
+     *
+     * @since 9.1.0
+     **/
+    @Internal
+    @VisibleForTesting
+    @Incubating
+    protected Provider<Spec<DependencyResult>> getEffectiveDependencySpec() {
+        return getDependencyNotation().map(
+            dependencyNotation -> DependencyResultSpecNotationConverter.parser().parseNotation(dependencyNotation)
+        ).orElse(Providers.changing(() -> configuredDependencySpec));
     }
 
     /**
      * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
+     * @deprecated use {@link #dependencySpec(Spec)} instead
      */
-    public void setDependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
-        this.dependencySpec = dependencySpec;
+    @Deprecated
+    public void setDependencySpec(@Nullable Spec<DependencyResult> configuredDependencySpec) {
+        DeprecationLogger.deprecateMethod(DependencyInsightReportTask.class, "setDependencySpec(Spec<DependencyResult>)")
+            .replaceWith("dependencySpec(Spec<DependencyResult>)")
+            .willBeRemovedInGradle10() // TODO: change to 10
+            .undocumented()
+            .nagUser();
+
+        dependencySpec(configuredDependencySpec);
+    }
+
+    /**
+     * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
+     * The spec receives an instance of {@link DependencyResult} as parameter.
+     * @since 9.1.0
+     */
+    @Incubating
+    public void dependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
+        this.configuredDependencySpec = dependencySpec;
     }
 
     /**
@@ -175,32 +200,26 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * and groovy closures. Spec and closure receive {@link DependencyResult} as parameter.
      * Examples of String notation: 'org.slf4j:slf4j-api', 'slf4j-api', or simply: 'slf4j'.
      * The input may potentially match multiple dependencies.
-     * See also {@link #setDependencySpec(Spec)}
      * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --dependency slf4j</pre>
+     *
+     * @since 9.0
      */
+    @Input
+    @Optional
     @Option(option = "dependency", description = "Shows the details of given dependency.")
-    public void setDependencySpec(@Nullable Object dependencyInsightNotation) {
-        NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationConverter.parser();
-        setDependencySpec(parser.parseNotation(dependencyInsightNotation));
-    }
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setDependencySpec", originalType = Object.class)
+    })
+    public abstract Property<Object> getDependencyNotation();
 
     /**
      * Configuration to look the dependency in
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public @Nullable Configuration getConfiguration() {
-        return configuration;
-    }
-
-    /**
-     * Sets the configuration to look the dependency in.
-     */
-    public void setConfiguration(@Nullable Configuration configuration) {
-        this.configuration = configuration;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<Configuration> getConfiguration();
 
     /**
      * Sets the configuration (via name) to look the dependency in.
@@ -208,9 +227,10 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
      */
+    @Incubating
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
-    public void setConfiguration(@Nullable String configurationName) {
-        setConfiguration(
+    protected void setConfigurationName(@Nullable String configurationName) {
+        getConfiguration().set(
             configurationName == null
                 ? null
                 : ConfigurationFinder.find(getProject().getConfigurations(), configurationName)
@@ -218,31 +238,19 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     /**
-     * Tells if the report should only show one path to each dependency.
-     *
-     * @since 4.9
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isShowSinglePathToDependency() {
-        return showSinglePathToDependency;
-    }
-
-    /**
      * Tells if the report should only display a single path to each dependency, which
      * can be useful when the graph is large. This is false by default, meaning that for
      * each dependency, the report will display all paths leading to it.
      *
-     * <p>
-     * This method is exposed to the command line interface. Example usage:
-     * <pre>gradle dependencyInsight --single-path</pre>
-     *
      * @since 4.9
      */
+    @Internal
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isShowSinglePathToDependency", originalType = boolean.class),
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setShowSinglePathToDependency", originalType = boolean.class)
+    })
     @Option(option = "single-path", description = "Show at most one path to each dependency")
-    public void setShowSinglePathToDependency(boolean showSinglePathToDependency) {
-        this.showSinglePathToDependency = showSinglePathToDependency;
-    }
+    public abstract Property<Boolean> getShowSinglePathToDependency();
 
     /**
      * Show all variants of each displayed dependency.
@@ -258,12 +266,9 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      *
      * @since 7.5
      */
-    @Option(option = "all-variants", description = "Show all variants of each dependency")
-    @Incubating
     @Internal
-    public Property<Boolean> getShowingAllVariants() {
-        return showingAllVariants;
-    }
+    @Option(option = "all-variants", description = "Show all variants of each dependency")
+    public abstract Property<Boolean> getShowingAllVariants();
 
     @Inject
     protected abstract StyledTextOutputFactory getTextOutputFactory();
@@ -309,7 +314,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         Set<DependencyResult> selectedDependencies = selectDependencies(rootComponent);
 
         if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + configurationDescription);
+            output.println("No dependencies matching given input were found in " + getConfiguration().get());
             return;
         }
         renderSelectedDependencies(output, selectedDependencies);
@@ -319,11 +324,11 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     private void renderSelectedDependencies(StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
         GraphRenderer renderer = new GraphRenderer(output);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, zConfigurationAttributes.get(), getAttributesFactory());
-        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configurationName);
+        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, getShowSinglePathToDependency().get());
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, getConfiguration().get().getAttributes(), getAttributesFactory());
+        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(getConfiguration().get().getName());
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
-        dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
+        dependencyGraphRenderer.setShowSinglePath(getShowSinglePathToDependency().get());
         dependencyGraphRenderer.render(itemsToRender);
         dependencyGraphRenderer.complete();
     }
@@ -336,12 +341,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     private void assertValidTaskConfiguration() {
-        if (configurationName == null) {
+        if (!getConfiguration().isPresent()) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
 
-        if (dependencySpec == null) {
+        if (!getEffectiveDependencySpec().isPresent()) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
@@ -350,7 +355,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     private Set<DependencyResult> selectDependencies(ResolvedComponentResult rootComponent) {
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
         eachDependency(rootComponent, dependencyResult -> {
-            if (Objects.requireNonNull(dependencySpec).isSatisfiedBy(dependencyResult)) {
+            if (Objects.requireNonNull(getEffectiveDependencySpec().get()).isSatisfiedBy(dependencyResult)) {
                 selectedDependencies.add(dependencyResult);
             }
         }, new HashSet<>());
