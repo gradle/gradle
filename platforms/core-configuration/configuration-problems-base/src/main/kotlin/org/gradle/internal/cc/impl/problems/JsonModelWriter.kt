@@ -31,5 +31,6 @@ class JsonModelWriter(val modelWriter: JsonWriter) {
             details.writeToJson(this)
             endObject()
         }
+        modelWriter.flush()
     }
 }

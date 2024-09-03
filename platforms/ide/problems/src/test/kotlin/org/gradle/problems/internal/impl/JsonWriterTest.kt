@@ -177,11 +177,13 @@ class JsonWriterTest {
 
     private
     fun jsonModelFor(builder: JsonWriter.() -> Unit): Map<String, Any> {
+        val toString = StringWriter().also {
+            val jsonWriter = JsonWriter(it)
+            jsonWriter.apply(builder)
+            jsonWriter.flush()
+        }.toString()
         return JsonSlurper().parseText(
-            StringWriter().also {
-                JsonWriter(it).apply(builder)
-            }.toString()
+            toString
         ).uncheckedCast()
     }
-
 }
