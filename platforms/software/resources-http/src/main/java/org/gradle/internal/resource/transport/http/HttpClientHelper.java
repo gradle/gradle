@@ -104,9 +104,9 @@ public class HttpClientHelper implements Closeable {
         HttpGet get = new HttpGet(source);
         if (rangeStart != null) {
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
-            StringBuilder builder = new StringBuilder().append("bytes=").append(rangeStart);
+            StringBuilder builder = new StringBuilder().append("bytes=").append(rangeStart).append("-");
             if (rangeEnd != null) {
-                builder.append("-").append(rangeEnd);
+                builder.append(rangeEnd);
             }
             get.setHeader(HttpHeaders.RANGE, builder.toString());
         }
