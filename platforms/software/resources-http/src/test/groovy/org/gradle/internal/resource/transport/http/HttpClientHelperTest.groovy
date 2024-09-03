@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.apache.commons.io.IOUtils
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.apache.http.client.methods.HttpGet
@@ -26,6 +27,7 @@ import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.junit.jupiter.api.Assertions
 
 class HttpClientHelperTest extends AbstractHttpClientTest {
     @Rule
@@ -160,16 +162,32 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         assert response.getContent().bytes.length == receivedBytesRange // fixme
     }
 
-    def "apache http client cannot handle range request ?"() {
+    def "apache custom http client can handle range request input stream"() {
         when:
         def request = new HttpGet("https://gradle.org/icon/favicon.ico")
         request.setHeader(HttpHeaders.RANGE, "bytes=0-5000")
+        // disable content compression is important when performing range request
+        // otherwise you will get an EOFException when saving the content from a GZip input stream
+        def response = HttpClients.custom()
+            .disableContentCompression()
+            .build()
+            .execute(request)
 
         then:
-        def response = HttpClients.createDefault().execute(request)
-
         def inputStream = response.entity.content
-        println(inputStream.available())
-        println(inputStream.bytes.length) // fixme
+
+        def testcase = "apache-http-custom-client"
+        assertPartialContentCanBeSavedIntoFile(testcase, inputStream)
+    }
+
+    private static void assertPartialContentCanBeSavedIntoFile(String testcase, InputStream inputStream) {
+        def file = File.createTempFile("http-client-helper-test-" + testcase, ".ico")
+        try {
+            IOUtils.copy(inputStream, new FileOutputStream(file))
+        } catch (e) {
+            Assertions.fail("Partial content should be able to be saved into file", e)
+        } finally {
+            file.delete()
+        }
     }
 }
