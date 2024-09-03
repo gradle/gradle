@@ -38,9 +38,9 @@ public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLi
 
     @Override
     public void beforeProject(Action<? super Project> action) {
-        // GradleLifecycle#beforeProject forces build to be CC compatible, since it uses CC serialization
-        // for preventing state sharing across projects. For builds running vintage, this can lead to unexpected
-        // CC serialization errors.
+        // GradleLifecycle#beforeProject isolates the action to be safe with Isolated Projects.
+        // This brings additional serializability requirements for any state referenced by the action.
+        // Therefore, the new callback cannot be used without Isolated Projects, because it implies a breaking change in behavior
         if (isIsolatedProjects()) {
             gradle.getLifecycle().beforeProject(action::execute);
         } else {
