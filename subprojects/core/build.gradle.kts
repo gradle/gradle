@@ -35,7 +35,6 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "BadInstanceof", // 6 occurrences (this is from generated code)
         "DefaultCharset", // 4 occurrences
         "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
@@ -127,6 +126,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.buildOperationsTrace)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)

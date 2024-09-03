@@ -35,7 +35,6 @@ errorprone {
         "OperatorPrecedence", // 2 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
-        "StreamResourceLeak", // 1 occurrences
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
