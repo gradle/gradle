@@ -209,7 +209,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         }
 
         expect:
-        project.checkstyle.configFile.asFile.get() == project.file("checkstyle-config") // computed property
+        project.checkstyle.configFile == project.file("checkstyle-config") // computed property
         project.tasks.checkstyleMain.configFile == project.file("checkstyle-config")
         project.tasks.checkstyleTest.configFile == project.file("checkstyle-config")
     }
@@ -219,7 +219,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             configDirectory.set(project.file("custom"))
         }
         expect:
-        project.checkstyle.configFile.asFile.get() == project.file("custom/checkstyle.xml") // computed property
+        project.checkstyle.configFile == project.file("custom/checkstyle.xml") // computed property
     }
 
     def "tool configuration has correct attributes"() {
