@@ -18,7 +18,11 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
+<<<<<<< HEAD
 import org.gradle.api.file.ProjectLayout;
+=======
+import org.gradle.api.file.FileCollection;
+>>>>>>> 8722257f441 (fixup! Upgrade CodeNarc to use lazy properties)
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.GroovyBasePlugin;
@@ -34,7 +38,11 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
+<<<<<<< HEAD
 import java.io.File;
+=======
+import java.util.concurrent.Callable;
+>>>>>>> 8722257f441 (fixup! Upgrade CodeNarc to use lazy properties)
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -107,11 +115,11 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
 
     private void configureTaskConventionMapping(Configuration configuration, CodeNarc task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("codenarcClasspath", () -> configuration);
         taskMapping.map("config", () -> extension.getConfig());
-        taskMapping.map("maxPriority1Violations", () -> extension.getMaxPriority1Violations());
-        taskMapping.map("maxPriority2Violations", () -> extension.getMaxPriority2Violations());
-        taskMapping.map("maxPriority3Violations", () -> extension.getMaxPriority3Violations());
+        task.getCodenarcClasspath().convention(configuration);
+        task.getMaxPriority1Violations().convention(extension.getMaxPriority1Violations());
+        task.getMaxPriority2Violations().convention(extension.getMaxPriority2Violations());
+        task.getMaxPriority3Violations().convention(extension.getMaxPriority3Violations());
         task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
@@ -143,6 +151,6 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
-        task.getConventionMapping().map("compilationClasspath", sourceSet::getCompileClasspath);
+        task.getCompilationClasspath().convention((Callable<FileCollection>) sourceSet::getCompileClasspath);
     }
 }
