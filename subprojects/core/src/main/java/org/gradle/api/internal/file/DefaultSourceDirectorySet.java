@@ -231,7 +231,12 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     @Override
     public Set<DirectoryTree> getSrcDirTrees() {
-        // This implementation is broken. It does not consider include and exclude patterns
+        /* Include and exclude patterns only apply to files within directories in this set, not the directories themselves.
+         *
+         * Note that if there are multiple directory trees coming from getSourceTrees() that include the same dir,
+         * we use the patterns from the first one we find (in the order they were added) to filter files in the returned
+         * {@link DirectoryTree}s.  It is discouraged to add multiple source directories that include the same dir to the same set.
+         */
         Map<File, DirectoryTree> trees = new LinkedHashMap<>();
         for (DirectoryTree tree : getSourceTrees()) {
             if (!trees.containsKey(tree.getDir())) {
