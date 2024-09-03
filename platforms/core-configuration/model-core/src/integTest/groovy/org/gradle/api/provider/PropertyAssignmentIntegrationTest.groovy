@@ -66,6 +66,27 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "File = Object"                                 | "DirectoryProperty"  | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
     }
 
+    def "test Groovy lazy object types assignment for 'property value' notation #description"() {
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, " ")
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                                   | inputType             | inputValue                               | expectedResult
+        "T T"                                         | "Property<MyObject>"  | 'new MyObject("hello")'                  | "hello"
+        "T Provider<T>"                               | "Property<MyObject>"  | 'provider { new MyObject("hello") }'     | "hello"
+        "String Object"                               | "Property<String>"    | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+        "Enum String"                                 | "Property<MyEnum>"    | '"YES"'                                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+        "File T extends FileSystemLocation"           | "DirectoryProperty"   | 'layout.buildDirectory.dir("out").get()' | "out"
+        "File Provider<T extends FileSystemLocation>" | "DirectoryProperty"   | 'layout.buildDirectory.dir("out")'       | "out"
+        "File File"                                   | "RegularFileProperty" | 'file("$buildDir/out.txt")'              | "out.txt"
+        "File File"                                   | "DirectoryProperty"   | 'file("$buildDir/out")'                  | "out"
+        "File Provider<File>"                         | "DirectoryProperty"   | 'provider { file("$buildDir/out") }'     | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
+        "File Object"                                 | "DirectoryProperty"   | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+    }
+
     def "test Kotlin eager object types assignment for #description"() {
         def inputDeclaration = "var input: $inputType? = null"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
@@ -366,10 +387,10 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    if (input instanceof DirectoryProperty) {
+                    if (input instanceof FileSystemLocationProperty) {
                         println("$RESULT_PREFIX" + input.get().asFile.name)
                     } else if (input instanceof File) {
-                       println("$RESULT_PREFIX" + input.name)
+                        println("$RESULT_PREFIX" + input.name)
                     } else if (input instanceof Provider) {
                         println("$RESULT_PREFIX" + input.get())
                     } else if (input instanceof FileCollection) {
