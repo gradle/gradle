@@ -50,6 +50,8 @@ public class DefaultHttpSettings implements HttpSettings {
     private HttpProxySettings secureProxySettings;
     private HttpTimeoutSettings timeoutSettings;
 
+    private final boolean disableContentCompression;
+
     public static Builder builder() {
         return new Builder();
     }
@@ -62,7 +64,8 @@ public class DefaultHttpSettings implements HttpSettings {
         RedirectMethodHandlingStrategy redirectMethodHandlingStrategy,
         int maxRedirects,
         int maxConnTotal,
-        int maxConnPerRoute
+        int maxConnPerRoute,
+        boolean disableContentCompression
     ) {
         Preconditions.checkArgument(maxRedirects >= 0, "maxRedirects must be positive");
         Preconditions.checkArgument(maxConnTotal > 0, "maxConnTotal must be positive");
@@ -81,6 +84,7 @@ public class DefaultHttpSettings implements HttpSettings {
         this.hostnameVerifier = hostnameVerifier;
         this.redirectVerifier = redirectVerifier;
         this.redirectMethodHandlingStrategy = redirectMethodHandlingStrategy;
+        this.disableContentCompression = disableContentCompression;
     }
 
     @Override
@@ -147,6 +151,11 @@ public class DefaultHttpSettings implements HttpSettings {
         return hostnameVerifier;
     }
 
+    @Override
+    public boolean isContentCompressionDisabled() {
+        return disableContentCompression;
+    }
+
     public static class Builder {
         private Collection<Authentication> authenticationSettings;
         private SslContextFactory sslContextFactory;
@@ -155,6 +164,7 @@ public class DefaultHttpSettings implements HttpSettings {
         private int maxRedirects = DEFAULT_MAX_REDIRECTS;
         private int maxConnTotal = DEFAULT_MAX_CONNECTIONS;
         private int maxConnPerRoute = DEFAULT_MAX_CONNECTIONS;
+        private boolean disableContentCompression = false;
         private RedirectMethodHandlingStrategy redirectMethodHandlingStrategy = RedirectMethodHandlingStrategy.ALWAYS_FOLLOW_AND_PRESERVE;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
@@ -197,13 +207,19 @@ public class DefaultHttpSettings implements HttpSettings {
             return this;
         }
 
+        public Builder disableContentCompression() {
+            this.disableContentCompression = true;
+            return this;
+        }
+
         public Builder withRedirectMethodHandlingStrategy(RedirectMethodHandlingStrategy redirectMethodHandlingStrategy) {
             this.redirectMethodHandlingStrategy = redirectMethodHandlingStrategy;
             return this;
         }
 
         public HttpSettings build() {
-            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, redirectMethodHandlingStrategy, maxRedirects, maxConnTotal, maxConnPerRoute);
+            return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, redirectMethodHandlingStrategy, maxRedirects, maxConnTotal, maxConnPerRoute,
+                disableContentCompression);
         }
     }
 

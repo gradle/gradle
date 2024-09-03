@@ -146,6 +146,7 @@ public class HttpClientConfigurer {
         builder.setMaxConnTotal(httpSettings.getMaxConnTotal());
         builder.setMaxConnPerRoute(httpSettings.getMaxConnPerRoute());
         builder.setConnectionTimeToLive(httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
+        configureContentCompression(builder);
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
@@ -320,6 +321,12 @@ public class HttpClientConfigurer {
             return AuthScope.ANY_SCHEME;
         } else {
             throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
+        }
+    }
+
+    private void configureContentCompression(HttpClientBuilder builder) {
+        if (this.httpSettings.isContentCompressionDisabled()) {
+            builder.disableContentCompression();
         }
     }
 
