@@ -160,8 +160,11 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 // FIXME this goes over properties of model types; it might be expensive performance-wise and does not reach transitively nested types anyway;
 // this is also not consistent with element schema generation implemented above in terms of which containers get visited
 private fun collectNestedContainerFactories(containerOwner: Any, addFactory: (ContainerElementFactoryEntry<TypeOf<*>>) -> Unit) {
+    val accessibleKotlinType = containerOwner::class.java.firstPublicKotlinAccessorType?.kotlin
+        ?: return
+
     val memberPropertiesAndGetters =
-        containerOwner::class.memberProperties + containerOwner::class.memberFunctions.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
+        accessibleKotlinType.memberProperties + accessibleKotlinType.memberFunctions.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
 
     val elementTypes = memberPropertiesAndGetters.mapNotNullTo(hashSetOf()) {
         DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.returnType)
