@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.specs.Spec
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -39,7 +38,7 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
 
     def "fails if dependency to include missing"() {
         def conf = project.configurations.create("foo")
-        task.configuration = conf
+        task.getConfiguration().set(conf)
 
         when:
         task.report()
@@ -50,7 +49,10 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
 
     def "fails if dependency to include is empty"() {
         when:
-        task.setDependencySpec("")
+        def conf = project.configurations.create("foo")
+        task.getConfiguration().set(conf)
+        task.getDependencyNotation().set("")
+        task.report()
 
         then:
         thrown(UnsupportedNotationException)
@@ -59,34 +61,21 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
     def "can set spec and configuration directly"() {
         when:
         def conf = project.configurations.create("foo")
-        task.configuration = conf
-        task.dependencySpec = { true } as Spec
+        task.getConfiguration().set(conf)
+        task.dependencySpec { true }
         then:
-        task.dependencySpec != null
-        task.configuration == conf
+        task.getEffectiveDependencySpec().isPresent()
+        task.configuration.get() == conf
     }
 
     def "can set spec and configuration via methods"() {
         when:
         project.configurations.create("foo")
-        task.setConfiguration 'foo'
-        task.setDependencySpec 'bar'
+        task.configurationName = 'foo'
+        task.getDependencyNotation().set('bar')
         then:
-        task.dependencySpec != null
-        task.configuration.name == 'foo'
-    }
-
-    def "can limit the paths to a dependency"() {
-        when:
-        project.configurations.create("foo")
-        task.setConfiguration 'foo'
-        task.setDependencySpec 'bar'
-        task.setShowSinglePathToDependency true
-
-        then:
-        task.dependencySpec != null
-        task.configuration.name == 'foo'
-        task.showSinglePathToDependency == true
+        task.getEffectiveDependencySpec().isPresent()
+        task.configuration.get().name == 'foo'
     }
 
     def "configuration could be specified by camelCase shortcut"() {
@@ -95,11 +84,11 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         def confB = project.configurations.create("confBravo")
 
         when:
-        task.configuration = "coB"
-        task.dependencySpec = { true } as Spec
+        task.configurationName = 'coB'
+        task.dependencySpec { true }
 
         then:
-        task.configuration == confB
+        task.configuration.get() == confB
     }
 
     def "ambiguous configuration selection by camelCase shortcut fails"() {
@@ -108,11 +97,13 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         project.configurations.create("confAlfa")
 
         when:
-        task.configuration = "coA"
-        task.dependencySpec = { true } as Spec
+        task.configurationName = 'coA'
+        task.dependencySpec { true }
+        task.report()
 
         then:
-        thrown InvalidUserDataException
+        def exception = thrown(Exception)
+        exception instanceof InvalidUserDataException
     }
 
     def "rule-defined configuration should be found"() {
@@ -127,9 +118,9 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
 
         when:
         project.evaluate()
-        task.configuration = "confBravo"
+        task.configurationName = "confBravo"
 
         then:
-        task.configuration == project.configurations.confBravo
+        task.configuration.get() == project.configurations.confBravo
     }
 }
