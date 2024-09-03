@@ -24,7 +24,11 @@ import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.InlineStringDecoder
+import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.serialize.graph.StringDecoder
+import org.gradle.internal.serialize.graph.StringEncoder
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.util.Path
 import java.io.InputStream
@@ -62,17 +66,24 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     /**
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
-    fun writeContextFor(stateType: StateType, outputStream: () -> OutputStream, profile: () -> String): Pair<CloseableWriteContext, Codecs>
+    fun writeContextFor(
+        stateType: StateType,
+        outputStream: () -> OutputStream,
+        profile: () -> String,
+        stringEncoder: StringEncoder = InlineStringEncoder,
+    ): Pair<CloseableWriteContext, Codecs>
 
     fun <R> withReadContextFor(
         stateFile: ConfigurationCacheStateFile,
+        stringDecoder: StringDecoder = InlineStringDecoder,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        withReadContextFor(stateFile.stateType, stateFile::inputStream, readOperation)
+        withReadContextFor(stateFile.stateType, stateFile::inputStream, stringDecoder, readOperation)
 
     fun <R> withReadContextFor(
         stateType: StateType,
         inputStream: () -> InputStream,
+        stringDecoder: StringDecoder = InlineStringDecoder,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R
 
@@ -85,14 +96,16 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     fun <R> withWriteContextFor(
         stateFile: ConfigurationCacheStateFile,
         profile: () -> String,
+        stringEncoder: StringEncoder,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        withWriteContextFor(stateFile.stateType, stateFile::outputStream, profile, writeOperation)
+        withWriteContextFor(stateFile.stateType, stateFile::outputStream, profile, stringEncoder, writeOperation)
 
     fun <R> withWriteContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String,
+        stringEncoder: StringEncoder,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R
 }

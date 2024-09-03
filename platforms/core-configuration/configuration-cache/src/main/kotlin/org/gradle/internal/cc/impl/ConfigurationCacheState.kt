@@ -351,10 +351,12 @@ class ConfigurationCacheState(
             write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
-            stateFileFor(state.buildDefinition),
-            buildTreeState
-        )
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
+            writeIncludedBuildStateTo(
+                stateFileFor(state.buildDefinition),
+                buildTreeState
+            )
+        }
     }
 
     private
@@ -384,10 +386,12 @@ class ConfigurationCacheState(
             write(state.owner.buildIdentifier)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
-            stateFileFor(state.buildDefinition),
-            buildTreeState
-        )
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
+            writeIncludedBuildStateTo(
+                stateFileFor(state.buildDefinition),
+                buildTreeState
+            )
+        }
     }
 
     private
@@ -400,13 +404,15 @@ class ConfigurationCacheState(
     }
 
     private
-    fun readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
+    fun ReadContext.readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
         build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
-        return build.gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().readIncludedBuildStateFrom(
-            stateFileFor((build.state as NestedBuildState).buildDefinition),
-            build
-        )
+        return build.gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
+            readIncludedBuildStateFrom(
+                stateFileFor((build.state as NestedBuildState).buildDefinition),
+                build
+            )
+        }
     }
 
     private
