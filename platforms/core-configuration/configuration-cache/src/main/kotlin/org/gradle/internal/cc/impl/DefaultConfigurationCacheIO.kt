@@ -264,7 +264,7 @@ class DefaultConfigurationCacheIO internal constructor(
         }
         println("STATS: ${stats.size}")
         stats.asSequence()
-            .filter { it.value.get() >= 1 }
+            .filter { it.value.get() > 1 }
             .sortedByDescending { it.value.get() }
             .take(100)
             .forEach {
