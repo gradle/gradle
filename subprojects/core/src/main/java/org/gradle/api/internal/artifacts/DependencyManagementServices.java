@@ -44,21 +44,22 @@ public interface DependencyManagementServices {
      * @return A new dependency resolution instance. This instance comes with its own configuration container,
      * repositories, attribute schema, and other resolution services.
      */
-    DependencyResolutionServices newDetachedResolver(
-        FileResolver resolver,
-        FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
-    );
+    DependencyResolutionServices newDetachedResolver(DomainObjectContext owner);
 
     /**
-     * Similar to {@link #newDetachedResolver(FileResolver, FileCollectionFactory, DomainObjectContext)},
-     * but allows creating consumable configurations.
+     * Similar to {@link #newDetachedResolver(DomainObjectContext)}, but allows creating consumable configurations.
      * <p>
      * Creating any configuration in a buildscript is deprecated, however, we must allow creating consumable
      * configurations for backwards compatibility. Migrate usages of this method to
-     * {@link #newDetachedResolver(FileResolver, FileCollectionFactory, DomainObjectContext)} in Gradle 9.0.
+     * {@link #newDetachedResolver(DomainObjectContext)} in Gradle 9.0.
      */
-    DependencyResolutionServices newBuildscriptResolver(
+    DependencyResolutionServices newBuildscriptResolver(DomainObjectContext owner);
+
+    /**
+     * Similar to {@link #newDetachedResolver(DomainObjectContext)}, but allows specifying
+     * how file are resolved.
+     */
+    DependencyResolutionServices newDetachedResolver(
         FileResolver resolver,
         FileCollectionFactory fileCollectionFactory,
         DomainObjectContext owner

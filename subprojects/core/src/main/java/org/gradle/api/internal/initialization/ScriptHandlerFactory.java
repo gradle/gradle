@@ -17,6 +17,8 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 
@@ -40,6 +42,8 @@ public interface ScriptHandlerFactory {
     ScriptHandlerInternal createProjectScriptHandler(
         ScriptSource scriptSource,
         ClassLoaderScope classLoaderScope,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
         ProjectInternal project
     );
 }

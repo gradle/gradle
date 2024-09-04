@@ -101,8 +101,8 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -176,6 +176,25 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     }
 
     @Override
+    public DependencyResolutionServices newDetachedResolver(DomainObjectContext owner) {
+        return newDetachedResolver(
+            parent.get(FileResolver.class),
+            parent.get(FileCollectionFactory.class),
+            owner
+        );
+    }
+
+    @Override
+    public DependencyResolutionServices newBuildscriptResolver(DomainObjectContext owner) {
+        return newDetachedResolver(
+            parent.get(FileResolver.class),
+            parent.get(FileCollectionFactory.class),
+            owner,
+            new AnonymousModule()
+        );
+    }
+
+    @Override
     public DependencyResolutionServices newDetachedResolver(
         FileResolver resolver,
         FileCollectionFactory fileCollectionFactory,
@@ -196,16 +215,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         });
 
         return services;
-    }
-
-    @Override
-    public DependencyResolutionServices newBuildscriptResolver(FileResolver resolver, FileCollectionFactory fileCollectionFactory, DomainObjectContext owner) {
-        return newDetachedResolver(
-            resolver,
-            fileCollectionFactory,
-            owner,
-            new AnonymousModule()
-        );
     }
 
     @Override
