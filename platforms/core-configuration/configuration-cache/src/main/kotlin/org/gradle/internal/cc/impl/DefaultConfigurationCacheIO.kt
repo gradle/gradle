@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.primitives.Primitives
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -80,6 +81,8 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.IdentityHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 
 @ServiceScope(Scope.Build::class)
@@ -200,7 +203,11 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
-        writeConfigurationCacheStateWithStringEncoder(currentStringEncoder, stateFile) { cacheState ->
+        val baseContext = this
+        require(baseContext is DefaultWriteContext)
+        writeConfigurationCacheStateWithStringEncoder(baseContext.stringEncoder, stateFile) { cacheState ->
+            require(this is DefaultWriteContext)
+            onWrite = baseContext.onWrite
             cacheState.run {
                 writeBuildContent(host.currentBuild, buildTreeState)
             }
@@ -233,13 +240,37 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
-        return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
+        val stats = IdentityHashMap<Any, AtomicInteger>()
+        fun collector(obj: Any?) {
+            obj?.takeUnless {
+                Primitives.isWrapperType(it.javaClass) || it is String || it is File
+            }?.let {
+                synchronized(stats) {
+                    stats.computeIfAbsent(it) { AtomicInteger(0) }
+                }.incrementAndGet()
+            }
+        }
+
+        val result = if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
             withParallelStringEncoderFor(stateFile) { stringEncoder ->
-                writeConfigurationCacheStateWithStringEncoder(stringEncoder, stateFile, action)
+                writeConfigurationCacheStateWithStringEncoder<T>(stringEncoder, stateFile) {
+                    require(this is DefaultWriteContext)
+                    this.onWrite = { collector(it) }
+                    action(it)
+                }
             }
         } else {
-            writeConfigurationCacheStateWithStringEncoder(InlineStringEncoder, stateFile, action)
+            writeConfigurationCacheStateWithStringEncoder<T>(InlineStringEncoder, stateFile, action)
         }
+        println("STATS: ${stats.size}")
+        stats.asSequence()
+            .filter { it.value.get() >= 1 }
+            .sortedByDescending { it.value.get() }
+            .take(100)
+            .forEach {
+                println("${it.value.get()} - ${it.key} (${it.key.javaClass.name})")
+            }
+        return result
     }
 
     private
@@ -503,18 +534,15 @@ class DefaultConfigurationCacheIO internal constructor(
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
-                writeContextFor(it, baseContext.currentStringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                require(baseContext is DefaultWriteContext)
+                writeContextFor(it, baseContext.stringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                    require(subContext is DefaultWriteContext)
+                    subContext.onWrite = baseContext.onWrite
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
     }
 
-    private
-    val WriteContext.currentStringEncoder: StringEncoder
-        get() {
-            require(this is DefaultWriteContext)
-            return this.stringEncoder
-        }
 
     private
     val ReadContext.currentStringDecoder: StringDecoder

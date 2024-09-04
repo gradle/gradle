@@ -40,6 +40,7 @@ interface BeanStateReaderLookup {
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 }
 
+typealias WriteListener = (Any?) -> Unit
 
 class DefaultWriteContext(
 
@@ -60,7 +61,9 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder,
 
-    val stringEncoder: StringEncoder = InlineStringEncoder
+    val stringEncoder: StringEncoder = InlineStringEncoder,
+
+    var onWrite: WriteListener =  { }
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
 
@@ -89,6 +92,7 @@ class DefaultWriteContext(
 
     override suspend fun write(value: Any?) {
         getCodec().run {
+            onWrite(value)
             encode(value)
         }
     }
