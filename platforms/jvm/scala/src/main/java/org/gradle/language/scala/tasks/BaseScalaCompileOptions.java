@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -249,19 +250,26 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     /**
      * Options for running the Scala compiler in a separate process.
      *
-     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
-     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
-     * Set the individual properties of the nested object instead.
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
      */
     @Deprecated
     public void setForkOptions(ScalaForkOptions forkOptions) {
         DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setForkOptions(ScalaForkOptions)")
-            .withAdvice("Set the individual properties of the nested object instead.")
-            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .replaceWith("forkOptions(Action)")
+            .withContext("Setting a new instance of forkOptions is unnecessary.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
             .nagUser();
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Configure options for running the Scala compiler in a separate process.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super ScalaForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
@@ -275,19 +283,26 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     /**
      * Options for incremental compilation of Scala code.
      *
-     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
-     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
-     * Set the individual properties of the nested object instead.
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #incrementalOptions(Action)} instead.
      */
     @Deprecated
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
         DeprecationLogger.deprecateMethod(BaseScalaCompileOptions.class, "setIncrementalOptions(IncrementalCompileOptions)")
-            .withAdvice("Set the individual properties of the nested object instead.")
-            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .replaceWith("scalaDocOptions(Action)")
+            .withContext("Setting a new instance of scalaDocOptions is unnecessary.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
             .nagUser();
         this.incrementalOptions = incrementalOptions;
+    }
+
+    /**
+     * Configure options for incremental compilation of Scala code.
+     *
+     * @since 8.11
+     */
+    public void incrementalOptions(Action<? super IncrementalCompileOptions> action) {
+        action.execute(incrementalOptions);
     }
 
     /**

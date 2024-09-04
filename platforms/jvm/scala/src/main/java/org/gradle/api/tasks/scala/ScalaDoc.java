@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -169,19 +170,26 @@ public abstract class ScalaDoc extends SourceTask {
     /**
      * Sets the ScalaDoc generation options.
      *
-     * @deprecated Setting the value of certain {@link Nested @Nested} properties is deprecated and will be removed in Gradle 9.0.
-     * Inner {@code Property}-based properties need to have consistent references that can be used as the source for other lazy APIs.
-     * Set the individual properties of the nested object instead.
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #scalaDocOptions(Action)} instead.
      */
     @Deprecated
     public void setScalaDocOptions(ScalaDocOptions scalaDocOptions) {
         DeprecationLogger.deprecateMethod(ScalaDoc.class, "setScalaDocOptions(ScalaDocOptions)")
-            .withAdvice("Set the individual properties of the nested object instead.")
-            .withContext("Inner `Property`-based properties need to have consistent references that can be used as the source for other lazy APIs")
+            .replaceWith("scalaDocOptions(Action)")
+            .withContext("Setting a new instance of scalaDocOptions is unnecessary.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
             .nagUser();
         this.scalaDocOptions = scalaDocOptions;
+    }
+
+    /**
+     * Configures the ScalaDoc generation options.
+     *
+     * @since 8.11
+     */
+    public void scalaDocOptions(Action<? super ScalaDocOptions> action) {
+        action.execute(getScalaDocOptions());
     }
 
     /**
