@@ -43,46 +43,7 @@ public class DetachedDependencyMetadataProvider implements DependencyMetaDataPro
 
     @Override
     public Module getModule() {
-        Module module = delegate.getModule();
-
-        return new DetachedModule(suffix, module);
+        return delegate.getModule();
     }
 
-    private static class DetachedModule implements Module {
-        private final Module module;
-        private final String suffix;
-
-        public DetachedModule(String suffix, Module module) {
-            this.module = module;
-            this.suffix = suffix;
-        }
-
-        @Override
-        public ComponentIdentifier getComponentId() {
-            return new DefaultModuleComponentIdentifier(
-                DefaultModuleIdentifier.newId(getGroup(), getName()),
-                getVersion()
-            );
-        }
-
-        @Override
-        public String getGroup() {
-            return module.getGroup();
-        }
-
-        @Override
-        public String getName() {
-            return module.getName() + "-" + suffix;
-        }
-
-        @Override
-        public String getVersion() {
-            return module.getVersion();
-        }
-
-        @Override
-        public String getStatus() {
-            return module.getStatus();
-        }
-    }
-}
+ }
