@@ -33,9 +33,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.UncheckedException;
@@ -519,21 +516,25 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private static JsonGenerator createJsonGenerator() {
-        return new JsonGenerator.Options()
-            .addConverter(new JsonClassConverter())
-            .addConverter(new JsonThrowableConverter())
-            .addConverter(new JsonAttributeContainerConverter())
-            .addConverter(new JsonBuildIdentifierConverter())
-            .addConverter(new JsonConfigurationConverter())
-            .addConverter(new JsonProjectConverter())
-            .excludeFieldsByType(DependencyLockingHandler.class)
-            .excludeFieldsByType(ClassLoaderScope.class)
-            .excludeFieldsByType(AttributesSchema.class)
-            .excludeFieldsByType(PluginContainer.class)
-            .excludeFieldsByType(ProjectStateRegistry.class)
-            .excludeFieldsByType(org.gradle.api.internal.project.ProjectState.class)
-            .excludeFieldsByType(Gradle.class)
-            .build();
+        try {
+            return new JsonGenerator.Options()
+                .addConverter(new JsonClassConverter())
+                .addConverter(new JsonThrowableConverter())
+                .addConverter(new JsonAttributeContainerConverter())
+                .addConverter(new JsonBuildIdentifierConverter())
+                .addConverter(new JsonConfigurationConverter())
+                .addConverter(new JsonProjectConverter())
+                .excludeFieldsByType(DependencyLockingHandler.class)
+                .excludeFieldsByType(Class.forName("org.gradle.api.internal.initialization.ClassLoaderScope"))
+                .excludeFieldsByType(AttributesSchema.class)
+                .excludeFieldsByType(PluginContainer.class)
+                .excludeFieldsByType(Class.forName("org.gradle.api.internal.project.ProjectStateRegistry"))
+                .excludeFieldsByType(Class.forName("org.gradle.api.internal.project.ProjectState"))
+                .excludeFieldsByType(Gradle.class)
+                .build();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @NonNullApi
@@ -572,7 +573,7 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public Object convert(Object value, String key) {
-            return ((AttributeContainerInternal) value).asMap();
+            return ((AttributeContainer) value).keySet(); // TODO: need to convert to a map manually (since asMap is only available on the internal type)
         }
     }
 
