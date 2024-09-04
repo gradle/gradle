@@ -21,6 +21,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Ignore
 
+@Ignore("until wrapper update because :kotlin-dsl compilation error")
 class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
     def "can build documentation with configuration cache enabled"() {

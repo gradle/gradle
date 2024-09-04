@@ -26,6 +26,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 import java.text.SimpleDateFormat
 
@@ -34,6 +35,7 @@ import java.text.SimpleDateFormat
     IntegTestPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
+@Ignore("until wrapper update because :kotlin-dsl compilation error")
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()

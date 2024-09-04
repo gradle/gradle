@@ -17,7 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
+@Ignore("until wrapper update because :kotlin-dsl compilation error")
 class GradleBuildBinaryDistributionConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
     def "can build and install Gradle binary distribution with configuration cache enabled"() {
 

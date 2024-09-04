@@ -17,7 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
+@Ignore("until wrapper update because :kotlin-dsl compilation error")
 class GradleBuildSmokeTestConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
     def "can run Gradle smoke tests with configuration cache enabled"() {
 
