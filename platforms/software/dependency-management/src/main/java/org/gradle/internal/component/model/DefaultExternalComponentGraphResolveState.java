@@ -248,7 +248,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         @Override
         public VariantGraphResolveState getVariantByConfigurationName(String name) {
 
-            DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-ivy external component.")
+            DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-Ivy external component.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "selecting_variant_by_configuration_name")
                 .nagUser();
