@@ -77,6 +77,29 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     }
 
     /**
+     * A domain object context for resolution within a project's buildscript.
+     */
+    public static StandaloneDomainObjectContext forProjectBuildscript(ProjectInternal project) {
+        return new StandaloneDomainObjectContext() {
+
+            @Override
+            public Path getBuildPath() {
+                return project.getBuildPath();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "buildscript of " + project.getDisplayName();
+            }
+
+            @Override
+            public boolean isRootScript() {
+                return false;
+            }
+        };
+    }
+
+    /**
      * A domain object context independent of but associated with some other context.
      */
     public static StandaloneDomainObjectContext detachedFrom(DomainObjectContext owner) {
@@ -95,26 +118,6 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
             @Override
             public boolean isDetachedState() {
                 return true;
-            }
-        };
-    }
-
-    public static StandaloneDomainObjectContext forProjectBuildscript(ProjectInternal project) {
-        return new StandaloneDomainObjectContext() {
-
-            @Override
-            public Path getBuildPath() {
-                return project.getBuildPath();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "buildscript of " + project.getDisplayName();
-            }
-
-            @Override
-            public boolean isRootScript() {
-                return false;
             }
         };
     }

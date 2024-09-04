@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.util.internal.ToBeImplemented
 
 /**
  * Tests edge cases of buildscript configuration resolution.
@@ -891,5 +892,78 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("help")
+    }
+
+    def "project buildscript resolution failure clearly indicates a project buildscript has failed"() {
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath("does:not:exist")
+                }
+            }
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasDescription("A problem occurred configuring root project 'root'.")
+        failure.assertHasCause("Could not resolve all artifacts for configuration 'classpath'.")
+    }
+
+    @ToBeImplemented
+    def "settings script resolution failure clearly indicates a project buildscript has failed"() {
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath("does:not:exist")
+                }
+            }
+        """
+
+        expect:
+        fails("help")
+        // TODO: The message does not mention settings anywhere. This should be improved.
+        failure.assertHasDescription("Could not resolve all artifacts for configuration 'classpath'")
+    }
+
+    @ToBeImplemented
+    def "init script resolution failure clearly indicates a project buildscript has failed"() {
+        initScriptFile << """
+            buildscript {
+                dependencies {
+                    classpath("does:not:exist")
+                }
+            }
+
+            // Force resolution. For some reason the classpath configuration is not resolved by iteslf.
+            buildscript.configurations.classpath.files
+        """
+
+        when:
+        executer.usingInitScript(initScriptFile)
+
+        then:
+        fails("help")
+        failure.assertHasDescription("A problem occurred evaluating initialization script.")
+        failure.assertHasCause("Could not resolve all files for configuration 'classpath'.")
+    }
+
+    @ToBeImplemented
+    def "standalone script resolution failure clearly indicates a project buildscript has failed"() {
+        file("foo.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath("does:not:exist")
+                }
+            }
+        """
+        buildFile << """
+            apply from: 'foo.gradle'
+        """
+
+        expect:
+        fails(":help")
+        // TODO: The message does not mention the standalone script anywhere. This should be improved.
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("Could not resolve all artifacts for configuration 'classpath'.")
     }
 }
