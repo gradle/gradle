@@ -94,9 +94,9 @@ class ConfigurationCacheStartParameter internal constructor(
     /**
      * Whether configuration should be loaded in parallel.
      *
-     * The default is the value of [isParallelCache].
+     * The default is `true`.
      */
-    val isParallelLoad = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+    val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties

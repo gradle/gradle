@@ -63,8 +63,10 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         run(ENABLE_CLI_OPT, "help", "-d")
 
         then:
+        // actually, only storing is done sequentially
         output.contains("[org.gradle.configurationcache] saving task graph sequentially")
-        output.contains("[org.gradle.configurationcache] reading task graph sequentially")
+        // loading is still parallel (unless explicitly disabled via internal property)
+        output.contains("[org.gradle.configurationcache] reading task graph in parallel")
     }
 
     def "parallel CC may be opted in"() {
@@ -87,9 +89,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-store=false")
 
         then:
-        // we allow disabling parallel storing it as a safety measure for builds that might be broken by parallelism
         output.contains("[org.gradle.configurationcache] saving task graph sequentially")
-        // loading is still parallel
         output.contains("[org.gradle.configurationcache] reading task graph in parallel")
     }
 
@@ -101,9 +101,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-load=false")
 
         then:
-        // storing is still parallel
         output.contains("[org.gradle.configurationcache] saving task graph in parallel")
-        // parallel loading should always be safe, however we will (temporarily) allow disabling it for benchmarking
         output.contains("[org.gradle.configurationcache] reading task graph sequentially")
     }
 }
