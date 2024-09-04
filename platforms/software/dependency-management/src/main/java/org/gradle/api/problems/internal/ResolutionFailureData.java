@@ -16,8 +16,26 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
-public interface ResolutionFailureData extends AdditionalData {
+/**
+ * {@link AdditionalData} data for a {@link Problem} that represents a resolution failure.
+ */
+public interface ResolutionFailureData extends GeneralData {
+    /**
+     * Getter for the resolution failure that caused the problem.
+     *
+     * @return the resolution failure
+     */
     ResolutionFailure getResolutionFailure();
+
+    @Override
+    default ImmutableMap<String, String> getAsMap() {
+        return ImmutableMap.<String, String>builder()
+            .put("requestTarget", getResolutionFailure().describeRequestTarget())
+            .put("problemId", getResolutionFailure().getProblemId().name())
+            .put("problemDisplayName", getResolutionFailure().getProblemId().getDisplayName())
+            .build();
+    }
 }
