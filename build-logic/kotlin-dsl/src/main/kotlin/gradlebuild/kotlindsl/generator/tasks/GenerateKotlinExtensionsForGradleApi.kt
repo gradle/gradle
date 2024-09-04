@@ -33,7 +33,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.Hashing
