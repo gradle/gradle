@@ -236,9 +236,8 @@ The `website` and `vcsUrl` properties of [`gradlePlugin`](javadoc/org/gradle/plu
 
 ## Fixed issues
 
-<!--
-This section will be populated automatically
--->
+[#30272](https://github.com/gradle/gradle/issues/30272) Broken equals() contract for LifecycleAwareProject
+[#30385](https://github.com/gradle/gradle/issues/30385) Gradle should not validate isolated projects when isolated projects is disabled
 
 ## Known issues
 
