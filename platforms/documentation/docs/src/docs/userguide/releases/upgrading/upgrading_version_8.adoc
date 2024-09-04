@@ -110,6 +110,26 @@ val myConfig = buildscript.configurations.detachedConfiguration(
 val files = myConfig.files
 ----
 
+[[selecting_variant_by_configuration_name]]
+==== Selecting Maven variants by configuration name
+
+Starting in Gradle 9.0, selecting variants by name from non-Ivy external components will be forbidden.
+
+Selecting variants by name from local components will still be permitted; however, this pattern is discouraged.
+For local components, variant aware dependency resolution should be preferred over selecting variants by name.
+
+The following dependencies will fail to resolve when targeting a non-Ivy external component:
+
+[source,groovy]
+----
+dependencies {
+    implementation(group: "com.example", name: "example", version: "1.0", configuration: "conf")
+    implementation("com.example:example:1.0") {
+        targetConfiguration = "conf"
+    }
+}
+----
+
 [[adding_to_configuration_container]]
 ==== Deprecated manually adding to configuration container
 

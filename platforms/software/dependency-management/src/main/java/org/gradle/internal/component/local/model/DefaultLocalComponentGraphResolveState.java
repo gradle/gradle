@@ -19,6 +19,7 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -39,6 +40,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueCache;
@@ -400,6 +402,12 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Override
         public List<? extends LocalVariantGraphResolveState> getVariantsForAttributeMatching() {
             return variantsWithAttributes;
+        }
+
+        @Nullable
+        @Override
+        public VariantGraphResolveState getLegacyVariant() {
+            return getVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
         }
 
         @Nullable
