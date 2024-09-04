@@ -16,14 +16,14 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 /**
  * Represents the root component identity of a detached configuration.
+ * <p>
+ * <strong>The goal is to make the following statements true by adding a "RootComponentIdentifier",
+ * however this was not done to avoid introducing further complexity during a regression fix.</strong>
  * <p>
  * The root component of a detached configuration is adhoc and contains only that configuration.
  * For this reason, the root component of the detached configuration cannot declare the same
@@ -36,14 +36,9 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 public class DetachedDependencyMetadataProvider implements DependencyMetaDataProvider {
 
     private final DependencyMetaDataProvider delegate;
-    private final String suffix;
 
-    public DetachedDependencyMetadataProvider(
-        DependencyMetaDataProvider delegate,
-        String suffix
-    ) {
+    public DetachedDependencyMetadataProvider(DependencyMetaDataProvider delegate) {
         this.delegate = delegate;
-        this.suffix = suffix;
     }
 
     @Override

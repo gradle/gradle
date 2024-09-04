@@ -98,6 +98,10 @@ import java.util.function.Function;
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
  * <p>
+ * The wrapper must be "transparent" with regard to equality and hash codes
+ * in order to preserve an implicit contract of {@code Project} instances being collectible
+ * in hash-based data structures, such as sets and maps.
+ * <p>
  * This class enables dynamic property and method dispatch on the `this` bean rather than on the {@link #delegate}.
  * If the dispatch on `this` fails, the control flow is delegated to {@link #propertyMissing(String)}, {@link #propertyMissing(String, Object)},
  * {@link #methodMissing(String, Object)} and {@link #hasPropertyMissing(String)} methods.
@@ -129,10 +133,20 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     protected abstract void onMutableStateAccess(String what);
 
     @Override
-    public abstract boolean equals(Object obj);
+    public String toString() {
+        return delegate.toString();
+    }
 
     @Override
-    public abstract int hashCode();
+    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
+    public final boolean equals(Object other) {
+        return delegate.equals(other);
+    }
+
+    @Override
+    public final int hashCode() {
+        return delegate.hashCode();
+    }
 
     @Nullable
     @SuppressWarnings("unused") // used by Groovy dynamic dispatch

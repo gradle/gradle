@@ -1274,7 +1274,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         String newName = getNameWithCopySuffix();
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
 
-        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentMetadataBuilder.getComponentIdentity(), newName);
+        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentMetadataBuilder.getComponentIdentity());
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.newBuilder(componentIdentity, configurationsProvider);
 
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;

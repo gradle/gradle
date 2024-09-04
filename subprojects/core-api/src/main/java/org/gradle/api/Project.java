@@ -120,7 +120,7 @@ import java.util.concurrent.Callable;
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
  * </p>
  *
- * <a id="properties"></a> <h2>Dynamic Project Properties</h2>
+ * <h2 id="properties">Dynamic Project Properties</h2>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
@@ -168,11 +168,11 @@ import java.util.concurrent.Callable;
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
  * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.</p>
  *
- * <a id="extraproperties"></a> <h3>Extra Properties</h3>
+ * <h3 id="extraproperties">Extra Properties</h3>
  *
- * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
+ * <p>All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
  * it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
- * be read and updated. Only the initial declaration that needs to be done via the namespace.
+ * be read and updated. Only the initial declaration that needs to be done via the namespace.</p>
  *
  * <pre>
  * project.ext.prop1 = "foo"
@@ -457,7 +457,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * calling {@link #task(java.util.Map, String)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
+     * reference the task by name in your build file. See <a href="#properties">properties</a> for more details</p>
      *
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *

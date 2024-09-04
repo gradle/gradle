@@ -190,6 +190,15 @@ Potential migrations include using `Object.equals(Object)` directly, or comparin
 
 === Potential breaking changes
 
+==== `JavaCompile` tasks may fail when using a JRE even if compilation is not necessary
+
+The `JavaCompile` tasks may sometimes fail when using a JRE instead of a JDK.
+This is due to changes in the toolchain resolution code, which enforces the presence of a compiler when one is requested.
+The `java-base` plugin uses the `JavaCompile` tasks it creates to determine the default source and target compatibility when `sourceCompatibility`/`targetCompatibility` or `release` are not set.
+With the new enforcement, the absence of a compiler causes this to fail when only a JRE is provided, even if no compilation is needed (e.g., in projects with no sources).
+
+This can be fixed by setting the `sourceCompatibility`/`targetCompatibility` explicitly in the `java` extension, or by setting `sourceCompatibility`/`targetCompatibility` or `release` in the relevant task(s).
+
 ==== Upgrade to Kotlin 1.9.24
 
 The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.24[Kotlin 1.9.24].
@@ -2751,7 +2760,7 @@ beforeSettings {
 =====
 ====
 
-[no_relative_paths_for_java_executables]
+[[no_relative_paths_for_java_executables]]
 ==== Deprecated using relative paths to specify Java executables
 Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
 This is done to reduce confusion about what such relative paths should resolve against.

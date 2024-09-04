@@ -20,7 +20,6 @@ import groovy.lang.Closure
 import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
 import org.gradle.api.Action
-import org.gradle.api.AntBuilder
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
@@ -162,21 +161,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun onMutableStateAccess(what: String) {
             onIsolationViolation(what)
         }
-
-        override fun equals(other: Any?): Boolean {
-            if (other === this) {
-                return true
-            }
-            if (other == null || other.javaClass != javaClass) {
-                return false
-            }
-            val project = other as ProblemReportingProject
-            return delegate == project.delegate && referrer == project.referrer // do not include `access`
-        }
-
-        override fun hashCode(): Int = delegate.hashCode()
-
-        override fun toString(): String = delegate.toString()
 
         override fun propertyMissing(name: String): Any? {
             onProjectsCoupled()
@@ -376,26 +360,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getLogger(): Logger {
             onIsolationViolation("logger")
             return super.getLogger()
-        }
-
-        override fun getAnt(): AntBuilder {
-            onIsolationViolation("ant")
-            return super.getAnt()
-        }
-
-        override fun createAntBuilder(): AntBuilder {
-            onIsolationViolation("antBuilder")
-            return super.createAntBuilder()
-        }
-
-        override fun ant(configureClosure: Closure<*>): AntBuilder {
-            onIsolationViolation("ant")
-            return super.ant(configureClosure)
-        }
-
-        override fun ant(configureAction: Action<in AntBuilder>): AntBuilder {
-            onIsolationViolation("ant")
-            return super.ant(configureAction)
         }
 
         override fun getGradle(): GradleInternal {
