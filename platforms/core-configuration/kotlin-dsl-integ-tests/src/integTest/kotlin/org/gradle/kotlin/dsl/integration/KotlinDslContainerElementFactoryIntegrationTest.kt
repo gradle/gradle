@@ -70,8 +70,9 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
             val myExtension = project.extensions.create("myExtension", MyExtension::class.java)
 
             tasks.register("printNames") {
+                val names = myExtension.myElements.names
                 doFirst {
-                    println(myExtension.myElements.names)
+                    println(names)
                 }
             }
         """.trimIndent())
