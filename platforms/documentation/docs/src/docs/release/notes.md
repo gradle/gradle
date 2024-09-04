@@ -60,8 +60,8 @@ The [configuration cache](userguide/configuration_cache.html) improves build per
 
 #### Parallel caching for faster loading times
 
-Storing and loading of the configuration cache can now be performed in parallel, resulting in 
-better performance for cache misses and hits. To enable the feature in `gradle.properties`:
+Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
+To enable the feature in `gradle.properties`:
 
 ```text
 // gradle.properties
