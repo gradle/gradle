@@ -16,7 +16,13 @@
 
 package org.gradle.internal.cc.impl
 
+import static org.gradle.initialization.StartParameterBuildOptions.*
+
 class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def withParallelCache() {
+        executer.withArguments("-D${ConfigurationCacheParallelOption.PROPERTY_NAME}=true")
+    }
 
     def "failures while storing different projects are reported"() {
         given:
@@ -39,6 +45,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         }
 
         when:
+        withParallelCache()
         configurationCacheFails("t")
 
         then:
@@ -53,11 +60,24 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         }
     }
 
-    def "parallel store is enabled by default"() {
+    def "parallel store is disabled by default"() {
         given:
         settingsFile.createFile()
 
         when:
+        configurationCacheRun("help", "-d")
+
+        then:
+        output.contains("[org.gradle.configurationcache] saving task graph sequentially")
+        output.contains("[org.gradle.configurationcache] reading task graph sequentially")
+    }
+
+    def "parallel CC may be opted in"() {
+        given:
+        settingsFile.createFile()
+
+        when:
+        withParallelCache()
         configurationCacheRun("help", "-d")
 
         then:
@@ -70,6 +90,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         settingsFile.createFile()
 
         when:
+        withParallelCache()
         configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-store=false")
 
         then:
@@ -84,6 +105,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         settingsFile.createFile()
 
         when:
+        withParallelCache()
         configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-load=false")
 
         then:
