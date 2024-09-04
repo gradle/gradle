@@ -625,7 +625,7 @@ Joe!""")
         writeSourceFile()
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Javadoc.isVerbose() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().isVerbose() method instead. It may be necessary to cast the options to CoreJavadocOptions to access the replacement method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+        executer.expectDocumentedDeprecationWarning("The Javadoc.isVerbose() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().isVerbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
 
         then:
         succeeds("javadoc")
@@ -644,7 +644,7 @@ Joe!""")
         writeSourceFile()
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(true) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().verbose() method instead. It may be necessary to cast the options to CoreJavadocOptions to access the replacement method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(true) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().verbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
 
         then:
         succeeds("javadoc")
@@ -662,7 +662,7 @@ Joe!""")
         writeSourceFile()
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(false) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Passing false to this method does nothing. You may want to call getOptions().quiet(). It may be necessary to cast the options to CoreJavadocOptions to access this method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(false) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Passing false to this method does nothing. You may want to call getOptions().quiet(). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
 
         then:
         succeeds("javadoc")
