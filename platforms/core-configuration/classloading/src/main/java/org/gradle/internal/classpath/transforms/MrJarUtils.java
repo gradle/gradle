@@ -16,8 +16,8 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.util.internal.JarUtil;
 
 import java.util.OptionalInt;

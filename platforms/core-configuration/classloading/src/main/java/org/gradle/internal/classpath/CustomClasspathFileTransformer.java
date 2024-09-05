@@ -19,7 +19,6 @@ package org.gradle.internal.classpath;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.file.FileType;
@@ -27,6 +26,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.model.internal.asm.AsmConstants;
 
 import java.io.File;
 import java.io.IOException;

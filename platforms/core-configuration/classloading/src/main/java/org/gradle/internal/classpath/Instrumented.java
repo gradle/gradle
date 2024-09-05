@@ -32,8 +32,8 @@ import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
 import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener;
-import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor.InstrumentationInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor.InstrumentationInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;

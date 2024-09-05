@@ -20,6 +20,64 @@ plugins {
 
 description = "Class loader scopes, registries and instrumentation"
 
-dependencies {
-    api(projects.baseServices)
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 4 occurrences
+        "ImmutableEnumChecker", // 2 occurrences
+        "StreamResourceLeak", // 6 occurrences
+        "TypeParameterUnusedInFormals", // 1 occurrences
+        "OptionalMapUnusedValue", // 1 occurrences
+        "ReturnValueIgnored", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
 }
+
+strictCompile {
+    ignoreRawTypes() // some raw types remain, though they are required
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/**")
+}
+
+dependencies {
+    api(projects.concurrent)
+    api(projects.coreApi)
+    api(projects.fileTemp)
+    api(projects.files)
+    api(projects.functional)
+    api(projects.logging)
+    api(projects.persistentCache)
+    api(projects.snapshots)
+    api(projects.baseServices)
+    api(projects.buildProcessServices)
+    api(projects.execution)
+    api(projects.fileCollections)
+    api(projects.hashing)
+    api(projects.instrumentationReporting)
+    api(projects.modelCore)
+    api(projects.normalizationJava)
+
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jsr305)
+
+
+    implementation(projects.inputTracking)
+    implementation(projects.loggingApi)
+
+    implementation(libs.commonsCompress)
+    implementation(libs.slf4jApi)
+    implementation(libs.asmCommons)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsLang3)
+    implementation(libs.fastutil)
+    implementation(libs.groovyJson)
+
+    compileOnly(libs.kotlinStdlib) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
+    }
+}
+

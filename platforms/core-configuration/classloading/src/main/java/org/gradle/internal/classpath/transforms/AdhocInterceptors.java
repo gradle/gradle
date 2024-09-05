@@ -18,8 +18,8 @@ package org.gradle.internal.classpath.transforms;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
+import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.model.internal.asm.MethodVisitorScope;

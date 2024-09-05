@@ -18,11 +18,11 @@ package org.gradle.internal.classpath.declarations;
 
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import java.io.File;

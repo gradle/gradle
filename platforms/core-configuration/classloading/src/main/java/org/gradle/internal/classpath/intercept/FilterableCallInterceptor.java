@@ -16,8 +16,8 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
 
 /**
  * CallInterceptor that can be filtered by a {@link BytecodeInterceptorType} type.

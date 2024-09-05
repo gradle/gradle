@@ -18,12 +18,12 @@ package org.gradle.internal.classpath.declarations;
 
 import kotlin.io.FilesKt;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.KotlinDefaultMask;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import java.io.File;

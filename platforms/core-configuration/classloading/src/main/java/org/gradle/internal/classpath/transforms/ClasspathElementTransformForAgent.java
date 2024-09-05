@@ -18,11 +18,11 @@ package org.gradle.internal.classpath.transforms;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.util.internal.JarUtil;
 
 import java.io.ByteArrayOutputStream;
