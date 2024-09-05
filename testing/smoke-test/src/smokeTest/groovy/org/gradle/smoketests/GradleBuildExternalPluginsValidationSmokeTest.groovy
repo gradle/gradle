@@ -25,7 +25,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 
 /**
  * Smoke test verifying the external plugins used during the Gradle build itself.
@@ -39,7 +38,6 @@ import spock.lang.Ignore
     IntegTestPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
-@Ignore("until wrapper update because :kotlin-dsl compilation error")
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
     def setup() {

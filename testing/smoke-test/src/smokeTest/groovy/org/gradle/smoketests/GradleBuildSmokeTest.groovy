@@ -17,10 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
-import spock.lang.Ignore
 import spock.lang.TempDir
 
-@Ignore("until wrapper update because :kotlin-dsl compilation error")
 class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
 
     @TempDir
