@@ -20,8 +20,10 @@ import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFai
 
 import javax.annotation.Nullable;
 
+/**
+ * Default implementation of {@link ResolutionFailureData}.
+ */
 public class DefaultResolutionFailureData implements ResolutionFailureData {
-
     private final ResolutionFailure resolutionFailure;
 
     public static AdditionalDataBuilder<ResolutionFailureData> builder(@Nullable ResolutionFailureData resolutionFailure) {
@@ -47,8 +49,7 @@ public class DefaultResolutionFailureData implements ResolutionFailureData {
             this.failure = from.getResolutionFailure();
         }
 
-        public DefaultResolutionFailureDataBuilder() {
-        }
+        public DefaultResolutionFailureDataBuilder() { /* empty */ }
 
         @Override
         public ResolutionFailureDataSpec from(ResolutionFailure failure){

@@ -21,6 +21,13 @@ import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFai
 
 /**
  * {@link AdditionalData} data for a {@link Problem} that represents a resolution failure.
+ * <p>
+ * Serialized to JSON as a map with the following keys:
+ * <ul>
+ * <li>RequestTarget - a description of the target of the resolution request that failed</li>
+ * <li>ProblemId - the id of the problem</li>
+ * <li>ProblemDisplayName - a human-readable description of the problem</li>
+ * </ul>
  */
 public interface ResolutionFailureData extends GeneralData {
     /**
