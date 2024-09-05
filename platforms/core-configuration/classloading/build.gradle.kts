@@ -41,40 +41,39 @@ packageCycles {
 }
 
 dependencies {
+    api(projects.baseServices)
+    api(projects.buildProcessServices)
     api(projects.concurrent)
     api(projects.coreApi)
+    api(projects.execution)
+    api(projects.fileCollections)
     api(projects.fileTemp)
     api(projects.files)
     api(projects.functional)
-    api(projects.logging)
-    api(projects.persistentCache)
-    api(projects.snapshots)
-    api(projects.baseServices)
-    api(projects.buildProcessServices)
-    api(projects.execution)
-    api(projects.fileCollections)
     api(projects.hashing)
     api(projects.instrumentationReporting)
+    api(projects.logging)
     api(projects.modelCore)
     api(projects.normalizationJava)
+    api(projects.persistentCache)
+    api(projects.snapshots)
 
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
 
-
     implementation(projects.inputTracking)
     implementation(projects.loggingApi)
 
-    implementation(libs.commonsCompress)
-    implementation(libs.slf4jApi)
     implementation(libs.asmCommons)
+    implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.commonsLang3)
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
