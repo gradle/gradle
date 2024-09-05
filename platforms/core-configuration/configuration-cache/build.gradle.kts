@@ -66,6 +66,7 @@ dependencies {
 
     implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.beanSerializationServices)

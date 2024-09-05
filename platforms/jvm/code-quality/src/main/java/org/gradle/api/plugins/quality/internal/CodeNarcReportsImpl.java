@@ -16,25 +16,27 @@
 
 package org.gradle.api.plugins.quality.internal;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.CodeNarcReports;
 import org.gradle.api.reporting.SingleFileReport;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
-import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.api.reporting.internal.DefaultReportContainer;
+import org.gradle.api.reporting.internal.DefaultSingleFileReport;
+import org.gradle.api.reporting.internal.DelegatingReportContainer;
 
 import javax.inject.Inject;
 
-public class CodeNarcReportsImpl extends TaskReportContainer<SingleFileReport> implements CodeNarcReports {
+public class CodeNarcReportsImpl extends DelegatingReportContainer<SingleFileReport> implements CodeNarcReports {
 
     @Inject
-    public CodeNarcReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(SingleFileReport.class, task, callbackActionDecorator);
-
-        add(TaskGeneratedSingleFileReport.class, "xml", task);
-        add(TaskGeneratedSingleFileReport.class, "html", task);
-        add(TaskGeneratedSingleFileReport.class, "text", task);
-        add(TaskGeneratedSingleFileReport.class, "console", task);
+    public CodeNarcReportsImpl(Describable owner, ObjectFactory objectFactory) {
+        super(DefaultReportContainer.create(objectFactory, SingleFileReport.class, factory -> ImmutableList.of(
+            factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "html", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "text", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "console", owner)
+        )));
     }
 
     @Override

@@ -120,19 +120,21 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that I can declare 'implementation' dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   //configuring dependency to specific configuration of the module
- *   implementation configuration: 'someConf', group: 'org.someOrg', name: 'someModule', version: '1.0'
+ *   // Configuring dependency to specific configuration of the module
+ *   // This notation should _only_ be used for Ivy dependencies
+ *   implementation(group: "org.someOrg", name: "someModule", version: "1.0", configuration: "someConf")
  *
- *   //configuring dependency on 'someLib' module
+ *   // Configuring dependency on 'someLib' module
  *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
- *     //explicitly adding the dependency artifact:
+ *     // Explicitly adding the dependency artifact:
+ *     // Prefer variant-aware dependency resolution
  *     artifact {
- *       //useful when some artifact properties unconventional
- *       name = 'someArtifact' //artifact name different than module name
+ *       // Useful when some artifact properties unconventional
+ *       name = 'someArtifact' // Artifact name different than module name
  *       extension = 'someExt'
  *       type = 'someType'
  *       classifier = 'someClassifier'

@@ -56,6 +56,7 @@ dependencies {
 
     implementation(libs.groovyJson)
     implementation(libs.guava)
+    implementation(libs.jacksonCore)
 
     implementation(projects.core)
     implementation(projects.hashing)

@@ -39,6 +39,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -67,7 +68,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public Checkstyle() {
         super();
         this.configDirectory = getObjectFactory().directoryProperty();
-        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
+        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
     }
 

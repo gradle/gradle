@@ -69,7 +69,7 @@ class DefaultProblemsReportCreator(
                 with(jsonWriter) {
                     property("problemsReport") {
                         jsonObject {
-                            property("totalProblemCount") { write(problemCount.toString()) }
+                            property("totalProblemCount", problemCount.get())
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
                             property("documentationLink", DocumentationRegistry().getDocumentationFor("problem-report"))
