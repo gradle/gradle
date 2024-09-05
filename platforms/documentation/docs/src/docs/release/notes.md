@@ -76,7 +76,11 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-* Build Features API
+### Stable Build Features API
+
+The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
+It allows checking the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
+and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
 
 ## Fixed issues
 
