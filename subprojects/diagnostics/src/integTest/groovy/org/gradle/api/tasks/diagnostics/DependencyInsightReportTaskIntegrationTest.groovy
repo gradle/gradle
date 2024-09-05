@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import org.gradle.util.GradleVersion
-import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
@@ -303,7 +301,6 @@ org:leaf:1.0
 """
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24356")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -375,7 +372,6 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24356")
     def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
