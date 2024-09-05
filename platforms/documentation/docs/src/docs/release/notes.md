@@ -60,9 +60,17 @@ Gradle provides core plugins for build authors, offering essential tools to simp
 
 #### Configuration cache compatibility for Swift and C++ plugins
 
-The [Swift](userguide/swift_application_plugin.html) and [C++](userguide/cpp_application_plugin.html) core plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible.
+The following Swift and C++ plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible: 
+- [Swift application](userguide/swift_application_plugin.html)
+- [Swift library](userguide/swift_library_plugin.html)
+- [XCTest](userguide/xctest_plugin.html)
+- [C++ application](userguide/cpp_application_plugin.html)
+- [C++ library](userguide/cpp_library_plugin.html)
+- [CppUnit](userguide/cpp_unit_test_plugin.html)
+- [GoogleTest](userguide/cpp_testing.html)
+- [Visual Studio](userguide/visual_studio_plugin.html)
 
-The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/visual_studio_plugin.html) plugins are not yet compatible.
+The [`xcode`](userguide/xcode_plugin.html) is not yet compatible.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

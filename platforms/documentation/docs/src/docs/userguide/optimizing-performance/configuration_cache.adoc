@@ -327,7 +327,7 @@ link:{gradle-issues}13485[[.green]#✓#]:: <<cpp_library_plugin.adoc#cpp_library
 link:{gradle-issues}13514[[.green]#✓#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
 link:{gradle-issues}13515[[.green]#✓#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
 link:{gradle-issues}13487[[.green]#✓#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
-link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+link:{gradle-issues}13488[[.green]#✓#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 
 a|
 [horizontal]
@@ -356,7 +356,7 @@ a|
 [horizontal]
 link:{gradle-issues}13479[[.red]#✖#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
 link:{gradle-issues}13480[[.red]#✖#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
-link:{gradle-issues}13482[[.red]#✖#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+link:{gradle-issues}13482[[.green]#✓#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
 link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
 
 a|
