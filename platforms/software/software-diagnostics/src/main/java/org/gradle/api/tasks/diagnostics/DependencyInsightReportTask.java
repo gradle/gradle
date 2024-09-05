@@ -114,7 +114,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * {@link #getConfiguration()}.
  * <p>
  * The task can also be configured from the command line.
- * For more information please refer to {@link #getEffectiveDependencySpec()}}, {@link #setConfigurationName(String)},
+ * For more information please refer to {@link #getEffectiveDependencySpec()}}, {@link #setConfiguration(String)},
  * {@link #getShowSinglePathToDependency()}, and {@link #getShowingAllVariants()}.
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
@@ -122,8 +122,10 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     @Nullable
     private Spec<DependencyResult> configuredDependencySpec;
+    private final Property<Configuration> configuration;
 
     public DependencyInsightReportTask() {
+        configuration = getProject().getObjects().property(Configuration.class);
         getShowSinglePathToDependency().convention(false);
         getRootComponentProperty().convention(
             getConfiguration().zip(getEffectiveDependencySpec(), this::getRootComponentPropertyValue)
@@ -158,7 +160,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * The effective dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
      *
-     * @since 9.1.0
+     * @since 9.5.0
      **/
     @Internal
     @VisibleForTesting
@@ -188,7 +190,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     /**
      * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
-     * @since 9.1.0
+     * @since 9.5.0
      */
     @Incubating
     public void dependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
@@ -220,7 +222,9 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      */
     @Internal
     @ReplacesEagerProperty
-    public abstract Property<Configuration> getConfiguration();
+    public Property<Configuration> getConfiguration() {
+        return configuration;
+    }
 
     /**
      * Sets the configuration (via name) to look the dependency in.
@@ -228,9 +232,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
      */
-    @Incubating
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
-    protected void setConfigurationName(@Nullable String configurationName) {
+    public void setConfiguration(@Nullable String configurationName) {
         getConfiguration().set(
             configurationName == null
                 ? null
