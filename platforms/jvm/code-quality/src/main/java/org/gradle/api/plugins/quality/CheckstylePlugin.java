@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
@@ -32,7 +31,6 @@ import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -97,12 +95,12 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
         taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
-        taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties().get());
-        taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.getShowViolations().get());
-        task.getMaxErrors().convention(project.provider(() -> extension.getMaxErrors().get()));
-        taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings().get());
+        task.getCheckstyleClasspath().convention(configuration);
+        task.getConfigProperties().convention(extension.getConfigProperties());
+        task.getShowViolations().convention(extension.getShowViolations());
+        task.getMaxErrors().convention(extension.getMaxErrors());
+        task.getMaxWarnings().convention(extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
         task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
@@ -135,7 +133,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, Checkstyle task) {
         task.setDescription("Run Checkstyle analysis for " + sourceSet.getName() + " classes");
-        task.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
+        task.getClasspath().setFrom(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
         task.setSource(sourceSet.getAllJava());
     }
 }
