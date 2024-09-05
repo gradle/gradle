@@ -1,0 +1,20 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt",
+            "acceptation": "Checkstyle.getConfigProperties() upgrade",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt.setConfigProperties(org.gradle.api.plugins.quality.Checkstyle,kotlin.Pair[])",
+            "acceptation": "Checkstyle.getConfigProperties() upgrade",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

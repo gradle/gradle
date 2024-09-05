@@ -19,12 +19,14 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -40,15 +42,13 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Runs Checkstyle against some source files.
@@ -59,13 +59,8 @@ import java.util.Map;
  */
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
-    private FileCollection checkstyleClasspath;
-    private FileCollection classpath;
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
-    private int maxWarnings = Integer.MAX_VALUE;
-    private boolean showViolations = true;
 
     /**
      * Creates a new {@code Checkstyle}.
@@ -78,6 +73,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         getEnableExternalDtdLoad().convention(false);
         getMaxErrors().convention(0);
+        getMaxWarnings().convention(Integer.MAX_VALUE);
+        getShowViolations().convention(true);
     }
 
     /**
@@ -172,7 +169,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         parameters.getMaxWarnings().set(getMaxWarnings());
         parameters.getIgnoreFailures().set(getIgnoreFailures());
         parameters.getConfigDirectory().set(getConfigDirectory());
-        parameters.getShowViolations().set(isShowViolations());
+        parameters.getShowViolations().set(getShowViolations());
         parameters.getSource().setFrom(getSource());
         parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
         parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
@@ -209,36 +206,16 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 1.0
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getCheckstyleClasspath() {
-        return checkstyleClasspath;
-    }
-
-    /**
-     * The class path containing the Checkstyle library to be used.
-     * @since 1.0
-     */
-    public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
-        this.checkstyleClasspath = checkstyleClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getCheckstyleClasspath();
 
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
      * @since 0.8
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * The class path containing the compiled classes for the source files to be analyzed.
-     * @since 0.8
-     */
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * The Checkstyle configuration to use. Replaces the {@code configFile} property.
@@ -263,21 +240,10 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      * @since 1.0
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getConfigProperties() {
-        return configProperties;
-    }
-
-    /**
-     * The properties available for use in the configuration file. These are substituted into the configuration file.
-     * @since 1.0
-     */
-    public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
-        this.configProperties = configProperties;
-    }
+    @ReplacesEagerProperty
+    public abstract MapProperty<String, Object> getConfigProperties();
 
     /**
      * Path to other Checkstyle configuration files.
@@ -320,39 +286,23 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public int getMaxWarnings() {
-        return maxWarnings;
-    }
-
-    /**
-     * Set the maximum number of warnings that are tolerated before breaking the build.
-     *
-     * @param maxWarnings number of warnings allowed
-     * @since 3.4
-     */
-    public void setMaxWarnings(int maxWarnings) {
-        this.maxWarnings = maxWarnings;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxWarnings();
 
     /**
      * Whether rule violations are to be displayed on the console.
      *
      * @return true if violations should be displayed on console
-     * @since 1.4
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isShowViolations() {
-        return showViolations;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getShowViolations();
 
-    /**
-     * Whether rule violations are to be displayed on the console.
-     * @since 1.4
-     */
-    public void setShowViolations(boolean showViolations) {
-        this.showViolations = showViolations;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsShowViolations() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowViolations()", "getShowViolations()");
+        return getShowViolations();
     }
 
     /**
@@ -371,12 +321,20 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     /**
      * Whether the build should break when the verifications performed by this task fail.
      *
-     * @return true if failures should be ignored
-     * @since 0.9
+     * @since 9.0
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isIgnoreFailures() {
-        return getIgnoreFailures();
+    @Deprecated
+    @ReplacesEagerProperty(adapter = IsIgnoreFailuresAdapter.class)
+    public Property<Boolean> getIsIgnoreFailures() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreFailures()", "getIgnoreFailures()");
+        return getIgnoreFailuresProperty();
+    }
+
+    static class IsIgnoreFailuresAdapter {
+        @BytecodeUpgrade
+        static boolean isIgnoreFailures(Checkstyle task) {
+            return task.getIgnoreFailures();
+        }
     }
 }
