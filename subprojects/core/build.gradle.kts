@@ -87,6 +87,7 @@ dependencies {
     api(projects.buildCacheSpi)
     api(projects.buildOperations)
     api(projects.buildOption)
+    api(projects.classloading)
     api(projects.cli)
     api(projects.coreApi)
     api(projects.declarativeDslApi)

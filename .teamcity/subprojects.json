@@ -168,6 +168,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "classloading",
+    "path": "platforms/core-configuration/classloading",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "cli",
     "path": "platforms/core-runtime/cli",
     "unitTests": true,
