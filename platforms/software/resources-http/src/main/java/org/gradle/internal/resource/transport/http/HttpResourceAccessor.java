@@ -85,7 +85,8 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         long totalReceivedBytes;
         do {
             long rangeStart = skip + round * rangeSize;
-            long rangeEnd = rangeStart + rangeSize;
+            long rangeEnd = rangeStart + rangeSize - 1;
+            LOGGER.debug("Downloading partial content from bytes {} to {} on round {}", rangeStart, rangeEnd, round);
             HttpClientResponse response = provider.get(uri, revalidate, rangeStart, rangeEnd);
             int code = response.getStatusLine().getStatusCode();
             if (code == HttpStatus.SC_OK) { // server does not support range request
