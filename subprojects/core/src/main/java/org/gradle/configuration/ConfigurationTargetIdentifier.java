@@ -16,11 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-
 import javax.annotation.Nullable;
 import java.util.Locale;
 
@@ -32,7 +27,7 @@ import java.util.Locale;
  */
 public abstract class ConfigurationTargetIdentifier {
 
-    private ConfigurationTargetIdentifier() {
+    ConfigurationTargetIdentifier() {
     }
 
     public enum Type {
@@ -53,79 +48,5 @@ public abstract class ConfigurationTargetIdentifier {
     public abstract String getTargetPath();
 
     public abstract String getBuildPath();
-
-    /**
-     * Returns null if the thing is of an unknown type.
-     * This can happen with {@code apply(from: "foo", to: someTask)},
-     * where “to” can be absolutely anything.
-     */
-    @Nullable
-    public static ConfigurationTargetIdentifier of(Object any) {
-        if (any instanceof PluginAwareInternal) {
-            return ((PluginAwareInternal) any).getConfigurationTargetIdentifier();
-        } else {
-            return null;
-        }
-    }
-
-    public static ConfigurationTargetIdentifier of(final ProjectInternal project) {
-        return new ConfigurationTargetIdentifier() {
-            @Override
-            public Type getTargetType() {
-                return Type.PROJECT;
-            }
-
-            @Nullable
-            @Override
-            public String getTargetPath() {
-                return project.getProjectPath().getPath();
-            }
-
-            @Override
-            public String getBuildPath() {
-                return project.getGradle().getIdentityPath().getPath();
-            }
-        };
-    }
-
-    public static ConfigurationTargetIdentifier of(final SettingsInternal settings) {
-        return new ConfigurationTargetIdentifier() {
-            @Override
-            public Type getTargetType() {
-                return Type.SETTINGS;
-            }
-
-            @Nullable
-            @Override
-            public String getTargetPath() {
-                return null;
-            }
-
-            @Override
-            public String getBuildPath() {
-                return settings.getGradle().getIdentityPath().getPath();
-            }
-        };
-    }
-
-    public static ConfigurationTargetIdentifier of(final GradleInternal gradle) {
-        return new ConfigurationTargetIdentifier() {
-            @Override
-            public Type getTargetType() {
-                return Type.GRADLE;
-            }
-
-            @Nullable
-            @Override
-            public String getTargetPath() {
-                return null;
-            }
-
-            @Override
-            public String getBuildPath() {
-                return gradle.getIdentityPath().getPath();
-            }
-        };
-    }
 
 }

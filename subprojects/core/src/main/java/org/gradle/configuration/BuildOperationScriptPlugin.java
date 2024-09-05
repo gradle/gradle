@@ -79,7 +79,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
 
                     return BuildOperationDescriptor.displayName(displayName)
                         .name(name)
-                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
+                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifiers.of(target), userCodeApplicationId));
                 }
             }));
         }

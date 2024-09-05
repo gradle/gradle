@@ -36,6 +36,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.ConfigurationTargetIdentifiers;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
@@ -214,6 +215,6 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
-        return ConfigurationTargetIdentifier.of(gradle);
+        return ConfigurationTargetIdentifiers.of(gradle);
     }
 }
