@@ -155,7 +155,6 @@ public class DefaultHttpSettings implements HttpSettings {
         private int maxRedirects = DEFAULT_MAX_REDIRECTS;
         private int maxConnTotal = DEFAULT_MAX_CONNECTIONS;
         private int maxConnPerRoute = DEFAULT_MAX_CONNECTIONS;
-        private boolean disableContentCompression = false;
         private RedirectMethodHandlingStrategy redirectMethodHandlingStrategy = RedirectMethodHandlingStrategy.ALWAYS_FOLLOW_AND_PRESERVE;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {
@@ -195,11 +194,6 @@ public class DefaultHttpSettings implements HttpSettings {
         public Builder maxConnPerRoute(int maxConnPerRoute) {
             Preconditions.checkArgument(maxConnPerRoute > 0);
             this.maxConnPerRoute = maxConnPerRoute;
-            return this;
-        }
-
-        public Builder disableContentCompression() {
-            this.disableContentCompression = true;
             return this;
         }
 
