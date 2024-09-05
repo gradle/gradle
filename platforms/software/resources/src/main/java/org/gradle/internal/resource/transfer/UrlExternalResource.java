@@ -45,7 +45,7 @@ public class UrlExternalResource extends AbstractExternalResourceAccessor implem
             throw UncheckedException.throwAsUncheckedException(e);
         }
         UrlExternalResource connector = new UrlExternalResource();
-        return new AccessorBackedExternalResource(new ExternalResourceName(uri), connector, connector, connector, false);
+        return new AccessorBackedExternalResource(new ExternalResourceName(uri), connector, connector, connector, false, cachePosition);
     }
 
     @Nullable
