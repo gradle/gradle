@@ -29,10 +29,8 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalDataBuilder
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.TypeValidationDataSpec
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -450,8 +448,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             this.feature2 = enabled
         }
     }
-
-    interface TestBuilder extends AdditionalDataBuilder, TypeValidationDataSpec {}
 
     private List<String> collectProblems(TypeMetadata metadata) {
         def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
