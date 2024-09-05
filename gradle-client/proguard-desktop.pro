@@ -91,3 +91,6 @@
 -keepclassmembers class * extends com.sun.jna.** { public *; }
 -keep class * implements com.sun.jna.** { *; }
 -dontnote com.sun.**
+
+# FileKit
+-keep class org.freedesktop.dbus.** { *; }
