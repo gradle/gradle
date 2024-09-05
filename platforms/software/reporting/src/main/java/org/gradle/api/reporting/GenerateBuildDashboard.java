@@ -21,8 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
@@ -30,7 +29,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -41,6 +39,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Generates build dashboard report.
@@ -57,18 +56,18 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     }
 
     @Input
-    @ToBeReplacedByLazyProperty(unreported = true, comment = "Skipped for report since ReportState is private")
-    public Set<ReportState> getInputReports() {
-        Set<ReportState> inputs = new LinkedHashSet<ReportState>();
-        for (Report report : getEnabledInputReports()) {
-            if (getReports().contains(report)) {
-                // A report to be generated, ignore
-                continue;
-            }
-            File outputLocation = report.getOutputLocation().get().getAsFile();
-            inputs.add(new ReportState(report.getDisplayName(), outputLocation, outputLocation.exists()));
-        }
-        return inputs;
+    @SuppressWarnings("ClassEscapesDefinedScope")
+    protected Provider<Set<ReportState>> getInputReports() {
+        return getProject().provider(() ->
+            getEnabledInputReports()
+                .stream()
+                .filter(report -> !getReports().contains(report))
+                .map(report -> {
+                    File outputLocation = report.getOutputLocation().get().getAsFile();
+                    return new ReportState(report.getDisplayName(), outputLocation, outputLocation.exists());
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new))
+        );
     }
 
     private Set<Report> getEnabledInputReports() {
@@ -83,20 +82,12 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private Set<Reporting<? extends ReportContainer<?>>> getAggregatedTasks() {
         final Set<Reporting<? extends ReportContainer<?>>> reports = new HashSet<>();
-        getProject().allprojects(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                project.getTasks().all(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        if (!(task instanceof Reporting)) {
-                            return;
-                        }
-                        reports.add(Cast.uncheckedNonnullCast(task));
-                    }
-                });
+        getProject().allprojects(project -> project.getTasks().all(task -> {
+            if (!(task instanceof Reporting)) {
+                return;
             }
-        });
+            reports.add(Cast.uncheckedNonnullCast(task));
+        }));
         return reports;
     }
 
