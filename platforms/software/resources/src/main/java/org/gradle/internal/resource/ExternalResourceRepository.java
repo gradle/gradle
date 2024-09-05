@@ -33,9 +33,9 @@ public interface ExternalResourceRepository {
      *
      * @param resource The location of the resource
      * @param revalidate Ensure the external resource is not stale when reading its content
-     * @param cachePosition The cache position used to store partial downloaded resource.
+     * @param partPosition The cache position used to store partial downloaded resource.
      */
-    ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File cachePosition);
+    ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File partPosition);
 
     /**
      * Returns the resource with the given name. Note that this method does not access the resource in any way, it simply creates an object that can. To access the resource, use the methods on the returned object.

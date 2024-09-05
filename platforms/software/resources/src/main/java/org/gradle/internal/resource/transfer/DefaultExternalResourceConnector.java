@@ -55,9 +55,9 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+    public <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File partPosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
         STATS.resource(location.getUri());
-        return accessor.withContent(location, revalidate, cachePosition, action);
+        return accessor.withContent(location, revalidate, partPosition, action);
     }
 
     @Nullable

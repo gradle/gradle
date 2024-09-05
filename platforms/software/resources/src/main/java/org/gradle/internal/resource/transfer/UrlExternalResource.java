@@ -68,7 +68,7 @@ public class UrlExternalResource extends AbstractExternalResourceAccessor implem
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate, File cachePosition) throws ResourceException {
+    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate, File partPosition) throws ResourceException {
         try {
             URL url = location.getUri().toURL();
             final URLConnection connection = url.openConnection();

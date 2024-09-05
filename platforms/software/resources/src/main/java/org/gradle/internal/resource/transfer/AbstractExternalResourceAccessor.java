@@ -29,8 +29,8 @@ import java.io.InputStream;
 public abstract class AbstractExternalResourceAccessor implements ExternalResourceAccessor {
     @Nullable
     @Override
-    public <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
-        ExternalResourceReadResponse response = openResource(location, revalidate, cachePosition);
+    public <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File partPosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        ExternalResourceReadResponse response = openResource(location, revalidate, partPosition);
         if (response == null) {
             return null;
         }
@@ -44,5 +44,5 @@ public abstract class AbstractExternalResourceAccessor implements ExternalResour
     }
 
     @Nullable
-    protected abstract ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition) throws ResourceException;
+    protected abstract ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, @Nullable File partPosition) throws ResourceException;
 }

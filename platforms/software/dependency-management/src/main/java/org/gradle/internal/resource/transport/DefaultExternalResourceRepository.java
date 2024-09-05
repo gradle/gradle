@@ -52,8 +52,8 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     @Override
-    public ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File cachePosition) {
-        return new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate, cachePosition);
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File partPosition) {
+        return new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate, partPosition);
     }
 
     @Override

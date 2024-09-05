@@ -84,8 +84,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
-                File cachePosition = calculateFixedCachePosition(location);
-                return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, false, cachePosition));
+                File partPosition = calculateFixedPartPosition(location);
+                LocallyAvailableExternalResource resource = copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, false, partPosition));
+                if (partPosition != null && partPosition.exists()) {
+                    partPosition.delete();
+                }
+                return resource;
             }
 
             // We might be able to use a cached/locally available version
@@ -146,13 +150,17 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             }
 
             // All local/cached options failed, get directly
-            File cachePosition = calculateFixedCachePosition(location);
-            return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate, cachePosition));
+            File partPosition = calculateFixedPartPosition(location);
+            LocallyAvailableExternalResource resource = copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate, partPosition));
+            if (partPosition != null && partPosition.exists()) {
+                partPosition.delete();
+            }
+            return resource;
         });
     }
 
     @Nullable
-    private File calculateFixedCachePosition(@Nonnull ExternalResourceName location) {
+    private File calculateFixedPartPosition(@Nonnull ExternalResourceName location) {
         // FIXME 2024/9/5: calculate a fixed position by location
         return null;
     }

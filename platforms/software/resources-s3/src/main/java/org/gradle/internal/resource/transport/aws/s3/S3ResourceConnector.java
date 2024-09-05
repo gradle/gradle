@@ -52,7 +52,7 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File cachePosition) {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File partPosition) {
         LOGGER.debug("Attempting to get resource: {}", location);
         S3Object s3Object = s3Client.getResource(location.getUri());
         if (s3Object == null) {

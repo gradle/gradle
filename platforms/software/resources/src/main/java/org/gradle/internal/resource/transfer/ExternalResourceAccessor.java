@@ -57,13 +57,13 @@ public interface ExternalResourceAccessor {
      *
      * @param location The address of the resource to obtain
      * @param revalidate The resource should be revalidated as part of the request
-     * @param cachePosition The cache position used to store partial downloaded resource.
+     * @param partPosition The cache position used to store partial downloaded resource.
      * @param action The action to apply to the content of the resource.
      * @return The result of the action if the resource exists, or null if the resource does not exist.
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException;
+    <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File partPosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException;
 
     /**
      * Reads the resource at the given location.
@@ -94,14 +94,14 @@ public interface ExternalResourceAccessor {
      *
      * @param location The address of the resource to obtain
      * @param revalidate The resource should be revalidated as part of the request
-     * @param cachePosition The cache position used to store partial downloaded resource.
+     * @param partPosition The cache position used to store partial downloaded resource.
      * @param action The action to apply to the content of the resource.
      * @return The result of the action if the resource exists, or null if the resource does not exist.
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    default <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition, ExternalResource.ContentAction<T> action) throws ResourceException {
-        return withContent(location, revalidate, cachePosition, (inputStream, metaData) -> action.execute(inputStream));
+    default <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File partPosition, ExternalResource.ContentAction<T> action) throws ResourceException {
+        return withContent(location, revalidate, partPosition, (inputStream, metaData) -> action.execute(inputStream));
     }
 
     /**

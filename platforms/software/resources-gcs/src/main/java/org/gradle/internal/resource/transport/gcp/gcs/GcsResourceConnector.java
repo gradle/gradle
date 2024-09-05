@@ -54,7 +54,7 @@ public class GcsResourceConnector extends AbstractExternalResourceAccessor imple
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File cachePosition) throws ResourceException {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File partPosition) throws ResourceException {
         LOGGER.debug("Attempting to get resource: {}", location);
         StorageObject gcsObject = gcsClient.getResource(location.getUri());
         if (gcsObject == null) {

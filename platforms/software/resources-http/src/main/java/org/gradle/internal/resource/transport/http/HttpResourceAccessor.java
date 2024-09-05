@@ -52,8 +52,8 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
 
     @Override
     @Nullable
-    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate, @Nullable File cachePosition) {
-        return onOpenResource(location.getUri(), revalidate, cachePosition, http::performGet);
+    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate, @Nullable File partPosition) {
+        return onOpenResource(location.getUri(), revalidate, partPosition, http::performGet);
     }
 
     /**
@@ -64,22 +64,22 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         return onOpenResource(uri, revalidate, null, http::performRawGet);
     }
 
-    private ExternalResourceReadResponse onOpenResource(final URI location, boolean revalidate, @Nullable File cachePosition, @Nonnull HttpClientResponseProvider provider) {
+    private ExternalResourceReadResponse onOpenResource(final URI location, boolean revalidate, @Nullable File partPosition, @Nonnull HttpClientResponseProvider provider) {
         String uri = location.toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        if (cachePosition == null) {
+        if (partPosition == null) {
             // cache is disabled
             return wrapResponse(location, provider.get(uri, revalidate, null, null));
         }
 
         try {
-            FileUtils.forceMkdir(cachePosition.getParentFile());
+            FileUtils.forceMkdir(partPosition.getParentFile());
         } catch (IOException e) {
             throw new ResourceException(location, "Unable to create cache directory", e);
         }
 
-        long skip = cachePosition.isFile() && cachePosition.exists() ? cachePosition.length() : 0; // read file size from partially downloaded file
+        long skip = partPosition.isFile() && partPosition.exists() ? partPosition.length() : 0; // read file size from partially downloaded file
         int round = 0;
         Long totalBytes = null;
         long totalReceivedBytes;
@@ -102,7 +102,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
                 String[] receivedRange = split[0].split("-"); // ["0", "100"]
                 totalReceivedBytes = Long.parseLong(receivedRange[1]);
                 try {
-                    IOUtils.copy(response.getContent(), new FileOutputStream(cachePosition, true));
+                    IOUtils.copy(response.getContent(), new FileOutputStream(partPosition, true));
                 } catch (IOException e) {
                     throw new ResourceException(location, String.format("Unable to save partial content from bytes %d to %d", rangeStart, rangeEnd), e);
                 }
@@ -111,7 +111,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
                 throw new ResourceException(location, String.format("Unexpected response code %d when fetching bytes from %d to %d", code, rangeStart, rangeEnd));
             }
         } while (totalReceivedBytes != totalBytes - 1);
-        return new UrlExternalResource().openResource(new ExternalResourceName(cachePosition.toURI()), revalidate, cachePosition);
+        return new UrlExternalResource().openResource(new ExternalResourceName(partPosition.toURI()), revalidate, partPosition);
     }
 
     @Override

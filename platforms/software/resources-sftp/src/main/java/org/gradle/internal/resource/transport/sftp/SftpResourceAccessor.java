@@ -71,7 +71,7 @@ public class SftpResourceAccessor extends AbstractExternalResourceAccessor imple
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File cachePosition) {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File partPosition) {
         ExternalResourceMetaData metaData = getMetaData(location, revalidate);
         return metaData != null ? new SftpResource(sftpClientFactory, metaData, location.getUri(), credentials) : null;
     }

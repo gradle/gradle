@@ -42,7 +42,7 @@ public class FileResourceConnector implements FileResourceRepository {
     }
 
     @Override
-    public ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File cachePosition) {
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File partPosition) {
         return resource(resource);
     }
 
