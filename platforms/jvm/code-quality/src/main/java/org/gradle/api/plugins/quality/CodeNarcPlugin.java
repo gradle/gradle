@@ -18,14 +18,12 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JvmEcosystemPlugin;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -34,7 +32,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
-import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -73,10 +70,10 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         extension = project.getExtensions().create("codenarc", CodeNarcExtension.class, project);
         extension.getToolVersion().convention(DEFAULT_CODENARC_VERSION);
         extension.setConfig(project.getResources().getText().fromFile(getRootProjectDirectory().file(DEFAULT_CONFIG_FILE_PATH)));
-        extension.setMaxPriority1Violations(0);
-        extension.setMaxPriority2Violations(0);
-        extension.setMaxPriority3Violations(0);
-        extension.setReportFormat("html");
+        extension.getMaxPriority1Violations().convention(0);
+        extension.getMaxPriority2Violations().convention(0);
+        extension.getMaxPriority3Violations().convention(0);
+        extension.getReportFormat().convention("html");
         return extension;
     }
 
@@ -109,23 +106,21 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("config", () -> extension.getConfig());
         task.getCodenarcClasspath().convention(configuration);
-        task.getMaxPriority1Violations().convention(extension.getMaxPriority1Violations());
-        task.getMaxPriority2Violations().convention(extension.getMaxPriority2Violations());
-        task.getMaxPriority3Violations().convention(extension.getMaxPriority3Violations());
+        task.getMaxPriority1Violations().convention(extension.getMaxPriority1Violations().get());
+        task.getMaxPriority2Violations().convention(extension.getMaxPriority2Violations().get());
+        task.getMaxPriority3Violations().convention(extension.getMaxPriority3Violations().get());
         task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {
-        ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
-        Provider<String> reportFormat = providers.provider(() -> extension.getReportFormat());
+        Provider<String> reportFormat = extension.getReportFormat();
         Provider<Directory> reportsDir = extension.getReportsDir();
         task.getReports().all(action(report -> {
-            report.getRequired().convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
-            report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
+            report.getRequired().convention(reportFormat.map(format -> report.getName().equals(format)));
+            report.getOutputLocation().convention(reportsDir.map(directory -> {
                 String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
-                return new File(reportsDir.get().getAsFile(), baseName + "." + fileSuffix).getAbsolutePath();
-            })));
+                return directory.file(baseName + "." + fileSuffix);
+            }));
         }));
     }
 

@@ -23,10 +23,12 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
@@ -90,6 +92,14 @@ public abstract class TaskReportTask extends ConventionReportTask {
         @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setShowDetail", originalType = boolean.class)
     })
     public abstract Property<Boolean> getShowDetail();
+
+    // kotlin source compatibility
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsShowDetail() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowDetail()", "getShowDetail()");
+        return getShowDetail();
+    }
 
     /**
      * Returns the task group to be displayed.
