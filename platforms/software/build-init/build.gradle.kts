@@ -36,7 +36,6 @@ dependencies {
     api(projects.platformJvm)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
-    api(projects.toolchainsJvmShared)
     api(projects.jvmServices)
     api(projects.workers)
 

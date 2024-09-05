@@ -28,12 +28,16 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin, JavaToolchainFixture {
+    private static final String ARBITRARY_PLUGIN_ID = "org.barfuin.gradle.taskinfo"
+    private static final String ARBITRARY_PLUGIN_VERSION = "2.2.0"
+    private static final String ARBITRARY_PLUGIN_SPEC = "$ARBITRARY_PLUGIN_ID:$ARBITRARY_PLUGIN_VERSION"
+
     def "can specify 3rd party plugin using argument to init"() {
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with root build file present"() {
@@ -44,10 +48,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         """)
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with root KTS build file present"() {
@@ -58,10 +62,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         """)
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with settings file present"() {
@@ -70,10 +74,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         """)
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with settings KTS file present"() {
@@ -82,10 +86,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         """)
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with root build and settings files present"() {
@@ -100,10 +104,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         """)
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with root build and settings KTS files present"() {
@@ -118,10 +122,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         """)
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
     }
 
     def "can specify plugin using argument to init with root build and settings files present in multiproject build"() {
@@ -145,10 +149,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         )
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
         // TODO: should appear exactly once, but no way to automatically verify this currently.  Looking at the output, it is true currently
     }
 
@@ -173,10 +177,10 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         )
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
         // TODO: should appear exactly once, but no way to automatically verify this currently.  Looking at the output, it is true currently
     }
 
@@ -205,11 +209,11 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         publishTestPlugin()
 
         when:
-        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0,org.barfuin.gradle.taskinfo:2.2.0")
+        initSucceedsWithPluginSupplyingSpec("org.example.myplugin:1.0,$ARBITRARY_PLUGIN_SPEC")
 
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
-        assertResolvedPlugin("org.barfuin.gradle.taskinfo", "2.2.0")
+        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
         outputDoesNotContain("MyPlugin applied.")
         assertLoadedSpec("First Project Type")
         assertLoadedSpec("Second Project Type")
@@ -314,7 +318,6 @@ defaults {
 
         when:
         withInstallations(Jvm.current(), AvailableJavaHomes.getJdk(JavaVersion.VERSION_17))
-        withAutoDetection()
 
         then:
         canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
