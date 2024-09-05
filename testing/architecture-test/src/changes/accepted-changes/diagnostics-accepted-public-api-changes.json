@@ -11,14 +11,6 @@
         },
         {
             "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
-            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getObjectFactory()",
-            "acceptation": "Changed to idiomatic injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
             "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionComparator()",
             "acceptation": "Changed to idiomatic injection",
             "changes": [
@@ -75,18 +67,18 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
-            "acceptation": "It's a spec on a diagnostic task, it should not be used",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfigurationDetails()",
+            "acceptation": "Changed to idiomatic injection",
             "changes": [
-                "Method has been removed"
+                "Abstract method has been added to this class"
             ]
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getErrorHandler()",
-            "acceptation": "The method is internal",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
+            "acceptation": "It's a spec on a diagnostic task, it should not be used",
             "changes": [
-                "Abstract method has been added to this class"
+                "Method has been removed"
             ]
         },
         {
