@@ -190,6 +190,8 @@ class DefaultReadContext(
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
+    var onRead: (Any?) -> Unit = { }
+
     override val sharedIdentities = ReadIdentities()
 
     private
@@ -223,7 +225,7 @@ class DefaultReadContext(
 
     override suspend fun read(): Any? = getCodec().run {
         decode()
-    }
+    }.also(onRead)
 
     override fun readClass(): Class<*> = classDecoder.run {
         decodeClass()
