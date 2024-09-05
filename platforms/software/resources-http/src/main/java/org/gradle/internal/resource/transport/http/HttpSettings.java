@@ -45,8 +45,6 @@ public interface HttpSettings {
 
     HostnameVerifier getHostnameVerifier();
 
-    boolean isContentCompressionDisabled();
-
     enum RedirectMethodHandlingStrategy {
 
         /**

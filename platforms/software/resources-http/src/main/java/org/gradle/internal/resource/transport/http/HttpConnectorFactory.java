@@ -62,7 +62,6 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
             .withAuthenticationSettings(connectionDetails.getAuthentications())
             .withSslContextFactory(sslContextFactory)
             .withRedirectVerifier(connectionDetails.getRedirectVerifier())
-            .disableContentCompression() // for range request
             .build()
         );
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
