@@ -43,6 +43,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +84,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
-                return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location));
+                File cachePosition = calculateFixedCachePosition(location);
+                return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, false, cachePosition));
             }
 
             // We might be able to use a cached/locally available version
@@ -144,8 +146,15 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             }
 
             // All local/cached options failed, get directly
-            return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate));
+            File cachePosition = calculateFixedCachePosition(location);
+            return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate, cachePosition));
         });
+    }
+
+    @Nullable
+    private File calculateFixedCachePosition(@Nonnull ExternalResourceName location) {
+        // FIXME 2024/9/5: calculate a fixed position by location
+        return null;
     }
 
     @Nullable
