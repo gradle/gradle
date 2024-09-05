@@ -51,7 +51,9 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
 
 
-class DefaultProjectSchemaProvider : ProjectSchemaProvider {
+class DefaultProjectSchemaProvider(
+    private val dclSchemaCache: KotlinDslDclSchemaCache
+) : ProjectSchemaProvider {
 
     override fun schemaFor(scriptTarget: Any): TypedProjectSchema? =
         targetTypeOf(scriptTarget)
@@ -81,6 +83,68 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
         is Settings -> typeOfSettings
         else -> null
     }
+
+    internal fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
+        val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
+
+        fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
+            if (target is ExtensionAware) {
+                accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
+                    extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
+                    collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
+                }
+            }
+            if (target is Project) {
+                @Suppress("deprecation")
+                val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
+                accessibleConventionsSchema(plugins).forEach { (name, type) ->
+                    conventions.add(ProjectSchemaEntry(targetType, name, type))
+                    val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
+                    collectSchemaOf(plugin, type)
+                }
+                accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
+                    tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
+                }
+                collectSchemaOf(target.dependencies, typeOfDependencyHandler)
+                collectSchemaOf(target.repositories, typeOfRepositoryHandler)
+                // WARN eagerly realize all source sets
+                sourceSetsOf(target)?.forEach { sourceSet ->
+                    collectSchemaOf(sourceSet, typeOfSourceSet)
+                }
+            }
+            if (target is Settings) {
+                val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
+                accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
+                    buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
+                }
+            }
+            if (target is NamedDomainObjectContainer<*>) {
+                accessibleContainerSchema(target.collectionSchema).forEach { schema ->
+                    containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
+                }
+            }
+
+            dclSchemaCache.getOrPutContainerElementFactories(targetType.concreteClass) {
+                collectNestedContainerFactories(targetType.concreteClass)
+            }.forEach(containerElementFactories::add)
+        }
+
+        collectSchemaOf(target, targetType)
+
+        return TargetTypedSchema(
+            extensions,
+            conventions,
+            tasks,
+            containerElements,
+            buildModelDefaults,
+            containerElementFactories
+        )
+    }
 }
 
 
@@ -94,74 +158,10 @@ data class TargetTypedSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
 
-
-internal
-fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
-
-    val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
-
-    fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
-        if (target is ExtensionAware) {
-            accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
-                extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-                collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
-            }
-        }
-        if (target is Project) {
-            @Suppress("deprecation")
-            val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
-            accessibleConventionsSchema(plugins).forEach { (name, type) ->
-                conventions.add(ProjectSchemaEntry(targetType, name, type))
-                val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
-                collectSchemaOf(plugin, type)
-            }
-            accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
-                tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
-            }
-            collectSchemaOf(target.dependencies, typeOfDependencyHandler)
-            collectSchemaOf(target.repositories, typeOfRepositoryHandler)
-            // WARN eagerly realize all source sets
-            sourceSetsOf(target)?.forEach { sourceSet ->
-                collectSchemaOf(sourceSet, typeOfSourceSet)
-            }
-        }
-        if (target is Settings) {
-            val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
-            accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
-                buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
-            }
-        }
-        if (target is NamedDomainObjectContainer<*>) {
-            accessibleContainerSchema(target.collectionSchema).forEach { schema ->
-                containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-            }
-        }
-
-        collectNestedContainerFactories(target, containerElementFactories::add)
-    }
-
-    collectSchemaOf(target, targetType)
-
-    return TargetTypedSchema(
-        extensions,
-        conventions,
-        tasks,
-        containerElements,
-        buildModelDefaults,
-        containerElementFactories
-    )
-}
-
-// FIXME this goes over properties of model types; it might be expensive performance-wise and does not reach transitively nested types anyway;
-// this is also not consistent with element schema generation implemented above in terms of which containers get visited
-private fun collectNestedContainerFactories(containerOwner: Any, addFactory: (ContainerElementFactoryEntry<TypeOf<*>>) -> Unit) {
-    val accessibleKotlinType = containerOwner::class.java.firstPublicKotlinAccessorType?.kotlin
-        ?: return
+// TODO: this is not consistent with both DCL and element schema generation implemented above in terms of which containers get visited
+private fun collectNestedContainerFactories(containerClass: Class<*>): ContainerElementFactories {
+    val accessibleKotlinType = containerClass.firstPublicKotlinAccessorType?.kotlin
+        ?: return emptyList()
 
     val memberPropertiesAndGetters =
         accessibleKotlinType.memberProperties + accessibleKotlinType.memberFunctions.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
@@ -170,14 +170,14 @@ private fun collectNestedContainerFactories(containerOwner: Any, addFactory: (Co
         DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.returnType)
     }
 
-    elementTypes.forEach { elementKType ->
+    return elementTypes.map { elementKType ->
         // it is safe to use `jvmErasure`, as we assume that the type is non-parameterized; `javaType` fails to work here, though, for some reason
         val elementType = TypeOf.typeOf<Any>(elementKType.jvmErasure.java)
         val scopeReceiverType = TypeOf.parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType)
 
         val factoryName = DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(elementKType)
 
-        addFactory(ContainerElementFactoryEntry(factoryName, scopeReceiverType, elementType))
+        ContainerElementFactoryEntry(factoryName, scopeReceiverType, elementType)
     }
 }
 

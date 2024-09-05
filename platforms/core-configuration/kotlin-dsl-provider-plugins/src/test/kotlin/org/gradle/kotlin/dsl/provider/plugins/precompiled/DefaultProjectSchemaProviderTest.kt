@@ -24,7 +24,9 @@ import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.extensibility.DefaultExtensionsSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
-import org.gradle.kotlin.dsl.provider.plugins.targetSchemaFor
+import org.gradle.kotlin.dsl.provider.plugins.ContainerElementFactories
+import org.gradle.kotlin.dsl.provider.plugins.DefaultProjectSchemaProvider
+import org.gradle.kotlin.dsl.provider.plugins.KotlinDslDclSchemaCache
 import org.gradle.kotlin.dsl.provider.plugins.typeOf
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -55,7 +57,9 @@ class DefaultProjectSchemaProviderTest {
         }
 
         assertThat(
-            targetSchemaFor(
+            DefaultProjectSchemaProvider(object : KotlinDslDclSchemaCache {
+                override fun getOrPutContainerElementFactories(forClass: Class<*>, produceIfAbsent: () -> ContainerElementFactories): ContainerElementFactories = produceIfAbsent()
+            }).targetSchemaFor(
                 androidExtension,
                 typeOf<AndroidExtension>()
             ).extensions,
