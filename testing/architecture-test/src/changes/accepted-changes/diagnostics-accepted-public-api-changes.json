@@ -1,6 +1,15 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()",
+            "acceptation": "Should only be used to track inputs",
+            "changes": [
+                "Method is less accessible",
+                "Method return type has changed"
+            ]
+        },
+        {
             "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
             "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getObjectFactory()",
             "acceptation": "Changed to idiomatic injection",
