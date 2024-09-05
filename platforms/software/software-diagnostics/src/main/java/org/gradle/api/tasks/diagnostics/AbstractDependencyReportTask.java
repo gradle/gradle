@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
@@ -142,7 +141,4 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
 
     @Inject
     protected abstract ConfigurationContainer getTaskConfigurations();
-
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
 }
