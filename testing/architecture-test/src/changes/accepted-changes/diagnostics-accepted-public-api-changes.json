@@ -1,6 +1,24 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()",
+            "acceptation": "Should only be used to track inputs",
+            "changes": [
+                "Method is less accessible",
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()",
+            "acceptation": "Changed to idiomatic type injection",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()",
             "acceptation": "Changed to idiomatic property getter",
@@ -13,15 +31,6 @@
             "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getRenderer()",
             "acceptation": "This is protected method and the change is needed for proper inheritance",
             "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
-            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()",
-            "acceptation": "Should only be used to track inputs",
-            "changes": [
-                "Method is less accessible",
                 "Method return type has changed"
             ]
         },
