@@ -149,7 +149,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public void stop() {
-        coordinationService.withStateLock(new Runnable() {
+        coordinationService.run(new Runnable() {
             @Override
             public void run() {
                 if (workerLeaseLockRegistry.hasOpenLocks()) {
@@ -298,7 +298,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         }
 
         final List<ResourceLock> locksNotHeld = Lists.newArrayList(locks);
-        coordinationService.withStateLock(new Runnable() {
+        coordinationService.run(new Runnable() {
             @Override
             public void run() {
                 Iterator<ResourceLock> iterator = locksNotHeld.iterator();
@@ -400,7 +400,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
-        return coordinationService.withStateLock(new Supplier<Boolean>() {
+        return coordinationService.run(new Supplier<Boolean>() {
             @Override
             public Boolean get() {
                 return CollectionUtils.every(locks, new Spec<ResourceLock>() {
@@ -477,7 +477,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
         @Override
         public Registries finishProjectExecution() {
-            coordinationService.withStateLock(new Runnable() {
+            coordinationService.run(new Runnable() {
                 @Override
                 public void run() {
                     if (projectLockRegistry.hasOpenLocks()) {

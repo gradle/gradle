@@ -1721,7 +1721,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         when:
         def failures = []
-        coordinator.withStateLock {
+        coordinator.run {
             finalizedPlan.collectFailures(failures)
         }
 
@@ -1731,7 +1731,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         e.message.contains("Execution failed for task :finalizer")
 
         then:
-        coordinator.withStateLock {
+        coordinator.run {
             finalizedPlan.contents.getNode(finalized).isSuccessful()
             finalizedPlan.contents.getNode(finalizer).state == Node.ExecutionState.FAILED_DEPENDENCY
         }
@@ -2285,7 +2285,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     private void finishedExecuting(Node node) {
-        coordinator.withStateLock {
+        coordinator.run {
             finalizedPlan.finishedExecuting(node, null)
         }
     }
@@ -2304,7 +2304,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private LocalTaskNode selectNextTaskNode() {
         def result = null
-        coordinator.withStateLock {
+        coordinator.run {
             def node = selectNextNode()
             // ignore nodes that aren't tasks
             if (!(node instanceof LocalTaskNode)) {
@@ -2322,7 +2322,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private Node selectNextNode() {
         def result = null
-        coordinator.withStateLock {
+        coordinator.run {
             WorkSource.Selection selection
             assert !finalizedPlan.allExecutionComplete()
             assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
@@ -2341,7 +2341,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     void assertNoTaskReadyToStart() {
-        coordinator.withStateLock {
+        coordinator.run {
             while (finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart) {
                 def selection = finalizedPlan.selectNext()
                 if (selection.noWorkReadyToStart) {
@@ -2362,7 +2362,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     void assertNoMoreWorkToStartButNotAllComplete(boolean needToSelect = false) {
-        coordinator.withStateLock {
+        coordinator.run {
             if (needToSelect) {
                 assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             } else {
@@ -2375,7 +2375,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     void assertAllWorkComplete(boolean needToSelect = false) {
-        coordinator.withStateLock {
+        coordinator.run {
             if (needToSelect) {
                 assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             } else {
@@ -2388,7 +2388,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     void assertNoWorkReadyToStart() {
-        coordinator.withStateLock {
+        coordinator.run {
             assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
             assert finalizedPlan.selectNext().noWorkReadyToStart
             assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
@@ -2396,7 +2396,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     void assertNoWorkReadyToStartAfterSelect() {
-        coordinator.withStateLock {
+        coordinator.run {
             // In some cases, a call to selectNext() is required to calculate that nothing is ready
             assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             assert finalizedPlan.selectNext().noWorkReadyToStart
@@ -2405,7 +2405,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     void assertWorkReadyToStart() {
-        coordinator.withStateLock {
+        coordinator.run {
             assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
         }
     }

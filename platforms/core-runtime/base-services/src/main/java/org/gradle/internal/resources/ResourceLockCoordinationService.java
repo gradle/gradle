@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resources;
 
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import org.gradle.api.Action;
 import org.gradle.internal.InternalTransformer;
@@ -52,13 +53,30 @@ public interface ResourceLockCoordinationService {
 
     /**
      * A convenience for using {@link #withStateLock(InternalTransformer)}.
+     *
+     * Runs the given action while holding the resource state lock, repeating it until the action signals that it has completed.
+     *
+     * The action can return:
+     * {@link OperationResult#COMPLETED_NO_RESULT} - the action has completed and this method returns {@code null}.
+     * {@link Finished} - the action has completed and this method returns the value from this object.
+     * {@link OperationResult#RETRY} - try to run the action again, blocking until the resource state has changed.
      */
-    void withStateLock(Runnable action);
+    @Nullable
+    <T> T runUntilFinished(Function<ResourceLockState, OperationResult<? super T>> action);
 
     /**
      * A convenience for using {@link #withStateLock(InternalTransformer)}.
+     *
+     * Runs the given action once while holding the resource state lock.
      */
-    <T> T withStateLock(Supplier<T> action);
+    void run(Runnable action);
+
+    /**
+     * A convenience for using {@link #withStateLock(InternalTransformer)}.
+     *
+     * Runs the given action once while holding the resource state lock, and returns the result.
+     */
+    <T> T run(Supplier<T> action);
 
     /**
      * Notify other threads about changes to resource locks.
@@ -73,4 +91,22 @@ public interface ResourceLockCoordinationService {
     void addLockReleaseListener(Action<ResourceLock> listener);
 
     void removeLockReleaseListener(Action<ResourceLock> listener);
+
+    interface OperationResult<T> {
+        OperationResult<Object> RETRY = new OperationResult<Object>() {};
+        OperationResult<Object> COMPLETED_NO_RESULT = new OperationResult<Object>() {};
+    }
+
+    class Finished<T> implements OperationResult<T> {
+        private final T result;
+
+        public Finished(T result) {
+            this.result = result;
+        }
+
+        public T getResult() {
+            return result;
+        }
+    }
+
 }

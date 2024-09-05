@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resources
 
+import com.google.common.base.Function
+import com.google.common.base.Supplier
 import org.gradle.api.Action
 import org.gradle.internal.InternalTransformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -363,6 +365,55 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         true        | false       | FINISHED
         false       | true        | FINISHED
         false       | false       | FINISHED
+    }
+
+    def "can run action once"() {
+        def action = Mock(Runnable)
+
+        when:
+        coordinationService.run(action)
+
+        then:
+        1 * action.run() >> {
+            coordinationService.assertHasStateLock()
+        }
+        0 * action._
+    }
+
+    def "can run action once to produce value"() {
+        Supplier<String> action = Mock(Supplier)
+
+        when:
+        def result = coordinationService.run(action)
+
+        then:
+        result == "result"
+        1 * action.get() >> {
+            coordinationService.assertHasStateLock()
+            "result"
+        }
+        0 * action._
+    }
+
+    def "can run action until it produces value"() {
+        Function<ResourceLockCoordinationService.OperationResult<String>, ResourceLockState> action = Mock(Function)
+
+        when:
+        def result = coordinationService.runUntilFinished(action)
+
+        then:
+        result == "result"
+        1 * action.apply(_) >> {
+            start {
+                // Signal the coordination service that something has changed
+                coordinationService.notifyStateChange()
+            }
+            ResourceLockCoordinationService.OperationResult.RETRY
+        }
+        1 * action.apply(_) >> {
+            new ResourceLockCoordinationService.Finished("result")
+        }
+        0 * action._
     }
 
     def "notifies listener when lock is released"() {

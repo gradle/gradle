@@ -16,15 +16,16 @@
 
 package org.gradle.internal.resources;
 
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,7 +40,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     private DefaultResourceLockState currentState;
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         synchronized (lock) {
             if (!releaseHandlers.isEmpty()) {
                 throw new IllegalStateException("Some lock release listeners have not been removed.");
@@ -70,8 +71,29 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
+    @Nullable
     @Override
-    public void withStateLock(final Runnable action) {
+    public <T> T runUntilFinished(final Function<ResourceLockState, OperationResult<? super T>> action) {
+        final MutableReference<T> result = MutableReference.empty();
+        withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                OperationResult<? super T> operationResult = action.apply(resourceLockState);
+                if (operationResult == OperationResult.RETRY) {
+                    return ResourceLockState.Disposition.RETRY;
+                }
+                if (operationResult instanceof Finished) {
+                    Finished<T> finished = Cast.uncheckedCast(operationResult);
+                    result.set(finished.getResult());
+                }
+                return ResourceLockState.Disposition.FINISHED;
+            }
+        });
+        return result.get();
+    }
+
+    @Override
+    public void run(final Runnable action) {
         withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -82,7 +104,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
-    public <T> T withStateLock(final Supplier<T> action) {
+    public <T> T run(final Supplier<T> action) {
         final MutableReference<T> result = MutableReference.empty();
         withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override

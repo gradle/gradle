@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Cast;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -33,6 +32,7 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockCoordinationService.Finished;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
@@ -55,8 +55,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToLongFunction;
 
-import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
+import static org.gradle.internal.resources.ResourceLockCoordinationService.OperationResult.COMPLETED_NO_RESULT;
+import static org.gradle.internal.resources.ResourceLockCoordinationService.OperationResult.RETRY;
 
 @NonNullApi
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
@@ -127,7 +127,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         Instant expiry = Instant.now().plus(2, ChronoUnit.SECONDS);
         ExecutorState.HealthState healthState;
         do {
-            healthState = coordinationService.withStateLock(() -> state.healthCheck(queue));
+            healthState = coordinationService.run(() -> state.healthCheck(queue));
             if (healthState == null) {
                 // Health is ok
                 return;
@@ -147,14 +147,14 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         System.out.println(healthState.detailMessage);
 
         IllegalStateException failure = new IllegalStateException("Unable to make progress running work. There are items queued for execution but none of them can be started");
-        coordinationService.withStateLock(() -> queue.abortAllAndFail(failure));
+        coordinationService.run(() -> queue.abortAllAndFail(failure));
     }
 
     /**
      * Blocks until all items in the queue have been processed. This method will only return when every item in the queue has either completed, failed or been skipped.
      */
     private void awaitCompletion(WorkSource<?> workSource, WorkerLease workerLease, Collection<? super Throwable> failures) {
-        coordinationService.withStateLock(resourceLockState -> {
+        coordinationService.runUntilFinished(resourceLockState -> {
             if (workSource.allExecutionComplete()) {
                 // Need to hold a worker lease in order to finish up
                 if (!workerLease.isLockedByCurrentThread()) {
@@ -164,7 +164,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 }
                 workSource.collectFailures(failures);
                 queue.removeFinishedPlans();
-                return FINISHED;
+                return COMPLETED_NO_RESULT;
             } else {
                 // Release worker lease (if held) while waiting for work to complete
                 workerLease.unlock();
@@ -265,7 +265,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         }
 
         public void add(PlanDetails planDetails) {
-            coordinationService.withStateLock(() -> {
+            coordinationService.run(() -> {
                 if (finished) {
                     throw new IllegalStateException("This queue has been closed.");
                 }
@@ -283,7 +283,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         @Override
         public void close() throws IOException {
-            coordinationService.withStateLock(() -> {
+            coordinationService.run(() -> {
                 finished = true;
                 if (!queues.isEmpty()) {
                     throw new IllegalStateException("Not all work has completed.");
@@ -377,7 +377,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 }
 
                 if (releaseLeaseOnCompletion) {
-                    coordinationService.withStateLock(() -> workerLease.unlock());
+                    coordinationService.run(() -> workerLease.unlock());
                 }
             } finally {
                 stats.finish();
@@ -392,19 +392,18 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
          */
         @Nullable
         private WorkItem getNextItem(final WorkerLease workerLease) {
-            final MutableReference<WorkItem> selected;
             stats.startSelect();
             try {
-                selected = MutableReference.empty();
-                coordinationService.withStateLock(resourceLockState -> {
+                return coordinationService.runUntilFinished(resourceLockState -> {
                     stats.finishWaitingForNextItem();
                     if (cancellationToken.isCancellationRequested()) {
                         queue.cancelExecution();
                     }
 
+                    // Check whether there may be work available prior to attempting to acquire a worker lease
                     WorkSource.State state = queue.executionState();
                     if (state == WorkSource.State.NoMoreWorkToStart) {
-                        return FINISHED;
+                        return COMPLETED_NO_RESULT;
                     }
 
                     if (!workerLease.tryLock()) {
@@ -422,7 +421,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                         return RETRY;
                     }
 
-                    // Have a worker lease and work may be available
+                    // How have a worker lease and work may be available
 
                     WorkSource.Selection<WorkItem> workItem;
                     try {
@@ -430,10 +429,10 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     } catch (Throwable t) {
                         resourceLockState.releaseLocks();
                         queue.abortAllAndFail(t);
-                        return FINISHED;
+                        return COMPLETED_NO_RESULT;
                     }
                     if (workItem.isNoMoreWorkToStart()) {
-                        return FINISHED;
+                        return COMPLETED_NO_RESULT;
                     } else if (workItem.isNoWorkReadyToStart()) {
                         stats.startWaitingForNextItem();
                         // Release worker lease while waiting
@@ -441,14 +440,11 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                         return RETRY;
                     }
 
-                    selected.set(workItem.getItem());
-                    return FINISHED;
+                    return new Finished<>(workItem.getItem());
                 });
             } finally {
                 stats.finishSelect();
             }
-
-            return selected.get();
         }
 
         private void execute(Object selected, WorkSource<Object> executionPlan, Action<Object> worker) {
@@ -470,7 +466,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         private void markFinished(Object selected, WorkSource<Object> executionPlan, @Nullable Throwable failure) {
             stats.startMarkFinished();
             try {
-                coordinationService.withStateLock(() -> {
+                coordinationService.run(() -> {
                     try {
                         executionPlan.finishedExecuting(selected, failure);
                     } catch (Throwable t) {

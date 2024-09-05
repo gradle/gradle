@@ -679,7 +679,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         when:
         addToGraphAndPopulate([a, b])
-        coordinator.withStateLock {
+        coordinator.run {
             finalizedPlan.cancelExecution()
         }
 
@@ -918,7 +918,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task a = task("a")
         Task b = task("b")
         addToGraphAndPopulate([a, b])
-        coordinator.withStateLock {
+        coordinator.run {
             finalizedPlan.cancelExecution()
         }
 
@@ -1134,7 +1134,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     List<Node> getExecutedNodes() {
         def nodes = []
-        coordinator.withStateLock {
+        coordinator.run {
             while (finalizedPlan.executionState() != WorkSource.State.NoMoreWorkToStart) {
                 assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart // There should always be a node ready to start when executing sequentially
                 def selection = finalizedPlan.selectNext()
