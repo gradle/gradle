@@ -43,23 +43,17 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
-    private final File cachePosition;
 
     private long rangeSize = 2 * 1024 * 1024;// 2 Mb
 
     public HttpResourceAccessor(HttpClientHelper http) {
-        this(http, null);
-    }
-
-    public HttpResourceAccessor(HttpClientHelper http, @Nullable File cachePosition) {
         this.http = http;
-        this.cachePosition = cachePosition;
     }
 
     @Override
     @Nullable
-    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate) {
-        return onOpenResource(location.getUri(), revalidate, http::performGet);
+    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate, @Nullable File cachePosition) {
+        return onOpenResource(location.getUri(), revalidate, cachePosition, http::performGet);
     }
 
     /**
@@ -67,10 +61,10 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
     public ExternalResourceReadResponse getRawResource(final URI uri, boolean revalidate) {
-        return onOpenResource(uri, revalidate, http::performRawGet);
+        return onOpenResource(uri, revalidate, null, http::performRawGet);
     }
 
-    private ExternalResourceReadResponse onOpenResource(final URI location, boolean revalidate, @Nonnull HttpClientResponseProvider provider) {
+    private ExternalResourceReadResponse onOpenResource(final URI location, boolean revalidate, @Nullable File cachePosition, @Nonnull HttpClientResponseProvider provider) {
         String uri = location.toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
@@ -116,7 +110,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
                 throw new ResourceException(location, String.format("Unexpected response code %d when fetching bytes from %d to %d", code, rangeStart, rangeEnd));
             }
         } while (totalReceivedBytes != totalBytes - 1);
-        return new UrlExternalResource().openResource(new ExternalResourceName(cachePosition.toURI()), revalidate);
+        return new UrlExternalResource().openResource(new ExternalResourceName(cachePosition.toURI()), revalidate, cachePosition);
     }
 
     @Override

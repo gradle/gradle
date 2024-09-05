@@ -26,6 +26,7 @@ import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +68,7 @@ public class UrlExternalResource extends AbstractExternalResourceAccessor implem
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate) throws ResourceException {
+    public ExternalResourceReadResponse openResource(final ExternalResourceName location, boolean revalidate, File cachePosition) throws ResourceException {
         try {
             URL url = location.getUri().toURL();
             final URLConnection connection = url.openConnection();

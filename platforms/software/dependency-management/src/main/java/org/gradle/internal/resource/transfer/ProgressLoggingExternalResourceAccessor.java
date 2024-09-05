@@ -29,6 +29,7 @@ import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
@@ -42,8 +43,8 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
     @Nullable
     @Override
-    public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
-        return buildOperationRunner.call(new DownloadOperation<>(location, revalidate, action));
+    public <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        return buildOperationRunner.call(new DownloadOperation<>(location, revalidate, cachePosition, action));
     }
 
     @Override
@@ -108,11 +109,13 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     private class DownloadOperation<T> implements CallableBuildOperation<T> {
         private final ExternalResourceName location;
         private final boolean revalidate;
+        private final File cachePosition;
         private final ExternalResource.ContentAndMetadataAction<T> action;
 
-        public DownloadOperation(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) {
+        public DownloadOperation(ExternalResourceName location, boolean revalidate, @Nullable File cachePosition, ExternalResource.ContentAndMetadataAction<T> action) {
             this.location = location;
             this.revalidate = revalidate;
+            this.cachePosition = cachePosition;
             this.action = action;
         }
 
@@ -120,9 +123,9 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         public T call(BuildOperationContext context) {
             ResourceOperation downloadOperation = createResourceOperation(context, ResourceOperation.Type.download);
             try {
-                return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
+                return delegate.withContent(location, revalidate, cachePosition, (inputStream, metaData) -> {
                     downloadOperation.setContentLength(metaData.getContentLength());
-                    if(metaData.wasMissing()) {
+                    if (metaData.wasMissing()) {
                         context.failed(ResourceExceptions.getMissing(metaData.getLocation()));
                         return null;
                     }
