@@ -35,17 +35,17 @@ import kotlin.reflect.KClass
  * to the proper binding (if one is found).
  *
  * The binding (a tagged codec) is chosen based on the availability of a [Binding.encoding] for the value being encoded.
- * This is basically implemented as a predicate dispatching on the value type, first available Binding.encoding wins
+ * This is basically implemented as a predicate dispatching on the value type, first available [Binding.encoding] wins
  * and its [Binding.tag] is recorded in the output stream so decoding can be implemented via a fast array lookup.
  *
  * @see Binding.tag
  */
-class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
+class BindingsBackedCodec(private val bindings: List<Binding>, private val singletons: List<Any>) : Codec<Any?> {
 
     internal
     companion object {
         private
-        const val NULL_VALUE: Int = -1
+        const val NULL_VALUE: Int = 0
     }
 
     private
@@ -53,26 +53,33 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
-        else -> taggedEncodingFor(value.javaClass).run {
-            writeSmallInt(tag)
-            withDebugFrame({
-                // TODO:configuration-cache evaluate whether we need to unpack the type here
-                // GeneratedSubclasses.unpackType(value).typeName
-                value.javaClass.typeName
-            }) {
-                encoding.run { encode(value) }
-            }
+        else -> {
+            val singletonTag = singletons.indexOfFirst { it === value }
+            if (singletonTag >= 0) {
+                writeSmallInt(singletonTag + 1)
+            } else
+                taggedEncodingFor(value).run {
+                    writeSmallInt(tag + 1 + singletons.size)
+                    withDebugFrame({
+                        // TODO:configuration-cache evaluate whether we need to unpack the type here
+                        // GeneratedSubclasses.unpackType(value).typeName
+                        value.javaClass.typeName
+                    }) {
+                        encoding.run { encode(value) }
+                    }
+                }
         }
     }
 
     override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
         NULL_VALUE -> null
-        else -> bindings[tag].decoding.run { decode() }
+        in 1 .. singletons.size -> singletons[tag - 1]
+        else -> bindings[tag - singletons.size - 1].decoding.run { decode() }
     }
 
     private
-    fun taggedEncodingFor(type: Class<*>): TaggedEncoding =
-        encodings.computeIfAbsent(type, ::computeEncoding)
+    fun taggedEncodingFor(value: Any): TaggedEncoding =
+        encodings.computeIfAbsent(value::class.java, ::computeEncoding)
 
     private
     fun computeEncoding(type: Class<*>): TaggedEncoding {
@@ -124,27 +131,31 @@ typealias Decoding = DecodingProvider<Any>
  * An immutable set of bindings, from which a [Codec] can be created.
  */
 class Bindings(
-    private val bindings: ImmutableList<Binding>
+    private val bindings: ImmutableList<Binding>,
+    private val singletons: List<Any>
 ) {
     companion object {
-        fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(emptyList()).apply(builder).build()
+        fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(emptyList(), emptyList()).apply(builder).build()
     }
 
     /**
      * Builds a new set of bindings based on the current bindings plus any bindings created via the given builder.
      */
-    fun append(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(bindings).apply(builder).build()
+    fun append(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(bindings, singletons).apply(builder).build()
 
-    fun build() = BindingsBackedCodec(bindings)
+    fun build() = BindingsBackedCodec(bindings, singletons)
 }
 
 
-class BindingsBuilder(initialBindings: List<Binding>) {
+class BindingsBuilder(initialBindings: List<Binding>, initialSingletons: List<Any>) {
 
     private
     val bindings = ArrayList(initialBindings)
 
-    fun build() = Bindings(ImmutableList.copyOf(bindings))
+    private
+    val singletons = ArrayList(initialSingletons)
+
+    fun build() = Bindings(ImmutableList.copyOf(bindings), ImmutableList.copyOf(singletons))
 
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)
@@ -181,6 +192,10 @@ class BindingsBuilder(initialBindings: List<Binding>) {
                 decoding = decoding
             )
         )
+    }
+
+    fun withSingleton(singleton: Any) {
+        singletons.add(singleton)
     }
 
     private
