@@ -49,10 +49,10 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         CodeNarcExtension codenarc = project.extensions.codenarc
         codenarc.config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
-        codenarc.maxPriority1Violations == 0
-        codenarc.maxPriority2Violations == 0
-        codenarc.maxPriority3Violations == 0
-        codenarc.reportFormat == "html"
+        codenarc.maxPriority1Violations.get() == 0
+        codenarc.maxPriority2Violations.get() == 0
+        codenarc.maxPriority3Violations.get() == 0
+        codenarc.reportFormat.get() == "html"
         codenarc.reportsDir.asFile.get() == project.file("build/reports/codenarc")
         codenarc.sourceSets.get() == []
         !codenarc.ignoreFailures.get()
