@@ -68,6 +68,8 @@ To enable the feature in `gradle.properties`:
 org.gradle.configuration-cache.parallel=true
 ```
 
+Note that this is an incubating feature and may expose concurrency issues in some builds. 
+
 See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
 
 <a name="native-plugin-improvements"></a>
