@@ -20,8 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -34,11 +34,14 @@ import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyRep
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,9 +51,11 @@ import java.util.stream.Collectors;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractDependencyReportTask extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
 
+    private final Transient<SetProperty<Configuration>> configurations = Transient.of(getObjectFactory().setProperty(Configuration.class));
+
     public AbstractDependencyReportTask() {
         getRenderer().convention(new AsciiDependencyReportRenderer()).finalizeValueOnRead();
-        getConfigurations().add(getSelectedConfiguration().map(name -> ConfigurationFinder.find(getTaskConfigurations().get(), name)));
+        getConfigurations().add(getSelectedConfiguration().map(name -> ConfigurationFinder.find(getTaskConfigurations(), name)));
     }
 
     @Override
@@ -103,22 +108,30 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      */
     @Internal
     @ReplacesEagerProperty
-    public abstract SetProperty<Configuration> getConfigurations();
+    public SetProperty<Configuration> getConfigurations() {
+        return Objects.requireNonNull(configurations.get());
+    }
 
     /**
      * The single configuration (by name) to generate the report for.
      *
-     * @since 9.0
+     * @since 9.1.0
      */
     @Input
     @Optional
+    @Incubating
     @Option(option = "configuration", description = "The configuration to generate the report for.")
-    @ReplacesEagerProperty(replacedAccessors = {@ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setConfiguration")})
     public abstract Property<String> getSelectedConfiguration();
+
+    @Deprecated
+    public void setConfiguration(String configuration) {
+        ProviderApiDeprecationLogger.logDeprecation(AbstractDependencyReportTask.class, "setConfiguration(String)", "getSelectedConfiguration()");
+        getSelectedConfiguration().set(configuration);
+    }
 
     private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
-        for (Configuration configuration : getTaskConfigurations().get()) {
+        for (Configuration configuration : getTaskConfigurations()) {
             if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
@@ -126,9 +139,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         return filteredConfigurations;
     }
 
-    @Internal
-    @ReplacesEagerProperty
-    public Provider<ConfigurationContainer> getTaskConfigurations() {
-        return getProject().provider(() -> getProject().getConfigurations());
-    }
+    @Inject
+    protected abstract ConfigurationContainer getTaskConfigurations();
 }
