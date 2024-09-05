@@ -44,6 +44,7 @@ import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import java.lang.reflect.GenericSignatureFormatError
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
@@ -163,8 +164,13 @@ private fun collectNestedContainerFactories(containerClass: Class<*>): Container
     val accessibleKotlinType = containerClass.firstPublicKotlinAccessorType?.kotlin
         ?: return emptyList()
 
-    val memberPropertiesAndGetters =
+    @Suppress("SwallowedException")
+    val memberPropertiesAndGetters = try {
         accessibleKotlinType.memberProperties + accessibleKotlinType.memberFunctions.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
+    } catch (e: ClassFormatError) {
+        // some instrumented classes have generic signatures that fail class verification when read by Java or Kotlin reflection, e.g. "__locked__" fields in AGP
+        return emptyList()
+    }
 
     val elementTypes = memberPropertiesAndGetters.mapNotNullTo(hashSetOf()) {
         DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.returnType)
