@@ -42,7 +42,7 @@ class S3ResourceConnectorTest extends Specification {
         }
 
         when:
-        def s3Resource = new S3ResourceConnector(s3Client).openResource(name, false, cachePosition)
+        def s3Resource = new S3ResourceConnector(s3Client).openResource(name, false, null)
 
         then:
         s3Resource != null
