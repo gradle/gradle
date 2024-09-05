@@ -591,6 +591,25 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public int hashCode() {
+        return getIdentityPath().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (other instanceof ProjectInternal) {
+            return getIdentityPath().equals(((ProjectInternal) other).getIdentityPath());
+        }
+        return false;
+    }
+
+    @Override
     public String absoluteProjectPath(String path) {
         return getProjectPath().absolutePath(path);
     }

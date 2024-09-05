@@ -29,7 +29,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'root'
             include(":a")
         """
-        buildFile"""
+        buildFile """
             allprojects {
                 ext.foo = "bar"
             }
@@ -52,7 +52,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile"""
+        buildFile """
             project(':a') {
                 println("a contains foo: \${it.hasProperty('foo')}")
             }
@@ -72,7 +72,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
             include(":a")
         """
         file("a/build.gradle") << ""
-        buildFile"""
+        buildFile """
             project(':a') {
                 foo='bar1'
             }
