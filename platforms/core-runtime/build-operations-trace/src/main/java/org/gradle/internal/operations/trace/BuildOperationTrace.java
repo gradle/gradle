@@ -27,6 +27,7 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -498,6 +499,7 @@ public class BuildOperationTrace implements Stoppable {
         return new JsonGenerator.Options()
             .addConverter(new JsonClassConverter())
             .addConverter(new JsonThrowableConverter())
+            .excludeFieldsByType(Task.class)
             .build();
     }
 

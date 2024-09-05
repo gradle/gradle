@@ -19,6 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.internal.ToBeImplemented
 
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
@@ -146,7 +147,7 @@ includeBuild '../buildB'
         assertTaskExecuted(":buildB", ":jar")
     }
 
-    // Included build tasks are incorrect executed with `--dry-run`. See gradle/composite-builds#113
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/2517")
     def "does not execute task actions when dry run specified on composite build"() {
         given:
         dependency 'org.test:buildB:1.0'

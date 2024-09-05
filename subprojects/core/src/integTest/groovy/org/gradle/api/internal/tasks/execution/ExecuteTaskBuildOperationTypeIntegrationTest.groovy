@@ -48,6 +48,29 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.result.upToDateMessages == []
     }
 
+    def "emits operation for task execution with --dry-run"() {
+        when:
+        buildFile """
+            task t {}
+        """
+        succeeds "t", "--dry-run"
+
+        then:
+        def op = operations.first(ExecuteTaskBuildOperationType) {
+            it.details.taskPath == ":t"
+        }
+        op.details.buildPath == ":"
+        op.details.taskClass == DefaultTask.name
+        op.details.taskId != null
+
+        op.result.cachingDisabledReasonCategory == "UNKNOWN"
+        op.result.cachingDisabledReasonMessage == "Cacheability was not determined"
+        op.result.skipMessage == "SKIPPED"
+        op.result.actionable == false
+        op.result.originBuildInvocationId == null
+        op.result.upToDateMessages == null
+    }
+
     def "emits operation result for failed task execution"() {
         when:
         buildFile """

@@ -18,7 +18,6 @@ package org.gradle.internal.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -100,7 +99,7 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
                 runningTransformActions.remove(mandatoryIdOf(buildOperation));
             } else {
                 Object details = buildOperation.getDetails();
-                if (details instanceof ExecuteTaskBuildOperationType.Details) {
+                if (details instanceof ExecuteTaskBuildOperationDetails) {
                     Object removed = runningTasks.remove(mandatoryIdOf(buildOperation));
                     if (removed == null) {
                         throw new IllegalStateException(format("Task build operation %s was finished without being started.", buildOperation));
