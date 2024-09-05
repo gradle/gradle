@@ -48,7 +48,9 @@ import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 
 
-class DefaultProjectSchemaProvider : ProjectSchemaProvider {
+class DefaultProjectSchemaProvider(
+    private val dclSchemaCache: KotlinDslDclSchemaCache
+) : ProjectSchemaProvider {
 
     override fun schemaFor(scriptTarget: Any): TypedProjectSchema? =
         targetTypeOf(scriptTarget)
@@ -78,8 +80,69 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
         is Settings -> typeOfSettings
         else -> null
     }
-}
 
+    internal fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
+        val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+        val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
+
+        fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
+            if (target is ExtensionAware) {
+                accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
+                    extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
+                    collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
+                }
+            }
+            if (target is Project) {
+                @Suppress("deprecation")
+                val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
+                accessibleConventionsSchema(plugins).forEach { (name, type) ->
+                    conventions.add(ProjectSchemaEntry(targetType, name, type))
+                    val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
+                    collectSchemaOf(plugin, type)
+                }
+                accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
+                    tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
+                }
+                collectSchemaOf(target.dependencies, typeOfDependencyHandler)
+                collectSchemaOf(target.repositories, typeOfRepositoryHandler)
+                // WARN eagerly realize all source sets
+                sourceSetsOf(target)?.forEach { sourceSet ->
+                    collectSchemaOf(sourceSet, typeOfSourceSet)
+                }
+            }
+            if (target is Settings) {
+                val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
+                accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
+                    buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
+                }
+            }
+            if (target is NamedDomainObjectContainer<*>) {
+                accessibleContainerSchema(target.collectionSchema).forEach { schema ->
+                    containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
+                }
+            }
+
+            dclSchemaCache.getOrPutContainerElementFactories(targetType.concreteClass) {
+                collectNestedContainerFactories(targetType.concreteClass)
+            }.forEach(containerElementFactories::add)
+        }
+
+        collectSchemaOf(target, targetType)
+
+        return TargetTypedSchema(
+            extensions,
+            conventions,
+            tasks,
+            containerElements,
+            buildModelDefaults,
+            containerElementFactories
+        )
+    }
+}
 
 internal
 data class TargetTypedSchema(
@@ -90,69 +153,6 @@ data class TargetTypedSchema(
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
-
-
-internal
-fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
-
-    val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
-
-    fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
-        if (target is ExtensionAware) {
-            accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
-                extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-                collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
-            }
-        }
-        if (target is Project) {
-            @Suppress("deprecation")
-            val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
-            accessibleConventionsSchema(plugins).forEach { (name, type) ->
-                conventions.add(ProjectSchemaEntry(targetType, name, type))
-                val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
-                collectSchemaOf(plugin, type)
-            }
-            accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
-                tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
-            }
-            collectSchemaOf(target.dependencies, typeOfDependencyHandler)
-            collectSchemaOf(target.repositories, typeOfRepositoryHandler)
-            // WARN eagerly realize all source sets
-            sourceSetsOf(target)?.forEach { sourceSet ->
-                collectSchemaOf(sourceSet, typeOfSourceSet)
-            }
-        }
-        if (target is Settings) {
-            val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
-            accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
-                buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
-            }
-        }
-        if (target is NamedDomainObjectContainer<*>) {
-            accessibleContainerSchema(target.collectionSchema).forEach { schema ->
-                containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-            }
-        }
-
-        collectNestedContainerFactories(targetType.concreteClass).forEach(containerElementFactories::add)
-    }
-
-    collectSchemaOf(target, targetType)
-
-    return TargetTypedSchema(
-        extensions,
-        conventions,
-        tasks,
-        containerElements,
-        buildModelDefaults,
-        containerElementFactories
-    )
-}
 
 private fun collectNestedContainerFactories(containerClass: Class<*>): List<ContainerElementFactoryEntry<TypeOf<*>>> {
     val getters = containerClass.methods.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
