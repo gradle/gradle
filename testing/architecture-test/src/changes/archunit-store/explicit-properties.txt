@@ -4,13 +4,11 @@ Method <org.gradle.api.plugins.antlr.AntlrTask.getIsTraceParser()> is not abstra
 Method <org.gradle.api.plugins.antlr.AntlrTask.getIsTraceTreeWalker()> is not abstract
 Method <org.gradle.api.plugins.antlr.AntlrTask.getSource()> is not abstract
 Method <org.gradle.api.plugins.antlr.AntlrTask.getStableSources()> is not abstract
-Method <org.gradle.api.plugins.quality.Checkstyle.getCheckstyleClasspath()> is not abstract
-Method <org.gradle.api.plugins.quality.Checkstyle.getClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getEnableExternalDtdLoad()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getIsIgnoreFailures()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getIsShowViolations()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getSource()> is not abstract
-Method <org.gradle.api.plugins.quality.CodeNarc.getCodenarcClasspath()> is not abstract
-Method <org.gradle.api.plugins.quality.CodeNarc.getCompilationClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.CodeNarc.getSource()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getIncrementalAnalysis()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getIncrementalCacheFile()> is not abstract

@@ -18,6 +18,7 @@ package gradlebuild.docs;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
@@ -137,13 +138,13 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.source(extension.getDocumentedSource());
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
-            task.setClasspath(layout.files());
+            new CheckstyleSupport(task).setClasspath(layout.files());
             task.getReports().getXml().getOutputLocation().set(getCheckstyleOutputLocation(checkstyle, objects));
         });
     }
 
     /**
-     * TODO: Remove this workaround after Gradle 9
+     * TODO: Remove this workaround after Gradle 10
      */
     @SuppressWarnings({"ConstantValue", "CastCanBeRemovedNarrowingVariableType"})
     private static Provider<RegularFile> getCheckstyleOutputLocation(CheckstyleExtension checkstyle, ObjectFactory objects) {
@@ -160,6 +161,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
      *
      * TODO: Remove this workaround after Gradle 10
      */
+
+    @Deprecated
     private static class JavadocSupport {
 
         private final Javadoc javadoc;
@@ -169,47 +172,63 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         }
 
         public void setTitle(String title) {
-            setProperty("setTitle", title);
+            setProperty(javadoc, "setTitle", title);
         }
 
         public void setClasspath(FileCollection classpath) {
-            setProperty("setClasspath", classpath);
+            setProperty(javadoc, "setClasspath", classpath);
         }
 
         public void setDestinationDir(File destinationDir) {
-            setProperty("setDestinationDir", destinationDir);
+            setProperty(javadoc, "setDestinationDir", destinationDir);
+        }
+    }
+
+    /**
+     * TODO: Remove this workaround after Gradle 9
+     */
+    @Deprecated
+    private static class CheckstyleSupport {
+        private final Checkstyle checkstyle;
+
+        public CheckstyleSupport(Checkstyle checkstyle) {
+            this.checkstyle = checkstyle;
         }
 
-        private <T> void setProperty(String setterName, T value) {
-            if (GradleVersion.current().compareTo(GradleVersion.version("10.0")) < 0) {
-                setPropertyPreGradle10(setterName, value);
-            } else {
-                setPropertyPostGradle10(setterName, value);
-            }
+        public void setClasspath(FileCollection classpath) {
+            setProperty(checkstyle, "setClasspath", classpath);
         }
+    }
 
-        private void setPropertyPostGradle10(String setterName, Object value) {
-            try {
-                // Javadoc is Javadoc_Decorated, so it has set<Property>(Object) setter
-                javadoc.getClass().getMethod(setterName, Object.class).invoke(javadoc, value);
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
+    private static  <T> void setProperty(Task task, String setterName, T value) {
+        if (GradleVersion.current().compareTo(GradleVersion.version("10.0")) < 0) {
+            setPropertyPreGradle10(task, setterName, value);
+        } else {
+            setPropertyPostGradle10(task, setterName, value);
         }
+    }
 
-        private void setPropertyPreGradle10(String setterName, Object value) {
-            try {
-                for (Method method : javadoc.getClass().getMethods()) {
-                    if (method.getParameters().length == 1
-                        && method.getName().equals(setterName)
-                        && method.getParameters()[0].getType().isAssignableFrom(value.getClass())) {
-                        method.invoke(javadoc, value);
-                        return;
-                    }
+    private static void setPropertyPostGradle10(Task task, String setterName, Object value) {
+        try {
+            // Task is Task_Decorated, so it has set<Property>(Object) setter
+            task.getClass().getMethod(setterName, Object.class).invoke(task, value);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void setPropertyPreGradle10(Task task, String setterName, Object value) {
+        try {
+            for (Method method : task.getClass().getMethods()) {
+                if (method.getParameters().length == 1
+                    && method.getName().equals(setterName)
+                    && method.getParameters()[0].getType().isAssignableFrom(value.getClass())) {
+                    method.invoke(task, value);
+                    return;
                 }
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
             }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
     }
 
