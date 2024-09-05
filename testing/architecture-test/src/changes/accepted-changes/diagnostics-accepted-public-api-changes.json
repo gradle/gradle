@@ -17,6 +17,15 @@
             ]
         },
         {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()",
+            "acceptation": "Should only be used to track inputs",
+            "changes": [
+                "Method is less accessible",
+                "Method return type has changed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getRenderer()",
             "acceptation": "It was made abstract to support idiomatic property getter",
