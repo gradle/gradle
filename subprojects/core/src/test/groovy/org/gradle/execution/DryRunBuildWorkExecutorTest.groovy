@@ -27,14 +27,14 @@ import spock.lang.Specification
 
 import static org.gradle.util.internal.WrapUtil.toList
 
-class DryRunBuildExecutionActionTest extends Specification {
+class DryRunBuildWorkExecutorTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator
     def delegate = Mock(BuildWorkExecutor)
     def executionPlan = Mock(FinalizedExecutionPlan)
     def gradle = Mock(GradleInternal)
     def startParameter = Mock(StartParameterInternal)
     def textOutputFactory = new TestStyledTextOutputFactory()
-    def action = new DryRunBuildExecutionAction(textOutputFactory, delegate)
+    def action = new DryRunBuildWorkExecutor(textOutputFactory, delegate)
 
     def setup() {
         _ * gradle.getStartParameter() >> startParameter
@@ -43,7 +43,7 @@ class DryRunBuildExecutionActionTest extends Specification {
     def "print all selected tasks before proceeding when dry run is enabled"() {
         def task1 = Mock(TaskInternal.class)
         def task2 = Mock(TaskInternal.class)
-        def category = DryRunBuildExecutionAction.class.name
+        def category = DryRunBuildWorkExecutor.class.name
         def contents = Mock(QueryableExecutionPlan)
 
         given:

@@ -42,7 +42,7 @@ import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildTaskScheduler;
-import org.gradle.execution.DryRunBuildExecutionAction;
+import org.gradle.execution.DryRunBuildWorkExecutor;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
@@ -93,7 +93,7 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     @Provides
     BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationRunner buildOperationRunner) {
         return new BuildOperationFiringBuildWorkerExecutor(
-            new DryRunBuildExecutionAction(textOutputFactory,
+            new DryRunBuildWorkExecutor(textOutputFactory,
                 new SelectedTaskExecutionAction()),
             buildOperationRunner);
     }

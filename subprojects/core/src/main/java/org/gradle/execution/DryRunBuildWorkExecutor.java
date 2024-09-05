@@ -26,11 +26,11 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 /**
  * A {@link BuildWorkExecutor} that disables all selected tasks before they are executed.
  */
-public class DryRunBuildExecutionAction implements BuildWorkExecutor {
+public class DryRunBuildWorkExecutor implements BuildWorkExecutor {
     private final StyledTextOutputFactory textOutputFactory;
     private final BuildWorkExecutor delegate;
 
-    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory, BuildWorkExecutor delegate) {
+    public DryRunBuildWorkExecutor(StyledTextOutputFactory textOutputFactory, BuildWorkExecutor delegate) {
         this.textOutputFactory = textOutputFactory;
         this.delegate = delegate;
     }
@@ -39,7 +39,7 @@ public class DryRunBuildExecutionAction implements BuildWorkExecutor {
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
         if (gradle.getStartParameter().isDryRun()) {
             for (Task task : plan.getContents().getTasks()) {
-                textOutputFactory.create(DryRunBuildExecutionAction.class)
+                textOutputFactory.create(DryRunBuildWorkExecutor.class)
                     .append(((TaskInternal) task).getIdentityPath().getPath())
                     .append(" ")
                     .style(StyledTextOutput.Style.ProgressStatus)
