@@ -287,7 +287,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
         lock.lock();
         try {
             if (notReleased.size() < count) {
-                throw new IllegalStateException("Too few requests released, should wait for pending calls first.");
+                throw new IllegalStateException("Too few requests received, should wait for pending calls first.");
             }
             for (int i = 0; i < count; i++) {
                 ResourceHandlerWrapper resourceHandler = notReleased.removeFirst();

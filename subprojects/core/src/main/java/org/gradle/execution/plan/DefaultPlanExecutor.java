@@ -406,6 +406,11 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                         return COMPLETED_NO_RESULT;
                     }
 
+                    if (workerLeaseService.isWorkersWaitingToRestartWork()) {
+                        System.out.println(Thread.currentThread() + " -> WORKERS WAITING TO RESTART WORK, WOULD GIVE UP LEASE");
+                        throw new RuntimeException("WOULD GIVE UP LEASE");
+                    }
+
                     if (!workerLease.tryLock()) {
                         // Cannot get a lease to run work
                         // Do not call `startWaitingForNextItem()` as there may be work available but this worker cannot start it, and so should not be considered "waiting for work".

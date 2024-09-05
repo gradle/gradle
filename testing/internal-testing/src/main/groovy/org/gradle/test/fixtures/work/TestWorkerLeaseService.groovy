@@ -72,6 +72,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    boolean isWorkersWaitingToRestartWork() {
+        return false
+    }
+
+    @Override
     WorkerLease getCurrentWorkerLease() {
         return workerLease()
     }

@@ -32,6 +32,11 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
     int getMaxWorkerCount();
 
     /**
+     * Returns true when there are workers waiting to restart work.
+     */
+    boolean isWorkersWaitingToRestartWork();
+
+    /**
      * Runs a given {@link Factory} while the specified locks are being held, releasing
      * the locks upon completion.  Blocks until the specified locks can be obtained.
      */
