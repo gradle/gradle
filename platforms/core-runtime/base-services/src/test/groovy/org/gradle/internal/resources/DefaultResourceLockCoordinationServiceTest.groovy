@@ -396,24 +396,34 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     }
 
     def "can run action until it produces value"() {
-        Function<ResourceLockCoordinationService.OperationResult<String>, ResourceLockState> action = Mock(Function)
+        def counter = 0
+        def action = { state ->
+            if (counter == 0) {
+                instant.actionStarted
+                counter++
+                ResourceLockCoordinationService.OperationResult.RETRY
+            } else {
+                new ResourceLockCoordinationService.Finished("result")
+            }
+        } as Function<ResourceLockState, ResourceLockCoordinationService.OperationResult<String>>
+
+        String result = null
 
         when:
-        def result = coordinationService.runUntilFinished(action)
-
-        then:
-        result == "result"
-        1 * action.apply(_) >> {
+        // Need to use multiple threads so that one thread can be blocked waiting for resource state to change while another signals that the change
+        async {
             start {
+                result = coordinationService.runUntilFinished(action)
+            }
+            thread.blockUntil.actionStarted
+            coordinationService.run {
                 // Signal the coordination service that something has changed
                 coordinationService.notifyStateChange()
             }
-            ResourceLockCoordinationService.OperationResult.RETRY
         }
-        1 * action.apply(_) >> {
-            new ResourceLockCoordinationService.Finished("result")
-        }
-        0 * action._
+
+        then:
+        result == "result"
     }
 
     def "notifies listener when lock is released"() {
