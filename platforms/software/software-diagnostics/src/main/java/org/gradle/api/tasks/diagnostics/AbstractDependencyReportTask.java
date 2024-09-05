@@ -34,11 +34,13 @@ import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyRep
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,8 @@ import java.util.stream.Collectors;
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractDependencyReportTask extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
+
+    private final Transient<SetProperty<Configuration>> configurations = Transient.of(getObjectFactory().setProperty(Configuration.class));
 
     public AbstractDependencyReportTask() {
         getRenderer().convention(new AsciiDependencyReportRenderer()).finalizeValueOnRead();
@@ -103,7 +107,9 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      */
     @Internal
     @ReplacesEagerProperty
-    public abstract SetProperty<Configuration> getConfigurations();
+    public SetProperty<Configuration> getConfigurations() {
+        return Objects.requireNonNull(configurations.get());
+    }
 
     /**
      * The single configuration (by name) to generate the report for.
