@@ -71,7 +71,7 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
     def "can set spec and configuration via methods"() {
         when:
         project.configurations.create("foo")
-        task.configurationName = 'foo'
+        task.configuration = 'foo'
         task.getDependencyNotation().set('bar')
         then:
         task.getEffectiveDependencySpec().isPresent()
@@ -81,7 +81,7 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
     def "can limit the paths to a dependency"() {
         when:
         project.configurations.create("foo")
-        task.configurationName = 'foo'
+        task.configuration = 'foo'
         task.getDependencyNotation().set('bar')
         task.setShowSinglePathToDependency true
 
@@ -96,7 +96,7 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         def confB = project.configurations.create("confBravo")
 
         when:
-        task.configurationName = 'coB'
+        task.configuration = 'coB'
         task.dependencySpec { true }
 
         then:
@@ -109,7 +109,7 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         project.configurations.create("confAlfa")
 
         when:
-        task.configurationName = 'coA'
+        task.configuration = 'coA'
         task.dependencySpec { true }
         task.report()
 
@@ -130,7 +130,7 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
 
         when:
         project.evaluate()
-        task.configurationName = "confBravo"
+        task.configuration = "confBravo"
 
         then:
         task.configuration.get() == project.configurations.confBravo
