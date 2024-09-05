@@ -13,6 +13,7 @@ tasks.configCacheIntegTest {
 
 dependencies {
     api(projects.baseServices)
+    api(projects.classloading)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)

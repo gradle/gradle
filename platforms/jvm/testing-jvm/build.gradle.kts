@@ -22,6 +22,7 @@ dependencies {
     api(projects.time)
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.classloading)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)

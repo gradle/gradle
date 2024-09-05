@@ -10,6 +10,7 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
+    implementation(projects.classloading)
     implementation(projects.coreApi)
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslProvider)

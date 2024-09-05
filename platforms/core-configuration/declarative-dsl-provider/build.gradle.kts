@@ -20,6 +20,7 @@ plugins {
 
 dependencies {
     api(projects.serviceProvider)
+    api(projects.classloading)
     api(projects.core)
     api(projects.coreApi)
     api(projects.declarativeDslApi)

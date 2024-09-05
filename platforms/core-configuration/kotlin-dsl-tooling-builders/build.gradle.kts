@@ -9,6 +9,7 @@ dependencies {
     api(projects.core)
     api(libs.kotlinStdlib)
 
+    implementation(projects.classloading)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)

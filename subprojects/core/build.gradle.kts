@@ -129,7 +129,6 @@ dependencies {
 
     implementation(projects.buildOperationsTrace)
     implementation(projects.io)
-    implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.problemsRendering)
@@ -144,6 +143,7 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
+    implementation(libs.groovyTemplates)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {

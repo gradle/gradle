@@ -47,6 +47,7 @@ errorprone {
 
 
 dependencies {
+    api(projects.classloading)
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.serialization)

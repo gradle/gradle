@@ -14,6 +14,7 @@ errorprone {
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
+    api(projects.classloading)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)

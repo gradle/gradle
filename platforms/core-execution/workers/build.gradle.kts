@@ -7,6 +7,7 @@ description = "Infrastructure for starting and managing worker processes"
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.classloading)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)

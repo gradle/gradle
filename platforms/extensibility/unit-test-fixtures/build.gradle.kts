@@ -35,6 +35,7 @@ dependencies {
     api(projects.buildProcessServices)
 
     implementation(projects.buildState)
+    implementation(projects.classloading)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)

@@ -32,6 +32,7 @@ dependencies {
     api(projects.logging)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.classloading)
     implementation(projects.coreApi)
     implementation(projects.messaging)
     implementation(projects.concurrent)
