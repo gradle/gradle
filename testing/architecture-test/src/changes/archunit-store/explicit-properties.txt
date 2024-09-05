@@ -23,6 +23,7 @@ Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getOutputFile()> is 
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getPublication()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getPublications()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getSuppressedValidationErrors()> is not abstract
+Method <org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()> is not abstract
 Method <org.gradle.api.tasks.AbstractCopyTask.getDirPermissions()> is not abstract
 Method <org.gradle.api.tasks.AbstractCopyTask.getFilePermissions()> is not abstract
 Method <org.gradle.api.tasks.AbstractCopyTask.getSource()> is not abstract
@@ -57,8 +58,12 @@ Method <org.gradle.api.tasks.compile.JavaCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getSource()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getStableSources()> is not abstract
-Method <org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getConfigurations()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjects()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfiguration()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getEffectiveDependencySpec()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getIsShowSinglePathToDependency()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getIsShowDetail()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getAccess()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIncludeAuthor()> is not abstract
