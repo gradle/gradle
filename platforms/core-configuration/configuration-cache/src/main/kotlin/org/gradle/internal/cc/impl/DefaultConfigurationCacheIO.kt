@@ -232,7 +232,7 @@ class DefaultConfigurationCacheIO internal constructor(
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
         return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
-            val collector = Collector()
+            val collector = getCollector()
             withParallelStringDecoderFor(stateFile) { stringEncoder ->
                 readConfigurationCacheStateWithStringDecoder(stringEncoder, stateFile) {
                     require(this is DefaultReadContext)
@@ -247,13 +247,19 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
+    private fun getCollector(): Collector =
+        if (startParameter.collectStats)
+            DefaultCollector()
+        else
+            NullCollector()
+
     private
     fun <T> writeConfigurationCacheState(
         stateFile: ConfigurationCacheStateFile,
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
         return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
-            val collector = Collector()
+            val collector = getCollector()
             withParallelStringEncoderFor(stateFile) { stringEncoder ->
                 writeConfigurationCacheStateWithStringEncoder(stringEncoder, stateFile) {
                     require(this is DefaultWriteContext)
@@ -269,10 +275,26 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
 
+    interface Collector {
+        fun collect(obj: Any?)
+        fun printStats(context: String)
+    }
+
+
     private
-    class Collector {
+    class NullCollector: Collector {
+        override fun collect(obj: Any?) {
+        }
+        override fun printStats(context: String) {
+        }
+    }
+
+
+    private
+    class DefaultCollector: Collector {
         val stats = IdentityHashMap<Any, AtomicInteger>()
-        fun collect(obj: Any?) {
+
+        override fun collect(obj: Any?) {
             obj?.takeUnless {
                 Primitives.isWrapperType(it.javaClass) || it.javaClass.isEnum || it is String || it is File || it is Class<*>
             }?.let {
@@ -282,7 +304,7 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
 
-        fun printStats(context: String) {
+        override fun printStats(context: String) {
             println("Stats for $context: ${stats.size}")
             stats.asSequence()
                 .filter { it.value.get() > 1 }
