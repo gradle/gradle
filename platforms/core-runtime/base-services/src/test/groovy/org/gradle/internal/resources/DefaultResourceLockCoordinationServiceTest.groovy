@@ -396,8 +396,10 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     }
 
     def "can run action until it produces value"() {
+        // Need to use multiple threads so that one thread can be blocked waiting for resource state to change while another signals that the change
         def counter = 0
         def action = { state ->
+            coordinationService.assertHasStateLock()
             if (counter == 0) {
                 instant.actionStarted
                 counter++
@@ -410,7 +412,6 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         String result = null
 
         when:
-        // Need to use multiple threads so that one thread can be blocked waiting for resource state to change while another signals that the change
         async {
             start {
                 result = coordinationService.runUntilFinished(action)
