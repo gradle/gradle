@@ -13,71 +13,94 @@
 // limitations under the License.
 
 [[resolution_rules]]
-= Customizing resolution of a dependency directly
+= Using Resolution Rules
 
-This section covers mechanisms Gradle offers to directly influence the behavior of the dependency resolution engine.
-In contrast to the other concepts covered in this chapter, like <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> or <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rules>>, which are all *inputs* to resolution, the following mechanisms allow you to write rules which are directly injected into the resolution engine.
-Because of this, they can be seen as _brute force_ solutions, that may hide future problems (e.g. if new dependencies are added).
-Therefore, the general advice is to only use the following mechanisms if other means are not sufficient.
-If you are authoring a <<library_vs_application.adoc#sec:understanding-diff-libraries-and-apps,library>>, you should always prefer <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> as they are published for your consumers.
+Gradle provides several mechanisms to directly influence the behavior of the dependency resolution engine.
+
+Unlike <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> or <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rules>>, which serve as inputs to the resolution process, these mechanisms allow you to inject rules directly into the resolution engine.
+Because of their direct impact, they can be considered brute-force solutions that may mask underlying issues, such as the introduction of new dependencies.
+It's generally advisable to resort to these methods only when other approaches are insufficient.
+If you're developing a <<library_vs_application.adoc#sec:understanding-diff-libraries-and-apps,library>>, it's best to use <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>, as they are shared with your consumers.
 
 [[sec:dependency_resolve_rules]]
 == Using dependency resolve rules
 
-A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved.
-The feature currently offers the ability to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely different module during resolution.
+Dependency resolve rules are executed for each dependency as it's being resolved, providing a powerful API to modify a dependency's attributes—such as group, name, or version—before the resolution is finalized.
+This allows for advanced control over dependency resolution, enabling you to substitute one module for another during the resolution process.
 
-Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management.
-Some of these patterns are outlined below.
-For more information and code samples see the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] class in the API documentation.
+This feature is particularly useful for implementing advanced dependency management patterns.
+With resolve rules, you can redirect dependencies to specific versions or even different modules entirely, allowing you to enforce consistent versions across a project or override problematic dependencies.
+
+[source,kotlin]
+----
+configurations.all {
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == "com.example" && details.requested.name == "old-library") {
+                details.useTarget("com.example:new-library:1.0.0")
+            }
+        }
+    }
+}
+----
+
+In this example, if a dependency on `com.example:old-library` is requested, it will be substituted with `com.example:new-library:1.0.0` during resolution.
+
+For more advanced usage and additional examples, refer to the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] class in the API documentation.
 
 [[sec:custom_versioning_scheme]]
 === Implementing a custom versioning scheme
 
-In some corporate environments, the list of module versions that can be declared in Gradle builds is maintained and audited externally.
-Dependency resolve rules provide a neat implementation of this pattern:
+In some corporate environments, module versions in Gradle builds are maintained and audited externally.
+Dependency resolve rules offer an effective way to implement this:
 
-* In the build script, the developer declares dependencies with the module group and name, but uses a placeholder version, for example: `default`.
-* The `default` version is resolved to a specific version via a dependency resolve rule, which looks up the version in a corporate catalog of approved modules.
+- Developers declare dependencies in the build script using the module’s group and name, but specify a placeholder version like `default`.
+- A dependency resolve rule then resolves the `default` version to an approved version, which is retrieved from a corporate catalog of sanctioned modules.
 
-This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
+This approach ensures that only approved versions are used, while allowing developers to work with a simplified and consistent versioning scheme.
 
-.Using a custom versioning scheme
+The rule implementation can be encapsulated in a corporate plugin, making it easy to apply across all projects within the organization:
+
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
 ====
 
+In this setup, whenever a developer specifies `default` as the version, the resolve rule replaces it with the approved version from the corporate catalog.
+
+This strategy ensures compliance with corporate policies while providing flexibility and ease of use for developers.
+Encapsulating this logic in a plugin also ensures consistency across multiple projects.
+
 [[sec:denying_version]]
-=== Denying a particular version with a replacement
+=== Replacing unwanted dependency versions
 
-Dependency resolve rules provide a mechanism for denying a particular version of a dependency and providing a replacement version.
-This can be useful if a certain dependency version is broken and should not be used, where a dependency resolve rule causes this version to be replaced with a known good version.
-One example of a broken module is one that declares a dependency on a library that cannot be found in any of the public repositories, but there are many other reasons why a particular module version is unwanted and a different version is preferred.
+Dependency resolve rules offer a powerful mechanism for blocking specific versions of a dependency and substituting them with an alternative.
 
-In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`.
-The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`.
-Note that this is different from a forced version as described above, in that any other versions of this module would not be affected.
-This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
+This is particularly useful when a specific version is known to be problematic—such as a version that introduces bugs or relies on a library that isn’t available in public repositories.
+By defining a resolve rule, you can automatically replace a problematic version with a stable one.
 
-.Example: Blacklisting a version with a replacement
+Consider a scenario where version `1.2` of a library is broken, but version `1.2.1` contains important fixes and should always be used instead.
+With a resolve rule, you can enforce this substitution: "anytime version `1.2` is requested, it will be replaced with `1.2.1`".
+Unlike forcing a version, this rule only affects the specific version `1.2`, leaving other versions unaffected:
+
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=denying_version]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 ====
 
+For example, if version `1.3` is also present in the dependency graph, Gradle’s default conflict resolution strategy would still select `1.3` as the latest version:
+
 [NOTE]
 ====
-There's a difference with using the _reject_ directive of <<rich_versions.adoc#rich-version-constraints,rich version constraints>>: rich versions will cause the build to fail if a rejected version is found in the graph, or select a non rejected version when using dynamic dependencies.
-Here, we _manipulate the requested versions_ in order to select a different version when we find a rejected one.
-In other words, this is a _solution_ to rejected versions, while rich version constraints allow declaring the _intent_ (you should not use this version).
+**Difference from Rich Version Constraints:** Using <rich_versions.adoc#rich-version-constraints,rich version>> constraints, you can reject certain versions outright, causing the build to fail or select a non-rejected version if a dynamic dependency is used. In contrast, a dependency resolve rule like the one shown here manipulates the version being requested, replacing it with a known good version when a rejected one is found. This approach is a *solution* for handling rejected versions, while rich version constraints are about expressing the intent to avoid certain versions.
 ====
 
 [[sec:module_replacement]]
 == Using module replacement rules
 
-It is preferable to express module conflicts in terms of <<dependency_capability_conflict.adoc#sub:capabilities, capabilities conflicts>>.
-However, if there's no such rule declared or that you are working on versions of Gradle which do not support capabilities, Gradle provides tooling to work around those issues.
+While it's generally better to manage module conflicts using <<dependency_capability_conflict.adoc#sub:capabilities, capabilities conflicts>>, there are scenarios—especially when working with older versions of Gradle—that require a different approach.
+In these cases, module replacement rules offer a solution by allowing you to specify that a legacy library has been replaced by a newer one.
+
 
 Module replacement rules allow a build to declare that a legacy library has been replaced by a new one.
 A good example when a new library replaced a legacy one is the `google-collections` -&gt; `guava` migration.
@@ -413,4 +436,140 @@ It is not available for Maven repositories, or custom Ivy `DependencyResolver` i
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+====
+
+
+== Controlling dependency caching
+
+By default, Gradle caches dependencies.
+Within this time frame, Gradle does not try to resolve newer versions from the declared repositories.
+You can adjust the caching <<#sec:controlling-dynamic-version-caching,threshold>> to resolve new versions sooner.
+
+[[sec:controlling-dynamic-version-caching]]
+=== Controlling dynamic and changing version caching
+
+Gradle caches dynamic versions and changing modules for 24 hours.
+Gradle does not contact any of the declared remote repositories for new versions during that time.
+You must change the time to live (TTL) threshold if you want Gradle to check the remote repository more frequently or with every build execution.
+
+NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to increased HTTP(s) calls.
+
+You can override the default cache modes using <<#sec:controlling_dependency_caching_command_line,command line options>>.
+You can also <<#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
+
+[[sec:controlling_dependency_caching_programmatically]]
+=== Controlling dependency caching programmatically
+
+You can fine-tune certain aspects of caching programmatically using the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html[ResolutionStrategy] for a configuration.
+The programmatic approach is useful if you want to change the settings permanently.
+
+To change how long Gradle will cache the resolved version for a dynamic version, use:
+
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
+====
+
+To change how long Gradle will cache the metadata and artifacts for a changing module, use:
+
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
+====
+
+[[sec:controlling_dependency_caching_command_line]]
+=== Controlling dependency caching from the command line
+
+You can override the default cache modes using command line options.
+
+[[sec:offline-mode]]
+==== Avoiding network access with offline mode
+
+The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.
+When running with `offline`, Gradle will not attempt to access the network for dependency resolution.
+If the required modules are not in the dependency cache, the build will fail.
+
+[[sec:refreshing-dependencies]]
+==== Refreshing dependencies
+
+You can control the behavior of dependency caching for a distinct build invocation from the command line.
+Command line options help make a selective, ad-hoc choice for a single build execution.
+
+At times, the Gradle Dependency Cache can become out of sync with the actual state of the configured repositories.
+Perhaps a repository was initially misconfigured, or maybe a "non-changing" module was published incorrectly.
+To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
+
+The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts.
+A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
+However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again.
+This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
+
+- new versions of dynamic dependencies
+- new versions of changing modules (modules that use the same version string but can have different contents)
+
+Refreshing dependencies will cause Gradle to invalidate its listing caches.
+However:
+
+- it will perform HTTP HEAD requests on metadata files but _will not re-download them_ if they are identical
+- it will perform HTTP HEAD requests on artifact files but _will not re-download them_ if they are identical
+
+In other words, refreshing dependencies _only_ has an impact if you actually use dynamic dependencies _or_ that you have changing dependencies that you were not aware of (in which case it is your responsibility to declare them correctly to Gradle as changing dependencies).
+
+It's a common misconception to think that using `--refresh-dependencies` will force the download of dependencies.
+This is **not** the case: Gradle will only perform what is strictly required to refresh the dynamic dependencies.
+This _may_ involve downloading new listings, metadata files, or even artifacts, but the impact is minimal if nothing changed.
+
+[[sec:component_selection_rules]]
+== Using component selection rules
+
+Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector.
+Rules are applied against every available version and allow the version to be explicitly rejected.
+
+This allows Gradle to ignore any component instance that does not satisfy conditions set by the rule.
+Examples include:
+
+* For a dynamic version like `1.+` certain versions may be explicitly rejected from selection.
+* For a static version like `1.4` an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.
+
+Rules are configured via the link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelectionRules.html[ComponentSelectionRules] object.
+Each rule configured will be called with a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] object as an argument that contains information about the candidate version being considered.
+Calling link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[ComponentSelection.reject(java.lang.String)] causes the given candidate version to be explicitly rejected, in which case the candidate will not be considered for the selector.
+
+The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
+====
+
+Note that version selection is applied starting with the highest version first.
+The version selected will be the first version found that all component selection rules accept.
+A version is considered accepted if no rule explicitly rejects it.
+
+Similarly, rules can be targeted at specific modules.
+Modules must be specified in the form of `group:module`:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
+====
+
+Component selection rules can also consider component metadata when selecting a version.
+Possible additional metadata that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+Note that this extra information may not always be available and thus should be checked for `null` values:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
+====
+
+Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as a parameter when declaring a component selection rule.
+
+== To force dependencies:
+
+TO DO
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
 ====

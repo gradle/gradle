@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[sec:handling-mutually-exclusive-deps]]
-= Handling mutually exclusive dependencies
+= Declaring Capabilities
 
 [[sub:capabilities]]
 == Introduction to component capabilities

@@ -387,4 +387,4 @@ include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/
 
 In the examples above, any dependency referencing the `groovy` version will automatically be updated to use `3.0.6`.
 
-NOTE: Overwriting a version only affects what is imported and used when declaring dependencies. The actual resolved dependency version may differ due to conflict resolution.
+NOTE: Overwriting a version only affects what is imported and used when declaring dependencies. The actual resolved dependency version may differ due to conflict resolution.gi
