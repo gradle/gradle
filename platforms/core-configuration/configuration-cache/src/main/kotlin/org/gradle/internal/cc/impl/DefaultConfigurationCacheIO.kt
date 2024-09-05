@@ -560,6 +560,7 @@ class DefaultConfigurationCacheIO internal constructor(
             parallelStore = startParameter.isParallelStore,
             parallelLoad = startParameter.isParallelLoad,
             problems = service(),
+            enableSingletonCaching = startParameter.enableSingletonCaching
         )
 
     private
