@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Internal;
@@ -31,9 +32,11 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.util.Objects;
 
 import static java.util.Collections.singleton;
 
@@ -45,6 +48,8 @@ import static java.util.Collections.singleton;
 @SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
+    private final Transient<SetProperty<Project>> projects = Transient.of(getObjectFactory().setProperty(Project.class));
+
     /**
      * Returns the project report directory.
      * <p>
@@ -98,9 +103,10 @@ public abstract class ConventionReportTask extends ConventionTask {
      * @since 6.9
      */
     @Internal
-    // TODO:LPTR Have the paths of the projects serve as @Input maybe?
     @ReplacesEagerProperty
-    public abstract SetProperty<Project> getProjects();
+    public SetProperty<Project> getProjects() {
+        return Objects.requireNonNull(projects.get());
+    }
 
     protected ReportGenerator reportGenerator() {
         return new ReportGenerator(
@@ -129,4 +135,7 @@ public abstract class ConventionReportTask extends ConventionTask {
 
     @Inject
     protected abstract StyledTextOutputFactory getTextOutputFactory();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 }
