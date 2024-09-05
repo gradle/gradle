@@ -16,8 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import static org.gradle.initialization.StartParameterBuildOptions.*
-
 class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "failures while storing different projects are reported"() {
@@ -63,7 +61,8 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         run(ENABLE_CLI_OPT, "help", "-d")
 
         then:
-        // actually, only storing is done sequentially
+        outputDoesNotContain("Parallel Configuration Cache is an incubating feature.")
+        // even if the feature is not enabled, only storing is done sequentially
         output.contains("[org.gradle.configurationcache] saving task graph sequentially")
         // loading is still parallel (unless explicitly disabled via internal property)
         output.contains("[org.gradle.configurationcache] reading task graph in parallel")
@@ -74,11 +73,10 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         settingsFile.createFile()
 
         when:
-        run(ENABLE_CLI_OPT, ENABLE_PARALLEL_CACHE, "help", "-d")
+        run(ENABLE_CLI_OPT, ENABLE_PARALLEL_CACHE, "help")
 
         then:
-        output.contains("[org.gradle.configurationcache] saving task graph in parallel")
-        output.contains("[org.gradle.configurationcache] reading task graph in parallel")
+        output.contains("Parallel Configuration Cache is an incubating feature.")
     }
 
     def "parallel store may be opted out"() {

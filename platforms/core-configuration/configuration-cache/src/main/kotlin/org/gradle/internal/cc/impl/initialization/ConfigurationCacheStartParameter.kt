@@ -31,6 +31,7 @@ import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.IncubationLogger
 import java.io.File
 
 
@@ -81,8 +82,13 @@ class ConfigurationCacheStartParameter internal constructor(
      *
      * @see StartParameterInternal.configurationCacheParallel
      */
-    val isParallelCache: Boolean
-        get() = startParameter.isConfigurationCacheParallel
+    val isParallelCache: Boolean by lazy {
+        startParameter.isConfigurationCacheParallel.also { enabled ->
+            if (enabled) {
+                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
+            }
+        }
+    }
 
     /**
      * Whether configuration should be stored in parallel.
