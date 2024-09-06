@@ -79,7 +79,8 @@ class StartParameterConverterTest extends Specification {
     def "can provide system property on command-line"() {
         expect:
         def parameter = convert("-Dsome.prop", "-Dother.prop=123")
-        parameter.systemPropertiesArgs == ["some.prop": "", "other.prop": "123"]
+        parameter.systemPropertiesArgs["some.prop"] == ""
+        parameter.systemPropertiesArgs["other.prop"] == "123"
     }
 
     def "can provide project property on command-line"() {

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.ArgumentsSplitter;
@@ -52,10 +53,20 @@ public class JvmOptions {
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
     public static final String JDK_ENABLE_ADS_KEY = "jdk.io.File.enableADS";
 
+    public static final String SSL_KEYSTORE_KEY = "javax.net.ssl.keyStore";
+    public static final String SSL_KEYSTOREPASSWORD_KEY = "javax.net.ssl.keyStorePassword";
+    public static final String SSL_KEYSTORETYPE_KEY = "javax.net.ssl.keyStoreType";
+    public static final String SSL_TRUSTSTORE_KEY = "javax.net.ssl.trustStore";
+    public static final String SSL_TRUSTPASSWORD_KEY = "javax.net.ssl.trustStorePassword";
+    public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
-        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JDK_ENABLE_ADS_KEY
+        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JDK_ENABLE_ADS_KEY,
+        SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
+        // Gradle specific
+        HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
 
     // Store this because Locale.default is mutable and we want the unchanged default
