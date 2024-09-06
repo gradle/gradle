@@ -27,6 +27,7 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
@@ -137,6 +138,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public String toString() {
         return rootProject == null ? "build" : ("build '" + rootProject.getName() + "'");
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return getOwner().getBuildIdentifier();
     }
 
     @Override

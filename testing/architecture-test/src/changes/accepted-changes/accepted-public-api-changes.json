@@ -1,6 +1,38 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getBuildIdentifier()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getBuildTreePath()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getPath()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.invocation.Gradle",
+            "member": "Method org.gradle.api.invocation.Gradle.getBuildIdentifier()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Method org.gradle.api.tasks.compile.CompileOptions.debugOptions(org.gradle.api.Action)",
             "acceptation": "No need to incubate",

@@ -23,6 +23,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
@@ -67,6 +68,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
         is CrossProjectConfigurationReportingGradle -> gradle.delegate
         else -> gradle
     }
+
+    override fun getBuildIdentifier(): BuildIdentifier =
+        delegate.buildIdentifier
 
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent -> from(delegateParent, referrerProject) }

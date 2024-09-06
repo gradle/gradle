@@ -181,6 +181,29 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+### Composite build improvements
+
+Gradle supports composite builds, allowing multiple independent builds to reference each other within a single Gradle invocation.
+
+#### Introduced `getBuildIdentifier` method on `Gradle`
+
+The `Gradle` type represents a single Gradle build within a Gradle invocation.
+Each `Gradle` instance owns all `Project` instances within a build.
+
+The new `getBuildIdentifier` method returns a unique identifier for the build.
+
+### Dependency management improvements
+
+Gradle's dependency management infrastructure provides the means to depend on artifacts from repositories, other projects, and the local file system.
+
+#### Introduced Isolated Projects safe project identity accessors on `ProjectDependency`
+
+This release introduces the following methods on `ProjectDependency` for accessing the identity of the target project:
+
+- `getPath`: Get the path of the target project relative to the owning build
+- `getBuildTreePath` - Get the path of the target project relative to the build tree
+- `getBuildIdentifier` - Get the identifier of the build that owns the target project
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.

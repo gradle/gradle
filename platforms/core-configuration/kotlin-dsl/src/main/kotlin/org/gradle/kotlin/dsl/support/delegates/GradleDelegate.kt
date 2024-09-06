@@ -23,6 +23,7 @@ import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
@@ -54,6 +55,9 @@ abstract class GradleDelegate : Gradle {
 
     internal
     abstract val delegate: Gradle
+
+    override fun getBuildIdentifier(): BuildIdentifier =
+        delegate.buildIdentifier
 
     override fun getGradleVersion(): String =
         delegate.gradleVersion

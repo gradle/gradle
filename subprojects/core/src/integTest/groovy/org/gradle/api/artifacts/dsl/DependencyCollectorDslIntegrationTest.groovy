@@ -252,7 +252,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         var dep = testingCollectorConf.dependencies.iterator().next()
         assert(dep ${instanceOf(dsl)} ProjectDependency)
-        assert(${cast("dep", "ProjectDependency", dsl)}.dependencyProject == ${expectedProjectExpression})
+        assert(${cast("dep", "ProjectDependency", dsl)}.buildTreePath == ${expectedProjectExpression}.buildTreePath)
         """
 
         expect:

@@ -156,6 +156,28 @@ Calling the following methods on link:{javadocPath}/org/gradle/api/artifacts/Con
 - addLater(Provider)
 - addAllLater(Provider)
 
+[[deprecate_get_dependency_project]]
+==== Deprecated `ProjectDependency#getDependencyProject()`
+
+The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDependencyProject()[`ProjectDependency#getDependencyProject()`] method has been deprecated and will be removed in Gradle 9.0.
+
+Accessing the mutable project instance of other projects should be avoided.
+
+Instead, use the new Isolated Projects safe project identity accessor methods available on `ProjectDependency`:
+
+- link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getBuildTreePath()[`ProjectDependency#getBuildTreePath()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getBuildIdentifier()[`ProjectDependency#getBuildIdentifier()`]
+
+If accessing the target project is absolutely necessary, consider this direct replacement:
+Note, this approach will not fetch project instances from a different build.
+[source,kotlin]
+----
+val projectDependency: ProjectDependency = getSomeProjectDependency()
+val deprecated = projectDependency.dependencyProject
+val replacement = project.project(projectDependency.path)
+----
+
 [[deprecate_legacy_configuration_get_files]]
 ==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
 

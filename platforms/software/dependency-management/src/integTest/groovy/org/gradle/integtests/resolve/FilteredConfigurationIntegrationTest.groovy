@@ -70,7 +70,7 @@ task verify {
     doLast {
         println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
         println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
+        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
 
         assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
         assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
@@ -134,7 +134,7 @@ project(':child1') {
 task verify {
     doLast {
         println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.dependencyProject.name == 'child1' }.collect { it.name }
+        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
 
         assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
         assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files

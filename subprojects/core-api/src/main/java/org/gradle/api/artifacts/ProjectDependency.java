@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -28,9 +29,38 @@ import java.util.Set;
 @HasInternalProtocol
 @SuppressWarnings("deprecation") // Because of SelfResolvingDependency
 public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {
+
+    /**
+     * Get the path to the project that this dependency refers to relative to its owning build.
+     *
+     * @see Project#getPath()
+     *
+     * @since 8.11
+     */
+    String getPath();
+
+    /**
+     * Get the path to the project that this dependency refers to relative to the build tree.
+     *
+     * @see Project#getBuildTreePath()
+     *
+     * @since 8.11
+     */
+    String getBuildTreePath();
+
+    /**
+     * Get the identifier of the build of the project that this dependency refers to.
+     *
+     * @see org.gradle.api.invocation.Gradle#getBuildIdentifier()
+     *
+     * @since 8.11
+     */
+    BuildIdentifier getBuildIdentifier();
+
     /**
      * Returns the project associated with this project dependency.
      */
+    @Deprecated
     Project getDependencyProject();
 
     /**
