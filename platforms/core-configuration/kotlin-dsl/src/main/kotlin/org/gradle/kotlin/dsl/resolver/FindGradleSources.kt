@@ -22,67 +22,81 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.support.unzipTo
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 
 /**
  * This dependency transform is responsible for extracting the sources from
  * a downloaded ZIP of the Gradle sources, and will return the list of main sources
  * subdirectories for all subprojects.
+ *
+ * This transforms should not be split into multiple ones given the amount of files because
+ * this would add lots of inputs processing time.
  */
-@DisableCachingByDefault(because = "Only filters the input artifact")
-internal
-abstract class FindGradleSources : TransformAction<TransformParameters.None> {
-    @get:IgnoreEmptyDirectories
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    @get:InputArtifact
-    abstract val input: Provider<FileSystemLocation>
-
-    override fun transform(outputs: TransformOutputs) {
-        registerSourceDirectories(outputs)
-    }
-
-    private
-    fun registerSourceDirectories(outputs: TransformOutputs) {
-        unzippedProjectDirectories()
-            .flatMap { projectDir -> subDirsOf(projectDir.resolve("src/main")) }
-            .forEach { outputs.dir(it) }
-    }
-
-    private
-    fun unzippedProjectDirectories(): Collection<File> =
-        unzippedDistroDir()?.let { distroDir ->
-            unzippedSubprojectsDirectories(distroDir) + unzippedPlatformProjectsDirectories(distroDir)
-        } ?: emptyList()
-
-    private
-    fun unzippedSubprojectsDirectories(distroDir: File): Collection<File> =
-        subDirsOf(distroDir.resolve("subprojects"))
-
-    private
-    fun unzippedPlatformProjectsDirectories(distroDir: File): Collection<File> =
-        subDirsOf(distroDir.resolve("platforms"))
-            .flatMap { platform -> subDirsOf(platform) }
-
-    private
-    fun unzippedDistroDir(): File? =
-        input.get().asFile.listFiles().singleOrNull()
-}
-
-
 @DisableCachingByDefault(because = "Not worth caching")
 internal
-abstract class UnzipDistribution : TransformAction<TransformParameters.None> {
+abstract class FindGradleSources : TransformAction<TransformParameters.None> {
+
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        unzipTo(outputs.dir("unzipped-distribution"), input.get().asFile)
+        outputs.withTemporaryDir("unzipped-distribution") { unzippedDistroDir ->
+            unzipTo(unzippedDistroDir, input.get().asFile)
+            distroDirFrom(unzippedDistroDir)?.let { distroRootDir ->
+                projectDirectoriesOf(distroRootDir)
+                    .flatMap { projectDir -> subDirsOf(projectDir.resolve("src/main")) }
+                    .forEach { srcDir ->
+                        val relativePath = srcDir.relativeTo(unzippedDistroDir).path
+                        val srcDirHash = Hashing.md5().hashString(relativePath).toCompactString()
+                        // Use a relative output dir file in order to get a managed directory
+                        val outputSrcDir = outputs.dir(srcDirHash)
+                        // Move source from temporary unzipped distro into managed transform cached directory
+                        Files.move(srcDir.toPath(), outputSrcDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                    }
+            }
+        }
     }
+
+    /**
+     * Abuse empty transform output dir as a temporary directory.
+     *
+     * This is necessary because we should not use regular system temporary directories for security reasons and
+     * because no temporary file provider is available in transform actions.
+     *
+     * See https://github.com/gradle/gradle/issues/30440
+     */
+    private fun TransformOutputs.withTemporaryDir(name: String, block: (File) -> Unit) {
+        val dir = dir(name)
+        try {
+            block(dir)
+        } finally {
+            dir.deleteRecursively()
+            dir.mkdirs()
+        }
+    }
+
+    private fun distroDirFrom(unzippedDistroDir: File): File? =
+        unzippedDistroDir.listFiles()?.singleOrNull()
+
+    private
+    fun projectDirectoriesOf(distroDir: File): Collection<File> =
+        subprojectsDirectoriesOf(distroDir) + platformProjectsDirectoriesOf(distroDir)
+
+    private
+    fun subprojectsDirectoriesOf(distroDir: File): Collection<File> =
+        subDirsOf(distroDir.resolve("subprojects"))
+
+    private
+    fun platformProjectsDirectoriesOf(distroDir: File): Collection<File> =
+        subDirsOf(distroDir.resolve("platforms"))
+            .flatMap { platform -> subDirsOf(platform) }
 }
