@@ -1,3 +1,15 @@
+// tag::resolve-rules[]
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == "com.example" && details.requested.name == "old-library") {
+                details.useTarget("com.example:new-library:1.0.0")
+            }
+        }
+    }
+}
+// end::resolve-rules[]
+
 // tag::custom-versioning-scheme[]
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->

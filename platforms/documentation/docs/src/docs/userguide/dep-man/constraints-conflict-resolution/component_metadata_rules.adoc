@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[sec:component_metadata_rules]]
-= Component metadata rules
+= Using Component Metadata Rules
 
 Each module pulled from a repository includes metadata, such as its group, name, version, and the various variants it provides along with their artifacts and dependencies.
 

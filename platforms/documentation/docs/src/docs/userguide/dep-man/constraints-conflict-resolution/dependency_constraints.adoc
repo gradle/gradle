@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[dependency-constraints]]
-= Dependency Constraints
+= Using Dependency Constraints
 
 A component may have two different kinds of dependencies:
 
@@ -24,11 +24,17 @@ For example, if your project source code requires Guava, Guava should be declare
 
 *Dependency constraints* are a mechanism that allows you to impose specific requirements on the versions of dependencies used in your project, even if those dependencies are brought in transitively by other libraries.
 
+====
+include::sample[dir="snippets/java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
+include::sample[dir="snippets/java-platform/multiproject/groovy/platform",files="build.gradle[tags=project-constraints]"]
+====
+
 == Adding constraints on direct dependencies
 
 **Dependency constraints** allow you to define the version or version range for both declared dependencies and transitive dependencies in the build script.
 
 This is the preferred method for applying constraints across all dependencies within a configuration.
+
 When Gradle resolves a module version, it considers all relevant factors, including <<rich_versions.adoc#rich-version-constraints,dependency declarations with versions>>, transitive dependencies, and dependency constraints for that module.
 The highest version that meets all the conditions is selected.
 If no such version exists, Gradle will fail with an error, detailing the conflicting declarations.

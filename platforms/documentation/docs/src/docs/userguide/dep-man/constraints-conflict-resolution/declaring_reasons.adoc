@@ -1,0 +1,70 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring-reasons]]
+= Declaring Reasons
+
+In Gradle's dependency management, **reasons** provide context for why a specific version of a dependency was selected or rejected during resolution.
+
+They are commonly used to explain decisions made through mechanisms like dependency constraints, component selection rules, or dependency version conflicts.
+
+Adding a reason helps document the rationale behind enforcing a particular version or change, making it easier to understand and maintain the build configuration.
+
+For example, you can add a reason using link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#because(java.lang.String)[`because("explanation")`] in dependency constraints or exclusions:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("org.apache.commons:commons-lang3:3.10")
+
+    constraints {
+        implementation("org.apache.commons:commons-lang3:3.9") {
+            because("Version 3.10 introduces a bug affecting our code.")
+        }
+    }
+}
+----
+
+In this example, the build script defines a constraint that enforces version `3.9` of the `commons-lang3` library, with a reason explaining that version `3.10` has a bug.
+The `because` clause provides context to future maintainers about why this version constraint exists.
+
+The `dependencyInsight` task provides detailed information about how dependencies are resolved, including reasons added with `because`.
+You can run this task to show why a specific version of a dependency was selected:
+
+[source,text]
+----
+$ ./gradlew :app:dependencyInsight --dependency org.apache.commons:commons-lang3 --configuration runtimeClasspath
+
+> Task :app:dependencyInsight
+org.apache.commons:commons-lang3:3.10
+  Variant runtime:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.dependency.bundling |              | external     |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
+   Selection reasons:
+      - By constraint: Version 3.10 introduces a bug affecting our code.
+      - By conflict resolution: between versions 3.10 and 3.9
+
+org.apache.commons:commons-lang3:3.10
+\--- runtimeClasspath
+
+org.apache.commons:commons-lang3:3.9 -> 3.10
+\--- runtimeClasspath
+----

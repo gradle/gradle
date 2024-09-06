@@ -349,13 +349,13 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-without
 This approach centralizes version management, including transitive dependencies.
 
 [[sec:dynamic_versions_and_changing_modules]]
-[[sub:declaring_dependency_with_dynamic_version]]
 == Declaring dynamic versions
 
 There are many situations where you might need to use the latest version of a specific module dependency or the latest within a range of versions.
 This is often necessary during development or when creating a library that needs to be compatible with various dependency versions.
 Projects might adopt a more aggressive approach to consuming dependencies by always integrating the latest version to access cutting-edge features.
 
+[[sub:declaring_dependency_with_dynamic_version]]
 You can easily manage these ever-changing dependencies by using a *dynamic version*.
 A dynamic version can be either a version range (e.g., `2.+`) or a placeholder for the latest available version (e.g., `latest.integration`):
 

@@ -15,9 +15,14 @@
 [[dependency-locking]]
 = Locking Versions
 
-Using dynamic dependency versions (e.g., `1.+` or `[1.0,2.0)`) can make builds non-deterministic, causing them to break unexpectedly, sometimes due to a transitive dependency outside the build author's control.
+Using <<dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can make builds non-deterministic, causing them to break unexpectedly, sometimes due to a transitive dependency outside the build author's control.
 
-To ensure https://reproducible-builds.org/[reproducible builds], it's necessary to *lock* versions of dependencies and their transitive dependencies.
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic]"]
+====
+
+To ensure https://reproducible-builds.org/[reproducible builds], it's necessary to *lock versions* of dependencies and their transitive dependencies.
 This guarantees that a build with the same inputs will always resolve to the same module versions, a process known as *dependency locking*.
 
 Dependency locking is crucial for several scenarios:
@@ -28,7 +33,10 @@ Dependency locking is crucial for several scenarios:
 
 - **Publishing Resolved Versions:** Combined with <<publishing_maven.adoc#publishing_maven:resolved_dependencies,publishing resolved versions>>, dependency locking allows replacing the declared dynamic versions at publication time. Consumers will then see the resolved versions that your release used.
 
+== Locking specific configurations
+
 Locking is enabled per <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configuration>>.
+
 Once enabled, you must create an initial lock state, causing Gradle to verify that resolution results do not change.
 This ensures the same dependencies are selected, even if newer versions are available.
 If your build changes in a way that impacts the resolved set of dependencies, it will fail, ensuring that changes in published dependencies or build definitions do not alter resolution without updating the lock state.
@@ -37,8 +45,6 @@ If your build changes in a way that impacts the resolved set of dependencies, it
 ====
 Dependency locking is effective with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>> but has no impact on <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (e.g., `-SNAPSHOT`), where the coordinates remain the same, but the content may change. Gradle will emit a warning when persisting the lock state if changing dependencies are present in the resolution result.
 ====
-
-== Locking specific configurations
 
 Locking of a configuration happens through the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API:
 
@@ -59,11 +65,12 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=locking-all]"]
 ====
 
-NOTE: The above will lock all _project_ configurations, but not the _buildscript_ ones.
+The above will lock all _project_ configurations, but not the _buildscript_ ones.
 
 == Disable locking specific configurations
 
 You can also disable locking on a specific configuration.
+
 This can be useful if a plugin configured locking on all configurations, but you happen to add one that should not be locked:
 
 ====
@@ -74,6 +81,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSi
 == Locking buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
+
 To lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins:
 
 ====
@@ -83,9 +91,31 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingClas
 
 == Generating and updating dependency locks
 
-To generate or update the lock state, use the `--write-locks` command line argument along with the tasks that would trigger configurations to be resolved.
+To generate or update the lock state, use the `--write-locks` command line argument along with the tasks that would trigger configurations to be resolved:
+
+[source,text]
+----
+$ ./gradlew dependencies --write-locks
+----
+
 This will create or update the lock state for each resolved configuration during that build execution.
 If a lock state already exists, it will be overwritten.
+
+[source,text]
+.gradle.lockfile
+----
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+com.google.code.findbugs:jsr305:3.0.2=classpath
+com.google.errorprone:error_prone_annotations:2.3.2=classpath
+com.google.gradle:osdetector-gradle-plugin:1.7.1=classpath
+com.google.guava:failureaccess:1.0.1=classpath
+com.google.guava:guava:28.1-jre=classpath
+com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava=classpath
+com.google.j2objc:j2objc-annotations:1.3=classpath
+empty=
+----
 
 NOTE: Gradle won't write the lock state to disk if the build fails, preventing the persistence of potentially invalid states.
 
@@ -103,13 +133,14 @@ You have two options for this:
 - This approach is particularly useful if you need more control over which configurations are locked.
 - It is not applicable to Android projects.
 
+This custom task resolves all configurations, locking them in the process:
+
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
 ====
 
-This custom task resolves all configurations, locking them in the process.
-It's especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
+This is especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
 By filtering and resolving specific configurations, you ensure that only the relevant ones are locked, tailoring the locking process to your project's needs.
 
 == Understanding lock state location and format
@@ -145,7 +176,7 @@ Where:
 - **Ordering:** Dependencies and configurations are listed alphabetically to make version control diffs easier to manage.
 - **Empty Configurations:** The last line lists configurations that are empty, meaning they contain no dependencies.
 
-This lockfile should be included in source control to ensure that all team members and environments use the exact same dependency versions.
+This *lockfile should be included in source control* to ensure that all team members and environments use the exact same dependency versions.
 
 [[migrate_single_lockfile]]
 == Migrating your legacy lockfile
@@ -207,13 +238,14 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockModeSel
 
 In order to update only specific modules of a configuration, you can use the `--update-locks` command line flag.
 It takes a comma (`,`) separated list of module notations.
-In this mode, the existing lock state is still used as input to resolution, filtering out the modules targeted by the update.
+In this mode, the existing lock state is still used as input to resolution, filtering out the modules targeted by the update:
 
 ----
 $ ./gradlew dependencies --update-locks org.apache.commons:commons-lang3,org.slf4j:slf4j-api
 ----
 
-Wildcards, indicated with `*`, can be used in the group or module name. They can be the only character or appear at the end of the group or module respectively.
+Wildcards, indicated with `*`, can be used in the group or module name.
+They can be the only character or appear at the end of the group or module respectively.
 The following wildcard notation examples are valid:
 
 * `org.apache.commons:*`: will let all modules belonging to group `org.apache.commons` update
