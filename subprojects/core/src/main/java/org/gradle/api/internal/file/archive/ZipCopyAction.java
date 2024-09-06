@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
-import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.IoActions;
 
 import java.io.File;
@@ -76,7 +75,8 @@ public class ZipCopyAction implements CopyAction {
         } catch (Exception e) {
             if (e.getCause() instanceof Zip64RequiredException) {
                 throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(
-                    String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s", e.getCause().getMessage(), documentationRegistry.getDslRefForProperty(Zip.class, "zip64"))
+                    String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s",
+                        e.getCause().getMessage(), documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.bundling.Zip", "zip64"))
                 );
             }
             zipFile.delete();
