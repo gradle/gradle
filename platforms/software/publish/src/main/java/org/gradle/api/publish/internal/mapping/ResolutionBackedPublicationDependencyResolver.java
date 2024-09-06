@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -38,6 +39,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -63,29 +65,28 @@ import java.util.function.Consumer;
  * <p>The configuration being resolved should declare the same dependencies as the variant
  * being published. Then, each outgoing edge of the analyzed resolution result will correspond
  * to each declared dependency on the published variant. We build a mapping from requested
- * coordinates to resolved coordinates. Then, when resolving individual variant coordinates,
- * we can look up in the map to determine what coordinates should be published for a given
- * declared dependency.</p>
+ * coordinates to resolved coordinates. Then, when resolving individual variant or component
+ * coordinates, we can look up in the map to determine what coordinates should be published
+ * for a given declared dependency.</p>
  */
-public class ResolutionBackedVariantDependencyResolver implements VariantDependencyResolver {
+public class ResolutionBackedPublicationDependencyResolver implements VariantDependencyResolver, ComponentDependencyResolver {
 
+    private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final AttributeDesugaring attributeDesugaring;
-    private final ComponentDependencyResolver fallback;
 
     private final ResolvedMappings mappings;
 
-    public ResolutionBackedVariantDependencyResolver(
+    public ResolutionBackedPublicationDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ResolvedComponentResult rootComponent,
         ResolvedVariantResult rootVariant,
-        AttributeDesugaring attributeDesugaring,
-        ComponentDependencyResolver fallback
+        AttributeDesugaring attributeDesugaring
     ) {
+        this.projectDependencyResolver = projectDependencyResolver;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributeDesugaring = attributeDesugaring;
-        this.fallback = fallback;
 
         this.mappings = calculateMappings(rootComponent, rootVariant, projectDependencyResolver, moduleIdentifierFactory);
     }
@@ -96,46 +97,67 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
-        Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModules = new HashMap<>();
-        Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjects = new HashMap<>();
-        Set<ModuleDependencyKey> incompatibleModules = new HashSet<>();
-        Set<ProjectDependencyKey> incompatibleProjects = new HashSet<>();
+        Set<ModuleDependencyKey> incompatibleModuleDeps = new HashSet<>();
+        Set<ProjectDependencyKey> incompatibleProjectDeps = new HashSet<>();
+
+        Map<ModuleIdentifier, ModuleVersionIdentifier> resolvedModuleComponents = new HashMap<>();
+        Map<Path, ModuleVersionIdentifier> resolvedProjectComponents = new HashMap<>();
+
+        Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModuleVariants = new HashMap<>();
+        Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjectVariants = new HashMap<>();
 
         visitFirstLevelEdges(rootComponent, rootVariant, edge -> {
 
             ComponentSelector requested = edge.getRequested();
-            ModuleVersionIdentifier coordinates = getVariantCoordinates(edge, projectDependencyResolver, moduleIdentifierFactory);
+            CoordinatePair coordinates = getResolvedCoordinates(edge.getResolvedVariant(), projectDependencyResolver, moduleIdentifierFactory);
             if (requested instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
 
+                ModuleVersionIdentifier existingComponent = resolvedModuleComponents.put(requestedModule.getModuleIdentifier(), coordinates.componentCoordinates);
+                if (existingComponent != null && !existingComponent.equals(coordinates.componentCoordinates)) {
+                    throw new GradleException("Expected all requested coordinates to resolve to the same component coordinates.");
+                }
+
                 ModuleDependencyKey key = new ModuleDependencyKey(requestedModule.getModuleIdentifier(), ModuleDependencyDetails.from(requested));
-                if (incompatibleModules.contains(key)) {
+                if (incompatibleModuleDeps.contains(key)) {
                     return;
                 }
 
-                ModuleVersionIdentifier existing = resolvedModules.put(key, coordinates);
-                if (existing != null && !existing.equals(coordinates)) {
-                    resolvedModules.remove(key);
-                    incompatibleModules.add(key);
+                ModuleVersionIdentifier existingVariant = resolvedModuleVariants.put(key, coordinates.variantCoordinates);
+                if (existingVariant != null && !existingVariant.equals(coordinates.variantCoordinates)) {
+                    resolvedModuleVariants.remove(key);
+                    incompatibleModuleDeps.add(key);
                 }
             } else if (requested instanceof ProjectComponentSelector) {
                 ProjectComponentSelectorInternal requestedProject = (ProjectComponentSelectorInternal) requested;
 
+                ModuleVersionIdentifier existingComponent = resolvedProjectComponents.put(requestedProject.getIdentityPath(), coordinates.componentCoordinates);
+                if (existingComponent != null && !existingComponent.equals(coordinates.componentCoordinates)) {
+                    throw new GradleException("Expected all requested projects to resolve to the same component coordinates.");
+                }
+
                 ProjectDependencyKey key = new ProjectDependencyKey(requestedProject.getIdentityPath(), ModuleDependencyDetails.from(requested));
-                if (incompatibleProjects.contains(key)) {
+                if (incompatibleProjectDeps.contains(key)) {
                     return;
                 }
 
-                ModuleVersionIdentifier existing = resolvedProjects.put(key, coordinates);
-                if (existing != null && !existing.equals(coordinates)) {
-                    resolvedProjects.remove(key);
-                    incompatibleProjects.add(key);
+                ModuleVersionIdentifier existingVariant = resolvedProjectVariants.put(key, coordinates.variantCoordinates);
+                if (existingVariant != null && !existingVariant.equals(coordinates.variantCoordinates)) {
+                    resolvedProjectVariants.remove(key);
+                    incompatibleProjectDeps.add(key);
                 }
             }
 
         });
 
-        return new ResolvedMappings(resolvedModules, resolvedProjects, incompatibleModules, incompatibleProjects);
+        return new ResolvedMappings(
+            resolvedModuleComponents,
+            resolvedProjectComponents,
+            resolvedModuleVariants,
+            resolvedProjectVariants,
+            incompatibleModuleDeps,
+            incompatibleProjectDeps
+        );
     }
 
     private static void visitFirstLevelEdges(ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant, Consumer<ResolvedDependencyResult> visitor) {
@@ -157,12 +179,11 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
     }
 
-    private static ModuleVersionIdentifier getVariantCoordinates(
-        ResolvedDependencyResult edge,
+    private static CoordinatePair getResolvedCoordinates(
+        ResolvedVariantResult variant,
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
-        ResolvedVariantResult variant = edge.getResolvedVariant();
         ComponentIdentifier componentId = variant.getOwner();
 
         // TODO #3170: We should analyze artifacts to determine if we need to publish additional
@@ -177,9 +198,22 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
     }
 
-    private static ModuleVersionIdentifier getModuleCoordinates(
+    private static CoordinatePair getModuleCoordinates(
         ResolvedVariantResult variant,
         ModuleComponentIdentifier componentId,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        ModuleVersionIdentifier componentCoordinates = moduleIdentifierFactory.moduleWithVersion(componentId.getModuleIdentifier(), componentId.getVersion());
+        ModuleVersionIdentifier variantCoordinates = getExternalCoordinates(variant, moduleIdentifierFactory);
+
+        return new CoordinatePair(
+            componentCoordinates,
+            variantCoordinates != null ? variantCoordinates : componentCoordinates
+        );
+    }
+
+    private static @Nullable ModuleVersionIdentifier getExternalCoordinates(
+        ResolvedVariantResult variant,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
         ResolvedVariantResult externalVariant = variant.getExternalVariant().orElse(null);
@@ -191,11 +225,10 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
             }
             throw new GradleException("Expected owning component of module component to be a module component: " + owningComponent);
         }
-
-        return moduleIdentifierFactory.moduleWithVersion(componentId.getModuleIdentifier(), componentId.getVersion());
+        return null;
     }
 
-    private static ModuleVersionIdentifier getProjectCoordinates(
+    private static CoordinatePair getProjectCoordinates(
         ResolvedVariantResult variant,
         ProjectComponentIdentifierInternal componentId,
         ProjectDependencyPublicationResolver projectDependencyResolver
@@ -205,16 +238,17 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         // TODO: Using the display name here is not great, however it is the same as the variant name.
         // Instead, the resolution result should expose the project coordinates via getExternalVariant.
         String variantName = variant.getDisplayName();
-        ModuleVersionIdentifier coordinates = projectDependencyResolver.resolveVariant(ModuleVersionIdentifier.class, identityPath, variantName);
+        ModuleVersionIdentifier variantCoordinates = projectDependencyResolver.resolveVariant(ModuleVersionIdentifier.class, identityPath, variantName);
 
-        if (coordinates == null) {
+        if (variantCoordinates == null) {
             throw new InvalidUserDataException(String.format(
                 "Could not resolve coordinates for variant '%s' of project '%s'.",
                 variantName, identityPath
             ));
         }
 
-        return coordinates;
+        ModuleVersionIdentifier componentCoordinates = projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
+        return new CoordinatePair(componentCoordinates, variantCoordinates);
     }
 
     @Override
@@ -223,7 +257,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getGroup(), dependency.getName());
         ModuleDependencyKey key = new ModuleDependencyKey(module, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
-        ModuleVersionIdentifier resolved = mappings.resolvedModules.get(key);
+        ModuleVersionIdentifier resolved = mappings.resolvedModuleVariants.get(key);
         if (resolved != null) {
             return ResolvedCoordinates.create(resolved);
         }
@@ -245,7 +279,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
 
         // Fallback to component coordinate mapping only.
-        return fallback.resolveComponentCoordinates(dependency);
+        return resolveModuleComponentCoordinates(module);
     }
 
     @Override
@@ -253,7 +287,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
         ProjectDependencyKey key = new ProjectDependencyKey(identityPath, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
-        ModuleVersionIdentifier resolved = mappings.resolvedProjects.get(key);
+        ModuleVersionIdentifier resolved = mappings.resolvedProjectVariants.get(key);
         if (resolved != null) {
             return ResolvedCoordinates.create(resolved);
         }
@@ -275,12 +309,63 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
 
         // Fallback to component coordinate mapping only.
-        return fallback.resolveComponentCoordinates(dependency);
+        return resolveComponentCoordinates(dependency);
+    }
+
+    @Nullable
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(ExternalDependency dependency) {
+        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getGroup(), dependency.getName());
+        return resolveModuleComponentCoordinates(module);
+    }
+
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
+        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        ModuleVersionIdentifier resolved = mappings.resolvedProjectComponents.get(identityPath);
+        if (resolved != null) {
+            return ResolvedCoordinates.create(resolved);
+        }
+
+        // This is likely user error, as the resolution result should have the same
+        // dependencies as the published variant. Fallback to resolving the project
+        // coordinates directly.
+
+        return ResolvedCoordinates.create(
+            projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath)
+        );
+    }
+
+    @Nullable
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
+        assert !(dependency instanceof DefaultProjectDependencyConstraint);
+        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getGroup(), dependency.getName());
+        return resolveModuleComponentCoordinates(module);
+    }
+
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(DefaultProjectDependencyConstraint dependency) {
+        return resolveComponentCoordinates(dependency.getProjectDependency());
+    }
+
+
+    @Nullable
+    private ResolvedCoordinates resolveModuleComponentCoordinates(ModuleIdentifier module) {
+        ModuleVersionIdentifier resolved = mappings.resolvedModuleComponents.get(module);
+        if (resolved != null) {
+            return ResolvedCoordinates.create(resolved);
+        }
+        return null;
     }
 
     private static class ResolvedMappings {
-        final Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModules;
-        final Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjects;
+
+        final Map<ModuleIdentifier, ModuleVersionIdentifier> resolvedModuleComponents;
+        final Map<Path, ModuleVersionIdentifier> resolvedProjectComponents;
+
+        final Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModuleVariants;
+        final Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjectVariants;
 
         // Incompatible modules and projects are those that have multiple dependencies with the same
         // attributes and capabilities, but have somehow resolved to different coordinates. This can
@@ -289,15 +374,32 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         final Set<ProjectDependencyKey> incompatibleProjects;
 
         ResolvedMappings(
-            Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModules,
-            Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjects,
+            Map<ModuleIdentifier, ModuleVersionIdentifier> resolvedModuleComponents,
+            Map<Path, ModuleVersionIdentifier> resolvedProjectComponents,
+            Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModuleVariants,
+            Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjectVariants,
             Set<ModuleDependencyKey> incompatibleModules,
             Set<ProjectDependencyKey> incompatibleProjects
         ) {
-            this.resolvedModules = resolvedModules;
-            this.resolvedProjects = resolvedProjects;
+            this.resolvedModuleComponents = resolvedModuleComponents;
+            this.resolvedProjectComponents = resolvedProjectComponents;
+            this.resolvedModuleVariants = resolvedModuleVariants;
+            this.resolvedProjectVariants = resolvedProjectVariants;
             this.incompatibleModules = incompatibleModules;
             this.incompatibleProjects = incompatibleProjects;
+        }
+    }
+
+    private static class CoordinatePair {
+        final ModuleVersionIdentifier componentCoordinates;
+        final ModuleVersionIdentifier variantCoordinates;
+
+        private CoordinatePair(
+            ModuleVersionIdentifier componentCoordinates,
+            ModuleVersionIdentifier variantCoordinates
+        ) {
+            this.componentCoordinates = componentCoordinates;
+            this.variantCoordinates = variantCoordinates;
         }
     }
 

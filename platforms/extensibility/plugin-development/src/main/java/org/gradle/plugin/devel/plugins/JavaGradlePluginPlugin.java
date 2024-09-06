@@ -32,6 +32,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.logging.Logger;
@@ -163,7 +164,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         ProjectPublicationRegistry registry = projectInternal.getServices().get(ProjectPublicationRegistry.class);
-        extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectInternal, new LocalPluginPublication(pluginDeclaration)));
+        ProjectIdentity projectIdentity = projectInternal.getProjectIdentity();
+        extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration)));
     }
 
     private static void applyDependencies(Project project) {
