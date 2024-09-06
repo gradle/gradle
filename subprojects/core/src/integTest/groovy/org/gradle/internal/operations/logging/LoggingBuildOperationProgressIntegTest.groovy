@@ -37,6 +37,7 @@ import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -390,6 +391,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForIsolatedProjects(because = "Different amount of events for IP mode")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4454")
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'
