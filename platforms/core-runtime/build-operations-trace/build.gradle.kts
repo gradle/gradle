@@ -30,6 +30,7 @@ dependencies {
     api(libs.guava)
 
     implementation(projects.baseServices)
+    implementation(projects.buildOption)
 
     implementation(libs.groovyJson)
     implementation(libs.jsr305)
