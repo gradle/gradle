@@ -251,7 +251,7 @@ class DefaultConfigurationCacheIO internal constructor(
         if (startParameter.collectStats)
             DefaultCollector()
         else
-            NullCollector()
+            Collector.NULL_COLLECTOR
 
     private
     fun <T> writeConfigurationCacheState(
@@ -278,14 +278,14 @@ class DefaultConfigurationCacheIO internal constructor(
     interface Collector {
         fun collect(obj: Any?)
         fun printStats(context: String)
-    }
 
-
-    private
-    class NullCollector: Collector {
-        override fun collect(obj: Any?) {
-        }
-        override fun printStats(context: String) {
+        companion object {
+            val NULL_COLLECTOR = object : Collector {
+                override fun collect(obj: Any?) {
+                }
+                override fun printStats(context: String) {
+                }
+            }
         }
     }
 
