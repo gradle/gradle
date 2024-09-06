@@ -16,11 +16,29 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.DefaultCacheFactory;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.initialization.layout.GlobalCacheDir;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.PersistentJvmMetadataDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -31,6 +49,7 @@ import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
@@ -40,6 +59,7 @@ import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
+import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -50,8 +70,11 @@ import java.util.UUID;
  * @see DaemonClientServices
  */
 public abstract class DaemonClientServicesSupport implements ServiceRegistrationProvider {
-
     private final InputStream buildStandardInput;
+
+    public void configure(ServiceRegistration registration) {
+        registration.add(GlobalCacheDir.class);
+    }
 
     public DaemonClientServicesSupport(InputStream buildStandardInput) {
         this.buildStandardInput = buildStandardInput;
@@ -59,6 +82,47 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
 
     protected InputStream getBuildStandardInput() {
         return buildStandardInput;
+    }
+
+
+    @Provides
+    CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory);
+    }
+
+    @Provides
+    UnscopedCacheBuilderFactory createCacheRepository(CacheFactory cacheFactory) {
+        return new DefaultUnscopedCacheBuilderFactory(cacheFactory);
+    }
+
+    @Provides
+    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
+    }
+
+    @Provides
+    InMemoryCacheDecoratorFactory createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new CleaningInMemoryCacheDecoratorFactory(false, cacheFactory);
+    }
+
+    @Provides
+    CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
+        return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
+    }
+
+    @Provides
+    JvmVersionValidator createJvmVersionValidator() {
+        return new JvmVersionValidator();
+    }
+
+    @Provides
+    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"), inMemoryCacheDecoratorFactory);
+    }
+
+    @Provides
+    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
+        return new DefaultJvmVersionDetector(detector);
     }
 
     @Provides

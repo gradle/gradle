@@ -17,86 +17,20 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.cache.internal.DefaultCacheFactory;
-import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
-import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
-import org.gradle.initialization.layout.GlobalCacheDir;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.internal.jvm.inspection.PersistentJvmMetadataDetector;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
 /**
  * Global services shared by all Gradle daemon clients in a given process.
  */
 public class DaemonClientGlobalServices implements ServiceRegistrationProvider {
-    public void configure(ServiceRegistration registration) {
-        registration.add(GlobalCacheDir.class);
-    }
-
     @Provides
     Serializer<BuildAction> createBuildActionSerializer() {
         return BuildActionSerializer.create();
-    }
-
-    @Provides
-    CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory);
-    }
-
-    @Provides
-    UnscopedCacheBuilderFactory createCacheRepository(CacheFactory cacheFactory) {
-        return new DefaultUnscopedCacheBuilderFactory(cacheFactory);
-    }
-
-    @Provides
-    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
-    }
-
-    @Provides
-    InMemoryCacheDecoratorFactory createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new CleaningInMemoryCacheDecoratorFactory(false, cacheFactory);
-    }
-
-    @Provides
-    CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
-        return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
-    }
-
-    @Provides
-    JvmVersionValidator createJvmVersionValidator() {
-        return new JvmVersionValidator();
-    }
-
-    @Provides
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"), inMemoryCacheDecoratorFactory);
-    }
-
-    @Provides
-    JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
-        return new DefaultJvmVersionDetector(detector);
     }
 
     @Provides

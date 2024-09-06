@@ -51,9 +51,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.fileTemp)
-    implementation(projects.processServices)
-    implementation(projects.persistentCache)
 
     implementation(libs.slf4jApi)
 
