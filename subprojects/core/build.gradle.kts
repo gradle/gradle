@@ -94,6 +94,7 @@ dependencies {
     api(projects.enterpriseOperations)
     api(projects.execution)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.fileWatching)
     api(projects.files)
