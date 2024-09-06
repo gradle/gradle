@@ -219,7 +219,8 @@ Found the following transforms:
             null,
             ResolutionStrategy.SortOrder.DEFAULT,
             Mock(ResolutionResultProvider),
-            Mock(ResolutionResultProvider)
+            Mock(ResolutionResultProvider),
+            true
         )
     }
 

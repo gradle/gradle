@@ -414,4 +414,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public void setKeepStateRequiredForGraphResolution(boolean keepStateRequiredForGraphResolution) {
         this.keepStateRequiredForGraphResolution = keepStateRequiredForGraphResolution;
     }
+
+    @Override
+    public boolean isReportFailuresAsProblems() {
+        return true;
+    }
 }
