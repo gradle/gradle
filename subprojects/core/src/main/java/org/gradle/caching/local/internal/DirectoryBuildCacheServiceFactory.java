@@ -19,7 +19,7 @@ package org.gradle.caching.local.internal;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -53,6 +53,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final PathToFileResolver resolver;
     private final FileAccessTimeJournal fileAccessTimeJournal;
     private final CacheConfigurationsInternal cacheConfigurations;
+    private final CacheCleanupStrategyFactory cacheCleanupStrategyFactory;
 
     @Inject
     public DirectoryBuildCacheServiceFactory(
@@ -60,13 +61,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         PathToFileResolver resolver,
         FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
         this.cacheConfigurations = cacheConfigurations;
+        this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
     }
 
     @Override
@@ -105,7 +108,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(Supplier<Long> removeUnusedEntriesTimestamp) {
-        return DefaultCacheCleanupStrategy.from(
+        return cacheCleanupStrategyFactory.create(
             createCleanupAction(removeUnusedEntriesTimestamp),
             cacheConfigurations.getCleanupFrequency()::get
         );

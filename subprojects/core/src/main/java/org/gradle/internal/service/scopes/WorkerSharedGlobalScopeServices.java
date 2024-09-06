@@ -91,7 +91,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     @Provides
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
+        return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
     @Provides

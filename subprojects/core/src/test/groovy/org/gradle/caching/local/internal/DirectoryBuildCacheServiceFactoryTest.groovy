@@ -20,6 +20,8 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.provider.Provider
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.CacheCleanupStrategy
+import org.gradle.cache.CacheCleanupStrategyFactory
 import org.gradle.cache.UnscopedCacheBuilderFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.caching.BuildCacheServiceFactory
@@ -41,7 +43,8 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def resolver = Mock(FileResolver)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def cacheConfigurations = Mock(CacheConfigurationsInternal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileAccessTimeJournal, cacheConfigurations)
+    def cacheCleanupStrategyFactory = Mock(CacheCleanupStrategyFactory)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -58,6 +61,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
+        1 * cacheCleanupStrategyFactory.create(_, _) >> Mock(CacheCleanupStrategy)
         0 * _
     }
 
@@ -73,6 +77,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)
+        1 * cacheCleanupStrategyFactory.create(_, _) >> Mock(CacheCleanupStrategy)
         0 * _
     }
 
