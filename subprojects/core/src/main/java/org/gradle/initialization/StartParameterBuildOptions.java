@@ -79,6 +79,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheIgnoredFileSystemCheckInputs());
         options.add(new ConfigurationCacheDebugOption());
+        options.add(new ConfigurationCacheParallelOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         options.add(new IsolatedProjectsOption());
@@ -587,6 +588,21 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheDebug(value);
         }
+    }
+
+    public static class ConfigurationCacheParallelOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.parallel";
+
+        public ConfigurationCacheParallelOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheParallel(value);
+        }
+
     }
 
     public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {

@@ -53,6 +53,25 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+
+#### Parallel caching for faster loading times
+
+Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
+To enable the feature in `gradle.properties`:
+
+```text
+// gradle.properties
+org.gradle.configuration-cache.parallel=true
+```
+
+Note that this is an incubating feature and may expose concurrency issues in some builds. 
+
+See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
+
 <a name="native-plugin-improvements"></a>
 ### Core plugin improvements
 
@@ -63,6 +82,7 @@ Gradle provides core plugins for build authors, offering essential tools to simp
 The [Swift](userguide/swift_application_plugin.html) and [C++](userguide/cpp_application_plugin.html) core plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible.
 
 The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/visual_studio_plugin.html) plugins are not yet compatible.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
