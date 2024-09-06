@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Ignore
 
 import static org.gradle.api.problems.Severity.ERROR
 import static org.junit.Assume.assumeTrue
@@ -58,6 +59,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     @UnsupportedWithConfigurationCache
+    @Ignore("AGP should use Provider API for Convention Task")
+    // See https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/SourceSetsTask.java#40
     def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
         given:
         // SourceSetsTask has been deprecated in 8.8 and will be removed in AGP 9.0
