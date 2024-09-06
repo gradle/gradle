@@ -38,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
@@ -77,6 +78,24 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
         this.transformStepNodeId = transformStepNodeId;
+    }
+
+    @Override
+    public void dryRun(BuildOperationRunner buildOperationRunner) {
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                context.setResult(RESULT);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                String transformStepName = transformStep.getDisplayName();
+                return BuildOperationDescriptor.displayName("Transform " + transformStepName)
+                    .metadata(BuildOperationCategory.TRANSFORM)
+                    .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformStepNode.this, transformStepName, transformStepName));
+            }
+        });
     }
 
     public long getTransformStepNodeId() {

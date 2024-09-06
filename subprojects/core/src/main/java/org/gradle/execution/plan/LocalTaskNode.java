@@ -20,14 +20,24 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.operations.execution.CachingDisabledReasonCategory;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -112,6 +122,27 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public Throwable getNodeFailure() {
         return task.getState().getFailure();
+    }
+
+    @Override
+    public void dryRun(BuildOperationRunner buildOperationRunner) {
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                context.setStatus("SKIPPED");
+                context.setResult(new DryRunTaskResult(task.hasTaskActions()));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                Path identityPath = task.getIdentityPath();
+                return BuildOperationDescriptor.displayName("Task " + identityPath)
+                    .name(identityPath.toString())
+                    .progressDisplayName(identityPath.toString())
+                    .metadata(BuildOperationCategory.TASK)
+                    .details(new ExecuteTaskBuildOperationDetails(LocalTaskNode.this));
+            }
+        });
     }
 
     @Override
@@ -273,5 +304,68 @@ public class LocalTaskNode extends TaskNode {
     @Override
     protected boolean dependsOnOutcome(Node dependency) {
         return lifecycleSuccessors.contains(dependency);
+    }
+
+    private static class DryRunTaskResult implements ExecuteTaskBuildOperationType.Result {
+        private final boolean hasTaskActions;
+
+        public DryRunTaskResult(boolean hasTaskActions) {
+            this.hasTaskActions = hasTaskActions;
+        }
+
+        @Nullable
+        @Override
+        public String getSkipMessage() {
+            return TaskExecutionOutcome.SKIPPED.getMessage();
+        }
+
+        @Override
+        public String getSkipReasonMessage() {
+            return "Dry run";
+        }
+
+        @Override
+        public boolean isActionable() {
+            return hasTaskActions;
+        }
+
+        @Nullable
+        @Override
+        public String getOriginBuildInvocationId() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public byte[] getOriginBuildCacheKeyBytes() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Long getOriginExecutionTime() {
+            return null;
+        }
+
+        @Override
+        public String getCachingDisabledReasonMessage() {
+            return "Cacheability was not determined";
+        }
+
+        @Override
+        public String getCachingDisabledReasonCategory() {
+            return CachingDisabledReasonCategory.UNKNOWN.name();
+        }
+
+        @Nullable
+        @Override
+        public List<String> getUpToDateMessages() {
+            return null;
+        }
+
+        @Override
+        public boolean isIncremental() {
+            return false;
+        }
     }
 }

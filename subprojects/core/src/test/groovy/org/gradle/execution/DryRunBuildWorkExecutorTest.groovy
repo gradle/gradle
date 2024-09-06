@@ -15,20 +15,16 @@
  */
 package org.gradle.execution
 
-import org.gradle.api.DefaultTask
+
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.plan.FinalizedExecutionPlan
+import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.QueryableExecutionPlan
-import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.util.Path
 import spock.lang.Specification
 
-import static org.gradle.util.internal.WrapUtil.toList
+import java.util.function.BiConsumer
 
 class DryRunBuildWorkExecutorTest extends Specification {
     def delegate = Mock(BuildWorkExecutor)
@@ -43,53 +39,25 @@ class DryRunBuildWorkExecutorTest extends Specification {
     }
 
     def "print all selected tasks before proceeding when dry run is enabled"() {
-        def task1 = Mock(TaskInternal.class)
-        def task2 = Mock(TaskInternal.class)
+        def node1 = Mock(Node.class)
+        def node2 = Mock(Node.class)
         def contents = Mock(QueryableExecutionPlan)
+        def scheduledNodes = Mock(QueryableExecutionPlan.ScheduledNodes)
 
         given:
         startParameter.isDryRun() >> true
         executionPlan.contents >> contents
-        contents.tasks >> toList(task1, task2)
 
         when:
         action.execute(gradle, executionPlan)
 
         then:
-        def operations = buildOperationRunner.log.all(ExecuteTaskBuildOperationType)
-        operations.size() == 2
-        with(operations.descriptor) {
-            it.name == [':project1:task1', ':project2:task2']
-            it.displayName == ['Task :project1:task1', 'Task :project2:task2']
-            it.metadata == [BuildOperationCategory.TASK, BuildOperationCategory.TASK]
+        1 * contents.scheduledNodes >> scheduledNodes
+        1 * scheduledNodes.visitNodes(_) >> { BiConsumer<List<Node>, Set<Node>> consumer ->
+            consumer.accept([node1, node2], [] as Set<Node>)
         }
-        with(operations.details) {
-            it.buildPath == [':', ':build']
-            it.taskPath == [':project1:task1', ':project2:task2']
-            it.taskId == [1L, 2L]
-            it.taskClass == [Task1, Task2]
-        }
-        operations.result.each {with(it) {
-            skipReasonMessage == "Dry run"
-            skipMessage == "SKIPPED"
-
-            originBuildInvocationId == null
-            originExecutionTime == null
-            originBuildCacheKeyBytes == null
-
-            cachingDisabledReasonMessage == "Cacheability was not determined"
-            cachingDisabledReasonCategory == "UNKNOWN"
-            upToDateMessages == null
-            !incremental
-        }}
-        operations.result.actionable == [true, false]
-
-        _ * task1.getIdentityPath() >> Path.path(':project1:task1')
-        _ * task2.getIdentityPath() >> Path.path(':project2:task2')
-        _ * task1.getTaskIdentity() >> new TaskIdentity(Task1, 'task1', Path.path(':project1:task1'), Path.path(':project1:task1'), Path.path(':'), 1)
-        _ * task2.getTaskIdentity() >> new TaskIdentity(Task2, 'task2', Path.path(':project2:task2'), Path.path(':build:project2:task2'), Path.path(':build'), 2)
-        _ * task1.hasTaskActions() >> true
-        _ * task2.hasTaskActions() >> false
+        1 * node1.dryRun(buildOperationRunner)
+        1 * node2.dryRun(buildOperationRunner)
 
         0 * delegate.execute(_, _)
     }
@@ -104,7 +72,4 @@ class DryRunBuildWorkExecutorTest extends Specification {
         then:
         1 * delegate.execute(gradle, executionPlan)
     }
-
-    static class Task1 extends DefaultTask {}
-    static class Task2 extends DefaultTask {}
 }

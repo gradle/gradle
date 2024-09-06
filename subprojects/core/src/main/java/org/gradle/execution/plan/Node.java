@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
@@ -355,6 +356,9 @@ public abstract class Node {
             state = ExecutionState.NOT_SCHEDULED;
             dependenciesState = DependenciesState.NOT_COMPLETE;
         }
+    }
+
+    public void dryRun(BuildOperationRunner buildOperationRunner) {
     }
 
     public void setExecutionFailure(Throwable failure) {
