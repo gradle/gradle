@@ -22,7 +22,6 @@ import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isVali
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidGradleVersion
 import org.gradle.client.core.gradle.GradleConnectionParameters.Companion.isValidJavaHome
 import org.gradle.client.core.gradle.GradleDistribution
-import org.gradle.client.core.util.currentDesktopOS
 import org.gradle.client.ui.composables.*
 import org.gradle.client.ui.theme.plusPaneSpacing
 import org.gradle.client.ui.theme.spacing
@@ -138,7 +137,6 @@ private fun BuildMainContent(component: BuildComponent, build: Build, snackbarSt
             state = javaHome,
             defaultState = System.getenv("JAVA_HOME")?.takeIf { it.isNotBlank() },
             isError = !isJavaHomeValid,
-            showHiddenFiles = true,
             showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } }
         )
         DirectoryField(
@@ -146,7 +144,6 @@ private fun BuildMainContent(component: BuildComponent, build: Build, snackbarSt
             state = gradleUserHome,
             defaultState = System.getProperty("user.home") + "/.gradle",
             isError = !isGradleUserHomeValid,
-            showHiddenFiles = true,
             showSnackbar = { message -> scope.launch { snackbarState.showSnackbar(message) } },
         )
         GradleDistributionField(state = gradleDistSource)
@@ -270,7 +267,6 @@ private fun DirectoryField(
     defaultState: String? = null,
     readOnly: Boolean = false,
     isError: Boolean = false,
-    showHiddenFiles: Boolean = false,
     showSnackbar: (message: String) -> Unit,
 ) {
     BuildTextField(
@@ -288,46 +284,13 @@ private fun DirectoryField(
             }
         },
         trailingIcon = {
-            val helpText = "Select a $description"
-            if (currentDesktopOS.isLinux) {
-                LinuxDirectoryFieldPicker(description, helpText, state, showHiddenFiles, showSnackbar)
-            } else {
-                NonLinuxDirectoryFieldPicker(description, helpText, state, showSnackbar)
-            }
+            DirectoryFieldPicker(description, "Select a $description", state, showSnackbar)
         },
     )
 }
 
 @Composable
-private fun LinuxDirectoryFieldPicker(
-    description: String,
-    helpText: String,
-    state: MutableState<String>,
-    showHiddenFiles: Boolean = false,
-    showSnackbar: (message: String) -> Unit,
-) {
-    var isDirChooserOpen by remember { mutableStateOf(false) }
-    if (isDirChooserOpen) {
-        DirChooserDialog(
-            helpText = helpText,
-            showHiddenFiles = showHiddenFiles,
-            onDirChosen = { dir ->
-                isDirChooserOpen = false
-                if (dir == null) {
-                    showSnackbar("No $description selected")
-                } else {
-                    state.value = dir.absolutePath
-                }
-            }
-        )
-    }
-    DirectoryFilePickerIcon(helpText, state) {
-        isDirChooserOpen = true
-    }
-}
-
-@Composable
-private fun NonLinuxDirectoryFieldPicker(
+private fun DirectoryFieldPicker(
     description: String,
     helpText: String,
     state: MutableState<String>,

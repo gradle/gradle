@@ -122,7 +122,8 @@ compose.desktop {
                 "java.scripting",
                 "java.sql",
                 "jdk.compiler",
-                "jdk.unsupported"
+                "jdk.security.auth",
+                "jdk.unsupported",
             )
             linux {
                 iconFile = layout.projectDirectory.file("src/assets/desktop/icon.png")

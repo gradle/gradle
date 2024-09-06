@@ -4,8 +4,6 @@ enum class DesktopOS(val id: String) {
     Linux("linux"),
     Mac("macos"),
     Windows("windows");
-
-    val isLinux: Boolean get() = this == Linux
 }
 
 val currentDesktopOS: DesktopOS by lazy {
