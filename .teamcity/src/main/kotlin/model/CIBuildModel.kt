@@ -137,6 +137,7 @@ data class CIBuildModel(
                 TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
                 TestCoverage(37, TestType.configCache, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64, failStage = false),
                 TestCoverage(38, TestType.configCache, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION, failStage = false),
+                TestCoverage(39, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64, failStage = false),
             ),
             docsTests = listOf(
                 DocsTestCoverage(Os.MACOS, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_DISABLED)),
