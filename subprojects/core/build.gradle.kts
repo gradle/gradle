@@ -121,7 +121,6 @@ dependencies {
     api(libs.ant)
     api(libs.asm)
     api(libs.asmTree)
-    api(libs.commonsCompress)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
@@ -136,6 +135,7 @@ dependencies {
 
     implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
+    implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.commonsLang3)
@@ -143,7 +143,6 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
-    implementation(libs.groovyTemplates)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {

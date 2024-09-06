@@ -28,6 +28,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
+    implementation(projects.fileOperations)
     implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.publish)

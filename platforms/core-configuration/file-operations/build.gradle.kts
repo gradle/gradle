@@ -34,6 +34,10 @@ strictCompile {
     ignoreRawTypes() // some raw types remain, but must be cleaned up
 }
 
+packageCycles {
+    excludePatterns.add("org/gradle/api/internal/**")
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)

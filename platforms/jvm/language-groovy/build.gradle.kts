@@ -19,6 +19,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.core)
     api(projects.files)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.jvmServices)
     api(projects.languageJava)
