@@ -28,6 +28,10 @@ import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.buildoption.DefaultInternalOptions;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -68,7 +72,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 /**
  * Writes files describing the build operation stream for a build.
- * Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
+ * Can be enabled for any build with {@code -Dorg.gradle.internal.operations.trace=«path-base»}.
  * <p>
  * Imposes no overhead when not enabled.
  * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
@@ -84,8 +88,12 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
  * <p>
  * The «path-base» param is optional.
- * If invoked as `-Dorg.gradle.internal.operations.trace`, a base value of "operations" will be used.
+ * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of "operations" will be used.
  * <p>
+ * <p>
+ * The generation of trees can be very memory hungry and thus can be disabled with
+ * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
+ * </p>
  * The “trace” produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
@@ -97,6 +105,8 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
+    private static final StringInternalOption TRACE_OPTION = new StringInternalOption(SYSPROP, null);
+
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
      * that will be captured by this trace. When enabled, only operations matching this filter
@@ -107,6 +117,16 @@ public class BuildOperationTrace implements Stoppable {
      * case, only the log file will be written, not the formatted tree output files.
      */
     public static final String FILTER_SYSPROP = SYSPROP + ".filter";
+
+    private static final StringInternalOption FILTER_OPTION = new StringInternalOption(FILTER_SYSPROP, null);
+
+    /**
+     * A flag controlling whether tree generation is enabled ({@code true} by default).
+     * Only application when {@link #FILTER_SYSPROP} is not set.
+     */
+    public static final String TREE_SYSPROP = SYSPROP + ".tree";
+
+    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, true);
 
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.
@@ -126,20 +146,22 @@ public class BuildOperationTrace implements Stoppable {
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
-        Set<String> filter = getFilter(startParameter);
+        InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
+        this.basePath = internalOptions.getOption(TRACE_OPTION).get();
+        if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
+            this.logOutputStream = null;
+            this.outputTree = false;
+            this.listener = null;
+            return;
+        }
+
+        Set<String> filter = getFilter(internalOptions);
         if (filter != null) {
             this.outputTree = false;
             this.listener = new FilteringBuildOperationListener(new SerializingBuildOperationListener(this::write), filter);
         } else {
-            this.outputTree = true;
+            this.outputTree = internalOptions.getOption(TRACE_TREE_OPTION).get();
             this.listener = new SerializingBuildOperationListener(this::write);
-        }
-
-        this.basePath = getProperty(startParameter, SYSPROP);
-
-        if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
-            this.logOutputStream = null;
-            return;
         }
 
         try {
@@ -159,18 +181,9 @@ public class BuildOperationTrace implements Stoppable {
         buildOperationListenerManager.addListener(listener);
     }
 
-    private static String getProperty(StartParameter startParameter, String property) {
-        Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
-        String basePath = sysProps.get(property);
-        if (basePath == null) {
-            basePath = System.getProperty(property);
-        }
-        return basePath;
-    }
-
     @Nullable
-    private static Set<String> getFilter(StartParameter startParameter) {
-        String filterProperty = getProperty(startParameter, FILTER_SYSPROP);
+    private static Set<String> getFilter(InternalOptions internalOptions) {
+        String filterProperty = internalOptions.getOption(FILTER_OPTION).get();
         if (filterProperty == null) {
             return null;
         }

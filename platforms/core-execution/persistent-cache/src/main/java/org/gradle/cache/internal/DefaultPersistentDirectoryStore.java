@@ -23,7 +23,6 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
@@ -56,8 +55,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         LockOptions lockOptions,
         CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager fileLockManager,
-        ExecutorFactory executorFactory,
-        BuildOperationRunner buildOperationRunner
+        ExecutorFactory executorFactory
     ) {
         this.dir = dir;
         this.lockOptions = lockOptions;
@@ -66,7 +64,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
-        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cacheCleanupStrategy, buildOperationRunner);
+        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cacheCleanupStrategy);
     }
 
     @Override

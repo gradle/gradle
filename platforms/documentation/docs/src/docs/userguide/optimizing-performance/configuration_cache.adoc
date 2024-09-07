@@ -197,6 +197,29 @@ or in a `gradle.properties` file:
 org.gradle.configuration-cache.max-problems=5
 ----
 
+[[config_cache:usage:parallel]]
+=== Enabling parallel configuration caching
+
+Configuration cache storing and loading are done sequentially by default. Parallel storing and loading provide
+better performance, however not all builds are compatible with it.
+
+To enable parallel configuration caching on the command line:
+
+----
+❯ gradle -Dorg.gradle.configuration-cache.parallel=true
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.configuration-cache.parallel=true
+----
+
+The parallel configuration caching feature is _incubating_, as not all builds are guaranteed to work correctly.
+Common symptoms are `ConcurrentModificationException` exceptions during the <<build_lifecycle#sec:configuration,configuration phase>>.
+The feature should work well for <<multi_project_configuration_and_execution#sec:decoupled_projects,decoupled>> multi-project builds.
+
 [[config_cache:usage:invalidate]]
 === Invalidating the cache
 
