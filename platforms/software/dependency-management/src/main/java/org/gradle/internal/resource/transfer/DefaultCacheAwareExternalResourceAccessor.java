@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transfer;
 
 import com.google.common.io.Files;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
@@ -161,8 +163,16 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     @Nullable
     private File calculateFixedPartPosition(@Nonnull ExternalResourceName location) {
-        // FIXME 2024/9/5: calculate a fixed position by location
-        return null;
+        String key = DigestUtils.md5Hex(location.getPath()) + ".part";
+        File part = new File(System.getProperty("java.io.tmpdir"), ".gradle/" + key);
+        try {
+            FileUtils.forceMkdir(part.getParentFile());
+        } catch (IOException e) {
+            LOGGER.warn("Unable to create directory to store part file for {}", location.getDisplayName(), e);
+            return null;
+        }
+
+        return part;
     }
 
     @Nullable
