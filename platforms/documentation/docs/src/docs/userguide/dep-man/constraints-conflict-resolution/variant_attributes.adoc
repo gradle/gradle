@@ -13,23 +13,53 @@
 // limitations under the License.
 
 [[variant_attributes]]
-= Working with Variant Attributes
+= Using Variants and Attributes
 
-As explained in the section on <<variant_model.adoc#sec:variant-aware-matching,variant aware matching>>, attributes give semantics to variants and are used by Gradle's dependency management engine to select the best matching variant.
+**Variants** represent different versions or aspects of a component, like `api` vs `implementation` or `debug` vs `release`.
+**Attributes** define which variant is selected based on the consumer's requirements.
+
+For example, a library may have an `api` and an `implementation` variant.
+Here, the consumer wants an external `implementation` variant:
+
+[source,kotlin]
+----
+configurations {
+    implementation {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        }
+    }
+}
+----
+
+For example, a build might have `debug` and `release` variants.
+This selects the `debug` variant based on the attribute.
+
+[source,kotlin]
+----
+configurations {
+    compileClasspath {
+        attributes {
+            attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
+        }
+    }
+}
+----
+
+**Attributes** help Gradle match the right **variant** by comparing the requested attributes with what's available.
+
+To understand how Gradle's dependency management engine works to select the best matching variant, see our <<variant_model.adoc#sec:variant-aware-matching,Understanding Variant Selection>> chapter.
+
+[[sec:standard_attributes]]
+== Standard attributes defined by Gradle
 
 As a user of Gradle, attributes are often hidden as implementation details.
 But it might be useful to understand the _standard attributes_ defined by Gradle and its core plugins.
 
 As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring_attributes,building your own set of attributes>> in your ecosystem plugin.
 
-[[sec:standard_attributes]]
-== Standard attributes defined by Gradle
-
-Gradle defines a list of standard attributes used by Gradle's core plugins.
-
 === Ecosystem-independent standard attributes
 
-.Ecosystem-independent standard variant attributes
 [%header%autowidth,compact]
 |===
 | Attribute name | Description | Values | compatibility and disambiguation rules
@@ -66,16 +96,11 @@ Gradle defines a list of standard attributes used by Gradle's core plugins.
 |===
 
 [[sec:verification_category]]
-
-[WARNING]
-====
 When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant.
 
 These variants are meant to contain only the results of running verification tasks, such as test results or code coverage reports.
 They are *not publishable*, and will produce an error if added to a component which is published.
-====
 
-.Ecosystem-independent standard component attributes
 [%header%autowidth,compact]
 |===
 | Attribute name | Description | Values | compatibility and disambiguation rules
@@ -91,7 +116,6 @@ They are *not publishable*, and will produce an error if added to a component wh
 
 In addition to the ecosystem independent attributes defined above, the JVM ecosystem adds the following attribute:
 
-.JVM ecosystem standard component attributes
 [%header%autowidth,compact]
 |===
 | Attribute name | Description | Values | compatibility and disambiguation rules
@@ -129,7 +153,6 @@ The reader willing to know more can take a look at the code for `org.gradle.api.
 
 In addition to the ecosystem independent attributes defined above, the native ecosystem adds the following attributes:
 
-.Native ecosystem standard component attributes
 [%header%autowidth,compact]
 |===
 | Attribute name | Description | Values | compatibility and disambiguation rules
@@ -161,7 +184,6 @@ In addition to the ecosystem independent attributes defined above, the native ec
 For Gradle plugin development, the following attribute is supported since Gradle 7.0.
 A Gradle plugin variant can specify compatibility with a Gradle API version through this attribute.
 
-.Gradle plugin ecosystem standard component attributes
 [%header%autowidth,compact]
 |===
 | Attribute name | Description | Values | compatibility and disambiguation rules
@@ -172,30 +194,138 @@ A Gradle plugin variant can specify compatibility with a Gradle API version thro
 | Defaults to the currently running Gradle, lower is compatible with higher, prefers highest compatible.
 |===
 
+== Using a standard attribute
+
+For this example, let’s assume you are creating a library with different variants for different JVM versions.
+
+[source,kotlin]
+.build.gradle.kts
+----
+// build.gradle.kts in the library project
+
+import org.gradle.api.attributes.Attribute
+
+val jvmVersionAttribute = Attribute.of("org.gradle.jvm.version", String::class.java)
+
+configurations {
+    create("apiElements") {
+        attributes {
+            attribute(jvmVersionAttribute, "17")
+        }
+    }
+}
+----
+
+In the consumer project (that uses the library), you can specify the JVM version attribute when declaring dependencies.
+
+[source,kotlin]
+.build.gradle.kts
+----
+// build.gradle.kts in the consumer project
+
+dependencies {
+    implementation("com.example:your-library:1.0") {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17) // Shorthand notation for Gradle defined attributes
+        }
+    }
+}
+----
+
+By defining and using the JVM version attribute, you ensure that your library and its consumers are compatible with the specified JVM version.
+Essentially, this ensures that Gradle resolves to the variant that matches the desired JVM version.
+
+== Viewing and debugging attributes
+
+The `dependencyInsight` task is useful for inspecting specific dependencies and their attributes, including how they are resolved:
+
+[source,text]
+----
+$ ./gradlew dependencyInsight --configuration compileClasspath --dependency com.example:your-library
+
+> Task :dependencyInsight
+
+com.example:your-library:1.0 (compileClasspath)
+   variant "apiElements" [
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.Usage = [java-api]
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.Usage = [java-runtime]
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.JavaLanguageVersion = [1.8]
+   ]
+   variant "runtimeElements" [
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.Usage = [java-runtime]
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.JavaLanguageVersion = [1.8]
+   ]
+
+   Selection reasons:
+      - By constraint from configuration ':compileClasspath'
+      - Declared in build.gradle.kts
+
+   Resolved to:
+      com.example:your-library:1.0 (runtime)
+
+   Additional Information:
+      - Dependency declared in the 'implementation' configuration
+      - No matching variants found for the requested attributes in the 'compileClasspath' configuration
+----
+
 [[sec:declaring_attributes]]
 == Declaring custom attributes
 
-If you are extending Gradle, e.g. by writing a plugin for another ecosystem, declaring custom attributes could be an option if you want to support variant-aware dependency management features in your plugin.
-However, you should be cautious if you also attempt to publish libraries.
-Semantics of new attributes are usually defined through a plugin, which can carry <<#sec:abm_compatibility_rules,compatibility>> and <<sec:abm_disambiguation_rules,disambiguation>> rules.
-Consequently, builds that consume libraries published for a certain ecosystem, also need to apply the corresponding plugin to interpret attributes correctly.
-If your plugin is intended for a larger audience, i.e. if it is openly available and libraries are published to public repositories, defining new attributes effectively extends the semantics of Gradle Module Metadata and comes with responsibilities.
-E.g., support for attributes that are already published should not be removed again, or should be handled in some kind of compatibility layer in future versions of the plugin.
+When extending Gradle with *custom attributes*, it’s important to consider their long-term impact, especially if you plan to publish libraries.
+Custom attributes allow you to integrate *variant-aware dependency management* in your plugin, but libraries using these attributes must also ensure consumers can interpret them correctly.
+This is typically done by applying the corresponding plugin, which defines compatibility and disambiguation rules.
+
+If your plugin is publicly available and libraries are published to public repositories, introducing new attributes becomes a significant responsibility.
+Published attributes must remain supported or have a <<#sec:abm_compatibility_rules,compatibility layer>> in future versions of the plugin to ensure backward compatibility.
+
+Here’s an example of declaring and using custom attributes in a Gradle plugin:
+
+[source,kotlin]
+----
+// Define a custom attribute
+val myAttribute = Attribute.of("com.example.my-attribute", String::class.java)
+
+configurations {
+    create("myConfig") {
+        // Set custom attribute
+        attributes {
+            attribute(myAttribute, "special-value")
+        }
+    }
+}
+
+dependencies {
+    // Apply the custom attribute to a dependency
+    myConfig("com.example:my-library:1.0") {
+        attributes {
+            attribute(myAttribute, "special-value")
+        }
+    }
+}
+----
+
+In this example:
+- A custom attribute `my-attribute` is defined.
+- The attribute is set on a custom configuration (`myConfig`).
+- When adding a dependency, the custom attribute is applied to match the configuration.
+
+If publishing a library with this attribute, ensure that consumers apply the plugin that understands and handles `my-attribute`.
 
 == Creating attributes in a build script or plugin
 
-Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` method:
+Attributes are _typed_.
+An attribute can be created via the `Attribute<T>.of` method:
 
-.Define attributes
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=define_attribute]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 ====
 
-Attribute types support most Java primitive classes; such as `String` and `Integer`; Or anything extending `org.gradle.api.Named`.
+Attribute types support most Java primitive classes; such as `String` and `Integer`.
+Or anything extending `org.gradle.api.Named`.
+
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
-.Registering attributes on the attributes schema
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=register-attributes]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
@@ -205,7 +335,6 @@ Registering an attribute with the schema is required in order to use Compatibili
 
 Each configuration has a container of attributes.  Attributes can be configured to set values:
 
-.Setting attributes on configurations
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=attributes-on-configurations]"]
@@ -213,14 +342,18 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 For attributes which type extends `Named`, the value of the attribute **must** be created via the _object factory_:
 
-.Named attributes
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=named-attributes]"]
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 ====
 
 [[sec:attribute_matching]]
-== Attribute matching
+== Dealing with attribute matching
+
+In Gradle, **attribute matching** and **attribute disambiguation** are key mechanisms for resolving dependencies with varying attributes.
+
+**Attribute matching** allows Gradle to select compatible dependency variants based on predefined rules, even if an exact match isn't available.
+**Attribute disambiguation**, on the other hand, helps Gradle choose the most suitable variant when multiple compatible options exist.
 
 [[sec:abm_compatibility_rules]]
 === Attribute compatibility rules
@@ -228,9 +361,52 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 Attributes let the engine select _compatible variants_.
 There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
 
-For example, if the consumer is asking for the API of a library and the producer doesn't have an exactly matching variant, the _runtime_ variant could be considered compatible.
-This is typical of libraries published to external repositories.
-In this case, we know that even if we don't have an exact match (API), we can still compile against the runtime variant (it contains _more_ than what we need to compile but it's still ok to use).
+Suppose you have a library published with a variant that has the following attributes:
+
+- `Usage`: `java-runtime`
+- `JavaLanguageVersion`: `1.8`
+
+A consumer might request a variant with:
+
+- `Usage`: `java-api`
+- `JavaLanguageVersion`: `11`
+
+In this case, the consumer's request does not match the exact attributes of the library's available variant.
+However, because of compatibility rules, Gradle can determine that the `java-runtime` variant can be used as a fallback.
+
+To set up attribute compatibility rules, you need to register these rules via the attribute matching strategy.
+
+Here's a simple example of how to define a compatibility rule in a Gradle build script:
+
+[source,kotlin]
+----
+import org.gradle.api.attributes.AttributeMatchingStrategy
+import org.gradle.api.attributes.Attribute
+
+// Define the attribute and its values
+val javaLanguageVersion = Attribute.of("org.gradle.jvm.version", String::class.java)
+
+// Register the compatibility rule
+configurations.all {
+    attributes {
+        // Define a compatibility rule for JavaLanguageVersion
+        attributeMatchingStrategy(javaLanguageVersion) { strategy ->
+            strategy.compatibleWith("1.8") {
+                // Define compatibility rule logic here
+                true // This means all versions are compatible
+            }
+            strategy.compatibleWith("11") {
+                // Logic for Java 11 compatibility
+                false // No compatibility with Java 11
+            }
+        }
+    }
+}
+----
+
+1. **Attribute Definition**: Define the attribute you want to apply compatibility rules to. In this case, `JavaLanguageVersion`.
+2. **Register Compatibility Rule**: Use the `attributeMatchingStrategy` to specify how to handle compatibility for the defined attribute. For instance, you can define which versions of the attribute are compatible.
+3. **Compatibility Logic**: Specify the compatibility logic inside the rule. You can define specific versions or attributes that are considered compatible or incompatible.
 
 Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules] that can be defined for each attribute.
 The role of a compatibility rule is to explain which attribute values are _compatible_ based on what the consumer asked for.
@@ -240,31 +416,41 @@ Attribute compatibility rules have to be registered via the link:{javadocPath}/o
 [[sec:abm_disambiguation_rules]]
 === Attribute disambiguation rules
 
-Since multiple values for an attribute can be _compatible_, Gradle needs to choose the "best" candidate between all compatible candidates. This is called "disambiguation".
+When multiple variants of a dependency are compatible with the consumer's requested attributes, Gradle needs to decide which variant to select.
+This process of determining the "best" candidate among compatible options is called **attribute disambiguation**.
 
-This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
+In Gradle, different variants might satisfy the consumer's request, but not all are equal.
+For example, you might have several versions of a library that are compatible with a Java version requested by the consumer.
+Disambiguation helps Gradle choose the most appropriate one based on additional criteria.
+
+You can define disambiguation rules to guide Gradle in selecting the most suitable variant when multiple candidates are found.
+This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule]:
+
+[source,kotlin]
+----
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeMatchingStrategy
+
+// Define custom attribute
+val javaLanguageVersion = Attribute.of("org.gradle.jvm.version", String::class.java)
+
+// Register disambiguation rules
+configurations.all {
+    attributes {
+        // Define the attribute matching strategy
+        attribute(javaLanguageVersion, "1.8") {
+            // Set up disambiguation logic
+            disambiguationStrategy {
+                // Example disambiguation: Prefer newer versions
+                preferNewer()
+            }
+        }
+    }
+}
+----
+
+1. **Attribute Definition**: Create or reference the attribute you want to apply disambiguation rules to. Here, `javaLanguageVersion` is used.
+2. **Register Disambiguation Rules**: Apply the disambiguation strategy using `disambiguationStrategy` within the `attributes` block. This example sets up a simple rule to prefer newer versions.
+3. **Disambiguation Logic**: The `preferNewer()` method is a placeholder for your custom logic. You can implement more complex rules based on your requirements.
 
 Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema], which is a member of link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[DependencyHandler].
-[[sec:abm_algorithm]]
-=== Variant attribute matching algorithm
-
-Finding the best variant can get complicated when there are many different variants available for a component and many different attributes. Gradle's dependency resolution engine performs the following algorithm when finding the best result (or failing):
-
-1. Each candidate's attribute value is compared to the consumer's requested attribute value. A candidate is considered compatible if its value matches the consumer's value exactly, passes the attribute's compatibility rule or is not provided.
-2. If only one candidate is considered compatible, that candidate wins.
-3. If several candidates are compatible, but one of the candidates matches all of the same attributes as the other candidates, Gradle chooses that candidate. This is the candidate with the "longest" match.
-4. If several candidates are compatible and are compatible with an equal number of attributes, Gradle needs to disambiguate the candidates.
-    a. For each requested attribute, if a candidate does not have a value matching the disambiguation rule, it's eliminated from consideration.
-    b. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
-    c. If the attribute does not have a known precedence, Gradle must consider all attributes.
-5. If several candidates still remain, Gradle will start to consider "extra" attributes to disambiguate between multiple candidates. Extra attributes are attributes that were not requested by the consumer but are present on at least one candidate. These extra attributes are considered in precedence order.
-    a. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
-    b. After all extra attributes with precedence are considered, the remaining candidates can be chosen if they are compatible with all of the non-ordered disambiguation rules.
-6. If several candidates still remain, Gradle will consider extra attributes again. A candidate can be chosen if it has the fewest number of extra attributes.
-
-If at any step no candidates remain compatible, resolution fails.
-Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging variant matching failures.
-
-Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules and telling Gradle the precedence of attributes. Attributes with a higher precedence are used to eliminate compatible matches in order.
-
-For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`. This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`.
