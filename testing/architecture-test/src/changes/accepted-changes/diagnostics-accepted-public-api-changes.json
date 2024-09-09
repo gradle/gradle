@@ -1,6 +1,15 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()",
+            "acceptation": "Upgraded",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.reporting.GenerateBuildDashboard",
             "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()",
             "acceptation": "Should only be used to track inputs",
@@ -63,14 +72,6 @@
             "acceptation": "Changed to idiomatic injection",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfigurationDetails()",
-            "acceptation": "Changed to idiomatic injection",
-            "changes": [
-                "Abstract method has been added to this class"
             ]
         },
         {
