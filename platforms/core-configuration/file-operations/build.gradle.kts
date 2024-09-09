@@ -52,13 +52,13 @@ dependencies {
     api(projects.resources)
     api(projects.serviceLookup)
 
-    api(libs.ant)
     api(libs.commonsCompress)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(libs.ant)
     implementation(libs.commonsIo)
     implementation(libs.groovyTemplates)
     implementation(libs.slf4jApi)
