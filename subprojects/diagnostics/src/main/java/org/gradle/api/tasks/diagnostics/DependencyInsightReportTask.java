@@ -43,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -277,12 +278,17 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * @since 4.9
      */
     @Internal
-    @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isShowSinglePathToDependency", originalType = boolean.class),
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setShowSinglePathToDependency", originalType = boolean.class)
-    })
+    @ReplacesEagerProperty(originalType = boolean.class)
     @Option(option = "single-path", description = "Show at most one path to each dependency")
     public abstract Property<Boolean> getShowSinglePathToDependency();
+
+    // kotlin source compatibility
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsShowSinglePathToDependency() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowSinglePathToDependency()", "getShowSinglePathToDependency()");
+        return getShowSinglePathToDependency();
+    }
 
     /**
      * Show all variants of each displayed dependency.
