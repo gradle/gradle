@@ -59,14 +59,6 @@ class DclContainerMemberExtractionUtilsTest {
         assertNull(elementTypeFromNdocContainerType(::parameterizedUnrelated.javaGetter!!.genericReturnType))
     }
 
-    class Unrelated<@Suppress("unused") T>
-    abstract class NdocSubtype : NamedDomainObjectContainer<String>
-    abstract class ParameterizedNdocSubtype<S> : NamedDomainObjectContainer<S>
-
-    val parameterizedUnrelated: Unrelated<String> get() = TODO()
-    val parameterizedSubtype: ParameterizedNdocSubtype<String> get() = TODO()
-    val ndocOfString: NamedDomainObjectContainer<String> get() = TODO()
-
     @Test
     fun `element type is extracted from an exact NDOC instantiation`() {
         assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<String>>()))
@@ -74,23 +66,27 @@ class DclContainerMemberExtractionUtilsTest {
     }
 
     @Test
+    fun `parameterized types get properly extracted as element types`() {
+        assertEquals(typeOf<List<String>>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<List<String>>>()))
+        assertEquals(::listOfString.javaGetter!!.genericReturnType, elementTypeFromNdocContainerType(::ndocOfListOfString.javaGetter!!.genericReturnType))
+    }
+
+    @Test
+    fun `supertype arguments get properly discovered in types with multiple type arguments`() {
+        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<MultiArgSubtype<Int, String>>()))
+        assertEquals(String::class.java, elementTypeFromNdocContainerType(Instantiation::multiArgSubtypeOfIntString.javaGetter!!.genericReturnType))
+    }
+
+    @Test
     fun `element type is extracted from an NDOC subtype with concrete type`() {
-        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NdocSubtype>()))
-        assertEquals(String::class.java, elementTypeFromNdocContainerType(NdocSubtype::class.java))
+        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NdocStringSubtype>()))
+        assertEquals(String::class.java, elementTypeFromNdocContainerType(NdocStringSubtype::class.java))
     }
 
     @Test
     fun `element type is extracted from parameterized NDOC subtype instantiation`() {
-        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<ParameterizedNdocSubtype<String>>()))
+        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype1<String>>()))
         assertEquals(String::class.java, elementTypeFromNdocContainerType(::parameterizedSubtype.javaGetter!!.genericReturnType))
-    }
-
-
-    abstract class Subtype1<S1> : NamedDomainObjectContainer<S1>
-    abstract class Subtype2<S2> : Subtype1<S2>()
-
-    abstract class Instantiation {
-        abstract val subtype2OfString: Subtype2<String>
     }
 
     @Test
@@ -117,5 +113,32 @@ class DclContainerMemberExtractionUtilsTest {
         assertNull(elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<out String>>()))
         assertNull(elementTypeFromNdocContainerType(typeOf<Subtype<in String>>()))
         assertNull(elementTypeFromNdocContainerType(typeOf<Subtype<out String>>()))
+
+        assertNull(elementTypeFromNdocContainerType(::inProjectedNdocOfString.javaGetter!!.genericReturnType))
+        assertNull(elementTypeFromNdocContainerType(::outProjectedNdocOfString.javaGetter!!.genericReturnType))
+        assertNull(elementTypeFromNdocContainerType(::inProjectedNdocSubtypeOfString.javaGetter!!.genericReturnType))
+        assertNull(elementTypeFromNdocContainerType(::outProjectedNdocSubtypeOfString.javaGetter!!.genericReturnType))
     }
+
+    class Unrelated<@Suppress("unused") T>
+    abstract class NdocStringSubtype : NamedDomainObjectContainer<String>
+
+    abstract class Subtype1<S1> : NamedDomainObjectContainer<S1>
+    abstract class Subtype2<S2> : Subtype1<S2>()
+    abstract class MultiArgSubtype<A, B> : Subtype2<B>()
+
+    abstract class Instantiation {
+        abstract val subtype2OfString: Subtype2<String>
+        abstract val multiArgSubtypeOfIntString: MultiArgSubtype<Int, String>
+    }
+
+    val parameterizedUnrelated: Unrelated<String> get() = TODO()
+    val parameterizedSubtype: Subtype1<String> get() = TODO()
+    val ndocOfString: NamedDomainObjectContainer<String> get() = TODO()
+    val ndocOfListOfString: NamedDomainObjectContainer<List<String>> get() = TODO()
+    val listOfString: List<String> get() = TODO()
+    val inProjectedNdocOfString: NamedDomainObjectContainer<in String> get() = TODO()
+    val outProjectedNdocOfString: NamedDomainObjectContainer<out String> get() = TODO()
+    val inProjectedNdocSubtypeOfString: Subtype2<in String> get() = TODO()
+    val outProjectedNdocSubtypeOfString: Subtype2<out String> get() = TODO()
 }

@@ -21,7 +21,6 @@ import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
-import java.lang.reflect.WildcardType
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -35,7 +34,7 @@ object DclContainerMemberExtractionUtils {
     fun elementTypeFromNdocContainerType(containerType: Type): Type? =
         when (containerType) {
             is Class<*> -> {
-                // can't be NDOC<T>, so go and find the supertype
+                // can't be NDOC<T>, as that would be a ParameterizedType, so go and find the supertype
                 if (ndocClass.java.isAssignableFrom(containerType)) {
                     findNamedDomainObjectContainerTypeArgument(containerType)
                 } else null
@@ -49,7 +48,7 @@ object DclContainerMemberExtractionUtils {
                 } else null
             }
             else -> null
-        }
+        }?.takeIfIsAConcreteJavaType()
 
     private fun findNamedDomainObjectContainerTypeArgument(containerSubtype: Type): Type? {
         val visited: HashSet<Class<*>> = hashSetOf()
@@ -89,16 +88,16 @@ object DclContainerMemberExtractionUtils {
             return visitSuper(rawClass.genericSuperclass) ?: rawClass.genericInterfaces.firstNotNullOfOrNull { visitSuper(it) }
         }
 
-        val result = when (containerSubtype) {
+        return when (containerSubtype) {
             is Class<*> -> visitRawClass(containerSubtype, emptyList())
             is ParameterizedType -> visitRawClass(containerSubtype.rawType as? Class<*> ?: return null, containerSubtype.actualTypeArguments.asList())
             else -> null
         }
+    }
 
-        return when (result) {
-            is WildcardType, is TypeVariable<*> -> null
-            else -> result
-        }
+    private fun Type.takeIfIsAConcreteJavaType(): Type? = when (this) {
+        is Class<*>, is ParameterizedType -> this
+        else -> null
     }
 
     fun elementTypeFromNdocContainerType(containerType: KType): KType? =
