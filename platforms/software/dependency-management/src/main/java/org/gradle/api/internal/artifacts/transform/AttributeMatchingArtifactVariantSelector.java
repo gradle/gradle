@@ -67,15 +67,28 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     }
 
     @Override
-    public ResolvedArtifactSet select(ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+    public ResolvedArtifactSet select(
+        ResolvedVariantSet producer,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants,
+        ResolvedArtifactTransformer resolvedArtifactTransformer,
+        boolean reportFailuresAsProblems
+    ) {
         try {
-            return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
+            return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes, reportFailuresAsProblems);
         } catch (Exception t) {
             return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t, reportFailuresAsProblems));
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
+    private ResolvedArtifactSet doSelect(
+        ResolvedVariantSet producer,
+        boolean allowNoMatchingVariants,
+        ResolvedArtifactTransformer resolvedArtifactTransformer,
+        AttributeMatchingExplanationBuilder explanationBuilder,
+        ImmutableAttributes requestAttributes,
+        boolean reportFailuresAsProblems
+    ) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants = producer.getVariants();
@@ -84,7 +97,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
-            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches);
+            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches, reportFailuresAsProblems);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -101,14 +114,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants, reportFailuresAsProblems);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants);
+        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants, reportFailuresAsProblems);
     }
 
     /**

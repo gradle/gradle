@@ -68,20 +68,22 @@ public class GraphVariantSelector {
         Collection<? extends Capability> explicitRequestedCapabilities,
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema,
-        List<IvyArtifactName> requestedArtifacts
+        List<IvyArtifactName> requestedArtifacts,
+        boolean reportFailuresAsProblems
     ) {
         VariantGraphResolveState result = selectByAttributeMatchingLenient(
             consumerAttributes,
             explicitRequestedCapabilities, targetComponentState,
             consumerSchema,
-            requestedArtifacts
+            requestedArtifacts,
+            reportFailuresAsProblems
         );
 
         if (result == null) {
             ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
             AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
             GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
-            throw failureHandler.noCompatibleVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), candidates);
+            throw failureHandler.noCompatibleVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), candidates, reportFailuresAsProblems);
         }
 
         return result;
@@ -93,7 +95,8 @@ public class GraphVariantSelector {
         Collection<? extends Capability> explicitRequestedCapabilities,
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema,
-        List<IvyArtifactName> requestedArtifacts
+        List<IvyArtifactName> requestedArtifacts,
+        boolean reportFailuresAsProblems
     ) {
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         assert !candidates.getVariantsForAttributeMatching().isEmpty();
@@ -104,7 +107,7 @@ public class GraphVariantSelector {
         List<? extends VariantGraphResolveState> allVariants = candidates.getVariantsForAttributeMatching();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw failureHandler.noVariantsWithMatchingCapabilitiesFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), allVariants);
+            throw failureHandler.noVariantsWithMatchingCapabilitiesFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), allVariants, reportFailuresAsProblems);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
@@ -144,7 +147,7 @@ public class GraphVariantSelector {
         }
 
         if (!matches.isEmpty()) {
-            throw failureHandler.ambiguousVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), matches);
+            throw failureHandler.ambiguousVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), matches, reportFailuresAsProblems);
         }
 
         return null;
@@ -153,16 +156,22 @@ public class GraphVariantSelector {
     /**
      * Select the legacy variant from the target component.
      */
-    public VariantGraphResolveState selectLegacyVariant(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, ResolutionFailureHandler failureHandler) {
+    public VariantGraphResolveState selectLegacyVariant(
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        AttributesSchemaInternal consumerSchema,
+        ResolutionFailureHandler failureHandler,
+        boolean reportFailuresAsProblems
+    ) {
         VariantGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getLegacyVariant();
         if (conf == null) {
             // We wanted to do variant matching, but there were no variants in the target component.
             // So, we fell back to looking for the legacy (`default`) configuration, but it didn't exist.
             // So, there are no variants to select from, and selection fails here.
-            throw failureHandler.noVariantsFailure(targetComponentState, consumerAttributes, ImmutableCapabilities.EMPTY);
+            throw failureHandler.noVariantsFailure(targetComponentState, consumerAttributes, ImmutableCapabilities.EMPTY, true);
         }
 
-        validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema);
+        validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema, reportFailuresAsProblems);
         maybeEmitConsumptionDeprecation(conf);
         return conf;
     }
@@ -170,13 +179,19 @@ public class GraphVariantSelector {
     /**
      * Select the variant that is identified by the given configuration name.
      */
-    public VariantGraphResolveState selectVariantByConfigurationName(String name, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema) {
+    public VariantGraphResolveState selectVariantByConfigurationName(
+        String name,
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        AttributesSchemaInternal consumerSchema,
+        boolean reportFailuresAsProblems
+    ) {
         VariantGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getVariantByConfigurationName(name);
         if (conf == null) {
-            throw failureHandler.configurationDoesNotExistFailure(targetComponentState, name);
+            throw failureHandler.configurationDoesNotExistFailure(targetComponentState, name, reportFailuresAsProblems);
         }
 
-        validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema);
+        validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema, reportFailuresAsProblems);
         maybeEmitConsumptionDeprecation(conf);
         return conf;
     }
@@ -192,7 +207,8 @@ public class GraphVariantSelector {
         VariantGraphResolveState conf,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema
+        AttributesSchemaInternal consumerSchema,
+        boolean reportFailuresAsProblems
     ) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
@@ -200,7 +216,7 @@ public class GraphVariantSelector {
         if (!consumerAttributes.isEmpty() && !conf.getAttributes().isEmpty()) {
             // Need to validate that the selected configuration still matches the consumer attributes
             if (!attributeMatcher.isMatchingCandidate(conf.getAttributes(), consumerAttributes)) {
-                throw failureHandler.configurationNotCompatibleFailure(attributeMatcher, targetComponentState, conf, consumerAttributes, conf.getCapabilities());
+                throw failureHandler.configurationNotCompatibleFailure(attributeMatcher, targetComponentState, conf, consumerAttributes, conf.getCapabilities(), reportFailuresAsProblems);
             }
         }
     }

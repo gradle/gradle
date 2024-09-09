@@ -301,12 +301,12 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public SelectedArtifactSet getTaskDependencyValue() {
-            return getValue();
+        public SelectedArtifactSet getTaskDependencyValue(boolean lenient) {
+            return getValue(lenient);
         }
 
         @Override
-        public SelectedArtifactSet getValue() {
+        public SelectedArtifactSet getValue(boolean lenient) {
             return new PartialSelectedArtifactSet(elements, buildOperationExecutor);
         }
     }

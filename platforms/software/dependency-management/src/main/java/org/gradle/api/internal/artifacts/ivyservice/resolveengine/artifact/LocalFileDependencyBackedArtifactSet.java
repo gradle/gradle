@@ -84,6 +84,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final boolean allowNoMatchingVariants;
+    private final boolean reportFailuresAsProblems;
 
     public LocalFileDependencyBackedArtifactSet(
         LocalFileDependencyMetadata dependencyMetadata,
@@ -91,7 +92,8 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         ArtifactVariantSelector variantSelector,
         ArtifactTypeRegistry artifactTypeRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        boolean allowNoMatchingVariants
+        boolean allowNoMatchingVariants,
+        boolean reportFailuresAsProblems
     ) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
@@ -99,6 +101,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.allowNoMatchingVariants = allowNoMatchingVariants;
+        this.reportFailuresAsProblems = reportFailuresAsProblems;
     }
 
     public LocalFileDependencyMetadata getDependencyMetadata() {
@@ -160,7 +163,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
-            selectedArtifacts.add(variantSelector.select(variant, getRequestAttributes(), allowNoMatchingVariants, this));
+            selectedArtifacts.add(variantSelector.select(variant, getRequestAttributes(), allowNoMatchingVariants, this, reportFailuresAsProblems));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
     }
@@ -185,6 +188,10 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(dependencyMetadata.getFiles().getBuildDependencies());
+    }
+
+    public boolean isReportFailuresAsProblems() {
+        return reportFailuresAsProblems;
     }
 
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Artifacts, ResolvedVariantSet {

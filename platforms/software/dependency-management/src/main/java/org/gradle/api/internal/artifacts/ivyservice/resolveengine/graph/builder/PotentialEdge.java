@@ -47,18 +47,18 @@ class PotentialEdge {
         this.component = component;
     }
 
-    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner) {
-        return of(resolveState, from, toComponent, toSelector, owner, false, true);
+    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean reportFailuresAsProblems) {
+        return of(resolveState, from, toComponent, toSelector, owner, false, true, reportFailuresAsProblems);
     }
 
-    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive) {
+    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive, boolean reportFailuresAsProblems) {
         DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || hasStrongOpinion(from), transitive), resolveState.getComponentSelectorConverter());
         dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
         ExcludeSpec exclusions = from.previousTraversalExclusions;
         if (exclusions == null) {
             exclusions = resolveState.getModuleExclusions().nothing();
         }
-        EdgeState edge = new EdgeState(from, dependencyState, exclusions, resolveState);
+        EdgeState edge = new EdgeState(from, dependencyState, exclusions, resolveState, reportFailuresAsProblems);
         edge.computeSelector();
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);

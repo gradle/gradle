@@ -28,8 +28,8 @@ public class NoBuildDependenciesArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ResolvedArtifactSet select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec) {
-        final ResolvedArtifactSet selectedArtifacts = set.select(variantSelector, spec);
+    public ResolvedArtifactSet select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, boolean reportFailuresAsProblems) {
+        final ResolvedArtifactSet selectedArtifacts = set.select(variantSelector, spec, reportFailuresAsProblems);
         if (selectedArtifacts == ResolvedArtifactSet.EMPTY) {
             return selectedArtifacts;
         }

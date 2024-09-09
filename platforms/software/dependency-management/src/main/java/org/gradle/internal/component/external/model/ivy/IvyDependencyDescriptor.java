@@ -122,7 +122,12 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
-    public GraphVariantSelectionResult selectLegacyConfigurations(ConfigurationMetadata fromConfiguration, IvyComponentGraphResolveState ivyComponent, ResolutionFailureHandler resolutionFailureHandler) {
+    public GraphVariantSelectionResult selectLegacyConfigurations(
+        ConfigurationMetadata fromConfiguration,
+        IvyComponentGraphResolveState ivyComponent,
+        ResolutionFailureHandler resolutionFailureHandler,
+        boolean reportFailuresAsProblems
+    ) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = new LinkedList<>();
         boolean matched = false;
@@ -134,13 +139,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
                     matched = true;
                 }
                 for (String targetPattern : targetPatterns) {
-                    findMatches(ivyComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(ivyComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler, reportFailuresAsProblems);
                 }
             }
         }
         if (!matched && confs.containsKey("%")) {
             for (String targetPattern : confs.get("%")) {
-                findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler, reportFailuresAsProblems);
             }
         }
 
@@ -156,7 +161,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
             if (!excludeWildcards) {
                 for (String targetPattern : wildcardPatterns) {
-                    findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler, reportFailuresAsProblems);
                 }
             }
         }
@@ -169,7 +174,15 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return new GraphVariantSelectionResult(builder.build(), false);
     }
 
-    private void findMatches(IvyComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
+    private void findMatches(
+        IvyComponentGraphResolveState targetComponent,
+        String fromConfiguration,
+        String patternConfiguration,
+        String targetPattern,
+        List<ConfigurationGraphResolveState> targetConfigurations,
+        ResolutionFailureHandler resolutionFailureHandler,
+        boolean reportFailuresAsProblems
+    ) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
@@ -201,7 +214,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw resolutionFailureHandler.configurationDoesNotExistFailure(targetComponent, targetPattern);
+            throw resolutionFailureHandler.configurationDoesNotExistFailure(targetComponent, targetPattern, reportFailuresAsProblems);
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

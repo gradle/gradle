@@ -28,13 +28,17 @@ public interface ResolutionResultProvider<T> {
      * Returns the value available at execution graph calculation time. Note that the value may change between when the execution graph is calculated and
      * when the final value is calculated. For example, only project dependencies may be included in a dependency graph that is used to calculate the task
      * dependencies, and the full dependency graph calculated later at task execution time.
+     *
+     * @param lenient whether dependencies should be resolved in lenient mode
      */
-    T getTaskDependencyValue();
+    T getTaskDependencyValue(boolean lenient);
 
     /**
      * Returns the finalized value.
+     *
+     * @param lenient whether dependencies should be resolved in lenient mode
      */
-    T getValue();
+    T getValue(boolean lenient);
 
     /**
      * Returns a new provider that applies the given transformer to both the task dependency value
@@ -43,13 +47,13 @@ public interface ResolutionResultProvider<T> {
     default <E> ResolutionResultProvider<E> map(Function<T, E> transformer) {
         return new ResolutionResultProvider<E>() {
             @Override
-            public E getTaskDependencyValue() {
-                return transformer.apply(ResolutionResultProvider.this.getTaskDependencyValue());
+            public E getTaskDependencyValue(boolean lenient) {
+                return transformer.apply(ResolutionResultProvider.this.getTaskDependencyValue(lenient));
             }
 
             @Override
-            public E getValue() {
-                return transformer.apply(ResolutionResultProvider.this.getValue());
+            public E getValue(boolean lenient) {
+                return transformer.apply(ResolutionResultProvider.this.getValue(lenient));
             }
         };
     }

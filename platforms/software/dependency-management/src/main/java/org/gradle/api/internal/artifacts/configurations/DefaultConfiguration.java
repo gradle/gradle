@@ -650,7 +650,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
-        return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();
+        return resolutionAccess.getResults().getValue(false).getLegacyResults().getResolvedConfiguration();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -708,7 +708,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public ResolverResults getTaskDependencyValue() {
+        public ResolverResults getTaskDependencyValue(boolean lenient) {
             if (strict) {
                 return currentResolveState.get().orElseThrow(() ->
                     new IllegalStateException("Cannot query results until resolution has happened.")
@@ -717,29 +717,29 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
                 // Force graph resolution as this is required to calculate build dependencies
-                return getValue();
+                return getValue(lenient);
             } else {
                 return resolveGraphForBuildDependenciesIfRequired();
             }
         }
 
         @Override
-        public ResolverResults getValue() {
+        public ResolverResults getValue(boolean lenient) {
             if (strict) {
                 Optional<ResolverResults> currentState = currentResolveState.get();
                 if (!isFullyResoled(currentState)) {
                     // Do not validate that the current thread holds the project lock.
                     // TODO: Should instead assert that the results are available and fail if not.
-                    return resolveExclusivelyIfRequired();
+                    return resolveExclusivelyIfRequired(lenient);
                 }
                 return currentState.get();
             }
 
-            return resolveGraphIfRequired();
+            return resolveGraphIfRequired(lenient);
         }
     }
 
-    private ResolverResults resolveGraphIfRequired() {
+    private ResolverResults resolveGraphIfRequired(boolean lenient) {
         assertIsResolvable();
         maybeEmitResolutionDeprecation();
 
@@ -758,29 +758,29 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     .willBecomeAnErrorInGradle9()
                     .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
                     .nagUser();
-                newState = domainObjectContext.getModel().fromMutableState(p -> resolveExclusivelyIfRequired());
+                newState = domainObjectContext.getModel().fromMutableState(p -> resolveExclusivelyIfRequired(lenient));
             }
         } else {
-            newState = resolveExclusivelyIfRequired();
+            newState = resolveExclusivelyIfRequired(lenient);
         }
 
         return newState;
     }
 
-    private ResolverResults resolveExclusivelyIfRequired() {
+    private ResolverResults resolveExclusivelyIfRequired(boolean lenient) {
         return currentResolveState.update(currentState -> {
             if (isFullyResoled(currentState)) {
                 return currentState;
             }
 
-            return Optional.of(resolveGraphInBuildOperation());
+            return Optional.of(resolveGraphInBuildOperation(lenient));
         }).get();
     }
 
     /**
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
-    private ResolverResults resolveGraphInBuildOperation() {
+    private ResolverResults resolveGraphInBuildOperation(final boolean lenient) {
         return buildOperationRunner.call(new CallableBuildOperation<ResolverResults>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
@@ -789,7 +789,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 ResolverResults results;
                 try {
-                    results = resolver.resolveGraph(DefaultConfiguration.this);
+                    results = resolver.resolveGraph(DefaultConfiguration.this, lenient);
                 } catch (Exception e) {
                     throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
                 }

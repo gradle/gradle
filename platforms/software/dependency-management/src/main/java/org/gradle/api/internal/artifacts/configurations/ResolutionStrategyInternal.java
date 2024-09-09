@@ -116,7 +116,14 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     boolean getIncludeAllSelectableVariantResults();
 
     /**
-     * Whether or not resolution failures should be reported to the Problems API.
+     * Sets whether resolution failures should be reported to the Problems API.
+     *
+     * @param reportFailuresAsProblems {@code true} if so, {@code false} if not
+     */
+    void setReportFailuresAsProblems(boolean reportFailuresAsProblems);
+
+    /**
+     * Whether resolution failures should be reported to the Problems API.
      *
      * @return {@code true} if so, {@code false} if not
      */

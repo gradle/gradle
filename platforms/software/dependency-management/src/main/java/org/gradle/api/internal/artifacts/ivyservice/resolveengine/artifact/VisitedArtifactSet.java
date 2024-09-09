@@ -26,5 +26,5 @@ public interface VisitedArtifactSet {
      *
      * @param spec Parameters controlling the artifact selection process
      */
-    SelectedArtifactSet select(ArtifactSelectionSpec spec);
+    SelectedArtifactSet select(ArtifactSelectionSpec spec, boolean lenient);
 }

@@ -103,7 +103,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, consumerSchema, calculatedValueContainerFactory)
         artifactSet.select(new ArtifactVariantSelector() {
             @Override
-            ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ArtifactVariantSelector.ResolvedArtifactTransformer factory) {
+            ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ArtifactVariantSelector.ResolvedArtifactTransformer factory, boolean reportFailuresAsProblems) {
                 assert candidates.variants.size() == 2
                 // select the first variant
                 return candidates.variants[0].artifacts

@@ -74,7 +74,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     @Override
     public Set<File> getFiles() throws ResolveException {
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
+        visitedArtifacts.select(configuration.getImplicitSelectionSpec(), true).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailure("files", visitor.getFailures());
         return visitor.getFiles();
     }
@@ -118,7 +118,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
+        visitedArtifacts.select(configuration.getImplicitSelectionSpec(), true).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }

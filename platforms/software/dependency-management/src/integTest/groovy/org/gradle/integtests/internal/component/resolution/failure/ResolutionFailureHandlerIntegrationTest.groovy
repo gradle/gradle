@@ -430,12 +430,94 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         outputContains(basicOutput)
         outputContains(fullOutput)
 
-        and: "Problems are reported"
-        verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-variants-with-matching-capabilities'
-        }
+        and: "No problems are reported when running a report, even if a variant selection failure occurs"
+        getCollectedProblems().size() == 0
     }
     // endregion dependencyInsight failures
+
+    // region other tests
+    def "artifact view resolution problems are not reported when lenient artifactView is used"() {
+        given:
+        ignoreCleanupAssertions = true // We just care that there are problems in this test, we don't need to verify their contents
+
+        buildKotlinFile <<  """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+            val matter = Attribute.of("state", String::class.java)
+
+            configurations {
+                consumable("roundBlueLiquidElements") {
+                    attributes.attribute(shape, "round")
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(matter, "liquid")
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                    // Initially request only round
+                    attributes.attribute(shape, "round")
+                }
+            }
+
+            abstract class BrokenTransform : TransformAction<TransformParameters.None> {
+                override fun transform(outputs: TransformOutputs) {
+                    throw AssertionError("Should not actually be selected to run")
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":"))
+
+                // Register 2 transforms that both will move blue -> red, but also do
+                // something else to another irrelevant attribute in order to make them
+                // unique from each other
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "solid")
+                }
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "gas")
+                }
+            }
+
+            val forceResolution by tasks.registering {
+                inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
+                    lenient($lenient)
+                    attributes.attribute(color, "red")
+                }.artifacts.artifactFiles)
+
+                doLast {
+                    inputs.files.files.forEach { println(it) }
+                }
+            }
+        """
+
+        when:
+        if (shouldSucceed) {
+            succeeds "forceResolution", "--stacktrace"
+        } else {
+            fails "forceResolution", "--stacktrace"
+        }
+
+        then:
+        if (!shouldSucceed) {
+            failure.assertHasErrorOutput("Caused by: " + ArtifactSelectionException.class.getName())
+        }
+        shouldReportProblems == !getCollectedProblems().isEmpty()
+
+        where:
+        lenient || shouldSucceed | shouldReportProblems
+        true    || true          | false
+        false   || false         | true
+    }
+    // end region other tests
 
     // region error showcase
     @SuppressWarnings('UnnecessaryQualifiedReference')

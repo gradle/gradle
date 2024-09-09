@@ -33,7 +33,7 @@ class RootNode extends NodeState implements RootGraphNode {
     boolean incomingEdgeWasAdded = false;
 
     RootNode(long resultId, ComponentState moduleRevision, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveState root) {
-        super(resultId, moduleRevision, resolveState, root, false);
+        super(resultId, moduleRevision, resolveState, root, false, true);
         this.resolveOptimizations = resolveState.getResolveOptimizations();
         this.syntheticDependencies = syntheticDependencies;
     }

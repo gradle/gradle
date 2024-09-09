@@ -128,6 +128,7 @@ public class DependencyGraphBuilder {
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        boolean reportFailuresAsProblems,
         DependencyGraphVisitor modelVisitor
     ) {
         ResolutionConflictTracker conflictTracker = new ResolutionConflictTracker(
@@ -156,9 +157,9 @@ public class DependencyGraphBuilder {
             variantSelector
         );
 
-        traverseGraph(resolveState);
+        traverseGraph(resolveState, reportFailuresAsProblems);
 
-        validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions);
+        validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, reportFailuresAsProblems);
 
         assembleResult(resolveState, modelVisitor);
     }
@@ -166,7 +167,7 @@ public class DependencyGraphBuilder {
     /**
      * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
      */
-    private void traverseGraph(final ResolveState resolveState) {
+    private void traverseGraph(final ResolveState resolveState, boolean reportFailuresAsProblems) {
         resolveState.onMoreSelected(resolveState.getRoot());
         final List<EdgeState> dependencies = new ArrayList<>();
 
@@ -183,10 +184,10 @@ public class DependencyGraphBuilder {
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
-                node.visitOutgoingDependencies(dependencies);
-                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState);
+                node.visitOutgoingDependencies(dependencies, reportFailuresAsProblems);
+                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState, reportFailuresAsProblems);
                 node.collectEndorsedStrictVersions(dependencies);
-                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState);
+                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState, reportFailuresAsProblems);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
@@ -244,14 +245,15 @@ public class DependencyGraphBuilder {
         final List<EdgeState> dependencies,
         final Spec<EdgeState> dependencyFilter,
         final boolean recomputeSelectors,
-        final ResolveState resolveState
+        final ResolveState resolveState,
+        final boolean reportFailuresAsProblems
     ) {
         if (dependencies.isEmpty()) {
             return false;
         }
         if (performSelectionSerially(dependencies, dependencyFilter, resolveState, recomputeSelectors)) {
             maybeDownloadMetadataInParallel(node, dependencies, dependencyFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-            attachToTargetRevisionsSerially(dependencies, dependencyFilter);
+            attachToTargetRevisionsSerially(dependencies, dependencyFilter, reportFailuresAsProblems);
             return true;
         } else {
             return false;
@@ -353,7 +355,7 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter) {
+    private static void attachToTargetRevisionsSerially(List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter, boolean reportFailuresAsProblems) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
@@ -364,7 +366,11 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void validateGraph(ResolveState resolveState, boolean denyDynamicSelectors, boolean denyChangingModules) {
+    private static void validateGraph(
+        ResolveState resolveState,
+        boolean denyDynamicSelectors,
+        boolean denyChangingModules,
+        boolean reportFailuresAsProblems) {
         AttributesSchemaInternal consumerSchema = resolveState.getAttributesSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
@@ -380,7 +386,7 @@ public class DependencyGraphBuilder {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        validateMultipleNodeSelection(consumerSchema, module, selected, resolutionFailureHandler);
+                        validateMultipleNodeSelection(consumerSchema, module, selected, resolutionFailureHandler, reportFailuresAsProblems);
                     }
                     if (denyDynamicSelectors) {
                         validateDynamicSelectors(selected);
@@ -486,7 +492,12 @@ public class DependencyGraphBuilder {
      * Validates that all selected nodes of a single component have compatible attributes,
      * when using variant aware resolution.
      */
-    private static void validateMultipleNodeSelection(AttributesSchemaInternal consumerSchema, ModuleResolveState module, ComponentState selected, ResolutionFailureHandler resolutionFailureHandler) {
+    private static void validateMultipleNodeSelection(
+        AttributesSchemaInternal consumerSchema,
+        ModuleResolveState module,
+        ComponentState selected,
+        ResolutionFailureHandler resolutionFailureHandler,
+        boolean reportFailuresAsProblems) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
             .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
             .collect(Collectors.toSet());
@@ -514,7 +525,7 @@ public class DependencyGraphBuilder {
             Set<VariantGraphResolveMetadata> incompatibleNodeMetadatas = incompatibleNodes.stream()
                 .map(NodeState::getMetadata)
                 .collect(Collectors.toSet());
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas);
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas, reportFailuresAsProblems);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

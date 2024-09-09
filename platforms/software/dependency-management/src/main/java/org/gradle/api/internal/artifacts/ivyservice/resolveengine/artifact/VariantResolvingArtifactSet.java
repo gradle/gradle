@@ -93,7 +93,8 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     @Override
     public ResolvedArtifactSet select(
         ArtifactVariantSelector variantSelector,
-        ArtifactSelectionSpec spec
+        ArtifactSelectionSpec spec,
+        boolean reportFailuresAsProblems
     ) {
         if (!spec.getComponentFilter().isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
@@ -110,7 +111,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
                 if (!spec.getSelectFromAllVariants()) {
                     variants = getOwnArtifacts();
                 } else {
-                    variants = getArtifactVariantsForReselection(spec.getRequestAttributes());
+                    variants = getArtifactVariantsForReselection(spec.getRequestAttributes(), reportFailuresAsProblems);
                 }
             } catch (Exception e) {
                 return new BrokenResolvedArtifactSet(e);
@@ -121,7 +122,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
             }
 
             ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, variants);
-            return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed);
+            return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed, reportFailuresAsProblems);
         }
     }
 
@@ -154,14 +155,15 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
      * same algorithm used during graph variant selection. This considers requested and declared
      * capabilities.</p>
      */
-    private ImmutableList<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes) {
+    private ImmutableList<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes, boolean reportFailuresAsProblems) {
         // First, find the graph variant containing the artifact variants to select among.
         VariantGraphResolveState graphVariant = graphVariantSelector.selectByAttributeMatchingLenient(
             requestAttributes,
             capabilities,
             component,
             consumerSchema,
-            Collections.emptyList()
+            Collections.emptyList(),
+            reportFailuresAsProblems
         );
 
         // It is fine if no graph variants satisfy our request.

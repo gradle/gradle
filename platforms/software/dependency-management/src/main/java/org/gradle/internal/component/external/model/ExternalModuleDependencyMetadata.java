@@ -59,19 +59,20 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
      * otherwise revert to legacy selection of target configurations.
      */
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities, boolean reportFailuresAsProblems) {
         if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 consumerAttributes,
                 explicitRequestedCapabilities,
                 targetComponentState,
                 consumerSchema,
-                getArtifacts()
+                getArtifacts(),
+                reportFailuresAsProblems
             );
             return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
 
-        return selectLegacyConfigurations(variantSelector, consumerAttributes, targetComponentState, consumerSchema);
+        return selectLegacyConfigurations(variantSelector, consumerAttributes, targetComponentState, consumerSchema, reportFailuresAsProblems);
     }
 
     /**
@@ -83,7 +84,8 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema
+        AttributesSchemaInternal consumerSchema,
+        boolean reportFailuresAsProblems
     );
 
     @Override

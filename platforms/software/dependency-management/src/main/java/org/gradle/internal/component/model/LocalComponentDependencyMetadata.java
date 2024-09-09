@@ -97,11 +97,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema,
-        Collection<? extends Capability> explicitRequestedCapabilities
+        Collection<? extends Capability> explicitRequestedCapabilities,
+        boolean reportFailuresAsProblems
     ) {
         // If a specific variant is requested by name, select it.
         if (dependencyConfiguration != null) {
-            VariantGraphResolveState selected = variantSelector.selectVariantByConfigurationName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
+            VariantGraphResolveState selected = variantSelector.selectVariantByConfigurationName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema, reportFailuresAsProblems);
             return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
         }
 
@@ -111,13 +112,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 consumerAttributes,
                 explicitRequestedCapabilities, targetComponentState,
                 consumerSchema,
-                getArtifacts()
+                getArtifacts(),
+                reportFailuresAsProblems
             );
             return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
 
         // Otherwise, select the legacy configuration.
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler(), reportFailuresAsProblems);
         return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 

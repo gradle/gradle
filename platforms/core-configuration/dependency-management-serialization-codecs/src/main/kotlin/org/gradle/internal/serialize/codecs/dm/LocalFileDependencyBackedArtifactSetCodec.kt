@@ -92,6 +92,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
         val requestedAttributes = !value.requestAttributes.isEmpty
         writeBoolean(requestedAttributes)
         writeBoolean(value.allowNoMatchingVariants)
+        writeBoolean(value.isReportFailuresAsProblems)
         write(value.dependencyMetadata.componentId)
         write(value.dependencyMetadata.files)
         write(value.componentFilter)
@@ -117,7 +118,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->
                 val recordingSet = RecordingVariantSet(value.dependencyMetadata.componentId, value.dependencyMetadata.files, sourceAttributes)
-                val selected = value.variantSelector.select(recordingSet, value.requestAttributes, true, recordingSet)
+                val selected = value.variantSelector.select(recordingSet, value.requestAttributes, true, recordingSet, value.isReportFailuresAsProblems)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
@@ -136,6 +137,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
 
     override suspend fun ReadContext.decode(): LocalFileDependencyBackedArtifactSet {
         val requestedAttributes = readBoolean()
+        val reportFailuresAsProblems = readBoolean()
         val allowNoMatchingVariants = readBoolean()
         val componentId = read() as ComponentIdentifier?
         val files = readNonNull<FileCollectionInternal>()
@@ -170,7 +172,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
             selector,
             artifactTypeRegistry,
             calculatedValueContainerFactory,
-            allowNoMatchingVariants
+            allowNoMatchingVariants,
+            reportFailuresAsProblems
         )
     }
 }
@@ -186,14 +189,16 @@ class DeserializedLocalFileDependencyArtifactSet(
     variantSelector: ArtifactVariantSelector,
     artifactTypeRegistry: DefaultArtifactTypeRegistry,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    allowNoMatchingVariants: Boolean
+    allowNoMatchingVariants: Boolean,
+    reportFailuresAsProblems: Boolean
 ) : LocalFileDependencyBackedArtifactSet(
     dependencyMetadata,
     componentFilter,
     variantSelector,
     artifactTypeRegistry,
     calculatedValueContainerFactory,
-    allowNoMatchingVariants
+    allowNoMatchingVariants,
+    reportFailuresAsProblems
 ) {
     // These attributes are ignored by the fixed artifact variant selectors
     override fun getRequestAttributes(): ImmutableAttributes = ImmutableAttributes.EMPTY
@@ -308,7 +313,13 @@ class FixedArtifactVariantSelector(
     private val transforms: Map<ImmutableAttributes, MappingSpec>,
     private val transformedVariantFactory: TransformedVariantFactory
 ) : ArtifactVariantSelector {
-    override fun select(candidates: ResolvedVariantSet, requestAttributes: ImmutableAttributes, allowNoMatchingVariants: Boolean, resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer): ResolvedArtifactSet {
+    override fun select(
+        candidates: ResolvedVariantSet,
+        requestAttributes: ImmutableAttributes,
+        allowNoMatchingVariants: Boolean,
+        resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer,
+        reportFailuresAsProblems: Boolean
+    ): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
         val variant = candidates.variants.first()
         return when (val spec = transforms[variant.attributes.asImmutable()]) {
@@ -330,7 +341,13 @@ class FixedArtifactVariantSelector(
 
 private
 class NoTransformsArtifactVariantSelector : ArtifactVariantSelector {
-    override fun select(candidates: ResolvedVariantSet, requestAttributes: ImmutableAttributes, allowNoMatchingVariants: Boolean, resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer): ResolvedArtifactSet {
+    override fun select(
+        candidates: ResolvedVariantSet,
+        requestAttributes: ImmutableAttributes,
+        allowNoMatchingVariants: Boolean,
+        resolvedArtifactTransformer: ArtifactVariantSelector.ResolvedArtifactTransformer,
+        reportFailuresAsProblems: Boolean
+    ): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
         return candidates.variants.first().artifacts
     }

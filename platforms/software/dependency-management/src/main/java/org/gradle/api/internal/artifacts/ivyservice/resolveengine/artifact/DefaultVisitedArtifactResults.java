@@ -36,7 +36,7 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
     public SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, boolean lenient) {
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
-            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(variantSelector, spec);
+            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(variantSelector, spec, !lenient);
             if (!lenient || !(resolvedArtifacts instanceof UnavailableResolvedArtifactSet)) {
                 resolvedArtifactSets.add(resolvedArtifacts);
             } else {

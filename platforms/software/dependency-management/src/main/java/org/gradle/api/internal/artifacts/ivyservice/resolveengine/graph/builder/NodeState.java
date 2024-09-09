@@ -124,7 +124,7 @@ public class NodeState implements DependencyGraphNode {
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
-    public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+    public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution, boolean reportFailuresAsProblems) {
         this.nodeId = nodeId;
         this.component = component;
         this.resolveState = resolveState;
@@ -227,7 +227,7 @@ public class NodeState implements DependencyGraphNode {
      *
      * @param discoveredEdges A collector for visited edges.
      */
-    public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges) {
+    public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges, boolean reportFailuresAsProblems) {
         // If this configuration's version is in conflict, do not traverse.
         // If none of the incoming edges are transitive, remove previous state and do not traverse.
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
@@ -243,7 +243,7 @@ public class NodeState implements DependencyGraphNode {
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
         if (transitiveEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
-            handleNonTransitiveNode(discoveredEdges);
+            handleNonTransitiveNode(discoveredEdges, reportFailuresAsProblems);
             return;
         }
 
@@ -254,7 +254,7 @@ public class NodeState implements DependencyGraphNode {
         if (!isVirtualPlatformNeedsRefresh()) {
             // Check if node was previously traversed with the same net exclusion when not a virtual platform
             if (excludesSameDependenciesAsPreviousTraversal(resolutionFilter)) {
-                boolean newConstraints = handleNewConstraints(discoveredEdges);
+                boolean newConstraints = handleNewConstraints(discoveredEdges, reportFailuresAsProblems);
                 boolean edgesToRecompute = handleEdgesToRecompute(discoveredEdges);
                 if (!newConstraints && !edgesToRecompute) {
                     // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
@@ -276,8 +276,8 @@ public class NodeState implements DependencyGraphNode {
         // We are processing dependencies, anything in the previous state will be handled
         upcomingNoLongerPendingConstraints = null;
 
-        visitDependencies(resolutionFilter, discoveredEdges);
-        visitOwners(discoveredEdges);
+        visitDependencies(resolutionFilter, discoveredEdges, reportFailuresAsProblems);
+        visitOwners(discoveredEdges, reportFailuresAsProblems);
     }
 
     private boolean canIgnoreExternalVariant() {
@@ -381,10 +381,10 @@ public class NodeState implements DependencyGraphNode {
         return false;
     }
 
-    private boolean handleNewConstraints(Collection<EdgeState> discoveredEdges) {
+    private boolean handleNewConstraints(Collection<EdgeState> discoveredEdges, boolean reportFailuresAsProblems) {
         if (upcomingNoLongerPendingConstraints != null) {
             // Previously traversed but new constraints no longer pending, so partial traversing
-            visitAdditionalConstraints(discoveredEdges);
+            visitAdditionalConstraints(discoveredEdges, reportFailuresAsProblems);
             return true;
         }
         return false;
@@ -400,7 +400,7 @@ public class NodeState implements DependencyGraphNode {
      *
      * @param discoveredEdges In/Out parameter collecting dependencies or platforms
      */
-    private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges) {
+    private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges, boolean reportFailuresAsProblems) {
         cleanupConstraints();
         // If node was previously traversed, need to remove outgoing edges.
         if (previousTraversalExclusions != null) {
@@ -408,7 +408,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (!incomingEdges.isEmpty()) {
             LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
-            visitOwners(discoveredEdges);
+            visitOwners(discoveredEdges, reportFailuresAsProblems);
         } else {
             LOGGER.debug("{} has no incoming edges. ignoring.", this);
         }
@@ -422,7 +422,7 @@ public class NodeState implements DependencyGraphNode {
      * Iterate over the dependencies originating in this node, adding them either as a 'pending' dependency
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
      */
-    private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges) {
+    private void visitDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges, boolean reportFailuresAsProblems) {
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         Set<ModuleIdentifier> strictVersionsSet = null;
         boolean shouldComputeOwnStrictVersions = ownStrictVersionConstraints == null;
@@ -434,7 +434,7 @@ public class NodeState implements DependencyGraphNode {
                     registerActivatingConstraint(dependencyState);
                 }
                 if (!pendingState.isPending()) {
-                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING, reportFailuresAsProblems);
                 }
                 if (shouldComputeOwnStrictVersions) {
                     strictVersionsSet = maybeCollectStrictVersions(strictVersionsSet, dependencyState);
@@ -528,8 +528,8 @@ public class NodeState implements DependencyGraphNode {
         return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
     }
 
-    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection) {
-        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
+    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ExcludeSpec resolutionFilter, boolean deferSelection, boolean reportFailuresAsProblems) {
+        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState, reportFailuresAsProblems));
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
         outgoingEdges.add(dependencyEdge);
         dependencyEdge.markUsed();
@@ -541,7 +541,7 @@ public class NodeState implements DependencyGraphNode {
      * Iterate over the dependencies originating in this node, adding only the constraints listed
      * in upcomingNoLongerPendingConstraints
      */
-    private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
+    private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges, boolean reportFailuresAsProblems) {
         if (potentiallyActivatedConstraints == null) {
             return;
         }
@@ -550,7 +550,7 @@ public class NodeState implements DependencyGraphNode {
             if (!dependencyStates.isEmpty()) {
                 for (DependencyState dependencyState : dependencyStates) {
                     dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false, reportFailuresAsProblems);
                 }
             }
         }
@@ -562,7 +562,7 @@ public class NodeState implements DependencyGraphNode {
      *
      * @param discoveredEdges the collection of edges for this component
      */
-    private void visitOwners(Collection<EdgeState> discoveredEdges) {
+    private void visitOwners(Collection<EdgeState> discoveredEdges, boolean reportFailuresAsProblems) {
         List<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
             PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
@@ -574,7 +574,7 @@ public class NodeState implements DependencyGraphNode {
                     // There are 2 possibilities here:
                     // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
-                    addPlatformEdges(discoveredEdges, platformId, cs);
+                    addPlatformEdges(discoveredEdges, platformId, cs, reportFailuresAsProblems);
                     visitor.markNotPending(platformId.getModuleIdentifier());
                 }
             }
@@ -582,8 +582,8 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private void addPlatformEdges(Collection<EdgeState> discoveredEdges, ModuleComponentIdentifier platformComponentIdentifier, ModuleComponentSelector platformSelector) {
-        PotentialEdge potentialEdge = PotentialEdge.of(resolveState, this, platformComponentIdentifier, platformSelector, platformComponentIdentifier);
+    private void addPlatformEdges(Collection<EdgeState> discoveredEdges, ModuleComponentIdentifier platformComponentIdentifier, ModuleComponentSelector platformSelector, boolean reportFailuresAsProblems) {
+        PotentialEdge potentialEdge = PotentialEdge.of(resolveState, this, platformComponentIdentifier, platformSelector, platformComponentIdentifier, reportFailuresAsProblems);
         ComponentGraphResolveState state = potentialEdge.state;
         VirtualPlatformState virtualPlatformState = null;
         if (state == null || state instanceof LenientPlatformGraphResolveState) {

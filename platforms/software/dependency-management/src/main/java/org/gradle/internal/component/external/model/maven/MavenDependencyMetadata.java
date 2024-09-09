@@ -62,9 +62,10 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema
+        AttributesSchemaInternal consumerSchema,
+        boolean reportFailuresAsProblems
     ) {
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler(), reportFailuresAsProblems);
         return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 

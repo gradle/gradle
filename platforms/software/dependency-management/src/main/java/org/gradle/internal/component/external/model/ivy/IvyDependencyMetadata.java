@@ -73,13 +73,14 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema
+        AttributesSchemaInternal consumerSchema,
+        boolean reportFailuresAsProblems
     ) {
         // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
         // configurations from another ivy component.
         if (targetComponentState instanceof IvyComponentGraphResolveState) {
             IvyComponentGraphResolveState ivyComponent = (IvyComponentGraphResolveState) targetComponentState;
-            return getDependencyDescriptor().selectLegacyConfigurations(configuration, ivyComponent, variantSelector.getFailureHandler());
+            return getDependencyDescriptor().selectLegacyConfigurations(configuration, ivyComponent, variantSelector.getFailureHandler(), reportFailuresAsProblems);
         }
 
         // We have already verified that the target component does not support attribute matching,
@@ -90,7 +91,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         // selectLegacyVariant to throw an exception if there is no legacy variant.
         boolean hasLegacyVariant = targetComponentState.getCandidatesForGraphVariantSelection().getLegacyVariant() != null;
         if (hasLegacyVariant) {
-            VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+            VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler(), reportFailuresAsProblems);
             return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
         }
 
@@ -114,7 +115,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         }
 
         // The variant was not present, even after checking for a legacy non-consumable version. We can fail now.
-        throw variantSelector.getFailureHandler().configurationDoesNotExistFailure(targetComponentState, configuration.getName());
+        throw variantSelector.getFailureHandler().configurationDoesNotExistFailure(targetComponentState, configuration.getName(), reportFailuresAsProblems);
     }
 
     @Override

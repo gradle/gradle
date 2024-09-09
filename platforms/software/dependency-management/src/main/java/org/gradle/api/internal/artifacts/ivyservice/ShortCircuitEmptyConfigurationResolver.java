@@ -77,9 +77,9 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
+    public ResolverResults resolveGraph(ResolveContext resolveContext, boolean lenient) throws ResolveException {
         if (resolveContext.hasDependencies()) {
-            return delegate.resolveGraph(resolveContext);
+            return delegate.resolveGraph(resolveContext, lenient);
         }
 
         if (resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
@@ -87,7 +87,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
-                return delegate.resolveGraph(resolveContext);
+                return delegate.resolveGraph(resolveContext, lenient);
             }
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
@@ -118,7 +118,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
+        public SelectedArtifactSet select(ArtifactSelectionSpec spec, boolean lenient) {
             return this;
         }
 

@@ -204,7 +204,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, resolvers);
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
-        doResolve(resolveContext, resolvers, false, IS_LOCAL_EDGE, visitors);
+        doResolve(resolveContext, resolvers, false, IS_LOCAL_EDGE, visitors, false);
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
@@ -219,14 +219,14 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             // set of build dependencies than actually required. This is because it takes a lot of extra information
             // from the visited graph to properly filter artifacts by dependencySpec, and we don't want capture that when
             // calculating build dependencies.
-            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext))
+            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext), false)
         );
 
         return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);
     }
 
     @Override
-    public ResolverResults resolveGraph(ResolveContext resolveContext) {
+    public ResolverResults resolveGraph(ResolveContext resolveContext, boolean lenient) {
         StoreSet stores = storeFactory.createStoreSet();
 
         BinaryStore oldModelStore = stores.nextBinaryStore();
@@ -272,7 +272,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ));
         graphVisitors.add(artifactVisitorFor(artifactVisitors, resolvers));
 
-        doResolve(resolveContext, resolvers, true, Specs.satisfyAll(), graphVisitors.build());
+        doResolve(resolveContext, resolvers, true, Specs.satisfyAll(), graphVisitors.build(), lenient);
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
 
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
@@ -331,7 +331,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolveContext resolveContext) {
         ImmutableAttributes requestAttributes = resolveContext.getAttributes().asImmutable();
         ResolutionStrategy.SortOrder sortOrder = resolveContext.getResolutionStrategy().getSortOrder();
-        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
+        return new ArtifactSelectionSpec(
+            requestAttributes,
+            Specs.satisfyAll(),
+            false,
+            false,
+            sortOrder);
     }
 
     private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolvers resolvers) {
@@ -371,9 +376,11 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ComponentResolvers resolvers,
         boolean includeSyntheticDependencies,
         Spec<DependencyMetadata> edgeFilter,
-        ImmutableList<DependencyGraphVisitor> visitors
+        ImmutableList<DependencyGraphVisitor> visitors,
+        boolean lenient
     ) {
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
+        resolutionStrategy.setReportFailuresAsProblems(!lenient);
 
         if (resolutionStrategy.isDependencyLockingEnabled()) {
             if (resolutionStrategy.isFailingOnDynamicVersions()) {
@@ -405,6 +412,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolutionStrategy.getCapabilitiesResolutionRules(),
             resolutionStrategy.isFailingOnDynamicVersions(),
             resolutionStrategy.isFailingOnChangingVersions(),
+            resolutionStrategy.isReportFailuresAsProblems(),
             new CompositeDependencyGraphVisitor(visitors)
         );
     }

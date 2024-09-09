@@ -54,7 +54,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        SelectedArtifactSet selected = resultProvider.getTaskDependencyValue();
+        SelectedArtifactSet selected = resultProvider.getTaskDependencyValue(lenient);
         FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
         selected.visitDependencies(collectingContext);
         if (!lenient) {
@@ -92,7 +92,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
 
     SelectedArtifactSet getSelectedArtifacts() {
         if (selectedArtifacts == null) {
-            selectedArtifacts = resultProvider.getValue();
+            selectedArtifacts = resultProvider.getValue(lenient);
         }
         return selectedArtifacts;
     }

@@ -91,7 +91,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
      * Get the resolved graph, throwing any non-fatal exception that occurred during resolution.
      */
     private VisitedGraphResults getVisitedGraphResults() {
-        VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
+        VisitedGraphResults graph = resolutionAccess.getResults().getValue(true).getVisitedGraph(); // TODO: how to get lenient info here?  Is it even necessary?
         graph.getResolutionFailure().ifPresent(ex -> {
             throw ex;
         });
@@ -199,7 +199,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 reselectVariants,
                 allowNoMatchingVariants,
                 resolutionAccess.getDefaultSortOrder()
-            ));
+            ), lenient);
         }
 
         @Override

@@ -30,7 +30,7 @@ import java.util.List;
  * A dependency that can participate in dependency resolution.
  * Note that various subtypes provide additional details, but these are not required by the core resolution engine.
  *
- * @implSpec See the specification note on {@link #selectVariants(GraphVariantSelector, ImmutableAttributes, ComponentGraphResolveState, AttributesSchemaInternal, Collection)}
+ * @implSpec See the specification note on {@link #selectVariants(GraphVariantSelector, ImmutableAttributes, ComponentGraphResolveState, AttributesSchemaInternal, Collection, boolean)}
  */
 public interface DependencyMetadata {
     /**
@@ -47,7 +47,7 @@ public interface DependencyMetadata {
      * any failures during selection should be routed through that handler. This is done to keep all failure handling done
      * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
      */
-    GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities);
+    GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities, boolean reportFailuresAsProblems);
 
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.
@@ -57,7 +57,7 @@ public interface DependencyMetadata {
     /**
      * Returns the artifacts referenced by this dependency, if any.
      * When a dependency references artifacts, those artifacts are used in place of the default artifacts of the target component.
-     * In most cases, it makes sense for this set to be empty, and for all of the artifacts of the target component to be included.
+     * In most cases, it makes sense for this set to be empty, and for all the artifacts of the target component to be included.
      */
     List<IvyArtifactName> getArtifacts();
 

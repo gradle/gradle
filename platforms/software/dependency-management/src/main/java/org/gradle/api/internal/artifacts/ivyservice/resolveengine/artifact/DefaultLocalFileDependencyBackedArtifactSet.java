@@ -38,7 +38,8 @@ public class DefaultLocalFileDependencyBackedArtifactSet extends LocalFileDepend
         ArtifactTypeRegistry artifactTypeRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         ImmutableAttributes requestAttributes,
-        boolean allowNoMatchingVariants
+        boolean allowNoMatchingVariants,
+        boolean reportFailuresAsProblems
     ) {
         super(
             dependencyMetadata,
@@ -46,7 +47,8 @@ public class DefaultLocalFileDependencyBackedArtifactSet extends LocalFileDepend
             variantSelector,
             artifactTypeRegistry,
             calculatedValueContainerFactory,
-            allowNoMatchingVariants
+            allowNoMatchingVariants,
+            reportFailuresAsProblems
         );
         this.requestAttributes = requestAttributes;
     }

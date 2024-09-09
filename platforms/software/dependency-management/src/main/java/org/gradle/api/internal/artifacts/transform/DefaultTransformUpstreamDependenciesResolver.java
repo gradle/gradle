@@ -153,12 +153,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private FileCollectionInternal selectedArtifactsFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue(), false);
+        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue(false), false); // TODO: how to get lenient info here?  Is it even necessary?
         return getDependencyResults(fromAttributes, dependencies);
     }
 
     private void computeDependenciesFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
-        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue(), true);
+        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue(false), true); // TODO: how to get lenient info here?  Is it even necessary?
         FileCollectionInternal files = getDependencyResults(fromAttributes, buildDependencies);
         context.add(files);
     }
@@ -169,9 +169,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
         return new ResolutionBackedFileCollection(
             resolverResults.map(results ->
-                results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
-                    fullAttributes, filter, false, false, artifactDependencySortOrder
-                ))
+                results.getVisitedArtifacts().select(
+                    new ArtifactSelectionSpec(
+                        fullAttributes,
+                        filter,
+                        false,
+                        false,
+                        artifactDependencySortOrder
+                ), false)
             ),
             false,
             resolutionHost,

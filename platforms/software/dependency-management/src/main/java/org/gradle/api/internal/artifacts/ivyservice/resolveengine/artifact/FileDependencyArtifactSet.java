@@ -35,7 +35,8 @@ public class FileDependencyArtifactSet implements ArtifactSet {
     @Override
     public ResolvedArtifactSet select(
         ArtifactVariantSelector variantSelector,
-        ArtifactSelectionSpec spec
+        ArtifactSelectionSpec spec,
+        boolean reportFailuresAsProblems
     ) {
         // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
         return new DefaultLocalFileDependencyBackedArtifactSet(
@@ -45,7 +46,8 @@ public class FileDependencyArtifactSet implements ArtifactSet {
             artifactTypeRegistry,
             calculatedValueContainerFactory,
             spec.getRequestAttributes(),
-            spec.getAllowNoMatchingVariants()
+            spec.getAllowNoMatchingVariants(),
+            reportFailuresAsProblems
         );
     }
 

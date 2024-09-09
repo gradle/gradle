@@ -106,6 +106,7 @@ public class DependencyGraphResolver {
         CapabilitiesResolutionInternal capabilitiesResolutionRules,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        boolean reportFailuresAsProblems,
         DependencyGraphVisitor modelVisitor
     ) {
         ComponentMetaDataResolver clientModuleResolver = new ClientModuleResolver(
@@ -133,6 +134,7 @@ public class DependencyGraphResolver {
             conflictResolution,
             failingOnDynamicVersions,
             failingOnChangingVersions,
+            reportFailuresAsProblems,
             modelVisitor
         );
     }

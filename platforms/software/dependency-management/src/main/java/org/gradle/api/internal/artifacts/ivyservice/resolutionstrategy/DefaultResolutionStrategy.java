@@ -82,6 +82,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
     private boolean selectableVariantResults = false;
     private boolean keepStateRequiredForGraphResolution = false;
+    private boolean reportFailuresAsProblems = true;
 
     @Inject
     public DefaultResolutionStrategy(
@@ -416,7 +417,12 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public void setReportFailuresAsProblems(boolean reportFailuresAsProblems) {
+        this.reportFailuresAsProblems = reportFailuresAsProblems;
+    }
+
+    @Override
     public boolean isReportFailuresAsProblems() {
-        return true;
+        return reportFailuresAsProblems;
     }
 }
