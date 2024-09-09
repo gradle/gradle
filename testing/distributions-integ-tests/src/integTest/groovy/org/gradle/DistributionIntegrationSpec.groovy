@@ -74,6 +74,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "enterprise-workers",
         "execution",
         "file-collections",
+        "file-operations",
         "file-temp",
         "file-watching",
         "files",
