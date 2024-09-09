@@ -32,6 +32,51 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                     enabled = true
                     directory = '${cacheDir.absoluteFile.toURI().toString()}'
                     push = true
+                    removeUnusedEntriesAfterDays = 3
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+        executer.expectDocumentedDeprecationWarning "The DirectoryBuildCache.removeEntriesAfterDays property has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#directory_build_cache_retention_deprecated"
+
+        when:
+        succeeds("help")
+
+        then:
+        def result = result()
+
+        result.enabled
+        result.localEnabled
+        !result.remoteEnabled
+
+        result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
+        result.local.config.location == cacheDir.absoluteFile.toString()
+        result.local.config.removeUnusedEntries == "after 3 days"
+        result.local.type == 'directory'
+        result.local.push == true
+
+        result.remote == null
+    }
+
+    def "local build cache configuration includes entry retention interval"() {
+        given:
+        def initDir = new File(executer.gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+        new File(initDir, "cache-settings.gradle") << """
+            beforeSettings { settings ->
+                settings.caches {
+                    buildCache.removeUnusedEntriesAfterDays = 5
+                }
+            }
+        """
+
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        settingsFile << """
+            buildCache {
+                local {
+                    enabled = true
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    push = true
                 }
             }
         """
@@ -49,7 +94,50 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
-        result.local.config.removeUnusedEntriesAfter == "7 days"
+        result.local.config.removeUnusedEntries == "after 5 days"
+        result.local.type == 'directory'
+        result.local.push == true
+
+        result.remote == null
+    }
+
+    def "local build cache configuration includes entry retention timestamp"() {
+        given:
+        def initDir = new File(executer.gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+        new File(initDir, "cache-settings.gradle") << """
+            beforeSettings { settings ->
+                settings.caches {
+                    buildCache.removeEntriesUnusedSince = java.time.ZonedDateTime.of(2024, 11, 10, 9,35, 44, 0, java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+                }
+            }
+        """
+
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        settingsFile << """
+            buildCache {
+                local {
+                    enabled = true
+                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    push = true
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        def result = result()
+
+        result.enabled
+        result.localEnabled
+        !result.remoteEnabled
+
+        result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
+        result.local.config.location == cacheDir.absoluteFile.toString()
+        result.local.config.removeUnusedEntries == "at 2024-11-10 09:35:44 UTC"
         result.local.type == 'directory'
         result.local.push == true
 

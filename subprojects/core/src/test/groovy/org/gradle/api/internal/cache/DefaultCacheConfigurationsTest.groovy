@@ -19,7 +19,7 @@ package org.gradle.api.internal.cache
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -295,13 +295,5 @@ class DefaultCacheConfigurationsTest extends Specification {
 
     def daysToMillis(int days) {
         return TimeUnit.DAYS.toMillis(days)
-    }
-
-    class FixedClock implements Clock {
-        long time = System.currentTimeMillis()
-        @Override
-        long getCurrentTime() {
-            return time
-        }
     }
 }
