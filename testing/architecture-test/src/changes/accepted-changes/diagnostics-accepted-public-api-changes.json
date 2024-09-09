@@ -34,6 +34,15 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getClientMetaData()",
             "acceptation": "Changed to idiomatic injection",
@@ -71,14 +80,6 @@
             "acceptation": "Changed to idiomatic injection",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getConfigurationDetails()",
-            "acceptation": "It's internal",
-            "changes": [
-                "Abstract method has been added to this class"
             ]
         },
         {
