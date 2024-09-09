@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -37,6 +36,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +54,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
 
     public AbstractDependencyReportTask() {
         getRenderer().convention(new AsciiDependencyReportRenderer()).finalizeValueOnRead();
-        getConfigurations().add(getSelectedConfiguration().map(name -> ConfigurationFinder.find(getTaskConfigurations().get(), name)));
+        getConfigurations().add(getSelectedConfiguration().map(name -> ConfigurationFinder.find(getTaskConfigurations(), name)));
     }
 
     @Override
@@ -124,7 +124,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
 
     private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
-        for (Configuration configuration : getTaskConfigurations().get()) {
+        for (Configuration configuration : getTaskConfigurations()) {
             if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
@@ -132,9 +132,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         return filteredConfigurations;
     }
 
-    @Internal
-    @ReplacesEagerProperty
-    public Provider<ConfigurationContainer> getTaskConfigurations() {
-        return getProject().provider(() -> getProject().getConfigurations());
-    }
+    @Inject
+    protected abstract ConfigurationContainer getTaskConfigurations();
 }

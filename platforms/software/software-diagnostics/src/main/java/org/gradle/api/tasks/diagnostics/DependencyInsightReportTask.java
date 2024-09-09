@@ -125,17 +125,17 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Nullable
     private Spec<DependencyResult> configuredDependencySpec;
 
+    // fields below are used by CC to have serializable results
+    private Provider<List<? extends Throwable>> resolutionFailures;
     private final Transient<Property<Configuration>> configurationProp = Transient.of(getObjectFactory().property(Configuration.class));
+    private final Provider<SerializableConfigurationData> configurationDetails = getConfiguration().map(SerializableConfigurationData::new);
+
 
     public DependencyInsightReportTask() {
         getShowSinglePathToDependency().convention(false);
 
         getRootComponentProperty().convention(
             getConfiguration().map(this::getRootComponentPropertyValue)
-        );
-
-        getConfigurationDetails().convention(
-            getConfiguration().map(SerializableConfigurationData::new)
         );
     }
 
@@ -233,11 +233,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     public Property<Configuration> getConfiguration() {
         return Objects.requireNonNull(configurationProp.get());
     }
-
-    // used by CC to have serializable results
-    @SuppressWarnings("ClassEscapesDefinedScope")
-    @Internal
-    protected abstract Property<SerializableConfigurationData> getConfigurationDetails();
 
     /**
      * Sets the configuration (via name) to look the dependency in.
@@ -344,7 +339,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         Set<DependencyResult> selectedDependencies = selectDependencies(rootComponent);
 
         if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + getConfigurationDetails().get().stringRepresentation);
+            output.println("No dependencies matching given input were found in " + configurationDetails.get().stringRepresentation);
             return;
         }
         renderSelectedDependencies(output, selectedDependencies);
@@ -355,8 +350,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         GraphRenderer renderer = new GraphRenderer(output);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, getShowSinglePathToDependency().get());
-        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, getConfigurationDetails().get().attributes, getAttributesFactory());
-        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(getConfigurationDetails().get().name);
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, configurationDetails.get().attributes, getAttributesFactory());
+        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configurationDetails.get().name);
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
         dependencyGraphRenderer.setShowSinglePath(getShowSinglePathToDependency().get());
         dependencyGraphRenderer.render(itemsToRender);
@@ -371,7 +366,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     private void assertValidTaskConfiguration() {
-        if (!getConfigurationDetails().isPresent()) {
+        if (!configurationDetails.isPresent()) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
@@ -385,7 +380,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     private Set<DependencyResult> selectDependencies(ResolvedComponentResult rootComponent) {
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
         eachDependency(rootComponent, dependencyResult -> {
-            if (Objects.requireNonNull(getEffectiveDependencySpec().get()).isSatisfiedBy(dependencyResult)) {
+            if (getEffectiveDependencySpec().get().isSatisfiedBy(dependencyResult)) {
                 selectedDependencies.add(dependencyResult);
             }
         }, new HashSet<>());
