@@ -60,7 +60,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
         String stackTraceIndent = exceptionIndent + INDENT;
         List<StackTraceElement> stackTrace = null;
 
-        if (testLogging.getShowStackTraces()) {
+        if (testLogging.getShowStackTraces().get()) {
             stackTrace = filterStackTrace(exception, descriptor);
             int commonElements = countCommonElements(stackTrace, parentTrace);
             for (int i = 0; i < stackTrace.size() - commonElements; i++) {
@@ -78,7 +78,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
             }
         }
 
-        if (testLogging.getShowCauses() && exception.getCause() != null) {
+        if (testLogging.getShowCauses().get() && exception.getCause() != null) {
             printException(descriptor, exception.getCause(), stackTrace, exceptionLevel + 1, builder);
         }
     }
@@ -91,7 +91,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
 
     private Spec<StackTraceElement> createCompositeFilter(TestDescriptor descriptor) {
         List<Spec<StackTraceElement>> filters = new ArrayList<Spec<StackTraceElement>>();
-        for (TestStackTraceFilter type : testLogging.getStackTraceFilters()) {
+        for (TestStackTraceFilter type : testLogging.getStackTraceFilters().get()) {
             filters.add(createFilter(descriptor, type));
         }
         return new AndSpec<StackTraceElement>(filters);

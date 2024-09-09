@@ -18,18 +18,21 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import spock.lang.Shared
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TestEventLoggerTest extends Specification {
-    def textOutputFactory = new TestStyledTextOutputFactory()
+    StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
 
-    def testLogging = new DefaultTestLogging()
-    def exceptionFormatter = Mock(TestExceptionFormatter)
-    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter)
+    TestLogging testLogging = TestUtil.newInstance(DefaultTestLogging.class)
+    TestExceptionFormatter exceptionFormatter = Mock(TestExceptionFormatter)
 
     @Shared
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
@@ -48,6 +51,7 @@ class TestEventLoggerTest extends Specification {
 
     def "logs event if event type matches"() {
         testLogging.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED)
+        def eventLogger = newTestEventLogger()
 
         when:
         eventLogger.afterTest(methodDescriptor, result)
@@ -67,6 +71,7 @@ class TestEventLoggerTest extends Specification {
         testLogging.events(TestLogEvent.PASSED)
         testLogging.minGranularity = 2
         testLogging.maxGranularity = 4
+        def eventLogger = newTestEventLogger()
 
         when:
         eventLogger.afterSuite(descriptor, result)
@@ -81,6 +86,7 @@ class TestEventLoggerTest extends Specification {
         testLogging.events(TestLogEvent.PASSED)
         testLogging.minGranularity = 2
         testLogging.maxGranularity = 4
+        def eventLogger = newTestEventLogger()
 
         when:
         eventLogger.afterSuite(descriptor, result)
@@ -98,6 +104,8 @@ class TestEventLoggerTest extends Specification {
         exceptionFormatter.format(*_) >> "formatted exception"
 
         when:
+        testLogging.showExceptions = true
+        def eventLogger = newTestEventLogger()
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
@@ -112,6 +120,7 @@ class TestEventLoggerTest extends Specification {
 
         when:
         testLogging.showExceptions = false
+        def eventLogger = newTestEventLogger()
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
@@ -119,7 +128,24 @@ class TestEventLoggerTest extends Specification {
     }
 
     def "allows empty event set"() {
+        given:
+        testLogging.events = Collections.emptySet()
+
         expect:
-        testLogging.setEvents(Collections.emptySet())
+        testLogging.events.get().isEmpty()
+    }
+
+    private TestEventLogger newTestEventLogger() {
+        return new TestEventLogger(
+            textOutputFactory,
+            LogLevel.INFO,
+            exceptionFormatter,
+            testLogging.getShowExceptions().get(),
+            testLogging.getMinGranularity().get(),
+            testLogging.getMaxGranularity().get(),
+            testLogging.getDisplayGranularity().get(),
+            testLogging.getShowStandardStreams().getOrNull(),
+            testLogging.getEvents().get(),
+        )
     }
 }
