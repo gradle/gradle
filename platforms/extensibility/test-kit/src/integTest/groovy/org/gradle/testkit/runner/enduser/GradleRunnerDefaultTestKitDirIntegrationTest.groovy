@@ -58,7 +58,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
             }
 
             tasks.withType(Test).configureEach {
-                testLogging.exceptionFormat = 'full'
+                testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
                 testLogging.showStandardStreams = true
                 testLogging.events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
             }
