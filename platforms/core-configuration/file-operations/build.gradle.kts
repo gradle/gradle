@@ -18,7 +18,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Operations on files and directories"
+description = "Operations on files, such as archiving, copying, deleting"
+
+// TODO: ensure code is compliant with requirements for workers
+// This project was part of :core and similarly is included in the Worker runtime classpath (see WorkerProcessClassPathProvider)
+// So it should either be compliant or split into parts that are used and not used for workers.
+//gradlebuildJava.usedInWorkers()
 
 errorprone {
     disabledChecks.addAll(
