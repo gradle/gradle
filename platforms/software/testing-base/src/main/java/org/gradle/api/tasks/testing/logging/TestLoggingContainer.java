@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing.logging;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Internal;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Container for all test logging related options. Different options
@@ -60,7 +60,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @since 1.1
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getDebug();
 
     /**
@@ -86,7 +86,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @since 1.1
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getInfo();
 
     /**
@@ -112,7 +112,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @since 1.1
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getLifecycle();
 
     /**
@@ -138,7 +138,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @since 1.1
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getWarn();
 
     /**
@@ -164,7 +164,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @since 1.1
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getQuiet();
 
     /**
@@ -190,7 +190,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @since 1.1
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getError();
 
     /**
