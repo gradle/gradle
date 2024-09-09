@@ -45,6 +45,8 @@ import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
+import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
@@ -246,7 +248,7 @@ class DefaultConfigurationCacheIO internal constructor(
     fun <T> withParallelStringEncoderFor(stateFile: ConfigurationCacheStateFile, action: (StringEncoder) -> T): T =
         stringsFileFor(stateFile).let { stringsFile ->
             outputStreamFor(stringsFile.stateType, stringsFile::outputStream).use { stringStream ->
-                ParallelStringEncoder(stringStream).use { stringEncoder ->
+                ParallelStringEncoder(stringStream, classEncoder()).use { stringEncoder ->
                     action(stringEncoder)
                 }
             }
@@ -256,7 +258,7 @@ class DefaultConfigurationCacheIO internal constructor(
     fun <T> withParallelStringDecoderFor(stateFile: ConfigurationCacheStateFile, action: (StringDecoder) -> T): T =
         stringsFileFor(stateFile).let { stringsFile ->
             inputStreamFor(stringsFile.stateType, stringsFile::inputStream).use { stringStream ->
-                ParallelStringDecoder(stringStream).use { stringDecoder ->
+                ParallelStringDecoder(stringStream, classDecoder()).use { stringDecoder ->
                     action(stringDecoder)
                 }
             }
@@ -462,7 +464,8 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         tracer,
         problems,
-        classEncoder(),
+        stringEncoder as? ClassEncoder
+            ?: classEncoder(),
         stringEncoder = stringEncoder
     )
 
@@ -477,7 +480,8 @@ class DefaultConfigurationCacheIO internal constructor(
         beanStateReaderLookup,
         logger,
         problems,
-        classDecoder(),
+        stringDecoder as? ClassDecoder
+            ?: classDecoder(),
         stringDecoder,
     )
 

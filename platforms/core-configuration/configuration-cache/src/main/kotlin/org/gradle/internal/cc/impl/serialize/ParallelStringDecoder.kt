@@ -16,9 +16,12 @@
 
 package org.gradle.internal.cc.impl.serialize
 
-import com.esotericsoftware.kryo.io.Input
+import org.gradle.internal.Try
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.StringDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import java.io.InputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
@@ -31,70 +34,97 @@ import kotlin.concurrent.thread
  * Decodes deduplicated strings from a given stream produced by [ParallelStringEncoder].
  */
 internal
-class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable {
+class ParallelStringDecoder(
+    stream: InputStream,
+    private val classDecoder: ClassDecoder,
+) : StringDecoder, ClassDecoder, AutoCloseable {
 
     private
-    class FutureString {
+    class FutureValue {
 
         private
         val latch = CountDownLatch(1)
 
         private
-        var string: String? = null
+        var value: Try<Any>? = null
 
-        fun complete(s: String) {
-            string = s
+        fun complete(v: Try<Any>) {
+            value = v
             latch.countDown()
         }
 
-        fun get(): String {
+        fun get(): Try<Any> {
             if (!latch.await(1, TimeUnit.MINUTES)) {
-                throw TimeoutException("Timeout while waiting for string")
+                throw TimeoutException("Timeout while waiting for value")
             }
-            return string!!
+            return value!!
         }
     }
 
     private
-    val strings = ConcurrentHashMap<Int, Any>()
+    val values = ConcurrentHashMap<Int, Any>()
 
     private
-    val reader = thread(isDaemon = true) {
-        Input(stream).use { input ->
-            while (true) {
-                val id = input.readVarInt(true)
-                if (id == 0) break
+    val reader = thread(isDaemon = true, contextClassLoader = Thread.currentThread().contextClassLoader) {
+        try {
+            KryoBackedDecoder(stream).use { input ->
+                while (true) {
+                    val id = input.readSmallInt()
+                    if (id == 0) break
 
-                val string = input.readString()
-                strings.compute(id) { _, value ->
-                    when (value) {
-                        is FutureString -> value.complete(string)
-                        else -> require(value == null)
+                    val value = Try.ofFailable { readValue(input) }
+                    values.compute(id) { _, current ->
+                        when (current) {
+                            is FutureValue -> current.complete(value)
+                            else -> require(current == null)
+                        }
+                        value
                     }
-                    string
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
         }
     }
 
-    override fun readNullableString(decoder: Decoder): String? =
-        when (val id = decoder.readSmallInt()) {
-            0 -> null
-            else -> doReadString(id)
+    private
+    fun readValue(input: Decoder): Any =
+        when (val tag = input.readByte().toInt()) {
+            1 -> input.readString()
+            2 -> classDecoder.run { input.decodeClass() }
+            3 -> classDecoder.run { input.decodeClassLoader()!! }
+            else -> error("unexpected value tag: $tag")
         }
+
+    override fun readNullableString(decoder: Decoder): String? =
+        doReadNullable(decoder)
 
     override fun readString(decoder: Decoder): String =
-        doReadString(decoder.readSmallInt())
+        doReadValue(decoder.readSmallInt())
 
-    private
-    fun doReadString(id: Int): String =
-        when (val it = strings.computeIfAbsent(id) { FutureString() }) {
-            is String -> it
-            is FutureString -> it.get()
-            else -> error("$it is unexpected")
-        }
+    override fun Decoder.decodeClass(): Class<*> =
+        doReadValue(readSmallInt())
+
+    override fun Decoder.decodeClassLoader(): ClassLoader? =
+        doReadNullable(this)
 
     override fun close() {
         reader.join(TimeUnit.MINUTES.toMillis(1))
     }
+
+    private
+    inline fun <reified T : Any> doReadNullable(decoder: Decoder): T? =
+        when (val id = decoder.readSmallInt()) {
+            0 -> null
+            else -> doReadValue(id)
+        }
+
+    private
+    inline fun <reified T : Any> doReadValue(id: Int): T =
+        when (val it = values.computeIfAbsent(id) { FutureValue() }) {
+            is Try<*> -> it.get().uncheckedCast()
+            is FutureValue -> it.get().get().uncheckedCast()
+            else -> error("$it is unexpected")
+        }
 }
