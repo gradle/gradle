@@ -19,7 +19,4 @@
  * Classes related to archiving that ended up
  * being used more broadly in the implementation.
  */
-@NonNullApi
 package org.gradle.api.tasks.bundling;
-
-import org.gradle.api.NonNullApi;
