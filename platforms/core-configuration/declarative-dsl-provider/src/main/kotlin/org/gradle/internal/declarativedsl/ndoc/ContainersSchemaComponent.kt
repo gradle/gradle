@@ -24,8 +24,6 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
-import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
@@ -51,6 +49,8 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNestedModel
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
+import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
 import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -58,11 +58,10 @@ import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
-import kotlin.reflect.KTypeProjection
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.starProjectedType
 
 
 internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
@@ -84,7 +83,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         object : FunctionExtractor {
             override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex) =
                 if (kClass.isSubclassOf(NamedDomainObjectContainer::class) && kClass != NamedDomainObjectContainer::class) {
-                    val elementType = elementTypeFromNdocContainerType(kClass.createType(kClass.typeParameters.map { KTypeProjection(null, null) }))
+                    val elementType = elementTypeFromNdocContainerType(kClass.starProjectedType)
                     if (elementType != null) {
                         listOf(newElementFactoryFunction(kClass.toDataTypeRef(), elementType, inContext = kClass))
                     } else emptyList()
