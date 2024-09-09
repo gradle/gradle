@@ -46,7 +46,7 @@ class JUnitJupiterConsoleLoggingIntegrationTest extends AbstractJUnitConsoleLogg
                 }
                 testLogging {
                     minGranularity = 1
-                    exceptionFormat = "FULL"
+                    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
                 }
             }
         """

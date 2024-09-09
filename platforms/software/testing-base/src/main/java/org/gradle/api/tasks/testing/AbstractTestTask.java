@@ -383,7 +383,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
-        switch (testLogging.getExceptionFormat()) {
+        switch (testLogging.getExceptionFormat().get()) {
             case SHORT:
                 return new ShortExceptionFormatter(testLogging);
             case FULL:
@@ -493,7 +493,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * apply plugin: 'java'
      *
      * test.testLogging {
-     *     exceptionFormat = "full"
+     *     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
      * }
      * </pre>
      *
@@ -548,7 +548,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
+        TestEventLogger eventLogger = new TestEventLogger(
+            getTextOutputFactory(),
+            currentLevel,
+            exceptionFormatter,
+            levelLogging.getShowExceptions().get(),
+            levelLogging.getMinGranularity().get(),
+            levelLogging.getMaxGranularity().get(),
+            levelLogging.getDisplayGranularity().get(),
+            levelLogging.getShowStandardStreams().getOrNull(),
+            levelLogging.getEvents().get()
+        );
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
