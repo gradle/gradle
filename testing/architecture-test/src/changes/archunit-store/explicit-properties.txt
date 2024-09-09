@@ -69,7 +69,6 @@ Method <org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOptionsFile()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOutputDirectory()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> is not abstract
-Method <org.gradle.api.tasks.scala.ScalaDoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getFilteredCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()> is not abstract
@@ -152,7 +151,6 @@ Method <org.gradle.plugins.signing.Sign.getFilesToSign()> is not abstract
 Method <org.gradle.plugins.signing.Sign.getSignatureFiles()> is not abstract
 Method <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getManifestFile()> is not abstract
 Method <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getPackage()> is not abstract
-Method <org.gradle.testing.jacoco.tasks.JacocoBase.getJacocoClasspath()> is not abstract
 Method <org.gradle.testing.jacoco.tasks.JacocoReport.getReportProjectName()> is not abstract
 Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getAllClassDirs()> is not abstract
 Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getAllSourceDirs()> is not abstract

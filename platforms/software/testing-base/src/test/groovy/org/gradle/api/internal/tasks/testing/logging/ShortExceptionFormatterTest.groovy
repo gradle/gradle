@@ -19,11 +19,14 @@ package org.gradle.api.internal.tasks.testing.logging
 import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.internal.serialize.PlaceholderAssertionError
 import org.gradle.internal.serialize.PlaceholderException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ShortExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
-    def testLogging = Mock(TestLogging)
+    def testLogging = Mock(TestLogging) {
+        getShowCauses() >> TestUtil.objectFactory().property(Boolean).convention(false)
+    }
     def formatter = new ShortExceptionFormatter(testLogging)
 
     def "shows all exceptions that have occurred for a test"() {
@@ -46,7 +49,7 @@ class ShortExceptionFormatterTest extends Specification {
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:44
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:47
 """
     }
 
@@ -55,7 +58,7 @@ class ShortExceptionFormatterTest extends Specification {
         def cause = new IllegalArgumentException("ouch", causeCause).tap { stackTrace = createCauseTrace() }
         def exception = new Exception("argh", cause).tap { stackTrace = createStackTrace() }
 
-        testLogging.showCauses >> true
+        testLogging.showCauses.set(true)
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
