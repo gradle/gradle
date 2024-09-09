@@ -317,7 +317,7 @@ class ApiFunction internal constructor(
 }
 
 
-data class ApiTypeUsage(
+data class ApiTypeUsage internal constructor(
     val sourceName: String,
     internal val isNullable: Boolean = false,
     val type: ApiType? = null,
@@ -358,7 +358,7 @@ enum class Variance {
 }
 
 
-data class ApiFunctionParameter(
+data class ApiFunctionParameter internal constructor(
     internal val index: Int,
     internal val isVarargs: Boolean,
     private val nameSupplier: () -> String?,
