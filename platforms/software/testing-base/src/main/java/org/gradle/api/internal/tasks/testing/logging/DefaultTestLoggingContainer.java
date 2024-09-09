@@ -19,34 +19,37 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
-import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 
-public class DefaultTestLoggingContainer implements TestLoggingContainer {
+public abstract class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
-    public DefaultTestLoggingContainer(Instantiator instantiator) {
+    @Inject
+    public DefaultTestLoggingContainer(ObjectFactory objects) {
         for (LogLevel level: LogLevel.values()) {
-            perLevelTestLogging.put(level, instantiator.newInstance(DefaultTestLogging.class));
+            perLevelTestLogging.put(level, objects.newInstance(DefaultTestLogging.class));
         }
 
-        setEvents(EnumSet.of(TestLogEvent.FAILED));
-        setExceptionFormat(TestExceptionFormat.SHORT);
+        getDefaultTestLogging().getEvents().set(EnumSet.of(TestLogEvent.FAILED));
+        getExceptionFormat().convention(TestExceptionFormat.SHORT);
 
-        getInfo().setEvents(EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
-        getInfo().setStackTraceFilters(EnumSet.of(TestStackTraceFilter.TRUNCATE));
+        getInfo().getEvents().set(EnumSet.of(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        getInfo().getStackTraceFilters().convention(EnumSet.of(TestStackTraceFilter.TRUNCATE));
 
-        getDebug().setEvents(EnumSet.allOf(TestLogEvent.class));
-        getDebug().setMinGranularity(0);
-        getDebug().setStackTraceFilters(EnumSet.noneOf(TestStackTraceFilter.class));
+        getDebug().getEvents().set(EnumSet.allOf(TestLogEvent.class));
+        getDebug().getMinGranularity().set(0);
+        getDebug().getStackTraceFilters().convention(EnumSet.noneOf(TestStackTraceFilter.class));
     }
 
     @Override
@@ -140,18 +143,8 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
-    public Set<TestLogEvent> getEvents() {
+    public SetProperty<TestLogEvent> getEvents() {
         return getDefaultTestLogging().getEvents();
-    }
-
-    @Override
-    public void setEvents(Set<TestLogEvent> events) {
-        getDefaultTestLogging().setEvents(events);
-    }
-
-    @Override
-    public void setEvents(Iterable<?> events) {
-        getDefaultTestLogging().setEvents(events);
     }
 
     @Override
@@ -160,93 +153,43 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
-    public int getMinGranularity() {
+    public Property<Integer> getMinGranularity() {
         return getDefaultTestLogging().getMinGranularity();
     }
 
     @Override
-    public void setMinGranularity(int granularity) {
-        getDefaultTestLogging().setMinGranularity(granularity);
-    }
-
-    @Override
-    public int getMaxGranularity() {
+    public Property<Integer> getMaxGranularity() {
         return getDefaultTestLogging().getMaxGranularity();
     }
 
     @Override
-    public void setMaxGranularity(int granularity) {
-        getDefaultTestLogging().setMaxGranularity(granularity);
-    }
-
-    @Override
-    public int getDisplayGranularity() {
+    public Property<Integer> getDisplayGranularity() {
         return getDefaultTestLogging().getDisplayGranularity();
     }
 
     @Override
-    public void setDisplayGranularity(int granularity) {
-        getDefaultTestLogging().setDisplayGranularity(granularity);
-    }
-
-    @Override
-    public boolean getShowExceptions() {
+    public Property<Boolean> getShowExceptions() {
         return getDefaultTestLogging().getShowExceptions();
     }
 
     @Override
-    public void setShowExceptions(boolean flag) {
-        getDefaultTestLogging().setShowExceptions(flag);
-    }
-
-    @Override
-    public boolean getShowCauses() {
+    public Property<Boolean> getShowCauses() {
         return getDefaultTestLogging().getShowCauses();
     }
 
     @Override
-    public void setShowCauses(boolean flag) {
-        getDefaultTestLogging().setShowCauses(flag);
-    }
-
-    @Override
-    public boolean getShowStackTraces() {
+    public Property<Boolean> getShowStackTraces() {
         return getDefaultTestLogging().getShowStackTraces();
     }
 
     @Override
-    public void setShowStackTraces(boolean flag) {
-        getDefaultTestLogging().setShowStackTraces(flag);
-    }
-
-    @Override
-    public TestExceptionFormat getExceptionFormat() {
+    public Property<TestExceptionFormat> getExceptionFormat() {
         return getDefaultTestLogging().getExceptionFormat();
     }
 
     @Override
-    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
-        setExceptionFormat((Object) exceptionFormat);
-    }
-
-    @Override
-    public void setExceptionFormat(Object exceptionFormat) {
-        getDefaultTestLogging().setExceptionFormat(exceptionFormat);
-    }
-
-    @Override
-    public Set<TestStackTraceFilter> getStackTraceFilters() {
+    public SetProperty<TestStackTraceFilter> getStackTraceFilters() {
         return getDefaultTestLogging().getStackTraceFilters();
-    }
-
-    @Override
-    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
-        getDefaultTestLogging().setStackTraceFilters(stackTraces);
-    }
-
-    @Override
-    public void setStackTraceFilters(Iterable<?> stackTraces) {
-        getDefaultTestLogging().setStackTraceFilters(stackTraces);
     }
 
     @Override
@@ -255,14 +198,8 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     }
 
     @Override
-    public boolean getShowStandardStreams() {
+    public Property<Boolean> getShowStandardStreams() {
         return getDefaultTestLogging().getShowStandardStreams();
-    }
-
-    @Override
-    public TestLoggingContainer setShowStandardStreams(boolean flag) {
-        getDefaultTestLogging().setShowStandardStreams(flag);
-        return this;
     }
 
     @Override
