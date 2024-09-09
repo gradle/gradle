@@ -25,6 +25,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
+import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.typeOf
 
 class DclContainerMemberExtractionUtilsTest {
@@ -54,36 +55,48 @@ class DclContainerMemberExtractionUtilsTest {
 
     @Test
     fun `no element type is extracted from unrelated parameterized types`() {
-        class Unrelated<T>
-
         assertNull(elementTypeFromNdocContainerType(typeOf<Unrelated<String>>()))
+        assertNull(elementTypeFromNdocContainerType(::parameterizedUnrelated.javaGetter!!.genericReturnType))
     }
+
+    class Unrelated<@Suppress("unused") T>
+    abstract class NdocSubtype : NamedDomainObjectContainer<String>
+    abstract class ParameterizedNdocSubtype<S> : NamedDomainObjectContainer<S>
+
+    val parameterizedUnrelated: Unrelated<String> get() = TODO()
+    val parameterizedSubtype: ParameterizedNdocSubtype<String> get() = TODO()
+    val ndocOfString: NamedDomainObjectContainer<String> get() = TODO()
 
     @Test
     fun `element type is extracted from an exact NDOC instantiation`() {
         assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<String>>()))
+        assertEquals(String::class.java, elementTypeFromNdocContainerType(::ndocOfString.javaGetter!!.genericReturnType))
     }
 
     @Test
     fun `element type is extracted from an NDOC subtype with concrete type`() {
-        abstract class Subtype : NamedDomainObjectContainer<String>
-
-        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype>()))
+        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NdocSubtype>()))
+        assertEquals(String::class.java, elementTypeFromNdocContainerType(NdocSubtype::class.java))
     }
 
     @Test
     fun `element type is extracted from parameterized NDOC subtype instantiation`() {
-        abstract class Subtype<S> : NamedDomainObjectContainer<S>
+        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<ParameterizedNdocSubtype<String>>()))
+        assertEquals(String::class.java, elementTypeFromNdocContainerType(::parameterizedSubtype.javaGetter!!.genericReturnType))
+    }
 
-        assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype<String>>()))
+
+    abstract class Subtype1<S1> : NamedDomainObjectContainer<S1>
+    abstract class Subtype2<S2> : Subtype1<S2>()
+
+    abstract class Instantiation {
+        abstract val subtype2OfString: Subtype2<String>
     }
 
     @Test
     fun `element type is extracted from deeply parameterized NDOC subtype instantiation`() {
-        abstract class Subtype1<S1> : NamedDomainObjectContainer<S1>
-        abstract class Subtype2<S2> : Subtype1<S2>()
-
         assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype2<String>>()))
+        assertEquals(String::class.java, elementTypeFromNdocContainerType(Instantiation::subtype2OfString.javaGetter!!.genericReturnType))
     }
 
     @Test
@@ -93,6 +106,7 @@ class DclContainerMemberExtractionUtilsTest {
         }
 
         assertNull(elementTypeFromNdocContainerType(Parameterized<*>::t.returnType))
+        assertNull(elementTypeFromNdocContainerType(Parameterized::class.java))
     }
 
     @Test

@@ -31,8 +31,8 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils
 import org.gradle.internal.Factory
+import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils
 import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
@@ -44,12 +44,8 @@ import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
-import java.lang.reflect.GenericSignatureFormatError
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.jvmErasure
 
 
 class DefaultProjectSchemaProvider(
@@ -161,28 +157,16 @@ data class TargetTypedSchema(
 
 // TODO: this is not consistent with both DCL and element schema generation implemented above in terms of which containers get visited
 private fun collectNestedContainerFactories(containerClass: Class<*>): ContainerElementFactories {
-    val accessibleKotlinType = containerClass.firstPublicKotlinAccessorType?.kotlin
-        ?: return emptyList()
+    val getters = containerClass.methods.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
 
-    @Suppress("SwallowedException")
-    val memberPropertiesAndGetters = try {
-        accessibleKotlinType.memberProperties + accessibleKotlinType.memberFunctions.filter { it.name.startsWith("get") && it.name.substringAfter("get").firstOrNull()?.isUpperCase() ?: false }
-    } catch (e: ClassFormatError) {
-        // some instrumented classes have generic signatures that fail class verification when read by Java or Kotlin reflection, e.g. "__locked__" fields in AGP
-        return emptyList()
+    val elementTypes = getters.mapNotNullTo(hashSetOf()) {
+        DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.genericReturnType)
     }
 
-    val elementTypes = memberPropertiesAndGetters.mapNotNullTo(hashSetOf()) {
-        DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType(it.returnType)
-    }
-
-    return elementTypes.map { elementKType ->
-        // it is safe to use `jvmErasure`, as we assume that the type is non-parameterized; `javaType` fails to work here, though, for some reason
-        val elementType = TypeOf.typeOf<Any>(elementKType.jvmErasure.java)
+    return elementTypes.map { type ->
+        val elementType = TypeOf.typeOf<Any>(type)
         val scopeReceiverType = TypeOf.parameterizedTypeOf(typeOf<NamedDomainObjectContainer<*>>(), elementType)
-
-        val factoryName = DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(elementKType)
-
+        val factoryName = DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(elementType.concreteClass.kotlin)
         ContainerElementFactoryEntry(factoryName, scopeReceiverType, elementType)
     }
 }
