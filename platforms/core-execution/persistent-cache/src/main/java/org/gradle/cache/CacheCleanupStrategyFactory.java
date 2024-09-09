@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jvm.inspection;
+package org.gradle.cache;
 
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.function.Supplier;
+
 /**
- * Probes a JVM installation to determine the Java version it provides.
+ * Creates CacheCleanupStrategy instances.
+ *
+ * This may add decorations to the given CleanupActions to generate build operations, logging, etc.
  */
-@ServiceScope({ Scope.Global.class, Scope.UserHome.class })
-public interface JvmVersionDetector {
+@ServiceScope(Scope.Global.class)
+public interface CacheCleanupStrategyFactory {
     /**
-     * Probes the Java version for the given JVM installation.
+     * Creates a CacheCleanupStrategy that cleans up the cache daily using the provided action.
      */
-    int getJavaVersionMajor(JavaInfo jvm);
+    CacheCleanupStrategy daily(CleanupAction action);
 
     /**
-     * Probes the Java version for the given `java` command.
+     * Creates a CacheCleanupStrategy that cleans up the cache using the provided action and frequency.
      */
-    int getJavaVersionMajor(String javaCommand);
+    CacheCleanupStrategy create(CleanupAction action, Supplier<CleanupFrequency> frequency);
 }

@@ -88,30 +88,4 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
         throw dynamicDelegate.methodMissingException(name, varargs);
     }
-
-    @Override
-    public String toString() {
-        return delegate.toString();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null) {
-            return false;
-        }
-        if (other instanceof LifecycleAwareProject) {
-            LifecycleAwareProject lifecycleAwareProject = (LifecycleAwareProject) other;
-            return delegate.equals(lifecycleAwareProject.delegate) && referrer.equals(lifecycleAwareProject.referrer);
-        } else {
-            return delegate.equals(other);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return delegate.hashCode();
-    }
 }

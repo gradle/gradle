@@ -671,6 +671,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
+    @ToBeImplemented("See #30320, the final solution might be different and require this test to be updated")
     // This is not necessarily desired behavior, or important behavior at all.
     // The detached configuration is _not_ the project. It should not claim to be the project.
     // Ideally, this configuration would have an unspecified identity, similar to init, settings, and standalone scripts.
@@ -702,9 +703,10 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("resolve")
+        fails("resolve")
     }
 
+    @ToBeImplemented("See #30320, the final solution might be different and require this test to be updated")
     def "settings buildscripts detached configurations have unspecified identity"() {
         mavenRepo.module("org", "foo").publish()
         settingsFile << """
@@ -725,9 +727,10 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("help")
+        fails("help")
     }
 
+    @ToBeImplemented("See #30320, the final solution might be different and require this test to be updated")
     def "init buildscripts detached configurations have unspecified identity"() {
         mavenRepo.module("org", "foo").publish()
         initScriptFile << """
@@ -751,9 +754,10 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         then:
-        succeeds("help")
+        fails("help")
     }
 
+    @ToBeImplemented("See #30320, the final solution might be different and require this test to be updated")
     def "standalone buildscripts detached configurations have unspecified identity"() {
         mavenRepo.module("org", "foo").publish()
         file("foo.gradle") << """
@@ -778,7 +782,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("help")
+        fails("help")
     }
 
     def "project buildscripts support detached configurations for resolving local dependencies"() {
