@@ -1,0 +1,3 @@
+++++
+<meta http-equiv="refresh" content="0;URL=declaring_dependencies.html#sub:producers-vs-consumers">
+++++

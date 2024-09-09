@@ -20,6 +20,8 @@ These libraries can either be sourced from other projects in the same build or f
 
 Gradle's dependency management infrastructure provides APIs to declare, resolve, and expose binaries required by and provided by a project.
 
+image::dependency-management-resolution.png[]
+
 Understanding dependency management in Gradle is important for structuring projects into components.
 It is also important when you want to reuse existing libraries, or you need to upgrade those libraries while managing their versions.
 
