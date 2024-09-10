@@ -268,7 +268,7 @@ fun configureTests() {
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
-            server = uri(testDistributionServerUrl.orElse("https://gbt-td.grdev.net"))
+            server = uri(testDistributionServerUrl.orElse("https://ge.gradle.org"))
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
                 enabled = true

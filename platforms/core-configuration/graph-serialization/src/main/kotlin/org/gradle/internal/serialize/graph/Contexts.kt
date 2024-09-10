@@ -99,7 +99,7 @@ class DefaultWriteContext(
         }
     }
 
-    override fun writeClassLoader(classLoader: ClassLoader?): Boolean = classEncoder.run {
+    override fun writeClassLoader(classLoader: ClassLoader?) = classEncoder.run {
         encodeClassLoader(classLoader)
     }
 
@@ -113,26 +113,24 @@ value class ClassLoaderRole(val local: Boolean)
 
 
 interface ClassEncoder {
-    fun WriteContext.encodeClass(type: Class<*>)
+    fun Encoder.encodeClass(type: Class<*>)
 
     /**
      * Tries to encode the given [classLoader].
-     *
-     * @return `true` when the given [ClassLoader] is not `null` and could be encoded, `false` otherwise.
      */
-    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean = false
+    fun Encoder.encodeClassLoader(classLoader: ClassLoader?) = Unit
 }
 
 
 interface ClassDecoder {
-    fun ReadContext.decodeClass(): Class<*>
+    fun Decoder.decodeClass(): Class<*>
 
     /**
      * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
      *
      * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
      */
-    fun ReadContext.decodeClassLoader(): ClassLoader? = null
+    fun Decoder.decodeClassLoader(): ClassLoader? = null
 }
 
 

@@ -62,7 +62,7 @@ interface WriteContext : MutableIsolateContext, Encoder {
     /**
      * @see ClassEncoder.encodeClassLoader
      */
-    fun writeClassLoader(classLoader: ClassLoader?): Boolean = false
+    fun writeClassLoader(classLoader: ClassLoader?) = Unit
 }
 
 

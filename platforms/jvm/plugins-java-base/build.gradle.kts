@@ -45,6 +45,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.platformBase)

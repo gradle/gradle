@@ -10,14 +10,15 @@ dependencies {
     api(libs.inject)
 
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
+    api(projects.fileOperations)
     api(projects.languageJava)
     api(projects.modelCore)
     api(projects.buildProcessServices)
 
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.core)
     implementation(projects.fileCollections)
     implementation(projects.jvmServices)
     implementation(projects.languageGroovy)

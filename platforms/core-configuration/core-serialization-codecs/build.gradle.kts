@@ -27,6 +27,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.flowServices)
     api(projects.graphSerialization)
     api(projects.stdlibJavaExtensions)

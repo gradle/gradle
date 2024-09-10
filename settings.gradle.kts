@@ -141,6 +141,7 @@ val core = platform("core") {
         subproject("dependency-management-serialization-codecs")
         subproject("encryption-services")
         subproject("file-collections")
+        subproject("file-operations")
         subproject("flow-services")
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")

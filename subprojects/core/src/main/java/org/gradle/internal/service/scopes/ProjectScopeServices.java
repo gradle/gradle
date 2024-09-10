@@ -311,11 +311,16 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     ) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             dependencyManagementServices,
-            fileResolver,
-            fileCollectionFactory,
             buildLogicBuilder
         );
-        return factory.createProjectScriptHandler(project.getBuildScriptSource(), project.getClassLoaderScope(), project);
+
+        return factory.createProjectScriptHandler(
+            project.getBuildScriptSource(),
+            project.getClassLoaderScope(),
+            fileResolver,
+            fileCollectionFactory,
+            project
+        );
     }
 
     @Provides
