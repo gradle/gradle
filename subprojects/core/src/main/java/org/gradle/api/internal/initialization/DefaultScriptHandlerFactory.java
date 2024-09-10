@@ -26,29 +26,19 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
-    private final FileCollectionFactory fileCollectionFactory;
     private final BuildLogicBuilder buildLogicBuilder;
-    private final FileResolver fileResolver;
 
     public DefaultScriptHandlerFactory(
         DependencyManagementServices dependencyManagementServices,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
         BuildLogicBuilder buildLogicBuilder
     ) {
         this.dependencyManagementServices = dependencyManagementServices;
-        this.fileResolver = fileResolver;
-        this.fileCollectionFactory = fileCollectionFactory;
         this.buildLogicBuilder = buildLogicBuilder;
     }
 
     @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
-        DependencyResolutionServices services = dependencyManagementServices.newBuildscriptResolver(
-            fileResolver,
-            fileCollectionFactory,
-            context
-        );
+        DependencyResolutionServices services = dependencyManagementServices.newBuildscriptResolver(context);
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 
@@ -56,6 +46,8 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     public ScriptHandlerInternal createProjectScriptHandler(
         ScriptSource scriptSource,
         ClassLoaderScope classLoaderScope,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
         ProjectInternal project
     ) {
         DependencyResolutionServices services = dependencyManagementServices.newProjectBuildscriptResolver(
