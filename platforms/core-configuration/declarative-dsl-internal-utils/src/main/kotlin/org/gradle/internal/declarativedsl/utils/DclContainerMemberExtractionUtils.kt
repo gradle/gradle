@@ -18,6 +18,10 @@ package org.gradle.internal.declarativedsl.utils
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
+import java.lang.reflect.WildcardType
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -25,8 +29,78 @@ import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.starProjectedType
 
 object DclContainerMemberExtractionUtils {
+    fun elementTypeFromNdocContainerType(containerType: Type): Type? =
+        when (containerType) {
+            is Class<*> -> {
+                // can't be NDOC<T>, so go and find the supertype
+                if (ndocClass.java.isAssignableFrom(containerType)) {
+                    findNamedDomainObjectContainerTypeArgument(containerType)
+                } else null
+            }
+            is ParameterizedType -> run {
+                val rawClass = containerType.rawType as? Class<*> ?: return@run null
+                if (rawClass == ndocClass.java) {
+                    containerType.actualTypeArguments.singleOrNull()
+                } else if (ndocClass.java.isAssignableFrom(rawClass)) {
+                    findNamedDomainObjectContainerTypeArgument(containerType)
+                } else null
+            }
+            else -> null
+        }
+
+    private fun findNamedDomainObjectContainerTypeArgument(containerSubtype: Type): Type? {
+        val visited: HashSet<Class<*>> = hashSetOf()
+
+        fun visitRawClass(rawClass: Class<*>, actualTypeArguments: List<Type>): Type? {
+            if (rawClass == ndocClass.java) {
+                return actualTypeArguments.singleOrNull()
+            }
+
+            if (!visited.add(rawClass)) {
+                return null
+            }
+
+            fun typeParamIndex(typeVariable: TypeVariable<*>): Int =
+                rawClass.typeParameters.indexOf(typeVariable)
+
+            fun visitSuper(type: Type?): Type? {
+                return when (type) {
+                    is Class<*> -> visitRawClass(type, emptyList())
+                    is ParameterizedType -> {
+                        val actualSupertypeArgs = type.actualTypeArguments.map { arg ->
+                            if (arg is TypeVariable<*>) {
+                                val indexInOwner = typeParamIndex(arg)
+                                if (indexInOwner == -1) {
+                                    return@visitSuper null // can't find the type argument for the supertype
+                                }
+                                actualTypeArguments.getOrNull(indexInOwner) ?: return@visitSuper null
+                            } else arg
+                        }
+                        val rawSupertype = type.rawType as? Class<*> ?: return null
+                        visitRawClass(rawSupertype, actualSupertypeArgs)
+                    }
+                    else -> null
+                }
+            }
+
+            return visitSuper(rawClass.genericSuperclass) ?: rawClass.genericInterfaces.firstNotNullOfOrNull { visitSuper(it) }
+        }
+
+        val result = when (containerSubtype) {
+            is Class<*> -> visitRawClass(containerSubtype, emptyList())
+            is ParameterizedType -> visitRawClass(containerSubtype.rawType as? Class<*> ?: return null, containerSubtype.actualTypeArguments.asList())
+            else -> null
+        }
+
+        return when (result) {
+            is WildcardType, is TypeVariable<*> -> null
+            else -> result
+        }
+    }
+
     fun elementTypeFromNdocContainerType(containerType: KType): KType? =
         when (val containerClassifier = containerType.classifier) {
             ndocClass -> containerType.arguments.single().let { typeArgument ->
@@ -75,6 +149,9 @@ object DclContainerMemberExtractionUtils {
 
             else -> null // TODO: is a type-parameter `T : NDOC<Foo>` with a property like `val foo: T` a valid case?
         }
+
+    fun elementFactoryFunctionNameFromElementType(elementType: KClass<*>): String =
+        elementFactoryFunctionNameFromElementType(elementType.starProjectedType)
 
     fun elementFactoryFunctionNameFromElementType(elementType: KType): String =
         when (val annotation = (elementType.classifier as? KClass<*>)?.annotations.orEmpty().filterIsInstance<ElementFactoryName>().singleOrNull()) {
