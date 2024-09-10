@@ -26,128 +26,59 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KVariance
-import kotlin.reflect.full.allSupertypes
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.starProjectedType
 
 object DclContainerMemberExtractionUtils {
-    fun elementTypeFromNdocContainerType(containerType: Type): Type? =
-        when (containerType) {
-            is Class<*> -> {
-                // can't be NDOC<T>, as that would be a ParameterizedType, so go and find the supertype
-                if (ndocClass.java.isAssignableFrom(containerType)) {
-                    findNamedDomainObjectContainerTypeArgument(containerType)
-                } else null
-            }
-            is ParameterizedType -> run {
-                val rawClass = containerType.rawType as? Class<*> ?: return@run null
-                if (rawClass == ndocClass.java) {
-                    containerType.actualTypeArguments.singleOrNull()
-                } else if (ndocClass.java.isAssignableFrom(rawClass)) {
-                    findNamedDomainObjectContainerTypeArgument(containerType)
-                } else null
-            }
-            else -> null
-        }?.takeIfIsAConcreteJavaType()
+    fun elementTypeFromNdocContainerType(
+        type: Type
+    ) = JavaTypeUtils.asCandidateType(type)?.let { elementTypeFromNdocContainerType(it, JavaTypeUtils) }
+        .takeIf { it is Class<*> || it is ParameterizedType } // can't use type variables and wildcards as element types
 
-    private fun findNamedDomainObjectContainerTypeArgument(containerSubtype: Type): Type? {
-        val visited: HashSet<Class<*>> = hashSetOf()
+    fun elementTypeFromNdocContainerType(containerType: KType): KType? =
+        KotlinTypeUtils.asCandidateType(containerType)?.let { elementTypeFromNdocContainerType(it, KotlinTypeUtils) }
+            .takeIf { it?.classifier is KClass<*> }
 
-        fun visitRawClass(rawClass: Class<*>, actualTypeArguments: List<Type>): Type? {
-            if (rawClass == ndocClass.java) {
-                return actualTypeArguments.singleOrNull()
+    private fun <TRaw, TArg> elementTypeFromNdocContainerType(
+        containerType: CandidateContainerType<TRaw, TArg>,
+        typeUtils: TypeUtils<TRaw, TArg>
+    ): TArg? = when (containerType.typeArgs) {
+        emptyList<TArg>() -> {
+            // can't be NDOC<T>, as that would be a ParameterizedType, so go and find the supertype
+            if (typeUtils.isNdocSubclass(containerType.rawClass)) {
+                findNamedDomainObjectContainerTypeArgument(containerType, typeUtils)
+            } else null
+        }
+
+        else -> run {
+            if (typeUtils.isExactlyNdocType(containerType.rawClass)) {
+                containerType.typeArgs?.single()
+            } else if (typeUtils.isNdocSubclass(containerType.rawClass)) {
+                findNamedDomainObjectContainerTypeArgument(containerType, typeUtils)
+            } else null
+        }
+    }
+
+    private fun <TRaw, TArg> findNamedDomainObjectContainerTypeArgument(
+        containerSubtype: CandidateContainerType<TRaw, TArg>,
+        typeUtils: TypeUtils<TRaw, TArg>
+    ): TArg? {
+        val visited: HashSet<TRaw> = hashSetOf()
+
+        fun findIn(type: CandidateContainerType<TRaw, TArg>): TArg? {
+            if (typeUtils.isExactlyNdocType(type.rawClass)) {
+                return type.typeArgs?.single()
             }
 
-            if (!visited.add(rawClass)) {
+            if (!visited.add(type.rawClass)) {
                 return null
             }
 
-            fun typeParamIndex(typeVariable: TypeVariable<*>): Int =
-                rawClass.typeParameters.indexOf(typeVariable)
-
-            fun visitSuper(type: Type?): Type? {
-                return when (type) {
-                    is Class<*> -> visitRawClass(type, emptyList())
-                    is ParameterizedType -> {
-                        val actualSupertypeArgs = type.actualTypeArguments.map { arg ->
-                            if (arg is TypeVariable<*>) {
-                                val indexInOwner = typeParamIndex(arg)
-                                if (indexInOwner == -1) {
-                                    return@visitSuper null // can't find the type argument for the supertype
-                                }
-                                actualTypeArguments.getOrNull(indexInOwner) ?: return@visitSuper null
-                            } else arg
-                        }
-                        val rawSupertype = type.rawType as? Class<*> ?: return null
-                        visitRawClass(rawSupertype, actualSupertypeArgs)
-                    }
-                    else -> null
-                }
-            }
-
-            return visitSuper(rawClass.genericSuperclass) ?: rawClass.genericInterfaces.firstNotNullOfOrNull { visitSuper(it) }
+            return type.candidateSupertypes().firstNotNullOfOrNull(::findIn)
         }
 
-        return when (containerSubtype) {
-            is Class<*> -> visitRawClass(containerSubtype, emptyList())
-            is ParameterizedType -> visitRawClass(containerSubtype.rawType as? Class<*> ?: return null, containerSubtype.actualTypeArguments.asList())
-            else -> null
-        }
+        return findIn(containerSubtype)
     }
-
-    private fun Type.takeIfIsAConcreteJavaType(): Type? = when (this) {
-        is Class<*>, is ParameterizedType -> this
-        else -> null
-    }
-
-    fun elementTypeFromNdocContainerType(containerType: KType): KType? =
-        when (val containerClassifier = containerType.classifier) {
-            ndocClass -> containerType.arguments.single().let { typeArgument ->
-                if (typeArgument.variance == KVariance.INVARIANT)
-                    typeArgument.type
-                else null
-            }
-
-            is KClass<*> -> run {
-                // Is some subclass of NDOC<T>?
-                if (!containerClassifier.isSubclassOf(ndocClass))
-                    return@run null // non-NDOC type
-
-                fun findInvariantTypeArgumentFor(typeParameter: KTypeParameter): KType? =
-                    (containerClassifier.allSupertypes + containerType).firstNotNullOfOrNull { supertype ->
-                        val superClass = supertype.classifier as? KClass<*> ?: return@firstNotNullOfOrNull null
-                        val index = superClass.typeParameters.indexOf(typeParameter).takeIf { it != -1 } ?: return@firstNotNullOfOrNull null
-                        supertype.arguments[index].takeIf { it.variance == KVariance.INVARIANT }?.type
-                    }
-
-                fun resolveInvariantTypeArgumentFor(typeParameter: KTypeParameter): KType? {
-                    var currentParameter = typeParameter
-
-                    while (true) {
-                        val argument = findInvariantTypeArgumentFor(currentParameter)
-                        when (val classifier = argument?.classifier) {
-                            null, currentParameter -> return null
-                            is KClass<*> -> return argument
-                            is KTypeParameter -> currentParameter = classifier
-                        }
-                    }
-                }
-
-                // We need to find where the type argument for NDOC<T> comes from
-                val elementTypeArg = resolveInvariantTypeArgumentFor(NamedDomainObjectContainer::class.typeParameters.single())
-
-                when (elementTypeArg?.classifier) {
-                    is KClass<*> -> elementTypeArg.takeIf {
-                        // Is non-parameterized. We can't support types like NDOC<Foo<T>>; that would require us to provide the T type argument from the accessor
-                        it.arguments.none { elementArgArg -> elementArgArg.type is KTypeParameter }
-                    }
-
-                    else -> null // We can't support types like `NDOC<S>` where `S` is a type parameter itself. That would require an overload per `S` owner.
-                }
-            }
-
-            else -> null // TODO: is a type-parameter `T : NDOC<Foo>` with a property like `val foo: T` a valid case?
-        }
 
     fun elementFactoryFunctionNameFromElementType(elementType: KClass<*>): String =
         elementFactoryFunctionNameFromElementType(elementType.starProjectedType)
@@ -160,5 +91,118 @@ object DclContainerMemberExtractionUtils {
         ?: (elementType.classifier as? KTypeParameter)?.name?.replaceFirstChar { it.lowercase(Locale.ROOT) }
         ?: error("cannot determine element factory name for unexpected container element type $elementType")
 
-    private val ndocClass = NamedDomainObjectContainer::class
+}
+
+private interface CandidateContainerType<TRaw, TArg> {
+    /**
+     * The "erased", or "raw" type. It should not depend on any type arguments that a generic type instantiation may have.
+     */
+    val rawClass: TRaw
+
+    /**
+     * The real known type arguments for the type.
+     *
+     * Example: consider `class Foo<T>` and `class Bar<R> : Foo<R>`.
+     * If there is a declared type `Bar<String>`, the [typeArgs] for `Foo` must contain `String`.
+     */
+    val typeArgs: List<TArg>?
+    fun candidateSupertypes(): Sequence<CandidateContainerType<TRaw, TArg>>
+}
+
+private interface TypeUtils<TRaw, TArg> {
+    fun isNdocSubclass(type: TRaw): Boolean
+    fun isExactlyNdocType(type: TRaw): Boolean
+    fun asCandidateType(type: TArg): CandidateContainerType<TRaw, TArg>?
+}
+
+private class JavaCandidateContainerType(
+    override val rawClass: Class<*>,
+    override val typeArgs: List<Type>?
+) : CandidateContainerType<Class<*>, Type> {
+    override fun candidateSupertypes(): Sequence<JavaCandidateContainerType> =
+        (rawClass.genericInterfaces.asSequence() + rawClass.genericSuperclass).mapNotNull { type ->
+            when (type) {
+                is Class<*> ->
+                    JavaTypeUtils.asCandidateType(type)
+
+                is ParameterizedType -> {
+                    fun typeParamIndex(typeVariable: TypeVariable<*>): Int =
+                        rawClass.typeParameters.indexOf(typeVariable)
+
+                    val actualSupertypeArgs = type.actualTypeArguments.map { arg ->
+                        if (arg is TypeVariable<*>) {
+                            val indexInOwner = typeParamIndex(arg)
+                            if (indexInOwner == -1) {
+                                return@mapNotNull null // can't find the type argument for the supertype
+                            }
+                            typeArgs?.getOrNull(indexInOwner) ?: return@mapNotNull null
+                        } else arg
+                    }
+                    val rawSupertype = type.rawType as? Class<*> ?: return@mapNotNull null
+                    JavaCandidateContainerType(rawSupertype, actualSupertypeArgs)
+                }
+
+                else -> null
+            }
+        }
+}
+
+private object JavaTypeUtils : TypeUtils<Class<*>, Type> {
+
+    override fun isNdocSubclass(type: Class<*>): Boolean =
+        NamedDomainObjectContainer::class.java.isAssignableFrom(type)
+
+    override fun isExactlyNdocType(type: Class<*>): Boolean =
+        type == NamedDomainObjectContainer::class.java
+
+    override fun asCandidateType(type: Type): JavaCandidateContainerType? = when (type) {
+        is Class<*> -> JavaCandidateContainerType(type, emptyList())
+        is ParameterizedType -> type.run {
+            val rawClass = this.rawType as? Class<*>
+                ?: return@run null
+            JavaCandidateContainerType(rawClass, this.actualTypeArguments.asList())
+        }
+
+        else -> null
+    }
+}
+
+private class KotlinCandidateContainerType(
+    override val rawClass: KClass<*>,
+    override val typeArgs: List<KType?>?
+) : CandidateContainerType<KClass<*>, KType?> {
+    override fun candidateSupertypes(): Sequence<KotlinCandidateContainerType> =
+        rawClass.supertypes.asSequence().mapNotNull supertypeCandidate@{ supertype ->
+            val rawType = supertype.classifier as? KClass<*>
+                ?: return@supertypeCandidate null
+            val typeArgs = supertype.arguments.map { typeArg ->
+                val type = typeArg.type
+                    // projected types cannot be element types; keep them as nulls if they are unrelated
+                    // but discard them (automatically because they are nulls) if they end up as the resulting element type
+                    .takeIf { typeArg.variance == KVariance.INVARIANT }
+                val classifier = type?.classifier
+                if (classifier is KTypeParameter) {
+                    val index = rawClass.typeParameters.indexOf(classifier).takeIf { it != -1 }
+                        ?: return@supertypeCandidate null
+                    typeArgs?.getOrNull(index)
+                } else type
+            }
+            KotlinCandidateContainerType(rawType, typeArgs)
+        }
+}
+
+private object KotlinTypeUtils : TypeUtils<KClass<*>, KType?> {
+
+    override fun isNdocSubclass(type: KClass<*>): Boolean =
+        type.isSubclassOf(NamedDomainObjectContainer::class)
+
+    override fun isExactlyNdocType(type: KClass<*>): Boolean =
+        type == NamedDomainObjectContainer::class
+
+    override fun asCandidateType(type: KType?): CandidateContainerType<KClass<*>, KType?>? =
+        when (val classifier = type?.classifier) {
+            null -> null
+            is KClass<*> -> KotlinCandidateContainerType(classifier, type.arguments.map { if (it.variance == KVariance.INVARIANT) it.type else null })
+            else -> null
+        }
 }
