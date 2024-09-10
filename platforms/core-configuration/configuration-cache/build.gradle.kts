@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.execution)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.fileWatching)
     implementation(projects.files)
     implementation(projects.flowServices)

@@ -28,7 +28,6 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.buildOption)
-    implementation(projects.core)
     implementation(projects.coreApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.loggingApi)
