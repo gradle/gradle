@@ -36,6 +36,30 @@ jdks:
     vendor: "temurin"
     version: "jdk-23+30-ea-beta"
     sha256: a322985986f0d0118a308841b34fabd3db78b5b49e31439d4b23bffb69053023
+  - params: [ "linux.java8.openjdk.aarch64", "linux.java8.oracle.aarch64" ]
+    os: linux
+    arch: aarch64
+    vendor: "temurin"
+    version: "jdk8u422-b05"
+    sha256: af98a839ec238106078bd360af9e405dc6665c05ee837178ed13b92193681923
+  - params: [ "env.JAVA_HOME", "linux.java11.openjdk.aarch64" ]
+    os: linux
+    arch: aarch64
+    vendor: "temurin"
+    version: "jdk-11.0.24+8"
+    sha256: 04e21301fedc76841fb03929ac6cacfbbda30b5693acfd515a8f34d4a0cdeb28
+  - param: "linux.java17.openjdk.aarch64"
+    os: linux
+    arch: aarch64
+    vendor: "temurin"
+    version: "jdk-17.0.12+7"
+    sha256: 8257de06bf37f0c8f19f8d542e2ab5a4e17db3ca5f29d041bd0b02ab265db021
+  - param: "linux.java21.openjdk.aarch64"
+    os: linux
+    arch: aarch64
+    vendor: "temurin"
+    version: "jdk-21.0.4+7"
+    sha256: d768eecddd7a515711659e02caef8516b7b7177fa34880a56398fd9822593a79
   - params: [ "windows.java8.openjdk.64bit", "windows.java8.oracle.64bit" ]
     os: windows
     arch: amd64
