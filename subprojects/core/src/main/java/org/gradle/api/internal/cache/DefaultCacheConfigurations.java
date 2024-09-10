@@ -34,6 +34,7 @@ import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.cache.internal.WrapperDistributionCleanupAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -66,19 +67,19 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private boolean cleanupHasBeenConfigured;
 
     @Inject
-    public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
-        this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, RELEASED_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
-        this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
-        this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
-        this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
-        this.buildCacheConfiguration = createResourceConfiguration(objectFactory, BUILD_CACHE, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
+    public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement, Clock clock) {
+        this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, RELEASED_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
+        this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
+        this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
+        this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
+        this.buildCacheConfiguration = createResourceConfiguration(objectFactory, BUILD_CACHE, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
         this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(createCleanupConvention());
         this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
         this.legacyCacheCleanupEnablement = legacyCacheCleanupEnablement;
     }
 
-    private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
-        CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name);
+    private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, Clock clock, int defaultDays) {
+        CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name, clock);
         resourceConfiguration.getEntryRetentionMillis().convention(TimeUnit.DAYS.toMillis(defaultDays));
         return resourceConfiguration;
     }
@@ -213,11 +214,13 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
         private final String name;
+        private final Clock clock;
         private final Property<Long> entryRetentionMillis;
 
         @Inject
-        public DefaultCacheResourceConfiguration(PropertyHost propertyHost, String name) {
+        public DefaultCacheResourceConfiguration(PropertyHost propertyHost, String name, Clock clock) {
             this.name = name;
+            this.clock = clock;
             this.entryRetentionMillis = new ContextualErrorMessageProperty<>(propertyHost, Long.class, "entryRetentionMillis");
         }
 
@@ -232,8 +235,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
          */
         @Override
         public Supplier<Long> getEntryRetentionTimestampSupplier() {
-            // TODO: This timestamp should probably be relative to a fixed time, but it's not clear what (either the daemon start time or the most recent build start time, or ...)
-            return () -> System.currentTimeMillis() - entryRetentionMillis.get();
+            return () -> clock.getCurrentTime() - entryRetentionMillis.get();
         }
 
 

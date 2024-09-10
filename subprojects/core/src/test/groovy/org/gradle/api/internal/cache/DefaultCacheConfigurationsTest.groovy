@@ -16,17 +16,18 @@
 
 package org.gradle.api.internal.cache
 
-
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement
+import org.gradle.internal.time.Clock
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement))
+    def clock = new FixedClock()
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement), clock)
 
     def "cannot modify cache configurations via convenience method unless mutable"() {
         when:
@@ -167,18 +168,13 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.snapshotWrappers.entryRetentionMillis.set(twoDays)
         cacheConfigurations.buildCache.entryRetentionMillis.set(twoDays)
 
-        then: // The
-        def twoDaysAgo = System.currentTimeMillis() - twoDays
-        withinOneSecond(createdResources.get(), twoDaysAgo)
-        withinOneSecond(downloadedResources.get(), twoDaysAgo)
-        withinOneSecond(releasedWrappers.get(), twoDaysAgo)
-        withinOneSecond(snapshotWrappers.get(), twoDaysAgo)
-        withinOneSecond(buildCache.get(), twoDaysAgo)
-    }
-
-    private static withinOneSecond(long actual, long expected) {
-        assert actual - expected < 1000
-        true
+        then:
+        def twoDaysAgo = clock.currentTime - twoDays
+        createdResources.get() == twoDaysAgo
+        downloadedResources.get() == twoDaysAgo
+        releasedWrappers.get() == twoDaysAgo
+        snapshotWrappers.get() == twoDaysAgo
+        buildCache.get() == twoDaysAgo
     }
 
     def "cannot set values in days to less than one"() {
@@ -214,7 +210,7 @@ class DefaultCacheConfigurationsTest extends Specification {
     }
 
     def "synchronized configurations reflect changes in property values"() {
-        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations, Mock(LegacyCacheCleanupEnablement))
+        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations, Mock(LegacyCacheCleanupEnablement), clock)
 
         when:
         cacheConfigurations.synchronize(mutableCacheConfigurations)
@@ -256,5 +252,13 @@ class DefaultCacheConfigurationsTest extends Specification {
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {
         assert e.message.contains(String.format(DefaultCacheConfigurations.UNSAFE_MODIFICATION_ERROR, name))
+    }
+
+    class FixedClock implements Clock {
+        long time = System.currentTimeMillis()
+        @Override
+        long getCurrentTime() {
+            return time
+        }
     }
 }
