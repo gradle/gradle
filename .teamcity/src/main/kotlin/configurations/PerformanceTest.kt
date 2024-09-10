@@ -68,7 +68,7 @@ class PerformanceTest(
                 allowEmpty = true,
                 description = "The baselines you want to run performance tests against. Empty means default baseline."
             )
-            param("performance.channel", performanceTestBuildSpec.channel())
+            param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
@@ -94,7 +94,7 @@ class PerformanceTest(
                         workingDir = os.perfTestWorkingDir
                         gradleParams = (
                             performanceTestCommandLine(
-                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
+                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it ${type.extraParameters}" }}",
                                 "%performance.baselines%",
                                 extraParameters,
                                 os,
