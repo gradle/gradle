@@ -271,11 +271,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-    @Override
-    public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        return additionalDataBuilderFactory;
-    }
-
     @Nullable
     RuntimeException getException() {
         return exception;

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.AdditionalDataSpec;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
@@ -130,11 +129,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder severity(Severity severity) {
         return validateDelegate(delegate.severity(severity));
-    }
-
-    @Override
-    public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        return delegate.getAdditionalDataBuilderFactory();
     }
 
     private <T> T validateDelegate(T newDelegate) {

@@ -17,7 +17,6 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 
 import javax.annotation.Nullable;
@@ -29,6 +28,4 @@ public interface TypeAwareProblemBuilder extends InternalProblemSpec {
     TypeAwareProblemBuilder forProperty(String propertyName);
 
     TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty);
-
-    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
 }
