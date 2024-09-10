@@ -40,9 +40,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
-import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
@@ -80,7 +79,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
         CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name);
-        resourceConfiguration.getRemoveUnusedEntriesOlderThan().convention(providerFromSupplier(daysAgo(defaultDays)));
+        resourceConfiguration.getEntryRetentionMillis().convention(TimeUnit.DAYS.toMillis(defaultDays));
         return resourceConfiguration;
     }
 
@@ -157,11 +156,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public void synchronize(CacheConfigurationsInternal persistentCacheConfigurations) {
-        persistentCacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesOlderThan().value(getReleasedWrappers().getRemoveUnusedEntriesOlderThan());
-        persistentCacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesOlderThan().value(getSnapshotWrappers().getRemoveUnusedEntriesOlderThan());
-        persistentCacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThan().value(getDownloadedResources().getRemoveUnusedEntriesOlderThan());
-        persistentCacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThan().value(getCreatedResources().getRemoveUnusedEntriesOlderThan());
-        persistentCacheConfigurations.getBuildCache().getRemoveUnusedEntriesOlderThan().value(getBuildCache().getRemoveUnusedEntriesOlderThan());
+        persistentCacheConfigurations.getReleasedWrappers().getEntryRetentionMillis().value(getReleasedWrappers().getEntryRetentionMillis());
+        persistentCacheConfigurations.getSnapshotWrappers().getEntryRetentionMillis().value(getSnapshotWrappers().getEntryRetentionMillis());
+        persistentCacheConfigurations.getDownloadedResources().getEntryRetentionMillis().value(getDownloadedResources().getEntryRetentionMillis());
+        persistentCacheConfigurations.getCreatedResources().getEntryRetentionMillis().value(getCreatedResources().getEntryRetentionMillis());
+        persistentCacheConfigurations.getBuildCache().getEntryRetentionMillis().value(getBuildCache().getEntryRetentionMillis());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
         persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
@@ -174,11 +173,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @VisibleForTesting
     void finalizeConfigurationValues() {
-        releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
-        snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
-        downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
-        createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
-        buildCacheConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        releasedWrappersConfiguration.getEntryRetentionMillis().finalizeValue();
+        snapshotWrappersConfiguration.getEntryRetentionMillis().finalizeValue();
+        downloadedResourcesConfiguration.getEntryRetentionMillis().finalizeValue();
+        createdResourcesConfiguration.getEntryRetentionMillis().finalizeValue();
+        buildCacheConfiguration.getEntryRetentionMillis().finalizeValue();
         getCleanup().finalizeValue();
         getMarkingStrategy().finalizeValue();
     }
@@ -214,17 +213,17 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
         private final String name;
-        private final Property<Long> removeUnusedEntriesOlderThan;
+        private final Property<Long> entryRetentionMillis;
 
         @Inject
         public DefaultCacheResourceConfiguration(PropertyHost propertyHost, String name) {
             this.name = name;
-            this.removeUnusedEntriesOlderThan = new ContextualErrorMessageProperty<>(propertyHost, Long.class, "removeUnusedEntriesOlderThan");
+            this.entryRetentionMillis = new ContextualErrorMessageProperty<>(propertyHost, Long.class, "entryRetentionMillis");
         }
 
         @Override
-        public Property<Long> getRemoveUnusedEntriesOlderThan() {
-            return removeUnusedEntriesOlderThan;
+        public Property<Long> getEntryRetentionMillis() {
+            return entryRetentionMillis;
         }
 
         /**
@@ -232,17 +231,18 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
          * to subsequent changes to the property value as opposed to just calling get() on the property.
          */
         @Override
-        public Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier() {
-            return () -> getRemoveUnusedEntriesOlderThan().get();
+        public Supplier<Long> getEntryRetentionTimestampSupplier() {
+            // TODO: This timestamp should probably be relative to a fixed time, but it's not clear what (either the daemon start time or the most recent build start time, or ...)
+            return () -> System.currentTimeMillis() - entryRetentionMillis.get();
         }
 
 
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
             if (removeUnusedEntriesAfterDays < 1) {
-                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
+                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'entryRetentionMillis' property.");
             }
-            getRemoveUnusedEntriesOlderThan().set(providerFromSupplier(daysAgo(removeUnusedEntriesAfterDays)));
+            getEntryRetentionMillis().set(TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays));
         }
     }
 

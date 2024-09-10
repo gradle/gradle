@@ -50,7 +50,7 @@ class DefaultArtifactCacheLockingAccessCoordinatorTest extends Specification {
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getDownloadedResources() >> Stub(CacheResourceConfigurationInternal) {
             //noinspection UnnecessaryQualifiedReference
-            getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
+            getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
         }
     }
     def cacheCleanupStrategyFactory = new DefaultCacheCleanupStrategyFactory(new TestBuildOperationRunner())

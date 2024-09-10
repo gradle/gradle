@@ -22,12 +22,18 @@ import org.gradle.api.provider.Property;
 import java.util.function.Supplier;
 
 public interface CacheResourceConfigurationInternal extends CacheResourceConfiguration {
-    Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier();
-
     /**
-     * Configures the timestamp before which an unused entry will be removed from the cache.
+     * Configures the age (in milliseconds) when an unused entry can be removed from the cache.
+     * This is a relative-time value and is persisted in the build configuration.
      *
      * See {@link #setRemoveUnusedEntriesAfterDays(int)}.
      */
-    Property<Long> getRemoveUnusedEntriesOlderThan();
+    Property<Long> getEntryRetentionMillis();
+
+    /**
+     * Provides the timestamp (in millis since epoch) before which an unused entry can be removed from the cache.
+     * This is an absolute-time value and is recalculated from the configuration on each build execution.
+     */
+    Supplier<Long> getEntryRetentionTimestampSupplier();
+
 }
