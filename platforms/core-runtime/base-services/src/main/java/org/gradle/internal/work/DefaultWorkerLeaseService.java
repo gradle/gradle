@@ -408,7 +408,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     private class AcquireLocksWithoutWorkerLeaseWhileBlocked implements InternalTransformer<ResourceLockState.Disposition, ResourceLockState> {
         private final Collection<? extends ResourceLock> locks;
-        private LockActionState state = LockActionState.NotAttempted;
+        private LockResult lastResult;
         private Collection<? extends ResourceLock> workerLeases;
 
         public AcquireLocksWithoutWorkerLeaseWhileBlocked(Collection<? extends ResourceLock> locks) {
@@ -417,41 +417,48 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
         @Override
         public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-            if (state == LockActionState.NotAttempted) {
-                if (tryLock(locks)) {
+            if (lastResult == null) {
+                LockResult result = tryLock(locks);
+                if (result == LockResult.AllLocked) {
+//                    System.out.println(Thread.currentThread() + " -> worker acquired locks without waiting: " + locks);
                     // Acquired all locks, finished
                     return ResourceLockState.Disposition.FINISHED;
                 }
 
                 // Record that this worker is about to block
                 workerLeases = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
-                state = LockActionState.WaitingForLocks;
+                lastResult = result;
+                if (lastResult == LockResult.WaitingForWorkerLease) {
+                    System.out.println(Thread.currentThread() + " -> WORKER WAITING FOR LEASE");
+                    workersWaitingToResume++;
+                }
             } else {
-                boolean canDoWork = tryLock(workerLeases);
-                boolean canProceed = tryLock(locks);
-                if (canProceed && canDoWork) {
+                LockResult leasesResult = tryLock(workerLeases);
+                LockResult locksResult = tryLock(locks);
+                LockResult result = combine(leasesResult, locksResult);
+                if (result == LockResult.AllLocked) {
                     // Acquired all locks, finished
-                    if (state == LockActionState.WaitingForWorkerLease) {
-                        System.out.println(Thread.currentThread() + " -> WORKER UNBLOCKED");
+                    if (lastResult == LockResult.WaitingForWorkerLease) {
+                        System.out.println(Thread.currentThread() + " -> WORKER NOW HAS LEASE");
                         workersWaitingToResume--;
                     }
+//                    System.out.println(Thread.currentThread() + " -> worker acquired locks after waiting: " + locks);
                     return ResourceLockState.Disposition.FINISHED;
                 }
-                if (canProceed) {
+                if (locksResult == LockResult.WaitingForWorkerLease) {
                     // Can proceed but cannot do work
-                    if (state == LockActionState.WaitingForLocks) {
-                        System.out.println(Thread.currentThread() + " -> WORKER WAITING TO RESUME");
+                    if (lastResult == LockResult.WaitingForOtherLock) {
+                        System.out.println(Thread.currentThread() + " -> WORKER WAITING FOR LEASE");
                         workersWaitingToResume++;
                     }
-                    state = LockActionState.WaitingForWorkerLease;
                 } else {
                     // Cannot proceed, may or may not be able to do work
-                    if (state == LockActionState.WaitingForWorkerLease) {
-                        System.out.println(Thread.currentThread() + " -> WORKER UNBLOCKED");
+                    if (lastResult == LockResult.WaitingForWorkerLease) {
+                        System.out.println(Thread.currentThread() + " -> WORKER NOW HAS LEASE");
                         workersWaitingToResume--;
                     }
-                    state = LockActionState.WaitingForLocks;
                 }
+                lastResult = result;
             }
 
             // Could not acquire the locks, so release worker lease and try again
@@ -466,19 +473,37 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
             return ResourceLockState.Disposition.RETRY;
         }
 
-        private boolean tryLock(Collection<? extends ResourceLock> locks) {
+        private LockResult combine(LockResult a, LockResult b) {
+            if (a == LockResult.AllLocked && b == LockResult.AllLocked) {
+                return LockResult.AllLocked;
+            }
+            if (a == LockResult.WaitingForOtherLock || b == LockResult.WaitingForOtherLock) {
+                return LockResult.WaitingForOtherLock;
+            }
+            return LockResult.WaitingForWorkerLease;
+        }
+
+        private LockResult tryLock(Collection<? extends ResourceLock> locks) {
+            boolean failed = false;
             for (ResourceLock lock : locks) {
                 if (!lock.tryLock()) {
-                    return false;
+                    if (lock instanceof WorkerLease) {
+                        failed = true;
+                    } else {
+                        return LockResult.WaitingForOtherLock;
+                    }
                 }
             }
-            return true;
+            if (failed) {
+                return LockResult.WaitingForWorkerLease;
+            }
+            return LockResult.AllLocked;
         }
 
     }
 
-    private enum LockActionState {
-        NotAttempted, WaitingForLocks, WaitingForWorkerLease
+    private enum LockResult {
+        AllLocked, WaitingForOtherLock, WaitingForWorkerLease
     }
 
     private static abstract class Registries {

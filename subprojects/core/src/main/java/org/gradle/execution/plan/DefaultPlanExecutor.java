@@ -407,8 +407,9 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     }
 
                     if (workerLeaseService.isWorkersWaitingToRestartWork()) {
-                        System.out.println(Thread.currentThread() + " -> WORKERS WAITING TO RESTART WORK, WOULD GIVE UP LEASE");
-                        throw new RuntimeException("WOULD GIVE UP LEASE");
+                        System.out.println(Thread.currentThread() + " -> WORKERS WAITING TO RESTART WORK, GIVE UP LEASE");
+                        workerLease.unlock();
+                        return RETRY;
                     }
 
                     if (!workerLease.tryLock()) {
