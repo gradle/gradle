@@ -153,12 +153,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private FileCollectionInternal selectedArtifactsFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue(false), false); // TODO: how to get lenient info here?  Is it even necessary?
+        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue(false), false);
         return getDependencyResults(fromAttributes, dependencies);
     }
 
     private void computeDependenciesFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
-        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue(false), true); // TODO: how to get lenient info here?  Is it even necessary?
+        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue(false), true);
         FileCollectionInternal files = getDependencyResults(fromAttributes, buildDependencies);
         context.add(files);
     }

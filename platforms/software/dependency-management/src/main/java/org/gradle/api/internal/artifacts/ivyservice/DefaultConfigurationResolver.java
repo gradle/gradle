@@ -379,8 +379,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         boolean lenient
     ) {
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        resolutionStrategy.setReportFailuresAsProblems(!lenient);
-
         if (resolutionStrategy.isDependencyLockingEnabled()) {
             if (resolutionStrategy.isFailingOnDynamicVersions()) {
                 throw new InvalidUserCodeException(
@@ -411,7 +409,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolutionStrategy.getCapabilitiesResolutionRules(),
             resolutionStrategy.isFailingOnDynamicVersions(),
             resolutionStrategy.isFailingOnChangingVersions(),
-            resolutionStrategy.isReportFailuresAsProblems(),
+            !lenient,
             new CompositeDependencyGraphVisitor(visitors)
         );
     }

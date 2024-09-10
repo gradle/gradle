@@ -84,7 +84,6 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final InternalProblems problemsService;
-    private boolean reportFailuresAsProblem = true;
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
@@ -93,10 +92,6 @@ public class ResolutionFailureHandler {
         this.problemsService = problemsService;
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
-    }
-
-    public void setReportFailuresAsProblem(boolean reportFailuresAsProblem) {
-        this.reportFailuresAsProblem = reportFailuresAsProblem;
     }
 
     // region Component Selection failures
@@ -161,12 +156,12 @@ public class ResolutionFailureHandler {
         AttributeContainerInternal requestedAttributes,
         ImmutableCapabilities requestedCapabilities,
         GraphSelectionCandidates candidates,
-        boolean reportFailuresAsProblems
+        boolean reportAsProblem
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
         NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
-        return describeFailure(failure, reportFailuresAsProblems);
+        return describeFailure(failure, reportAsProblem);
     }
 
     public AbstractResolutionFailureException noVariantsWithMatchingCapabilitiesFailure(
