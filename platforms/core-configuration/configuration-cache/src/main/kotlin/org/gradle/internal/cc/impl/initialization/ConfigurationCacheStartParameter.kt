@@ -31,6 +31,7 @@ import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.IncubationLogger
 import java.io.File
 
 
@@ -75,11 +76,26 @@ class ConfigurationCacheStartParameter internal constructor(
     val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
 
     /**
+     * Whether configuration cache storing/loading should be done in parallel.
+     *
+     * Same as [StartParameterInternal.configurationCacheParallel].
+     *
+     * @see StartParameterInternal.configurationCacheParallel
+     */
+    val isParallelCache: Boolean by lazy {
+        startParameter.isConfigurationCacheParallel.also { enabled ->
+            if (enabled) {
+                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
+            }
+        }
+    }
+
+    /**
      * Whether configuration should be stored in parallel.
      *
-     * The default is `true`.
+     * The default is the value of [isParallelCache].
      */
-    val isParallelStore = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
+    val isParallelStore = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
 
     /**
      * Whether configuration should be loaded in parallel.

@@ -26,11 +26,12 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheBuilder;
+import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -151,6 +152,11 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
+    CacheCleanupStrategyFactory createCacheCleanupStrategyFactory(BuildOperationRunner buildOperationRunner) {
+        return new DefaultCacheCleanupStrategyFactory(buildOperationRunner);
+    }
+
+    @Provides
     ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
     }
@@ -192,8 +198,8 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
-    CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
+    CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
     private static class LocalBuildCacheModule extends PrivateModule {
@@ -234,11 +240,11 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
-    CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
+    CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, CacheCleanupStrategyFactory factory) {
         SingleDepthFilesFinder filesFinder = new SingleDepthFilesFinder(1);
         Supplier<Long> removeUnusedEntriesOlderThan = TimestampSuppliers.daysAgo(1);
         LeastRecentlyUsedCacheCleanup cleanupAction = new LeastRecentlyUsedCacheCleanup(filesFinder, fileAccessTimeJournal, removeUnusedEntriesOlderThan);
-        return DefaultCacheCleanupStrategy.from(cleanupAction);
+        return factory.daily(cleanupAction);
     }
 
     @Provides

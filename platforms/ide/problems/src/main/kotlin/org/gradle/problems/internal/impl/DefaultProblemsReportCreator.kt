@@ -97,9 +97,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                 val fileLocations = problem.locations.filterIsInstance<FileLocation>()
                 if (fileLocations.isNotEmpty()) {
                     property("fileLocations") {
-                        jsonObjectList(
-                            fileLocations
-                        ) { location ->
+                        jsonObjectList(fileLocations) { location ->
                             property("path", location.path)
                             if (location is LineInFileLocation) {
                                 if (location.line >= 0) {
@@ -127,9 +125,12 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                         )
                     }
                 }
+                problem.contextualLabel?.let {
+                    property("contextualLabel", it)
+                }
                 problem.definition.documentationLink?.let { property("documentationLink", it.url) }
                 problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
-                property("category") {
+                property("problemId") {
                     val list = listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName)) +
                         generateSequence(problem.definition.id.group) { it.parent }.toList().asReversed()
                     jsonObjectList(list) { group ->

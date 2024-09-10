@@ -53,6 +53,25 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+
+#### Parallel caching for faster loading times
+
+Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
+To enable the feature in `gradle.properties`:
+
+```text
+// gradle.properties
+org.gradle.configuration-cache.parallel=true
+```
+
+Note that this is an incubating feature and may expose concurrency issues in some builds. 
+
+See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
+
 <a name="native-plugin-improvements"></a>
 ### Core plugin improvements
 
@@ -72,6 +91,7 @@ The following Swift and C++ plugins are now [configuration cache](userguide/perf
 
 The [`xcode`](userguide/xcode_plugin.html) is not yet compatible.
 
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
@@ -84,9 +104,11 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Stable Build Features API
+
+The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
+It allows checking the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
+and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
 
 ## Fixed issues
 

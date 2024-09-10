@@ -39,6 +39,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheIgnoreInputsInTaskGraphSerialization = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
+    private boolean configurationCacheParallel;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
@@ -75,6 +76,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheDebug = configurationCacheDebug;
+        p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.searchUpwards = searchUpwards;
@@ -187,6 +189,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheIgnoreInputsInTaskGraphSerialization(boolean ignoreInputsInTaskGraphSerialization) {
         configurationCacheIgnoreInputsInTaskGraphSerialization = ignoreInputsInTaskGraphSerialization;
+    }
+
+    public boolean isConfigurationCacheParallel() {
+        return configurationCacheParallel;
+    }
+
+    public void setConfigurationCacheParallel(boolean parallel) {
+        this.configurationCacheParallel = parallel;
     }
 
     public int getConfigurationCacheMaxProblems() {
