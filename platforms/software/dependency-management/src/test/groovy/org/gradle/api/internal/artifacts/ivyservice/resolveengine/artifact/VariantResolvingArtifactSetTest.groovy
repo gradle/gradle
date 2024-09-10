@@ -133,7 +133,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         def selected = artifactSet.select(selector, spec)
 
         then:
-        1 * selector.select(_, _, _, _) >> artifacts
+        1 * selector.select(_, _, _, _, _) >> artifacts
         _ * variantResolver.resolveVariant(_, _) >> Mock(ResolvedVariant)
         selected == artifacts
 

@@ -317,7 +317,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def fileSet = [new File("somePath")] as Set
 
         given:
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def resolved = configuration.resolve()
@@ -332,7 +332,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def failure = new TypedResolveException("dependencies", configuration.getDisplayName(), [])
 
         given:
-        _ * resolver.resolveGraph(_) >> graphResolved(failure)
+        _ * resolver.resolveGraph(_, _) >> graphResolved(failure)
 
         when:
         ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
@@ -368,7 +368,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def failure = new TypedResolveException("dependencies", "configuration ':conf'", [new RuntimeException()])
 
         and:
-        _ * resolver.resolveGraph(_) >> graphResolved(failure)
+        _ * resolver.resolveGraph(_, _) >> graphResolved(failure)
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
@@ -384,7 +384,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def dependency1 = dependency("group1", "name", "version")
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(dependency1)
@@ -398,7 +398,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def configuration = conf()
         Spec<Dependency> spec = Mock(Spec)
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(spec)
@@ -412,7 +412,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def closure = { dep -> dep.group == 'group1' }
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(closure)
@@ -425,7 +425,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def filesWithDependencies() {
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def files = configuration.files(Mock(Dependency))
@@ -438,7 +438,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def filesWithSpec() {
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def files = configuration.files(Mock(Spec))
@@ -452,7 +452,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def configuration = conf()
         def closure = { dep -> dep.group == 'group1' }
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolver.resolveGraph(configuration, _) >> graphResolved(fileSet)
 
         when:
         def files = configuration.files(closure)
@@ -465,7 +465,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def "multiple resolves use cached result"() {
         given:
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
+        resolver.resolveGraph(configuration, _) >> graphResolved()
 
         when:
         def r = configuration.getResolvedConfiguration()
@@ -530,7 +530,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -830,7 +830,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.files
 
         then:
-        resolver.resolveGraph(copy) >> graphResolved()
+        resolver.resolveGraph(copy, _) >> graphResolved()
         1 * beforeResolveAction.execute(copy.incoming)
         1 * afterResolveAction.execute(copy.incoming)
         beforeResolveCalled
@@ -938,7 +938,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         files.files
 
         then:
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
         1 * resolver.getAllRepositories() >> []
         0 * resolver._
     }
@@ -954,13 +954,13 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.files
 
         then:
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
         1 * action.execute(config.incoming)
     }
 
     def "calls beforeResolve closure on incoming dependencies set when dependencies are resolved"() {
         def config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
         def called = false
 
         expect:
@@ -987,14 +987,14 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.files
 
         then:
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
         1 * action.execute(config.incoming)
 
     }
 
     def "calls afterResolve closure on incoming dependencies set when dependencies are resolved"() {
         def config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
         def called = false
 
         expect:
@@ -1049,7 +1049,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def result = new MinimalResolutionResult(rootSource, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
 
-        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
+        resolver.resolveGraph(config, _) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
         when:
         def out = config.incoming.resolutionResult
@@ -1062,7 +1062,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def parent = conf("parent", ":parent")
         def config = conf("conf")
         config.extendsFrom parent
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
 
         when:
         config.resolve()
@@ -1078,7 +1078,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         when:
         config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolver.resolveGraph(config, _) >> graphResolved()
         config.incoming.getResolutionResult().root
 
         then:
@@ -1102,7 +1102,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
+        1 * resolver.resolveGraph(config, _) >> graphResolved()
         1 * resolver.getAllRepositories() >> []
         0 * resolver._
     }
@@ -1134,7 +1134,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
+        1 * resolver.resolveGraph(config, _) >> graphResolved()
         1 * resolver.getAllRepositories() >> []
         0 * resolver._
 
@@ -1167,7 +1167,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
+        1 * resolver.resolveGraph(config, _) >> graphResolved()
         1 * resolver.getAllRepositories() >> []
         0 * resolver._
     }
@@ -1185,7 +1185,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
+        1 * resolver.resolveGraph(config, _) >> graphResolved()
         1 * resolver.getAllRepositories() >> []
         0 * resolver._
 
@@ -1203,7 +1203,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     def "resolving configuration twice returns the same result objects"() {
         def config = conf("conf")
         when:
-        resolver.resolveGraph(_) >> graphResolved([new File("result")] as Set)
+        resolver.resolveGraph(_, _) >> graphResolved([new File("result")] as Set)
 
         def previousFiles = config.files
         def previousResolutionResult = config.incoming.resolutionResult
@@ -1251,7 +1251,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.incoming.resolutionResult.root
 
         then:
-        1 * resolver.resolveGraph(copy) >> graphResolved()
+        1 * resolver.resolveGraph(copy, _) >> graphResolved()
     }
 
     def "provides task dependency from project dependency using 'dependents'"() {
@@ -1265,7 +1265,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "mutations are prohibited after resolution"() {
         def conf = conf("conf")
-        resolver.resolveGraph(conf) >> graphResolved()
+        resolver.resolveGraph(conf, _) >> graphResolved()
 
         given:
         conf.incoming.getResolutionResult().root
@@ -1358,7 +1358,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def propertyChangeWithNonUnresolvedStateShouldThrowEx() {
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
+        resolver.resolveGraph(configuration, _) >> graphResolved()
 
         given:
         configuration.resolve()
@@ -1581,7 +1581,7 @@ All Artifacts:
         def seenCopied = [] as Set<ResolvableDependencies>
         copied.incoming.beforeResolve { seenCopied.add(it) }
 
-        resolver.resolveGraph(_) >> graphResolved()
+        resolver.resolveGraph(_, _) >> graphResolved()
 
         when:
         original.getResolvedConfiguration()
@@ -1607,7 +1607,7 @@ All Artifacts:
         def seenCopied = [] as Set<DependencySet>
         copied.withDependencies { seenCopied.add(it) }
 
-        resolver.resolveGraph(_) >> graphResolved()
+        resolver.resolveGraph(_, _) >> graphResolved()
 
         when:
         original.getResolvedConfiguration()
@@ -1758,6 +1758,7 @@ All Artifacts:
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
+            select(_, _) >> selectedArtifacts(failure)
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -1784,7 +1785,7 @@ All Artifacts:
 
     private visitedArtifacts(Set<File> files = []) {
         Stub(VisitedArtifactSet) {
-            select(_) >> selectedArtifacts(files)
+            select(_, _) >> selectedArtifacts(files)
         }
     }
 

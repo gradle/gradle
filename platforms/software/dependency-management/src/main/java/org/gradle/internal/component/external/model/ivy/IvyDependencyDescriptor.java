@@ -112,6 +112,14 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return new IvyDependencyDescriptor(newRequested, dynamicConstraintVersion, changing, transitive, isOptional(), confs, getDependencyArtifacts(), excludes);
     }
 
+    public GraphVariantSelectionResult selectLegacyConfigurations(
+        ConfigurationMetadata fromConfiguration,
+        IvyComponentGraphResolveState ivyComponent,
+        ResolutionFailureHandler resolutionFailureHandler
+    ) {
+        return selectLegacyConfigurations(fromConfiguration, ivyComponent, resolutionFailureHandler, true);
+    }
+
     /**
      * Choose a set of configurations from the target component.
      * The set chosen is based on a) the name of the configuration that declared this dependency and b) the {@link #confs} mapping for this dependency.

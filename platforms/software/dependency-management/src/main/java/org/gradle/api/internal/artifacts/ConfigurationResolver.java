@@ -30,6 +30,13 @@ public interface ConfigurationResolver {
     /**
      * Traverses the full dependency graph of the given resolve context. All failures are packaged in the result.
      */
+    default ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
+        return resolveGraph(resolveContext, false);
+    }
+
+    /**
+     * Traverses the full dependency graph of the given resolve context. All failures are packaged in the result.
+     */
     ResolverResults resolveGraph(ResolveContext resolveContext, boolean lenient) throws ResolveException;
 
     /**

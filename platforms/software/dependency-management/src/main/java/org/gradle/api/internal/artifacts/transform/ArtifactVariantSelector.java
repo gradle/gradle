@@ -39,6 +39,20 @@ public interface ArtifactVariantSelector {
      *
      * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
      */
+    default ResolvedArtifactSet select(
+        ResolvedVariantSet candidates,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants,
+        ResolvedArtifactTransformer resolvedArtifactTransformer
+    ) {
+        return select(candidates, requestAttributes, allowNoMatchingVariants, resolvedArtifactTransformer, true);
+    }
+
+    /**
+     * Selects matching artifacts from a given set of candidates.
+     *
+     * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
+     */
     ResolvedArtifactSet select(
         ResolvedVariantSet candidates,
         ImmutableAttributes requestAttributes,

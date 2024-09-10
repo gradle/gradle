@@ -37,8 +37,7 @@ public interface VariantSelectorFactory {
         @Nullable ConfigurationIdentity configurationId,
         ResolutionStrategy.SortOrder artifactDependencySortOrder,
         ResolutionResultProvider<ResolverResults> resolverResults,
-        ResolutionResultProvider<ResolverResults> strictResolverResults,
-        boolean reportFailuresAsProblems
+        ResolutionResultProvider<ResolverResults> strictResolverResults
     );
 
 }

@@ -71,8 +71,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         @Nullable ConfigurationIdentity configurationId,
         ResolutionStrategy.SortOrder artifactDependencySortOrder,
         ResolutionResultProvider<ResolverResults> resolverResults,
-        ResolutionResultProvider<ResolverResults> strictResolverResults,
-        boolean reportFailuresAsProblems
+        ResolutionResultProvider<ResolverResults> strictResolverResults
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = new DefaultTransformUpstreamDependenciesResolver(
             resolutionHost,
@@ -93,8 +92,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
             consumerProvidedVariantFinder,
             attributesFactory,
             transformedVariantFactory,
-            failureProcessor,
-            reportFailuresAsProblems
+            failureProcessor
         );
     }
 }

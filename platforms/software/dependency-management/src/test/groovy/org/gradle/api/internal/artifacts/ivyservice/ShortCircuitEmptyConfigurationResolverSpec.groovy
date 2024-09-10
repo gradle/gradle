@@ -161,7 +161,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         1 * lockingProvider.loadLockState('lockedConf', _) >> lockingState
         1 * lockingState.mustValidateLockState() >> true
         1 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')]
-        1 * delegate.resolveGraph(resolveContext) >> delegateResults
+        1 * delegate.resolveGraph(resolveContext, _) >> delegateResults
         results == delegateResults
     }
 
@@ -187,7 +187,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
-        1 * delegate.resolveGraph(resolveContext) >> delegateResults
+        1 * delegate.resolveGraph(resolveContext, _) >> delegateResults
         results == delegateResults
     }
 }

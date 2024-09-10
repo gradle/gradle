@@ -47,6 +47,18 @@ public interface DependencyMetadata {
      * any failures during selection should be routed through that handler. This is done to keep all failure handling done
      * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
      */
+    default GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+        return selectVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities, true);
+    }
+
+
+    /**
+     * Select the matching variants for this dependency from the given target component.
+     *
+     * @implSpec An instance of {@link ResolutionFailureHandler} is supplied to this method, and
+     * any failures during selection should be routed through that handler. This is done to keep all failure handling done
+     * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
+     */
     GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities, boolean reportFailuresAsProblems);
 
     /**

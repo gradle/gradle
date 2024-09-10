@@ -84,14 +84,19 @@ public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final InternalProblems problemsService;
-    private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
+    private boolean reportFailuresAsProblem = true;
 
+    private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
 
     public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problemsService) {
         this.problemsService = problemsService;
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
+    }
+
+    public void setReportFailuresAsProblem(boolean reportFailuresAsProblem) {
+        this.reportFailuresAsProblem = reportFailuresAsProblem;
     }
 
     // region Component Selection failures

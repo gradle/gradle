@@ -358,8 +358,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolveContext.getConfigurationIdentity(),
             resolveContext.getResolutionStrategy().getSortOrder(),
             resolveContext.getResolverResults(),
-            resolveContext.getStrictResolverResults(),
-            resolveContext.getResolutionStrategy().isReportFailuresAsProblems()
+            resolveContext.getStrictResolverResults()
         );
     }
 

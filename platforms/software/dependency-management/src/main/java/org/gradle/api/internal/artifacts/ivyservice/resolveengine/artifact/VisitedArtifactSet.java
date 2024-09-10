@@ -26,5 +26,15 @@ public interface VisitedArtifactSet {
      *
      * @param spec Parameters controlling the artifact selection process
      */
+    default SelectedArtifactSet select(ArtifactSelectionSpec spec) {
+        return select(spec, false);
+    }
+
+    /**
+     * Creates a set that selects the artifacts from this set that match the given criteria.
+     * Implementations are lazy, so that the selection happens only when the contents are queried.
+     *
+     * @param spec Parameters controlling the artifact selection process
+     */
     SelectedArtifactSet select(ArtifactSelectionSpec spec, boolean lenient);
 }

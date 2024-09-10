@@ -128,6 +128,43 @@ public class DependencyGraphBuilder {
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        DependencyGraphVisitor modelVisitor
+    ) {
+        resolve(
+            rootComponent,
+            syntheticDependencies,
+            edgeFilter,
+            consumerSchema,
+            componentSelectorConverter,
+            componentIdResolver,
+            componentMetaDataResolver,
+            moduleReplacements,
+            dependencySubstitutionApplicator,
+            moduleConflictResolver,
+            capabilityConflictResolvers,
+            conflictResolution,
+            failingOnDynamicVersions,
+            failingOnChangingVersions,
+            true,
+            modelVisitor
+        );
+    }
+
+    public void resolve(
+        RootComponentMetadataBuilder.RootComponentState rootComponent,
+        List<? extends DependencyMetadata> syntheticDependencies,
+        Spec<? super DependencyMetadata> edgeFilter,
+        AttributesSchemaInternal consumerSchema,
+        ComponentSelectorConverter componentSelectorConverter,
+        DependencyToComponentIdResolver componentIdResolver,
+        ComponentMetaDataResolver componentMetaDataResolver,
+        ModuleReplacementsData moduleReplacements,
+        DependencySubstitutionApplicator dependencySubstitutionApplicator,
+        ModuleConflictResolver<ComponentState> moduleConflictResolver,
+        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
+        ConflictResolution conflictResolution,
+        boolean failingOnDynamicVersions,
+        boolean failingOnChangingVersions,
         boolean reportFailuresAsProblems,
         DependencyGraphVisitor modelVisitor
     ) {

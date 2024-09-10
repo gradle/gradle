@@ -27,5 +27,12 @@ public interface ArtifactSet {
     /**
      * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.
      */
+    default ResolvedArtifactSet select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec) {
+        return select(variantSelector, spec, true);
+    }
+
+    /**
+     * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.
+     */
     ResolvedArtifactSet select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, boolean reportFailuresAsProblems);
 }

@@ -46,7 +46,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
-    private final boolean reportFailuresAsProblems;
 
     AttributeMatchingArtifactVariantSelector(
         AttributesSchemaInternal schema,
@@ -54,8 +53,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
-        ResolutionFailureHandler failureProcessor,
-        boolean reportFailuresAsProblems
+        ResolutionFailureHandler failureProcessor
     ) {
         this.schema = schema;
         this.dependenciesResolver = dependenciesResolver;
@@ -63,7 +61,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
         this.failureProcessor = failureProcessor;
-        this.reportFailuresAsProblems = reportFailuresAsProblems;
     }
 
     @Override
