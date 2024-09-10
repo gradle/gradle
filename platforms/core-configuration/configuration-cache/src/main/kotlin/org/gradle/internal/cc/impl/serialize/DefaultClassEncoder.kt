@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
@@ -69,8 +70,10 @@ class DefaultClassEncoder(
         } else {
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
-            writeString(type.name)
-            encodeClassLoader(type.classLoader)
+            val originalType = GeneratedSubclasses.unpack(type)
+            writeBoolean(originalType !== type)
+            writeString(originalType.name)
+            encodeClassLoader(originalType.classLoader)
         }
     }
 

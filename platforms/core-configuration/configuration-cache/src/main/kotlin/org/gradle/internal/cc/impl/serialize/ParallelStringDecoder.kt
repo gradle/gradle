@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.serialize
 
-import org.gradle.internal.Try
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
@@ -46,14 +45,14 @@ class ParallelStringDecoder(
         val latch = CountDownLatch(1)
 
         private
-        var value: Try<Any>? = null
+        var value: Any? = null
 
-        fun complete(v: Try<Any>) {
+        fun complete(v: Any?) {
             value = v
             latch.countDown()
         }
 
-        fun get(): Try<Any> {
+        fun get(): Any {
             if (!latch.await(1, TimeUnit.MINUTES)) {
                 throw TimeoutException("Timeout while waiting for value")
             }
@@ -62,21 +61,33 @@ class ParallelStringDecoder(
     }
 
     private
-    val values = ConcurrentHashMap<Int, Any>()
+    object Null
 
     private
-    val reader = thread(isDaemon = true, contextClassLoader = Thread.currentThread().contextClassLoader) {
+    data class Failure(val exception: Exception)
+
+    private
+    val values = ConcurrentHashMap<Int, Any?>()
+
+    private
+    val reader = thread(isDaemon = true) {
         try {
             KryoBackedDecoder(stream).use { input ->
                 while (true) {
                     val id = input.readSmallInt()
                     if (id == 0) break
 
-                    val value = Try.ofFailable { readValue(input) }
+                    val value = try {
+                        readValue(input) ?: Null
+                    } catch (e: Exception) {
+                        Failure(e)
+                    }
                     values.compute(id) { _, current ->
                         when (current) {
                             is FutureValue -> current.complete(value)
-                            else -> require(current == null)
+                            else -> require(current == null) {
+                                "Unexpected value '$current'"
+                            }
                         }
                         value
                     }
@@ -89,11 +100,11 @@ class ParallelStringDecoder(
     }
 
     private
-    fun readValue(input: Decoder): Any =
+    fun readValue(input: Decoder): Any? =
         when (val tag = input.readByte().toInt()) {
             1 -> input.readString()
             2 -> classDecoder.run { input.decodeClass() }
-            3 -> classDecoder.run { input.decodeClassLoader()!! }
+            3 -> classDecoder.run { input.decodeClassLoader() }
             else -> error("unexpected value tag: $tag")
         }
 
@@ -101,10 +112,10 @@ class ParallelStringDecoder(
         doReadNullable(decoder)
 
     override fun readString(decoder: Decoder): String =
-        doReadValue(decoder.readSmallInt())
+        doReadValue(decoder.readSmallInt())!!
 
     override fun Decoder.decodeClass(): Class<*> =
-        doReadValue(readSmallInt())
+        doReadValue(readSmallInt())!!
 
     override fun Decoder.decodeClassLoader(): ClassLoader? =
         doReadNullable(this)
@@ -121,10 +132,15 @@ class ParallelStringDecoder(
         }
 
     private
-    inline fun <reified T : Any> doReadValue(id: Int): T =
-        when (val it = values.computeIfAbsent(id) { FutureValue() }) {
-            is Try<*> -> it.get().uncheckedCast()
-            is FutureValue -> it.get().get().uncheckedCast()
-            else -> error("$it is unexpected")
-        }
+    inline fun <reified T : Any> doReadValue(id: Int): T? =
+        when (val value = values.computeIfAbsent(id) { FutureValue() }) {
+            is T -> value
+            is Null -> null
+            is Failure -> throw value.exception
+            is FutureValue -> value.get()
+                .takeUnless { it === Null }
+                ?.also { if (it is Failure) throw it.exception }
+
+            else -> error("$value is unexpected")
+        }?.uncheckedCast()
 }
