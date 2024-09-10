@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -327,8 +326,5 @@ The following types/formats are supported:
 
     static emptySet() {
         return [] as Set
-    }
-
-    interface TestTaskProvider extends ProviderInternal, TaskProvider {
     }
 }
