@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 @SuppressWarnings('IntegrationTestFixtures')
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
@@ -175,7 +176,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4442")
+    @Category(Flaky.class) // https://github.com/gradle/gradle-private/issues/4442
     void "can recursively build dependent and dependee projects"() {
         createDirs("a", "b", "c")
         testFile("settings.gradle") << "include 'a', 'b', 'c'"
@@ -250,7 +251,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4442")
+    @Category(Flaky.class) // https://github.com/gradle/gradle-private/issues/4442
     void "project dependency does not drag in source jar from target project"() {
         createDirs("a", "b")
         testFile("settings.gradle") << "include 'a', 'b'"
