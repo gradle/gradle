@@ -16,6 +16,7 @@
 
 package org.gradle.util.internal
 
+import spock.lang.Issue
 import spock.lang.Specification
 
 class NameMatcherTest extends Specification {
@@ -94,6 +95,19 @@ class NameMatcherTest extends Specification {
     def "prefers exact match over partial match"() {
         expect:
         matches("name", "name", "nam", "n", "NAM")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1185")
+    def "handles numbers as separators for camelCase"() {
+        expect:
+        ambiguous("unique", ["unique1", "uniqueA"])
+        ambiguous("unique", ["unique1", "uniquea"])
+        matches("unique", "unique", "uniqueA")
+        matches("unique", "unique", "unique2")
+        matches("unique", "unique", "uniquea")
+        matches("uni", "unique", "uniqueA")
+        ambiguous("uni", ["unique", "unique2"])
+        ambiguous("uni", ["unique", "uniquea"])
     }
 
     def "prefers exact match over prefix match"() {
@@ -176,27 +190,23 @@ class NameMatcherTest extends Specification {
 
     def "does not select items when multiple camel case matches"() {
         expect:
-        matcher.find("sN", ["someName", "soNa", "other"]) == null
-        matcher.find("sNE", ["someNameWithExtraStuff", "someNameWithOtherExtraStuff"]) == null
-        matcher.matches == ["someNameWithExtraStuff", "someNameWithOtherExtraStuff"] as Set
+        ambiguous("sN", ["someName", "soNa", "other"], ["someName", "soNa"])
+        ambiguous("sNE", ["someNameWithExtraStuff", "someNameWithOtherExtraStuff"])
     }
 
     def "does not select items when multiple kebab case matches"() {
         expect:
-        matcher.find("sN", ["some-name", "some-number", "other"]) == null
-        matcher.matches == ["some-name", "some-number"] as Set
+        ambiguous("sN", ["some-name", "some-number", "other"], ["some-name", "some-number"])
     }
 
     def "does not select items when multiple mixed camel and kebab case matches"() {
         expect:
-        matcher.find("sN", ["some-name", "someName", "other"]) == null
-        matcher.matches == ["some-name", "someName"] as Set
+        ambiguous("sN", ["some-name", "someName", "other"], ["some-name", "someName"])
     }
 
     def "does not select items when multiple case insensitive matches"() {
         expect:
-        matcher.find("someName", ["somename", "SomeName", "other"]) == null
-        matcher.matches == ["somename", "SomeName"] as Set
+        ambiguous("someName", ["somename", "SomeName", "other"], ["somename", "SomeName"])
     }
 
     def "empty pattern does not select anything"() {
@@ -211,8 +221,7 @@ class NameMatcherTest extends Specification {
 
     def "reports potential matches"() {
         expect:
-        matcher.find("name", ["tame", "lame", "other"]) == null
-        matcher.matches.empty
+        doesNotMatch("name", "other", "lame", "tame")
         matcher.candidates == ["tame", "lame"] as Set
     }
 
@@ -241,7 +250,7 @@ class NameMatcherTest extends Specification {
 
     def "builds error message for no matches"() {
         setup:
-        matcher.find("name", ["other"])
+        doesNotMatch("name", "other")
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "thing 'name' not found in container."
@@ -249,7 +258,7 @@ class NameMatcherTest extends Specification {
 
     def "builds error message for multiple matches"() {
         setup:
-        matcher.find("n", ["number", "name", "other"])
+        ambiguous("n", ["number", "name", "other"], ["name", "number"])
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
@@ -257,7 +266,7 @@ class NameMatcherTest extends Specification {
 
     def "builds error message for potential matches"() {
         setup:
-        matcher.find("name", ["other", "lame", "tame"])
+        doesNotMatch("name", "other", "lame", "tame")
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
@@ -269,5 +278,9 @@ class NameMatcherTest extends Specification {
 
     def doesNotMatch(String name, String... items) {
         matcher.find(name, items as List) == null && matcher.matches.empty
+    }
+
+    def ambiguous(String name, List<String> items, Collection<String> matches = items) {
+        matcher.find(name, items) == null && matcher.matches == matches as Set
     }
 }

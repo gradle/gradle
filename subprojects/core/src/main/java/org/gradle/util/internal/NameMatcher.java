@@ -146,19 +146,19 @@ public class NameMatcher {
     }
 
     private static Pattern getPatternForName(String name) {
-        Pattern boundaryPattern = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|(\\p{javaUpperCase}\\p{javaLowerCase}*)");
+        Pattern boundaryPattern = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|((\\p{javaUpperCase}|\\p{Digit})\\p{javaLowerCase}*)");
         Matcher matcher = boundaryPattern.matcher(name);
         int pos = 0;
         StringBuilder builder = new StringBuilder();
         while (matcher.find()) {
             String prefix = name.substring(pos, matcher.start());
-            if (prefix.length() > 0) {
+            if (!prefix.isEmpty()) {
                 builder.append(Pattern.quote(prefix));
             }
             builder.append(Pattern.quote(matcher.group()));
             Integer currentJavaVersionMajor = Jvm.current().getJavaVersionMajor();
             if (currentJavaVersionMajor != null && currentJavaVersionMajor >= 15) {
-                builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
+                builder.append("[\\p{javaLowerCase}]*");
             } else {
                 // Manually extend character class instead of properties
                 // due to a known issue in regex below Java 15
@@ -168,7 +168,7 @@ public class NameMatcher {
                 // \u00F8-\u00FF(ø-ÿ) - Covers extended Latin lowercase letters including ø,
                 //  accented vowels, and the thorn.
                 // Note: this approach is not as comprehensive as properties.
-                builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
+                builder.append("[\\p{javaLowerCase}\\u00DF-\\u00F6\\u00F8-\\u00FF]*");
             }
             pos = matcher.end();
         }
