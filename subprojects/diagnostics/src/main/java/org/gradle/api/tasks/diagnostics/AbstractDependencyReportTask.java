@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
@@ -119,8 +120,13 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     @Input
     @Optional
     @Option(option = "configuration", description = "The configuration to generate the report for.")
-    @ReplacesEagerProperty(replacedAccessors = {@ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setConfiguration")})
     public abstract Property<String> getSelectedConfiguration();
+
+    @Deprecated
+    public void setConfiguration(String configuration) {
+        ProviderApiDeprecationLogger.logDeprecation(AbstractDependencyReportTask.class, "setConfiguration(String)", "getSelectedConfiguration()");
+        getSelectedConfiguration().set(configuration);
+    }
 
     private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();

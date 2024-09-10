@@ -67,7 +67,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -234,10 +234,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Input
     @Optional
     @Option(option = "dependency", description = "Shows the details of given dependency.")
-    @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setDependencySpec", originalType = Object.class)
-    })
-    public abstract Property<Object> getDependencyNotation();
+    @ReplacesEagerProperty(adapter = DependencyInsightReportTaskAdapter.class)
+    public abstract Property<String> getDependencyNotation();
 
     /**
      * Configuration to look the dependency in
@@ -261,6 +259,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 ? null
                 : ConfigurationFinder.find(getProject().getConfigurations(), configurationName)
         );
+    }
+
+    @Deprecated
+    public void setConfiguration(@Nullable String configuration) {
+        ProviderApiDeprecationLogger.logDeprecation(AbstractDependencyReportTask.class, "setConfiguration(String)", "getConfiguration()");
+        setConfigurationName(configuration);
     }
 
     /**
@@ -720,6 +724,19 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             this.name = configuration.getName();
             this.stringRepresentation = configuration.toString();
             this.attributes = configuration.getAttributes();
+        }
+    }
+
+    static class DependencyInsightReportTaskAdapter {
+        @BytecodeUpgrade
+        static void setDependencySpec(DependencyInsightReportTask task, @Nullable Object notation) {
+            if (notation == null) {
+                task.getDependencyNotation().unset();
+            } else if (notation instanceof CharSequence) {
+                task.getDependencyNotation().set(notation.toString());
+            } else {
+                throw new IllegalArgumentException("Unsupported notation type: " + notation.getClass() + ". Only String and CharSequence notation are supported.");
+            }
         }
     }
 }
