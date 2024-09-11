@@ -17,7 +17,6 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.test.precondition.Requires
 
@@ -37,7 +36,6 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
     protected abstract CppSourceElement getComponentUnderTest()
 
     @Requires(value = [HasXCode, NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
-    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when component product is unbuildable due to architecture"() {
         useXcodebuildTool()
 
