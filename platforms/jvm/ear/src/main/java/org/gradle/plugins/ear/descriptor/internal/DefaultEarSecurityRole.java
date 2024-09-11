@@ -16,50 +16,21 @@
 package org.gradle.plugins.ear.descriptor.internal;
 
 import com.google.common.base.Objects;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.EarSecurityRole;
 
-import javax.inject.Inject;
-
-public class DefaultEarSecurityRole implements EarSecurityRole {
-
-    private String description;
-    private String roleName;
-
-    @Inject
-    public DefaultEarSecurityRole() {
-    }
-
-    public DefaultEarSecurityRole(String roleName) {
-        this.roleName = roleName;
-    }
-
-    public DefaultEarSecurityRole(String roleName, String description) {
-        this.roleName = roleName;
-        this.description = description;
-    }
+public abstract class DefaultEarSecurityRole implements EarSecurityRole {
 
     @Override
-    public String getDescription() {
-        return description;
-    }
+    public abstract Property<String> getDescription();
 
     @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public String getRoleName() {
-        return roleName;
-    }
-
-    @Override
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
+    public abstract Property<String> getRoleName();
 
     @Override
     public int hashCode() {
+        String roleName = getRoleName().getOrNull();
+        String description = getDescription().getOrNull();
         int result;
         result = description != null ? description.hashCode() : 0;
         result = 31 * result + (roleName != null ? roleName.hashCode() : 0);
@@ -75,6 +46,10 @@ public class DefaultEarSecurityRole implements EarSecurityRole {
             return false;
         }
         DefaultEarSecurityRole that = (DefaultEarSecurityRole) o;
-        return Objects.equal(description, that.description) && Objects.equal(roleName, that.roleName);
+        String roleName = getRoleName().getOrNull();
+        String description = getDescription().getOrNull();
+        String thatRoleName = that.getRoleName().getOrNull();
+        String thatDescription = that.getDescription().getOrNull();
+        return Objects.equal(description, thatDescription) && Objects.equal(roleName, thatRoleName);
     }
 }
