@@ -61,6 +61,47 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
+    def "cache retention timestamp is recalculated for each build execution"() {
+        def initDir = new File(executer.gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+        new File(initDir, "cache-settings.gradle") << """
+            beforeSettings { settings ->
+                settings.caches {
+                    markingStrategy = MarkingStrategy.NONE
+                    cleanup = Cleanup.DISABLED
+                    releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
+                    snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
+                    downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
+                    createdResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
+                    buildCache.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}
+                }
+            }
+        """
+        buildFile << """
+            task printCacheTimestamps {
+                doLast {
+                    def caches = services.get(CacheConfigurations)
+                    caches.with {
+                        println "cacheTimestamps : {" + releasedWrappers.removeUnusedEntriesOlderThanAsSupplier.get() +
+                                                  "," + snapshotWrappers.removeUnusedEntriesOlderThanAsSupplier.get() +
+                                                  "," + downloadedResources.removeUnusedEntriesOlderThanAsSupplier.get() +
+                                                  "," + createdResources.removeUnusedEntriesOlderThanAsSupplier.get() +
+                                                  "," + buildCache.removeUnusedEntriesOlderThanAsSupplier.get() + "}"
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("printCacheTimestamps")
+        def firstRunTimestamps = result.getOutputLineThatContains("cacheTimestamps : ")
+
+        then:
+        succeeds("printCacheTimestamps")
+        def secondRunTimestamps = result.getOutputLineThatContains("cacheTimestamps : ")
+        secondRunTimestamps != firstRunTimestamps
+    }
+
     def "can configure caches to a custom timestamp"() {
         def initDir = new File(executer.gradleUserHomeDir, "init.d")
         initDir.mkdirs()
