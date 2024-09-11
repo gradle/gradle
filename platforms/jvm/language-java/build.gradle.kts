@@ -28,6 +28,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
     api(projects.languageJvm)

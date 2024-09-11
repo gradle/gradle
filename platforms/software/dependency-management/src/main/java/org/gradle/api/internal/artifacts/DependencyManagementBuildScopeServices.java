@@ -67,7 +67,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.DefaultDependenciesAccessors;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
@@ -148,16 +147,12 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         Instantiator instantiator,
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
         ObjectFactory objects,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
-            fileResolver,
-            fileCollectionFactory,
             objects,
             collectionCallbackActionDecorator
         );

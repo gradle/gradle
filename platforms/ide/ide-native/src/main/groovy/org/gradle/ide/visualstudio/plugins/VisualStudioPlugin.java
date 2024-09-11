@@ -67,7 +67,7 @@ public abstract class VisualStudioPlugin extends IdePlugin {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry artifactRegistry;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
     public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {

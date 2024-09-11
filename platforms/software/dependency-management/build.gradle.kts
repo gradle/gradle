@@ -85,6 +85,7 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation(projects.fileOperations)
     implementation(projects.time)
     implementation(projects.baseAsm)
     implementation(projects.baseServicesGroovy)

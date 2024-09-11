@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
+import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
@@ -87,10 +88,11 @@ class DefaultConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val host: ConfigurationCacheHost,
     private val problems: ConfigurationCacheProblems,
-    private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
-    private val eventEmitter: BuildOperationProgressEventEmitter
+    private val eventEmitter: BuildOperationProgressEventEmitter,
+    private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
+    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
@@ -460,7 +462,7 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         tracer,
         problems,
-        DefaultClassEncoder(scopeRegistryListener),
+        classEncoder(),
         stringEncoder = stringEncoder
     )
 
@@ -475,9 +477,17 @@ class DefaultConfigurationCacheIO internal constructor(
         beanStateReaderLookup,
         logger,
         problems,
-        DefaultClassDecoder(),
+        classDecoder(),
         stringDecoder,
     )
+
+    private
+    fun classEncoder() =
+        DefaultClassEncoder(classLoaderScopeRegistryListener)
+
+    private
+    fun classDecoder() =
+        DefaultClassDecoder(classLoaderScopeRegistry.coreAndPluginsScope)
 
     /**
      * Provides R/W isolate contexts based on some other context.

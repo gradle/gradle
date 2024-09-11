@@ -553,6 +553,11 @@
             <pgp value="635EE627345F3C1DD422B2E207D3516820BCF6B1"/>
          </artifact>
       </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.25.8">
+         <artifact name="javaparser-core-3.25.8.jar">
+            <pgp value="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE"/>
+         </artifact>
+      </component>
       <component group="com.github.jnr" name="jnr-x86asm" version="1.0.2">
          <artifact name="jnr-x86asm-1.0.2.jar">
             <pgp value="0057FBD7F284A1C1B4F1E891EE6E41E5483F557D"/>

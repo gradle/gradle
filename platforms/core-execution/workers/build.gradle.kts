@@ -29,6 +29,7 @@ dependencies {
 
     implementation(projects.processServices)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.time)
     implementation(projects.serviceRegistryBuilder)
 

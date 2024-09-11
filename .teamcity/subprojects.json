@@ -497,6 +497,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "file-operations",
+    "path": "platforms/core-configuration/file-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "file-temp",
     "path": "platforms/core-runtime/file-temp",
     "unitTests": true,

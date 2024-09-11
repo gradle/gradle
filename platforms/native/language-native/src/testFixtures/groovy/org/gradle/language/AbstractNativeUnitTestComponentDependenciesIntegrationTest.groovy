@@ -16,9 +16,8 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec  {
     def setup() {
@@ -27,9 +26,6 @@ abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extend
         """
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'XCTestWithApplicationDependenciesIntegrationTest'
-    ])
     def "can define implementation dependencies on production component"() {
         given:
         createDirs("lib")

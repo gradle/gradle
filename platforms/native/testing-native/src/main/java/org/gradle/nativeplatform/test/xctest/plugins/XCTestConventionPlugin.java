@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.xctest.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFile;
@@ -247,16 +246,11 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
             if (binary.getTargetMachine().getOperatingSystemFamily().isLinux()) {
                 TaskProvider<Sync> renameLinuxMainTask = project.getTasks().register("renameLinuxMain", Sync.class, task -> {
                     task.from(binary.getSwiftSource());
-                    task.into(project.provider(() -> task.getTemporaryDir()));
+                    task.into(project.getLayout().getBuildDirectory().dir("linuxMain"));
                     task.include("LinuxMain.swift");
-                    task.rename(new Transformer<String, String>() {
-                        @Override
-                        public String transform(String it) {
-                            return "main.swift";
-                        }
-                    });
+                    task.rename(".*", "main.swift");
                 });
-                compile.getSource().from(project.files(renameLinuxMainTask).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
+                compile.getSource().from(project.files(renameLinuxMainTask.map(Sync::getDestinationDir)).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
             }
         }
     }

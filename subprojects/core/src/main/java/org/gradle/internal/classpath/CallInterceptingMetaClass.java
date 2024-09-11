@@ -246,6 +246,13 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
     }
 
+    @Override
+    public synchronized void initialize() {
+        this.adaptee.initialize();
+        // Adaptee can override our metaclass, restore the entry to us.
+        registry.setMetaClass(theClass, this);
+    }
+
     //region implementations delegating to adaptee
     @Override
     public MetaClass getAdaptee() {
@@ -255,11 +262,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     @Override
     public void setAdaptee(MetaClass metaClass) {
         adaptee = metaClass;
-    }
-
-    @Override
-    public synchronized void initialize() {
-        this.adaptee.initialize();
     }
 
     @Override

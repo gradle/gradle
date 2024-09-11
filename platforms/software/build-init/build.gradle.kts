@@ -38,6 +38,7 @@ dependencies {
     api(projects.workers)
     api(projects.daemonServices)
 
+    implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
     implementation(projects.pluginsApplication) {

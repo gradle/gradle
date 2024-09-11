@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement

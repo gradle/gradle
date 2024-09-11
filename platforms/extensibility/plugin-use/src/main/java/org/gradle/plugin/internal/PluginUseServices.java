@@ -156,7 +156,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
-            FileResolver fileResolver,
             DependencyManagementServices dependencyManagementServices,
             ClassLoaderScopeRegistry classLoaderScopeRegistry,
             PluginInspector pluginInspector,
@@ -168,11 +167,10 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
-            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = () -> makeDependencyResolutionServices(
-                fileResolver,
-                fileCollectionFactory,
-                dependencyManagementServices
-            );
+
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory =
+                () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS);
+
             return new DefaultInjectedClasspathPluginResolver(
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 scriptClassPathResolver,
@@ -191,23 +189,12 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         PluginDependencyResolutionServices createPluginDependencyResolutionServices(
-            FileResolver fileResolver,
-            FileCollectionFactory fileCollectionFactory,
             DependencyManagementServices dependencyManagementServices
         ) {
-            return new PluginDependencyResolutionServices(() -> makeDependencyResolutionServices(
-                fileResolver,
-                fileCollectionFactory,
-                dependencyManagementServices
-            ));
+            return new PluginDependencyResolutionServices(() ->
+                dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS)
+            );
         }
 
-        private static DependencyResolutionServices makeDependencyResolutionServices(
-            final FileResolver fileResolver,
-            final FileCollectionFactory fileCollectionFactory,
-            final DependencyManagementServices dependencyManagementServices
-        ) {
-            return dependencyManagementServices.newDetachedResolver(fileResolver, fileCollectionFactory, StandaloneDomainObjectContext.PLUGINS);
-        }
     }
 }

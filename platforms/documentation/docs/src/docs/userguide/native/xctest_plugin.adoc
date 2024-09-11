@@ -15,8 +15,6 @@
 [[xctest_plugin]]
 = XCTest
 
-WARNING: The XCTest Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The XCTest Plugin provides the tasks, configurations and conventions for integrating with a https://developer.apple.com/documentation/xctest[XCTest testing framework on macOS] as well as https://github.com/apple/swift-corelibs-xctest[Linux's open source implementation].
 
 [[sec:xctest_usage]]

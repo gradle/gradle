@@ -92,8 +92,9 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            gradle.includedBuild("build-logic-commons").task(":check"),
-            gradle.includedBuild("build-logic").task(":check"),
+            // TODO: fix https://github.com/gradle/gradle-private/issues/4456
+            // gradle.includedBuild("build-logic-commons").task(":check"),
+            // gradle.includedBuild("build-logic").task(":check"),
             ":docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
