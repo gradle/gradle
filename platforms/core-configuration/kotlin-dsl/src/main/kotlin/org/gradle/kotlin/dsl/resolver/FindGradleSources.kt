@@ -28,6 +28,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.support.unzipTo
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
@@ -76,11 +77,9 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
      */
     private fun TransformOutputs.withTemporaryDir(name: String, block: (File) -> Unit) {
         val dir = dir(name)
-        try {
-            block(dir)
-        } finally {
-            dir.deleteRecursively()
-            dir.mkdirs()
+        block(dir)
+        if (!dir.deleteRecursively() || !dir.mkdirs()) {
+            throw IOException("Unable to clear artifact transform temporary directory $dir")
         }
     }
 
