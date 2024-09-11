@@ -20,8 +20,6 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.MutationGuards
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
@@ -46,7 +44,6 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
-import org.gradle.internal.ImmutableActionSet
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -142,7 +139,6 @@ import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.util.Path
 
 
 @Suppress("LongParameterList")
@@ -195,10 +191,6 @@ class Codecs(
             unsupportedTypes()
 
             baseTypes()
-
-            if (enableSingletonCaching) {
-                addSingletons()
-            }
 
             bind(HASHCODE_SERIALIZER)
 
@@ -399,13 +391,4 @@ class Codecs(
 
     fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =
         WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory, contextSource, parallelStore, parallelLoad)
-}
-
-private fun BindingsBuilder.addSingletons() {
-    withSingleton(Path.ROOT)
-    withSingleton(DefaultBuildIdentifier.ROOT)
-    withSingleton(Specs.SATISFIES_ALL)
-    withSingleton(Specs.SATISFIES_NONE)
-    withSingleton(ImmutableActionSet.empty<Any>())
-    withSingleton(MutationGuards.identity())
 }

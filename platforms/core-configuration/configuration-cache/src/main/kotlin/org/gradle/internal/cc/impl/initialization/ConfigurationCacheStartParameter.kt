@@ -104,8 +104,6 @@ class ConfigurationCacheStartParameter internal constructor(
      */
     val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
-    val enableSingletonCaching = options.getInternalFlag("org.gradle.configuration-cache.internal.codecs.singletons", true)
-
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
