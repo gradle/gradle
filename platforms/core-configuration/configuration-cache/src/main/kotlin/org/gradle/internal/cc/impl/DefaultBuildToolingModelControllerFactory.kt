@@ -21,7 +21,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.build.DefaultBuildToolingModelController
-import org.gradle.internal.build.ProjectToolingModelBuilderLookupPreparer
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
@@ -35,7 +34,6 @@ class DefaultBuildToolingModelControllerFactory(
             owner,
             controller,
             controller.gradle.services.get(ToolingModelBuilderLookup::class.java),
-            controller.gradle.services.get(ProjectToolingModelBuilderLookupPreparer::class.java),
         )
         return if (modelParameters.isIntermediateModelCache) {
             ConfigurationCacheAwareBuildToolingModelController(defaultController, controller.gradle.services.get(BuildTreeConfigurationCache::class.java))
