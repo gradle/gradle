@@ -22,8 +22,10 @@ import groovy.xml.XmlParser;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.DomNode;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -32,7 +34,6 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.EarSecurityRole;
-import org.gradle.plugins.ear.descriptor.EarWebModule;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 
@@ -42,13 +43,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
+import static org.gradle.plugins.ear.descriptor.internal.DeploymentDescriptorXmlWriter.writeDeploymentDescriptor;
+
+public abstract class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private static final String ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD";
     private static final String ALLOW_ANY_EXTERNAL_DTD = "all";
@@ -56,23 +55,16 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private final XmlTransformer transformer = new XmlTransformer();
     private final PathToFileResolver fileResolver;
 
-    private ObjectFactory objectFactory;
+    private final ObjectFactory objectFactory;
 
     private String fileName = "application.xml";
-    private String version = "6";
-    private String applicationName;
-    private Boolean initializeInOrder = Boolean.FALSE;
-    private String description;
-    private String displayName;
-    private String libraryDirectory;
-    private Set<EarModule> modules = new LinkedHashSet<EarModule>();
-    private Set<EarSecurityRole> securityRoles = new LinkedHashSet<EarSecurityRole>();
-    private Map<String, String> moduleTypeMappings = new LinkedHashMap<String, String>();
 
     @Inject
     public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
         this.objectFactory = objectFactory;
+        getVersion().convention("6");
+        getInitializeInOrder().convention(Boolean.FALSE);
     }
 
     @Override
@@ -87,131 +79,68 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     @Override
-    public String getVersion() {
-        return version;
-    }
+    public abstract Property<String> getVersion();
 
     @Override
-    public void setVersion(String version) {
-        this.version = version;
-    }
+    public abstract Property<String> getApplicationName();
 
     @Override
-    public String getApplicationName() {
-        return applicationName;
-    }
+    public abstract Property<Boolean> getInitializeInOrder();
 
     @Override
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
+    public abstract Property<String> getDescription();
 
     @Override
-    public Boolean getInitializeInOrder() {
-        return initializeInOrder;
-    }
+    public abstract Property<String> getDisplayName();
 
     @Override
-    public void setInitializeInOrder(Boolean initializeInOrder) {
-        this.initializeInOrder = initializeInOrder;
-    }
+    public abstract Property<String> getLibraryDirectory();
 
     @Override
-    public String getDescription() {
-        return description;
-    }
+    public abstract SetProperty<EarModule> getModules();
 
     @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public abstract SetProperty<EarSecurityRole> getSecurityRoles();
 
     @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String getLibraryDirectory() {
-        return libraryDirectory;
-    }
-
-    @Override
-    public void setLibraryDirectory(String libraryDirectory) {
-        this.libraryDirectory = libraryDirectory;
-    }
-
-    @Override
-    public Set<EarModule> getModules() {
-        return modules;
-    }
-
-    @Override
-    public void setModules(Set<EarModule> modules) {
-        this.modules = modules;
-    }
-
-    @Override
-    public Set<EarSecurityRole> getSecurityRoles() {
-        return securityRoles;
-    }
-
-    @Override
-    public void setSecurityRoles(Set<EarSecurityRole> securityRoles) {
-        this.securityRoles = securityRoles;
-    }
-
-    @Override
-    public Map<String, String> getModuleTypeMappings() {
-        return moduleTypeMappings;
-    }
-
-    @Override
-    public void setModuleTypeMappings(Map<String, String> moduleTypeMappings) {
-        this.moduleTypeMappings = moduleTypeMappings;
-    }
+    public abstract MapProperty<String, String> getModuleTypeMappings();
 
     @Override
     public DefaultDeploymentDescriptor module(EarModule module, String type) {
-        modules.add(module);
-        moduleTypeMappings.put(module.getPath(), type);
+        getModules().add(module);
+        getModuleTypeMappings().put(module.getPath().get(), type);
         return this;
     }
 
     @Override
     public DefaultDeploymentDescriptor module(String path, String type) {
-        return module(new DefaultEarModule(path), type);
+        return module(newDefaultEarModule(path), type);
     }
 
     @Override
     public DefaultDeploymentDescriptor webModule(String path, String contextRoot) {
-        modules.add(new DefaultEarWebModule(path, contextRoot));
-        moduleTypeMappings.put(path, "web");
+        getModules().add(newDefaultEarWebModule(path, contextRoot));
+        getModuleTypeMappings().put(path, "web");
         return this;
     }
 
     @Override
     public DefaultDeploymentDescriptor securityRole(EarSecurityRole role) {
-        securityRoles.add(role);
+        getSecurityRoles().add(role);
         return this;
     }
 
     @Override
     public DeploymentDescriptor securityRole(String role) {
-        securityRoles.add(new DefaultEarSecurityRole(role));
+        getSecurityRoles().add(newDefaultEarSecurityRole(role, null));
         return this;
     }
 
     @Override
     public DeploymentDescriptor securityRole(Action<? super EarSecurityRole> action) {
-        EarSecurityRole role = objectFactory.newInstance(DefaultEarSecurityRole.class);
+        EarSecurityRole role = newDefaultEarSecurityRole(null, null);
         action.execute(role);
-        securityRoles.add(role);
+        getSecurityRoles().add(role);
         return this;
     }
 
@@ -265,63 +194,52 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     public DeploymentDescriptor readFrom(Reader reader) {
         try {
             Node appNode = createParser().parse(reader);
-            version = (String) appNode.attribute("version");
+            getVersion().set((String) appNode.attribute("version"));
             for (final Node child : Cast.<List<Node>>uncheckedCast(appNode.children())) {
                 String childLocalName = localNameOf(child);
                 switch (childLocalName) {
                     case "application-name":
-
-                        applicationName = child.text();
-
+                        getApplicationName().set(child.text());
                         break;
                     case "initialize-in-order":
-
-                        initializeInOrder = Boolean.parseBoolean(child.text());
-
+                        getInitializeInOrder().set(Boolean.parseBoolean(child.text()));
                         break;
                     case "description":
-
-                        description = child.text();
-
+                        getDescription().set(child.text());
                         break;
                     case "display-name":
-
-                        displayName = child.text();
-
+                        getDisplayName().set(child.text());
                         break;
                     case "library-directory":
-
-                        libraryDirectory = child.text();
-
+                        getLibraryDirectory().set(child.text());
                         break;
                     case "module":
-
                         EarModule module = null;
                         for (Node moduleNode : Cast.<List<Node>>uncheckedCast(child.children())) {
                             String moduleNodeLocalName = localNameOf(moduleNode);
                             if (moduleNodeLocalName.equals("web")) {
                                 String webUri = childNodeText(moduleNode, "web-uri");
                                 String contextRoot = childNodeText(moduleNode, "context-root");
-                                module = new DefaultEarWebModule(webUri, contextRoot);
-                                modules.add(module);
-                                moduleTypeMappings.put(module.getPath(), "web");
+                                if (webUri != null && contextRoot != null) {
+                                    module = newDefaultEarWebModule(webUri, contextRoot);
+                                    getModules().add(module);
+                                    getModuleTypeMappings().put(webUri, "web");
+                                }
                             } else if (moduleNodeLocalName.equals("alt-dd")) {
                                 assert module != null;
-                                module.setAltDeployDescriptor(moduleNode.text());
+                                module.getAltDeployDescriptor().set(moduleNode.text());
                             } else {
-                                module = new DefaultEarModule(moduleNode.text());
-                                modules.add(module);
-                                moduleTypeMappings.put(module.getPath(), moduleNodeLocalName);
+                                String path = moduleNode.text();
+                                module = newDefaultEarModule(path);
+                                getModules().add(module);
+                                getModuleTypeMappings().put(path, moduleNodeLocalName);
                             }
                         }
-
                         break;
                     case "security-role":
-
                         String roleName = childNodeText(child, "role-name");
                         String description = childNodeText(child, "description");
-                        securityRoles.add(new DefaultEarSecurityRole(roleName, description));
-
+                        getSecurityRoles().add(newDefaultEarSecurityRole(roleName, description));
                         break;
                     default:
                         withXml(new Action<XmlProvider>() {
@@ -343,6 +261,26 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         return this;
     }
 
+    private DefaultEarWebModule newDefaultEarWebModule(String path, String contextRoot) {
+        DefaultEarWebModule module = objectFactory.newInstance(DefaultEarWebModule.class);
+        module.getPath().set(path);
+        module.getContextRoot().set(contextRoot);
+        return module;
+    }
+
+    private DefaultEarModule newDefaultEarModule(String path) {
+        DefaultEarModule module = objectFactory.newInstance(DefaultEarModule.class);
+        module.getPath().set(path);
+        return module;
+    }
+
+    private DefaultEarSecurityRole newDefaultEarSecurityRole(String roleName, String description) {
+        DefaultEarSecurityRole role = objectFactory.newInstance(DefaultEarSecurityRole.class);
+        role.getRoleName().set(roleName);
+        role.getDescription().set(description);
+        return role;
+    }
+
     private static String childNodeText(Node root, String name) {
         for (Node child : Cast.<List<Node>>uncheckedCast(root.children())) {
             if (localNameOf(child).equals(name)) {
@@ -358,93 +296,14 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     @Override
     public DefaultDeploymentDescriptor writeTo(Object path) {
-        transformer.transform(toXmlNode(), fileResolver.resolve(path));
+        writeDeploymentDescriptor(this, transformer, fileResolver.resolve(path));
         return this;
     }
 
     @Override
     public DefaultDeploymentDescriptor writeTo(Writer writer) {
-        transformer.transform(toXmlNode(), writer);
+        writeDeploymentDescriptor(this, transformer, writer);
         return this;
-    }
-
-    private DomNode toXmlNode() {
-        DomNode root = new DomNode(nodeNameFor("application"));
-        Map<String, String> rootAttributes = Cast.uncheckedCast(root.attributes());
-        rootAttributes.put("version", version);
-        if (!"1.3".equals(version)) {
-            rootAttributes.put("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        }
-        if ("1.3".equals(version)) {
-            root.setPublicId("-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN");
-            root.setSystemId("http://java.sun.com/dtd/application_1_3.dtd");
-        } else if ("1.4".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
-        } else if ("5".equals(version) || "6".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
-        } else if ("7".equals(version) || "8".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
-        } else if ("9".equals(version) || "10".equals(version)) {
-            rootAttributes.put("xsi:schemaLocation", "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version + ".xsd");
-        }
-        if (applicationName != null) {
-            new Node(root, nodeNameFor("application-name"), applicationName);
-        }
-        if (description != null) {
-            new Node(root, nodeNameFor("description"), description);
-        }
-        if (displayName != null) {
-            new Node(root, nodeNameFor("display-name"), displayName);
-        }
-        if (initializeInOrder != null && initializeInOrder) {
-            new Node(root, nodeNameFor("initialize-in-order"), initializeInOrder);
-        }
-        for (EarModule module : modules) {
-            Node moduleNode = new Node(root, nodeNameFor("module"));
-            module.toXmlNode(moduleNode, moduleNameFor(module));
-        }
-        if (securityRoles != null) {
-            for (EarSecurityRole role : securityRoles) {
-                Node roleNode = new Node(root, nodeNameFor("security-role"));
-                if (role.getDescription() != null) {
-                    new Node(roleNode, nodeNameFor("description"), role.getDescription());
-                }
-                new Node(roleNode, nodeNameFor("role-name"), role.getRoleName());
-            }
-        }
-        if (libraryDirectory != null) {
-            new Node(root, nodeNameFor("library-directory"), libraryDirectory);
-        }
-        return root;
-    }
-
-    private Object moduleNameFor(EarModule module) {
-        String name = moduleTypeMappings.get(module.getPath());
-        if (name == null) {
-            if (module instanceof EarWebModule) {
-                name = "web";
-            } else {
-                // assume EJB is the most common kind of EAR deployment
-                name = "ejb";
-            }
-        }
-        return nodeNameFor(name);
-    }
-
-    private Object nodeNameFor(String name) {
-        if ("1.3".equals(version)) {
-            return name;
-        } else if ("1.4".equals(version)) {
-            return new QName("http://java.sun.com/xml/ns/j2ee", name);
-        } else if ("5".equals(version) || "6".equals(version)) {
-            return new QName("http://java.sun.com/xml/ns/javaee", name);
-        } else if ("7".equals(version) || "8".equals(version)) {
-            return new QName("http://xmlns.jcp.org/xml/ns/javaee", name);
-        } else if ("9".equals(version) || "10".equals(version)) {
-            return new QName("https://jakarta.ee/xml/ns/jakartaee", name);
-        } else {
-            return new QName(name);
-        }
     }
 
     // For tests
