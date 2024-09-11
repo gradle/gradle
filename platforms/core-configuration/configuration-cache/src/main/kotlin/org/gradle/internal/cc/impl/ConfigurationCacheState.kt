@@ -726,11 +726,16 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            write(cacheConfigurations.releasedWrappers.entryRetentionMillis)
-            write(cacheConfigurations.snapshotWrappers.entryRetentionMillis)
-            write(cacheConfigurations.downloadedResources.entryRetentionMillis)
-            write(cacheConfigurations.createdResources.entryRetentionMillis)
-            write(cacheConfigurations.buildCache.entryRetentionMillis)
+            write(cacheConfigurations.releasedWrappers.entryRetentionAge)
+            write(cacheConfigurations.releasedWrappers.entryRetentionTimestamp)
+            write(cacheConfigurations.snapshotWrappers.entryRetentionAge)
+            write(cacheConfigurations.snapshotWrappers.entryRetentionTimestamp)
+            write(cacheConfigurations.downloadedResources.entryRetentionAge)
+            write(cacheConfigurations.downloadedResources.entryRetentionTimestamp)
+            write(cacheConfigurations.createdResources.entryRetentionAge)
+            write(cacheConfigurations.createdResources.entryRetentionTimestamp)
+            write(cacheConfigurations.buildCache.entryRetentionAge)
+            write(cacheConfigurations.buildCache.entryRetentionTimestamp)
             write(cacheConfigurations.cleanup)
             write(cacheConfigurations.markingStrategy)
         }
@@ -739,11 +744,16 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            cacheConfigurations.releasedWrappers.entryRetentionMillis.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.snapshotWrappers.entryRetentionMillis.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.downloadedResources.entryRetentionMillis.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.createdResources.entryRetentionMillis.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.buildCache.entryRetentionMillis.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.releasedWrappers.entryRetentionAge.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.releasedWrappers.entryRetentionTimestamp.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.snapshotWrappers.entryRetentionAge.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.snapshotWrappers.entryRetentionTimestamp.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.downloadedResources.entryRetentionAge.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.downloadedResources.entryRetentionTimestamp.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.createdResources.entryRetentionAge.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.createdResources.entryRetentionTimestamp.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.buildCache.entryRetentionAge.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.buildCache.entryRetentionTimestamp.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
             cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }

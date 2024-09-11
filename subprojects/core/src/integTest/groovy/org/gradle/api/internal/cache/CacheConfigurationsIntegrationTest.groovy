@@ -103,15 +103,15 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         secondRunTimestamps != firstRunTimestamps
     }
 
-    def "can configure caches to a custom entry retention"() {
+    def "can configure caches to a custom entry retention interval"() {
         def initDir = new File(executer.gradleUserHomeDir, "init.d")
         initDir.mkdirs()
 
-        def releasedDistTimestamp = TimeUnit.DAYS.toMillis(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS)
-        def snapshotDistTimestamp = TimeUnit.DAYS.toMillis(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS)
-        def downloadedResourcesTimestamp = TimeUnit.DAYS.toMillis(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
-        def createdResourcesTimestamp = TimeUnit.DAYS.toMillis(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES)
-        def buildCacheResourcesTimestamp = TimeUnit.DAYS.toMillis(MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES)
+        def releasedDistTimestamp = daysToMillis(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS)
+        def snapshotDistTimestamp = daysToMillis(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS)
+        def downloadedResourcesTimestamp = daysToMillis(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
+        def createdResourcesTimestamp = daysToMillis(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES)
+        def buildCacheResourcesTimestamp = daysToMillis(MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES)
 
         new File(initDir, "cache-settings.gradle") << """
             import java.util.function.Supplier
@@ -120,22 +120,69 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 settings.caches {
                     markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers.entryRetentionMillis = ${releasedDistTimestamp}L
-                    snapshotWrappers.entryRetentionMillis = ${snapshotDistTimestamp}L
-                    downloadedResources.entryRetentionMillis = ${downloadedResourcesTimestamp}L
-                    createdResources.entryRetentionMillis = ${createdResourcesTimestamp}L
-                    buildCache.entryRetentionMillis = ${buildCacheResourcesTimestamp}L
+                    releasedWrappers.entryRetentionAge = ${releasedDistTimestamp}L
+                    snapshotWrappers.entryRetentionAge = ${snapshotDistTimestamp}L
+                    downloadedResources.entryRetentionAge = ${downloadedResourcesTimestamp}L
+                    createdResources.entryRetentionAge = ${createdResourcesTimestamp}L
+                    buildCache.entryRetentionAge = ${buildCacheResourcesTimestamp}L
                 }
             }
         """
         settingsFile << """
             caches {
                 assert markingStrategy.get() == MarkingStrategy.NONE
-                assert releasedWrappers.entryRetentionMillis.get() == ${releasedDistTimestamp}
-                assert snapshotWrappers.entryRetentionMillis.get() == ${snapshotDistTimestamp}
-                assert downloadedResources.entryRetentionMillis.get() == ${downloadedResourcesTimestamp}
-                assert createdResources.entryRetentionMillis.get() == ${createdResourcesTimestamp}
-                assert buildCache.entryRetentionMillis.get() == ${buildCacheResourcesTimestamp}
+                assert releasedWrappers.entryRetentionAge.get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.entryRetentionAge.get() == ${snapshotDistTimestamp}
+                assert downloadedResources.entryRetentionAge.get() == ${downloadedResourcesTimestamp}
+                assert createdResources.entryRetentionAge.get() == ${createdResourcesTimestamp}
+                assert buildCache.entryRetentionAge.get() == ${buildCacheResourcesTimestamp}
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
+    def "can configure caches to a custom entry retention timestamp"() {
+        def initDir = new File(executer.gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+
+        def releasedDistTimestamp = daysAgoInMillis(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS)
+        def snapshotDistTimestamp = daysAgoInMillis(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS)
+        def downloadedResourcesTimestamp = daysAgoInMillis(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
+        def createdResourcesTimestamp = daysAgoInMillis(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES)
+        def buildCacheResourcesTimestamp = daysAgoInMillis(MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES)
+
+        new File(initDir, "cache-settings.gradle") << """
+            import java.util.function.Supplier
+
+            beforeSettings { settings ->
+                settings.caches {
+                    markingStrategy = MarkingStrategy.NONE
+                    cleanup = Cleanup.DISABLED
+                    releasedWrappers.entryRetentionTimestamp = ${releasedDistTimestamp}L
+                    snapshotWrappers.entryRetentionTimestamp = ${snapshotDistTimestamp}L
+                    downloadedResources.entryRetentionTimestamp = ${downloadedResourcesTimestamp}L
+                    createdResources.entryRetentionTimestamp = ${createdResourcesTimestamp}L
+                    buildCache.entryRetentionTimestamp = ${createdResourcesTimestamp}L
+                }
+            }
+        """
+        settingsFile << """
+            caches {
+                assert markingStrategy.get() == MarkingStrategy.NONE
+                assert releasedWrappers.entryRetentionTimestamp.get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.entryRetentionTimestamp.get() == ${snapshotDistTimestamp}
+                assert downloadedResources.entryRetentionTimestamp.get() == ${downloadedResourcesTimestamp}
+                assert createdResources.entryRetentionTimestamp.get() == ${createdResourcesTimestamp}
+                assert buildCache.entryRetentionTimestamp.get() == ${buildCacheResourcesTimestamp}
+
+                // The supplier should provide the exact timestamp
+                assert releasedWrappers.entryRetentionTimestampSupplier.get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.entryRetentionTimestampSupplier.get() == ${snapshotDistTimestamp}
+                assert downloadedResources.entryRetentionTimestampSupplier.get() == ${downloadedResourcesTimestamp}
+                assert createdResources.entryRetentionTimestampSupplier.get() == ${createdResourcesTimestamp}
+                assert buildCache.entryRetentionTimestampSupplier.get() == ${buildCacheResourcesTimestamp}
             }
         """
 
@@ -158,11 +205,11 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         property                                           | errorProperty          | value
         'markingStrategy'                                  | 'markingStrategy'      | 'MarkingStrategy.NONE'
         'cleanup'                                          | 'cleanup'              | 'Cleanup.DISABLED'
-        'releasedWrappers.removeUnusedEntriesAfterDays'    | 'entryRetentionMillis' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
-        'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'entryRetentionMillis' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
-        'downloadedResources.removeUnusedEntriesAfterDays' | 'entryRetentionMillis' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
-        'createdResources.removeUnusedEntriesAfterDays'    | 'entryRetentionMillis' | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
-        'buildCache.removeUnusedEntriesAfterDays'          | 'entryRetentionMillis' | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
+        'releasedWrappers.removeUnusedEntriesAfterDays'    | 'entryRetentionAge' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
+        'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'entryRetentionAge' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
+        'downloadedResources.removeUnusedEntriesAfterDays' | 'entryRetentionAge' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
+        'createdResources.removeUnusedEntriesAfterDays'    | 'entryRetentionAge' | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
+        'buildCache.removeUnusedEntriesAfterDays'          | 'entryRetentionAge' | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
     }
 
     static String modifyCacheConfiguration(String property, String value) {
@@ -173,9 +220,17 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     static String assertValueIsSameInDays(int configuredDaysAgo) {
         return """
-            def timestamp = entryRetentionMillis.get()
+            def timestamp = entryRetentionAge.get()
             def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(timestamp)
             assert daysAgo == ${configuredDaysAgo}
         """
+    }
+
+    static long daysAgoInMillis(int days) {
+        return System.currentTimeMillis() - daysToMillis(days)
+    }
+
+    static long daysToMillis(int days) {
+        return TimeUnit.DAYS.toMillis(days)
     }
 }

@@ -28,10 +28,22 @@ public interface CacheResourceConfigurationInternal extends CacheResourceConfigu
      *
      * See {@link #setRemoveUnusedEntriesAfterDays(int)}.
      */
-    Property<Long> getEntryRetentionMillis();
+    Property<Long> getEntryRetentionAge();
+
+    /**
+     * Configures the timestamp at which unused entries will be considered stale and removed from the cache.
+     * Any entries not used since this timestamp will be candidates for eviction.
+     * This is an absolute time value and is persisted in the build configuration.
+     *
+     * A value configured for this property will take precedence over `entryRetentionAge`.
+     */
+    Property<Long> getEntryRetentionTimestamp();
 
     /**
      * Provides the timestamp (in millis since epoch) before which an unused entry can be removed from the cache.
+     * If {@link #getEntryRetentionTimestamp()} is configured, then this value is used.
+     * Otherwise, the value of {@link #getEntryRetentionAge()} is subtracted from the current time.
+     *
      * This is an absolute-time value and is recalculated from the configuration on each build execution.
      */
     Supplier<Long> getEntryRetentionTimestampSupplier();
