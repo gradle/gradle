@@ -976,4 +976,97 @@ testRuntimeClasspath
         expect:
         succeeds("resolve")
     }
+
+    def "can traverse a graph at the variant level"() {
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include("other")
+        """
+
+        file("other/build.gradle.kts") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            group = "org"
+            version = "1.0"
+        """
+
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            group = "org"
+            version = "1.0"
+
+            dependencies {
+                implementation(project(":other"))
+                testImplementation(testFixtures(project(":other")))
+            }
+
+            abstract class TraverseTask : DefaultTask() {
+
+                @get:Input
+                abstract val rootComponent: Property<ResolvedComponentResult>
+
+                @get:Input
+                abstract val rootVariant: Property<ResolvedVariantResult>
+
+                @TaskAction
+                fun traverse() {
+                    val variants = mutableListOf<String>()
+                    traverseGraphVariants(rootComponent.get(), rootVariant.get()) { variant ->
+                        val owner = variant.owner as ProjectComponentIdentifier
+                        variants.add("\${owner.buildTreePath}:\${variant.displayName}")
+                    }
+                    assert(variants == listOf(
+                        "::testRuntimeClasspath",
+                        ":other:runtimeElements",
+                        "::testFixturesRuntimeElements",
+                        ":other:testFixturesRuntimeElements",
+                        "::runtimeElements"
+                    ))
+                }
+
+                fun traverseGraphVariants(
+                    rootComponent: ResolvedComponentResult,
+                    rootVariant: ResolvedVariantResult,
+                    callback: (ResolvedVariantResult) -> Unit
+                ) {
+                    val seen = mutableSetOf(rootVariant)
+                    val queue = ArrayDeque(listOf(rootVariant to rootComponent))
+
+                    while (queue.isNotEmpty()) {
+                        val (variant, component) = queue.removeFirst()
+
+                        callback(variant)
+
+                        // Traverse this variant's dependencies
+                        component.getDependenciesForVariant(variant).forEach { dependency ->
+                            val resolved = when (dependency) {
+                                is ResolvedDependencyResult -> dependency
+                                is UnresolvedDependencyResult -> throw dependency.failure
+                                else -> throw AssertionError("Unknown dependency type: \$dependency")
+                            }
+
+                            if (!resolved.isConstraint && seen.add(resolved.resolvedVariant)) {
+                                queue.add(resolved.resolvedVariant to resolved.selected)
+                            }
+                        }
+                    }
+                }
+            }
+
+            tasks.register<TraverseTask>("traverse") {
+                rootComponent = configurations.testRuntimeClasspath.flatMap { it.incoming.resolutionResult.rootComponent }
+                rootVariant = configurations.testRuntimeClasspath.flatMap { it.incoming.resolutionResult.rootVariant }
+            }
+        """
+
+        expect:
+        succeeds("traverse")
+    }
 }
