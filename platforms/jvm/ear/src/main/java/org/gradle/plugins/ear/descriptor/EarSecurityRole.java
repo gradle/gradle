@@ -15,7 +15,8 @@
  */
 package org.gradle.plugins.ear.descriptor;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * A security-role element in a deployment descriptor like application.xml.
@@ -27,28 +28,13 @@ public interface EarSecurityRole {
      * A description of the security role. Optional.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getDescription();
-
-    /**
-     * Sets the description.
-     *
-     * @since 1.0
-     */
-    void setDescription(String description);
+    @ReplacesEagerProperty
+    Property<String> getDescription();
 
     /**
      * The name of the security role. Required.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getRoleName();
-
-    /**
-     * Sets the role name.
-     *
-     * @since 1.0
-     */
-    void setRoleName(String roleName);
-
+    @ReplacesEagerProperty
+    Property<String> getRoleName();
 }
