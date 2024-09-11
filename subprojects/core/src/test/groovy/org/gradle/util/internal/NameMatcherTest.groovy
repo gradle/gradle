@@ -170,6 +170,12 @@ class NameMatcherTest extends Specification {
         matches("soNa", "sona", ["someName"])
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23580")
+    def "handles JDK bug with case insensitive match"() {
+        expect:
+        matches("publishReleaseBundle", "publishReleaseBundlePublicationToTempPublishRepository", ["publishReleaseObfuscatedBundlePublicationToTempPublishRepository"])
+    }
+
     def "prefers kebab case match over case insensitive camel case match"() {
         expect:
         matches("sN", "some-name", ["sand"])
