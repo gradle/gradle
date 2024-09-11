@@ -72,6 +72,48 @@ Note that this is an incubating feature and may expose concurrency issues in som
 
 See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
 
+<a name="java-compiler-error-rendering"></a>
+### Java compiler errors in the failure report
+
+In previous Gradle versions, finding the reason of a failed compilation was a suboptimal experience: the only pointer we could give to the user was to scroll back, and look for the failed task's output, containing the compiler failure.
+
+Build logs can be extremely long, and support for multiple failures when using the `--continue` flag further complicates discovery, making the identification of the exact failure challenging.
+
+Gradle now gained the ability to collect, and report per-task failures in the bottom "What went wrong" segment.
+This report supplements the usual task output, and aims to give a new way to identify problems quicker and easier.
+
+A simple failure at the bottom of the log will show up as:
+```
+* What went wrong:
+Execution failed for task ':project1:compileJava'.
+> Compilation failed; see the compiler output below.
+
+Java compilation error (compilation:java:java-compilation-error)
+  sample-project/src/main/java/Problem.java:6: error: incompatible types: int cannot be converted to String
+          String a = 1;
+                     ^
+```
+
+If any warning happens during the compilation, it will also be included in the report:
+```
+* What went wrong:
+Execution failed for task ':project1:compileJava'.
+> Compilation failed; see the compiler output below.
+
+Java compilation warning (compilation:java:java-compilation-warning)
+  sample-project/src/main/java/Problem1.java:6: warning: [cast] redundant cast to String
+          var warning = (String)"warning";
+                        ^
+Java compilation error (compilation:java:java-compilation-error)
+  sample-project/src/main/java/Problem2.java:6: error: incompatible types: int cannot be converted to String
+          String a = 1;
+                     ^
+```
+
+Note that the current solution reports upon _failures_. If only warnings happen (and no `-Werror` is set), this report will not be visible.
+
+The feature also works with the [`--continue`](userguide/command_line_interface.html#sec:continue_build_on_failure) flag, and the bottom report will contain a per-task report of all the compilation failures.
+
 <a name="native-plugin-improvements"></a>
 ### Core plugin improvements
 
