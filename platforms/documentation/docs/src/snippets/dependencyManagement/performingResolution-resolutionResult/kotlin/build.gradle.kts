@@ -90,11 +90,8 @@ tasks.register<GenerateDot>("generateDot") {
     rootComponent = runtimeClasspath.flatMap {
         it.incoming.resolutionResult.rootComponent
     }
-    // TODO: Fix this with new API
     rootVariant = runtimeClasspath.flatMap {
-        it.incoming.resolutionResult.rootComponent.map {
-            it.variants.find { it.displayName == "runtimeClasspath" }
-        }
+        it.incoming.resolutionResult.rootVariant
     }
 }
 // end::register-graph-traversal-task[]

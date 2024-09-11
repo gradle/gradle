@@ -93,6 +93,8 @@ NOTE: A proper implementation would not use `println` but would write to an outp
 
 When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` Configuration.
 
+NOTE: This example uses incubating APIs.
+
 .Using the ResolutionResult API
 ====
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
