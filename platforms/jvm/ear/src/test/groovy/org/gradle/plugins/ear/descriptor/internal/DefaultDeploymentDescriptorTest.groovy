@@ -32,7 +32,7 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 class DefaultDeploymentDescriptorTest extends Specification {
     private ObjectFactory objectFactory = TestUtil.objectFactory()
 
-    def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, objectFactory)
+    def descriptor = objectFactory.newInstance(DefaultDeploymentDescriptor, ({ it } as FileResolver), objectFactory)
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "writes default descriptor"() {
