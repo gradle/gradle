@@ -37,6 +37,9 @@ tasks.register<ResolveFiles>("resolveProjects") {
     })
 }
 tasks.register<ResolveFiles>("resolveModules") {
+// end::resolve-component-filter[]
+    dependsOn(tasks.named("resolveProjects")) // To preserve output ordering
+// tag::resolve-component-filter[]
     files.from(configurations.runtimeClasspath.map {
         it.incoming.artifactView {
             componentFilter {
