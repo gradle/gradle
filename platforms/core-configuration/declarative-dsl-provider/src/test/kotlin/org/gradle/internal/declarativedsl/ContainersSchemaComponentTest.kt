@@ -24,7 +24,6 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
-import org.gradle.declarative.dsl.model.annotations.NestedDeclarativeModel
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -140,10 +139,8 @@ class ContainersSchemaComponentTest {
     private val schema = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) { gradleDslGeneralSchema() }
 
     class TopLevel {
-        @get:NestedDeclarativeModel
         val containerOne: NamedDomainObjectContainer<One> = container(One::class.java)
 
-        @NestedDeclarativeModel
         fun getContainerTwo(): NamedDomainObjectContainer<Two> = containerTwo
 
         private val containerTwo = container(Two::class.java)
@@ -157,10 +154,8 @@ class ContainersSchemaComponentTest {
     }
 
     class Two(private val name: String) : Named {
-        @get:NestedDeclarativeModel
         val containerThree: NamedDomainObjectContainer<Three> = container(Three::class.java)
 
-        @get:NestedDeclarativeModel
         val containerSubtype: NdocSubtype = NdocSubtype(container(Three::class.java))
 
         @get:Restricted

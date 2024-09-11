@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.ndoc
 
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.tasks.Internal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
@@ -47,7 +48,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNestedModel
+import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
@@ -58,6 +59,7 @@ import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.KVisibility
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
@@ -202,11 +204,11 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     }
 
     private fun containerProperties(kClass: KClass<*>): List<ContainerProperty> {
-        val propertiesFromMemberProperties = kClass.memberProperties.filter(isPublicAndNestedModel::shouldIncludeMember).mapNotNull {
+        val propertiesFromMemberProperties = kClass.memberProperties.filter(::isPublicAndNotInternal).mapNotNull {
             val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
             ContainerProperty(kClass, it.propertyName(), it.returnType, elementType, ContainerPropertyDeclaration.KotlinProperty(it))
         }
-        val propertiesFromMemberFunctions = kClass.memberFunctions.filter(isPublicAndNestedModel::shouldIncludeMember).mapNotNull {
+        val propertiesFromMemberFunctions = kClass.memberFunctions.filter(::isPublicAndNotInternal).mapNotNull {
             val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
             ContainerProperty(kClass, it.propertyName(), it.returnType, elementType, ContainerPropertyDeclaration.Getter(it))
         }
@@ -248,3 +250,7 @@ private fun elementFactoryFunction(
 
 
 private fun dataTypeRefName(it: KClassifier) = (it.toDataTypeRef() as DataTypeRef.Name).fqName.toString()
+
+private fun isPublicAndNotInternal(member: KCallable<*>): Boolean =
+    member.visibility == KVisibility.PUBLIC &&
+        member.annotationsWithGetters.none { it is Internal } // TODO: @Internal might not be the best fit, as it is more related to the task models
