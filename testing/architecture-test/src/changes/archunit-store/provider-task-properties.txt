@@ -174,7 +174,6 @@ Method <org.gradle.nativeplatform.test.tasks.RunTestExecutable.getOutputDir()> d
 Method <org.gradle.nativeplatform.test.tasks.RunTestExecutable.isIgnoreFailures()> does not have raw return type (boolean) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (RunTestExecutable.java:0)
 Method <org.gradle.plugins.ear.Ear.getDeploymentDescriptor()> does not have raw return type (org.gradle.plugins.ear.descriptor.DeploymentDescriptor) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Ear.java:0)
 Method <org.gradle.plugins.ear.Ear.getLib()> does not have raw return type (org.gradle.api.file.CopySpec) assignable to any of [Provider] in (Ear.java:0)
-Method <org.gradle.plugins.ear.Ear.getLibDirName()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (Ear.java:0)
 Method <org.gradle.plugins.ide.api.GeneratorTask.getInputFile()> does not have raw return type (java.io.File) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (GeneratorTask.java:0)
 Method <org.gradle.plugins.ide.api.GeneratorTask.getOutputFile()> does not have raw return type (java.io.File) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (GeneratorTask.java:0)
 Method <org.gradle.plugins.ide.api.PropertyListGeneratorTask.getPropertyListTransformer()> does not have raw return type (org.gradle.api.internal.PropertyListTransformer) assignable to any of [Provider] in (PropertyListGeneratorTask.java:0)
