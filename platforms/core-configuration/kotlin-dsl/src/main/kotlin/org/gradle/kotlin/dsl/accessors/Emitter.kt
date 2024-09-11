@@ -209,16 +209,9 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
 
-            val configurationNames = configurations
-                .asSequence()
-                .mapNotNull {
-                    val accessorNameSpec = AccessorNameSpec.createOrNull(it.target)
-                    if (accessorNameSpec == null) {
-                        null
-                    } else {
-                        it.map { accessorNameSpec }
-                    }
-                }
+            val configurationNames = configurations.asSequence().mapNotNull { entry ->
+                AccessorNameSpec.createOrNull(entry.target)?.let { accessorNameSpec -> entry.map { accessorNameSpec } }
+            }
             yieldAll(
                 uniqueAccessorsFrom(
                     configurationNames.map { it.target }.map(::configurationAccessorSpec)
