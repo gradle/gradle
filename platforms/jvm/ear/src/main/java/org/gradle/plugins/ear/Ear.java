@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ear;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -32,26 +33,30 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.internal.ConfigureUtil;
-import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.OutputStreamWriter;
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singleton;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.callable;
 import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
+import static org.gradle.plugins.ear.descriptor.internal.DeploymentDescriptorXmlWriter.writeDeploymentDescriptor;
 
 /**
  * Assembles an EAR archive.
@@ -66,9 +71,8 @@ public abstract class Ear extends Jar {
      */
     public static final String EAR_EXTENSION = "ear";
 
-    private String libDirName;
     private DeploymentDescriptor deploymentDescriptor;
-    private CopySpec lib;
+    private final CopySpec lib;
 
     /**
      * Creates a new {@code Ear}.
@@ -80,13 +84,12 @@ public abstract class Ear extends Jar {
         getArchiveExtension().set(EAR_EXTENSION);
         getMetadataCharset().convention("UTF-8");
         getGenerateDeploymentDescriptor().convention(true);
-        lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
-            callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME))
-        );
+        lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(getLibDirName().orElse(DEFAULT_LIB_DIR_NAME));
+        AtomicReference<Set<EarModule>> topLevelModules = new AtomicReference<>(new LinkedHashSet<>());
         getMainSpec().appendCachingSafeCopyAction(action(details -> {
             if (getGenerateDeploymentDescriptor().get()) {
                 checkIfShouldGenerateDeploymentDescriptor(details);
-                recordTopLevelModules(details);
+                topLevelModules.set(Sets.union(topLevelModules.get(), recordTopLevelModules(details)));
             }
         }));
 
@@ -99,14 +102,11 @@ public abstract class Ear extends Jar {
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
             if (descriptor != null && getGenerateDeploymentDescriptor().get()) {
-                if (descriptor.getLibraryDirectory() == null) {
-                    descriptor.setLibraryDirectory(getLibDirName());
-                }
-
                 String descriptorFileName = descriptor.getFileName();
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
                     throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
                 }
+                descriptor.getLibraryDirectory().convention(getLibDirName());
 
                 // TODO: Consider capturing the `descriptor` as a spec
                 //  so any captured manifest attribute providers are re-evaluated
@@ -117,10 +117,12 @@ public abstract class Ear extends Jar {
                     getTemporaryDirFactory(),
                     descriptorFileName,
                     action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
-                    action(outputStream ->
-                        // delay obtaining contents to account for descriptor changes
-                        // (for instance, due to modules discovered)
-                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    action(outputStream -> {
+                            // delay obtaining contents to account for descriptor changes
+                            // (for instance, due to modules discovered)
+                            Set<EarModule> modules = Sets.union(descriptor.getModules().get(), topLevelModules.get());
+                            writeDeploymentDescriptor(descriptor, modules, new XmlTransformer(), new OutputStreamWriter(outputStream));
+                        }
                     )
                 );
             }
@@ -137,19 +139,24 @@ public abstract class Ear extends Jar {
         return getServices().get(OutputChangeListener.class);
     }
 
-    private void recordTopLevelModules(FileCopyDetails details) {
+    private Set<EarModule> recordTopLevelModules(FileCopyDetails details) {
+        Set<EarModule> topLevelModules = new LinkedHashSet<>();
         DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
         // since we might generate the deployment descriptor, record each top-level module
         if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
             EarModule module;
             if (details.getPath().toLowerCase(Locale.ROOT).endsWith(".war")) {
-                module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
+                module = getObjectFactory().newInstance(DefaultEarWebModule.class);
+                ((DefaultEarWebModule) module).getContextRoot().set(details.getPath().substring(0, details.getPath().lastIndexOf(".")));
+                module.getPath().set(details.getPath());
             } else {
-                module = new DefaultEarModule(details.getPath());
+                module = getObjectFactory().newInstance(DefaultEarModule.class);
+                module.getPath().set(details.getPath());
             }
 
-            deploymentDescriptor.getModules().add(module);
+            topLevelModules.add(module);
         }
+        return topLevelModules;
     }
 
     private void checkIfShouldGenerateDeploymentDescriptor(FileCopyDetails details) {
@@ -206,7 +213,7 @@ public abstract class Ear extends Jar {
      * @since 1.0
      */
     @Internal
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
+    @NotToBeReplacedByLazyProperty(because = "Read-only CopySpec property")
     public CopySpec getLib() {
         return ((CopySpecInternal) lib).addChild();
     }
@@ -243,22 +250,10 @@ public abstract class Ear extends Jar {
      * The name of the library directory in the EAR file. Default is "lib".
      * @since 1.0
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getLibDirName() {
-        return libDirName;
-    }
-
-    /**
-     * Sets the lib dir name.
-     *
-     * @since 1.0
-     */
-    public void setLibDirName(@Nullable String libDirName) {
-        this.libDirName = libDirName;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getLibDirName();
 
     /**
      * Should deploymentDescriptor be generated?
@@ -273,7 +268,7 @@ public abstract class Ear extends Jar {
      * @since 1.0
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested like property")
     public DeploymentDescriptor getDeploymentDescriptor() {
         return deploymentDescriptor;
     }
