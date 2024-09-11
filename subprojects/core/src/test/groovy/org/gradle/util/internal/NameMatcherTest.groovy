@@ -225,6 +225,12 @@ class NameMatcherTest extends Specification {
         matcher.candidates == ["tame", "lame"] as Set
     }
 
+    def "reports potential matches ignoring case"() {
+        expect:
+        doesNotMatch("NAME", ["other", "lame", "tame"])
+        matcher.candidates == ["tame", "lame"] as Set
+    }
+
     def "does not select map entry when no matches"() {
         expect:
         matcher.find("soNa", ["does not match" : 9]) == null
@@ -272,15 +278,47 @@ class NameMatcherTest extends Specification {
         matcher.formatErrorMessage("thing", "container") == "thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
     }
 
+    def "handles non-English locale properly"() {
+        expect:
+        matches("დავალება", "დავალება")
+        matches("BazIGörevler", "bazıgörevler")
+        matches("či", "Čitač")
+        matches("яЗ", "якесьЗавдання")
+        matches("պԱ", "պատահական-առաջադրանք")
+        matches("де", "дело", ["потеха"])
+        matches("ТА", "тапсырма")
+        matches("НӨ", "НэмэлтӨгөгдөлБүхийЗаримДаалгавар")
+        matches("ΚΕ", "κάποια-εργασία-με-επιπλέον-δεδομένα")
+    }
+
+    def "gives suggestions in non-English locale properly"() {
+        expect:
+        doesNotMatch("StaSS", ["straße", "saße", "wasser"])
+        matcher.candidates == ["saße", "straße"] as Set
+        doesNotMatch("ДЕЛАЙ", ["сделай", "СДЕЛАЛ", "челка"])
+        matcher.candidates == ["сделай", "СДЕЛАЛ"] as Set
+    }
+
+    def "handles emojis"() {
+        expect:
+        matches("✅", "✅")
+        matches("✅", "✅", ["❌"])
+        matches("✅", "✅💀")
+        matches("✅", "✅whyyy💀")
+    }
+
     def matches(String name, String match, Collection<String> extraItems = []) {
-        matcher.find(name, ([match] + extraItems).shuffled()) == match && matcher.matches == [match] as Set
+        assert matcher.find(name, ([match] + extraItems).shuffled()) == match
+        return matcher.matches == [match] as Set
     }
 
     def doesNotMatch(String name, Collection<String> items) {
-        matcher.find(name, items) == null && matcher.matches.empty
+        assert matcher.matches.empty
+        return matcher.find(name, items) == null
     }
 
     def ambiguous(String name, List<String> items, Collection<String> matches = items) {
-        matcher.find(name, items) == null && matcher.matches == matches as Set
+        assert matcher.find(name, items) == null
+        return matcher.matches == matches as Set
     }
 }

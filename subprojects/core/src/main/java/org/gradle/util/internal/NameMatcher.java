@@ -78,7 +78,7 @@ public class NameMatcher {
         }
 
         Pattern camelCasePattern = getPatternForName(pattern);
-        Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
+        Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         String normalisedPattern = pattern.toUpperCase(Locale.ROOT);
         Pattern kebabCasePattern = getKebabCasePatternForName(pattern);
         Pattern kebabCasePrefixPattern = Pattern.compile(kebabCasePattern.pattern() + "[\\p{javaLowerCase}\\p{Digit}-]*");
