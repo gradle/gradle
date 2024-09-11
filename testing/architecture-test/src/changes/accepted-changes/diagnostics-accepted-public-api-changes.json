@@ -139,6 +139,62 @@
             "changes": []
         },
         {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getOutputFile()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getProjectReportDirectory()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getProjects()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getRenderer()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.setOutputFile(java.io.File)",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.setProjects(java.util.Set)",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Superclass [removed]",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getBuildStateRegistry()",
             "acceptation": "Changed to idiomatic injection",
