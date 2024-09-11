@@ -37,8 +37,7 @@ import java.util.function.BiFunction;
 /**
  * A factory for creating instances of {@link Provider}.
  *
- * <p>
- * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ * <p>An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
  * It is also available via {@link org.gradle.api.Project#getProviders()} and {@link Settings#getProviders()}.
  *
  * @since 4.0
@@ -174,7 +173,7 @@ public interface ProviderFactory {
     /**
      * Allows lazy access to the contents of the given file.
      *
-     * When the file contents are read at configuration time the file is automatically considered
+     * <p>When the file contents are read at configuration time the file is automatically considered
      * as an input to the configuration model.
      *
      * @param file the file whose contents to read.
@@ -190,7 +189,7 @@ public interface ProviderFactory {
     /**
      * Allows lazy access to the contents of the given file.
      *
-     * When the file contents are read at configuration time the file is automatically considered
+     * <p>When the file contents are read at configuration time the file is automatically considered
      * as an input to the configuration model.
      *
      * @param file provider of the file whose contents to read.
@@ -206,12 +205,11 @@ public interface ProviderFactory {
     /**
      * Allows lazy access to the output of the external process.
      *
-     * When the process output is read at configuration time it is considered as an input to the
+     * <p>When the process output is read at configuration time it is considered as an input to the
      * configuration model. Consequent builds will re-execute the process to obtain the output and
      * check if the cached model is still up-to-date.
      *
-     * The process input and output streams cannot be configured.
-     *
+     * <p>The process input and output streams cannot be configured.
      *
      * @param action the configuration of the external process with the output stream
      * pre-configured.
@@ -223,11 +221,11 @@ public interface ProviderFactory {
     /**
      * Allows lazy access to the output of the external java process.
      *
-     * When the process output is read at configuration time it is considered as an input to the
+     * <p>When the process output is read at configuration time it is considered as an input to the
      * configuration model. Consequent builds will re-execute the process to obtain the output and
      * check if the cached model is still up-to-date.
      *
-     * The process input and output streams cannot be configured.
+     * <p>The process input and output streams cannot be configured.
      *
      * @param action the configuration of the external process with the output stream
      * pre-configured.
@@ -254,16 +252,13 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} for the given {@link Credentials} type.
      *
-     * <p>
-     * The provider returned by this method should be attached to a task's input property.
+     * <p>The provider returned by this method should be attached to a task's input property.
      * This way, the presence of credentials will be validated before any of the tasks are executed if and only if the task with credentials property is to be executed.
      *
-     * <p>
-     * Values for the requested Credentials type will be sourced from the project's properties using the pattern "identity" + credentials field.
+     * <p>Values for the requested Credentials type will be sourced from the project's properties using the pattern "identity" + credentials field.
      * For example, {@link PasswordCredentials} provider with identity "myService" will look for properties named "myServiceUsername" and "myServicePassword".
      *
-     * <p>
-     * The following credential types are currently supported:
+     * <p>The following credential types are currently supported:
      * <ul>
      * <li>{@link PasswordCredentials}</li>
      * <li>{@link AwsCredentials}</li>
@@ -280,16 +275,13 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} for the given {@link Credentials} type.
      *
-     * <p>
-     * The provider returned by this method should be attached to a task's input property.
+     * <p>The provider returned by this method should be attached to a task's input property.
      * This way, the presence of credentials will be validated before any of the tasks are executed if and only if the task with credentials property is to be executed.
      *
-     * <p>
-     * Values for the requested Credentials type will be sourced from the project's properties using the pattern "identity" + credentials field.
+     * <p>Values for the requested Credentials type will be sourced from the project's properties using the pattern "identity" + credentials field.
      * For example, {@link PasswordCredentials} provider with identity "myService" will look for properties named "myServiceUsername" and "myServicePassword".
      *
-     * <p>
-     * The following credential types are currently supported:
+     * <p>The following credential types are currently supported:
      * <ul>
      * <li>{@link PasswordCredentials}</li>
      * <li>{@link AwsCredentials}</li>
@@ -307,16 +299,12 @@ public interface ProviderFactory {
      * Returns a provider which value will be computed by combining a provider value with another
      * provider value using the supplied combiner function.
      *
-     * <p>
-     * The resulting provider will be live, so that each time it is queried, it queries both supplied providers
+     * <p>The resulting provider will be live, so that each time it is queried, it queries both supplied providers
      * and applies the combiner to the results. Whenever any of the providers has no value, the new provider
      * will also have no value and the combiner will not be called.
-     * </p>
      *
-     * <p>
-     * If the supplied providers represents a task or the output of a task, the resulting provider
+     * <p>If the supplied providers represents a task or the output of a task, the resulting provider
      * will carry the dependency information.
-     * </p>
      *
      * @param first the first provider to combine with
      * @param second the second provider to combine with
