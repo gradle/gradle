@@ -169,7 +169,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildWorkPreparer;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkPreparer;
-import org.gradle.internal.build.DefaultProjectToolingModelBuilderLookupPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -265,7 +264,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(DefaultScriptClassPathResolver.class);
         registration.add(DefaultScriptHandlerFactory.class);
         registration.add(DefaultBuildOutputCleanupRegistry.class);
-        registration.add(DefaultProjectToolingModelBuilderLookupPreparer.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 
