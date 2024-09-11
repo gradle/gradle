@@ -14,7 +14,6 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.profiling)
 
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
     implementation("com.autonomousapps:dependency-analysis-gradle-plugin")
 }
