@@ -112,17 +112,11 @@ public abstract class EarPlugin implements Plugin<Project> {
             DeploymentDescriptor deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class);
             deploymentDescriptor.readFrom("META-INF/application.xml");
             deploymentDescriptor.readFrom("src/main/application/META-INF/" + deploymentDescriptor.getFileName());
-            if (deploymentDescriptor != null) {
-                if (deploymentDescriptor.getDisplayName() == null) {
-                    deploymentDescriptor.setDisplayName(project.getName());
-                }
-                if (deploymentDescriptor.getDescription() == null) {
-                    deploymentDescriptor.setDescription(project.getDescription());
-                }
-            }
+            deploymentDescriptor.getDisplayName().convention(project.getName());
+            deploymentDescriptor.getDescription().convention(project.getDescription());
             task.setDeploymentDescriptor(deploymentDescriptor);
-        });
 
+        });
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
     }
 
