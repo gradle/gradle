@@ -231,7 +231,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 convention.map("libDeployPath", new Callable<String>() {
                     @Override
                     public String call() throws Exception {
-                        String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
+                        String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName().get();
                         if (!deployPath.startsWith("/")) {
                             deployPath = "/" + deployPath;
                         }
