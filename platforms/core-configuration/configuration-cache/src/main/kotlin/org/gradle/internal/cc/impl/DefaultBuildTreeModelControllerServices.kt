@@ -133,11 +133,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
             DefaultBuildModelParameters(
+                requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = false,
                 configurationCache = isolatedProjects,
                 isolatedProjects = isolatedProjects,
-                requiresBuildModel = true,
                 intermediateModelCache = isolatedProjects,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
@@ -152,11 +152,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
                 return DefaultBuildModelParameters(
+                    requiresToolingModels = false,
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = false,
                     isolatedProjects = false,
-                    requiresBuildModel = false,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
@@ -170,11 +170,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 // Disable configuration cache when generating a property upgrade report, since report is generated during configuration phase, and we currently don't reference it in cc cache
                 configurationCache && startParameter.isPropertyUpgradeReportEnabled -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.PropertyUpgradeReportOption.LONG_OPTION)
                 else -> DefaultBuildModelParameters(
+                    requiresToolingModels = false,
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
                     isolatedProjects = isolatedProjects,
-                    requiresBuildModel = false,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
@@ -191,11 +191,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             // Configuration cache is not supported for nested build trees
             val buildModelParameters =
                 DefaultBuildModelParameters(
+                    requiresToolingModels = true,
                     parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
                     configureOnDemand = startParameter.isConfigureOnDemand,
                     configurationCache = false,
                     isolatedProjects = false,
-                    requiresBuildModel = true,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,
