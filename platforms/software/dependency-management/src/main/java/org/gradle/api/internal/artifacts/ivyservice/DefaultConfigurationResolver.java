@@ -227,11 +227,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public ResolverResults resolveGraph(ResolveContext resolveContext) {
+        ResolutionHost resolutionHost = resolveContext.getResolutionHost();
+
         StoreSet stores = storeFactory.createStoreSet();
 
         BinaryStore oldModelStore = stores.nextBinaryStore();
         Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
-        TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor);
+        TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor, resolutionHost);
         DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
         ResolvedConfigurationDependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
@@ -257,7 +259,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             graphVisitors.add(versionConflictVisitor);
         }
 
-        ResolutionHost resolutionHost = resolveContext.getResolutionHost();
         DependencyLockingGraphVisitor lockingVisitor = null;
         if (resolutionStrategy.isDependencyLockingEnabled()) {
             lockingVisitor = new DependencyLockingGraphVisitor(resolveContext.getDependencyLockingId(), resolutionHost.displayName(), dependencyLockingProvider);

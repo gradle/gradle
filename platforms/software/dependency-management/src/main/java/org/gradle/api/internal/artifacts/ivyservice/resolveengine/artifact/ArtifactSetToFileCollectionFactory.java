@@ -21,19 +21,16 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -49,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @ServiceScope(Scope.BuildSession.class)
 public class ArtifactSetToFileCollectionFactory {
@@ -159,20 +155,6 @@ public class ArtifactSetToFileCollectionFactory {
                 throw new UnsupportedOperationException();
             }
         };
-    }
-
-    /**
-     * Presents the contents of the given artifacts as a supplier of {@link ResolvedArtifactResult} instances.
-     *
-     * <p>Over time, this should be merged with the ArtifactCollection implementation in DefaultConfiguration
-     */
-    public Set<ResolvedArtifactResult> asResolvedArtifacts(ResolvedArtifactSet artifacts, boolean lenient) {
-        ResolvedArtifactCollectingVisitor collectingVisitor = new ResolvedArtifactCollectingVisitor();
-        ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
-        if (!lenient && !collectingVisitor.getFailures().isEmpty()) {
-            throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
-        }
-        return collectingVisitor.getArtifacts();
     }
 
     private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
