@@ -19,6 +19,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.internal.nativeintegration.network.HostnameLookup
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
+import java.net.URI
 
 
 class Helper(private val providers: ProviderFactory) {
@@ -53,7 +54,14 @@ class Helper(private val providers: ProviderFactory) {
         handler.all {
             if (this is MavenArtifactRepository) {
                 originalUrls.forEach { name, originalUrl ->
-                    if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
+                    // TODO: Remove after Gradle 9.0
+                    val anyUrl: Any = this.url
+                    @Suppress("UNCHECKED_CAST")
+                    val oldUrl = when (anyUrl) {
+                        is Property<*> -> (anyUrl as Property<URI>).get()
+                        else -> anyUrl as URI
+                    }
+                    if (normalizeUrl(originalUrl) == normalizeUrl(oldUrl.toString()) && mirrorUrls.containsKey(name)) {
                         mirrorUrls.get(name)?.let { this.setUrl(it) }
                     }
                 }
