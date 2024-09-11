@@ -19,43 +19,21 @@ import com.google.common.base.Objects;
 import groovy.namespace.QName;
 import groovy.util.Node;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.EarModule;
 
-public class DefaultEarModule implements EarModule {
-
-    private String path;
-    private String altDeployDescriptor;
-
-    public DefaultEarModule() {
-    }
-
-    public DefaultEarModule(String path) {
-        this.path = path;
-    }
+public abstract class DefaultEarModule implements EarModule {
 
     @Override
-    public String getPath() {
-        return path;
-    }
+    public abstract Property<String> getPath();
 
     @Override
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    @Override
-    public String getAltDeployDescriptor() {
-        return altDeployDescriptor;
-    }
-
-    @Override
-    public void setAltDeployDescriptor(String altDeployDescriptor) {
-        this.altDeployDescriptor = altDeployDescriptor;
-    }
+    public abstract Property<String> getAltDeployDescriptor();
 
     @Override
     public Node toXmlNode(Node parentModule, Object name) {
-        Node node = new Node(parentModule, name, path);
+        Node node = new Node(parentModule, name, getPath().get());
+        String altDeployDescriptor = getAltDeployDescriptor().getOrNull();
         if (StringUtils.isNotEmpty(altDeployDescriptor)) {
             new Node(parentModule, nodeNameFor("alt-dd", name), altDeployDescriptor);
         }
@@ -71,6 +49,8 @@ public class DefaultEarModule implements EarModule {
 
     @Override
     public int hashCode() {
+        String path = getPath().getOrNull();
+        String altDeployDescriptor = getAltDeployDescriptor().getOrNull();
         int result;
         result = path != null ? path.hashCode() : 0;
         result = 31 * result + (altDeployDescriptor != null ? altDeployDescriptor.hashCode() : 0);
@@ -85,7 +65,10 @@ public class DefaultEarModule implements EarModule {
         if (!(o instanceof DefaultEarModule)) {
             return false;
         }
-        DefaultEarModule that = (DefaultEarModule) o;
-        return Objects.equal(path, that.path) && Objects.equal(altDeployDescriptor, that.altDeployDescriptor);
+        String path = getPath().getOrNull();
+        String altDeployDescriptor = getAltDeployDescriptor().getOrNull();
+        String thatPath = ((DefaultEarModule) o).getPath().getOrNull();
+        String thatAltDeployDescriptor = ((DefaultEarModule) o).getAltDeployDescriptor().getOrNull();
+        return Objects.equal(path, thatPath) && Objects.equal(altDeployDescriptor, thatAltDeployDescriptor);
     }
 }

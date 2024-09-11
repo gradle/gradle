@@ -14,17 +14,16 @@ errorprone {
 dependencies {
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
 
     api(projects.baseServices)
+    api(projects.stdlibJavaExtensions)
     api(projects.coreApi)
+    api(projects.core)
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.platformJvm)
 
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
-    implementation(projects.core)
     implementation(projects.fileOperations)
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
