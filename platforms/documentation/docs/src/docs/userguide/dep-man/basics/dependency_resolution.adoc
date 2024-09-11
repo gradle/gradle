@@ -15,12 +15,12 @@
 [[understanding_dependency_resolution]]
 = 6. Dependency Resolution
 
-// TO DO INTRODUCE CAPABILITIES
-
 Dependency resolution in Gradle involves two main steps:
 
 1. **Graph Resolution**
 2. **Artifact Resolution**
+
+image::dep-man-basics-1.png[]
 
 == 1. Graph Resolution
 
@@ -31,6 +31,8 @@ In this phase, artifacts (JARs) are _not_ resolved.
 Only the structure of the graph, based on the relationship between dependencies, are calculated at this time.
 
 === 1. Discovering dependencies
+
+image::dep-man-basics-2.png[]
 
 Graph resolution begins with the *project* and external (*module*) dependencies declared in the build script.
 
@@ -51,6 +53,8 @@ dependencies {
 
 === 2. Perform conflict resolution
 
+image::dep-man-basics-3.png[]
+
 Gradle identifies and resolves any version conflicts when multiple declared or transitive dependencies request different *versions* of the same *module*.
 
 Even though a user might declare version `2.17.2` of a *module*, this may not be the version ultimately resolved in the graph.
@@ -67,9 +71,11 @@ In the example, Gradle selects the *component* `com.fasterxml.jackson.core:jacks
 
 === 3. Retrieve the metadata
 
+image::dep-man-basics-4.png[]
+
 Once Gradle has determined which version of an external *module* to resolve, it fetches the *metadata* for the *component* from an `ivy`, `pom`, or link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`GMM`] metadata file in the repository.
 
-Here’s a sample of the *metadata* for `com.fasterxml.jackson.core:jackson-databind:2.17.2`:
+Here’s a sample of the *metadata* for link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`com.fasterxml.jackson.core:jackson-databind:2.17.2`]:
 
 [source,json]
 ----
@@ -138,6 +144,8 @@ The `runtimeElements` variant provides the `jackson-databind-2.17.2.jar` artifac
 
 === 4. Update the graph
 
+image::dep-man-basics-5.png[]
+
 Gradle builds a dependency graph that represents a configuration's dependencies and their relationships.
 This graph includes both direct dependencies (explicitly declared in the build script) and transitive dependencies (dependencies of the direct dependencies and other transitive dependencies).
 
@@ -177,6 +185,12 @@ Each resolvable configuration calculates a separate dependency graph.
 Different configurations can resolve to a different set of transitive dependencies for the same set of declared dependencies.
 Each *variant* is owned by a specific version of a *component*.
 
+=== 5. Select a variant
+
+image::dep-man-basics-6.png[]
+
+Based on the requirements of the build, Gradle selects one of the *variants* of the module.
+
 To describe and differentiate between *variants*, you use *attributes*.
 *Attributes* are used to define specific characteristics or properties of *variants* and the context in which those *variants* should be used.
 
@@ -198,9 +212,11 @@ In the metadata for Jackson Databind, we see that the `runtimeElements` variant 
   ]
 }
 ----
-<1> This is `"org.gradle.usage": "java-api"` for `apiElements`
+<1> For the `apiElements` variant, this attribute differs: "org.gradle.usage": "java-api"`
 
 *Attributes* are used to select the appropriate *variant* during dependency resolution.
+
+In the case of our Java application example, which has Jackson Databind as a dependency, Gradle will select the runtime variant to build the app.
 
 To see a more detailed view of which *variant* Gradle resolved for a given configuration, you can run the `dependencyInsight` task:
 
@@ -245,6 +261,8 @@ This process uses the resolved graph and repository definitions to produce the r
 
 === 1. Fetching artifacts
 
+image::dep-man-basics-7.png[]
+
 Gradle locates and downloads the actual *artifacts* (such as JAR files, ZIP files, etc.) referenced in the graph.
 These artifacts correspond to the nodes discovered during graph resolution.
 
@@ -274,11 +292,12 @@ That *variant* corresponds to the JAR file `jackson-databind-2.17.2.jar` as the 
 ----
 
 Gradle also fetches the resolved transitive dependencies of Jackson Databind including `jackson-annotations` and `jackson-core` which correspond to `jackson-annotations-2.17.2.jar` and `jackson-core-2.17.2.jar` respectively.
-And their own transitive dependencies including `jackson-databind` which corresponds to `jackson-databind-2.17.2.jar`.
 
 === 2. Transform artifacts
 
-Gradle can transform artifacts using **Artifact Transforms** if needed or requested.
+image::dep-man-basics-8.png[]
+
+Gradle can transform artifacts using ** artifact transforms** if needed or requested.
 Transforms are typically applied automatically during dependency resolution when Gradle needs to convert one artifact format into another that your build requires.
 
 For example, `jackson-databind` might only produce a ZIP file as an artifact called `jackson-databind-2.17.2.zip`, but the build needs `jackson-databind-2.17.2.jar`.
@@ -286,4 +305,3 @@ Gradle can use Gradle provided transforms or user programmed transforms to conve
 
 [.text-right]
 **Next Step:** <<variant_aware_resolution.adoc#variant_aware_resolution,View Variant-Aware Dependency Resolution in Action>> >>
-
