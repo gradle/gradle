@@ -290,13 +290,9 @@ class AccessorNameSpec private constructor(val original: String) {
          * Else, return `null`.
          */
         internal
-        fun createOrNull(original: String): AccessorNameSpec? {
-            return if (isLegalAccessorName(original)) {
-                AccessorNameSpec(original)
-            } else {
-                null
-            }
-        }
+        fun createOrNull(original: String): AccessorNameSpec? =
+            if (isLegalAccessorName(original)) AccessorNameSpec(original)
+            else null
 
         private
         fun isLegalAccessorName(name: String): Boolean =
@@ -362,6 +358,8 @@ fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>): Typed
 
 private
 fun documentInaccessibilityReasons(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String =
-    "`${name.kotlinIdentifier}` is not accessible in a type safe way because:\n${typeAccess.reasons.joinToString("\n") { reason ->
-        "         * - ${reason.explanation}"
-    }}"
+    "`${name.kotlinIdentifier}` is not accessible in a type safe way because:\n${
+        typeAccess.reasons.joinToString("\n") { reason ->
+            "         * - ${reason.explanation}"
+        }
+    }"
