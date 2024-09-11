@@ -20,9 +20,11 @@ configurations {
 }
 // end::declare-outgoing-configuration[]
 
+// tag::declare-task[]
 def instrumentedJar = tasks.register("instrumentedJar", Jar) {
     archiveClassifier = "instrumented"
 }
+// end::declare-task[]
 
 // tag::attach-outgoing-artifact[]
 artifacts {

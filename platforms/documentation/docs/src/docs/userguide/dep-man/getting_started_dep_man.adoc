@@ -25,62 +25,244 @@ image::dependency-management-resolution.png[]
 Understanding dependency management in Gradle is important for structuring projects into components.
 It is also important when you want to reuse existing libraries, or you need to upgrade those libraries while managing their versions.
 
-Let's look at a Java project where the code relies on link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] which is a suite of Google Core libraries for Java.
-The build file of the project includes the following:
-
-====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro]"]
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro]"]
-====
-
-Within the `dependencies` block, there are three things to notice when a dependency is declared:
-
-1. The configuration: `implementation` also known as the scope the dependency is applied to
-2. The module ID: `com.google.guava:guava` is made up of a `group` and an artifact `name` which are uniquely identifiable
-3. The version: `32.1.2-jre` which is not always required
-
-Dependencies can be local or external.
-To let Gradle know where to find external dependencies, use the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
-
-Let's expand our example:
-
-====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-repo]"]
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-repo]"]
-====
-
-In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
-
 == 1. Declaring Dependencies
 
-You can add external libraries to your Java project, such as Guava.
-These libraries are <<declaring_dependencies.adoc#declaring-basic-dependencies, _dependencies_>> of your project.
+You can add external libraries to your project, such as Guava.
+You can also add other projects and files.
+These libraries and other components are <<declaring_dependencies.adoc#declaring-basic-dependencies, _dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
+
+[source,kotlin]
+----
+dependencies {
+    implementation("com.example:library:1.0")
+}
+----
+
+- **Declare Versions**: Use `prefer()`, `strictly()`, and more to specify the exact version of a dependency you want to use.
+[source,groovy]
+----
+  configurations.all {
+      resolutionStrategy {
+          force 'com.example:library:1.2.3'
+          strictly 'com.example:library:1.2.3'
+      }
+  }
+----
 
 == 2. Dependency Configurations
 
 You can declare dependencies for different scopes. For example, you can declare dependencies that are only used at compile time.
 Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
+[source,kotlin]
+----
+dependencies {
+    api("com.example:library:1.0")
+    testImplementation("com.example:test-library:1.0")
+}
+----
+
 == 3. Declaring Repositories
 
 You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
-
 During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+
+[source,kotlin]
+----
+repositories {
+    mavenCentral()
+    google()
+}
+----
 
 == 4. Centralizing Dependencies
 
-<<centralizing_dependencies.adoc#centralizing-dependencies, Centralizing dependencies>> in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
-
+<<centralizing_dependencies.adoc#centralizing-dependencies, Centralizing dependencies>> in Gradle involves managing dependencies and their versions in a single location to ensure consistency and simplify dependency management across multiple projects.
 This is typically done using platforms and version catalogs.
-A platform is a set of modules intended to be used together.
-A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
+
+[source,kotlin]
+----
+dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.1.2"))
+    implementation(libs.spring.web)
+}
+
+----
 
 == 5. Dependency Constraints and Conflict Resolution
 
-Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
+Conflicts can arise during _dependency resolution_ when the same library is declared multiple times or when different libraries provide the same functionality.
 This usually leads to failing builds.
 
 Gradle manages two types of conflicts: version conflicts, and capability conflicts.
-
 You can <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,customize Gradle's handling of dependencies and conflict resolution>> with a number of available APIs.
+
+You can also use the various Gradle APIs listed below to influence dependency and artifact resolution:
+
+=== Versions and Version Conflicts:
+
+- **Lock Versions**: Create a lockfile to record the exact versions of dependencies used in your build. This ensures reproducibility across different builds.
+[source,groovy]
+----
+  dependencies {
+      constraints {
+          lockallDependecies()
+  }
+----
+
+- **Dependency Constraints**: Use `constraints {}` to specify rules for transitive dependency versions, ensuring consistency across different parts of your project.
+[source,groovy]
+----
+  dependencies {
+      constraints {
+          implementation('com.example:library:1.2.3') {
+              because 'This version fixes a critical bug.'
+          }
+      }
+  }
+----
+
+- **Declaring Reasons**: Use `because()` to provide explanations for why a particular version of a dependency was chosen.
+[source,groovy]
+----
+dependencies {
+  implementation('com.example:library:1.2.3') {
+      because 'This version is known to work well with our project.'
+  }
+}
+----
+
+- **Resolution Rules**: Use `resolutionStrategy {}` to enforce specific versions, replace or substitute modules, or apply other resolution rules.
+[source,groovy]
+----
+configurations.all {
+    resolutionStrategy {
+      eachDependency { DependencyResolveDetails details ->
+          if (details.requested.group == 'com.example') {
+              details.useVersion '1.2.3'
+          }
+      }
+      failOnVersionConflict()
+    }
+    exclude group: 'org.unwanted', module: 'unwanted-module'
+}
+----
+
+- **Component Metadata Rule**: Use `components {}` to adjust or correct metadata from a module, such as adding or fixing attributes.
+[source,groovy]
+----
+components {
+    withType(JavaLibrary) {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
+        }
+    }
+}
+----
+
+=== Capabilities and Capability Conflicts:
+
+- **Capabilities**: Use `resolutionStrategy {}` to handle conflicts between capabilities, such as when two dependencies provide the same functionality.
+[source,groovy]
+----
+  configurations.all {
+      resolutionStrategy {
+          eachDependency { DependencyResolveDetails details ->
+              if (details.requested.name == 'duplicate-capability') {
+                  details.useVersion '1.0.0'
+              }
+          }
+      }
+  }
+----
+
+=== Variants and Attributes:
+
+- **Variants and Attributes**: Create and consume modules with different configurations or versions, such as `debug` vs. `release` for an Android app or `compile` vs. `test` for a library.
+[source,groovy]
+----
+  dependencies {
+      debugImplementation 'com.example:debug-library:1.0'
+      releaseImplementation 'com.example:release-library:1.0'
+  }
+----
+
+- **Feature Variants**: Create and use modules with optional features or functionalities, such as `freeImplementation` vs. `paidImplementation` for an app, or `json` vs. `xml` for a decoder library.
+[source,groovy]
+----
+  dependencies {
+      implementation 'com.example:decoder:1.0'
+      implementation 'com.example:decoder:1.0:json' // or `xml`
+  }
+----
+
+=== Artifact Resolution:
+
+- **Artifact Resolution**: Use `artifact()` to resolve artifacts when repositories lack metadata or for non-Java dependencies, specifying only the artifact file.
+[source,groovy]
+----
+  repositories {
+      ivy {
+          url = uri('https://example.com/repo')
+          patternLayout {
+              artifact('[organization]/[module]/[revision]/[artifact].[ext]')
+          }
+          metadataSources {
+              artifact()
+          }
+      }
+  }
+
+  dependencies {
+      implementation 'com.example:library:1.0@jar'
+  }
+----
+
+- **Artifact Transforms and Views**: Create and register transforms to modify artifacts during resolution, such as changing file formats or contents.
+[source,groovy]
+----
+dependencies {
+    implementation 'com.example:library:1.0' // Library dependency
+}
+
+configurations {
+    transformedZip // Custom configuration for transformed artifacts
+}
+
+artifacts {
+    add("transformedZip", file("path/to/transformed/file.zip")) // Register the transformed artifact
+}
+
+dependencies {
+    transformedZip 'com.example:library:1.0' // Apply the transformed dependency
+}
+
+registerTransform(ZipTransform) {
+    from.attribute(ArtifactAttributes.ARTIFACT_FORMAT, 'jar') // Source artifact format
+    to.attribute(ArtifactAttributes.ARTIFACT_FORMAT, 'zip')   // Target artifact format
+
+    artifactTransformClass(ZipTransform) // Use custom transformation logic
+}
+
+// Custom artifact transform class (this is pseudo code for the actual transformation logic)
+abstract class ZipTransform extends ArtifactTransform {
+    @Override
+    File transform(File input) {
+        // Transform JAR to ZIP (placeholder logic)
+        return zipFile(input)
+    }
+}
+----
+
+== 6. Dependency Resolution Explained
+
+*Dependency resolution* consists of two main steps: **Graph Resolution** and **Artifact Resolution**.
+
+Graph resolution involves building a dependency graph by resolving conflicts and fetching metadata, while artifact resolution focuses on downloading the necessary files (artifacts) for the build.
+
+== 7. Variant Aware Dependency Resolution
+
+**Variant-aware resolution** allows for dynamic selection of the appropriate variant based on both the producer's and consumer's requirements using **attributes**.
+This eliminates the need for consumers to explicitly choose a configuration, enabling Gradle to automatically select the correct variant, such as when resolving dependencies for different architectures.
+The producer defines configurations with attributes, and the consumer specifies required attributes, allowing Gradle to match the correct variant for the consumer’s needs.

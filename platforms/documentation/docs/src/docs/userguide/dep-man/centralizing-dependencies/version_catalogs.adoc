@@ -55,6 +55,9 @@ Version catalogs offer several advantages:
 [[sub:version-catalog-declaration]]
 == Creating a catalog
 
+TO DO
+// Programmatic examples last or not at all
+
 Version catalogs can be declared in the `settings.gradle(.kts)` file.
 To make dependencies available via the catalog, associate an alias with the group, artifact, and version (GAV) coordinates:
 

@@ -15,6 +15,8 @@
 [[dependency-constraints]]
 = Using Dependency Constraints
 
+TO DO: This should really be used for platforms
+
 A component may have two different kinds of dependencies:
 
 - *Direct dependencies* are _directly required by the component_.

@@ -18,6 +18,8 @@
 [[feature_variants]]
 = Creating Features
 
+TO DO move to JVM
+
 Gradle supports modeling *features* to handle scenarios where a single library can be divided into multiple related but distinct libraries, each providing additional functionality.
 
 This allows for a number of different scenarios (list is non-exhaustive):

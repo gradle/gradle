@@ -15,6 +15,8 @@
 [[declaring-reasons]]
 = Declaring Reasons
 
+TO DO, add a if I have this library, I probably need this one too.
+
 In Gradle's dependency management, **reasons** provide context for why a specific version of a dependency was selected or rejected during resolution.
 
 They are commonly used to explain decisions made through mechanisms like dependency constraints, component selection rules, or dependency version conflicts.
@@ -38,6 +40,8 @@ dependencies {
 
 In this example, the build script defines a constraint that enforces version `3.9` of the `commons-lang3` library, with a reason explaining that version `3.10` has a bug.
 The `because` clause provides context to future maintainers about why this version constraint exists.
+
+// TO DO REMOVE
 
 The `dependencyInsight` task provides detailed information about how dependencies are resolved, including reasons added with `because`.
 You can run this task to show why a specific version of a dependency was selected:

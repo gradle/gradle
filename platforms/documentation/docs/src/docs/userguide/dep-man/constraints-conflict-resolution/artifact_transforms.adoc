@@ -15,6 +15,7 @@
 [[artifact_transforms]]
 = Artifact Transforms
 
+// TO DO - lenient and
 What if you want to adjust the JAR file of one of your dependencies before you use it?
 
 Gradle has a built-in feature for this called **Artifact Transforms**.

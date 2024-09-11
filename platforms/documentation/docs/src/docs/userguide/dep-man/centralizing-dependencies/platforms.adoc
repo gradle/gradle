@@ -95,8 +95,13 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
+== Creating a platform
+TO DO
+
 [[sub:platforms-vs-catalog]]
 == Platform vs. Version Catalog
+
+TO DO make a page with both, no versions, highlight why catalogs are not strict
 
 Both platforms and version catalogs help manage dependency versions, but they serve different purposes:
 

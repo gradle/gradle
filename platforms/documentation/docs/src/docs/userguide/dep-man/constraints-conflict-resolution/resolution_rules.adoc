@@ -476,6 +476,8 @@ In this example, the `commons-collections` dependency will be excluded from the 
 [[sec:controlling-dynamic-version-caching]]
 == Controlling dependency caching
 
+// TO DO OWN PAGE
+
 By default, Gradle caches dependencies (including dynamic versions and changing modules) for 24 hours, meaning it does not contact remote repositories for new versions during this time.
 
 To have Gradle check for newer versions more frequently or with every build, you can adjust the caching threshold or time-to-live (TTL) settings accordingly.

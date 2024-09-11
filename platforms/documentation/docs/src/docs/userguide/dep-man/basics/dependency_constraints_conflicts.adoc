@@ -69,3 +69,6 @@ dependencies {
     }
 }
 ----
+
+[.text-right]
+**Next Step:** <<dependency_resolution.adoc#understanding_dependency_resolution,Learn about Dependency Resolution>> >>
