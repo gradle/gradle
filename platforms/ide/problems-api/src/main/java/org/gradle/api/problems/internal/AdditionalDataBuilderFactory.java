@@ -72,7 +72,9 @@ public final class AdditionalDataBuilderFactory {
      * @param provider The builder function, which will be called to create a builder for the given additional data type
      */
     public void registerAdditionalDataProvider(Class<?> dataType, Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>> provider) {
-        additionalDataProviders.put(dataType, new DataTypeAndProvider(dataType, provider));
+        if (additionalDataProviders.put(dataType, new DataTypeAndProvider(dataType, provider)) != null) {
+            throw new IllegalArgumentException("Data type: '" + dataType + "' already has an additional data provider registered!");
+        }
     }
 
     public String getSupportedTypes() {
