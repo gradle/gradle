@@ -19,12 +19,14 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * A deployment descriptor such as application.xml.
@@ -50,101 +52,52 @@ public interface DeploymentDescriptor {
      * The version of application.xml. Required. Valid versions are "1.3", "1.4", "5", "6", "7", "8", "9", "10" and "11". Defaults to "6".
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getVersion();
-
-    /**
-     * Sets the version.
-     *
-     * @since 1.0
-     */
-    void setVersion(String version);
+    @ReplacesEagerProperty
+    Property<String> getVersion();
 
     /**
      * The application name. Optional. Only valid with version 6.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getApplicationName();
-
-    /**
-     * Sets the application name.
-     *
-     * @since 1.0
-     */
-    void setApplicationName(String applicationName);
+    @ReplacesEagerProperty
+    Property<String> getApplicationName();
 
     /**
      * Whether to initialize modules in the order they appear in the descriptor, with the exception of client modules.
      * Optional. Only valid with version 6.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Boolean getInitializeInOrder();
-
-    /**
-     * Sets the initialize in order.
-     *
-     * @since 1.0
-     */
-    void setInitializeInOrder(Boolean initializeInOrder);
+    @ReplacesEagerProperty
+    Property<Boolean> getInitializeInOrder();
 
     /**
      * The application description. Optional.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getDescription();
-
-    /**
-     * Sets the description.
-     *
-     * @since 1.0
-     */
-    void setDescription(String description);
+    @ReplacesEagerProperty
+    Property<String> getDescription();
 
     /**
      * The application display name. Optional.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getDisplayName();
-
-    /**
-     * Sets the display name.
-     *
-     * @since 1.0
-     */
-    void setDisplayName(String displayName);
+    @ReplacesEagerProperty
+    Property<String> getDisplayName();
 
     /**
      * The name of the directory to look for libraries in. Optional. If not specified, {@link org.gradle.plugins.ear.Ear#getLibDirName()} is used.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getLibraryDirectory();
-
-    /**
-     * Sets the library directory.
-     *
-     * @since 1.0
-     */
-    void setLibraryDirectory(String libraryDirectory);
+    @ReplacesEagerProperty
+    Property<String> getLibraryDirectory();
 
     /**
      * List of module descriptors. Must not be empty. Non-null and order-maintaining by default. Must maintain order if
      * initializeInOrder is <code>true</code>.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Set<EarModule> getModules();
-
-    /**
-     * Sets the modules.
-     *
-     * @since 1.0
-     */
-    void setModules(Set<EarModule> modules);
+    @ReplacesEagerProperty
+    SetProperty<EarModule> getModules();
 
     /**
      * Add a module to the deployment descriptor.
@@ -186,15 +139,8 @@ public interface DeploymentDescriptor {
      * List of security roles. Optional. Non-null and order-maintaining by default.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Set<EarSecurityRole> getSecurityRoles();
-
-    /**
-     * Sets the security roles.
-     *
-     * @since 1.0
-     */
-    void setSecurityRoles(Set<EarSecurityRole> securityRoles);
+    @ReplacesEagerProperty
+    SetProperty<EarSecurityRole> getSecurityRoles();
 
     /**
      * Add a security role to the deployment descriptor.
@@ -230,15 +176,8 @@ public interface DeploymentDescriptor {
      * module, set <code>moduleTypeMappings["myJavaModule.jar"] = "java"</code>.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Map<String, String> getModuleTypeMappings();
-
-    /**
-     * Sets the module type mappings.
-     *
-     * @since 1.0
-     */
-    void setModuleTypeMappings(Map<String, String> moduleTypeMappings);
+    @ReplacesEagerProperty
+    MapProperty<String, String> getModuleTypeMappings();
 
     /**
      * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
