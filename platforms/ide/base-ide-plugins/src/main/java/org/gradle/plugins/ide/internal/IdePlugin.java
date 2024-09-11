@@ -22,9 +22,12 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -171,12 +174,11 @@ public abstract class IdePlugin implements Plugin<Project> {
         lifecycleTask.configure(new Action<Task>() {
             @Override
             public void execute(Task lifecycleTask) {
-                lifecycleTask.doLast(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        LOGGER.lifecycle(String.format("Generated %s at %s", workspace.getDisplayName(), new ConsoleRenderer().asClickableFileUrl(workspace.getLocation().get().getAsFile())));
-                    }
-                });
+                String displayName = workspace.getDisplayName();
+                Provider<? extends FileSystemLocation> location = workspace.getLocation();
+                lifecycleTask.doLast(SerializableLambdas.action(t -> {
+                    LOGGER.lifecycle(String.format("Generated %s at %s", displayName, new ConsoleRenderer().asClickableFileUrl(location.get().getAsFile())));
+                }));
             }
         });
 
