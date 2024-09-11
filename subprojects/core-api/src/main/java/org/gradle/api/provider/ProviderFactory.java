@@ -17,7 +17,6 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
@@ -84,7 +83,6 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      * @since 7.5
      */
-    @Incubating
     Provider<Map<String, String>> environmentVariablesPrefixedBy(String variableNamePrefix);
 
     /**
@@ -95,7 +93,6 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      * @since 7.5
      */
-    @Incubating
     Provider<Map<String, String>> environmentVariablesPrefixedBy(Provider<String> variableNamePrefix);
 
     /**
@@ -124,7 +121,6 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      * @since 7.5
      */
-    @Incubating
     Provider<Map<String, String>> systemPropertiesPrefixedBy(String variableNamePrefix);
 
     /**
@@ -135,7 +131,6 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      * @since 7.5
      */
-    @Incubating
     Provider<Map<String, String>> systemPropertiesPrefixedBy(Provider<String> variableNamePrefix);
 
     /**
@@ -164,7 +159,6 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      * @since 8.0
      */
-    @Incubating
     Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix);
 
     /**
@@ -175,7 +169,6 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      * @since 8.0
      */
-    @Incubating
     Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix);
 
     /**
@@ -225,7 +218,6 @@ public interface ProviderFactory {
      * @return an interface that allows lazy access to the process' output.
      * @since 7.5
      */
-    @Incubating
     ExecOutput exec(Action<? super ExecSpec> action);
 
     /**
@@ -243,7 +235,6 @@ public interface ProviderFactory {
      *
      * @since 7.5
      */
-    @Incubating
     ExecOutput javaexec(Action<? super JavaExecSpec> action);
 
     /**

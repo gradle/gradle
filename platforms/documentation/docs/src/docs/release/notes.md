@@ -193,6 +193,20 @@ The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) A
 It allows users to check the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
 and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
 
+### `ProviderFactory` methods
+
+The following methods of the [`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) are now stable:
+* [`exec`](javadoc/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action))
+* [`javaexec`](javadoc/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action))
+* [`environmentVariablesPrefixedBy(String)`](javadoc/org/gradle/api/provider/ProviderFactory.html#environmentVariablesPrefixedBy(java.lang.String))
+* [`environmentVariablesPrefixedBy(Provider)`](javadoc/org/gradle/api/provider/ProviderFactory.html#environmentVariablesPrefixedBy(org.gradle.api.provider.Provider))
+* [`gradlePropertiesPrefixedBy(String)`](javadoc/org/gradle/api/provider/ProviderFactory.html#gradlePropertiesPrefixedBy(java.lang.String))
+* [`gradlePropertiesPrefixedBy(Provider)`](javadoc/org/gradle/api/provider/ProviderFactory.html#gradlePropertiesPrefixedBy(org.gradle.api.provider.Provider))
+* [`systemPropertiesPrefixedBy(String)`](javadoc/org/gradle/api/provider/ProviderFactory.html#systemPropertiesPrefixedBy(java.lang.String))
+* [`systemPropertiesPrefixedBy(Provider)`](javadoc/org/gradle/api/provider/ProviderFactory.html#systemPropertiesPrefixedBy(org.gradle.api.provider.Provider))
+
+The [`ExecOutput`](javadoc/org/gradle/process/ExecOutput.html) and [`ExecOutput.StandardStreamContent`](javadoc/org/gradle/process/ExecOutput.StandardStreamContent.html) interfaces are now stable too.
+
 ## Fixed issues
 
 <!--
