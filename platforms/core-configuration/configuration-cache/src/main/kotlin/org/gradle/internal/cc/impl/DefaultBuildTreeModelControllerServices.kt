@@ -76,6 +76,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
 
         private
+        val isolatedProjectsToolingModelsConfigureOnDemand =
+            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tooling", false)
+
+        private
         val isolatedProjectsTasksConfigureOnDemand =
             InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
     }
@@ -124,6 +128,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     ): BuildModelParameters {
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
+        val requiresTasks = requirements.isRunsTasks
         val isolatedProjects = startParameter.isolatedProjects.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
@@ -131,11 +136,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
 
         return if (requirements.isCreatesModel) {
-            // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
+            val configureOnDemand = isolatedProjects && !requiresTasks &&
+                options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get()
             DefaultBuildModelParameters(
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
-                configureOnDemand = false,
+                configureOnDemand = configureOnDemand,
                 configurationCache = isolatedProjects,
                 isolatedProjects = isolatedProjects,
                 intermediateModelCache = isolatedProjects,
