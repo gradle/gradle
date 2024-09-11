@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
@@ -58,7 +58,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final ImmutableAttributes overriddenAttributes;
     private final List<IvyArtifactName> artifacts;
     private final ExcludeSpec exclusions;
-    private final List<Capability> capabilities;
+    private final Set<CapabilitySelector> capabilitySelectors;
     private final GraphVariantSelector graphVariantSelector;
     private final ImmutableAttributesSchema consumerSchema;
 
@@ -81,7 +81,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.overriddenAttributes = dependency.getAttributes();
         this.artifacts = dependency.getDependencyMetadata().getArtifacts();
         this.exclusions = dependency.getExclusions();
-        this.capabilities = dependency.getSelector().getRequested().getRequestedCapabilities();
+        this.capabilitySelectors = dependency.getSelector().getRequested().getCapabilitySelectors();
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;
         this.ownArtifacts = calculatedValueContainerFactory.create(
@@ -158,7 +158,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         // First, find the graph variant containing the artifact variants to select among.
         VariantGraphResolveState graphVariant = graphVariantSelector.selectByAttributeMatchingLenient(
             requestAttributes,
-            capabilities,
+            capabilitySelectors,
             component,
             consumerSchema,
             Collections.emptyList()

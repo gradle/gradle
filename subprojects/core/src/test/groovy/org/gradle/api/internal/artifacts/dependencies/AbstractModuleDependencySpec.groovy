@@ -340,21 +340,42 @@ abstract class AbstractModuleDependencySpec extends Specification {
     void "copy does not mutate original capabilities"() {
         dependency.capabilities {
             it.requireCapability('org:original:1')
+            it.requireFeature('foo')
         }
-        def parsedCapability = dependency.requestedCapabilities[0]
+        def capabilitySelector1 = dependency.capabilitySelectors[0]
+        def capabilitySelector2 = dependency.capabilitySelectors[1]
 
         when:
         def copy = dependency.copy()
         copy.capabilities {
             it.requireCapability('org:copy:1')
+            it.requireFeature('bar')
         }
 
         then:
-        dependency.requestedCapabilities == [parsedCapability]
-        copy.requestedCapabilities.size() == 2
-        copy.requestedCapabilities[0] == parsedCapability
-        copy.requestedCapabilities[1].name == 'copy'
+        dependency.capabilitySelectors == [capabilitySelector1, capabilitySelector2] as Set
+        copy.capabilitySelectors.size() == 4
+        copy.capabilitySelectors[0] == capabilitySelector1
+        copy.capabilitySelectors[1] == capabilitySelector2
+        copy.capabilitySelectors[2].name == 'copy'
+        copy.capabilitySelectors[3].featureName == 'bar'
+    }
 
+    def "requested capabilities exposes all capability selector types"() {
+        when:
+        dependency.capabilities {
+            it.requireCapability('org:original:1')
+            it.requireFeature('foo')
+        }
+
+        then:
+        dependency.requestedCapabilities.size() == 2
+        dependency.requestedCapabilities[0].group == 'org'
+        dependency.requestedCapabilities[0].name == 'original'
+        dependency.requestedCapabilities[0].version == '1'
+        dependency.requestedCapabilities[1].group == 'org.gradle'
+        dependency.requestedCapabilities[1].name == 'gradle-core-foo'
+        dependency.requestedCapabilities[1].version == '4.4-beta2'
     }
 
     def "creates deep copy"() {
@@ -381,7 +402,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules
         assert copiedDependency.attributes == dependency.attributes
-        assert copiedDependency.requestedCapabilities == dependency.requestedCapabilities
+        assert copiedDependency.capabilitySelectors == dependency.capabilitySelectors
 
         assert copiedDependency.attributes.is(ImmutableAttributes.EMPTY) || !copiedDependency.attributes.is(dependency.attributes)
         assert !copiedDependency.artifacts.is(dependency.artifacts)

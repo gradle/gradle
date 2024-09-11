@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.artifacts.capability.SpecificCapabilitySelector;
+import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
@@ -38,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Uses attribute matching to select a list of one or more variants for a component in a graph
@@ -72,14 +75,15 @@ public class GraphVariantSelector {
 
     public VariantGraphResolveState selectByAttributeMatching(
         ImmutableAttributes consumerAttributes,
-        Collection<? extends Capability> explicitRequestedCapabilities,
+        Set<CapabilitySelector> explicitRequestedCapabilities,
         ComponentGraphResolveState targetComponentState,
         ImmutableAttributesSchema consumerSchema,
         List<IvyArtifactName> requestedArtifacts
     ) {
         VariantGraphResolveState result = selectByAttributeMatchingLenient(
             consumerAttributes,
-            explicitRequestedCapabilities, targetComponentState,
+            explicitRequestedCapabilities,
+            targetComponentState,
             consumerSchema,
             requestedArtifacts
         );
@@ -88,7 +92,7 @@ public class GraphVariantSelector {
             ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
             AttributeMatcher attributeMatcher = attributeSchemaServices.getMatcher(consumerSchema, targetComponent.getAttributesSchema());
             GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
-            throw failureHandler.noCompatibleVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), candidates);
+            throw failureHandler.noCompatibleVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, explicitRequestedCapabilities, candidates);
         }
 
         return result;
@@ -97,7 +101,7 @@ public class GraphVariantSelector {
     @Nullable
     public VariantGraphResolveState selectByAttributeMatchingLenient(
         ImmutableAttributes consumerAttributes,
-        Collection<? extends Capability> explicitRequestedCapabilities,
+        Set<CapabilitySelector> explicitRequestedCapabilities,
         ComponentGraphResolveState targetComponentState,
         ImmutableAttributesSchema consumerSchema,
         List<IvyArtifactName> requestedArtifacts
@@ -111,7 +115,7 @@ public class GraphVariantSelector {
         List<? extends VariantGraphResolveState> allVariants = candidates.getVariantsForAttributeMatching();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw failureHandler.noVariantsWithMatchingCapabilitiesFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), allVariants);
+            throw failureHandler.noVariantsWithMatchingCapabilitiesFailure(attributeMatcher, targetComponentState, consumerAttributes, explicitRequestedCapabilities, allVariants);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
@@ -151,7 +155,7 @@ public class GraphVariantSelector {
         }
 
         if (!matches.isEmpty()) {
-            throw failureHandler.ambiguousVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, ImmutableCapabilities.of(explicitRequestedCapabilities), matches);
+            throw failureHandler.ambiguousVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, explicitRequestedCapabilities, matches);
         }
 
         return null;
@@ -166,7 +170,7 @@ public class GraphVariantSelector {
             // We wanted to do variant matching, but there were no variants in the target component.
             // So, we fell back to looking for the legacy (`default`) configuration, but it didn't exist.
             // So, there are no variants to select from, and selection fails here.
-            throw failureHandler.noVariantsFailure(targetComponentState, consumerAttributes, ImmutableCapabilities.EMPTY);
+            throw failureHandler.noVariantsFailure(targetComponentState, consumerAttributes);
         }
 
         validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema);
@@ -252,7 +256,7 @@ public class GraphVariantSelector {
         }
     }
 
-    private ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveState> consumableVariants, boolean lenient) {
+    private ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(ComponentGraphResolveMetadata targetComponent, Set<CapabilitySelector> explicitRequestedCapabilities, Collection<? extends VariantGraphResolveState> consumableVariants, boolean lenient) {
         if (consumableVariants.isEmpty()) {
             return ImmutableList.of();
         }
@@ -283,21 +287,41 @@ public class GraphVariantSelector {
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private MatchResult providesAllCapabilities(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, ImmutableCapabilities providerCapabilities) {
+    private static MatchResult providesAllCapabilities(
+        ComponentGraphResolveMetadata targetComponent,
+        Set<CapabilitySelector> explicitRequestedCapabilities,
+        ImmutableCapabilities providerCapabilities
+    ) {
         ImmutableSet<ImmutableCapability> providerCapabilitiesSet = providerCapabilities.asSet();
+        ModuleIdentifier targetModuleId = targetComponent.getModuleVersionId().getModule();
         if (providerCapabilitiesSet.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {
-                Capability requested = explicitRequestedCapabilities.iterator().next();
-                ModuleVersionIdentifier mvi = targetComponent.getModuleVersionId();
-                if (requested.getGroup().equals(mvi.getGroup()) && requested.getName().equals(mvi.getName())) {
-                    return MatchResult.EXACT_MATCH;
+                CapabilitySelector requested = explicitRequestedCapabilities.iterator().next();
+                if (requested instanceof SpecificCapabilitySelector) {
+                    SpecificCapabilitySelector exactSelector = (SpecificCapabilitySelector) requested;
+                    if (exactSelector.getGroup().equals(targetModuleId.getGroup()) && exactSelector.getName().equals(targetModuleId.getName())) {
+                        return MatchResult.EXACT_MATCH;
+                    }
                 }
+                // A feature capability selector should never match the default capability of a component.
             }
         }
-        for (Capability requested : explicitRequestedCapabilities) {
-            String requestedGroup = requested.getGroup();
-            String requestedName = requested.getName();
+        for (CapabilitySelector requested : explicitRequestedCapabilities) {
+            String requestedGroup;
+            String requestedName;
+            if (requested instanceof SpecificCapabilitySelector) {
+                SpecificCapabilitySelector specificSelector = (SpecificCapabilitySelector) requested;
+                requestedGroup = specificSelector.getGroup();
+                requestedName = specificSelector.getName();
+            } else if (requested instanceof FeatureCapabilitySelector) {
+                FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) requested;
+                requestedGroup = targetModuleId.getGroup();
+                requestedName = targetModuleId.getName() + "-" + featureSelector.getFeatureName();
+            } else {
+                throw new IllegalStateException("Unknown capability selector type: " + requested.getClass());
+            }
+
             boolean found = false;
             for (Capability provided : providerCapabilitiesSet) {
                 if (provided.getGroup().equals(requestedGroup) && provided.getName().equals(requestedName)) {

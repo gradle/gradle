@@ -145,7 +145,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -183,7 +183,7 @@ class DefaultIvyPublicationTest extends Specification {
         projectDependency.artifacts >> []
         projectDependency.excludeRules >> [exclude]
         projectDependency.attributes >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
 
         when:
         publication.from(componentWithDependency(projectDependency))

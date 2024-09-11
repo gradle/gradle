@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.VersionConstraint
+import org.gradle.api.artifacts.capability.CapabilitySelector
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.Capability
 
@@ -107,6 +108,9 @@ abstract class ClientModuleDelegate : org.gradle.api.artifacts.ClientModule {
 
     override fun getRequestedCapabilities(): MutableList<Capability> =
         delegate.requestedCapabilities
+
+    override fun getCapabilitySelectors(): MutableSet<CapabilitySelector> =
+        delegate.capabilitySelectors
 
     override fun getVersionConstraint(): VersionConstraint =
         delegate.versionConstraint

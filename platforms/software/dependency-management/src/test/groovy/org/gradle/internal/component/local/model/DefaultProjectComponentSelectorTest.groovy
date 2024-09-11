@@ -15,12 +15,16 @@
  */
 package org.gradle.internal.component.local.model
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -32,7 +36,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, [])
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, ImmutableSet.of())
 
         then:
         defaultBuildComponentSelector.projectPath == ":project:path"
@@ -76,10 +80,26 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "matches id (#buildName #projectPath)"() {
         expect:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, [])
+        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName"), ImmutableAttributes.EMPTY, ImmutableSet.of())
         def sameIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
         def differentIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path2"), Path.path(":project:path"), "projectName")
         selector.matchesStrictly(sameIdPath)
         !selector.matchesStrictly(differentIdPath)
+    }
+
+    def "capabilities are exposed"() {
+        def capabilities = ImmutableSet.of(
+            new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1")),
+            new DefaultFeatureCapabilitySelector("foo")
+        )
+        def identity = new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        ProjectComponentSelector selector = new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, capabilities)
+
+        expect:
+        selector.capabilitySelectors == capabilities
+
+        selector.requestedCapabilities.size() == 1 // We do not have access to the project instance and cannot derived a capability for the feature selector.
+        selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilities[0]).backingCapability
+
     }
 }
