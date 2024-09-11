@@ -21,6 +21,8 @@ import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationRunner;
 
+import static org.gradle.configuration.DeferredProjectEvaluationCondition.skipEvaluationDuringProjectPreparation;
+
 public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildOperationRunner buildOperationRunner;
     private final ProjectConfigurer projectConfigurer;
@@ -38,7 +40,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
+        if (skipEvaluationDuringProjectPreparation(buildModelParameters, gradle)) {
             return;
         }
 
