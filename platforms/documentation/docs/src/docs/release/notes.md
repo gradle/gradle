@@ -53,6 +53,25 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+
+#### Parallel caching for faster loading times
+
+Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
+To enable the feature in `gradle.properties`:
+
+```text
+// gradle.properties
+org.gradle.configuration-cache.parallel=true
+```
+
+Note that this is an incubating feature and may expose concurrency issues in some builds. 
+
+See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
+
 <a name="java-compiler-error-rendering"></a>
 ### Java compiler errors in the failure report
 
@@ -96,13 +115,24 @@ Note that the current solution reports upon _failures_. If only warnings happen 
 The feature also works with the [`--continue`](userguide/command_line_interface.html#sec:continue_build_on_failure) flag, and the bottom report will contain a per-task report of all the compilation failures.
 
 <a name="native-plugin-improvements"></a>
-### Swift and C++ plugin improvements
+### Core plugin improvements
 
-#### Configuration cache compatibility
+Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
 
-The Swift and C++ plugins are now configuration cache compatible.
+#### Configuration cache compatibility for Swift and C++ plugins
 
-The `cpp-unit` and `xctest` plugins are not yet compatible.
+The following Swift and C++ plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible: 
+- [Swift application](userguide/swift_application_plugin.html)
+- [Swift library](userguide/swift_library_plugin.html)
+- [XCTest](userguide/xctest_plugin.html)
+- [C++ application](userguide/cpp_application_plugin.html)
+- [C++ library](userguide/cpp_library_plugin.html)
+- [CppUnit](userguide/cpp_unit_test_plugin.html)
+- [GoogleTest](userguide/cpp_testing.html)
+- [Visual Studio](userguide/visual_studio_plugin.html)
+
+The [`xcode`](userguide/xcode_plugin.html) is not yet compatible.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -116,9 +146,11 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Stable Build Features API
+
+The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
+It allows checking the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
+and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
 
 ## Fixed issues
 

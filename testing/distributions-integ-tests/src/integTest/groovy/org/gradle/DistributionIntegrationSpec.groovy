@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 144
+    protected static final THIRD_PARTY_LIB_COUNT = 145
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -50,6 +50,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-cache-spi",
         "build-events",
         "build-operations",
+        "build-operations-trace",
         "build-option",
         "build-process-services",
         "build-state",
@@ -73,6 +74,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "enterprise-workers",
         "execution",
         "file-collections",
+        "file-operations",
         "file-temp",
         "file-watching",
         "files",

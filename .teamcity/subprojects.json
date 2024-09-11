@@ -133,6 +133,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-operations-trace",
+    "path": "platforms/core-runtime/build-operations-trace",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-option",
     "path": "platforms/core-runtime/build-option",
     "unitTests": true,
@@ -487,6 +494,13 @@
     "path": "platforms/core-configuration/file-collections",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "file-operations",
+    "path": "platforms/core-configuration/file-operations",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

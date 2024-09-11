@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.logging)
     implementation(projects.modelCore)
@@ -58,4 +59,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

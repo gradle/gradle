@@ -28,7 +28,7 @@ pluginManagement {
 
 plugins {
     id("gradlebuild.build-environment")
-    id("com.gradle.develocity").version("3.17.6") // Run `build-logic-settings/update-develocity-plugin-version.sh <new-version>` to update
+    id("com.gradle.develocity").version("3.18") // Run `build-logic-settings/update-develocity-plugin-version.sh <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version ("0.8.0")
 }
@@ -75,6 +75,7 @@ val core = platform("core") {
         subproject("base-services")
         subproject("build-configuration")
         subproject("build-operations")
+        subproject("build-operations-trace")
         subproject("build-option")
         subproject("build-process-services")
         subproject("build-profile")
@@ -140,6 +141,7 @@ val core = platform("core") {
         subproject("dependency-management-serialization-codecs")
         subproject("encryption-services")
         subproject("file-collections")
+        subproject("file-operations")
         subproject("flow-services")
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")

@@ -160,15 +160,22 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     ModuleDependency setTransitive(boolean transitive);
 
     /**
-     * Returns the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
-     * selecting the matching configuration. If {@code null}, a default configuration should be used.
+     * Returns the requested target configuration of this dependency.
+     * <p>
+     * If non-null, this overrides variant-aware dependency resolution and selects the
+     * variant in the target component matching the requested configuration name.
      */
     @Nullable
     String getTargetConfiguration();
 
     /**
-     * Sets the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
-     * selecting the matching configuration. If {@code null}, a default configuration will be used.
+     * Sets the requested target configuration of this dependency.
+     * <p>
+     * This overrides variant-aware dependency resolution and selects the variant in the
+     * target component matching the requested configuration name.
+     * <p>
+     * Using this method is <strong>discouraged</strong> except for selecting
+     * configurations from Ivy components.
      *
      * @since 4.0
      */

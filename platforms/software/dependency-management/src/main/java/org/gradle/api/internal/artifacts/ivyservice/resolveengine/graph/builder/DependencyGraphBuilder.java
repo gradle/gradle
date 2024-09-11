@@ -45,7 +45,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -514,7 +514,7 @@ public class DependencyGraphBuilder {
             Set<VariantGraphResolveMetadata> incompatibleNodeMetadatas = incompatibleNodes.stream()
                 .map(NodeState::getMetadata)
                 .collect(Collectors.toSet());
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected.getMetadata(), incompatibleNodeMetadatas);
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

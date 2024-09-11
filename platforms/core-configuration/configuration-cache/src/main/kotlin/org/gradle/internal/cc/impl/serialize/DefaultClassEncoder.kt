@@ -19,9 +19,9 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.ClassLoaderRole
-import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIdentities
 
 
@@ -62,7 +62,7 @@ class DefaultClassEncoder(
     private
     val scopes = WriteIdentities()
 
-    override fun WriteContext.encodeClass(type: Class<*>) {
+    override fun Encoder.encodeClass(type: Class<*>) {
         val id = classes.getId(type)
         if (id != null) {
             writeSmallInt(id)
@@ -74,21 +74,19 @@ class DefaultClassEncoder(
         }
     }
 
-    override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean {
+    override fun Encoder.encodeClassLoader(classLoader: ClassLoader?) {
         val scope = classLoader?.let { scopeLookup.scopeFor(it) }
         if (scope == null) {
             writeBoolean(false)
-            return false
         } else {
             writeBoolean(true)
             writeScope(scope.first)
             writeBoolean(scope.second.local)
-            return true
         }
     }
 
     private
-    fun WriteContext.writeScope(scope: ClassLoaderScopeSpec) {
+    fun Encoder.writeScope(scope: ClassLoaderScopeSpec) {
         val id = scopes.getId(scope)
         if (id != null) {
             writeSmallInt(id)
@@ -117,7 +115,7 @@ class DefaultClassEncoder(
     }
 
     private
-    fun WriteContext.writeHashCode(hashCode: HashCode?) {
+    fun Encoder.writeHashCode(hashCode: HashCode?) {
         if (hashCode == null) {
             writeBoolean(false)
         } else {

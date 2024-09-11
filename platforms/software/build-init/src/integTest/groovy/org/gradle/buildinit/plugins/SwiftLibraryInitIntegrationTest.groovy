@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -28,7 +27,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-@Requires(UnitTestPreconditions.NotMacOsM1) // M1 Macs need modern Xcode to compile aarch64 binaries
+@Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -49,7 +48,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-library', '--dsl', scriptDsl.id)
@@ -75,7 +73,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-library', '--project-name', 'greeting', '--dsl', scriptDsl.id)
@@ -101,8 +98,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-
-    @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/swift/hola.swift") << """

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMig
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.provider.Providers
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
@@ -44,6 +45,7 @@ class DefaultScriptHandlerTest extends Specification {
     def depMgmtServices = Mock(DependencyResolutionServices) {
         getAttributesSchema() >> Stub(AttributesSchemaInternal)
         getObjectFactory() >> objectFactory
+        getAttributeDescribers() >> Stub(AttributeDescriberRegistry)
     }
     def resolutionContext = new ScriptClassPathResolutionContext(0L, Providers.notDefined(), dependencyHandler)
     def baseClassLoader = new ClassLoader() {}

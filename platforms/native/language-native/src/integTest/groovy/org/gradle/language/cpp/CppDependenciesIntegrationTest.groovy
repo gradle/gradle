@@ -57,7 +57,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
 
     // NOTE: This method is named in a short way because of the maximum path length
     // on Windows.
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "from VCS"() {
         given:
         createDirs("app")

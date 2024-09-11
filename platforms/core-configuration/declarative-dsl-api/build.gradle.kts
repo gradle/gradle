@@ -8,3 +8,6 @@ description = "Annotation classes used by the Declarative DSL"
 dependencies {
     implementation(projects.stdlibJavaExtensions)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

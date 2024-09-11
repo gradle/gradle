@@ -173,16 +173,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
         setUpAgentIfNeeded(testType, executer)
-        disableIfNeeded(testType, executer)
     }
-
-
-internal
-fun IntegrationTest.disableIfNeeded(testType: TestType, executer: String) {
-    if (testType == TestType.INTEGRATION && executer == "isolatedProjects") {
-        isEnabled = false
-    }
-}
 
 
 private

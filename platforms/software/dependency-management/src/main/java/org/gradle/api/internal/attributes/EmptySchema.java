@@ -19,9 +19,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -45,16 +43,6 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         return disambiguationRule;
-    }
-
-    @Override
-    public List<AttributeDescriber> getConsumerDescribers() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void addConsumerDescriber(AttributeDescriber describer) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -111,16 +99,6 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return null;
-    }
-
-    @Override
-    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getFailureDescribers(Class<FAILURE> failureType) {
-        return Collections.emptyList();
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {

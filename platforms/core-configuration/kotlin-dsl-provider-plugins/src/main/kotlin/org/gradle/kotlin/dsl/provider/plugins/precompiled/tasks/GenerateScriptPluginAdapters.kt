@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
@@ -39,14 +41,14 @@ abstract class GenerateScriptPluginAdapters : DefaultTask() {
 
     @get:Internal
     internal
-    lateinit var plugins: List<PrecompiledScriptPlugin>
+    abstract val plugins: ListProperty<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
-    val scriptFiles: Set<File>
+    val scriptFiles: Provider<Set<File>>
         get() = scriptPluginFilesOf(plugins)
 
     @TaskAction
@@ -54,7 +56,7 @@ abstract class GenerateScriptPluginAdapters : DefaultTask() {
     internal
     fun generate() =
         outputDirectory.withOutputDirectory { outputDir ->
-            for (scriptPlugin in plugins) {
+            for (scriptPlugin in plugins.get()) {
                 scriptPlugin.writeScriptPluginAdapterTo(outputDir)
             }
         }

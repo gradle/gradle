@@ -185,7 +185,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
 
-        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentIdentity, name);
+        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentIdentity);
         RootComponentMetadataBuilder componentMetadataBuilder = rootComponentMetadataBuilder.newBuilder(componentIdentity, detachedConfigurationsProvider);
 
         @SuppressWarnings("deprecation")

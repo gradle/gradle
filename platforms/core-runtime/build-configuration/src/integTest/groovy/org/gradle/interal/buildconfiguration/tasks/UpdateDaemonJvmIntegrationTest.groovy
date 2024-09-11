@@ -22,7 +22,6 @@ import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
@@ -69,13 +68,10 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm for valid Java 8 versions Then build properties are populated with expected values"() {
         when:
-        run "updateDaemonJvm", "--jvm-version=${version}"
+        run "updateDaemonJvm", "--jvm-version=8"
 
         then:
         assertJvmCriteria(JavaVersion.VERSION_1_8)
-
-        where:
-        version << ["1.8", "8"]
     }
 
     def "When execute updateDaemonJvm with invalid argument --jvm-version option Then fails with expected exception message"() {
@@ -84,7 +80,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
         then:
         failureDescriptionContains("Problem configuring option 'jvm-version' on task ':updateDaemonJvm' from command line.")
-        failureHasCause("Could not determine Java version from '${invalidVersion}'")
+        failureHasCause("JavaLanguageVersion must be a positive integer, not '${invalidVersion}'")
 
         where:
         invalidVersion << ["0", "-10", 'asdf']
@@ -110,7 +106,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         run "updateDaemonJvm", "--jvm-vendor=$vendor"
 
         then:
-        assertJvmCriteria(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION, vendor)
+        assertJvmCriteria(JavaVersion.current(), vendor)
 
         where:
         vendor << ["ADOPTIUM", "ADOPTOPENJDK", "AMAZON", "APPLE", "AZUL", "BELLSOFT", "GRAAL_VM", "HEWLETT_PACKARD", "IBM", "JETBRAINS", "MICROSOFT", "ORACLE", "SAP", "TENCENT", "UNKNOWN"]
@@ -122,7 +118,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         run "updateDaemonJvm", "--toolchain-implementation=$implementation"
 
         then:
-        assertJvmCriteria(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION, null, implementation)
+        assertJvmCriteria(JavaVersion.current(), null, implementation)
 
         where:
         implementation << ["VENDOR_SPECIFIC", "J9"]

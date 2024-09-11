@@ -16,25 +16,20 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.hamcrest.CoreMatchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'
-    ])
     def "sources are built with Swift tools"() {
         given:
         makeSingleProject()
@@ -101,13 +96,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithoutComponentIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest'
-    ])
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
     def "can build Swift 4 source code on Swift 5 compiler"() {
         given:
@@ -196,13 +184,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest',
-        'SwiftXCTestComponentWithoutComponentIntegrationTest'
-    ])
     def "throws exception with meaningful message when building Swift 3 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -257,13 +238,6 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestComponentWithApplicationIntegrationTest',
-        'SwiftXCTestComponentWithoutComponentIntegrationTest'
-    ])
     def "can compile Swift 5 component on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -341,6 +315,18 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             return "macOS"
         } else {
             return osFamily
+        }
+    }
+
+    protected String getCurrentHostOperatingSystemName() {
+        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+    }
+
+    protected String getCurrentHostArchName() {
+        if (DefaultNativePlatform.getCurrentArchitecture().arm64) {
+            return "aarch64"
+        } else {
+            return "x86-64"
         }
     }
 

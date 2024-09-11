@@ -29,3 +29,6 @@ dependencies {
 
     runtimeOnly(libs.groovy)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

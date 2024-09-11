@@ -16,16 +16,12 @@
 
 package org.gradle.launcher.continuous
 
-
 import org.gradle.cache.UnscopedCacheBuilderFactory
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 
-
 class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    @ToBeFixedForConfigurationCache
     def "reuses #service across continuous builds" () {
         def triggerFileName = "trigger"
         def triggerFile = file(triggerFileName).createFile()
@@ -38,9 +34,10 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
 
             task captureService {
                 inputs.file file("$triggerFileName")
-                outputs.file "$idFileName"
+                def idFile = file("${idFileName}")
+                outputs.file idFile
+
                 doLast {
-                    def idFile = file("${idFileName}")
                     def service = services.get(${service})
                     idFile << System.identityHashCode(service) + "\\n"
                 }

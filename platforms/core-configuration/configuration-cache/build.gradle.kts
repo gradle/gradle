@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.execution)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.fileWatching)
     implementation(projects.files)
     implementation(projects.flowServices)
@@ -66,6 +67,7 @@ dependencies {
 
     implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.beanSerializationServices)
@@ -113,4 +115,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

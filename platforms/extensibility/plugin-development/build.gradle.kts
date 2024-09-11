@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.buildOption)
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
+    implementation(projects.fileOperations)
     implementation(projects.hashing)
     implementation(projects.ivy)
     implementation(projects.languageJava)
@@ -93,4 +94,7 @@ integTest.usesJavadocCodeSnippets = true
 
 strictCompile {
     ignoreDeprecations()
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

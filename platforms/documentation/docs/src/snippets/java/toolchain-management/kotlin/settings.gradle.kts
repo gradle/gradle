@@ -42,7 +42,7 @@ abstract class MadeUpPlugin: Plugin<Settings> {
     protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
 
     override fun apply(settings: Settings) {
-        settings.plugins.apply("jvm-toolchain-management")
+        settings.getPluginManager().apply("jvm-toolchain-management")
 
         val registry: JavaToolchainResolverRegistry = toolchainResolverRegistry
         registry.register(MadeUpResolver::class.java)

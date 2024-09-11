@@ -73,3 +73,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

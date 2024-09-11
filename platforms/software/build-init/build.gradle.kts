@@ -34,10 +34,11 @@ dependencies {
     api(projects.fileCollections)
     api(projects.logging)
     api(projects.platformJvm)
-    api(projects.toolchainsJvmShared)
+    api(projects.jvmServices)
     api(projects.workers)
     api(projects.daemonServices)
 
+    implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
     implementation(projects.pluginsApplication) {
@@ -112,7 +113,3 @@ packageCycles {
 }
 
 integTest.testJvmXmx = "1g"
-
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}

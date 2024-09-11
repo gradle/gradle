@@ -89,3 +89,6 @@ packageCycles {
     // (api.internal.provider -> ConfigureUtil, DeferredUtil -> api.internal.provider)
     excludePatterns.add("org/gradle/util/internal/*")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

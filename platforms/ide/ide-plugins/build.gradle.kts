@@ -101,3 +101,6 @@ packageCycles {
 testFilesCleanup.reportOnly = true
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

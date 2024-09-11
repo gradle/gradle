@@ -62,3 +62,6 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

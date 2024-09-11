@@ -478,12 +478,12 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         assertVerificationError(terse) {
-            whenTerse """Dependency verification failed for configuration ':classpath'
+            whenTerse """Dependency verification failed for configuration 'classpath'
 2 artifacts failed verification:
   - myplugin-1.0.jar (com:myplugin:1.0) from repository maven
   - myplugin-1.0.pom (com:myplugin:1.0) from repository maven"""
 
-            whenVerbose """Dependency verification failed for configuration ':classpath':
+            whenVerbose """Dependency verification failed for configuration 'classpath':
   - On artifact myplugin-1.0.jar (com:myplugin:1.0) in repository 'maven': expected a 'sha1' checksum of 'woot' but was"""
         }
 

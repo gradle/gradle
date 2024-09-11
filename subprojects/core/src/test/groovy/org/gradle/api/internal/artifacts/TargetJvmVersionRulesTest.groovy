@@ -20,6 +20,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.attributes.CompatibilityCheckResult
 import org.gradle.api.internal.attributes.CompatibilityRule
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DisambiguationRule
 import org.gradle.api.internal.attributes.MultipleCandidatesResult
@@ -34,7 +35,7 @@ class TargetJvmVersionRulesTest extends Specification {
 
     def setup() {
         AttributesSchema schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
+        JavaEcosystemSupport.configureServices(schema, Mock(AttributeDescriberRegistry), TestUtil.objectFactory())
         compatibilityRules = schema.compatibilityRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
         disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
     }

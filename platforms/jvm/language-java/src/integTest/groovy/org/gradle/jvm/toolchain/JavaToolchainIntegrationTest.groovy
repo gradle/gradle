@@ -191,7 +191,28 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         then:
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
-               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+            .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+    }
+
+    def "does not nag user when toolchain spec is IBM"() {
+        given:
+        buildFile """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                    vendor = JvmVendorSpec.IBM
+                    implementation = JvmImplementation.J9
+                }
+            }
+        """
+
+        expect:
+        fails ':build'
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+            .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
     }
 }

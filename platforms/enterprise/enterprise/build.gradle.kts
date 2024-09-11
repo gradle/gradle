@@ -10,10 +10,6 @@ errorprone {
     )
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}
-
 dependencies {
     api(projects.buildOperations)
     api(projects.baseServices)
@@ -53,6 +49,7 @@ dependencies {
     }
 
     testImplementation(projects.resources)
+    testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.internalIntegTesting)

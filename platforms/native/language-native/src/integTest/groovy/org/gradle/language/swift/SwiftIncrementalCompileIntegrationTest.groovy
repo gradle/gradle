@@ -17,15 +17,16 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.junit.Assume
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
         // Useful for diagnosing swiftc incremental compile failures
@@ -111,7 +112,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
-    @ToBeFixedForConfigurationCache
     def 'removing a file rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
@@ -245,8 +245,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForConfigurationCache
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
     def 'changing Swift language level rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
@@ -259,12 +258,13 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
                 if (project.hasProperty("swift4")) {
                     sourceCompatibility = SwiftVersion.SWIFT4
                 } else {
-                    sourceCompatibility = SwiftVersion.SWIFT3
+                    sourceCompatibility = SwiftVersion.SWIFT5
                 }
             }
          """
 
-        outputs.snapshot { succeeds("compileDebugSwift") }
+        // build for Swift5
+        outputs.snapshot { succeeds("compileDebugSwift", "--info") }
 
         expect:
         // rebuild for Swift4
@@ -272,7 +272,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
 
         and:
-        // rebuild for Swift3
+        // rebuild for Swift5
         succeeds("compileDebugSwift")
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }

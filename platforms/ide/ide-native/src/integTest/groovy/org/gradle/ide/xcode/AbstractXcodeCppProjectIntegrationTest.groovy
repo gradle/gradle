@@ -20,7 +20,9 @@ import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
+import static org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
+import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCode
 
 abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     @Override
@@ -34,10 +36,7 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
     @Override
     protected abstract CppSourceElement getComponentUnderTest()
 
-    @Requires([
-        UnitTestPreconditions.HasXCode,
-        UnitTestPreconditions.NotMacOsM1
-    ]) // TODO KM: Not sure why error message is different on M1
+    @Requires(value = [HasXCode, NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when component product is unbuildable due to architecture"() {
         useXcodebuildTool()

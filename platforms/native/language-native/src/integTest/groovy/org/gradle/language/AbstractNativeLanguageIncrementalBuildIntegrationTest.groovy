@@ -386,8 +386,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         def snapshot = executable.snapshot()
 
         and:
-        def linkerArgs = toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-no_pie'" : "'-Xlinker', '-q'"
-        linkerArgs = escapeString(linkerArgs)
+        // Add some linker args to produce a binary with different content
+        def linkerArgs = escapeString(linkerArgsToProduceBinaryWithNonDefaultContent)
         buildFile << """
         model {
             components {
@@ -417,6 +417,10 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         if (!(toolChain.id in ["mingw", "gcccygwin"])) {
             executable.assertHasChangedSince(snapshot)
         }
+    }
+
+    private String getLinkerArgsToProduceBinaryWithNonDefaultContent() {
+        return toolChain.isVisualCpp() ? "'/DEBUG'" : OperatingSystem.current().isMacOsX() ? "'-Xlinker', '-O0'" : "'-Xlinker', '-q'"
     }
 
     def "cleans up stale object files when executable source file renamed"() {

@@ -64,12 +64,12 @@ class DefaultProblemsReportCreator(
     }
 
     override fun report(reportDir: File, validationFailures: ProblemReporter.ProblemConsumer) {
-        report.writeReportFileTo(reportDir, object : JsonSource {
+        report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
                     property("problemsReport") {
                         jsonObject {
-                            property("totalProblemCount") { write(problemCount.toString()) }
+                            property("totalProblemCount", problemCount.get())
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
                             property("documentationLink", DocumentationRegistry().getDocumentationFor("problem-report"))
@@ -97,9 +97,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                 val fileLocations = problem.locations.filterIsInstance<FileLocation>()
                 if (fileLocations.isNotEmpty()) {
                     property("fileLocations") {
-                        jsonObjectList(
-                            fileLocations
-                        ) { location ->
+                        jsonObjectList(fileLocations) { location ->
                             property("path", location.path)
                             if (location is LineInFileLocation) {
                                 if (location.line >= 0) {
@@ -127,9 +125,12 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                         )
                     }
                 }
+                problem.contextualLabel?.let {
+                    property("contextualLabel", it)
+                }
                 problem.definition.documentationLink?.let { property("documentationLink", it.url) }
                 problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
-                property("category") {
+                property("problemId") {
                     val list = listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName)) +
                         generateSequence(problem.definition.id.group) { it.parent }.toList().asReversed()
                     jsonObjectList(list) { group ->
@@ -141,7 +142,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                 val solutions = problem.solutions
                 if (solutions.isNotEmpty()) {
                     property("solutions") {
-                        jsonList(solutions.iterator()) { solution ->
+                        jsonList(solutions) { solution ->
                             writeStructuredMessage(
                                 StructuredMessage.Builder()
                                     .text(solution).build()

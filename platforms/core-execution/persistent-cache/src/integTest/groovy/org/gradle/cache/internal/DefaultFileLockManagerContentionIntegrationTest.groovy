@@ -28,6 +28,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Time
+import org.gradle.test.fixtures.Flaky
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -37,6 +38,7 @@ import java.util.function.Consumer
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4441")
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
 

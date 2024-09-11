@@ -21,9 +21,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
@@ -159,9 +156,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
-            FileResolver fileResolver,
             DependencyManagementServices dependencyManagementServices,
-            DependencyMetaDataProvider dependencyMetaDataProvider,
             ClassLoaderScopeRegistry classLoaderScopeRegistry,
             PluginInspector pluginInspector,
             InjectedPluginClasspath injectedPluginClasspath,
@@ -172,12 +167,10 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
-            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
-                fileResolver,
-                fileCollectionFactory,
-                dependencyManagementServices,
-                dependencyMetaDataProvider
-            );
+
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory =
+                () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS);
+
             return new DefaultInjectedClasspathPluginResolver(
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 scriptClassPathResolver,
@@ -196,29 +189,12 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         PluginDependencyResolutionServices createPluginDependencyResolutionServices(
-            FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
-            DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider
+            DependencyManagementServices dependencyManagementServices
         ) {
-            return new PluginDependencyResolutionServices(
-                makeDependencyResolutionServicesFactory(fileResolver, fileCollectionFactory, dependencyManagementServices, dependencyMetaDataProvider));
+            return new PluginDependencyResolutionServices(() ->
+                dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS)
+            );
         }
 
-        private static Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(
-            final FileResolver fileResolver,
-            final FileCollectionFactory fileCollectionFactory,
-            final DependencyManagementServices dependencyManagementServices,
-            final DependencyMetaDataProvider dependencyMetaDataProvider
-        ) {
-            return new Factory<DependencyResolutionServices>() {
-                @Override
-                public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), StandaloneDomainObjectContext.PLUGINS);
-                }
-            };
-        }
-
-        private static ProjectFinder makeUnknownProjectFinder() {
-            return new UnknownProjectFinder("Cannot use project dependencies in a plugin resolution definition.");
-        }
     }
 }

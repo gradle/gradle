@@ -28,6 +28,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
     api(projects.languageJvm)
@@ -55,6 +56,8 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
+    implementation(projects.jvmServices)
+    implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.toolingApi)
@@ -134,4 +137,7 @@ tasks.javadoc {
         this as StandardJavadocDocletOptions
         addBooleanOption("quiet", true)
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

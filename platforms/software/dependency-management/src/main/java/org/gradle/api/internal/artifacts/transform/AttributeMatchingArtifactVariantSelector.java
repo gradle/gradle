@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
@@ -40,26 +40,26 @@ import java.util.List;
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
-    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
+    private final TransformUpstreamDependenciesResolver dependenciesResolver;
+    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
-    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final ResolutionFailureHandler failureProcessor;
 
     AttributeMatchingArtifactVariantSelector(
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
+        TransformUpstreamDependenciesResolver dependenciesResolver,
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         ResolutionFailureHandler failureProcessor
     ) {
-        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
+        this.dependenciesResolver = dependenciesResolver;
+        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
-        this.dependenciesResolverFactory = dependenciesResolverFactory;
         this.failureProcessor = failureProcessor;
     }
 
@@ -68,7 +68,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         try {
             return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, requestAttributes, t));
+            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
@@ -81,7 +81,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
-            throw failureProcessor.ambiguousArtifactsFailure(schema, matcher, producer, componentRequested, matches);
+            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -94,18 +94,18 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
+            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory);
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformsFailure(schema, producer, componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noCompatibleArtifactFailure(schema, matcher, producer, componentRequested, variants);
+        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants);
     }
 
     /**

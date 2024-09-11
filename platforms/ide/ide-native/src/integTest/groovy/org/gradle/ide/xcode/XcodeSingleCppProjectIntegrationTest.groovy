@@ -347,10 +347,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires([
-        UnitTestPreconditions.HasXCode,
-        UnitTestPreconditions.NotMacOsM1
-    ])
     @ToBeFixedForConfigurationCache
     def "can build C++ executable from Xcode with multiple architecture"() {
         useXcodebuildTool()
@@ -441,10 +437,6 @@ apply plugin: 'cpp-library'
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires([
-        UnitTestPreconditions.HasXCode,
-        UnitTestPreconditions.NotMacOsM1
-    ])
     @ToBeFixedForConfigurationCache
     def "can build C++ library from Xcode with multiple architecture"() {
         useXcodebuildTool()

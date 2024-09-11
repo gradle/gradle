@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.isolation.TestIsolatableFactory
@@ -40,11 +41,12 @@ import spock.lang.Specification
  */
 class JavaEcosystemAttributeMatcherTest extends Specification {
 
+    def describers = Mock(AttributeDescriberRegistry)
     def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory())
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
+        JavaEcosystemSupport.configureServices(schema, describers, TestUtil.objectFactory())
     }
 
     def "resolve compileClasspath with java plugin"() {

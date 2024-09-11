@@ -20,10 +20,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires([
-    UnitTestPreconditions.CanInstallExecutable,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"

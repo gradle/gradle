@@ -16,6 +16,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
     api(projects.languageJava)
@@ -37,6 +38,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
+    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.persistentCache)
     implementation(projects.pluginsJava)
@@ -98,3 +100,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

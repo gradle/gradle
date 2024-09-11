@@ -24,7 +24,7 @@ class NMToolFixture {
     private NMToolFixture(List<String> environments) {
         this.environments = environments
     }
-    
+
     static NMToolFixture of(List<String> environments) {
         return new NMToolFixture(environments)
     }
@@ -42,16 +42,39 @@ class NMToolFixture {
     List<BinaryInfo.Symbol> listSymbols(File binaryFile) {
         def process = (findExe('nm') + ['-a', '-f', 'posix', binaryFile.absolutePath]).execute(environments, null)
         def lines = process.inputStream.readLines()
-        return lines.collect { line ->
+        def result = []
+        for (final line in lines) {
             // Looks like on Linux:
             // _main t 0 0
             //
             // Looks like on Windows (MinGW):
             // main T 0000000000401550
-            def splits = line.split(' ')
-            String name = splits[0]
-            char type = splits[1].getChars()[0]
-            return new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
+            def splits = line.split(' ').toList()
+
+            // The symbol name is the first element, but is not delimited so if it contains spaces, it will span multiple elements
+            String name
+            if (splits.size() > 4) {
+                def nameElements = splits.subList(0, splits.size() - 3)
+                name = nameElements.join(" ")
+                nameElements.clear()
+            } else {
+                name = splits[0]
+                splits.remove(0)
+            }
+
+            if (name.isEmpty()) {
+                // Name is blank when the symbol is undefined
+                continue
+            }
+
+            if (splits.isEmpty()) {
+                // Can get entries that contain just the symbol name
+                result << new BinaryInfo.Symbol(name, '?' as char, false)
+            } else {
+                char type = splits[0].getChars()[0]
+                result << new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
+            }
         }
+        return result
     }
 }

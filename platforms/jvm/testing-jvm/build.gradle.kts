@@ -24,6 +24,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.fileOperations)
     api(projects.logging)
     api(projects.messaging)
     api(projects.processServices)
@@ -44,6 +45,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.fileTemp)
     implementation(projects.functional)
+    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
@@ -77,3 +79,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

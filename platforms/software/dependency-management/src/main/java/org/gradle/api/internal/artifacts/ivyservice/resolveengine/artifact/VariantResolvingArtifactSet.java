@@ -23,11 +23,12 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -35,7 +36,8 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import java.util.Collections;
@@ -60,7 +62,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final GraphVariantSelector graphVariantSelector;
     private final AttributesSchemaInternal consumerSchema;
 
-    private final Lazy<ImmutableList<ResolvedVariant>> ownArtifacts = Lazy.locking().of(this::calculateOwnArtifacts);
+    private final CalculatedValue<ImmutableList<ResolvedVariant>> ownArtifacts;
 
     public VariantResolvingArtifactSet(
         VariantArtifactResolver variantResolver,
@@ -68,7 +70,8 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         VariantGraphResolveState variant,
         DependencyGraphEdge dependency,
         GraphVariantSelector graphVariantSelector,
-        AttributesSchemaInternal consumerSchema
+        AttributesSchemaInternal consumerSchema,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.variantResolver = variantResolver;
         this.component = component;
@@ -81,6 +84,10 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.capabilities = dependency.getSelector().getRequested().getRequestedCapabilities();
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;
+        this.ownArtifacts = calculatedValueContainerFactory.create(
+            Describables.of("artifacts for"),
+            context -> calculateOwnArtifacts()
+        );
     }
 
     @Override
@@ -101,7 +108,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
             ImmutableList<ResolvedVariant> variants;
             try {
                 if (!spec.getSelectFromAllVariants()) {
-                    variants = ownArtifacts.get();
+                    variants = getOwnArtifacts();
                 } else {
                     variants = getArtifactVariantsForReselection(spec.getRequestAttributes());
                 }
@@ -118,12 +125,17 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         }
     }
 
-    private ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
+    private ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolver dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
         if (componentId instanceof ProjectComponentIdentifier) {
-            return transformedVariantFactory.transformedProjectArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolverFactory);
+            return transformedVariantFactory.transformedProjectArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
         } else {
-            return transformedVariantFactory.transformedExternalArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolverFactory);
+            return transformedVariantFactory.transformedExternalArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
         }
+    }
+
+    private ImmutableList<ResolvedVariant> getOwnArtifacts() {
+        ownArtifacts.finalizeIfNotAlready();
+        return ownArtifacts.get();
     }
 
     public ImmutableList<ResolvedVariant> calculateOwnArtifacts() {

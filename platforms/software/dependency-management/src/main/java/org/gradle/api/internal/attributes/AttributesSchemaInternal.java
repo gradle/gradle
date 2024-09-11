@@ -17,14 +17,12 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers {
+public interface AttributesSchemaInternal extends AttributesSchema {
     /**
      * Returns a matcher that uses the consumer rules from this schema, and the producer rules from the given schema.
      */
@@ -41,25 +39,4 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
 
     @Nullable
     Attribute<?> getAttributeByName(String name);
-
-    /**
-     * Adds a {@link ResolutionFailureDescriber} for the given failure type to the custom describers
-     * registered on this schema.
-     *
-     * If variant selection failures occur, these describers will be available to describe the failures.
-     *
-     * @param failureType The type of failure to describe
-     * @param describerType A describer that can potentially describe failures of the given type
-     * @param <FAILURE> The type of failure to describe
-     */
-    <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType);
-
-    /**
-     * Returns the list of custom {@link ResolutionFailureDescriber}s registered on this schema for the given failure type.
-     *
-     * @param failureType The type of failure to describe
-     * @param <FAILURE> The type of failure to describe
-     * @return The list of custom describers registered on this schema for the given failure type
-     */
-    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getFailureDescribers(Class<FAILURE> failureType);
 }

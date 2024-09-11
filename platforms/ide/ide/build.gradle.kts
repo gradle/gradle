@@ -18,6 +18,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)
@@ -91,3 +92,6 @@ packageCycles {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
