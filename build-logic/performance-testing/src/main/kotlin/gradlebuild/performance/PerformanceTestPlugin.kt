@@ -26,6 +26,7 @@ import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
+import gradlebuild.basics.performanceChannel
 import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
@@ -195,7 +196,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             reportDir = project.layout.buildDirectory.dir(this@configureEach.name)
             databaseParameters = project.propertiesForPerformanceDb
             branchName = buildBranch
-            channel.convention(branchName.map { "commits-$it" })
+            channel = project.performanceChannel.orElse(branchName.map { "commits-$it" })
             val prefix = channel.map { channelName ->
                 val osIndependentPrefix = if (channelName.startsWith("flakiness-detection")) {
                     "flakiness-detection"
@@ -407,7 +408,7 @@ class PerformanceTestExtension(
         registeredPerformanceTests.add(
             createPerformanceTest("${testProject}PerformanceAdHocTest", generatorTask) {
                 description = "Runs ad-hoc performance tests on $testProject - can be used locally"
-                channel = "adhoc"
+                channel.set("adhoc")
                 outputs.doNotCacheIf("Is adhoc performance test") { true }
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
@@ -421,7 +422,7 @@ class PerformanceTestExtension(
         registeredPerformanceTests.add(
             createPerformanceTest("${testProject}PerformanceTest", generatorTask) {
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
-                channel = "commits$channelSuffix"
+                channel.set("commits$channelSuffix")
 
                 extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 1
 
@@ -450,6 +451,7 @@ class PerformanceTestExtension(
             reportDir = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestReportsDir}").get().asFile
             resultsJson = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestResultsJson}").get().asFile
             addDatabaseParameters(project.propertiesForPerformanceDb)
+            channel = project.performanceChannel
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
