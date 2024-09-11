@@ -611,7 +611,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             return false;
         }
         if (other instanceof ProjectInternal) {
-            return getIdentityPath().equals(((ProjectInternal) other).getIdentityPath());
+            return getIdentity() == ((ProjectInternal) other).getIdentity();
         }
         return false;
     }
@@ -696,6 +696,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
         return getCrossProjectModelAccess().findProject(referrer, this, path);
+    }
+
+    @Override
+    public Object getIdentity() {
+        return this;
     }
 
     @Override

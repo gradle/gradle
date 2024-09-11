@@ -438,6 +438,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    public Object getIdentity() {
+        return delegate.getIdentity();
+    }
+
+    @Override
     public void beforeEvaluate(Action<? super Project> action) {
         onMutableStateAccess("beforeEvaluate");
         delegate.beforeEvaluate(action);
