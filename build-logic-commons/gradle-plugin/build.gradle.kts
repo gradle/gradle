@@ -14,16 +14,19 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.16.1")
+    compileOnly("com.gradle:develocity-gradle-plugin")
 
-    api(platform(project(":build-platform")))
+    api(platform(projects.buildPlatform))
 
-    implementation(project(":basics"))
-    implementation(project(":module-identity"))
+    implementation(projects.basics)
+    implementation(projects.moduleIdentity)
+    implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.0.1")
 
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.2.1")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:5.1.1")
     // This Kotlin version should only be updated when updating the above kotlin-dsl version
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
+
+    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.6")
 }

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -45,14 +45,14 @@ public class UserResolverChain implements ComponentResolvers {
                              ImmutableAttributesFactory attributesFactory,
                              ComponentMetadataProcessorFactory componentMetadataProcessor,
                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                             CalculatedValueContainerFactory calculatedValueContainerFactory,
+                             CalculatedValueFactory calculatedValueFactory,
                              CachePolicy cachePolicy
     ) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema);
         componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
-        componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueContainerFactory);
-        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory);
+        componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueFactory);
+        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueFactory);
     }
 
     @Override

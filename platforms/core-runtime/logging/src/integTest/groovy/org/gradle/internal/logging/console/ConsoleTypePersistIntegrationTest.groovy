@@ -36,6 +36,7 @@ class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file('gradle.properties') << 'org.gradle.console=rich'
+        executer.noDeprecationChecks() // Rich consoles mess with deprecation checks
         succeeds('help', "-Pexpected=Rich")
         then:
         assertHasAnsiEscapeSequence()

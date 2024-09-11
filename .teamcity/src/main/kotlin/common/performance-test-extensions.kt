@@ -44,6 +44,7 @@ fun performanceTestCommandLine(
     baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
     testJavaVendor: String = os.perfTestJavaVendor.toString(),
 ) = listOf(
@@ -54,7 +55,7 @@ fun performanceTestCommandLine(
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
-    os.javaInstallationLocations()
+    os.javaInstallationLocations(arch)
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
@@ -62,10 +63,10 @@ fun performanceTestCommandLine(
 ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
 const val individualPerformanceTestArtifactRules = """
-subprojects/*/build/test-results-*.zip => results
-subprojects/*/build/tmp/**/log.txt => failure-logs
-subprojects/*/build/tmp/**/profile.log => failure-logs
-subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
+testing/*/build/test-results-*.zip => results
+testing/*/build/tmp/**/log.txt => failure-logs
+testing/*/build/tmp/**/profile.log => failure-logs
+testing/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
 // to avoid pathname too long error
@@ -91,22 +92,6 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
             scriptContent = "git clean -fdx -e test-splits/ -e .gradle/workspace-id.txt -e \"*.psoutput\""
             skipConditionally()
             onlyRunOnGitHubMergeQueueBranch()
-        }
-    }
-}
-
-// TODO: Remove this after https://github.com/gradle/gradle/issues/26539 is resolved
-fun BuildSteps.cleanUpReadOnlyDir(os: Os) {
-    if (os == Os.WINDOWS) {
-        script {
-            name = "CLEAN_UP_READ_ONLY_DIR"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
-                rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo performance-build-dir removed) || (echo performance-build-dir not found)
-                rmdir /s /q %teamcity.build.checkoutDir%\platforms\software\version-control\build && (echo version-control-build-dir removed) || (echo version-control-build-dir not found)
-                rmdir /s /q %teamcity.build.checkoutDir%\platforms\jvm\code-quality\build && (echo code-quality-build-dir removed) || (echo code-quality-build-dir not found)
-                """
-            skipConditionally()
         }
     }
 }

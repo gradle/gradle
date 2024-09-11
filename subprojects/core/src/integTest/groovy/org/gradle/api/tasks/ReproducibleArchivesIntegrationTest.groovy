@@ -265,7 +265,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fails taskName
 
         then:
-        failure.assertHasCause('Encountered duplicate path "test.txt" during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasCause("Cannot copy file '${file('dir1/test.txt')}' to 'test.txt' because file '${file('dir2/test.txt')}' has already been copied there.")
 
         where:
         taskName << ['zip', 'tar']

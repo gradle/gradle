@@ -19,9 +19,10 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -63,13 +64,13 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
-        return new HashSet<>();
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
+        return Collections.singleton(BuildInitTestFramework.CPPTest);
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
-        return null;
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
+        return BuildInitTestFramework.CPPTest;
     }
 
     @Override

@@ -20,22 +20,21 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collections;
 
-public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
+public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final MutationGuard mutationGuard = new DefaultMutationGuard();
+    private final BuildOperationRunner buildOperationRunner;
+    private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
-    public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public BuildOperationCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -54,35 +53,31 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     @Override
-    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor) {
-        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationExecutor);
+    public void rootProject(ProjectInternal project, Action<? super Project> buildOperationRunner) {
+        runBlockConfigureAction(ROOT_PROJECT_DETAILS, Collections.singleton(project), buildOperationRunner);
     }
 
     private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<? extends ProjectInternal> projects, final Action<? super Project> configureAction) {
-        buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects, configureAction));
+        buildOperationRunner.run(new BlockConfigureBuildOperation(details, projects, configureAction));
     }
 
     private void runProjectConfigureAction(final ProjectInternal project, final Action<? super Project> configureAction) {
-        project.getOwner().applyToMutableState(p -> buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
+        project.getOwner().applyToMutableState(p -> buildOperationRunner.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, mutationGuard.withMutationEnabled(configureAction));
+                Actions.with(project, lazyGuard.wrapEagerAction(configureAction));
             }
         }));
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return mutationGuard;
+    public MutationGuard getLazyBehaviorGuard() {
+        return lazyGuard;
     }
 
-    private final static String ALLPROJECTS = "allprojects";
-    private final static String SUBPROJECTS = "subprojects";
-    private final static String ROOTPROJECT = "rootProject";
-
-    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(ALLPROJECTS);
-    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails(SUBPROJECTS);
-    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails(ROOTPROJECT);
+    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("allprojects");
+    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("subprojects");
+    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails("rootProject");
 
     private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
         return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
@@ -122,7 +117,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath().toString();
+            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath();
             return BuildOperationDescriptor.displayName(name);
         }
     }

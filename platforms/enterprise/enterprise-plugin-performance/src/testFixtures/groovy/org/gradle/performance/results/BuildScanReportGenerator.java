@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import org.gradle.performance.results.report.AbstractReportGenerator;
 import org.gradle.performance.results.report.PerformanceExecutionDataProvider;
-import org.gradle.performance.results.report.PerformanceFlakinessDataProvider;
 
 public class BuildScanReportGenerator extends AbstractReportGenerator<BuildScanResultsStore> {
     public static void main(String[] args) {

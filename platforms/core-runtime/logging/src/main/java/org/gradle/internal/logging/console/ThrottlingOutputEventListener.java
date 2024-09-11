@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.FlushOutputEvent;
+import org.gradle.internal.logging.events.InteractiveEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UpdateNowEvent;
@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +60,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     }
 
     private void scheduleUpdateNow() {
-        executor.scheduleAtFixedRate(new Runnable() {
+        ScheduledFuture<?> ignored = executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -78,12 +79,12 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         synchronized (lock) {
             queue.add(newEvent);
 
-            if (queue.size() == 10000 || newEvent instanceof UpdateNowEvent) {
+            if (queue.size() == 10000) {
                 renderNow();
                 return;
             }
 
-            if (newEvent instanceof FlushOutputEvent) {
+            if (newEvent instanceof InteractiveEvent) {
                 renderNow();
                 return;
             }

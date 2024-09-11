@@ -28,12 +28,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -61,6 +63,15 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         renameModule(project);
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
+        overrideDokkaVersion(project, extension);
+        setMemoryForWorkers(project);
+    }
+
+    private static void setMemoryForWorkers(Project project) {
+        project.getTasks().withType(DokkatooGenerateTask.class).configureEach(task -> {
+            task.getWorkerMinHeapSize().set("512m");
+            task.getWorkerMaxHeapSize().set("2g");
+        });
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
@@ -69,6 +80,12 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/gradle-logo.svg"));
             config.getFooterMessage().set("Gradle Kotlin DSL Reference");
         });
+    }
+
+    private static void overrideDokkaVersion(Project project, GradleDocumentationExtension extension) {
+        Property<String> dokkaVersionOverride = extension.getKotlinDslReference().getDokkaVersionOverride();
+        Property<String> defaultDokkaVersion = getDokkatooExtension(project).getVersions().getJetbrainsDokka();
+        defaultDokkaVersion.set(dokkaVersionOverride.convention(defaultDokkaVersion.get()));
     }
 
     /**
@@ -109,7 +126,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
         String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
-        if (commitId.isBlank() || commitId.toLowerCase().contains("unknown")) {
+        if (commitId.isBlank() || commitId.toLowerCase(Locale.ROOT).contains("unknown")) {
             // we can't figure out the commit ID (probably this is a source distribution build), let's skip adding source links
             return;
         }

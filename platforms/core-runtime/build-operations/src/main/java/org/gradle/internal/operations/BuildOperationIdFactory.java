@@ -16,9 +16,13 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Provides an id unique within the global scope a build VM.
  */
+@ServiceScope(Scope.Global.class)
 public interface BuildOperationIdFactory {
 
     /**

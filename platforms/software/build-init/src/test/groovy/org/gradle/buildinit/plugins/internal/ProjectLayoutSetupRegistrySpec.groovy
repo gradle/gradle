@@ -22,15 +22,15 @@ import spock.lang.Specification
 
 
 class ProjectLayoutSetupRegistrySpec extends Specification {
-    def defaultType = descriptor("default")
+    def defaultType = generator("default")
     def converter = converter("maven")
     def registry = new ProjectLayoutSetupRegistry(defaultType, converter, Mock(TemplateOperationFactory))
 
     def "can add multiple descriptors"() {
         when:
-        registry.add(descriptor("desc1"))
-        registry.add(descriptor("desc2"))
-        registry.add(descriptor("desc3"))
+        registry.add(generator("desc1"))
+        registry.add(generator("desc2"))
+        registry.add(generator("desc3"))
 
         then:
         registry.get("desc1") != null
@@ -40,8 +40,8 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "cannot add multiple descriptors with same id"() {
         when:
-        registry.add(descriptor("desc1"))
-        registry.add(descriptor("desc1"))
+        registry.add(generator("desc1"))
+        registry.add(generator("desc1"))
 
         then:
         def e = thrown(GradleException)
@@ -50,9 +50,9 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "getAllTypes lists all registered types"() {
         setup:
-        registry.add(descriptor("desc1"))
-        registry.add(descriptor("desc2"))
-        registry.add(descriptor("desc3"))
+        registry.add(generator("desc1"))
+        registry.add(generator("desc2"))
+        registry.add(generator("desc3"))
 
         expect:
         registry.getAllTypes() == ["default", "desc1", "desc2", "desc3", "maven"]
@@ -60,9 +60,9 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "lookup fails for unknown type"() {
         setup:
-        registry.add(descriptor("desc1"))
-        registry.add(descriptor("desc2"))
-        registry.add(descriptor("desc3"))
+        registry.add(generator("desc1"))
+        registry.add(generator("desc2"))
+        registry.add(generator("desc3"))
 
         when:
         registry.get("unknown")
@@ -77,13 +77,13 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
   - 'maven'""")
     }
 
-    def descriptor(String id) {
-        def descriptor = Mock(BuildInitializer)
+    BuildGenerator generator(String id) {
+        def descriptor = Mock(BuildGenerator)
         descriptor.id >> id
         return descriptor
     }
 
-    def converter(String id) {
+    BuildConverter converter(String id) {
         def descriptor = Mock(BuildConverter)
         descriptor.id >> id
         return descriptor

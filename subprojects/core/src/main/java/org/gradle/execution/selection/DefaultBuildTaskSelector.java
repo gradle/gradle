@@ -19,6 +19,12 @@ package org.gradle.execution.selection;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GeneralDataSpec;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.configuration.project.BuiltInCommand;
@@ -36,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,11 +55,14 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private final BuildStateRegistry buildRegistry;
     private final TaskSelector taskSelector;
     private final List<BuiltInCommand> commands;
+    private final InternalProblems problemsService;
 
-    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands) {
+    @Inject
+    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
         this.buildRegistry = buildRegistry;
         this.taskSelector = taskSelector;
         this.commands = commands;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -163,7 +173,19 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         if (child != null) {
             return child;
         }
-        throw new ProjectSelectionException(String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName())));
+
+        throw problemsService.getInternalReporter().throwing(spec -> {
+            nameMatcher.configureProblemId(spec);
+            String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName()));
+            configureProblem(spec, message, context.getOriginalPath().getPath(), new ProjectSelectionException(message));
+        });
+    }
+
+    private static void configureProblem(ProblemSpec spec, String message, String requestedPath, RuntimeException e) {
+        spec.contextualLabel(message);
+        spec.severity(Severity.ERROR);
+        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
+        spec.withException(e);
     }
 
     private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {
@@ -173,12 +195,20 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         // - have empty or blank segments (eg `::a`, `a::b`, `a:  :b`, etc)
 
         if (name.isEmpty() || StringUtils.isBlank(name)) {
-            throw new TaskSelectionException(String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths()));
+            throw problemsService.getInternalReporter().throwing(spec -> {
+                spec.id("empty-path", "Empty path", GradleCoreProblemGroup.taskSelection());
+                String message = String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths());
+                configureProblem(spec, message, name, new TaskSelectionException(message));
+            });
         }
         Path path = Path.path(name);
         Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
         if (root.matcher(name).matches()) {
-            throw new TaskSelectionException(String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths()));
+            throw problemsService.getInternalReporter().throwing(spec -> {
+                spec.id("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection());
+                String message = String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths());
+                configureProblem(spec, message, name, new TaskSelectionException(message));
+            });
         }
         Pattern emptySegment = Pattern.compile("(:\\s*:)|(^\\s+:)|(:\\s*$)");
         if (emptySegment.matcher(name).find()) {
@@ -193,7 +223,12 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
                     normalized.append(path.segment(i));
                 }
             }
-            throw new TaskSelectionException(String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized));
+
+            throw problemsService.getInternalReporter().throwing(spec -> {
+                spec.id("empty-segments", "Empty segments", GradleCoreProblemGroup.taskSelection());
+                String message = String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized);
+                configureProblem(spec, message, name, new TaskSelectionException(message));
+            });
         }
         return new TaskSelector.SelectionContext(path, type);
     }

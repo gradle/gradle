@@ -29,6 +29,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -49,7 +50,8 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
             new FileCollectionFingerprintSerializer(stringInterner),
             new FileSystemSnapshotSerializer(stringInterner),
-            classLoaderHasher
+            classLoaderHasher,
+            new HashCodeSerializer()
         );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
@@ -68,6 +70,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     public void store(String key, AfterExecutionState executionState) {
         store.put(key, new DefaultPreviousExecutionState(
             executionState.getOriginMetadata(),
+            executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

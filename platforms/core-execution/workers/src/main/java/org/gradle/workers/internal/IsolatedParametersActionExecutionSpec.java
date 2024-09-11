@@ -30,14 +30,16 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final File baseDir;
     private final boolean usesInternalServices;
     private final String displayName;
+    private final File projectCacheDir;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, boolean usesInternalServices) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.actionImplementationClassName = actionImplementationClassName;
         this.isolatedParams = isolatedParams;
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
+        this.projectCacheDir = projectCacheDir;
         this.usesInternalServices = usesInternalServices;
     }
 
@@ -73,5 +75,9 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
 
     public Isolatable<T> getIsolatedParams() {
         return isolatedParams;
+    }
+
+    public File getProjectCacheDir() {
+        return projectCacheDir;
     }
 }

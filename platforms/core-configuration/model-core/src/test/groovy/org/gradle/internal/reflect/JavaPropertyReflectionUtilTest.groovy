@@ -24,7 +24,7 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.Type
 
-import static JavaPropertyReflectionUtil.getAnnotation
+import static org.gradle.internal.reflect.JavaReflectionUtil.getAnnotation
 import static JavaPropertyReflectionUtil.hasDefaultToString
 import static JavaPropertyReflectionUtil.propertyNames
 import static JavaPropertyReflectionUtil.readableProperty

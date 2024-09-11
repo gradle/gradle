@@ -17,13 +17,13 @@
 package org.gradle.internal.html;
 
 import org.gradle.internal.xml.SimpleMarkupWriter;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -68,6 +68,6 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
     )));
 
     private static boolean isValidHtmlTag(String name) {
-        return VALID_HTML_TAGS.contains(TextUtil.toLowerCaseLocaleSafe(name));
+        return VALID_HTML_TAGS.contains(name.toLowerCase(Locale.ROOT));
     }
 }

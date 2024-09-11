@@ -29,7 +29,9 @@ public class TestNGSpec implements Serializable {
     private final String defaultTestName;
     private final String parallel;
     private final int threadCount;
+    private final int suiteThreadPoolSize;
     private final boolean useDefaultListener;
+    private final String threadPoolFactoryClass;
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
@@ -44,7 +46,9 @@ public class TestNGSpec implements Serializable {
         String defaultTestName,
         String parallel,
         int threadCount,
+        int suiteThreadPoolSize,
         boolean useDefaultListener,
+        String threadPoolFactoryClass,
         Set<String> includeGroups,
         Set<String> excludeGroups,
         Set<String> listeners,
@@ -58,7 +62,9 @@ public class TestNGSpec implements Serializable {
         this.defaultTestName = defaultTestName;
         this.parallel = parallel;
         this.threadCount = threadCount;
+        this.suiteThreadPoolSize = suiteThreadPoolSize;
         this.useDefaultListener = useDefaultListener;
+        this.threadPoolFactoryClass = threadPoolFactoryClass;
         this.includeGroups = includeGroups;
         this.excludeGroups = excludeGroups;
         this.listeners = listeners;
@@ -88,8 +94,16 @@ public class TestNGSpec implements Serializable {
         return useDefaultListener;
     }
 
+    public String getThreadPoolFactoryClass() {
+        return threadPoolFactoryClass;
+    }
+
     public int getThreadCount() {
         return threadCount;
+    }
+
+    public int getSuiteThreadPoolSize() {
+        return suiteThreadPoolSize;
     }
 
     public String getParallel() {

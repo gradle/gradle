@@ -25,6 +25,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.util.internal.TextUtil
 import org.xml.sax.SAXException
+import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.xml.XMLConstants
@@ -154,7 +155,8 @@ on two lines -->
         validateAgainstSchemasSince("1.3")
     }
 
-    def "can declare ignored keys"() {
+    @Issue("https://github.com/gradle/gradle/issues/27891")
+    def "can declare and sorts ignored keys"() {
         when:
         builder.addIgnoredKey(new IgnoredKey("ABCDEF", null))
         builder.addIgnoredKey(new IgnoredKey("012345", "test"))
@@ -167,8 +169,8 @@ on two lines -->
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <ignored-keys>
-         <ignored-key id="ABCDEF"/>
          <ignored-key id="012345" reason="test"/>
+         <ignored-key id="ABCDEF"/>
       </ignored-keys>
    </configuration>
    <components/>

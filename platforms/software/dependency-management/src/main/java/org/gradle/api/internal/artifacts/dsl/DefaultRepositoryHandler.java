@@ -125,6 +125,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     private void deprecateJCenter(String method, String replacement) {
         DeprecationLogger.deprecateMethod(RepositoryHandler.class, method)
             .withAdvice("JFrog announced JCenter's sunset in February 2021. Use " + replacement + " instead.")
+            .withProblemId("repository-jcenter")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(6, "jcenter_deprecation")
             .nagUser();
@@ -199,7 +200,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
             @Override
             public void includeGroupAndSubgroups(String groupPrefix) {
-                desc.includeGroupAndSubgroups(groupPrefix);
+                desc.excludeGroupAndSubgroups(groupPrefix);
             }
 
             @Override

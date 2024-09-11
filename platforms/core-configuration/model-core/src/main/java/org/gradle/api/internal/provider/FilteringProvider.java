@@ -27,15 +27,15 @@ import javax.annotation.Nullable;
  **/
 public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
-    protected final ProviderGuard<T> provider;
-    protected final DataGuard<Spec<? super T>> spec;
+    protected final ProviderInternal<T> provider;
+    protected final Spec<? super T> spec;
 
     public FilteringProvider(
         ProviderInternal<T> provider,
         Spec<? super T> spec
     ) {
-        this.spec = guardData(spec);
-        this.provider = guardProvider(provider);
+        this.spec = spec;
+        this.provider = provider;
     }
 
     @Nullable
@@ -46,20 +46,22 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ValueProducer getProducer() {
-        return provider.getProducer();
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            return provider.getProducer();
+        }
     }
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         try (EvaluationContext.ScopeContext context = openScope()) {
-            ExecutionTimeValue<? extends T> value = provider.get(context).calculateExecutionTimeValue();
+            ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
             if (value.isMissing()) {
                 return value;
             }
             if (value.hasChangingContent()) {
                 // Need the value contents in order to transform it to produce the value of this provider,
                 // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-                return ExecutionTimeValue.changingValue(new FilteringProvider<>(value.toProvider(), spec.get(context)));
+                return ExecutionTimeValue.changingValue(new FilteringProvider<>(value.toProvider(), spec));
             }
 
             return ExecutionTimeValue.value(filterValue(context, value.toValue()));
@@ -70,26 +72,26 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         try (EvaluationContext.ScopeContext context = openScope()) {
             beforeRead(context);
-            Value<? extends T> value = provider.get(context).calculateValue(consumer);
+            Value<? extends T> value = provider.calculateValue(consumer);
             return filterValue(context, value);
         }
     }
 
     @Nonnull
-    protected Value<? extends T> filterValue(EvaluationContext.ScopeContext context, Value<? extends T> value) {
+    protected Value<? extends T> filterValue(@SuppressWarnings("unused") EvaluationContext.ScopeContext context, Value<? extends T> value) {
         if (value.isMissing()) {
             return value.asType();
         }
         T unpackedValue = value.getWithoutSideEffect();
-        if (spec.get(context).isSatisfiedBy(unpackedValue)) {
+        if (spec.isSatisfiedBy(unpackedValue)) {
             return value;
         } else {
             return Value.missing();
         }
     }
 
-    protected void beforeRead(EvaluationContext.ScopeContext context) {
-        provider.get(context).getProducer().visitContentProducerTasks(producer -> {
+    protected void beforeRead(@SuppressWarnings("unused") EvaluationContext.ScopeContext context) {
+        provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
                     String.format("Querying the filtered value of %s before %s has completed is not supported", provider, producer)

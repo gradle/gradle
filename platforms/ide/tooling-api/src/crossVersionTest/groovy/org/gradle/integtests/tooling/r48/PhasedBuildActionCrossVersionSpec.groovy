@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfi
 import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
@@ -32,7 +31,6 @@ import org.gradle.tooling.events.ProgressListener
 
 import java.util.regex.Pattern
 
-@ToolingApiVersion(">=4.8")
 @TargetGradleVersion(">=4.8")
 class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -138,13 +136,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def action = connection.action()
+            connection.action()
                 .projectsLoaded(new FailAction(), projectsLoadedHandler)
                 .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
-
-            collectOutputs(action)
-            action.run()
+                .run()
         }
 
         then:
@@ -176,12 +172,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def action = connection.action()
+            connection.action()
                 .projectsLoaded(new ActionShouldNotBeCalled(), projectsLoadedHandler)
                 .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
-            collectOutputs(action)
-            action.run()
+                .run()
         }
 
         then:
@@ -208,12 +203,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def action = connection.action()
+            connection.action()
                 .projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), projectsLoadedHandler)
                 .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
-            collectOutputs(action)
-            action.run()
+                .run()
         }
 
         then:
@@ -240,12 +234,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def action = connection.action()
+            connection.action()
                 .projectsLoaded(new ActionDiscardsConfigurationFailure(), projectsLoadedHandler)
                 .buildFinished(new ActionQueriesModelThatRequiresConfigurationPhase(), buildFinishedHandler)
                 .build()
-            collectOutputs(action)
-            action.run()
+                .run()
         }
 
         then:
@@ -271,14 +264,13 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        withConnection { connection ->
-            def action = connection.action()
+        fails { connection ->
+            connection.action()
                 .projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
                 .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
-            collectOutputs(action)
-            action.forTasks("broken")
-            action.run()
+                .forTasks("broken")
+                .run()
         }
 
         then:
@@ -290,7 +282,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         failure.assertHasDescription("Execution failed for task ':broken'.")
-        assertHasBuildFailedLogging()
     }
 
     def "build is interrupted immediately if action fails"() {
@@ -366,11 +357,10 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            def builder = connection.action()
+            connection.action()
                 .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
                 .build()
-            collectOutputs(builder)
-            builder.run()
+                .run()
         }
 
         then:
@@ -393,8 +383,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
             def builder = connection.action()
                 .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
                 .build()
-            action(builder)
-            collectOutputs(builder)
+            taskSelector(builder)
             builder.run()
         }
 
@@ -403,7 +392,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.assertTasksExecuted(":help")
 
         where:
-        description                 | action
+        description                 | taskSelector
         "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
@@ -420,8 +409,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
             def builder = connection.action()
                 .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
                 .build()
-            action(builder)
-            collectOutputs(builder)
+            taskSelector(builder)
             builder.run()
         }
 
@@ -430,7 +418,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.assertTasksExecuted(":thing")
 
         where:
-        description                 | action
+        description                 | taskSelector
         "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
@@ -447,8 +435,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
             def builder = connection.action()
                 .buildFinished(new CustomBuildFinishedAction(), new IntermediateResultHandlerCollector())
                 .build()
-            action(builder)
-            collectOutputs(builder)
+            taskSelector(builder)
             builder.run()
         }
 
@@ -458,12 +445,12 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.assertTasksExecuted(":thing")
 
         where:
-        description                 | action
+        description                 | taskSelector
         "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
-    @TargetGradleVersion(">=2.6 <4.8")
+    @TargetGradleVersion(">=3.0 <4.8")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()

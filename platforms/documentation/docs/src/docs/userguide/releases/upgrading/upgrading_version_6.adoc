@@ -67,7 +67,7 @@ Users can still opt in to have this unique identifier part of the produced metad
 JFrog link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the sunset of the JCenter repository in February 2021. https://blog.gradle.org/jcenter-shutdown[Many Gradle builds] rely on JCenter for project dependencies.
 
 No new packages or versions are published to JCenter, but JFrog says they will keep JCenter running in a read-only state indefinitely.
-We recommend that you consider <<declaring_repositories.adoc#declaring-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
+We recommend that you consider <<declaring_repositories.adoc#declaring-basic-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
 
 Gradle emits a deprecation warning when `jcenter()` is used as a repository and this method is scheduled to be removed in Gradle 8.0.
 
@@ -300,7 +300,7 @@ The `layout` method taking a configuration block has been removed and is replace
 A Gradle build is defined by its `settings.gradle(.kts)` file found in the current or parent directory.
 Without a settings file, a Gradle build is undefined and Gradle produces an error when attempting to execute tasks.
 
-To fix this error, <<organizing_gradle_projects.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
+To fix this error, <<settings_file_basics.adoc#sec:settings_file_script,create a `settings.gradle(.kts)` file>> for the build.
 
 Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
@@ -358,7 +358,7 @@ The following APIs, which were not usable via command line options anymore since
 
 Gradle no longer supports discovering the settings file in a directory named `master` in a sibling directory.
 If your build still uses this deprecated feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
-You can find more information about <<multi_project_builds.adoc#multi_project_builds,how to structure a Gradle build>> or a <<structuring_software_products.adoc#structure_large_projects,composition of builds>> in the user manual.
+You can find more information about <<multi_project_builds.adoc#multi_project_builds,how to structure a Gradle build>> in the user manual.
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
 <<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 

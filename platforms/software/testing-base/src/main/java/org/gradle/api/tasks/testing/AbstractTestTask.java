@@ -64,18 +64,21 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -180,7 +183,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
+        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
@@ -199,6 +202,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected HostnameLookup getHostnameLookup() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildOperationRunner getBuildOperationRunner() {
         throw new UnsupportedOperationException();
     }
 
@@ -316,6 +324,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     @Override
+    @ToBeReplacedByLazyProperty
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -417,8 +426,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @return this
      */
-    @Internal
-    // TODO:LPTR Should be @Nested with @Console inside
+    @Nested
     public TestLoggingContainer getTestLogging() {
         return testLogging;
     }
@@ -589,16 +597,24 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationExecutor());
+                testReporter = new DefaultTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
                     junitXml.isOutputPerTestCase(),
-                    junitXml.getMergeReruns().get()
+                    junitXml.getMergeReruns().get(),
+                    junitXml.getIncludeSystemOutLog().get(),
+                    junitXml.getIncludeSystemErrLog().get()
                 );
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getOutputLocation().getAsFile().get(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(
+                    junitXml.getOutputLocation().getAsFile().get(),
+                    testResultsProvider,
+                    xmlResultOptions,
+                    getBuildOperationRunner(),
+                    getBuildOperationExecutor(),
+                    getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

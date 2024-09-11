@@ -34,6 +34,10 @@ public class MethodInvocation {
         return arguments;
     }
 
+    public String getMethodName() {
+        return method.getName();
+    }
+
     public Method getMethod() {
         return method;
     }

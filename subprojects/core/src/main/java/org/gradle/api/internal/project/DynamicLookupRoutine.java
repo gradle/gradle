@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.MissingPropertyException;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import javax.annotation.Nullable;
@@ -32,4 +33,6 @@ public interface DynamicLookupRoutine {
     boolean hasProperty(DynamicObject receiver, String propertyName);
     @Nullable Map<String, ?> getProperties(DynamicObject receiver);
     @Nullable Object invokeMethod(DynamicObject receiver, String name, Object... args);
+
+    DynamicInvokeResult tryGetProperty(DynamicObject receiver, String name);
 }

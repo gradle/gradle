@@ -44,6 +44,7 @@ class BasicFileResolverTest extends Specification {
         def target = tmpDir.file("some-file")
 
         expect:
+        resolver.transform(target.toURI().toString()) == target
         resolver.transform(target.toURI().toASCIIString()) == target
     }
 

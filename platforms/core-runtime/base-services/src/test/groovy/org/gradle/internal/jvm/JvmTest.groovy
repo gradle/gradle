@@ -17,6 +17,7 @@
 package org.gradle.internal.jvm
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.jvm.JavaVersionParser
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -106,7 +107,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk/jre'), "1.8.0.221", JavaVersion.VERSION_1_8)
+        def jvm = new Jvm(os, software.file('jdk/jre'), "1.8.0.221", 8)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -142,7 +143,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk'), java8ImplementationVersion, JavaVersion.VERSION_1_8)
+        def jvm = new Jvm(os, software.file('jdk'), java8ImplementationVersion, 8)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -175,7 +176,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk'), java9ImplementationVersion, JavaVersion.VERSION_1_9)
+        def jvm = new Jvm(os, software.file('jdk'), java9ImplementationVersion, 9)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -200,7 +201,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jre'), "1.8.0.221", JavaVersion.VERSION_1_8)
+        def jvm = new Jvm(os, software.file('jre'), "1.8.0.221", 8)
 
         then:
         jvm.javaHome == software.file('jre')
@@ -236,7 +237,7 @@ class JvmTest extends Specification {
         _ * os.windows >> true
 
         when:
-        def jvm = new Jvm(os, jreDir, version, JavaVersion.toVersion(version))
+        def jvm = new Jvm(os, jreDir, version, JavaVersionParser.parseMajorVersion(version))
 
         then:
         jvm.javaHome == jdkDir
@@ -288,7 +289,7 @@ class JvmTest extends Specification {
         _ * os.windows >> true
 
         when:
-        def jvm = new Jvm(os, jdkDir, version, JavaVersion.toVersion(version))
+        def jvm = new Jvm(os, jdkDir, version, JavaVersionParser.parseMajorVersion(version))
 
         then:
         jvm.javaHome == jdkDir
@@ -320,8 +321,8 @@ class JvmTest extends Specification {
         }
 
         expect:
-        def jvm = new Jvm(os, installDir, "1.8.0", JavaVersion.VERSION_1_8)
-        def jvm2 = new Jvm(os, installDir, "1.8.0", JavaVersion.VERSION_1_8)
+        def jvm = new Jvm(os, installDir, "1.8.0", 8)
+        def jvm2 = new Jvm(os, installDir, "1.8.0", 8)
         Matchers.strictlyEquals(jvm, jvm2)
     }
 
@@ -461,7 +462,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, jdkDir, "1.8.0", JavaVersion.VERSION_1_8)
+        def jvm = new Jvm(os, jdkDir, "1.8.0", 8)
 
         then:
         jvm.toString().contains('dummyFolder')

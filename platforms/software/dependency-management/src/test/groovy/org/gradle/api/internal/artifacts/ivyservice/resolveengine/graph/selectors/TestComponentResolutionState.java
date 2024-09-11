@@ -43,11 +43,6 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public String getRepositoryName() {
-        return null;
-    }
-
-    @Override
     public String getVersion() {
         return id.getVersion();
     }

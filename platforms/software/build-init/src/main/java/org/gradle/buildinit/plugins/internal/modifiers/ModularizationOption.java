@@ -17,6 +17,16 @@
 package org.gradle.buildinit.plugins.internal.modifiers;
 
 public enum ModularizationOption {
-    SINGLE_PROJECT,
-    WITH_LIBRARY_PROJECTS;
+    SINGLE_PROJECT("Single application project"),
+    WITH_LIBRARY_PROJECTS("Application and library project");
+
+    private final String displayName;
+
+    ModularizationOption(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 }

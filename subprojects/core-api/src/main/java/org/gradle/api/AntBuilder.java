@@ -15,11 +15,14 @@
  */
 package org.gradle.api;
 
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+
 import java.util.Map;
 
 /**
  * <p>An {@code AntBuilder} allows you to use Ant from your build script.</p>
  */
+@NotToBeMigratedToLazy
 public abstract class AntBuilder extends groovy.ant.AntBuilder {
     /**
      * Returns the properties of the Ant project. This is a live map, you that you can make changes to the map and these
@@ -88,7 +91,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @since 7.1
      */
-    public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer);
+    public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
 
     /**
      * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.

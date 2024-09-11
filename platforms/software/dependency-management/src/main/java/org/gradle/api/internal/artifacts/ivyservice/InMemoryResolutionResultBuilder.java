@@ -18,16 +18,18 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+
+import java.util.Collections;
 
 /**
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
@@ -37,9 +39,15 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  */
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
-    private final DefaultResolutionResultBuilder resolutionResultBuilder = new DefaultResolutionResultBuilder();
+    private final ResolutionResultGraphBuilder resolutionResultBuilder = new ResolutionResultGraphBuilder();
+    private final boolean includeAllSelectableVariantResults;
+
     private ResolvedComponentResult root;
     private ImmutableAttributes requestAttributes;
+
+    public InMemoryResolutionResultBuilder(boolean includeAllSelectableVariantResults) {
+        this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
+    }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
@@ -47,9 +55,16 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason(), component.getRepositoryName());
         resolutionResultBuilder.visitComponentDetails(component.getComponentId(), component.getModuleVersion());
         for (ResolvedGraphVariant variant : component.getSelectedVariants()) {
-            resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), variant.getResolveState().getVariantResult(null));
+            ResolvedVariantResult publicView = component.getResolveState().getPublicViewFor(variant.getResolveState(), null);
+            resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), publicView);
         }
-        resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
+
+        if (includeAllSelectableVariantResults) {
+            resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
+        } else {
+            resolutionResultBuilder.visitComponentVariants(Collections.emptyList());
+        }
+
         resolutionResultBuilder.endVisitComponent();
     }
 
@@ -69,6 +84,6 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         if (requestAttributes == null) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        return new DefaultMinimalResolutionResult(() -> root, requestAttributes);
+        return new MinimalResolutionResult(() -> root, requestAttributes);
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -31,7 +31,7 @@ import java.io.File;
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * @since 4.1
  */
-@ServiceScope(Scopes.Project.class)
+@ServiceScope(Scope.Project.class)
 public interface ProjectLayout {
     /**
      * Returns the project directory.

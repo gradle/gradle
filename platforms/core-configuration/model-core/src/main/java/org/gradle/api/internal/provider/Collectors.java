@@ -22,8 +22,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import java.util.Arrays;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -42,6 +46,12 @@ public class Collectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -81,6 +91,11 @@ public class Collectors {
         public int size() {
             return 1;
         }
+
+        @Override
+        public String toString() {
+            return String.format("[%s]", element);
+        }
     }
 
     public static class ElementFromProvider<T> implements ProvidedCollector<T> {
@@ -88,6 +103,11 @@ public class Collectors {
 
         public ElementFromProvider(ProviderInternal<? extends T> provider) {
             this.provider = provider;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            return new ElementsFromCollectionProvider<>(provider.map(ImmutableList::of), true);
         }
 
         @Override
@@ -114,14 +134,7 @@ public class Collectors {
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            if (value.isMissing()) {
-                visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.hasFixedValue()) {
-                // transform preserving side effects
-                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
-            } else {
-                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
-            }
+            visitValue(visitor, value);
         }
 
         @Override
@@ -150,6 +163,22 @@ public class Collectors {
         public int size() {
             return 1;
         }
+
+        @Override
+        public String toString() {
+            return String.format("item(%s)", provider);
+        }
+    }
+
+    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
+        if (value.isMissing()) {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
+        } else if (value.hasFixedValue()) {
+            // transform preserving side effects
+            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+        } else {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
+        }
     }
 
     public static class ElementsFromCollection<T> implements Collector<T> {
@@ -162,6 +191,12 @@ public class Collectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -189,7 +224,11 @@ public class Collectors {
                 return false;
             }
             ElementsFromCollection<?> that = (ElementsFromCollection<?>) o;
-            return Objects.equal(value, that.value);
+
+            // We're fine with having weak contract of Iterable/Collection.equals.
+            @SuppressWarnings("UndefinedEquals")
+            boolean result = Objects.equal(value, that.value);
+            return result;
         }
 
         @Override
@@ -201,29 +240,54 @@ public class Collectors {
         public int size() {
             return Iterables.size(value);
         }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
     public static class ElementsFromCollectionProvider<T> implements ProvidedCollector<T> {
         private final ProviderInternal<? extends Iterable<? extends T>> provider;
+        private final boolean ignoreAbsent;
 
         public ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider) {
-            this.provider = provider;
+            this(provider, false);
+        }
+
+        private ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider, boolean ignoreAbsent) {
+            this.provider = ignoreAbsent ? neverMissing(Cast.uncheckedNonnullCast(provider)) : provider;
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        @Nonnull
+        private static <T> ProviderInternal<? extends Iterable<? extends T>> neverMissing(ProviderInternal<Iterable<? extends T>> provider) {
+            return Cast.uncheckedNonnullCast(provider.orElse(ImmutableList.of()));
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            return ignoreAbsent ? this : new ElementsFromCollectionProvider<>(provider, true);
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return provider.calculatePresence(consumer);
+            return ignoreAbsent || provider.calculatePresence(consumer);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
+            return collectEntriesFromValue(collector, collection, value);
+        }
+
+        private ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
             if (value.isMissing()) {
-                return value.asType();
+                return ignoreAbsent ? Value.present() : value.asType();
             }
 
             collector.addAll(value.getWithoutSideEffect(), collection);
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
+            return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
         }
 
         @Override
@@ -238,7 +302,7 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return Objects.equal(provider, provider);
+            return Objects.equal(this.provider, provider);
         }
 
         @Override
@@ -266,6 +330,11 @@ public class Collectors {
                 throw new UnsupportedOperationException();
             }
         }
+
+        @Override
+        public String toString() {
+            return String.valueOf(provider);
+        }
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
@@ -278,6 +347,12 @@ public class Collectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -302,6 +377,11 @@ public class Collectors {
         public int size() {
             return value.length;
         }
+
+        @Override
+        public String toString() {
+            return Arrays.toString(value);
+        }
     }
 
     public static class TypedCollector<T> implements ProvidedCollector<T> {
@@ -318,6 +398,11 @@ public class Collectors {
         @Nullable
         public Class<? extends T> getType() {
             return type;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -370,6 +455,11 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%s as %s)", delegate, type);
         }
     }
 }

@@ -27,8 +27,19 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
     def addressFactory = new InetAddressFactory()
-    def handler = new DefaultFileLockContentionHandler(executorFactory, addressFactory)
-    def client = new DefaultFileLockContentionHandler(executorFactory, addressFactory)
+    def addressProvider = new InetAddressProvider() {
+        @Override
+        InetAddress getWildcardBindingAddress() {
+            return addressFactory.wildcardBindingAddress
+        }
+
+        @Override
+        Iterable<InetAddress> getCommunicationAddresses() {
+            return addressFactory.communicationAddresses
+        }
+    }
+    def handler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    def client = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
 
     def cleanup() {
         handler?.stop()
@@ -76,7 +87,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
     def "there are only two executors: one lock request listener and one release lock action executor"() {
         def factory = Mock(ExecutorFactory)
-        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
+        handler = new DefaultFileLockContentionHandler(factory, addressProvider)
 
         when:
         handler.reservePort()
@@ -162,7 +173,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
     def "reserving port does not start the thread"() {
         def factory = Mock(ExecutorFactory)
-        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
+        handler = new DefaultFileLockContentionHandler(factory, addressProvider)
 
         when:
         handler.reservePort()
@@ -175,7 +186,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         def factory = Mock(ExecutorFactory)
         def lockRequestListener = Mock(ManagedExecutor)
         def releaseLockActionExecutor = Mock(ManagedExecutor)
-        handler = new DefaultFileLockContentionHandler(factory, addressFactory)
+        handler = new DefaultFileLockContentionHandler(factory, addressProvider)
 
         when:
         handler.reservePort()

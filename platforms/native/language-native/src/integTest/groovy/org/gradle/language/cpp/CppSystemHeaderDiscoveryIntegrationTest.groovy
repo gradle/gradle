@@ -16,25 +16,25 @@
 
 package org.gradle.language.cpp
 
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
-
 class CppSystemHeaderDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+
     def "discovers C and C++ standard library headers"() {
         def outputFile = file("dirs.txt")
         buildFile << """
             plugins { id 'cpp-application' }
             task sysHeaders {
+                def out = file("${outputFile.toURI()}")
+                def headers = provider { tasks.compileDebugCpp.systemIncludes }
                 doLast {
-                    def out = file("${outputFile.toURI()}")
-                    out.text = tasks.compileDebugCpp.systemIncludes.join('\\n')
+                    out.text = headers.get().join('\\n')
                 }
             }
         """
 
         when:
-        //TODO this fails in CI (for unknown reasons) with project access checks based on configuration barrier
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds("sysHeaders")
 
         then:

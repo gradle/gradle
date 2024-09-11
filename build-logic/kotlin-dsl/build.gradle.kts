@@ -7,9 +7,9 @@ description = "Provides plugins to configure Kotlin DSL and patch the Kotlin com
 dependencies {
     implementation("gradlebuild:basics")
 
-    implementation(project(":dependency-modules"))
-    implementation(project(":jvm"))
-    implementation(project(":kotlin-dsl-shared-runtime"))
+    implementation(projects.dependencyModules)
+    implementation(projects.jvm)
+    implementation(projects.kotlinDslSharedRuntime)
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))

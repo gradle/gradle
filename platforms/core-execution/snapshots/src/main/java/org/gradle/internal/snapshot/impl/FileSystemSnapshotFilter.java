@@ -23,7 +23,6 @@ import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -32,6 +31,7 @@ import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierar
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
@@ -41,14 +41,18 @@ public class FileSystemSnapshotFilter {
     private FileSystemSnapshotFilter() {
     }
 
-    public static FileSystemSnapshot filterSnapshot(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
+    public static Optional<FileSystemLocationSnapshot> filterSnapshot(SnapshottingFilter filter, FileSystemLocationSnapshot unfiltered) {
+        if (filter.isEmpty()) {
+            return Optional.of(unfiltered);
+        }
+        SnapshottingFilter.FileSystemSnapshotPredicate predicate = filter.getAsSnapshotPredicate();
         DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         AtomicBoolean hasBeenFiltered = new AtomicBoolean();
         unfiltered.accept(new RelativePathTracker(), new FilteringVisitor(predicate, builder, hasBeenFiltered));
         if (builder.getResult() == null) {
-            return FileSystemSnapshot.EMPTY;
+            return Optional.empty();
         }
-        return hasBeenFiltered.get() ? builder.getResult() : unfiltered;
+        return Optional.of(hasBeenFiltered.get() ? builder.getResult() : unfiltered);
     }
 
     private static class FilteringVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {

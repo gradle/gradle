@@ -274,6 +274,7 @@ public abstract class DefaultScript extends BasicScript {
         return LOGGER;
     }
 
+    @Override
     public String toString() {
         return "script";
     }

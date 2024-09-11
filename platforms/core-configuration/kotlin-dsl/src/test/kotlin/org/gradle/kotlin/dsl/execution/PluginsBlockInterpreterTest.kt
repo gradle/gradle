@@ -109,12 +109,12 @@ class PluginsBlockInterpreterTest {
             """
                 id("plugin-id").version("1.0").apply(true)
                 id("plugin-id").version("2.0") apply true
-                id("plugin-id") version "3.0".apply(true)
+                id("plugin-id") version "3.0".apply(true) // BUG!
                 id("plugin-id") version "4.0" apply true
 
                 id("plugin-id").apply(false).version("1.0")
                 id("plugin-id").apply(false) version "2.0"
-                id("plugin-id") apply false.version("3.0")
+                id("plugin-id") apply false.version("3.0") // BUG!
                 id("plugin-id") apply false version "4.0"
             """,
             PluginRequestSpec("plugin-id", version = "1.0", apply = true),

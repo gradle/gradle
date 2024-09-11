@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing.type;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,6 +30,7 @@ public abstract class AbstractSignatureTypeProvider implements SignatureTypeProv
     private final Map<String, SignatureType> types = new LinkedHashMap<String, SignatureType>();
 
     @Override
+    @ToBeReplacedByLazyProperty
     public SignatureType getDefaultType() {
         return getTypeForExtension(defaultTypeExtension);
     }
@@ -45,6 +47,7 @@ public abstract class AbstractSignatureTypeProvider implements SignatureTypeProv
     }
 
     @Override
+    @ToBeReplacedByLazyProperty
     public SignatureType getTypeForExtension(String extension) {
         assertHasTypeForExtension(extension);
         return types.get(extension);

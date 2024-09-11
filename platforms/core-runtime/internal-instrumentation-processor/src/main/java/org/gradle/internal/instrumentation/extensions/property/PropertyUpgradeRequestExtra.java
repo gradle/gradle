@@ -16,96 +16,118 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.SetProperty;
+import com.squareup.javapoet.TypeName;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.objectweb.asm.Type;
+
+import javax.lang.model.element.ExecutableElement;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
-    enum UpgradedPropertyType {
-        LIST_PROPERTY(true),
-        SET_PROPERTY(true),
-        MAP_PROPERTY(true),
-        PROPERTY(false),
-        FILE_SYSTEM_LOCATION_PROPERTY(false),
-        CONFIGURABLE_FILE_COLLECTION(false);
-
-        private final boolean isMultiValueProperty;
-
-        UpgradedPropertyType(boolean isMultiValueProperty) {
-            this.isMultiValueProperty = isMultiValueProperty;
-        }
-
-        public boolean isMultiValueProperty() {
-            return isMultiValueProperty;
-        }
-
-        public static UpgradedPropertyType from(Type type) {
-            if (type.getClassName().equals(DirectoryProperty.class.getName()) || type.getClassName().equals(RegularFileProperty.class.getName())) {
-                return FILE_SYSTEM_LOCATION_PROPERTY;
-            } else if (type.getClassName().equals(ConfigurableFileCollection.class.getName())) {
-                return CONFIGURABLE_FILE_COLLECTION;
-            } else if (type.getClassName().equals(MapProperty.class.getName())) {
-                return MAP_PROPERTY;
-            } else if (type.getClassName().equals(SetProperty.class.getName())) {
-                return SET_PROPERTY;
-            } else if (type.getClassName().equals(ListProperty.class.getName())) {
-                return LIST_PROPERTY;
-            } else {
-                return PROPERTY;
-            }
-        }
-    }
-
     private final String propertyName;
-    private final boolean isFluentSetter;
+    private final String methodName;
+    private final TypeName returnType;
     private final String implementationClassName;
     private final String interceptedPropertyAccessorName;
-    private final String interceptedPropertyAccessorDescriptor;
-    private final UpgradedPropertyType upgradedPropertyType;
+    private final String methodDescriptor;
+    private final TypeName newPropertyType;
+    private final DeprecationSpec deprecationSpec;
+    private final BinaryCompatibility binaryCompatibility;
+    private final String interceptedPropertyName;
+    private final BridgedMethodInfo bridgedMethodInfo;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
-        boolean isFluentSetter,
+        String methodName,
+        String methodDescriptor,
+        TypeName returnType,
         String implementationClassName,
+        String interceptedPropertyName,
         String interceptedPropertyAccessorName,
-        String interceptedPropertyAccessorDescriptor,
-        UpgradedPropertyType upgradedPropertyType
+        TypeName newPropertyType,
+        DeprecationSpec deprecationSpec,
+        BinaryCompatibility binaryCompatibility,
+        BridgedMethodInfo bridgedMethodInfo
     ) {
         this.propertyName = propertyName;
-        this.isFluentSetter = isFluentSetter;
+        this.methodName = methodName;
+        this.methodDescriptor = methodDescriptor;
+        this.returnType = returnType;
+        this.newPropertyType = newPropertyType;
         this.implementationClassName = implementationClassName;
+        this.interceptedPropertyName = interceptedPropertyName;
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
-        this.interceptedPropertyAccessorDescriptor = interceptedPropertyAccessorDescriptor;
-        this.upgradedPropertyType = upgradedPropertyType;
+        this.deprecationSpec = deprecationSpec;
+        this.binaryCompatibility = binaryCompatibility;
+        this.bridgedMethodInfo = bridgedMethodInfo;
     }
 
     public String getPropertyName() {
         return propertyName;
     }
 
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public String getMethodDescriptor() {
+        return methodDescriptor;
+    }
+
+    public TypeName getNewPropertyType() {
+        return newPropertyType;
+    }
+
     public String getImplementationClassName() {
         return implementationClassName;
+    }
+
+
+    public String getInterceptedPropertyName() {
+        return interceptedPropertyName;
     }
 
     public String getInterceptedPropertyAccessorName() {
         return interceptedPropertyAccessorName;
     }
 
-    public String getInterceptedPropertyAccessorDescriptor() {
-        return interceptedPropertyAccessorDescriptor;
+    public TypeName getReturnType() {
+        return returnType;
     }
 
-    public UpgradedPropertyType getUpgradedPropertyType() {
-        return upgradedPropertyType;
+    public DeprecationSpec getDeprecationSpec() {
+        return deprecationSpec;
     }
 
-    public boolean isFluentSetter() {
-        return isFluentSetter;
+    public BinaryCompatibility getBinaryCompatibility() {
+        return binaryCompatibility;
+    }
+
+    public BridgedMethodInfo getBridgedMethodInfo() {
+        return bridgedMethodInfo;
+    }
+
+    public static class BridgedMethodInfo {
+        public enum BridgeType {
+            ADAPTER_METHOD_BRIDGE,
+            INSTANCE_METHOD_BRIDGE
+        }
+
+        private final ExecutableElement bridgedMethod;
+        private final BridgeType bridgeType;
+
+        public BridgedMethodInfo(ExecutableElement bridgedMethod, BridgeType bridgeType) {
+            this.bridgedMethod = bridgedMethod;
+            this.bridgeType = bridgeType;
+        }
+
+        public ExecutableElement getBridgedMethod() {
+            return bridgedMethod;
+        }
+
+        public BridgeType getBridgeType() {
+            return bridgeType;
+        }
     }
 }

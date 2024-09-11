@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -45,8 +45,8 @@ class GradlePluginVariantsSupportTest extends Specification {
         def producer = versionAttribute('7.0')
 
         then:
-        accepts == (schema.matcher().matches([producer], consumer, ep) == [producer])
-        accepts == schema.matcher().isMatching(producer, consumer)
+        accepts == (schema.matcher().matchMultipleCandidates([producer], consumer, ep) == [producer])
+        accepts == schema.matcher().isMatchingCandidate(producer, consumer)
 
         where:
         currentGradleVersion       | acceptsOrRejects
@@ -74,7 +74,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.0')]
+        schema.matcher().matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.0')]
 
     }
 
@@ -92,7 +92,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.1')]
+        schema.matcher().matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.1')]
     }
 
     def "fails to select one candidate if there is no clear preference"() {
@@ -107,10 +107,12 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        schema.matcher().matches(producer, consumer, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
+        schema.matcher().matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
     }
 
-    private AttributeContainerInternal versionAttribute(String version) {
-        attributes.mutable().attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, version)) as AttributeContainerInternal
+    private ImmutableAttributes versionAttribute(String version) {
+        def attributes = attributes.mutable()
+        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, version))
+        attributes.asImmutable()
     }
 }

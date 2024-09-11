@@ -1,0 +1,46 @@
+name: 'Close stale PRs'
+on:
+  schedule:
+    # Execute every hour at xx:05 to avoid conflicts with other workflows
+    - cron: '5 * * * *'
+
+permissions: {}
+
+jobs:
+  stale:
+    permissions:
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          operations-per-run: 50
+          ascending: true
+          exempt-all-milestones: true
+
+          # ISSUES (deactivated) ----------------------------------------------
+          # This workflow should touch no issues, so times are set to -1
+          # (see actions/stale documentation for the behavior)
+          days-before-issue-stale: -1
+          stale-issue-label: stale
+          stale-issue-message: >
+            **BUG!** This issue should not be marked stale by the "stale" workflow.
+            Please report it to @gradle/bt-support team
+          days-before-issue-close: -1
+          close-issue-message: >
+            **BUG!** This issue should not be closed by the "stale" workflow.
+            Please report it to @gradle/bt-support team
+          close-issue-reason: not_planned
+
+          # PULL REQUESTS -----------------------------------------------------
+          days-before-pr-stale: 30
+          exempt-pr-labels: "from:contributor"
+          stale-pr-label: stale
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            It will be closed in 14 days if no further activity occurs.
+            If you don't want the stale bot to close it, then set a milestone for it.
+          days-before-pr-close: 14
+          close-pr-message: >
+            This pull request has been automatically closed due to inactivity.

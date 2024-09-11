@@ -38,6 +38,11 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     }
 
     @Override
+    String getCollectionName() {
+        return "list"
+    }
+
+    @Override
     protected Class<? extends ImmutableCollection<?>> getImmutableCollectionType() {
         return ImmutableList.class
     }

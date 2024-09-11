@@ -23,6 +23,9 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.junit.Rule
+import spock.lang.Issue
+
+import java.util.concurrent.atomic.AtomicInteger
 
 class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -33,7 +36,7 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "event handling does not block other work"() {
-        buildFile << """
+        buildFile """
             import ${BuildEventsListenerRegistry.name}
             import ${OperationCompletionListener.name}
             import ${FinishEvent.name}
@@ -54,7 +57,7 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             def registry = project.services.get(BuildEventsListenerRegistry)
             registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener1', BlockingListener) {
                 parameters.prefix = "handle1_"
@@ -64,12 +67,12 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
             })
 
             task a { }
-            task b { 
+            task b {
                 dependsOn a
                 doFirst {
                     ${server.callFromBuild("run_:b")}
                 }
-            } 
+            }
         """
 
         server.expectConcurrent("run_:b", "handle1_:a", "handle2_:a")
@@ -80,5 +83,70 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24887")
+    @Issue("https://github.com/gradle/gradle/issues/27099")
+    def "build events listener service handles all events before it is closed"() {
+        buildFile """
+            import ${BuildEventsListenerRegistry.name}
+            import ${OperationCompletionListener.name}
+            import ${FinishEvent.name}
+            import ${TaskFinishEvent.name}
+            import ${BuildServiceParameters.name}
+            import ${AtomicInteger.name}
+
+            abstract class BlockingListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None>, Closeable {
+                private static final AtomicInteger instanceCount = new AtomicInteger()
+
+                BlockingListener() {
+                    System.out.println("listener \${instanceCount.incrementAndGet()} created")
+                }
+
+                @Override
+                void onFinish(FinishEvent event) {
+                    if (event instanceof TaskFinishEvent) {
+                        ${server.callFromBuildUsingExpression("'handle' + event.descriptor.taskPath")}
+                    } else {
+                        throw new IllegalArgumentException()
+                    }
+                }
+
+                @Override
+                void close() {
+                    ${server.callFromBuild("serviceClosed")}
+                }
+            }
+
+            // Do not inline listener, or it weakens the test.
+            // We try to create the shared services registry first to have it handle buildFinished earlier.
+            def listener = gradle.sharedServices.registerIfAbsent('listener', BlockingListener)
+            def registry = project.services.get(BuildEventsListenerRegistry)
+            registry.onTaskCompletion(listener)
+
+            tasks.register("a")
+            tasks.register("b") {
+                dependsOn("a")
+            }
+        """
+
+        when:
+        def handleA = server.expectAndBlock("handle:a")
+        server.expect("handle:b")
+        server.expect("serviceClosed")
+
+        def build = executer.withTasks("b").start()
+
+        handleA.waitForAllPendingCalls()
+        // Increase the chance of the test to detect a broken implementation that doesn't wait for events to be processed before closing the service.
+        sleep(1000)
+        handleA.releaseAll()
+
+        result = build.waitForFinish()
+
+        then: "build succeeds and only one listener service was created"
+
+        outputContains("listener 1 created")
+        outputDoesNotContain("listener 2 created")
     }
 }

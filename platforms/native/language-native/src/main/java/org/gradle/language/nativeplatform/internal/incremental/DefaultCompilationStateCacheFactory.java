@@ -18,19 +18,17 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
     private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
@@ -40,7 +38,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         cache = cacheBuilderFactory
                 .createCacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                 .open();
         IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

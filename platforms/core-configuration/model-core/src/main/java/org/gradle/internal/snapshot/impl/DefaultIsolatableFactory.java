@@ -97,7 +97,7 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
-        public Isolatable<?> enumValue(Enum value) {
+        public Isolatable<?> enumValue(Enum<?> value) {
             return new IsolatedEnumValueSnapshot(value);
         }
 
@@ -143,7 +143,11 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
         @Override
         public Isolatable<?> javaSerialized(Object value, byte[] serializedValue) {
-            return new IsolatedJavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
+            return new IsolatedJavaSerializedValueSnapshot(classLoaderHashOf(value), serializedValue, value.getClass());
+        }
+
+        private HashCode classLoaderHashOf(Object value) {
+            return classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader());
         }
 
         @Override
@@ -154,6 +158,11 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         @Override
         public Isolatable<?> array(ImmutableList<Isolatable<?>> elements, Class<?> arrayType) {
             return new IsolatedArray(elements, arrayType);
+        }
+
+        @Override
+        public Isolatable<?> primitiveArray(Object value) {
+            return new ArrayOfPrimitiveValueSnapshot(value);
         }
 
         @Override

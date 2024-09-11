@@ -1,0 +1,23 @@
+> Task :dependencies
+
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- org.apache.commons:commons-lang3:{strictly [3.8, 4.0[; prefer 3.9} -> 3.9
++--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-json:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-nio:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
+\--- com.google.guava:guava:29.0-jre
+     +--- com.google.guava:failureaccess:1.0.1
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:2.11.1
+     +--- com.google.errorprone:error_prone_annotations:2.3.4
+     \--- com.google.j2objc:j2objc-annotations:1.3
+
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

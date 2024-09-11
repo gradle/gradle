@@ -22,8 +22,8 @@ import net.rubygrapefruit.platform.file.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
+import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
 

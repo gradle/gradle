@@ -148,6 +148,10 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         false
     }
 
+    boolean isJavaEcosystem() {
+        true
+    }
+
     def setup() {
         resolve = new ResolveTestFixture(buildFile, testConfiguration)
         resolve.expectDefaultConfiguration(usesJavaLibraryVariants() ? "runtime" : "default")
@@ -169,7 +173,9 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
                 $testConfiguration
             }
         """
-        resolve.addJavaEcosystem()
+        if (isJavaEcosystem()) {
+            resolve.addJavaEcosystem()
+        }
     }
 
     void repository(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {

@@ -19,9 +19,12 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,6 +33,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "requested and filtered tasks are exposed"() {
         createDirs("a", "b", "a/c")
         settingsFile << """
@@ -81,6 +85,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().result.excludedTaskPaths == []
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task plan is exposed"() {
         createDirs("a", "b", "a/c")
         settingsFile << """
@@ -111,6 +116,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonexistent' not found in root project")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build path for calculated task graph is exposed"() {
         createDirs("b")
         settingsFile << """
@@ -149,6 +155,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes task plan details"() {
         file("included-build").mkdir()
         file("included-build/settings.gradle")
@@ -210,6 +217,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes plan details with nested artifact transforms"() {
         file('producer/src/main/java/artifact/transform/sample/producer/Producer.java') << """
             package artifact.transform.sample.producer;

@@ -8,5 +8,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.guava)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.stdlibJavaExtensions)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

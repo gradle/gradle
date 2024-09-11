@@ -34,6 +34,7 @@ import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.properties.bean.DefaultPropertyWalker
@@ -60,7 +61,7 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         cacheFactory
     )
     def propertyHandlers = [new NoOpPropertyAnnotationHandler(Internal)]
-    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
     def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
     TaskInternal task

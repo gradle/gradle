@@ -70,6 +70,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *
      * @return collection of test suite targets.
      */
+    @Override
     ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> getTargets();
 
     /**

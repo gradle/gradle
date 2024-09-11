@@ -49,6 +49,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
      * <p>
      * Should only be called after publication is populated from the component.
      *
+     * @param projectDisplayName the {@linkplain org.gradle.api.Project#getDisplayName() project display name}
      * @param buildDir absolute directory that is the base of the build
      * @param componentName name of the component
      * @param source original artifact
@@ -56,7 +57,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
      * @throws PublishException if the artifacts are modified
      */
     public static void checkThatArtifactIsPublishedUnmodified(
-        Path buildDir, String componentName,
+        String projectDisplayName, Path buildDir, String componentName,
         PublishArtifact source, DefaultMavenArtifactSet mainArtifacts
     ) {
         // Note: this just verifies that no component artifact has been removed. Additional artifacts are allowed.
@@ -80,7 +81,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             differences.put(mavenArtifact, differenceSet);
         }
         throw new PublishException("Cannot publish module metadata because an artifact from the '" + componentName +
-            "' component has been removed. The available artifacts had these problems:\n" + formatDifferences(buildDir, source, differences));
+            "' component has been removed. The available artifacts had these problems:\n" + formatDifferences(projectDisplayName, buildDir, source, differences));
     }
 
     private static final Comparator<Set<ArtifactDifference>> DIFFERENCE_SET_COMPARATOR =
@@ -97,14 +98,14 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             // Last ditch effort to make the order deterministic
             .thenComparing(entry -> entry.getKey().getFile().toPath());
 
-    private static String formatDifferences(Path buildDir, PublishArtifact source, Map<MavenArtifact, Set<ArtifactDifference>> differencesByArtifact) {
+    private static String formatDifferences(String projectDisplayName, Path buildDir, PublishArtifact source, Map<MavenArtifact, Set<ArtifactDifference>> differencesByArtifact) {
         Stream<String> differencesFormatted = differencesByArtifact.entrySet().stream()
             .sorted(DIFFERENCE_ENTRY_COMPARATOR)
             .limit(3).map(entry -> {
                 MavenArtifact artifact = entry.getKey();
                 Set<ArtifactDifference> differenceSet = entry.getValue();
                 Path artifactPath = buildDir.relativize(artifact.getFile().toPath());
-                return "- " + artifactPath + ":\n" + formatDifferenceSet(buildDir, source, artifact, differenceSet);
+                return "- " + artifactPath + ":\n" + formatDifferenceSet(projectDisplayName, buildDir, source, artifact, differenceSet);
             });
         Stream<String> warningForNonPrintedArtifacts = differencesByArtifact.size() > 3
             ? Stream.of("... (" + (differencesByArtifact.size() - 3) + " more artifact(s) not shown)")
@@ -113,13 +114,13 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             .collect(Collectors.joining("\n", "", "\n"));
     }
 
-    private static String formatDifferenceSet(Path buildDir, PublishArtifact expected, MavenArtifact actual, Set<ArtifactDifference> differenceSet) {
+    private static String formatDifferenceSet(String projectDisplayName, Path buildDir, PublishArtifact expected, MavenArtifact actual, Set<ArtifactDifference> differenceSet) {
         return differenceSet.stream().map(diff -> {
             switch (diff) {
                 case FILE: {
                     Path expectedFile = buildDir.relativize(expected.getFile().toPath());
                     Path actualFile = buildDir.relativize(actual.getFile().toPath());
-                    return "\t- file differs: (expected) " + expectedFile + " != (actual) " + actualFile;
+                    return "\t- file differs (relative to " + projectDisplayName + "): (expected) " + expectedFile + " != (actual) " + actualFile;
                 }
                 case CLASSIFIER:
                     return "\t- classifier differs: (expected) " + expected.getClassifier() + " != (actual) " + actual.getClassifier();

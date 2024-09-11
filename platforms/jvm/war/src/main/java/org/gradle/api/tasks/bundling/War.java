@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -80,11 +81,13 @@ public abstract class War extends Jar {
     }
 
     @Inject
+    @Override
     public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
     public CopySpec getWebInf() {
         return webInf.addChild();
     }
@@ -125,6 +128,7 @@ public abstract class War extends Jar {
     @Nullable
     @Optional
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -168,6 +172,7 @@ public abstract class War extends Jar {
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
+    @ToBeReplacedByLazyProperty
     public File getWebXml() {
         return webXml;
     }

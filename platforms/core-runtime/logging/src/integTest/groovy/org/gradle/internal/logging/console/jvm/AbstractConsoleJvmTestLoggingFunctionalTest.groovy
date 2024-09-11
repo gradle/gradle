@@ -156,7 +156,37 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         taskOutput.contains('Finishing test: MyTest > testExpectation')
     }
 
-    static String javaProject() {
+    def "can use setOf() in Kotlin DSL to configure logging no events"() {
+        given:
+        buildKotlinFile << testLoggingStandardStreamWithEmptyEventSet()
+
+        file(JAVA_TEST_FILE_PATH) << javaTestClass {
+            """
+                System.out.println("standard output");
+                System.err.println("standard error");
+            """
+        }
+
+        when:
+        executer.withConsole(consoleType)
+        succeeds(TEST_TASK_NAME)
+
+        then:
+        if (result.groupedOutput.hasTask(TEST_TASK_PATH)) {
+            def taskOutput = getTaskOutput(result).readLines().findAll { !it.isBlank() }.join('\n')
+            assert !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+    standard output""")
+            assert !taskOutput.contains("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+    standard error""")
+        } else {
+            outputDoesNotContain("""MyTest > testExpectation ${TestLogEvent.STANDARD_OUT.consoleMarker}
+    standard output""")
+            outputDoesNotContain("""MyTest > testExpectation ${TestLogEvent.STANDARD_ERROR.consoleMarker}
+    standard error""")
+        }
+    }
+
+    private static String javaProject() {
         """
             apply plugin: 'java'
 
@@ -168,17 +198,17 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
     }
 
-    static String testLoggingEvents(String... events) {
+    private static String testLoggingEvents(String... events) {
         """
             test {
                 testLogging {
-                    events ${events.collect { "'$it'" }.join(', ')}
+                    events(${events.collect { "'$it'" }.join(', ')})
                 }
             }
         """
     }
 
-    static String testLoggingStandardStream() {
+    private static String testLoggingStandardStream() {
         """
             test {
                 testLogging {
@@ -188,7 +218,16 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
     }
 
-    static String javaTestClass(Closure<String> testMethodBody) {
+    private static String testLoggingStandardStreamWithEmptyEventSet() {
+        """
+            test {
+                showStandardStreams = true
+                testLogging.events = setOf()
+            }
+        """
+    }
+
+    private static String javaTestClass(Closure<String> testMethodBody) {
         """
             import org.junit.Test;
 
@@ -201,15 +240,15 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
     }
 
-    static String getTaskOutput(ExecutionResult result) {
+    private static String getTaskOutput(ExecutionResult result) {
         result.groupedOutput.task(TEST_TASK_PATH).output.trim()
     }
 
-    static boolean matchesTaskOutput(String taskOutput, String regexToFind) {
+    private static boolean matchesTaskOutput(String taskOutput, String regexToFind) {
         (taskOutput =~ /(?ms)($regexToFind)/).matches()
     }
 
-    static String testLogEventRegex(String event) {
+    private static String testLogEventRegex(String event) {
         "MyTest > testExpectation.*$event.*"
     }
 

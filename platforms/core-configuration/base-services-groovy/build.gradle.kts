@@ -5,16 +5,15 @@ plugins {
 description = "A set of generic services and utilities specific for Groovy."
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":base-annotations"))
+    api(projects.baseServices)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.jsr305)
     api(libs.groovy)
     api(libs.guava)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 }
-
-strictCompile {
-    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: org.gradle.api.specs.AndSpec.and()
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

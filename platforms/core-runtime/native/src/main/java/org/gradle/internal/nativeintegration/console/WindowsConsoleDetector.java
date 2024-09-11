@@ -36,6 +36,7 @@ public class WindowsConsoleDetector implements ConsoleDetector {
     }
 
     @Override
+    @SuppressWarnings("SystemConsoleNull")
     public boolean isConsoleInput() {
         return System.console() != null;
     }

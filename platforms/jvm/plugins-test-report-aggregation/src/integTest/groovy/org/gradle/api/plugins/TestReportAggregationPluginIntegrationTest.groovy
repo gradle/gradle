@@ -509,4 +509,84 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()
     }
+
+    def "Only one suite with a given test type allowed per project"() {
+        file("src/primaryIntTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+        file("src/secondaryIntTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.test-report-aggregation'
+        """
+        file("transitive/build.gradle") << """
+            testing {
+                suites {
+                    primaryIntTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+
+                    secondaryIntTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails(':application:testAggregateTestReport')
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntTest'. Another test suite: 'primaryIntTest' uses the type: 'integration-test' and has already been configured in project: 'transitive'.")
+    }
+
+    def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
+        file("src/test/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+        file("src/secondaryTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.test-report-aggregation'
+        """
+        file("transitive/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            testing {
+                suites {
+                    secondaryTest(JvmTestSuite) {
+                        testType = TestSuiteType.UNIT_TEST
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails(':application:testAggregateTestReport')
+        result.assertHasErrorOutput("Could not configure suite: 'test'. Another test suite: 'secondaryTest' uses the type: 'unit-test' and has already been configured in project: 'transitive'.")
+    }
+
+    def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
+        file("src/integrationTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+        file("src/secondaryIntegrationTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.test-report-aggregation'
+        """
+        file("transitive/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite)
+
+                    secondaryIntegrationTest(JvmTestSuite) {
+                        testType = TestSuiteType.INTEGRATION_TEST
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails(':application:testAggregateTestReport')
+        result.assertHasErrorOutput("Could not configure suite: 'secondaryIntegrationTest'. Another test suite: 'integrationTest' uses the type: 'integration-test' and has already been configured in project: 'transitive'.")
+    }
 }

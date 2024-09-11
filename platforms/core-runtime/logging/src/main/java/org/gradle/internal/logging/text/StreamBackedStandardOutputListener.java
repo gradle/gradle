@@ -19,7 +19,11 @@ package org.gradle.internal.logging.text;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.StandardOutputListener;
 
-import java.io.*;
+import java.io.Flushable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 
 public class StreamBackedStandardOutputListener implements StandardOutputListener {
     private final Appendable appendable;
@@ -32,14 +36,14 @@ public class StreamBackedStandardOutputListener implements StandardOutputListene
         } else {
             flushable = new Flushable() {
                 @Override
-                public void flush() throws IOException {
+                public void flush() {
                 }
             };
         }
     }
 
     public StreamBackedStandardOutputListener(OutputStream outputStream) {
-        this(new OutputStreamWriter(outputStream));
+        this(new OutputStreamWriter(outputStream, Charset.defaultCharset()));
     }
 
     @Override

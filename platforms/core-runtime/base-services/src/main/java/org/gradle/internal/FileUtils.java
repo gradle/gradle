@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
@@ -173,7 +174,7 @@ public class FileUtils {
      * @return the transformed path
      */
     public static String withExtension(String filePath, String extension) {
-        if (filePath.toLowerCase().endsWith(extension)) {
+        if (filePath.toLowerCase(Locale.ROOT).endsWith(extension)) {
             return filePath;
         }
         return removeExtension(filePath) + extension;

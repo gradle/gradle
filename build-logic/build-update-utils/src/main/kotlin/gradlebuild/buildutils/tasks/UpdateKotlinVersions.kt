@@ -22,6 +22,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -91,21 +92,46 @@ abstract class UpdateKotlinVersions : DefaultTask() {
 
     private
     fun DocumentBuilderFactory.fetchFirstAndLatestsOfEachMinor(minimumSupported: String, mavenMetadataUrl: String): List<String> {
-        val versionsByMinor = fetchVersionsFromMavenMetadata(mavenMetadataUrl)
-            .groupBy { it.take(3) }
-            .toSortedMap()
-        val latests = buildList {
-            versionsByMinor.entries.forEachIndexed { idx, entry ->
-                add(entry.value.lastOrNull { !it.contains("-") })
-                if (idx < versionsByMinor.size - 1) {
-                    add(entry.value.first())
-                } else {
-                    add(entry.value.firstOrNull { !it.contains("-") })
-                    add(entry.value.first())
+        return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
+    }
+
+    companion object {
+        @VisibleForTesting
+        @JvmStatic
+        fun selectVersionsFrom(minimumSupported: String, allVersions: List<String>): List<String> {
+            val versionsByMinor = allVersions
+                .groupBy { it.take(3) } // e.g. 1.9
+                .toSortedMap()
+            val latests = buildList {
+                versionsByMinor.entries.forEachIndexed { idx, entry ->
+                    // Earliest stable of the minor
+                    val versionsOfMinor = entry.value
+                    add(versionsOfMinor.lastOrNull { !it.contains("-") })
+                    if (idx < versionsByMinor.size - 1) {
+                        // Latest of the previous minor
+                        add(versionsOfMinor.first())
+                    } else {
+                        // Current minor
+                        val versionsByPatch = versionsOfMinor
+                            .groupBy { it.take(5) } // e.g. 1.9.2(x)
+                            .toSortedMap()
+                        for (key in versionsByPatch.keys.reversed()) {
+                            val versionsOfPatch = versionsByPatch.getValue(key)
+                            if (versionsOfPatch.any { !it.contains("-") }) {
+                                add(versionsOfPatch.first { !it.contains("-") })
+                                break
+                            }
+                            if (versionsOfPatch.any { it.contains("-RC") }) {
+                                add(versionsOfPatch.firstOrNull { it.contains("-RC") })
+                            } else if (versionsOfPatch.any { it.contains("-Beta") }) {
+                                add(versionsOfPatch.firstOrNull { it.contains("-Beta") })
+                            }
+                        }
+                    }
                 }
-            }
-            add(minimumSupported)
-        }.filterNotNull().distinct().sorted()
-        return latests.subList(latests.indexOf(minimumSupported), latests.size)
+                add(minimumSupported)
+            }.filterNotNull().distinct().sorted()
+            return latests.subList(latests.indexOf(minimumSupported), latests.size)
+        }
     }
 }

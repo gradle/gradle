@@ -26,6 +26,7 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 
+import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -72,7 +73,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @Override
-    public void scheduleAndRunTasks(EntryTaskSelector selector) {
+    public void scheduleAndRunTasks(@Nullable EntryTaskSelector selector) {
         runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
     }
 

@@ -25,13 +25,15 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenVersionRangeMappe
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.maven.MavenModule;
 import org.gradle.maven.MavenPomArtifact;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-public class MavenPublishServices extends AbstractPluginServiceRegistry {
+public class MavenPublishServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new ComponentRegistrationAction());
@@ -42,17 +44,19 @@ public class MavenPublishServices extends AbstractPluginServiceRegistry {
         registration.add(MavenDuplicatePublicationTracker.class);
     }
 
-    private static class ComponentRegistrationAction {
+    private static class ComponentRegistrationAction implements ServiceRegistrationProvider {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
                 .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
         }
 
+        @Provides
         public VersionRangeMapper createVersionRangeMapper(VersionSelectorScheme versionSelectorScheme) {
             return new MavenVersionRangeMapper(versionSelectorScheme);
         }
 
+        @Provides
         public MavenPublishers createMavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
             return new MavenPublishers(timeProvider, repositoryTransportFactory, mavenRepositoryLocator);
         }

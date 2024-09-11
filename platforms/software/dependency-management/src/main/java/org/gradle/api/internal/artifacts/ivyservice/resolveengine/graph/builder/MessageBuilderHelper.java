@@ -19,9 +19,6 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -31,9 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 abstract class MessageBuilderHelper {
-    private static boolean isDependencyForced(DependencyMetadata dependency) {
-        return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
-    }
 
     static Collection<String> pathTo(EdgeState edge) {
         return pathTo(edge, true);
@@ -58,7 +52,7 @@ abstract class MessageBuilderHelper {
                     sb.append(" --> ");
                 }
                 first = false;
-                ModuleVersionIdentifier id = e.getFrom().getResolvedConfigurationId().getId();
+                ModuleVersionIdentifier id = e.getFrom().getComponent().getModuleVersion();
                 sb.append('\'').append(id).append('\'');
                 if (variantDetails != null) {
                     sb.append(variantDetails);
@@ -81,9 +75,9 @@ abstract class MessageBuilderHelper {
 
     @Nullable
     private static String variantDetails(EdgeState e) {
-        ResolvedVariantResult selectedVariant = e.hasSelectedVariant() ? e.getSelectedNode().getResolveState().getVariantResult(null) : null;
-        if (selectedVariant != null) {
-            return " (" + selectedVariant.getDisplayName() + ")";
+        String selectedVariantName = e.hasSelectedVariant() ? e.getSelectedNode().getMetadata().getName() : null;
+        if (selectedVariantName != null) {
+            return " (" + selectedVariantName + ")";
         }
         return null;
     }

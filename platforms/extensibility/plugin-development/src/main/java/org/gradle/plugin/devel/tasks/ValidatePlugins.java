@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
@@ -56,7 +55,6 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.introductionFor;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -95,6 +93,8 @@ public abstract class ValidatePlugins extends DefaultTask {
                     spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
                 } else {
                     DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without applying the Java Toolchain plugin.")
+                        .withProblemIdDisplayName("Using task ValidatePlugins without applying the Java Toolchain plugin.")
+                        .withProblemId("missing-java-toolchain-plugin")
                         .willBecomeAnErrorInGradle9()
                         .withUpgradeGuideSection(8, "validate_plugins_without_java_toolchain")
                         .nagUser();
@@ -115,14 +115,13 @@ public abstract class ValidatePlugins extends DefaultTask {
         if (problems.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getSeverity() == ERROR)) {
+            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
                     reportProblems(problems);
-
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());
@@ -136,12 +135,7 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     private void reportProblems(List<? extends Problem> problems) {
         InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
-        problems.stream()
-            .filter(InternalProblem.class::isInstance)
-            .map(InternalProblem.class::cast)
-            .map(problem -> problem.toBuilder()
-                .label(introductionFor(problem.getAdditionalData()) + problem.getLabel()).build())
-            .forEach(reporter::report);
+        problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {

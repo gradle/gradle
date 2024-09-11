@@ -489,7 +489,8 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         and:
         failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasCause("No matching configuration of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
+        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentHostArchName}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentHostOperatingSystemName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:\n" +
+                               "  - No variants exist.")
     }
 
     def "can compile and link against a static library"() {
@@ -856,7 +857,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
         staticLibrary("hello/build/lib/main/release/Greeter").assertExists()
-        executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
+        executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames + app.library.sourceFileNames)
         executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds ":app:linkDebug"
@@ -864,7 +865,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug", ":app:compileDebugSwift", ":app:linkDebug")
 
         staticLibrary("hello/build/lib/main/debug/Greeter").assertExists()
-        executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
+        executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames + app.library.sourceFileNames)
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
@@ -1007,6 +1008,9 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         def app = new SwiftCompilerDetectingApp(toolChain.version.major)
 
         given:
+        settingsFile << """
+            rootProject.name = "app"
+        """
         buildFile << """
             apply plugin: 'swift-application'
         """

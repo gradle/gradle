@@ -58,23 +58,29 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         checkLegacyArtifacts("unordered", ordered)
         checkLegacyArtifacts("consumerFirst", ordered)
         checkLegacyArtifacts("dependencyFirst", ordered)
+
+        3.times { executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
+        if (!GradleContextualExecuter.configCache) {
+            3.times { executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
+        }
+
+        assert succeeds("checkLegacyunordered", "checkLegacyconsumerFirst", "checkLegacydependencyFirst")
     }
 
     private void checkLegacyArtifacts(String name, List<?> modules) {
         def fileNames = toFileNames(modules).join(',')
         buildFile << """
             task checkLegacy${name} {
+                def filteredFiles = configurations.${name}.files { true }
                 doLast {
+                    assert filteredFiles.collect { it.name } == [${fileNames}]
                     if (${!GradleContextualExecuter.configCache}) {
                         // Don't check eager methods when CC is enabled
                         assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
-                        assert configurations.${name}.files { true }.collect { it.name } == [${fileNames}]
                     }
                 }
             }
-"""
-
-        assert succeeds("checkLegacy${name}")
+        """
     }
 
     private void checkArtifacts(String name, List<?> modules) {

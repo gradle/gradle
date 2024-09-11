@@ -28,25 +28,24 @@ plugins {
 description = "Contains the Java Test Fixtures plugin"
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":dependency-management"))
-    implementation(project(":core"))
-    implementation(project(":language-java"))
-    implementation(project(":logging"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":publish"))
-    implementation(project(":testing-base"))
-    implementation(project(":test-suites-base"))
+    api(projects.coreApi)
 
-    implementation(libs.groovy)
-    implementation(libs.inject)
+    api(libs.inject)
 
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
+    implementation(projects.baseServices)
+    implementation(projects.dependencyManagement)
+    implementation(projects.core)
+    implementation(projects.languageJava)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJvmTestSuite)
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.logging)
+
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

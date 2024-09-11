@@ -32,12 +32,15 @@ public class CrossBuildInMemoryCachingScriptClassCache {
         cachedCompiledScripts = cacheFactory.newCache();
     }
 
-    public <T extends Script, M> CompiledScript<T, M> getOrCompile(ScriptSource source,
-                                                                   ClassLoaderScope targetScope,
-                                                                   CompileOperation<M> operation,
-                                                                   Class<T> scriptBaseClass,
-                                                                   Action<? super ClassNode> verifier,
-                                                                   ScriptClassCompiler delegate) {
+    public <T extends Script, M> CompiledScript<T, M> getOrCompile(
+        Object target,
+        ScriptSource source,
+        ClassLoaderScope targetScope,
+        CompileOperation<M> operation,
+        Class<T> scriptBaseClass,
+        Action<? super ClassNode> verifier,
+        ScriptClassCompiler delegate
+    ) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
         CachedCompiledScript cached = cachedCompiledScripts.getIfPresent(key);
         HashCode hash = source.getResource().getContentHash();
@@ -47,7 +50,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
                 return Cast.uncheckedCast(cached.compiledScript);
             }
         }
-        CompiledScript<T, M> compiledScript = delegate.compile(source, targetScope, operation, scriptBaseClass, verifier);
+        CompiledScript<T, M> compiledScript = delegate.compile(source, scriptBaseClass, target, targetScope, operation, verifier);
         cachedCompiledScripts.put(key, new CachedCompiledScript(hash, compiledScript));
         return compiledScript;
     }

@@ -30,8 +30,8 @@ import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -39,7 +39,8 @@ import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
@@ -52,7 +53,7 @@ public class TestExecutionEngineFactory {
     public static ExecutionEngine createExecutionEngine(
         UniqueId buildId,
         BuildCacheController buildCacheController,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classloaderHierarchyHasher,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
@@ -62,24 +63,25 @@ public class TestExecutionEngineFactory {
         ValidateStep.ValidationWarningRecorder validationWarningReporter,
         VirtualFileSystem virtualFileSystem
     ) {
+        NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentifyStep<>(buildOperationRunner,
+            new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-            new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
+            new ResolveIncrementalCachingStateStep<>(buildCacheController, false,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationExecutor
+            new ExecuteStep<>(buildOperationRunner
         )))))))))))))))));
         // @formatter:on
     }

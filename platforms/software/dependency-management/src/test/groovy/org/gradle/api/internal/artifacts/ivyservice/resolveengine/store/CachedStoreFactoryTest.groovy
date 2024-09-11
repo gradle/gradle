@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 
-import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class CachedStoreFactoryTest extends Specification {
@@ -32,9 +31,9 @@ class CachedStoreFactoryTest extends Specification {
         def store2 = factory.createCachedStore("conf2")
 
         expect:
-        store1.load({results1} as Factory) == results1
-        store1.load({assert false} as Factory) == results1
-        store1b.load({assert false} as Factory) == results1
-        store2.load({results2} as Factory) == results2
+        store1.load(() -> results1) == results1
+        store1.load(() -> { assert false }) == results1
+        store1b.load(() -> { assert false }) == results1
+        store2.load(() -> results2) == results2
     }
 }

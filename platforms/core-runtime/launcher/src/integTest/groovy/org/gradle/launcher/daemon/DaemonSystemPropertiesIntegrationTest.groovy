@@ -57,7 +57,7 @@ task verify {
 
     def "forks new daemon when file encoding set to different value via commandline"() {
         setup:
-        buildScript """
+        buildFile """
             task verify {
                 doFirst {
                     println "verified = " + java.nio.charset.Charset.defaultCharset().name()
@@ -83,7 +83,7 @@ task verify {
 
     def "forks new daemon when tmpdir is set to different value via commandline"() {
         setup:
-        buildScript """
+        buildFile """
             task verify {
                 doFirst {
                     println "verified = \${File.createTempFile('pre', 'post')}"
@@ -112,7 +112,7 @@ task verify {
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
-        buildScript """
+        buildFile """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
             task verify {
@@ -143,7 +143,7 @@ task verify {
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon for changed javax.net.ssl sys properties"() {
         setup:
-        buildScript """
+        buildFile """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
             task verify {
@@ -174,7 +174,7 @@ task verify {
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon for changed cache reserved space sys property"() {
         setup:
-        buildScript """
+        buildFile """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
             task verify {

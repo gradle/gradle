@@ -15,6 +15,8 @@
  */
 package org.gradle.process;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 import java.io.File;
 import java.util.Map;
 
@@ -27,6 +29,7 @@ public interface ProcessForkOptions {
      *
      * @return The executable.
      */
+    @ToBeReplacedByLazyProperty
     String getExecutable();
 
     /**
@@ -57,6 +60,7 @@ public interface ProcessForkOptions {
      *
      * @return The working directory. Never returns null.
      */
+    @ToBeReplacedByLazyProperty
     File getWorkingDir();
 
     /**
@@ -89,6 +93,7 @@ public interface ProcessForkOptions {
      *
      * @return The environment. Returns an empty map when there are no environment variables.
      */
+    @ToBeReplacedByLazyProperty
     Map<String, Object> getEnvironment();
 
     /**

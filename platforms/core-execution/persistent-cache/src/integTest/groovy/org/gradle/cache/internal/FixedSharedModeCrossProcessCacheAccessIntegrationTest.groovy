@@ -18,7 +18,7 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -92,7 +92,7 @@ class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractInte
 
             void initialize(FileLock fileLock) {}
         }
-        def lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Shared)
+        def lockOptions = DefaultLockOptions.mode(FileLockManager.LockMode.Shared)
         def lockManager1 = DefaultFileLockManagerTestHelper.createDefaultFileLockManager(100)
         new FixedSharedModeCrossProcessCacheAccess("<cache>", cacheDir, lockOptions, lockManager1, countingInitAction, {}, {})
     }

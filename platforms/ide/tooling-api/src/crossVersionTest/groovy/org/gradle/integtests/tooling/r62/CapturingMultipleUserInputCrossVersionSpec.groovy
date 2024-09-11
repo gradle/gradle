@@ -17,17 +17,20 @@
 package org.gradle.integtests.tooling.r62
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Timeout
 
-@TargetGradleVersion(">=6.2")
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
+
+@TargetGradleVersion(">=8.7")
+@Timeout(120)
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'
 
     private static final QuestionAndAnswerSpec FOO = askQuestion('Foo?', 'yes')
     private static final QuestionAndAnswerSpec BAR = askQuestion('Bar?', 'no')
-
-    def outputStream = new ByteArrayOutputStream()
 
     def setup() {
         file('buildSrc/src/main/java/MultipleUserInputPlugin.java') << """
@@ -41,10 +44,10 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
                 @Override
                 public void apply(Project project) {
                     UserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(UserInputHandler.class);
-                    String fooAnswer = userInputHandler.askQuestion("${FOO.question}", "${FOO.defaultAnswer}");
+                    String fooAnswer = userInputHandler.askUser(it -> it.askQuestion("${FOO.question}", "${FOO.defaultAnswer}")).get();
                     System.out.println("${FOO.answerPrefix} " + fooAnswer);
 
-                    String barAnswer = userInputHandler.askQuestion("${BAR.question}", "${BAR.defaultAnswer}");
+                    String barAnswer = userInputHandler.askUser(it -> it.askQuestion("${BAR.question}", "${BAR.defaultAnswer}")).get();
                     System.out.println("${BAR.answerPrefix} " + barAnswer);
                 }
             }
@@ -52,15 +55,15 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
         file('build.gradle') << """
             apply plugin: MultipleUserInputPlugin
-            
+
             task $DUMMY_TASK_NAME
         """
     }
 
     def "can capture multiple user input if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
-            runBuildWithStandardInput(connection, answers('something one', 'something two'))
+        withConnection { connection ->
+            runBuildWithStandardInput(connection, 'something one', 'something two')
         }
 
         then:
@@ -72,8 +75,8 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can capture multiple user input if standard input was provided using default values"() {
         when:
-        withConnection { ProjectConnection connection ->
-            runBuildWithStandardInput(connection, answers('', ''))
+        withConnection { connection ->
+            runBuildWithStandardInput(connection, '', '')
         }
 
         then:
@@ -85,8 +88,8 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     def "can default subsequent user input as default values if standard input was provided"() {
         when:
-        withConnection { ProjectConnection connection ->
-            runBuildWithStandardInput(connection, answers('something'))
+        withConnection { connection ->
+            runBuildWithStandardInput(connection, 'something', '')
         }
 
         then:
@@ -96,20 +99,36 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
         output.contains(BAR.answerOutput())
     }
 
-    private void runBuildWithStandardInput(ProjectConnection connection, String answers) {
-        def build = connection.newBuild()
-        build.standardOutput = outputStream
-        build.forTasks(DUMMY_TASK_NAME)
-        build.standardInput = new ByteArrayInputStream(answers.bytes)
-        build.run()
-    }
+    private void runBuildWithStandardInput(ProjectConnection connection, String answer1, String answer2) {
+        def stdin = new PipedInputStream()
+        def stdinWriter = new PipedOutputStream(stdin)
+        def resultHandler = new TestResultHandler()
 
-    static String answers(String... answers) {
-        return answers.collect { it + System.getProperty('line.separator') }.join('')
+        connection.newBuild()
+            .forTasks(DUMMY_TASK_NAME)
+            .setStandardInput(stdin)
+            .run(resultHandler)
+
+        poll(60) {
+            assert getOutput().contains(FOO.prompt)
+        }
+
+        stdinWriter.write((answer1 + System.getProperty('line.separator')).bytes)
+
+        poll(60) {
+            assert getOutput().contains(BAR.prompt)
+        }
+
+        stdinWriter.write((answer2 + System.getProperty('line.separator')).bytes)
+        stdinWriter.close()
+
+        resultHandler.finished()
+        resultHandler.assertNoFailure()
+
     }
 
     private String getOutput() {
-        outputStream.toString()
+        stdout.toString()
     }
 
     private static QuestionAndAnswerSpec askQuestion(String question, String defaultAnswer) {

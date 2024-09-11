@@ -17,7 +17,7 @@
 package org.gradle.internal.operations.notify;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -30,7 +30,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 4.0
  */
 @UsedByScanPlugin("obtained from the root build's root project's service registry")
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface BuildOperationNotificationListenerRegistrar {
 
     /**

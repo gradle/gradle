@@ -1,49 +1,64 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for building Groovy projects"
 
+errorprone {
+    disabledChecks.addAll(
+        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":build-option"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
-    implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":jvm-services"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":files"))
-    implementation(project(":toolchains-jvm"))
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.buildOption)
+    api(projects.coreApi)
+    api(projects.core)
+    api(projects.files)
+    api(projects.fileOperations)
+    api(projects.fileTemp)
+    api(projects.jvmServices)
+    api(projects.languageJava)
+    api(projects.languageJvm)
+    api(projects.problemsApi)
+    api(projects.platformBase)
+    api(projects.toolchainsJvm)
+    api(projects.toolchainsJvmShared)
+    api(projects.workers)
+    api(projects.workerMain)
+    api(projects.buildProcessServices)
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.fileCollections)
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
 
     implementation(libs.groovy)
-    implementation(libs.groovyAnt)
-    implementation(libs.groovyDoc)
     implementation(libs.guava)
     implementation(libs.asm)
-    implementation(libs.inject)
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":resources"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.internalTesting)
+    testImplementation(projects.resources)
+    testImplementation(testFixtures(projects.core))
 
-    testFixturesApi(testFixtures(project(":language-jvm")))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":model-core")))
+    testFixturesApi(testFixtures(projects.languageJvm))
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.modelCore))
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(projects.modelCore))
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.javaParser) {
         because("The Groovy docs inspects the dependencies at compile time")
@@ -52,13 +67,22 @@ dependencies {
         because("Required for SystemInfo")
     }
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+
+tasks.withType<Test>().configureEach {
+    if (!javaVersion.isJava9Compatible) {
+        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
+    }
 }
 
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

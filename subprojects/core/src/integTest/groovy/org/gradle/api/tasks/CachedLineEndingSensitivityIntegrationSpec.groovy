@@ -16,9 +16,11 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.internal.TextUtil
 
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4439")
 class CachedLineEndingSensitivityIntegrationSpec extends AbstractLineEndingSensitivityIntegrationSpec {
     def buildCachePath = TextUtil.normaliseFileSeparators(testDirectory.file("build-cache").absolutePath)
 

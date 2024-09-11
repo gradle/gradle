@@ -264,7 +264,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
 
         when:
-        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        buildFinished(Integer.MAX_VALUE, [unsupportedFileSystemMountPoint])
         then:
         !vfsHasSnapshotsAt(unwatchableContent)
         0 * _
@@ -285,7 +285,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
 
         when:
-        buildFinished(Integer.MAX_VALUE, WatchMode.ENABLED)
+        buildFinished(Integer.MAX_VALUE)
         then:
         vfsHasSnapshotsAt(unwatchableContent)
         0 * _
@@ -306,7 +306,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
 
         when:
-        buildFinished(Integer.MAX_VALUE, WatchMode.ENABLED)
+        buildFinished(Integer.MAX_VALUE)
         then:
         vfsHasSnapshotsAt(unwatchableContent)
         0 * _
@@ -322,7 +322,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
 
         when:
-        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        buildFinished(Integer.MAX_VALUE, [unsupportedFileSystemMountPoint])
         then:
         !vfsHasSnapshotsAt(unwatchableContent)
         0 * _
@@ -341,7 +341,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
 
         when:
-        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT, [unsupportedFileSystemMountPoint])
+        buildFinished(Integer.MAX_VALUE, [unsupportedFileSystemMountPoint])
         then:
         !vfsHasSnapshotsAt(unwatchableContent)
 
@@ -503,13 +503,13 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         probeLocationResolver.apply(watchableHierarchy)
     }
 
-    SnapshotHierarchy buildStarted(watchMode = WatchMode.DEFAULT, unsupportedFileSystems = []) {
+    SnapshotHierarchy buildStarted(WatchMode watchMode = WatchMode.DEFAULT, List<File> unsupportedFileSystems = []) {
         virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode, unsupportedFileSystems)
         return virtualFileSystem.root
     }
 
-    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, watchMode = WatchMode.DEFAULT, unsupportedFileSystems = []) {
-        virtualFileSystem.root = updater.updateVfsOnBuildFinished(virtualFileSystem.root, watchMode, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
+    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, List<File> unsupportedFileSystems = []) {
+        virtualFileSystem.root = updater.updateVfsBeforeBuildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
     }
 
     TestFile addSnapshotInWatchableHierarchy(TestFile projectRootDirectory) {

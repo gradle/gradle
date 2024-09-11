@@ -19,7 +19,6 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 
@@ -81,6 +80,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

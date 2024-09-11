@@ -806,7 +806,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         then:
         failure.assertHasCause("""Could not resolve all dependencies for configuration ':conf'.""")
             .assertHasResolutions("""The project declares repositories, effectively ignoring the repositories you have declared in the settings.
-   You can figure out how project repositories are declared by configuring your build to fail on project repositories.
+   To determine how project repositories are declared, configure your build to fail on project repositories.
    ${documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")}""",
                 repositoryHint("Maven POM"),
                 STACKTRACE_MESSAGE,

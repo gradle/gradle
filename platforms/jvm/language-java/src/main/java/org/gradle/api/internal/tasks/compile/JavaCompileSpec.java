@@ -70,4 +70,5 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     default boolean annotationProcessingConfigured() {
         return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
+
 }

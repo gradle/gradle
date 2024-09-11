@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.health.gc.DefaultGarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo;
@@ -32,6 +34,7 @@ import java.util.Locale;
 
 import static java.lang.String.format;
 
+@ServiceScope(Scope.Global.class)
 public class DaemonHealthStats implements Stoppable {
 
     private final DaemonRunningStats runningStats;

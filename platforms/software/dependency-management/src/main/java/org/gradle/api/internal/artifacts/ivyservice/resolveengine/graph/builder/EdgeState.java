@@ -122,6 +122,7 @@ class EdgeState implements DependencyGraphEdge {
         return selector;
     }
 
+    @Override
     public boolean isTransitive() {
         return isTransitive;
     }
@@ -226,7 +227,7 @@ class EdgeState implements DependencyGraphEdge {
         if (isConstraint && !isVirtualDependency()) {
             List<NodeState> nodes = targetComponent.getNodes();
             for (NodeState node : nodes) {
-                if (node.isSelected()) {
+                if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
                 }
             }
@@ -247,7 +248,7 @@ class EdgeState implements DependencyGraphEdge {
                     }
                 }
                 for (NodeState node : nodes) {
-                    if (node.isSelected()) {
+                    if (node.isSelected() && !node.isRoot()) {
                         targetNodes.add(node);
                     }
                 }

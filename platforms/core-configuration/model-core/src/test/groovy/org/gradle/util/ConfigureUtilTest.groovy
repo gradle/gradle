@@ -179,6 +179,21 @@ class ConfigureUtilTest extends Specification {
         b.prop == "p"
     }
 
+    def createsIsolatedActionThatCanConfigureObjects() {
+        given:
+        def c = new TestConfigurable()
+        def b = new Bean()
+
+        when:
+        def action = ConfigureUtil.configureUsingIsolatedAction { prop = "p" }
+        action.execute(c)
+        action.execute(b)
+
+        then:
+        c.props.prop == "p"
+        b.prop == "p"
+    }
+
     void configureByMapTriesMethodForExtensibleObjects() {
         given:
         Bean bean = TestUtil.instantiatorFactory().decorateLenient().newInstance(Bean)

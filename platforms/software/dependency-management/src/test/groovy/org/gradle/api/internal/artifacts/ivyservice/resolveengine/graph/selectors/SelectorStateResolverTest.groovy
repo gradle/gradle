@@ -26,17 +26,17 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverFactory
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.LatestModuleConflictResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleSelectors
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveOptimizations
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentGraphResolveState
@@ -74,11 +74,11 @@ class SelectorStateResolverTest extends Specification {
     private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
     private final DefaultVersionComparator versionComparator = new DefaultVersionComparator()
-    private final conflictResolver = new ConflictResolverFactory(versionComparator, new VersionParser()).createConflictResolver(ConflictResolution.latest)
+    private final VersionParser versionParser = new VersionParser()
+    private final conflictResolver = new LatestModuleConflictResolver<>(versionComparator, versionParser)
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
-    private final VersionParser versionParser = new VersionParser()
     private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
     private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
@@ -203,9 +203,10 @@ class SelectorStateResolverTest extends Specification {
     }
 
     def 'short circuits for matching project selectors'() {
-        def projectId = new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
-        def nine = new TestProjectSelectorState(projectId)
-        def otherNine = new TestProjectSelectorState(projectId)
+        ProjectIdentity id = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
+        def projectId = new DefaultProjectComponentIdentifier(id)
+        def nine = new TestProjectSelectorState(id)
+        def otherNine = new TestProjectSelectorState(id)
         ModuleConflictResolver mockResolver = Mock()
         SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 

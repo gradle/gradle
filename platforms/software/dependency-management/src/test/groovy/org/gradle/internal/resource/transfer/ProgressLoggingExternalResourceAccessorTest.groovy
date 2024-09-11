@@ -16,9 +16,8 @@
 
 package org.gradle.internal.resource.transfer
 
-
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
@@ -30,9 +29,9 @@ import spock.lang.Specification
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor delegate = Mock()
-    BuildOperationExecutor buildOperationExecutor = Mock()
+    BuildOperationRunner buildOperationRunner = Mock()
     BuildOperationContext context = Mock()
-    ProgressLoggingExternalResourceAccessor accessor = new ProgressLoggingExternalResourceAccessor(delegate, buildOperationExecutor)
+    ProgressLoggingExternalResourceAccessor accessor = new ProgressLoggingExternalResourceAccessor(delegate, buildOperationRunner)
     ExternalResourceMetaData metaData = Mock()
     ExternalResource.ContentAndMetadataAction action = Mock()
     def location = new ExternalResourceName(new URI("https://location/thing.jar"))
@@ -186,7 +185,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     }
 
     def expectMetadataBuildOperation() {
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action ->
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action ->
             def descriptor = action.description().build()
             assert descriptor.name == "Metadata of $location"
             assert descriptor.displayName == "Metadata of $location"
@@ -200,7 +199,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     }
 
     def expectReadBuildOperation(long bytesRead) {
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action ->
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action ->
             def descriptor = action.description().build()
             assert descriptor.name == "Download https://location/thing.jar"
             assert descriptor.displayName == "Download https://location/thing.jar"

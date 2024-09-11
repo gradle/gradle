@@ -1,3 +1,8 @@
-[libraries]
-guava = { group = "com.google.guava", name = "guava", version = { prefer = "18.0-jre", invalid = "nope" } }
-guava.version.rejette = "18.0-android"
+[libraries.guava]
+group = "com.google.guava"
+name = "guava"
+
+[libraries.guava.version]
+prefer = "18.0-jre"
+invalid = "nope"
+rejette = "18.0-android"

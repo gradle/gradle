@@ -94,7 +94,7 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
             return readAdditionalData(classIdentifier, decoder);
         }
 
-        protected final Serializer<HashCode> hashCodeSerializer = new HashCodeSerializer();
+        protected final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
         protected abstract ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception;
 

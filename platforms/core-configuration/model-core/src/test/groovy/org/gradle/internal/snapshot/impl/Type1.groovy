@@ -17,5 +17,5 @@
 package org.gradle.internal.snapshot.impl
 
 enum Type1 {
-    ONE, TWO
+    ONE {}, TWO {}
 }

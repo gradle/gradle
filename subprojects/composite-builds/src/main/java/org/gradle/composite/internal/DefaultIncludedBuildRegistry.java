@@ -274,13 +274,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void resetStateForAllBuilds() {
-        for (BuildState build : buildsByIdentifier.values()) {
-            build.resetModel();
-        }
-    }
-
-    @Override
     public void stop() {
         CompositeStoppable.stoppable(buildsByIdentifier.values()).stop();
     }

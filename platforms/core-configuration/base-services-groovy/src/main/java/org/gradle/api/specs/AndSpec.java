@@ -71,7 +71,8 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return null;
     }
 
-    @SuppressWarnings("varargs")
+    // TODO Use @SafeVarargs and make method final
+    @SuppressWarnings("unchecked")
     public AndSpec<T> and(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return this;

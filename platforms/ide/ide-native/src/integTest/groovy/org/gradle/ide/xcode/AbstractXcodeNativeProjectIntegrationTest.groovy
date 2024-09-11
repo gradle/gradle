@@ -20,7 +20,9 @@ import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
+import static org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
+import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCode
 
 abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     @ToBeFixedForConfigurationCache
@@ -73,7 +75,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
         }
     }
 
-    @Requires(UnitTestPreconditions.HasXCode)
+    @Requires(value = [HasXCode, NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when component product is unbuildable due to operating system"() {
         useXcodebuildTool()

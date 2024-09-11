@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r86
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnectionException
@@ -53,9 +54,8 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
             finished.countDown()
         } as ResultHandler
 
-        withConnection {
-            def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
+        withConnection { connection ->
+            def builder = connection.action(new ModelStreamingBuildAction())
             builder.setStreamedValueListener(listener)
             builder.run(handler)
             finished.await()
@@ -83,12 +83,11 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         def listener = { model -> models.add(model) } as StreamedValueListener
         def handler = { model -> models.add(model) } as IntermediateResultHandler
 
-        withConnection {
-            def builder = it.action()
+        withConnection { connection ->
+            def builder = connection.action()
                 .projectsLoaded(new CustomModelStreamingBuildAction(GradleProject, 1), handler)
                 .buildFinished(new CustomModelStreamingBuildAction(EclipseProject, 2), handler)
                 .build()
-            collectOutputs(builder)
             builder.setStreamedValueListener(listener)
             builder.run()
         }
@@ -113,6 +112,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         eclipseModel.gradleProject.name == "hello-world"
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4145")
     def "client application receives streamed value before build action completes"() {
         when:
         server.start()
@@ -129,9 +129,8 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
             finished.countDown()
         } as ResultHandler
 
-        withConnection {
-            def builder = it.action(new BlockingModelSendingBuildAction(server.uri("action")))
-            collectOutputs(builder)
+        withConnection { connection ->
+            def builder = connection.action(new BlockingModelSendingBuildAction(server.uri("action")))
             builder.setStreamedValueListener(listener)
             builder.run(handler)
 
@@ -151,9 +150,8 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         when:
         def listener = { throw new RuntimeException("broken") } as StreamedValueListener
 
-        withConnection {
-            def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
+        withConnection { connection ->
+            def builder = connection.action(new ModelStreamingBuildAction())
             builder.setStreamedValueListener(listener)
             builder.run()
         }
@@ -168,10 +166,8 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
     def "build fails when build action streams value when no listener is registered"() {
         when:
-        withConnection {
-            def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
-            builder.run()
+        withConnection { connection ->
+            connection.action(new ModelStreamingBuildAction()).run()
         }
 
         then:
@@ -187,9 +183,8 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         when:
         def listener = { } as StreamedValueListener
 
-        withConnection {
-            def builder = it.action(new ModelStreamingBuildAction())
-            collectOutputs(builder)
+        withConnection { connection ->
+            def builder = connection.action(new ModelStreamingBuildAction())
             builder.setStreamedValueListener(listener)
             builder.run()
         }

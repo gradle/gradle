@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
@@ -35,20 +36,22 @@ import org.junit.Test
 class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
-        reason = "ktlint plugin issue in embedded mode"
-    )
+    @Requires(UnitTestPreconditions.Jdk21OrEarlier::class)
     fun `generated code follows kotlin-dsl coding conventions`() {
 
         withBuildScript(
             """
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.8.0"
+                id("io.gitlab.arturbosch.detekt") version "1.23.6"
             }
 
             $repositoriesBlock
+
+            detekt {
+                // enable all default rules
+                buildUponDefaultConfig = true
+            }
             """
         )
 
@@ -73,14 +76,9 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
-        // From ktlint
-        executer.beforeExecute {
-            it.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-        }
-
         build("generateScriptPluginAdapters")
 
-        build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
+        build("detekt")
     }
 
     @Test

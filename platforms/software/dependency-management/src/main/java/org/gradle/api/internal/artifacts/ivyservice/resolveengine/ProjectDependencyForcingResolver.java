@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-class ProjectDependencyForcingResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
+public class ProjectDependencyForcingResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
     private final ModuleConflictResolver<T> delegate;
 
-    ProjectDependencyForcingResolver(ModuleConflictResolver<T> delegate) {
+    public ProjectDependencyForcingResolver(ModuleConflictResolver<T> delegate) {
         this.delegate = delegate;
     }
 

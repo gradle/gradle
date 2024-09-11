@@ -16,6 +16,10 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginEndOfBuildListener;
@@ -23,9 +27,12 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * Captures the state to recreate the {@link GradleEnterprisePluginService} instance.
@@ -48,6 +55,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
+    private final Multimap<Throwable, Problem> problems;
 
     private transient GradleEnterprisePluginService pluginService;
 
@@ -57,7 +65,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         DefaultGradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
-        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
+        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar,
+        InternalProblems problems
     ) {
         this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
@@ -65,6 +74,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         this.buildState = buildState;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
+        this.problems = problems.getProblemsForThrowables();
 
         createPluginService();
     }
@@ -89,15 +99,10 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         requiredServices.getBackgroundJobExecutors().stop();
 
         if (pluginService != null) {
-            pluginService.getEndOfBuildListener().buildFinished(new GradleEnterprisePluginEndOfBuildListener.BuildResult() {
-                @Nullable
-                @Override
-                public Throwable getFailure() {
-                    return buildFailure;
-                }
-            });
+            pluginService.getEndOfBuildListener().buildFinished(new DefaultDevelocityPluginResult(buildFailure));
         }
     }
+
 
     private void createPluginService() {
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);
@@ -105,4 +110,46 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());
     }
 
+    private class DefaultDevelocityPluginResult implements GradleEnterprisePluginEndOfBuildListener.BuildResult {
+        private final Throwable buildFailure;
+
+        public DefaultDevelocityPluginResult(@Nullable Throwable buildFailure) {
+            this.buildFailure = buildFailure;
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return buildFailure;
+        }
+
+        @Override
+        public Collection<Problem> getProblems() {
+            return getProblems(buildFailure);
+        }
+
+        @Override
+        public Collection<Problem> getProblemsFor(Throwable failure) {
+            return problems.get(buildFailure);
+        }
+
+        private @Nonnull Collection<Problem> getProblems(@Nullable Throwable buildFailure) {
+            ImmutableSet.Builder<Problem> builder = ImmutableSet.builder();
+            getProblems(buildFailure, builder);
+            return builder.build();
+        }
+
+        private void getProblems(@Nullable Throwable buildFailure, ImmutableSet.Builder<Problem> builder) {
+            while (buildFailure != null) {
+                if (buildFailure instanceof MultiCauseException) {
+                    MultiCauseException multiCauseException = (MultiCauseException) buildFailure;
+                    for (Throwable cause : multiCauseException.getCauses()) {
+                        getProblems(cause, builder);
+                    }
+                }
+                builder.addAll(problems.get(buildFailure));
+                buildFailure = buildFailure.getCause();
+            }
+        }
+    }
 }

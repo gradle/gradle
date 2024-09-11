@@ -83,10 +83,10 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
-        implementation.getDependencies().addAllLater(getDependencies().getImplementation().getDependencies());
-        compileOnly.getDependencies().addAllLater(getDependencies().getCompileOnly().getDependencies());
-        runtimeOnly.getDependencies().addAllLater(getDependencies().getRuntimeOnly().getDependencies());
-        annotationProcessor.getDependencies().addAllLater(getDependencies().getAnnotationProcessor().getDependencies());
+        implementation.fromDependencyCollector(getDependencies().getImplementation());
+        runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly());
+        compileOnly.fromDependencyCollector(getDependencies().getCompileOnly());
+        annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor());
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies

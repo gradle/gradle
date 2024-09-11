@@ -279,6 +279,27 @@ Root project 'webinar-parent'
         failure.assertHasCause("There were failing tests.")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28251")
+    def "singleModule init with incubating"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--incubating'
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+
+        when:
+        fails 'clean', 'build'
+
+        then:
+        // when tests fail, jar may not exist
+        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasCause("There were failing tests.")
+    }
+
     def "singleModule - with continue, when tests fail, jar should exist"() {
         def dsl = dslFixtureFor(scriptDsl)
 

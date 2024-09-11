@@ -16,22 +16,25 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class InputChangesContext extends ValidationFinishedContext {
+public class InputChangesContext extends ValidationFinishedContext implements CachingContext {
 
     private final InputChangesInternal inputChanges;
+    private final CachingState cachingState;
 
-    public InputChangesContext(ValidationFinishedContext parent, @Nullable InputChangesInternal inputChanges) {
+    public InputChangesContext(ValidationFinishedContext parent, @Nullable InputChangesInternal inputChanges, CachingState cachingState) {
         super(parent);
         this.inputChanges = inputChanges;
+        this.cachingState = cachingState;
     }
 
     protected InputChangesContext(InputChangesContext parent) {
-        this(parent, parent.getInputChanges().orElse(null));
+        this(parent, parent.getInputChanges().orElse(null), parent.getCachingState());
     }
 
     public Optional<InputChangesInternal> getInputChanges() {
@@ -40,5 +43,10 @@ public class InputChangesContext extends ValidationFinishedContext {
 
     public boolean isIncrementalExecution() {
         return inputChanges != null && inputChanges.isIncremental();
+    }
+
+    @Override
+    public CachingState getCachingState() {
+        return cachingState;
     }
 }

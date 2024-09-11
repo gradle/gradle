@@ -19,20 +19,22 @@ package org.gradle.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.FileUtils
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
-import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
+import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/3901")
 class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     static List<String> javaVersionsToCrossCompileAgainst() {
-        return ["1.6", "1.7", "1.8", "11", "15", "16", "17", "18", "19", "20", "21"]
+        return ["1.6", "1.7", "1.8", "11", "15", "16", "17", "18", "19", "20", "21", "22", "23"]
     }
 
     static JavaVersion toJavaVersion(String version) {
@@ -43,13 +45,16 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         def javaVersion = toJavaVersion(version)
         def target = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeNotNull(target)
+        withJavaProjectUsingToolchainsForJavaVersion(target)
+    }
 
+    def withJavaProjectUsingToolchainsForJavaVersion(Jvm jvm) {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion)
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
                 }
             }
             tasks.withType(Javadoc) {
@@ -61,7 +66,7 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             /** Some thing. */
             public class Thing { }
         """
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
@@ -88,8 +93,8 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDeprecationWarning("Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_test_jvm_version")
         }
         succeeds 'test'
-        getClassMajorVersion(javaClassFile("Thing.class")) == getClassMajorVersion(toJavaVersion(version))
-        getClassMajorVersion(classFile("java", "test", "ThingTest.class")) == getClassMajorVersion(toJavaVersion(version))
+        getClassMajorVersion(javaClassFile("Thing.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
+        getClassMajorVersion(classFile ( "java", "test", "ThingTest.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
 
         where:
         version << javaVersionsToCrossCompileAgainst()
@@ -127,8 +132,10 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can build and run application using target Java version"() {
         given:
-        withJavaProjectUsingToolchainsForJavaVersion(version)
-        def target = AvailableJavaHomes.getJdk(toJavaVersion(version))
+        JavaVersion javaVersion = toJavaVersion(version)
+        Jvm target = javaVersion.majorVersion == JavaVersion.current().majorVersion ? Jvm.current() : AvailableJavaHomes.getJdk(javaVersion)
+        Assume.assumeNotNull(target)
+        withJavaProjectUsingToolchainsForJavaVersion(target)
         buildFile << """
             apply plugin: 'application'
 

@@ -15,12 +15,17 @@
  */
 package org.gradle.internal.operations;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
+@ServiceScope(Scope.Global.class)
 public class CurrentBuildOperationRef {
 
     private static final CurrentBuildOperationRef INSTANCE = new CurrentBuildOperationRef();
 
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<BuildOperationRef> ref = new ThreadLocal<BuildOperationRef>();
 
     public static CurrentBuildOperationRef instance() {

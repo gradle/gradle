@@ -28,6 +28,7 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
@@ -37,7 +38,6 @@ import java.util.regex.Pattern
 import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
 
 class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    private static final Pattern RUN_MAIN_TASKS = Pattern.compile("Run main tasks")
     BuildTestFile buildB
 
     def setup() {
@@ -126,7 +126,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[1].details.buildPath == ":buildB"
         taskGraphOps[1].parentId == treeTaskGraphOps[0].id
 
-        def runMainTasks = operations.first(RUN_MAIN_TASKS)
+        def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
@@ -338,7 +338,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == treeTaskGraphOps[1].id
 
-        def runMainTasks = operations.first(RUN_MAIN_TASKS)
+        def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         // Tasks are run for buildB multiple times, once for buildscript dependency and again for production dependency
@@ -449,7 +449,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         then:
         executed ":buildB:compileJava"
 
-        operations.none(RUN_MAIN_TASKS)
+        operations.none(RunRequestedWorkBuildOperationType)
         operations.only(FinishRootBuildTreeBuildOperationType)
     }
 

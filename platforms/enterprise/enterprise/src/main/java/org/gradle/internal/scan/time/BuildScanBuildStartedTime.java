@@ -17,6 +17,8 @@
 package org.gradle.internal.scan.time;
 
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Used to determine when the build was started.
@@ -24,6 +26,7 @@ import org.gradle.internal.buildevents.BuildStartedTime;
  * This is effectively a build scan specific view of {@link BuildStartedTime}.
  * @since 4.2
  */
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildScanBuildStartedTime {
 
     long getBuildStartedTime();

@@ -18,9 +18,12 @@ package org.gradle.internal.classpath.intercept;
 
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
 
+import javax.annotation.Nullable;
+
 class InvocationUtils {
     private InvocationUtils() {}
 
+    @Nullable
     static Object unwrap(Object obj) {
         if (obj instanceof Wrapper) {
             return ((Wrapper) obj).unwrap();

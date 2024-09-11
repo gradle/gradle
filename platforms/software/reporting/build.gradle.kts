@@ -2,9 +2,16 @@ import gradlebuild.basics.googleApisJs
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"
+
+errorprone {
+    disabledChecks.addAll(
+        "EqualsUnsafeCast", // 1 occurrences
+    )
+}
 
 val implementationResources: Configuration by configurations.creating
 
@@ -13,36 +20,41 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.modelCore)
+    api(projects.reportRendering)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(libs.groovy)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.fileCollections)
+    implementation(projects.logging)
+
     implementation(libs.guava)
-    implementation(libs.inject)
     implementation(libs.jatl)
 
     implementationResources("jquery:jquery.min:3.5.1@js")
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":base-services-groovy"))
+    testImplementation(projects.processServices)
+    testImplementation(projects.baseServicesGroovy)
     testImplementation(libs.jsoup)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
     }
 }
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: GenerateBuildDashboard.aggregate()
 }
 
 packageCycles {
@@ -56,4 +68,7 @@ val reportResources = tasks.register<Copy>("reportResources") {
 
 sourceSets.main {
     output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

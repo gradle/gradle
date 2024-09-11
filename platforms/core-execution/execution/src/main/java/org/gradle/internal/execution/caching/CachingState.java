@@ -40,7 +40,10 @@ public class CachingState {
     }
 
     public static CachingState disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable BuildCacheKey key, @Nullable BeforeExecutionState beforeExecutionState) {
-        return new CachingState(Either.right(new Disabled(disabledReasons, key, beforeExecutionState)));
+        CacheKeyCalculatedState cacheKeyCalculatedState = (key != null && beforeExecutionState != null)
+            ? new CacheKeyCalculatedState(key, beforeExecutionState)
+            : null;
+        return new CachingState(Either.right(new Disabled(disabledReasons, cacheKeyCalculatedState)));
     }
 
     public static CachingState disabledWithoutInputs(CachingDisabledReason reason) {
@@ -63,14 +66,21 @@ public class CachingState {
         delegate.apply(enabled, disabled);
     }
 
+    public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
+        return delegate.fold(enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculatedState);
+    }
+
     /**
-     * Caching state when caching is enabled for the work.
+     * State when we calculated the cache key.
+     *
+     * We always calculate the cache key when we have a {@link BeforeExecutionState}.
+     * In some places we need to know that both are present or absent, we encode this here.
      */
-    public static class Enabled {
+    public static class CacheKeyCalculatedState {
         private final BuildCacheKey key;
         private final BeforeExecutionState beforeExecutionState;
 
-        private Enabled(BuildCacheKey key, BeforeExecutionState beforeExecutionState) {
+        private CacheKeyCalculatedState(BuildCacheKey key, BeforeExecutionState beforeExecutionState) {
             this.key = key;
             this.beforeExecutionState = beforeExecutionState;
         }
@@ -91,17 +101,30 @@ public class CachingState {
     }
 
     /**
+     * Caching state when caching is enabled for the work.
+     */
+    public static class Enabled {
+        private final CacheKeyCalculatedState cacheKeyCalculatedState;
+
+        private Enabled(BuildCacheKey key, BeforeExecutionState beforeExecutionState) {
+            this.cacheKeyCalculatedState = new CacheKeyCalculatedState(key, beforeExecutionState);
+        }
+
+        public CacheKeyCalculatedState getCacheKeyCalculatedState() {
+            return cacheKeyCalculatedState;
+        }
+    }
+
+    /**
      * Caching state when caching is disabled for the work.
      */
     public static class Disabled {
         private final ImmutableList<CachingDisabledReason> disabledReasons;
-        private final BuildCacheKey key;
-        private final BeforeExecutionState beforeExecutionState;
+        private final CacheKeyCalculatedState cacheKeyCalculatedState;
 
-        private Disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable BuildCacheKey key, @Nullable BeforeExecutionState beforeExecutionState) {
+        private Disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable CacheKeyCalculatedState cacheKeyCalculatedState) {
             this.disabledReasons = disabledReasons;
-            this.key = key;
-            this.beforeExecutionState = beforeExecutionState;
+            this.cacheKeyCalculatedState = cacheKeyCalculatedState;
         }
 
         /**
@@ -112,19 +135,12 @@ public class CachingState {
         }
 
         /**
-         * The cache key if a valid cache key could be built.
+         * The cache key calculated state.
          *
-         * Might be present even when caching is disabled.
+         * Not available when we don't capture the before execution state.
          */
-        public Optional<BuildCacheKey> getKey() {
-            return Optional.ofNullable(key);
-        }
-
-        /**
-         * Individual fingerprints for each of the work's inputs, if they were tracked.
-         */
-        public Optional<BeforeExecutionState> getBeforeExecutionState() {
-            return Optional.ofNullable(beforeExecutionState);
+        public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
+            return Optional.ofNullable(cacheKeyCalculatedState);
         }
     }
 }

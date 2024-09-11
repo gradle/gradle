@@ -45,7 +45,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Predicate;
 
 class TestExecutionResultEvaluator implements BuildOperationListener {
     private static final String INDENT = "    ";
@@ -90,11 +89,11 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
             .stream()
             .filter(InternalTestSpec.class::isInstance)
             .map(InternalTestSpec.class::cast)
-            .allMatch(emptyTestSpec());
+            .allMatch(TestExecutionResultEvaluator::emptyTest);
     }
 
-    private static Predicate<InternalTestSpec> emptyTestSpec() {
-        return spec -> allEmpty(spec.getClasses(), spec.getMethods().keySet(), spec.getPackages(), spec.getPatterns());
+    private static boolean emptyTest(InternalTestSpec spec) {
+        return allEmpty(spec.getClasses(), spec.getMethods().keySet(), spec.getPackages(), spec.getPatterns());
     }
 
     private static boolean allEmpty(Collection<?>... collections) {
@@ -114,7 +113,7 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
             StringBuilder failedTestsMessage = new StringBuilder("Test failed.\n")
                 .append(INDENT).append("Failed tests:");
             for (FailedTest failedTest : failedTests) {
-                failedTestsMessage.append("\n").append(Strings.repeat(INDENT, 2)).append(failedTest.getDescription());
+                failedTestsMessage.append("\n").append(twoIndent()).append(failedTest.getDescription());
             }
             throw new TestExecutionException(failedTestsMessage.toString());
         }
@@ -123,7 +122,7 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
     private String formatInternalTestExecutionRequest() {
         StringBuilder requestDetails = new StringBuilder(INDENT).append("Requested tests:");
         for (InternalTestDescriptor internalTestDescriptor : internalTestExecutionRequest.getTestExecutionDescriptors()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
+            requestDetails.append("\n").append(twoIndent()).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests();
@@ -132,9 +131,9 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
             final String className = internalJvmTestRequest.getClassName();
             final String methodName = internalJvmTestRequest.getMethodName();
             if (methodName == null) {
-                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(className);
+                requestDetails.append("\n").append(twoIndent()).append("Test class ").append(className);
             } else {
-                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(className).append(".").append(methodName).append("()");
+                requestDetails.append("\n").append(twoIndent()).append("Test method ").append(className).append(".").append(methodName).append("()");
             }
         }
 
@@ -142,23 +141,28 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
             if (taskSpec instanceof InternalTestSpec) {
                 InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
                 for (String cls : testSpec.getClasses()) {
-                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class: ").append(cls).append(" in task " + taskSpec.getTaskPath());
+                    requestDetails.append("\n").append(twoIndent()).append("Test class: ").append(cls).append(" in task " + taskSpec.getTaskPath());
                 }
                 for (Map.Entry<String, List<String>> methods : testSpec.getMethods().entrySet()) {
                     for (String method : methods.getValue()) {
-                        requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(methods.getKey()).append(".").append(method).append("()").append(" in task " + taskSpec.getTaskPath());
+                        requestDetails.append("\n").append(twoIndent()).append("Test method ").append(methods.getKey()).append(".").append(method).append("()").append(" in task " + taskSpec.getTaskPath());
                     }
                 }
                 for (String pkg : testSpec.getPackages()) {
-                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test package ").append(pkg).append(" in task " + taskSpec.getTaskPath());
+                    requestDetails.append("\n").append(twoIndent()).append("Test package ").append(pkg).append(" in task " + taskSpec.getTaskPath());
                 }
                 for (String pattern : testSpec.getPatterns()) {
-                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test pattern ").append(pattern).append(" in task " + taskSpec.getTaskPath());
+                    requestDetails.append("\n").append(twoIndent()).append("Test pattern ").append(pattern).append(" in task " + taskSpec.getTaskPath());
                 }
             }
         }
 
         return requestDetails.toString();
+    }
+
+    @SuppressWarnings("InlineMeInliner")
+    private static String twoIndent() {
+        return Strings.repeat(INDENT, 2);
     }
 
     @Override

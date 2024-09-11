@@ -87,10 +87,12 @@ class DefaultTestTaskProperties implements TestTaskProperties {
         return candidateClassFiles.stream();
     }
 
+    @Override
     public Stream<InputFileProperty> getInputFileProperties() {
         return inputFileProperties.stream();
     }
 
+    @Override
     public Stream<OutputFileProperty> getOutputFileProperties() {
         return outputFileProperties.stream();
     }

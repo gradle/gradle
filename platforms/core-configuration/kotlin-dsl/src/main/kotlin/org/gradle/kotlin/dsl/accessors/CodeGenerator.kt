@@ -227,6 +227,42 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 }
 
 
+internal
+fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString)
+        is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
+    }
+}
+
+
+private
+fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+    """
+        /**
+         * Adds model defaults for the [$original][$name] software type.
+         */
+        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+            add("$stringLiteral", $type, configure)
+    """
+}
+
+
+private
+fun inaccessibleModelDefaultAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Adds model defaults for the `$original` software type.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
+         */
+        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<Any>): Unit =
+            add("$stringLiteral", KotlinType.Any, configure)
+
+    """
+}
+
+
 private
 val thisExtensions =
     "(this as ${ExtensionAware::class.java.name}).extensions"

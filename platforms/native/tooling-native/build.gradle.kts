@@ -4,24 +4,33 @@ plugins {
 
 description = "Tooling API model builders for native builds"
 
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-native"))
-    implementation(project(":language-native"))
-    implementation(project(":testing-native"))
-    implementation(project(":tooling-api"))
-    implementation(project(":ide")) {
+    api(projects.serviceProvider)
+    api(projects.coreApi)
+    api(projects.core)
+    api(projects.ide) {
         because("To pick up various builders (which should live somewhere else)")
+        api(projects.toolingApi)
     }
+
+    implementation(projects.baseServices)
+    implementation(projects.fileCollections)
+    implementation(projects.languageNative)
+    implementation(projects.platformNative)
+    implementation(projects.testingNative)
 
     implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(projects.platformNative))
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-native"))
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsNative)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

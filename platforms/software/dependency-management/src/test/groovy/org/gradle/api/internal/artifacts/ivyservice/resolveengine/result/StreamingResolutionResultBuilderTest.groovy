@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -28,16 +30,18 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
-import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.cache.internal.Store
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.of
@@ -46,13 +50,30 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
 class StreamingResolutionResultBuilderTest extends Specification {
+
+    AdhocHandlingComponentResultSerializer componentResultSerializer = new AdhocHandlingComponentResultSerializer(
+        new ThisBuildTreeOnlyComponentResultSerializer(
+            DependencyManagementTestUtil.componentSelectionDescriptorFactory()
+        ),
+        new CompleteComponentResultSerializer(
+            DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+            new DefaultImmutableModuleIdentifierFactory(),
+            AttributeTestUtil.attributesFactory(),
+            TestUtil.objectInstantiator()
+        )
+    )
+
+    class DummyStore implements Store<ResolvedComponentResult> {
+        ResolvedComponentResult load(Supplier<ResolvedComponentResult> createIfNotPresent) {
+            return createIfNotPresent.get()
+        }
+    }
+
     def builder = new StreamingResolutionResultBuilder(
         new DummyBinaryStore(),
         new DummyStore(),
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new ThisBuildOnlyComponentDetailsSerializer(new DefaultImmutableModuleIdentifierFactory()),
-        new ThisBuildOnlySelectedVariantSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
+        componentResultSerializer,
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )
@@ -64,7 +85,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(rootNode)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         with(result.rootSource.get()) {
@@ -96,7 +117,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -125,7 +146,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -165,7 +186,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -204,7 +225,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete([] as Set)
+        def result = builder.getResolutionResult([] as Set)
 
         then:
         printGraph(result.rootSource.get()) == """org:root:1.0
@@ -277,7 +298,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         def node = Stub(RootGraphNode)
         _ * node.owner >> component
-        _ * node.metadata >> Mock(LocalConfigurationGraphResolveMetadata) {
+        _ * node.metadata >> Mock(LocalVariantGraphResolveMetadata) {
             getAttributes() >> AttributeTestUtil.attributes(["org.foo": "v1", "org.bar": 2, "org.baz": true])
         }
         return node

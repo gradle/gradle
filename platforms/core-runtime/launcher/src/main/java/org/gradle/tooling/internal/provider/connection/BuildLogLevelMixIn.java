@@ -45,7 +45,7 @@ public class BuildLogLevelMixIn {
         return this.logLevel;
     }
 
-    private LogLevel calcBuildLogLevel(ProviderOperationParameters parameters) {
+    private static LogLevel calcBuildLogLevel(ProviderOperationParameters parameters) {
         LoggingConfigurationBuildOptions loggingBuildOptions = new LoggingConfigurationBuildOptions();
         CommandLineConverter<LoggingConfiguration> converter = loggingBuildOptions.commandLineConverter();
 
@@ -56,12 +56,12 @@ public class BuildLogLevelMixIn {
         propertiesCommandLineConverter.configure(parser);
 
         List<String> arguments = parameters.getArguments();
-        ParsedCommandLine parsedCommandLine = parser.parse(arguments == null ? Collections.<String>emptyList() : arguments);
+        ParsedCommandLine parsedCommandLine = parser.parse(arguments == null ? Collections.emptyList() : arguments);
 
         //configure verbosely only if arguments do not specify any log level.
         return getLogLevelFromCommandLineOptions(loggingBuildOptions, parsedCommandLine)
             .orElseGet(() ->
-                getLogLevelFromCommandLineProperties(parameters, propertiesCommandLineConverter, parsedCommandLine).orElseGet(() -> {
+                getLogLevelFromCommandLineProperties(propertiesCommandLineConverter, parsedCommandLine).orElseGet(() -> {
                     if (parameters.getVerboseLogging()) {
                         return LogLevel.DEBUG;
                     }
@@ -78,7 +78,7 @@ public class BuildLogLevelMixIn {
             .findFirst();
     }
 
-    private static Optional<LogLevel> getLogLevelFromCommandLineProperties(ProviderOperationParameters parameters, SystemPropertiesCommandLineConverter propertiesCommandLineConverter, ParsedCommandLine parsedCommandLine) {
+    private static Optional<LogLevel> getLogLevelFromCommandLineProperties(SystemPropertiesCommandLineConverter propertiesCommandLineConverter, ParsedCommandLine parsedCommandLine) {
         Map<String, String> properties = propertiesCommandLineConverter.convert(parsedCommandLine, new HashMap<>());
         String logLevelCommandLineProperty = properties.get(LogLevelOption.GRADLE_PROPERTY);
         if (logLevelCommandLineProperty != null) {

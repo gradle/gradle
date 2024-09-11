@@ -46,15 +46,17 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
         // Rely on MappingProvider contract with regard to the transform always returning value
-        return provider.calculatePresence(consumer);
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            return provider.calculatePresence(consumer);
+        }
     }
 
     @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
         try (EvaluationContext.ScopeContext context = openScope()) {
-            ExecutionTimeValue<? extends IN> value = provider.get(context).calculateExecutionTimeValue();
+            ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
             if (value.isChangingValue()) {
-                return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer.get(context)));
+                return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
             }
 
             return ExecutionTimeValue.value(mapValue(context, value.toValue()));

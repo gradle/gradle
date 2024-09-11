@@ -9,7 +9,12 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(libs.jsr305)
-    api(project(":base-annotations"))
+    api(projects.stdlibJavaExtensions)
 
     implementation(libs.slf4jApi)
+
+    testFixturesImplementation(libs.guava)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

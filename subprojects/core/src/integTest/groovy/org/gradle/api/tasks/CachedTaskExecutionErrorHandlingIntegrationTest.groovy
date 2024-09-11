@@ -97,8 +97,9 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             task customTask {
                 outputs.cacheIf { true }
                 outputs.file("build/output.txt")
+                def outputFile = file("build/output.txt")
                 doLast {
-                    file("build/output.txt").text = "Done"
+                    outputFile.text = "Done"
                 }
             }
         """

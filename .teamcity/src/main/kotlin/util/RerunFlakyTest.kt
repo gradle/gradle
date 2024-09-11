@@ -26,7 +26,6 @@ import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
-import common.cleanUpReadOnlyDir
 import common.compileAllDependency
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
@@ -57,11 +56,10 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val parameters = (
         buildToolGradleParameters(daemon) +
             listOf(extraParameters) +
-            functionalTestParameters(os)
+            functionalTestParameters(os, arch)
         ).joinToString(separator = " ")
 
     killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    steps.cleanUpReadOnlyDir(os)
 
     (1..10).forEach { idx ->
         steps {
@@ -72,7 +70,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, BuildStep.ExecutionMode.ALWAYS)
     }
 
     steps {

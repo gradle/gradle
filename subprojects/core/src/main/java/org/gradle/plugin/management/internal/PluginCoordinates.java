@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
 public final class PluginCoordinates {
 
     private final PluginId id;
-    @Nullable
     private final ModuleVersionSelector module;
 
     public PluginCoordinates(PluginId id, @Nullable ModuleVersionSelector module) {

@@ -111,7 +111,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             """
         }
 
-        createGradleExecutor(version, helloWorldPluginDir, 'publish').run()
+        createGradleExecutor(version, helloWorldPluginDir, 'publish').noDeprecationChecks().run()
     }
 
     private void writeConsumingProject(File repoDir) {

@@ -18,12 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.primitives.Longs;
 import org.gradle.api.Transformer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ServiceScope(Scope.Global.class)
 public class VersionParser implements Transformer<Version, String> {
     private final Map<String, Version> cache = new ConcurrentHashMap<>();
 

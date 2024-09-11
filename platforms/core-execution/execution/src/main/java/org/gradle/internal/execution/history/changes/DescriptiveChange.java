@@ -16,11 +16,14 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.errorprone.annotations.FormatMethod;
+
 import java.util.Objects;
 
 public class DescriptiveChange implements Change {
     private final String message;
 
+    @FormatMethod
     public DescriptiveChange(String message, Object... params) {
         this.message = String.format(message, params);
     }

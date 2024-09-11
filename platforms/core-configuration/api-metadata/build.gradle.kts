@@ -4,3 +4,6 @@ plugins {
 }
 
 description = "Generated metadata about Gradle API needed by Kotlin DSL"
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

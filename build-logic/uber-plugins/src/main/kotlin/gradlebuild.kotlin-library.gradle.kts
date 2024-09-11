@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -22,13 +22,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-    id("gradlebuild.java-library")
-    id("gradlebuild.ktlint")
+    id("gradlebuild.jvm-library")
+    id("gradlebuild.detekt")
+    id("gradlebuild.private-javadoc")
 }
 
 configurations.transitiveSourcesElements {
-    val main = sourceSets.main.get()
-    (main.kotlin.srcDirs + main.resources.srcDirs).forEach {
+    (kotlinMainSourceSet.srcDirs + sourceSets.main.get().resources.srcDirs).forEach {
         outgoing.artifact(it)
     }
 }

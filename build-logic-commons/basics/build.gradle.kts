@@ -14,7 +14,8 @@ java {
 }
 
 dependencies {
-    api(platform(project(":build-platform")))
+    api("gradlebuild:build-environment")
+    api(platform(projects.buildPlatform))
 
     implementation("com.google.guava:guava") {
         because("Used by class analysis")

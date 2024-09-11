@@ -132,7 +132,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "runtime", false)
         def immutableMetadata = metadata.asImmutable()
-        def variants = immutableMetadata.variantsForGraphTraversal.get()
+        def variants = immutableMetadata.variantsForGraphTraversal
         def baseVariant = variants.find { it.name == 'runtime' }
         if (metadataType == "ivy") {
             // no variants are derived for plain ivy, but we can use a ivy configuration
@@ -159,7 +159,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant")
         def immutableMetadata = metadata.asImmutable()
-        def variants = immutableMetadata.variantsForGraphTraversal.get()
+        def variants = immutableMetadata.variantsForGraphTraversal
 
         then:
         variants.size() == initialVariantCount + 1
@@ -183,7 +183,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         when:
         metadata.variantMetadataRules.addVariant('new-variant', 'runtime', false)
         metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
-        def newVariant =  metadata.asImmutable().variantsForGraphTraversal.get().find { it.name == 'new-variant' }
+        def newVariant =  metadata.asImmutable().variantsForGraphTraversal.find { it.name == 'new-variant' }
 
         then:
         0 * rule.execute(_)
@@ -212,7 +212,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", false)
         def immutableMetadata = metadata.asImmutable()
-        immutableMetadata.variantsForGraphTraversal.get()
+        immutableMetadata.variantsForGraphTraversal
 
         then:
         InvalidUserDataException e = thrown()
@@ -233,7 +233,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", true)
         metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
         def immutableMetadata = metadata.asImmutable()
-        def variants = immutableMetadata.variantsForGraphTraversal.get()
+        def variants = immutableMetadata.variantsForGraphTraversal
 
         then:
         0 * rule.execute(_)

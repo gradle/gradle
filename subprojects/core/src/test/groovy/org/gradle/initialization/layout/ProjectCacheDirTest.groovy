@@ -18,8 +18,9 @@ package org.gradle.initialization.layout
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.internal.VersionSpecificCacheCleanupFixture
-import org.gradle.internal.logging.progress.ProgressLogger
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -36,11 +37,11 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheDir = temporaryFolder.createDir(".gradle")
-    def progressLoggerFactory = Mock(ProgressLoggerFactory)
-    def progressLogger = Mock(ProgressLogger)
+    def context = Mock(BuildOperationContext)
+    def buildOperationRunner = Mock(BuildOperationRunner)
     def deleter = TestFiles.deleter()
 
-    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter)
+    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, buildOperationRunner, deleter)
 
     def "cleans up unused version-specific cache directories"() {
         given:
@@ -55,10 +56,10 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
         projectCacheDir.stop()
 
         then:
-        1 * progressLoggerFactory.newOperation(ProjectCacheDir.class) >> progressLogger
-        1 * progressLogger.start(_, _) >> progressLogger
-        6 * progressLogger.progress(_)
-        1 * progressLogger.completed()
+        1 * buildOperationRunner.run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
+            operation.run(context)
+        }
+        6 * context.progress(_)
         ancientVersionWithoutMarkerFile.assertExists()
         oldestCacheDir.assertDoesNotExist()
         oldButRecentlyUsedCacheDir.assertExists()

@@ -17,14 +17,14 @@
 package org.gradle.internal.watch.vfs.impl
 
 import net.rubygrapefruit.platform.NativeException
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.WatchMode
-import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
+import org.gradle.internal.watch.registry.impl.FileSystemWatchingDocumentationIndex
 import org.gradle.internal.watch.vfs.FileChangeListeners
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
@@ -38,15 +38,15 @@ class WatchingVirtualFileSystemTest extends Specification {
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
+    def documentationIndex = Mock(FileSystemWatchingDocumentationIndex)
     def locationsUpdatedByCurrentBuild = Mock(FileWatchingFilter)
-    def buildOperationRunner = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def watchableFileSystemDetector = Mock(WatchableFileSystemDetector)
     def fileChangeListeners = Mock(FileChangeListeners)
     def watchingVirtualFileSystem = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         nonEmptySnapshotHierarchy,
-        daemonDocumentationIndex,
+        documentationIndex,
         locationsUpdatedByCurrentBuild,
         watchableFileSystemDetector,
         fileChangeListeners
@@ -64,6 +64,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.updateRootUnderLock { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.DISABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
+        watchingVirtualFileSystem.afterBuildFinished()
         then:
         0 * _
 
@@ -83,7 +84,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        1 * watcherRegistry.updateVfsBeforeBuildFinished(_, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        0 * _
+
+        when:
+        watchingVirtualFileSystem.afterBuildFinished()
+        then:
+        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> watchingVirtualFileSystem.root
         0 * _
 
         when:
@@ -109,7 +116,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        1 * watcherRegistry.updateVfsBeforeBuildFinished(_, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        0 * _
+
+        when:
+        watchingVirtualFileSystem.afterBuildFinished()
+        then:
+        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> watchingVirtualFileSystem.root
         0 * _
 
         when:
@@ -155,7 +168,14 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        1 * watcherRegistry.updateVfsBeforeBuildFinished(_, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        0 * _
+
+        when:
+        watchingVirtualFileSystem.afterBuildFinished()
+
+        then:
+        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> watchingVirtualFileSystem.root
         0 * _
 
         when:
@@ -180,7 +200,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.DEFAULT, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.DEFAULT, Integer.MAX_VALUE, unsupportedFileSystems) >> watchingVirtualFileSystem.root
+        1 * watcherRegistry.updateVfsBeforeBuildFinished(_, Integer.MAX_VALUE, unsupportedFileSystems) >> watchingVirtualFileSystem.root
+        0 * _
+
+        when:
+        watchingVirtualFileSystem.afterBuildFinished()
+        then:
+        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> watchingVirtualFileSystem.root
         0 * _
 
         when:
@@ -216,7 +242,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        1 * watcherRegistry.updateVfsBeforeBuildFinished(_, Integer.MAX_VALUE, []) >> watchingVirtualFileSystem.root
+        0 * _
+
+        when:
+        watchingVirtualFileSystem.afterBuildFinished()
+        then:
+        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> watchingVirtualFileSystem.root
         0 * _
 
         when:

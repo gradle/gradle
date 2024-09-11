@@ -18,11 +18,12 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
@@ -48,7 +49,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def workerInProcessFactory = Mock(WorkerFactory)
     def workerNoIsolationFactory = Mock(WorkerFactory)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperationRunner = Mock(BuildOperationRunner)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
     def forkOptionsFactory = new TestForkOptionsFactory(TestFiles.execFactory())
     def objectFactory = Stub(ObjectFactory) {
@@ -62,6 +63,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def classLoaderStructureProvider = Mock(ClassLoaderStructureProvider)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
+    def projectCacheDir = Mock(ProjectCacheDir)
     def classpathTransformer = Mock(CachedClasspathTransformer)
     DefaultWorkerExecutor workerExecutor
 
@@ -71,8 +73,9 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
-        _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder)
+        _ * classpathTransformer.copyingTransform(_) >> { args -> args[0] }
+        _ * projectCacheDir.getDir() >> temporaryFolder
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationRunner, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder, projectCacheDir)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

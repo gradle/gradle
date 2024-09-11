@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import org.gradle.internal.Combiners;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -30,11 +29,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -106,29 +108,70 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContentOnBuildFinished(
+    public SnapshotHierarchy removeUnwatchableContentBeforeBuildFinished(
         SnapshotHierarchy root,
         Predicate<File> isWatchedHierarchy,
         int maximumNumberOfWatchedHierarchies,
         List<File> unsupportedFileSystems,
         Invalidator invalidator
     ) {
-        SnapshotHierarchy newRoot;
-        newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
+        SnapshotHierarchy newRoot = root;
+        newRoot = removeWatchedHierarchiesOverLimit(newRoot, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
+        newRoot = removeUnwatchableFileSystems(newRoot, unsupportedFileSystems, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
-        if (!unsupportedFileSystems.isEmpty()) {
-            newRoot = removeUnwatchableFileSystems(newRoot, unsupportedFileSystems, invalidator);
-        }
         watchableHierarchiesSinceLastBuildFinish.clear();
         return newRoot;
     }
 
+    private SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy newRoot, Invalidator invalidator) {
+        // Keep only snapshots we can trust
+        return retainOnlyMatchingSnapshots(newRoot, invalidator, snapshot -> {
+            // Keep everything in immutable locations, because Gradle makes sure
+            // to update the VFS when it updates those locations
+            if (immutableLocationsFilter.test(snapshot.getAbsolutePath())) {
+                return true;
+            }
+
+            // If it's not being watched, discard it, as we can't trust the VFS for these
+            return isInWatchableHierarchy(snapshot.getAbsolutePath());
+        });
+    }
+
     @CheckReturnValue
-    private SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy root, Invalidator invalidator) {
-        RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
-        root.rootSnapshots()
-            .forEach(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
-        return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
+    public static SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
+        SnapshotHierarchy newRoot = root;
+        // We are not being notified about changes to content accessed via symlinks
+        newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
+        newRoot = removeDirectSymlinks(newRoot, invalidator);
+        return newRoot;
+    }
+
+    @CheckReturnValue
+    private static SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
+        Map<String, Boolean> symlinkCache = new HashMap<>();
+        return root.rootSnapshots()
+            .filter(snapshot -> isAncestorASymlink(symlinkCache, new File(snapshot.getAbsolutePath())))
+            .reduce(
+                root,
+                (oldRoot, snapshot) -> invalidator.invalidate(snapshot.getAbsolutePath(), oldRoot),
+                nonCombining());
+    }
+
+    @CheckReturnValue
+    private static SnapshotHierarchy removeDirectSymlinks(SnapshotHierarchy root, Invalidator invalidator) {
+        return retainOnlyMatchingSnapshots(root, invalidator,
+            snapshot -> snapshot.getAccessType() != FileMetadata.AccessType.VIA_SYMLINK);
+    }
+
+    private static boolean isAncestorASymlink(Map<String, Boolean> symlinkCache, File file) {
+        File parent = file.getParentFile();
+        if (parent == null) {
+            return false;
+        }
+        if (isAncestorASymlink(symlinkCache, parent)) {
+            return true;
+        }
+        return symlinkCache.computeIfAbsent(parent.getAbsolutePath(), __ -> Files.isSymbolicLink(parent.toPath()));
     }
 
     @CheckReturnValue
@@ -153,11 +196,15 @@ public class WatchableHierarchies {
 
     private static FileHierarchySet buildWatchableFilesFromHierarchies(Collection<File> hierarchies) {
         return hierarchies.stream()
-            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
+            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, nonCombining());
     }
 
     @CheckReturnValue
-    private SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, List<File> unsupportedFileSystems, Invalidator invalidator) {
+    private static SnapshotHierarchy removeUnwatchableFileSystems(SnapshotHierarchy root, List<File> unsupportedFileSystems, Invalidator invalidator) {
+        if (unsupportedFileSystems.isEmpty()) {
+            return root;
+        }
+
         SnapshotHierarchy invalidatedRoot = unsupportedFileSystems.stream()
             .reduce(
                 root,
@@ -182,6 +229,7 @@ public class WatchableHierarchies {
 
     @CheckReturnValue
     private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
+        // Remove hierarchies that did not respond to a watch probe
         return probeRegistry.unprovenHierarchies()
             .reduce(root, (currentRoot, unprovenHierarchy) -> {
                 if (hierarchies.remove(unprovenHierarchy)) {
@@ -220,7 +268,7 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    private SnapshotHierarchy invalidateUnwatchableHierarchies(SnapshotHierarchy root, Invalidator invalidator, FileHierarchySet unwatchableFiles) {
+    private static SnapshotHierarchy invalidateUnwatchableHierarchies(SnapshotHierarchy root, Invalidator invalidator, FileHierarchySet unwatchableFiles) {
         InvalidatingRootVisitor invalidatingRootVisitor = new InvalidatingRootVisitor(root, invalidator);
         unwatchableFiles.visitRoots(invalidatingRootVisitor);
         return invalidatingRootVisitor.getNewRoot();
@@ -277,36 +325,33 @@ public class WatchableHierarchies {
         }
     }
 
-    private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
-        private SnapshotHierarchy root;
-        private final Invalidator invalidator;
+    private static SnapshotHierarchy retainOnlyMatchingSnapshots(SnapshotHierarchy root, Invalidator invalidator, Predicate<FileSystemLocationSnapshot> shouldKeep) {
+        InvalidatorVisitor visitor = new InvalidatorVisitor(root, invalidator, shouldKeep);
+        root.rootSnapshots()
+            .forEach(snapshotRoot -> snapshotRoot.accept(visitor));
+        return visitor.root;
+    }
 
-        public RemoveUnwatchedFiles(SnapshotHierarchy root, Invalidator invalidator) {
+    private static class InvalidatorVisitor implements FileSystemSnapshotHierarchyVisitor {
+        private final Invalidator invalidator;
+        private final Predicate<FileSystemLocationSnapshot> shouldKeep;
+
+        private SnapshotHierarchy root;
+
+        public InvalidatorVisitor(SnapshotHierarchy root, Invalidator invalidator, Predicate<FileSystemLocationSnapshot> shouldKeep) {
             this.root = root;
             this.invalidator = invalidator;
+            this.shouldKeep = shouldKeep;
         }
 
         @Override
         public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
-            if (shouldBeRemoved(snapshot)) {
-                invalidateUnwatchedFile(snapshot);
-                return SnapshotVisitResult.SKIP_SUBTREE;
-            } else {
+            if (shouldKeep.test(snapshot)) {
                 return SnapshotVisitResult.CONTINUE;
+            } else {
+                root = invalidator.invalidate(snapshot.getAbsolutePath(), root);
+                return SnapshotVisitResult.SKIP_SUBTREE;
             }
-        }
-
-        private boolean shouldBeRemoved(FileSystemLocationSnapshot snapshot) {
-            return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
-                (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && !immutableLocationsFilter.test(snapshot.getAbsolutePath()));
-        }
-
-        private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {
-            root = invalidator.invalidate(snapshot.getAbsolutePath(), root);
-        }
-
-        public SnapshotHierarchy getRootWithUnwatchedFilesRemoved() {
-            return root;
         }
     }
 

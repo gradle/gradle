@@ -1,40 +1,51 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Shared classes for projects requiring GPG support"
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+    )
+}
+
 dependencies {
-    api(project(":core-api"))
-    api(project(":resources"))
-    implementation(project(":base-services"))
-    implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":resources-http"))
+    api(projects.coreApi)
+    api(projects.resources)
+
+    api(libs.bouncycastlePgp)
+    api(libs.jsr305)
+
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.time)
+    implementation(projects.baseServices)
+    implementation(projects.functional)
+    implementation(projects.loggingApi)
+    implementation(projects.processServices)
+
+    implementation(libs.bouncycastleProvider)
     implementation(libs.guava)
     implementation(libs.inject)
 
-    api(libs.bouncycastlePgp)
+    testImplementation(testFixtures(projects.core))
 
-    implementation(libs.groovy) {
-        because("Project.exec() depends on Groovy")
-    }
-
-    testImplementation(testFixtures(project(":core")))
-
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.jetty)
     testFixturesImplementation(libs.jettyWebApp)
-    testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(projects.internalIntegTesting)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
 }
 
 packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/type/pgp/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

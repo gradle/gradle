@@ -153,6 +153,7 @@ public class FileReferenceFactory {
             return relativeToPathVariable;
         }
 
+        @Override
         public String toString() {
             return "{file='" + file + "', path='" + path  + "', jarUrl='" + getJarURL() + "'}";
         }

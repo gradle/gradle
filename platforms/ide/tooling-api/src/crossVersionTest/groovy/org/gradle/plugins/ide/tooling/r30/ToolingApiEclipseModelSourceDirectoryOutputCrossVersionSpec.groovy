@@ -18,30 +18,9 @@ package org.gradle.plugins.ide.tooling.r30
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends ToolingApiSpecification {
-
-    @TargetGradleVersion(">=2.6 <3.0")
-    def "Old versions throw runtime exception when querying source directory output"() {
-        setup:
-        settingsFile << 'rootProject.name = "root"'
-        buildFile << "apply plugin: 'java'"
-        file('src/main/java').mkdirs()
-        EclipseProject project = loadToolingModel(EclipseProject)
-        EclipseSourceDirectory sourceDirectory = project.sourceDirectories.find { it.path == 'src/main/java' }
-
-        when:
-        sourceDirectory.getOutput()
-
-        then:
-        thrown UnsupportedMethodException
-    }
 
     @TargetGradleVersion(">=3.0 <4.4")
     def "Source directory has no output specified"() {

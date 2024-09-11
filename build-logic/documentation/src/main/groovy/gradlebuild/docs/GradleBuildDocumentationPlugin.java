@@ -28,7 +28,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
@@ -122,18 +121,17 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     }
 
     private void addUtilityTasks(TaskContainer tasks, GradleDocumentationExtension extension) {
-        tasks.register("serveDocs", JavaExec.class, task -> {
+        tasks.register("serveDocs", ServeDocs.class, task -> {
             task.setDescription("Runs a local webserver to serve generated documentation.");
             task.setGroup("documentation");
 
             int webserverPort = 8000;
             task.getJavaLauncher().set(
                 task.getProject().getExtensions().getByType(JavaToolchainService.class)
-                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(18)))
+                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(21)))
             );
-            task.workingDir(extension.getDocumentationRenderedRoot());
-            task.getMainModule().set("jdk.httpserver");
-            task.args("-p", String.valueOf(webserverPort));
+            task.getDocsDirectory().convention(extension.getDocumentationRenderedRoot());
+            task.getPort().convention(webserverPort);
 
             task.dependsOn(extension.getRenderedDocumentation());
         });

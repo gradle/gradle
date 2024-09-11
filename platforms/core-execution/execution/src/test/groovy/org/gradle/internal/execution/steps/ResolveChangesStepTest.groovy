@@ -25,14 +25,15 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec<CachingContext> {
+class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {
         inputFileProperties >> ImmutableSortedMap.of()
+        inputProperties >> ImmutableSortedMap.of()
+        outputFileLocationSnapshots >> ImmutableSortedMap.of()
     }
     def delegateResult = Mock(Result)
-
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:
@@ -134,4 +135,5 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
     }
+
 }

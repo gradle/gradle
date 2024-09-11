@@ -30,6 +30,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
@@ -39,6 +40,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
@@ -50,6 +52,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
     private taskIdentityFactory = TestTaskIdentities.factory()
     private taskFactory = Mock(ITaskFactory)
+    private instantiatorFactory = Mock(InstantiatorFactory)
+    private serviceRegistry = Mock(ServiceRegistry) {
+        get(InstantiatorFactory) >> instantiatorFactory
+    }
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
@@ -64,19 +70,21 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
             getDepth() >> 0
             getProjectPath() >> Path.path(":project")
         }
-        getServices() >> Mock(ServiceRegistry)
+        getServices() >> serviceRegistry
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)
     } as ProjectInternal
+    private final projectRegistry = Mock(ProjectRegistry)
     private container = new DefaultTaskContainerFactory(
         DirectInstantiator.INSTANCE,
         taskIdentityFactory,
         taskFactory,
         project as ProjectInternal,
         new TaskStatistics(),
-        buildOperationExecutor,
-        new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
-        callbackActionDecorator
+        buildOperationRunner,
+        new BuildOperationCrossProjectConfigurator(buildOperationRunner),
+        callbackActionDecorator,
+        projectRegistry
     ).create()
 
     boolean supportsBuildOperations = true
@@ -1603,49 +1611,12 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.size() == 2
     }
 
-    def "name based filtering does not realize pending"() {
-        given: "a few realized tasks"
-        1 * taskFactory.create(_ as TaskIdentity, _) >> task("r1")
-        container.create("r1")
-
-        1 * taskFactory.create(_ as TaskIdentity, _) >> task("r2")
-        container.create("r2")
-
-        1 * taskFactory.create(_ as TaskIdentity, _) >> task("r3")
-        container.create("r3")
-
-        and: "a few registered task"
-        def action = Mock(Action)
-        container.configureEach(action)
-
-        container.register("t1")
-        container.register("t2")
-        container.register("t3")
-
-        when: "name based filtering is applied"
-        def filtered = container.named { !it.contains("2") }
-
-        then: "the right task are filtered out"
-        filtered.names.toList() == ["r1", "r3", "t1", "t3"]
-
-        and: "no registered tasks get realized"
-        0 * action.execute(_)
-
-        when: "the filtered collection is iterated"
-        1 * taskFactory.create(_ as TaskIdentity, _) >> task("t1")
-        1 * taskFactory.create(_ as TaskIdentity, _) >> task("t3")
-        filtered.toList()
-
-        then: "filtered out registered tasks aren't realized"
-        2 * action.execute(_)
-    }
-
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
         def otherProject = Mock(ProjectInternal)
         def otherTaskContainer = Mock(TaskContainerInternal)
         def otherProjectState = Mock(ProjectState)
 
-        project.findProject(projectPath) >> otherProject
+        projectRegistry.getProject(_) >> otherProject
 
         otherProject.owner >> otherProjectState
         1 * otherProjectState.ensureTasksDiscovered()

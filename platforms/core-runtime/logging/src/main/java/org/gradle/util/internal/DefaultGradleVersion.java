@@ -211,6 +211,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         return snapshot != null;
     }
 
+    @Override
     public GradleVersion getBaseVersion() {
         if (stage == null && snapshot == null) {
             return this;

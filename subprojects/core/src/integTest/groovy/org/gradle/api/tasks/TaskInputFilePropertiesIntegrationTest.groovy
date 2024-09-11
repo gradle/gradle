@@ -20,10 +20,12 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
@@ -94,15 +96,35 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 ).includeLink()
         })
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:unsupported-notation'
+            contextualLabel == 'Property \'input\' has unsupported value \'task \':dependencyTask\'\''
+            details == "Type 'DefaultTask' cannot be converted to a $targetType"
+            solutions == [
+                'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
+                'Use a String or CharSequence URI, for example \'file:/usr/include\'',
+                'Use a File instance',
+                'Use a Path instance',
+                'Use a Directory instance',
+                'Use a RegularFile instance',
+                'Use a URI or URL instance',
+                'Use a TextResource instance',
+            ]
+            additionalData.asMap == [
+                'typeName': 'org.gradle.api.DefaultTask',
+                'propertyName': 'input',
+            ]
+        }
+
         where:
         method | targetType
         "dir"  | "directory"
         "file" | "file"
     }
 
-    @ToBeFixedForConfigurationCache(because = "multiple build failures")
     def "#annotation.simpleName shows error message when used with complex input"() {
-        buildFile << """
+        buildFile """
             import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
             import org.gradle.api.internal.tasks.TaskPropertyUtils
             import org.gradle.internal.properties.bean.PropertyWalker
@@ -124,6 +146,10 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         expect:
         fails "customTask"
+        if(GradleContextualExecuter.configCache){
+            failure.assertThatDescription(containsString("Task `:customTask` of type `CustomTask`: cannot serialize object of type 'org.gradle.api.DefaultTask', " +
+                "a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."))
+        }
         failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         failureDescriptionContains(unsupportedNotation {
             type('CustomTask').property('input')
@@ -140,6 +166,33 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                     "a TextResource instance"
                 ).includeLink()
         })
+
+        and:
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(0)) {
+                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
+                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+            }
+        }
+        verifyAll(receivedProblem(GradleContextualExecuter.configCache ? 1 : 0)) {
+            fqid == 'validation:property-validation:unsupported-notation'
+            contextualLabel == 'Type \'CustomTask\' property \'input\' has unsupported value \'task \':dependencyTask\'\''
+            details == "Type 'DefaultTask' cannot be converted to a $targetType"
+            solutions == [
+                'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
+                'Use a String or CharSequence URI, for example \'file:/usr/include\'',
+                'Use a File instance',
+                'Use a Path instance',
+                'Use a Directory instance',
+                'Use a RegularFile instance',
+                'Use a URI or URL instance',
+                'Use a TextResource instance',
+            ]
+            additionalData.asMap == [
+                'typeName': 'CustomTask',
+                'propertyName': 'input',
+            ]
+        }
 
         where:
         annotation     | targetType
@@ -219,5 +272,19 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         failureDescriptionContains(missingValueMessage { type('FooTask').property('bar') })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:value-not-set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            solutions == [
+                'Assign a value to \'bar\'',
+                'Mark property \'bar\' as optional',
+            ]
+            additionalData.asMap == [
+                'typeName': 'FooTask',
+                'propertyName': 'bar',
+            ]
+        }
     }
 }

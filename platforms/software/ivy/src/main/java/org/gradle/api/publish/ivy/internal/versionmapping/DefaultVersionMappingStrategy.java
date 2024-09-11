@@ -26,12 +26,12 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.DefaultVariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.inject.Inject;
@@ -95,7 +95,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         if (!attributeBasedMappings.isEmpty()) {
             AttributeMatcher matcher = schema.matcher();
             Set<ImmutableAttributes> candidates = attributeBasedMappings.keySet();
-            List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
+            List<ImmutableAttributes> matches = matcher.matchMultipleCandidates(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
             if (matches.size() == 1) {
                 Collection<Action<? super VariantVersionMappingStrategy>> actions = attributeBasedMappings.get(matches.get(0));
                 for (Action<? super VariantVersionMappingStrategy> action : actions) {
@@ -115,7 +115,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
             // provided by plugins
             AttributeMatcher matcher = schema.matcher();
             Set<ImmutableAttributes> candidates = defaultConfigurations.keySet();
-            List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
+            List<ImmutableAttributes> matches = matcher.matchMultipleCandidates(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
             for (ImmutableAttributes match : matches) {
                 strategy.setDefaultResolutionConfiguration(configurations.getByName(defaultConfigurations.get(match)));
             }

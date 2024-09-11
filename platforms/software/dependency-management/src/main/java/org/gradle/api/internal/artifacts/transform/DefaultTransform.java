@@ -36,8 +36,8 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -65,7 +65,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.properties.InputBehavior;
@@ -89,6 +89,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -128,7 +129,7 @@ public class DefaultTransform implements Transform {
         DirectorySensitivity dependenciesDirectorySensitivity,
         LineEndingSensitivity artifactLineEndingSensitivity,
         LineEndingSensitivity dependenciesLineEndingSensitivity,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
         FileCollectionFactory fileCollectionFactory,
@@ -155,7 +156,7 @@ public class DefaultTransform implements Transform {
         this.artifactLineEndingSensitivity = artifactLineEndingSensitivity;
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
-            new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
+            new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher,
                 fileCollectionFactory));
     }
 
@@ -204,9 +205,9 @@ public class DefaultTransform implements Transform {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .label("is declared to be sensitive to absolute paths")
+                        .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
-                        .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY))
+                        .contextualLabel("is declared to be sensitive to absolute paths")
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -226,7 +227,7 @@ public class DefaultTransform implements Transform {
 
     @Override
     public boolean isIsolated() {
-        return isolatedParameters.getOrNull() != null;
+        return isolatedParameters.isFinalized();
     }
 
     @Override
@@ -363,9 +364,9 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .label("declares an output")
-                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
-                            .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT))
+                            .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                            .contextualLabel("declares an output")
+                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
@@ -562,7 +563,7 @@ public class DefaultTransform implements Transform {
         private final DomainObjectContext owner;
         private final IsolatableFactory isolatableFactory;
         private final PropertyWalker parameterPropertyWalker;
-        private final BuildOperationExecutor buildOperationExecutor;
+        private final BuildOperationRunner buildOperationRunner;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final FileCollectionFactory fileCollectionFactory;
         private final boolean cacheable;
@@ -575,7 +576,7 @@ public class DefaultTransform implements Transform {
             DomainObjectContext owner,
             PropertyWalker parameterPropertyWalker,
             IsolatableFactory isolatableFactory,
-            BuildOperationExecutor buildOperationExecutor,
+            BuildOperationRunner buildOperationRunner,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             FileCollectionFactory fileCollectionFactory
         ) {
@@ -585,7 +586,7 @@ public class DefaultTransform implements Transform {
             this.owner = owner;
             this.parameterPropertyWalker = parameterPropertyWalker;
             this.isolatableFactory = isolatableFactory;
-            this.buildOperationExecutor = buildOperationExecutor;
+            this.buildOperationRunner = buildOperationRunner;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.fileCollectionFactory = fileCollectionFactory;
         }
@@ -684,7 +685,7 @@ public class DefaultTransform implements Transform {
 
             if (parameterObject != null) {
                 TransformParameters isolatedTransformParameters = isolatedParameterObject.isolate();
-                buildOperationExecutor.run(new RunnableBuildOperation() {
+                buildOperationRunner.run(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
                         // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock

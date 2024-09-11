@@ -63,8 +63,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -98,11 +98,10 @@ public class TaskExecution implements MutableUnitOfWork {
 
     private final TaskInternal task;
     private final TaskExecutionContext context;
-    private final boolean emitLegacySnapshottingOperations;
 
     private final org.gradle.api.execution.TaskActionListener actionListener;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionHistoryStore executionHistoryStore;
     private final FileCollectionFactory fileCollectionFactory;
@@ -116,11 +115,10 @@ public class TaskExecution implements MutableUnitOfWork {
     public TaskExecution(
         TaskInternal task,
         TaskExecutionContext context,
-        boolean emitLegacySnapshottingOperations,
 
         org.gradle.api.execution.TaskActionListener actionListener,
         AsyncWorkTracker asyncWorkTracker,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
@@ -133,11 +131,10 @@ public class TaskExecution implements MutableUnitOfWork {
     ) {
         this.task = task;
         this.context = context;
-        this.emitLegacySnapshottingOperations = emitLegacySnapshottingOperations;
 
         this.actionListener = actionListener;
         this.asyncWorkTracker = asyncWorkTracker;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -229,7 +226,7 @@ public class TaskExecution implements MutableUnitOfWork {
         if (inputChanges != null) {
             action.setInputChanges(inputChanges);
         }
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
@@ -241,7 +238,7 @@ public class TaskExecution implements MutableUnitOfWork {
             @Override
             public void run(BuildOperationContext context) {
                 try {
-                    BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+                    BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
                     Throwable actionFailure = null;
                     try {
                         action.execute(task);
@@ -439,13 +436,11 @@ public class TaskExecution implements MutableUnitOfWork {
     public void markLegacySnapshottingInputsStarted() {
         // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         //   expects it to be added also when the build cache is enabled (but not the scan plugin)
-        if (emitLegacySnapshottingOperations) {
-            BuildOperationContext operationContext = buildOperationExecutor.start(BuildOperationDescriptor
-                .displayName("Snapshot task inputs for " + task.getIdentityPath())
-                .name("Snapshot task inputs")
-                .details(SNAPSHOT_TASK_INPUTS_DETAILS));
-            context.setSnapshotTaskInputsBuildOperationContext(operationContext);
-        }
+        BuildOperationContext operationContext = buildOperationRunner.start(BuildOperationDescriptor
+            .displayName("Snapshot task inputs for " + task.getIdentityPath())
+            .name("Snapshot task inputs")
+            .details(SNAPSHOT_TASK_INPUTS_DETAILS));
+        context.setSnapshotTaskInputsBuildOperationContext(operationContext);
     }
 
     @Override

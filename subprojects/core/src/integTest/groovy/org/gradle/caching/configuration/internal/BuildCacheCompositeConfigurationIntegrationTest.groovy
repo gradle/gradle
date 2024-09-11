@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.isConfigCache
@@ -43,6 +44,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         iterationMatchers = ['^.+PROGRAMMATIC$']
     )
     def "can configure with settings.gradle - enabled by #by"() {
+        // Build scripts are cached in global cache since they are compiled as ImmutableUnitOfWork,
+        // so to avoid flakiness we run with own GradleUserHome
+        executer.requireOwnGradleUserHomeDir()
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
             executer.beforeExecute {
@@ -102,7 +106,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i1BuildSrcCache.empty
         i2Cache.empty
         buildSrcCache.empty
-        mainCache.listCacheFiles().size() == 5 // root, i1, i1BuildSrc, i2, buildSrc
+        mainCache.listCacheFiles().size() == 5 // 5 (root, i1, i1BuildSrc, i2, buildSrc tasks)
         isConfigCache() || i3Cache.listCacheFiles().size() == 1
 
         and:
@@ -118,7 +122,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         }
 
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)
-        finalizeOps.size() == expectedCacheDirs.size()
+        def opsPerCache = configCache ? 2 : 1
+        finalizeOps.size() == expectedCacheDirs.size() * opsPerCache
         def pathToCacheDirMap = finalizeOps.collectEntries {
             [
                 it.details.buildPath,
@@ -145,6 +150,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4216")
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "build cache service is closed only after all included builds are finished"() {
         executer.beforeExecute { it.withBuildCacheEnabled() }
         def localCache = new TestBuildCache(file("local-cache"))

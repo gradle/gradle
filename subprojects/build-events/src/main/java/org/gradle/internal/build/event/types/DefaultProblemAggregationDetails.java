@@ -17,27 +17,32 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregation;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsVersion3;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 
 import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemAggregationDetails implements InternalProblemAggregationDetails, Serializable {
-    private final List<InternalProblemAggregation> summaries;
+public class DefaultProblemAggregationDetails implements InternalProblemAggregationDetailsVersion3, Serializable {
 
-    public DefaultProblemAggregationDetails(List<InternalProblemAggregation> summaries) {
-        this.summaries = summaries;
+    private final InternalProblemDefinition definition;
+    private final List<InternalProblemContextDetails> problems;
+
+    public DefaultProblemAggregationDetails(InternalProblemDefinition definition,
+                                            List<InternalProblemContextDetails> problems) {
+        this.definition = definition;
+        this.problems = problems;
     }
 
     @Override
-    public List<InternalProblemAggregation> getSummaries() {
-        return summaries;
+    public InternalProblemDefinition getDefinition() {
+        return definition;
     }
 
     @Override
-    public String getJson() {
-        return "{}";
+    public List<InternalProblemContextDetails> getProblems() {
+        return problems;
     }
 }

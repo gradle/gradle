@@ -31,7 +31,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
@@ -330,8 +329,10 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
             List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
             ImmutableList.Builder<ModuleDependencyMetadata> transformedConfigurationDependencies = ImmutableList.builder();
             for (DependencyMetadata dependency : dependencies) {
-                if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
-                    transformedConfigurationDependencies.add(((ConfigurationBoundExternalDependencyMetadata) dependency).withDescriptor(transformed.get(((ConfigurationBoundExternalDependencyMetadata) dependency).getDependencyDescriptor())));
+                if (dependency instanceof IvyDependencyMetadata) {
+                    IvyDependencyMetadata ivyDependency = (IvyDependencyMetadata) dependency;
+                    IvyDependencyDescriptor newDescriptor = transformed.get(ivyDependency.getDependencyDescriptor());
+                    transformedConfigurationDependencies.add(ivyDependency.withDescriptor(newDescriptor));
                 } else {
                     transformedConfigurationDependencies.add((ModuleDependencyMetadata) dependency);
                 }

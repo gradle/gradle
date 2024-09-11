@@ -37,7 +37,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
     def "does not throw exception when build fails expectantly"() {
         given:
-        buildScript """
+        buildFile """
             task helloWorld {
                 doLast {
                     throw new GradleException('Expected exception')
@@ -56,7 +56,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
     @InspectsExecutedTasks
     def "exposes result when build fails expectantly"() {
         given:
-        buildScript """
+        buildFile """
             task helloWorld {
                 doLast {
                     throw new GradleException('Expected exception')
@@ -74,7 +74,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
     def "throws when build is expected to fail but does not"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
 
         when:
         runner('helloWorld').buildAndFail()
@@ -89,7 +89,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
     @InspectsExecutedTasks
     def "exposes result when build is expected to fail but does not"() {
         given:
-        buildScript helloWorldTask()
+        buildFile helloWorldTask()
 
         when:
         def runner = gradleVersion >= GradleVersion.version("4.5")
@@ -114,7 +114,7 @@ $t.buildResult.output"""
 
     def "throws when build is expected to succeed but fails"() {
         given:
-        buildScript """
+        buildFile """
             task helloWorld {
                 doLast {
                     throw new GradleException('Unexpected exception')
@@ -134,7 +134,7 @@ $t.buildResult.output"""
     @InspectsBuildOutput
     def "exposes result with build is expected to succeed but fails "() {
         given:
-        buildScript """
+        buildFile """
             task helloWorld {
                 doLast {
                     throw new GradleException('Unexpected exception')
@@ -164,7 +164,7 @@ $t.buildResult.output"""
 
     def "can expect a build failure without having to call buildAndFail"() {
         given:
-        buildScript """
+        buildFile """
             task helloWorld {
                 doLast {
                     throw new GradleException('Expected exception')

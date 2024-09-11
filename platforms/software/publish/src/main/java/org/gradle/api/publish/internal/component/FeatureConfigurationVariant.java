@@ -60,6 +60,7 @@ public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentV
     }
 
     @Nullable
+    @Override
     public Configuration getResolutionConfiguration() {
         return dependencyMapping != null ? dependencyMapping.getResolutionConfiguration() : null;
     }

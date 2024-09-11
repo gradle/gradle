@@ -21,7 +21,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import javax.annotation.Nullable;
 
@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  * @see ClassLoaderScopeRegistry
  * @see ClassLoaderScope
  */
-@EventScope(Scopes.UserHome.class)
+@EventScope(Scope.UserHome.class)
 public interface ClassLoaderScopeRegistryListener {
 
     void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin);

@@ -26,6 +26,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 
 import java.util.List;
+import java.util.Set;
 
 public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefaultExcludesProvider {
 
@@ -65,8 +66,12 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
     }
 
     @Override
-    public void updateCurrentDefaultExcludes(List<String> excludes) {
-        DirectoryScanner.resetDefaultExcludes();
+    public void updateCurrentDefaultExcludes(Set<String> excludes) {
+        for (String oldExclude : DirectoryScanner.getDefaultExcludes()) {
+            if (!excludes.contains(oldExclude)) {
+                DirectoryScanner.removeDefaultExclude(oldExclude);
+            }
+        }
         for (String exclude : excludes) {
             DirectoryScanner.addDefaultExclude(exclude);
         }

@@ -71,6 +71,10 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat);
     }
 
+    public ModuleVersionResolveException(ModuleComponentIdentifier id, Factory<String> messageFormat, Throwable cause) {
+        this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat, cause);
+    }
+
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
         this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), Collections.singletonList(cause));
     }

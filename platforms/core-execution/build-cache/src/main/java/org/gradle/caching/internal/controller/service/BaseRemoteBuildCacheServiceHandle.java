@@ -47,11 +47,11 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         }
 
         public String describe(BuildCacheKey key, BuildCacheServiceRole role) {
-            return capitalizedVerb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
+            return capitalizedVerb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
         }
 
         public String describeFailure(BuildCacheKey key, BuildCacheServiceRole role) {
-            return "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
+            return "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
         }
     }
 
@@ -113,7 +113,7 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.load(key, entryReader);
     }
 
-    private Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
+    private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
         if (loadTarget.isLoaded()) {
             return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
         }

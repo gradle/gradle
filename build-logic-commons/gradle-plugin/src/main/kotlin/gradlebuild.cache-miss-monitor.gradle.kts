@@ -95,6 +95,7 @@ fun Project.isExpectedCompileCacheMiss() =
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
         "Component_GradlePlugin_Performance_PerformanceLatestReleased",
         "Check_Gradleception",
+        "Check_GradleceptionWithJavaMaxLts",
         "Check_GradleceptionWithGroovy4",
         "CompileAllBuild_BuildCacheNG",
         "CompileAllBuild_NGRemote"

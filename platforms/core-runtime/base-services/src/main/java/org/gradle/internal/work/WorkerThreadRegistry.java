@@ -17,13 +17,13 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Allows a thread to enlist in resource locking, for example to lock the mutable state of a project.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface WorkerThreadRegistry {
     /**
      * Runs the given action as a worker. While the action is running, the thread can acquire resource locks.

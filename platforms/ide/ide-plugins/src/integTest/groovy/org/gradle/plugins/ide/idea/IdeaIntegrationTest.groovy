@@ -469,7 +469,7 @@ idea.project {
         def expectedXml = expectedFile.text
 
         def homeDir = executer.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
-        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.MODULES.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         def actualXml = actualFile.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
 
         Diff diff = new Diff(expectedXml, actualXml)

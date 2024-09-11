@@ -38,7 +38,7 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final org.gradle.internal.Factory<String> broken = { "broken" }
     final metaData = metaData("1.2")
     final componentState = Stub(ModuleComponentGraphResolveState) {
-        getModuleResolveMetadata() >> metaData
+        getLegacyMetadata() >> metaData
     }
     final moduleComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "project"), "1.0")
     final componentRequestMetaData = Mock(ComponentOverrideMetadata)

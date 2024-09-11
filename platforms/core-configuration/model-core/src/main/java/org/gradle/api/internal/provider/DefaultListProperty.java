@@ -18,21 +18,19 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
+
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T>> implements ListProperty<T> {
-    private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = new Supplier<ImmutableCollection.Builder<Object>>() {
-        @Override
-        public ImmutableCollection.Builder<Object> get() {
-            return ImmutableList.builder();
-        }
-    };
+    private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableList::builder;
+
     public DefaultListProperty(PropertyHost host, Class<T> elementType) {
         super(host, List.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }
@@ -80,5 +78,15 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     public ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         super.convention(provider);
         return this;
+    }
+
+    @Override
+    public ListProperty<T> unset() {
+        return uncheckedNonnullCast(super.unset());
+    }
+
+    @Override
+    public ListProperty<T> unsetConvention() {
+        return uncheckedNonnullCast(super.unsetConvention());
     }
 }

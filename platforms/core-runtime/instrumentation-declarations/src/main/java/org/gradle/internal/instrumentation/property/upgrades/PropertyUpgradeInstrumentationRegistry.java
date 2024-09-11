@@ -22,7 +22,7 @@ import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentati
  * Add classes to visit to this registry to enable property upgrade instrumentation.
  *
  * Classes that should be visited should be added to the @VisitForInstrumentation annotation, e.g.
- * @VisitForInstrumentation(value = {Checkstyle.class}).
+ * {@code @VisitForInstrumentation(value = {Checkstyle.class})}.
  */
 @VisitForInstrumentation(value = {})
 public interface PropertyUpgradeInstrumentationRegistry {

@@ -37,8 +37,8 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         file("src/main/kotlin/myplugin.gradle.kts") << ''
 
         when:
-        def model = loadValidatedToolingModel(KotlinDslScriptsModel) {
-            setModelParameters(it, false)
+        def model = loadToolingModel(KotlinDslScriptsModel) {
+            setModelParameters(it, false, false, [])
         }
 
         then:

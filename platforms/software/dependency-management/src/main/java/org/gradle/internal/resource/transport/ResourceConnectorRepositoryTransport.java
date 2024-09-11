@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalR
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.hash.ChecksumService;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -44,15 +44,15 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 BuildCommencedTimeProvider timeProvider,
                                                 ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
                                                 ExternalResourceConnector connector,
-                                                BuildOperationExecutor buildOperationExecutor,
+                                                BuildOperationRunner buildOperationRunner,
                                                 ExternalResourceCachePolicy cachePolicy,
                                                 ProducerGuard<ExternalResourceName> producerGuard,
                                                 FileResourceRepository fileResourceRepository,
                                                 ChecksumService checksumService) {
         super(name);
-        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, buildOperationExecutor);
-        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, buildOperationExecutor);
-        ProgressLoggingExternalResourceLister loggingLister = new ProgressLoggingExternalResourceLister(connector, buildOperationExecutor);
+        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, buildOperationRunner);
+        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, buildOperationRunner);
+        ProgressLoggingExternalResourceLister loggingLister = new ProgressLoggingExternalResourceLister(connector, buildOperationRunner);
         repository = new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, loggingLister);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileResourceRepository, checksumService);
     }

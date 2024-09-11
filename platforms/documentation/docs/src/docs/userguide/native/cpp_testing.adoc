@@ -15,8 +15,6 @@
 [[cpp_testing]]
 = Testing in C++ projects
 
-WARNING: The {cpp} testing support is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 Testing in the native ecosystem takes many forms.
 
 There are different testing libraries and frameworks, as well as many different types of test.

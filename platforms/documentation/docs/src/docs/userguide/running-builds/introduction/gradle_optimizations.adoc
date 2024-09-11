@@ -15,6 +15,15 @@
 [[gradle_optimizations]]
 = Gradle Incremental Builds and Build Caching
 
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/ec69d0b8-9171-4969-ac3e-82dea16f87b0/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">Incremental Builds and Build Caching with Gradle&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
+
 Gradle uses two main features to reduce build time: *incremental builds* and *build caching*.
 
 image::gradle-basic-8.png[]
@@ -32,7 +41,7 @@ Otherwise, it will skip execution.
 Incremental builds are always enabled, and the best way to see them in action is to turn on _verbose mode_.
 With verbose mode, each task state is labeled during a build:
 
-[source]
+[source,text]
 ----
 $ ./gradlew compileJava --console=verbose
 
@@ -75,7 +84,7 @@ It prevents the redundant work and cost of executing time-consuming and expensiv
 
 When the build cache has been used to repopulate the local directory, the tasks are marked as `FROM-CACHE`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew compileJava --build-cache
 

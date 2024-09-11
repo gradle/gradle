@@ -31,7 +31,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
     def "rule method can define a managed model element backed by an interface"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -87,7 +87,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
     def "can view a managed element as ModelElement"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -125,7 +125,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
     def "rule method can apply defaults to a managed model element"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()
@@ -218,7 +218,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
             }
         '''
 
-        buildScript '''
+        buildFile '''
             apply type: RulePlugin
         '''
 
@@ -262,7 +262,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
             }
         '''
 
-        buildScript '''
+        buildFile '''
             apply type: RulePlugin
         '''
 
@@ -297,7 +297,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
             }
         '''
 
-        buildScript '''
+        buildFile '''
             apply type: RulePlugin
         '''
 
@@ -332,7 +332,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
             }
         '''
 
-        buildScript '''
+        buildFile '''
             apply type: RulePlugin
         '''
 
@@ -346,7 +346,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
     def "two views of the same element are equal"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Address {
                 String getCity()
@@ -386,7 +386,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
     def "reports managed interface type in missing property error message"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
                 String getName()

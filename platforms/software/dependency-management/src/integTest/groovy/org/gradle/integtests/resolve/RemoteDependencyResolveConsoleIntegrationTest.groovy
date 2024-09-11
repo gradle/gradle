@@ -99,7 +99,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         then:
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
-                "> :resolve > Resolve files of :compile",
+                "> :resolve > Resolve files of configuration ':compile'",
                 "> one-1.2.jar", "> two-1.2.jar"
             )
         }
@@ -112,7 +112,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         then:
         ConcurrentTestUtil.poll {
             outputContainsProgress(build,
-                "> :resolve > Resolve files of :compile",
+                "> :resolve > Resolve files of configuration ':compile'",
                 "> one-1.2.jar > 1 KiB/2 KiB downloaded", "> two-1.2.jar > 1 KiB/2 KiB downloaded"
             )
         }

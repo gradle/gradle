@@ -22,7 +22,7 @@ import org.gradle.caching.internal.operations.BuildCacheLocalStoreBuildOperation
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -39,16 +39,16 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
         }
     };
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public OpFiringLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled, BuildOperationExecutor buildOperationExecutor) {
+    public OpFiringLocalBuildCacheServiceHandle(LocalBuildCacheService service, boolean pushEnabled, BuildOperationRunner buildOperationRunner) {
         super(service, pushEnabled);
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, Function<File, BuildCacheLoadResult> unpackFunction) {
-        return buildOperationExecutor.call(new CallableBuildOperation<Optional<BuildCacheLoadResult>>() {
+        return buildOperationRunner.call(new CallableBuildOperation<Optional<BuildCacheLoadResult>>() {
             @Override
             public Optional<BuildCacheLoadResult> call(BuildOperationContext context) {
                 AtomicReference<Long> archiveSize = new AtomicReference<>();
@@ -62,7 +62,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Load entry " + key.getDisplayName() + " from local build cache")
+                return BuildOperationDescriptor.displayName("Load entry " + key.getHashCode() + " from local build cache")
                     .details(new LocalLoadDetails(key));
             }
         });
@@ -70,7 +70,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
     @Override
     protected void storeInner(BuildCacheKey key, File file) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) throws Exception {
                 OpFiringLocalBuildCacheServiceHandle.super.storeInner(key, file);
@@ -79,7 +79,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Store entry " + key.getDisplayName() + " in local build cache")
+                return BuildOperationDescriptor.displayName("Store entry " + key.getHashCode() + " in local build cache")
                     .details(new LocalStoreDetails(key, file));
             }
         });
@@ -95,7 +95,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
         @Override
         public String getCacheKey() {
-            return key.getDisplayName();
+            return key.getHashCode();
         }
     }
 
@@ -121,21 +121,23 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
     private static class LocalStoreDetails implements BuildCacheLocalStoreBuildOperationType.Details {
         private final BuildCacheKey key;
-        private final File file;
+        private final long archiveSize;
 
         public LocalStoreDetails(BuildCacheKey key, File file) {
             this.key = key;
-            this.file = file;
+            // We need to calculate the size eagerly here, since the file will already be gone
+            // (aka in the local cache), when the DV plugin queries the value.
+            this.archiveSize = file.length();
         }
 
         @Override
         public String getCacheKey() {
-            return key.getDisplayName();
+            return key.getHashCode();
         }
 
         @Override
         public long getArchiveSize() {
-            return file.length();
+            return archiveSize;
         }
     }
 }

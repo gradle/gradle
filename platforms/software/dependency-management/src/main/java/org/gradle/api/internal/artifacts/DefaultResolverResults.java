@@ -19,38 +19,34 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
 import javax.annotation.Nullable;
 
 /**
- * Default implementation of {@link ResolverResults} containing the results of a complete resolution.
+ * Default implementation of {@link ResolverResults}.
  */
 public class DefaultResolverResults implements ResolverResults {
 
-    private final ResolvedLocalComponentsResult resolvedLocalComponentsResult;
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet visitedArtifacts;
-    private final ResolvedConfiguration resolvedConfiguration;
+    private final LegacyResolverResults legacyResolverResults;
+    private final boolean fullyResolved;
 
     public DefaultResolverResults(
-        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
         VisitedGraphResults graphResults,
         VisitedArtifactSet visitedArtifacts,
-        @Nullable ResolvedConfiguration resolvedConfiguration
+        LegacyResolverResults legacyResolverResults,
+        boolean fullyResolved
     ) {
-        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
         this.graphResults = graphResults;
         this.visitedArtifacts = visitedArtifacts;
-        this.resolvedConfiguration = resolvedConfiguration;
+        this.legacyResolverResults = legacyResolverResults;
+        this.fullyResolved = fullyResolved;
     }
 
     @Override
-    public ResolvedConfiguration getResolvedConfiguration() {
-        if (resolvedConfiguration == null) {
-            throw new IllegalStateException("Cannot get ResolvedConfiguration before graph resolution.");
-        }
-        return resolvedConfiguration;
+    public LegacyResolverResults getLegacyResults() {
+        return legacyResolverResults;
     }
 
     @Override
@@ -59,13 +55,13 @@ public class DefaultResolverResults implements ResolverResults {
     }
 
     @Override
-    public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        return resolvedLocalComponentsResult;
+    public VisitedArtifactSet getVisitedArtifacts() {
+        return visitedArtifacts;
     }
 
     @Override
-    public VisitedArtifactSet getVisitedArtifacts() {
-        return visitedArtifacts;
+    public boolean isFullyResolved() {
+        return fullyResolved;
     }
 
     /**
@@ -73,14 +69,14 @@ public class DefaultResolverResults implements ResolverResults {
      */
     public static ResolverResults buildDependenciesResolved(
         VisitedGraphResults graphResults,
-        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
-        VisitedArtifactSet visitedArtifacts
+        VisitedArtifactSet visitedArtifacts,
+        LegacyResolverResults legacyResolverResults
     ) {
         return new DefaultResolverResults(
-            resolvedLocalComponentsResult,
             graphResults,
             visitedArtifacts,
-            null
+            legacyResolverResults,
+            false
         );
     }
 
@@ -89,15 +85,55 @@ public class DefaultResolverResults implements ResolverResults {
      */
     public static ResolverResults graphResolved(
         VisitedGraphResults graphResults,
-        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
-        ResolvedConfiguration resolvedConfiguration,
-        VisitedArtifactSet visitedArtifacts
+        VisitedArtifactSet visitedArtifacts,
+        LegacyResolverResults legacyResolverResults
     ) {
         return new DefaultResolverResults(
-            resolvedLocalComponentsResult,
             graphResults,
             visitedArtifacts,
-            resolvedConfiguration
+            legacyResolverResults,
+            true
         );
+    }
+
+    /**
+     * Default implementation of {@link LegacyResolverResults}.
+     */
+    public static class DefaultLegacyResolverResults implements LegacyResolverResults {
+        private final LegacyVisitedArtifactSet artifacts;
+        private final ResolvedConfiguration configuration;
+
+        private DefaultLegacyResolverResults(LegacyVisitedArtifactSet artifacts, @Nullable ResolvedConfiguration configuration) {
+            this.artifacts = artifacts;
+            this.configuration = configuration;
+        }
+
+        @Override
+        public LegacyVisitedArtifactSet getLegacyVisitedArtifactSet() {
+            return artifacts;
+        }
+
+        @Override
+        public ResolvedConfiguration getResolvedConfiguration() {
+            if (configuration == null) {
+                throw new IllegalStateException("Cannot get resolved configuration when only build dependencies are resolved.");
+            }
+
+            return configuration;
+        }
+
+        /**
+         * Create a new legacy result representing the result of resolving build dependencies.
+         */
+        public static LegacyResolverResults buildDependenciesResolved(LegacyVisitedArtifactSet artifacts) {
+            return new DefaultLegacyResolverResults(artifacts, null);
+        }
+
+        /**
+         * Create a new legacy result representing the result of resolving the dependency graph.
+         */
+        public static LegacyResolverResults graphResolved(LegacyVisitedArtifactSet artifacts, ResolvedConfiguration configuration) {
+            return new DefaultLegacyResolverResults(artifacts, configuration);
+        }
     }
 }

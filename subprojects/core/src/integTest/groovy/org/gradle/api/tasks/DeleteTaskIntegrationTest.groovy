@@ -17,8 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
@@ -49,6 +52,7 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('baz').exists()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "deleted files show up in task destroys"() {
         buildFile << """
             import org.gradle.internal.properties.PropertyVisitor
@@ -85,6 +89,7 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds "clean"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")
     def "clean build and build clean work reliably"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """

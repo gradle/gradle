@@ -81,7 +81,7 @@ public class Download implements IDownload {
     private void configureProxyAuthentication() {
         if (systemProperties.get("http.proxyUser") != null || systemProperties.get("https.proxyUser") != null) {
             // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting the request header field.
-            Authenticator.setDefault(new ProxyAuthenticator());
+            Authenticator.setDefault(new ProxyAuthenticator(systemProperties));
         }
     }
 
@@ -104,6 +104,7 @@ public class Download implements IDownload {
         }
     }
 
+    @Override
     public void download(URI address, File destination) throws Exception {
         destination.getParentFile().mkdirs();
         downloadInternal(address, destination);
@@ -196,6 +197,7 @@ public class Download implements IDownload {
      * @return Base64 encoded user info
      * @throws RuntimeException if no public Base64 encoder is available on this JVM
      */
+    @SuppressWarnings("StringCharset")
     private String base64Encode(String userInfo) {
         ClassLoader loader = getClass().getClassLoader();
         try {
@@ -232,7 +234,13 @@ public class Download implements IDownload {
         return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 
-    private class ProxyAuthenticator extends Authenticator {
+    private static class ProxyAuthenticator extends Authenticator {
+        private final Map<String, String> systemProperties;
+
+        private ProxyAuthenticator(Map<String, String> systemProperties) {
+            this.systemProperties = systemProperties;
+        }
+
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             if (getRequestorType() == RequestorType.PROXY) {

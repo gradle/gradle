@@ -33,7 +33,6 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
             ${mavenCentralRepository()}
 
             dependencies {
-                pmd "${calculateDefaultDependencyNotation()}"
                 implementation 'ch.qos.logback.contrib:logback-json-core:0.1.4'
             }
         """
@@ -41,6 +40,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
         if (versionNumber < VersionNumber.version(6)) {
             buildFile << """
                 pmd {
+                    toolVersion = '$version'
                     ruleSets = ["java-unusedcode"]
                     incrementalAnalysis = false
                 }
@@ -48,6 +48,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
         } else {
             buildFile << """
                 pmd {
+                    toolVersion = '$version'
                     ruleSetConfig = resources.text.fromString('''<?xml version="1.0"?>
                         <ruleset name="Unused Code">
                             <description>Copy of https://github.com/pmd/pmd/blob/master/pmd-java/src/main/resources/rulesets/java/unusedcode.xml without deprecations.</description>

@@ -43,41 +43,30 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
     def "empty classpath is treated as no injected classpath"() {
         when:
-        buildScript plugin.useDeclaration
+        buildFile plugin.useDeclaration
         def result = runner()
             .withPluginClasspath([])
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: '$plugin.id'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        !execFailure(result).error.contains("Gradle TestKit (classpath:")
     }
 
     def "injected classpath is indicated in error message if plugin not found"() {
         when:
-        buildScript plugin.useDeclaration
+        buildFile plugin.useDeclaration
         def expectedClasspath = [file("blah1"), file("blah2")]
         def result = runner()
             .withPluginClasspath(expectedClasspath)
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: '$plugin.id'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})
-            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        execFailure(result).assertHasErrorOutput("Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})")
     }
 
     def "can inject plugin classpath and use in build"() {
         given:
-        buildScript plugin.build().useDeclaration
+        buildFile plugin.build().useDeclaration
 
         when:
         def result = runner(':helloWorld1')
@@ -91,7 +80,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
     def "injected plugin classes are visible in build script applying plugin"() {
         given:
-        buildScript plugin.build().useDeclaration + plugin.echoClassNameTask()
+        buildFile plugin.build().useDeclaration + plugin.echoClassNameTask()
 
         when:
         def result = runner("echo1")
@@ -104,7 +93,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
     def "injected classes are not visible when plugin is not applied"() {
         given:
-        buildScript plugin.echoClassNameTask()
+        buildFile plugin.echoClassNameTask()
 
         when:
         def result = runner('echo1', "-S")

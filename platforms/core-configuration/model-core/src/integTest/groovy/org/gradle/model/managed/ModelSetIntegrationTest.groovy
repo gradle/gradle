@@ -24,7 +24,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "provides basic meta-data for set"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -62,7 +62,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can view as ModelElement"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -98,7 +98,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
               String getName()
@@ -156,7 +156,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can create a managed collection of abstract class backed managed model elements"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Person {
               abstract String getName()
@@ -195,7 +195,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can create a set of various supported types"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing extends Named {
               void setValue(String value)
@@ -262,7 +262,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "managed model type has property of collection of managed types"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
               String getName()
@@ -313,7 +313,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "managed model cannot have a reference to a model set"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
               String getName()
@@ -349,7 +349,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule method can apply defaults to a managed set"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
               String getName()
@@ -402,7 +402,7 @@ finalize
 
     def "creation and configuration of managed set elements is deferred until required"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Person {
               Person() {
@@ -473,7 +473,7 @@ configure p3
 
     def "reports failure that occurs in collection item initializer"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
               String getName()
@@ -506,7 +506,7 @@ configure p3
 
     def "read methods of ModelSet throw exceptions when used in a creation rule"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -535,7 +535,7 @@ configure p3
 
     def "read methods of ModelSet throw exceptions when used in a mutation rule"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -568,7 +568,7 @@ configure p3
 
     def "mutating a managed set that is an input of a rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -596,7 +596,7 @@ configure p3
 
     def "mutating a managed set that is the subject of a validation rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -628,7 +628,7 @@ configure p3
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }
@@ -662,7 +662,7 @@ configure p3
 
     def "mutating managed set which is an input of a DSL rule is not allowed"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person {
             }

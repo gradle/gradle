@@ -50,6 +50,8 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
@@ -340,11 +342,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return () -> {
-                Hasher hasher = Hashing.sha1().newHasher();
-                identityInputs.values().forEach(s -> s.appendToHasher(hasher));
-                return hasher.hash().toString();
-            };
+            Hasher hasher = Hashing.sha1().newHasher();
+            identityInputs.values().forEach(s -> s.appendToHasher(hasher));
+            String identity = hasher.hash().toString();
+            return () -> identity;
         }
 
         @Override
@@ -413,6 +414,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // This was a behaviour before 8.9, where we unified ExecutionEngine in https://github.com/gradle/gradle/pull/29534
+            return Optional.of(NOT_WORTH_CACHING);
+        }
+
+        @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
                 new DependenciesAccessorClassSource(model.getName(), model, getProblemsService()),
@@ -427,6 +434,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
+        }
+
+        @Override
+        public void visitRegularInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputFileValueSupplier(
                     classPath,
@@ -448,6 +459,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         public ProjectAccessorUnitOfWork(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
             this.projectRegistry = projectRegistry;
+        }
+
+        @Override
+        public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+            // This was a behaviour before 8.9, where we unified ExecutionEngine in https://github.com/gradle/gradle/pull/29534
+            return Optional.of(NOT_WORTH_CACHING);
         }
 
         @Override

@@ -358,6 +358,22 @@ class PatternSetTest extends AbstractTestForPatternSet {
         !patternSet.intersect().isEmpty()
     }
 
+    def "can handle removal of exclude"() {
+        when:
+        DirectoryScanner.removeDefaultExclude("**/.gitignore")
+        DirectoryScanner.removeDefaultExclude("**/.git")
+        DirectoryScanner.removeDefaultExclude("**/.git/**")
+
+        updateSettingsDefaults()
+
+        then:
+        included file('.gitignore')
+
+        included dir('.git')
+        included file('.git', 'abc')
+        excluded file('foo', '.DS_Store')
+    }
+
     boolean included(FileTreeElement file) {
         patternSet.asSpec.isSatisfiedBy(file)
     }

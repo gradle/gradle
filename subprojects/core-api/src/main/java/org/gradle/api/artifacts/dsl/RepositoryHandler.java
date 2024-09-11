@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -42,7 +43,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * The following parameter are accepted as keys for the map:
      *
-     * <table summary="Shows property keys and associated values">
+     * <table>
+     * <caption>Shows property keys and associated values</caption>
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
@@ -90,6 +92,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return The Gradle Central Plugin Repository
      * @since 4.4
      */
+    @Adding
     ArtifactRepository gradlePluginPortal();
 
     /**
@@ -153,7 +156,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * <p>The following parameter are accepted as keys for the map:
      *
-     * <table summary="Shows property keys and associated values">
+     * <table>
+     * <caption>Shows property keys and associated values</caption>
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
@@ -195,6 +199,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @see #mavenCentral(java.util.Map)
      */
+    @Adding
     MavenArtifactRepository mavenCentral();
 
     /**
@@ -280,6 +285,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 4.0
      */
+    @Adding
     MavenArtifactRepository google();
 
     /**

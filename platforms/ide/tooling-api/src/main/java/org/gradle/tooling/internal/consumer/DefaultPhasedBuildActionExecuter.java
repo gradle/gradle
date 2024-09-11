@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.StreamedValueListener;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.StreamedValueListener;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -84,9 +83,9 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
                 connection.run(phasedBuildAction, operationParameters);
                 return null;
             }
-        }, new ResultHandlerAdapter<Void>(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+        }, new ResultHandlerAdapter<Void>(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
             @Override
-            public String transform(Throwable throwable) {
+            public String getConnectionFailureMessage(Throwable throwable) {
                 return String.format("Could not run phased build action using %s.", connection.getDisplayName());
             }
         })));

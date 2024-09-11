@@ -33,8 +33,9 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
@@ -96,11 +97,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
         @Override
         public void apply(final Object target) {
-            DefaultServiceRegistry services = new DefaultServiceRegistry(scriptServices);
-            services.add(ScriptPluginFactory.class, scriptPluginFactory);
-            services.add(ClassLoaderScope.class, baseScope);
-            services.add(LoggingManagerInternal.class, loggingFactoryManager.create());
-            services.add(ScriptHandler.class, scriptHandler);
+            CloseableServiceRegistry services = ServiceRegistryBuilder.builder()
+                .displayName("script plugin services")
+                .parent(scriptServices)
+                .provider(registration -> {
+                    registration.add(ScriptPluginFactory.class, scriptPluginFactory);
+                    registration.add(ClassLoaderScope.class, baseScope);
+                    registration.add(LoggingManagerInternal.class, loggingFactoryManager.create());
+                    registration.add(ScriptHandler.class, scriptHandler);
+                })
+                .build();
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
@@ -109,21 +115,22 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
             CompileOperation<?> initialOperation = compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, target, baseScope, initialOperation, Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
 
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
             PluginRequests autoAppliedPlugins = autoAppliedPluginHandler.getAutoAppliedPlugins(initialPluginRequests, target);
-            pluginRequestApplicator.applyPlugins(initialPluginRequests, autoAppliedPlugins, scriptHandler, pluginManager, targetScope);
+            PluginRequests allPlugins = initialPluginRequests.mergeWith(autoAppliedPlugins);
+            pluginRequestApplicator.applyPlugins(allPlugins, scriptHandler, pluginManager, targetScope);
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();
 
             CompileOperation<BuildScriptData> operation = compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, target, targetScope, operation, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 BasicScript script = runner.getScript();
                 script.init(scriptTarget, scriptServices);

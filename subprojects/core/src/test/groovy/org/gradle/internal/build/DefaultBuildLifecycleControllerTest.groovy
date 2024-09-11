@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build
 
+
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -64,7 +65,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     DefaultBuildLifecycleController controller() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildListener,
-            buildModelLifecycleListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
+                buildModelLifecycleListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {

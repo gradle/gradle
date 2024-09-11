@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import com.gradle.scan.plugin.BuildScanExtension
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
+import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
@@ -23,6 +24,7 @@ import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
+import gradlebuild.basics.isRetryBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
@@ -55,25 +57,32 @@ val tcBuildTypeName = "tcBuildType"
 // We can not use plugin {} because this is registered by a settings plugin.
 // We do 'findByType' to make this script compile in pre-compiled script compilation.
 // TODO to avoid the above, turn this into a settings plugin
-val buildScan = extensions.findByType<BuildScanExtension>()
-inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
+val buildScan = extensions.findByType<DevelocityConfiguration>()?.buildScan
+inline fun buildScan(configure: BuildScanConfiguration.() -> Unit) {
     buildScan?.apply(configure)
 }
 
 extractCiData()
-
-if (project.testDistributionEnabled) {
-    buildScan?.tag("TEST_DISTRIBUTION")
-}
-
-if (project.predictiveTestSelectionEnabled.orNull == true) {
-    buildScan?.tag("PTS")
-}
-
 extractWatchFsData()
 
-if (logicalBranch.orNull != buildBranch.orNull) {
-    buildScan?.tag("PRE_TESTED_COMMIT")
+buildScan {
+    val testDistributionEnabled = project.testDistributionEnabled
+    val predictiveTestSelectionEnabled = project.predictiveTestSelectionEnabled
+    val logicalBranch = project.logicalBranch
+    val buildBranch = project.buildBranch
+
+    // TODO(https://github.com/gradle/gradle/issues/25474) background would be better, but it makes branch an input to CC because of the bug.
+    buildFinished {
+        if (testDistributionEnabled) {
+            tag("TEST_DISTRIBUTION")
+        }
+        if (predictiveTestSelectionEnabled.getOrElse(false)) {
+            tag("PTS")
+        }
+        if (logicalBranch.orNull != buildBranch.orNull) {
+            tag("PRE_TESTED_COMMIT")
+        }
+    }
 }
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
@@ -113,7 +122,7 @@ fun Project.extractCiData() {
             }
             buildFinished {
                 println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
-                if (failure == null) {
+                if (failures.isEmpty() && isRetryBuild) {
                     println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
                 }
             }
@@ -121,7 +130,7 @@ fun Project.extractCiData() {
     }
 }
 
-fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
+fun BuildScanConfiguration.whenEnvIsSet(envName: String, action: BuildScanConfiguration.(envValue: String) -> Unit) {
     val envValue: String? = environmentVariable(envName).orNull
     if (!envValue.isNullOrEmpty()) {
         action(envValue)
@@ -135,13 +144,11 @@ fun Project.extractWatchFsData() {
     }
 }
 
-open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanConfiguration) : BuildOperationListener {
 
-    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
-    }
+    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) = Unit
 
-    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) {
-    }
+    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) = Unit
 
     override fun finished(buildOperation: BuildOperationDescriptor, finishEvent: OperationFinishEvent) {
         when (val result = finishEvent.result) {
@@ -163,7 +170,7 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
     }
 }
 
-fun BuildScanExtension.setCompileAllScanSearch(commitId: String) {
+fun BuildScanConfiguration.setCompileAllScanSearch(commitId: String) {
     if (!isTravis) {
         link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
     }

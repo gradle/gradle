@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDslPluginsExtensions
 
 plugins {
@@ -28,6 +28,4 @@ val generateSources by tasks.registering(GenerateKotlinDslPluginsExtensions::cla
     kotlinDslPluginsVersion = project.version
 }
 
-sourceSets.main {
-    kotlin.srcDir(files(generatedSourcesDir).builtBy(generateSources))
-}
+kotlinMainSourceSet.srcDir(files(generatedSourcesDir).builtBy(generateSources))

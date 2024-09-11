@@ -29,8 +29,8 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -43,7 +43,7 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
 
     public DefaultBuildCacheControllerFactory(
         StartParameter startParameter,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter buildOperationProgressEmitter,
         OriginMetadataFactory originMetadataFactory,
         StringInterner stringInterner,
@@ -52,7 +52,7 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
     ) {
         super(
             startParameter,
-            buildOperationExecutor,
+            buildOperationRunner,
             originMetadataFactory,
             stringInterner
         );
@@ -74,15 +74,13 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         );
 
         boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-        boolean emitDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         return new DefaultBuildCacheController(
             config,
-            buildOperationExecutor,
+            buildOperationRunner,
             buildOperationProgressEmitter,
-            temporaryFileProvider,
+            temporaryFileProvider::createTemporaryFile,
             logStackTraces,
-            emitDebugLogging,
             !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
             packer,
             originMetadataFactory,

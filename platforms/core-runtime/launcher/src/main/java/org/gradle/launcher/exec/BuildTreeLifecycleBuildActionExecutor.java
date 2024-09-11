@@ -39,7 +39,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import java.util.function.Supplier;
 
 /**
- * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
+ * A {@link BuildActionExecutor} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
 public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
 

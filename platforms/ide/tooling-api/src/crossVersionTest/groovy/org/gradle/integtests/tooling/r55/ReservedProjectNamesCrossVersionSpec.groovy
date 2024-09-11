@@ -18,14 +18,12 @@ package org.gradle.integtests.tooling.r55
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
 import spock.lang.TempDir
 
 @TargetGradleVersion('>=5.5')
-@ToolingApiVersion(">=5.5")
 class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
 
     @TempDir
@@ -139,10 +137,8 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
         ])
 
         when:
-        def eclipseModels = withConnection { con ->
-            def builder = con.action(new SupplyRuntimeAndLoadCompositeEclipseModels(workspace))
-            collectOutputs(builder)
-            builder.run()
+        def eclipseModels = withConnection { connection ->
+            connection.action(new SupplyRuntimeAndLoadCompositeEclipseModels(workspace)).run()
         }
 
         then:

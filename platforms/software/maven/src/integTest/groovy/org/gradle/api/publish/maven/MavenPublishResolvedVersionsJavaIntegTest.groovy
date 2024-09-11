@@ -546,6 +546,61 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28225")
+    def "maps version of dependency with artifact"() {
+        given:
+        mavenRepo.module("org", "foo", "2.1").artifact(classifier: "cls").publish()
+
+        settingsFile << "rootProject.name = 'producer'"
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            ${mavenTestRepository()}
+
+            group = "org.example"
+            version = "1.0"
+
+            dependencies {
+                implementation "org:foo:2.+:cls"
+            }
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            usage('java-api') {
+                                fromResolutionOf('runtimeClasspath')
+                            }
+                            usage('java-runtime') {
+                                fromResolutionResult()
+                            }
+                        }
+                    }
+                }
+                ${mavenTestRepository()}
+            }
+        """
+
+        when:
+        succeeds("publish")
+
+        then:
+        def pom = mavenRepo.module("org.example", "producer", "1.0").parsedPom
+
+        def dependencies = pom.scopes.runtime.dependencies.values()
+        dependencies.size() == 1
+
+        def dependency = dependencies[0]
+        dependency.groupId == "org"
+        dependency.artifactId == "foo"
+        dependency.version == "2.1"
+        dependency.classifier == "cls"
+    }
+
 }
 
 class MavenPublishJavaLibraryRuntimeLastResolvedVersionsJavaIntegTest extends MavenPublishResolvedVersionsJavaFixture {

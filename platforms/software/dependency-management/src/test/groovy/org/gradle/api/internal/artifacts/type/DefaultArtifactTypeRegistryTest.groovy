@@ -117,8 +117,9 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
-    def "does not apply mapping when multiple artifacts with different types"() {
+    def "adds only default attributes when multiple artifacts with different types"() {
         def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["custom-default": "123"])
         def artifact1 = Stub(ComponentArtifactMetadata)
         def artifactName1 = Stub(IvyArtifactName)
         def artifact2 = Stub(ComponentArtifactMetadata)
@@ -134,9 +135,10 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
         registry.create().create("zip").attributes.attribute(Attribute.of("custom", String), "234")
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact1, artifact2]) == attrs
+        registry.mapAttributesFor(attrs, [artifact1, artifact2]) == attrsPlusFormat
     }
 
     def "maps only artifactType attribute for arbitrary files when no extensions are registered"() {
@@ -189,6 +191,101 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         file("foo")     | ""
         dir("foo")      | ArtifactTypeDefinition.DIRECTORY_TYPE
         dir("foo.jar")  | ArtifactTypeDefinition.DIRECTORY_TYPE
+    }
+
+    def "applies default attributes even when no artifact types registered"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["custom-default": "123"])
+
+        when:
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
+
+        then:
+        registry.mapAttributesFor(attrs, []) == attrsPlusFormat
+    }
+
+    def "applies mapping and default attributes to matching artifact type"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": "jar", "custom": "123", "custom-default": "123"])
+        def artifact = Stub(ComponentArtifactMetadata)
+        def artifactName = Stub(IvyArtifactName)
+
+        given:
+        artifact.name >> artifactName
+        artifactName.extension >> "jar"
+        artifactName.type >> "jar"
+
+        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
+
+        expect:
+        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+    }
+
+    def "applies default attributes when no attributes defined for matching type"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": "jar", "custom-default": "123"])
+        def artifact = Stub(ComponentArtifactMetadata)
+        def artifactName = Stub(IvyArtifactName)
+
+        given:
+        artifact.name >> artifactName
+        artifactName.extension >> "jar"
+        artifactName.type >> "jar"
+
+        registry.create().create("jar")
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
+
+        expect:
+        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+    }
+
+    def "maps default attributes for arbitrary files"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": type, "custom-default": "123"])
+
+        given:
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
+
+        expect:
+        registry.mapAttributesFor(artifactFile) == attrsPlusFormat
+
+        where:
+        artifactFile    | type
+        file("foo.jar") | ArtifactTypeDefinition.JAR_TYPE
+        file("foo.zip") | ArtifactTypeDefinition.ZIP_TYPE
+        file("foo.bar") | "bar"
+        dir("dir")      | ArtifactTypeDefinition.DIRECTORY_TYPE
+    }
+
+    def "registered attributes win over default attributes for artifacts"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": "jar", "custom": "123"])
+        def artifact = Stub(ComponentArtifactMetadata)
+        def artifactName = Stub(IvyArtifactName)
+
+        given:
+        artifact.name >> artifactName
+        artifactName.extension >> "jar"
+        artifactName.type >> "jar"
+
+        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom", String), "321")
+
+        expect:
+        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+    }
+
+    def "registered attributes win over default attributes for file"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": ArtifactTypeDefinition.JAR_TYPE, "custom": "123"])
+
+        given:
+        registry.create().create(ArtifactTypeDefinition.JAR_TYPE).attributes.attribute(Attribute.of("custom", String), "123")
+        registry.defaultArtifactAttributes.attribute(Attribute.of("custom", String), "321")
+
+        expect:
+        registry.mapAttributesFor(file("foo.jar")) == attrsPlusFormat
     }
 
     File file(String name) {

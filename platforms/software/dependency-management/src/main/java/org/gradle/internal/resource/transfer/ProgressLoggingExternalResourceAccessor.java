@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -33,23 +33,23 @@ import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Nullable
     @Override
     public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
-        return buildOperationExecutor.call(new DownloadOperation<>(location, revalidate, action));
+        return buildOperationRunner.call(new DownloadOperation<>(location, revalidate, action));
     }
 
     @Override
     @Nullable
     public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
-        return buildOperationExecutor.call(new MetadataOperation(location, revalidate));
+        return buildOperationRunner.call(new MetadataOperation(location, revalidate));
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails(ExternalResourceName resourceName) {

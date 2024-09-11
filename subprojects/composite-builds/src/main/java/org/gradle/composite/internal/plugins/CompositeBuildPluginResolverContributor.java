@@ -19,7 +19,6 @@ package org.gradle.composite.internal.plugins;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -75,13 +74,15 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         }
 
         @Override
-        public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
             PluginResult resolutionResult = results.computeIfAbsent(pluginRequest.getId(), this::doResolve);
             if (resolutionResult == PluginResult.NOT_FOUND_IN_ANY_BUILD) {
-                result.notFound(SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
+                return PluginResolutionResult.notFound(SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
             } else if (resolutionResult instanceof ResolvedPlugin) {
-                result.found(SOURCE_DESCRIPTION, ((ResolvedPlugin) resolutionResult).resolution);
-            } // else, no included builds
+                return PluginResolutionResult.found(((ResolvedPlugin) resolutionResult).resolution);
+            }
+
+            return PluginResolutionResult.notFound(SOURCE_DESCRIPTION, "No included builds contain this plugin");
         }
 
         private PluginResult doResolve(PluginId pluginId) {

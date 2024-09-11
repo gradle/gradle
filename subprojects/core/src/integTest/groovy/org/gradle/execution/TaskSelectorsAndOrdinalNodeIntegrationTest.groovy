@@ -17,6 +17,7 @@
 package org.gradle.execution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -28,6 +29,7 @@ class TaskSelectorsAndOrdinalNodeIntegrationTest extends AbstractIntegrationSpec
      */
     @Timeout(60)
     @Issue("https://github.com/gradle/gradle/issues/20741")
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "build is not exponentially slower when many tasks are requested"() {
         createDirs((1..30).collect({ "sub" + it }) as String[])
         settingsFile << """

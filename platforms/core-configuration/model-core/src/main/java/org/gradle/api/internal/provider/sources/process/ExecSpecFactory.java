@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ExecSpec;
@@ -28,7 +28,7 @@ import org.gradle.process.JavaExecSpec;
  *
  * These instances will not be exposed to the user code directly, so there is no need of decoration.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ExecSpecFactory {
     ExecSpec newExecSpec();
 

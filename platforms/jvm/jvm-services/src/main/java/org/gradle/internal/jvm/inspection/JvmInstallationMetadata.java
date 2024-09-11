@@ -17,6 +17,7 @@
 package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
 
@@ -24,14 +25,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 public interface JvmInstallationMetadata {
-
-    enum JavaInstallationCapability {
-        JAVA_COMPILER, J9_VIRTUAL_MACHINE
-    }
 
     static DefaultJvmInstallationMetadata from(
         File javaHome,
@@ -63,8 +62,13 @@ public interface JvmInstallationMetadata {
     JavaVersion getLanguageVersion();
 
     /**
+     * The major Java version parsed from {@link #getJavaVersion()}.
+     */
+    int getJavaMajorVersion();
+
+    /**
      * A wrapper around the raw value of the toolchain vendor.
-     * <p>
+     *
      * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VENDOR
      */
     JvmVendor getVendor();
@@ -106,7 +110,7 @@ public interface JvmInstallationMetadata {
 
     String getDisplayName();
 
-    boolean hasCapability(JavaInstallationCapability capability);
+    Set<JavaInstallationCapability> getCapabilities();
 
     String getErrorMessage();
 
@@ -118,6 +122,7 @@ public interface JvmInstallationMetadata {
 
         private final Path javaHome;
         private final JavaVersion languageVersion;
+        private final int javaMajorVersion;
         private final String javaVersion;
         private final String javaVendor;
         private final String runtimeName;
@@ -142,6 +147,7 @@ public interface JvmInstallationMetadata {
         ) {
             this.javaHome = javaHome.toPath();
             this.languageVersion = JavaVersion.toVersion(javaVersion);
+            this.javaMajorVersion = JavaVersionParser.parseMajorVersion(javaVersion);
             this.javaVersion = javaVersion;
             this.javaVendor = javaVendor;
             this.runtimeName = runtimeName;
@@ -160,6 +166,11 @@ public interface JvmInstallationMetadata {
         @Override
         public JavaVersion getLanguageVersion() {
             return languageVersion;
+        }
+
+        @Override
+        public int getJavaMajorVersion() {
+            return javaMajorVersion;
         }
 
         @Override
@@ -220,8 +231,8 @@ public interface JvmInstallationMetadata {
         }
 
         private String determineInstallationType(String vendor) {
-            if (hasCapability(JavaInstallationCapability.JAVA_COMPILER)) {
-                if (!vendor.toLowerCase().contains("jdk")) {
+            if (getCapabilities().contains(JavaInstallationCapability.JAVA_COMPILER)) {
+                if (!vendor.toLowerCase(Locale.ROOT).contains("jdk")) {
                     return " JDK";
                 }
                 return "";
@@ -230,21 +241,27 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public boolean hasCapability(JavaInstallationCapability capability) {
-            return capabilities.get().contains(capability);
+        public Set<JavaInstallationCapability> getCapabilities() {
+            return capabilities.get();
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {
-            final Set<JavaInstallationCapability> capabilities = new HashSet<>(2);
-            final File javaCompiler = new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName("javac"));
-            if (javaCompiler.exists()) {
+            final Set<JavaInstallationCapability> capabilities = EnumSet.noneOf(JavaInstallationCapability.class);
+            if (getToolByExecutable("javac").exists()) {
                 capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
+            }
+            if (getToolByExecutable("javadoc").exists()) {
+                capabilities.add(JavaInstallationCapability.JAVADOC_TOOL);
             }
             boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             }
             return capabilities;
+        }
+
+        private File getToolByExecutable(String name) {
+            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
         }
 
         @Override
@@ -302,6 +319,11 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
+        public int getJavaMajorVersion() {
+            throw unsupportedOperation();
+        }
+
+        @Override
         public JvmVendor getVendor() {
             throw unsupportedOperation();
         }
@@ -347,8 +369,8 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public boolean hasCapability(JavaInstallationCapability capability) {
-            return false;
+        public Set<JavaInstallationCapability> getCapabilities() {
+            return Collections.emptySet();
         }
 
         private UnsupportedOperationException unsupportedOperation() {

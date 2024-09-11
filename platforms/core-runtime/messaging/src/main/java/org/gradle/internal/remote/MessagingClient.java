@@ -15,9 +15,13 @@
  */
 package org.gradle.internal.remote;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A {@code MessagingClient} maintains a single bi-directional uni-cast object connection with some peer.
  */
+@ServiceScope(Scope.Global.class)
 public interface MessagingClient {
     /**
      * Creates a connection to the given address. Blocks until the connection has been established.

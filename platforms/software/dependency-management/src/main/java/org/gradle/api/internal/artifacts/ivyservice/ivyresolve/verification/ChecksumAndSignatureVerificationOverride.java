@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
@@ -58,6 +59,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -65,7 +67,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
     private final DependencyVerifier verifier;
-    private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
     private final BuildOperationExecutor buildOperationExecutor;
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
@@ -74,8 +75,12 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
     private final AtomicBoolean closed = new AtomicBoolean();
-    private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
     private final DependencyVerificationReportWriter reportWriter;
+
+    // Must hold lock on `failuresLock` to access `failures` or `hasFatalFailure`
+    private final Object failuresLock = new Object();
+    private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
+    private boolean hasFatalFailure = false;
 
     public ChecksumAndSignatureVerificationOverride(
         BuildOperationExecutor buildOperationExecutor,
@@ -122,7 +127,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     }
 
     private void verifyConcurrently() {
-        hasFatalFailure.set(false);
         synchronized (verificationEvents) {
             if (verificationEvents.isEmpty()) {
                 return;
@@ -141,11 +145,11 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                         @Override
                         public void run(BuildOperationContext context) {
                             verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, observed(ve.mainFile), observed(ve.signatureFile.create()), f -> {
-                                synchronized (failures) {
+                                synchronized (failuresLock) {
                                     failures.put(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName));
-                                }
-                                if (f.isFatal()) {
-                                    hasFatalFailure.set(true);
+                                    if (f.isFatal()) {
+                                        hasFatalFailure = true;
+                                    }
                                 }
                             });
                         }
@@ -170,20 +174,22 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     @Override
     public void artifactsAccessed(String displayName) {
         verifyConcurrently();
-        synchronized (failures) {
-            if (hasFatalFailure.get() && !failures.isEmpty()) {
+        synchronized (failuresLock) {
+            if (hasFatalFailure) {
                 // There are fatal failures, but not necessarily on all artifacts so we first filter out
                 // the artifacts which only have not fatal errors
-                failures.asMap().entrySet().removeIf(entry -> {
-                    Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
-                    return value.stream().noneMatch(wrapper -> wrapper.getFailure().isFatal());
-                });
-                VerificationReport report = reportWriter.generateReport(displayName, failures, verifier.getConfiguration().isUseKeyServers());
+                Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> filtered =
+                    failures.asMap().entrySet().stream().filter(entry -> {
+                        Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
+                        return value.stream().anyMatch(wrapper -> wrapper.getFailure().isFatal());
+                    }).collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+                VerificationReport report = reportWriter.generateReport(displayName, filtered, verifier.getConfiguration().isUseKeyServers());
                 String errorMessage = buildConsoleErrorMessage(report);
                 if (verificationMode == DependencyVerificationMode.LENIENT) {
                     LOGGER.error(errorMessage);
+                    // Clear failures to avoid printing this error multiple times.
                     failures.clear();
-                    hasFatalFailure.set(false);
+                    hasFatalFailure = false;
                 } else {
                     throw new DependencyVerificationException(errorMessage);
                 }

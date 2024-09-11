@@ -39,7 +39,7 @@ import java.time.temporal.ChronoUnit
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE
 
-class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
+class BuildCacheStepTest extends StepSpec<TestCachingContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
 
     def beforeExecutionState = Stub(BeforeExecutionState)
@@ -53,7 +53,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
+    def step = new BuildCacheStep<TestCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {

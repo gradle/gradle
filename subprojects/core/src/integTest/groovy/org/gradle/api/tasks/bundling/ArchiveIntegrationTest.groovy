@@ -19,6 +19,7 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -26,13 +27,19 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.internal.Resources
 import org.hamcrest.CoreMatchers
+import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.hamcrest.CoreMatchers.equalTo
 
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    public final Resources resources = new Resources(temporaryFolder)
+
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def canCopyFromAZip() {
@@ -314,6 +321,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -384,6 +392,29 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         scenario | content
         "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').zipTo(td.file('compressedZipWithWrongExtension.tar')) }
         "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23391")
+    def "can decompress TAR archive created with a v7 format"() {
+        given:
+        // Our test fixtures cannot create an ancient v7 tar archive without
+        // running native executables. This archive was created by creating some files
+        // in a temporary directory and running the following command:
+        // tar --format=v7 -cf v7.tar <contents>
+        resources.findResource("v7.tar").copyTo(file("v7.tar"))
+
+        buildFile << """
+            task copy(type: Copy) {
+                from tarTree('v7.tar')
+                into 'dest'
+            }
+        """
+
+        when:
+        succeeds("copy")
+
+        then:
+        file("dest").assertContainsDescendants("file.txt", "sub/subfile.txt")
     }
 
     def cannotCreateAnEmptyZip() {

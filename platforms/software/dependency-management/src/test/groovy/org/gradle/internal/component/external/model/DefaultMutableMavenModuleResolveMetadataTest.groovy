@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
@@ -90,7 +89,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         and:
         metadata.sources == new MutableModuleSources()
-        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        metadata.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.snapshotTimestamp == null
         metadata.packaging == "jar"
         !metadata.relocated
@@ -100,7 +99,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable != metadata
         immutable.id == id
         immutable.sources == ImmutableModuleSources.of()
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.snapshotTimestamp == null
         immutable.packaging == "jar"
         !immutable.relocated
@@ -115,7 +114,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy != metadata
         copy.id == id
         copy.sources == new MutableModuleSources()
-        copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        copy.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.snapshotTimestamp == null
         copy.packaging == "jar"
         !copy.relocated
@@ -216,14 +215,14 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         then:
         metadata.id == id
         metadata.sources == new MutableModuleSources()
-        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        metadata.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         metadata.snapshotTimestamp == null
         metadata.packaging == "jar"
         !metadata.relocated
 
         immutable.id == id
         immutable.sources == ImmutableModuleSources.of()
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.snapshotTimestamp == null
         immutable.packaging == "jar"
         !immutable.relocated
@@ -271,7 +270,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
         immutable.id == id
         immutable.sources == ImmutableModuleSources.of()
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.snapshotTimestamp == null
         immutable.packaging == "jar"
         !immutable.relocated

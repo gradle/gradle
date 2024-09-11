@@ -17,17 +17,13 @@
 package org.gradle.kotlin.dsl.provider
 
 import groovy.json.JsonOutput.toJson
-
 import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.internal.classloader.ClassLoaderVisitor
-
 import org.gradle.kotlin.dsl.support.foldHierarchy
-
 import java.net.URL
-
-import java.util.*
+import java.util.ArrayDeque
+import java.util.IdentityHashMap
 
 
 /**

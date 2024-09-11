@@ -36,7 +36,7 @@ import kotlin.reflect.KClass
 @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
 inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
     conventionPluginByName(this, name).let {
-        (it as T?) ?: throw IllegalStateException("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
+        (it as T?) ?: error("Convention '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.java.name}'.")
     }
 
 

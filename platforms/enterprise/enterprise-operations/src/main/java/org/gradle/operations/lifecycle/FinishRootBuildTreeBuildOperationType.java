@@ -23,6 +23,8 @@ import org.gradle.internal.operations.BuildOperationType;
  * <p>
  * {@code buildFinished} hooks and {@code FlowAction}s in the whole build tree run in this operation.
  * The start of the operation marks the end of the execution phase of the root build.
+ *
+ * @since 8.3
  */
 public final class FinishRootBuildTreeBuildOperationType implements BuildOperationType<FinishRootBuildTreeBuildOperationType.Details, FinishRootBuildTreeBuildOperationType.Result> {
 

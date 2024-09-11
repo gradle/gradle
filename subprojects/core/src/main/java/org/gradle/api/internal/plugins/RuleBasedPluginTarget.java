@@ -34,11 +34,11 @@ public class RuleBasedPluginTarget implements PluginTarget {
     private final ModelRuleExtractor ruleInspector;
     private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginTarget(ProjectInternal target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
+    public RuleBasedPluginTarget(ProjectInternal target, PluginTarget imperativeTarget, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
-        this.imperativeTarget = new ImperativeOnlyPluginTarget<ProjectInternal>(target);
+        this.imperativeTarget = imperativeTarget;
     }
 
     @Override

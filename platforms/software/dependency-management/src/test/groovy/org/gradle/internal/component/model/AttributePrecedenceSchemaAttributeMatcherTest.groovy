@@ -21,8 +21,8 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -98,13 +98,13 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def candidate6 = candidate("compatible", "compatible", "compatible")
         def requested = requested("requested", "requested","requested")
         expect:
-        schema.matcher().matches([candidate1], requested, explanationBuilder) == [candidate1]
-        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate1]
-        schema.matcher().matches([candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate2]
-        schema.matcher().matches([candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate3]
-        schema.matcher().matches([candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate4]
-        schema.matcher().matches([candidate5, candidate6], requested, explanationBuilder) == [candidate5]
-        schema.matcher().matches([candidate6], requested, explanationBuilder) == [candidate6]
+        schema.matcher().matchMultipleCandidates([candidate1], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matchMultipleCandidates([candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate2]
+        schema.matcher().matchMultipleCandidates([candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate3]
+        schema.matcher().matchMultipleCandidates([candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate4]
+        schema.matcher().matchMultipleCandidates([candidate5, candidate6], requested, explanationBuilder) == [candidate5]
+        schema.matcher().matchMultipleCandidates([candidate6], requested, explanationBuilder) == [candidate6]
     }
 
     def "disambiguates extra attributes in precedence order"() {
@@ -115,15 +115,15 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def requested = AttributeTestUtil.attributes("unknown": "unknown")
 
         expect:
-        schema.matcher().matches([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
-        schema.matcher().matches([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate2]
-        schema.matcher().matches([candidate3, candidate4], requested, explanationBuilder) == [candidate3]
+        schema.matcher().matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
+        schema.matcher().matchMultipleCandidates([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate2]
+        schema.matcher().matchMultipleCandidates([candidate3, candidate4], requested, explanationBuilder) == [candidate3]
     }
 
-    private static AttributeContainerInternal requested(String highestValue, String middleValue, String lowestValue) {
+    private static ImmutableAttributes requested(String highestValue, String middleValue, String lowestValue) {
         return candidate(highestValue, middleValue, lowestValue)
     }
-    private static AttributeContainerInternal candidate(String highestValue, String middleValue, String lowestValue) {
+    private static ImmutableAttributes candidate(String highestValue, String middleValue, String lowestValue) {
         return AttributeTestUtil.attributes([highest: highestValue, middle: middleValue, lowest: lowestValue])
     }
 }

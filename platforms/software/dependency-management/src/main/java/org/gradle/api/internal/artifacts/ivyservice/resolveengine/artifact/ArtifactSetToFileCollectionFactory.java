@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -24,13 +26,12 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -40,7 +41,7 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class ArtifactSetToFileCollectionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final TaskDependencyFactory taskDependencyFactory;
@@ -174,7 +175,7 @@ public class ArtifactSetToFileCollectionFactory {
         return collectingVisitor.getArtifacts();
     }
 
-    private static class NameBackedResolutionHost implements ResolutionHost {
+    private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
         private final String displayName;
 
         public NameBackedResolutionHost(String displayName) {
@@ -187,16 +188,21 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public DisplayName displayName(String type) {
-            return Describables.of(getDisplayName(), type);
+        public String getCapitalizedDisplayName() {
+            return StringUtils.capitalize(displayName);
         }
 
         @Override
-        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+        public DisplayName displayName() {
+            return this;
+        }
+
+        @Override
+        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getDisplayName(), failures));
+                return Optional.of(new TypedResolveException(type, displayName, failures));
             }
         }
     }

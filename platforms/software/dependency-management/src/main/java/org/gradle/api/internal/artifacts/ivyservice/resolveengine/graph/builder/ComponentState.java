@@ -135,7 +135,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    ModuleResolveState getModule() {
+    public ModuleResolveState getModule() {
         return module;
     }
 
@@ -185,8 +185,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      * Restarts all incoming edges for this component, queuing them up for processing.
      */
     public void restartIncomingEdges(ComponentState selected) {
-        for (NodeState configuration : nodes) {
-            configuration.restart(selected);
+        for (NodeState node : nodes) {
+            node.restart(selected);
         }
     }
 
@@ -258,7 +258,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.metadataResolveFailure = null;
     }
 
-    public void addConfiguration(NodeState node) {
+    public void addNode(NodeState node) {
         nodes.add(node);
     }
 
@@ -318,8 +318,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public List<ComponentState> getDependents() {
         List<ComponentState> incoming = Lists.newArrayListWithCapacity(nodes.size());
-        for (NodeState configuration : nodes) {
-            for (EdgeState dependencyEdge : configuration.getIncomingEdges()) {
+        for (NodeState node : nodes) {
+            for (EdgeState dependencyEdge : node.getIncomingEdges()) {
                 incoming.add(dependencyEdge.getFrom().getComponent());
             }
         }

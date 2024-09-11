@@ -23,7 +23,7 @@ class CacheLayoutTest extends Specification {
 
     def "use root layout"() {
         when:
-        CacheLayout cacheLayout = CacheLayout.ROOT
+        CacheLayout cacheLayout = CacheLayout.MODULES
 
         then:
         cacheLayout.name == 'modules'
@@ -74,17 +74,4 @@ class CacheLayoutTest extends Specification {
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("7.7")).get() == CacheVersion.parse("2.101")
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("8.0")).get() == CacheVersion.parse("2.100")
     }
-
-    def "use transforms layout"() {
-        when:
-        CacheLayout cacheLayout = CacheLayout.TRANSFORMS
-
-        then:
-        cacheLayout.name == 'transforms'
-        cacheLayout.key == 'transforms-4'
-        cacheLayout.version == CacheVersion.parse("4")
-        cacheLayout.version.toString() == '4'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-4')
-    }
-
 }

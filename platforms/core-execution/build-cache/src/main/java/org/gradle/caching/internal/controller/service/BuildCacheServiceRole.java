@@ -18,6 +18,8 @@ package org.gradle.caching.internal.controller.service;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.util.Locale;
+
 @UsedByScanPlugin("values are expected (type is not linked), see BuildCacheStoreBuildOperationType and friends")
 public enum BuildCacheServiceRole {
     LOCAL,
@@ -26,7 +28,7 @@ public enum BuildCacheServiceRole {
     private final String displayName;
 
     BuildCacheServiceRole() {
-        this.displayName = name().toLowerCase();
+        this.displayName = name().toLowerCase(Locale.ROOT);
     }
 
     public String getDisplayName() {

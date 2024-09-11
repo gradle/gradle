@@ -34,7 +34,9 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
                 void apply(Project project) {
                     project.tasks.register("show") {
-                        println "installations:" + registry.listInstallations()
+                        def installations = registry.listInstallations()
+                        assert installations.size() == 1
+                        assert installations[0].location == org.gradle.internal.jvm.Jvm.current().javaHome
                     }
                 }
             }
@@ -42,14 +44,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: ShowPlugin
         """
 
-        when:
-        result = executer
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            .withTasks("show")
-            .run()
-
-        then:
-        outputContains("installations:[]")
+        expect:
+        succeeds("show", "-Porg.gradle.java.installations.auto-detect=false")
     }
 
     @Requires(IntegTestPreconditions.MoreThanOneJavaHomeAvailable)
@@ -76,28 +72,28 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-            .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
-            .withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + secondJavaHome)
+            .withEnvironmentVars([JDK1: new File("/unknown/env").absolutePath, JDK2: firstJavaHome])
+            .withArgument("-Porg.gradle.java.installations.paths=${new File("/unknown/path").absolutePath}," + secondJavaHome)
             .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
             .withArgument("--info")
             .withTasks("show")
             .run()
         then:
-        outputContains("${File.separator}unknown${File.separator}path' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
-        outputContains("${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
+        outputContains("Directory '${new File("/unknown/path").absolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("Directory '${new File("/unknown/env").absolutePath}' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
 
         when:
         result = executer
-            .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
-            .withArgument("-Porg.gradle.java.installations.paths=/other/path," + secondJavaHome)
+            .withEnvironmentVars([JDK1: new File("/unknown/env").absolutePath, JDK2: firstJavaHome])
+            .withArgument("-Porg.gradle.java.installations.paths=${new File("/other/path").absolutePath}," + secondJavaHome)
             .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
             .withTasks("show")
             .run()
         then:
-        outputContains("${File.separator}other${File.separator}path' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
-        outputContains("${File.separator}unknown${File.separator}env' (environment variable 'JDK1') used for java installations does not exist")
+        outputContains("Directory '${new File("/other/path").absolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist")
+        outputContains("Directory '${new File("/unknown/env").absolutePath}' (environment variable 'JDK1') used for java installations does not exist")
         outputContains(firstJavaHome)
         outputContains(secondJavaHome)
     }

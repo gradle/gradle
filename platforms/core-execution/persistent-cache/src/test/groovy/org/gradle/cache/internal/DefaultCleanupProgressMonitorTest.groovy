@@ -16,36 +16,36 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.internal.logging.progress.ProgressLogger
+
+import org.gradle.internal.operations.BuildOperationContext
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultCleanupProgressMonitorTest extends Specification {
 
-    def progressLogger = Mock(ProgressLogger) {
-        getDescription() >> "Progress"
+    def context = Mock(BuildOperationContext) {
     }
 
-    @Subject def progressMonitor = new DefaultCleanupProgressMonitor(progressLogger)
+    @Subject def progressMonitor = new DefaultCleanupProgressMonitor(context)
 
     def "reports deleted and skipped"() {
         when:
         progressMonitor.incrementDeleted()
 
         then:
-        1 * progressLogger.progress("Progress: 1 entry deleted")
+        1 * context.progress("1 entry deleted")
 
         when:
         progressMonitor.incrementSkipped()
 
         then:
-        1 * progressLogger.progress("Progress: 1 entry deleted, 1 skipped")
+        1 * context.progress("1 entry deleted, 1 skipped")
 
         when:
         progressMonitor.incrementDeleted()
 
         then:
-        1 * progressLogger.progress("Progress: 2 entries deleted, 1 skipped")
+        1 * context.progress("2 entries deleted, 1 skipped")
     }
 
     def "always reports deleted, even if all entries are skipped"() {
@@ -53,6 +53,6 @@ class DefaultCleanupProgressMonitorTest extends Specification {
         progressMonitor.incrementSkipped()
 
         then:
-        1 * progressLogger.progress("Progress: 0 entries deleted, 1 skipped")
+        1 * context.progress("0 entries deleted, 1 skipped")
     }
 }

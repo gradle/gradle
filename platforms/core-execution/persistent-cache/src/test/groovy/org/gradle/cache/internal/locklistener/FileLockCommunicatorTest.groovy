@@ -25,7 +25,17 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def addressFactory = new InetAddressFactory()
-    def communicator = new FileLockCommunicator(addressFactory)
+    def communicator = new FileLockCommunicator(new InetAddressProvider() {
+        @Override
+        InetAddress getWildcardBindingAddress() {
+            return addressFactory.wildcardBindingAddress
+        }
+
+        @Override
+        Iterable<InetAddress> getCommunicationAddresses() {
+            return addressFactory.communicationAddresses
+        }
+    })
 
     def cleanup() {
         communicator.stop()

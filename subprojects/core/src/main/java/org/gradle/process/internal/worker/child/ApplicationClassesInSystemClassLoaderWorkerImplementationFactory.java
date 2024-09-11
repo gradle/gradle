@@ -149,8 +149,15 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
             }
 
             WorkerConfig config = new WorkerConfig(
-                logLevel, publishProcessInfo, gradleUserHomeDir.getAbsolutePath(),
-                (MultiChoiceAddress) serverAddress, workerId, displayName, processBuilder.getWorker());
+                logLevel,
+                publishProcessInfo,
+                gradleUserHomeDir.getAbsolutePath(),
+                (MultiChoiceAddress) serverAddress,
+                workerId,
+                displayName,
+                processBuilder.getWorker(),
+                processBuilder.getNativeServicesMode()
+            );
 
             // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker
             OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);

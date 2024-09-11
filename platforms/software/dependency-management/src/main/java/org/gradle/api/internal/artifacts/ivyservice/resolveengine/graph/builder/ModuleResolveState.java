@@ -57,7 +57,7 @@ import java.util.Set;
 /**
  * Resolution state for a given module.
  */
-class ModuleResolveState implements CandidateModule {
+public class ModuleResolveState implements CandidateModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
     private static final int MAX_SELECTION_CHANGE = 1000;
 
@@ -301,12 +301,9 @@ class ModuleResolveState implements CandidateModule {
 
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         assert id.getModule().equals(this.id);
-        ComponentState moduleRevision = versions.get(id);
-        if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver);
-            versions.put(id, moduleRevision);
-        }
-        return moduleRevision;
+        return versions.computeIfAbsent(id, k ->
+            new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
+        );
     }
 
     void addSelector(SelectorState selector, boolean deferSelection) {

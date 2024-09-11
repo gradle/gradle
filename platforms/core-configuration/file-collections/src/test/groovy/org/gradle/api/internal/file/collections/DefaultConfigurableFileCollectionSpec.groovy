@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.file.collections
 
-import org.gradle.api.Action
+
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileCollectionConfigurer
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -31,6 +30,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
+import org.spockframework.lang.Wildcard
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
@@ -49,7 +49,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     AbstractFileCollection containing(File... files) {
         def resolver = Stub(FileResolver)
         _ * resolver.resolve(_) >> { File f -> f }
-        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
+            return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
     }
 
     def "resolves specified files using file resolver"() {
@@ -337,6 +337,22 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files.empty
     }
 
+    def "can append contents to convention-based collection using plus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.convention("src1")
+        collection.convention(collection + src)
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve("src1") >> file1
+        files as List == [file1, file2]
+    }
+
     def "can append contents to empty collection using plus operator"() {
         given:
         def file1 = new File("1")
@@ -367,6 +383,23 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files as List == [file1, file2]
     }
 
+    def "can append contents to collection defined via convention using plus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.convention("src1")
+        collection.convention(collection + src)
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src1") >> file1
+        files as List == [file1, file2]
+        !collection.explicit
+    }
+
     def "can prepend contents to empty collection using plus operator"() {
         given:
         def file1 = new File("1")
@@ -395,6 +428,55 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         _ * fileResolver.resolve("src2") >> file2
         files as List == [file1, file2]
+    }
+
+    def "can prepend contents to collection defined via convention using plus operator"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1)
+
+        when:
+        collection.convention("src2")
+        collection.convention(src + collection)
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src2") >> file2
+        files as List == [file1, file2]
+        !collection.explicit
+    }
+
+    def "can alternate multiple updates to collection convention and explicit values"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def file3 = new File("3")
+        def file4 = new File("4")
+        def file5 = new File("5")
+        def src1 = containing(file1)
+        def src2 = containing(file2)
+        def src3 = containing(file3)
+        def src4 = containing(file4)
+        def src5 = containing(file5)
+
+        when:
+        collection.convention(src1)
+        collection.from = src2
+        collection.convention(src3 + collection)
+        collection.from = collection + src4
+
+        then:
+        collection.files as List == [file2, file4]
+        collection.explicit
+
+        when:
+        collection.unset()
+        collection.convention(collection + src5)
+
+        then:
+        collection.files as List == [file3, file2, file5]
+        !collection.explicit
     }
 
     def "elements provider tracks changes to content"() {
@@ -1721,20 +1803,20 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         copy.files == [new File("a"), new File("b")] as Set<File>
     }
 
-    def "update can modify contents of the collection"() {
+    def "replace can modify contents of the collection"() {
         given:
         def a = new File("a.txt")
         def b = new File("b.md")
         collection.from(containing(a, b))
 
         when:
-        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.replace { it.filter { f -> !f.name.endsWith(".txt") } }
 
         then:
         collection.files == [b] as Set<File>
     }
 
-    def "update is not applied to later collection modifications"() {
+    def "replace is not applied to later collection modifications"() {
         given:
         def a = new File("a.txt")
         def b = new File("b.md")
@@ -1742,14 +1824,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from(containing(a, b))
 
         when:
-        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.replace { it.filter { f -> !f.name.endsWith(".txt") } }
         collection.from(containing(c))
 
         then:
         collection.files == [b, c] as Set<File>
     }
 
-    def "update argument is live"() {
+    def "replace argument is live"() {
         given:
         def a = new File("a.txt")
         def b = new File("b.md")
@@ -1759,43 +1841,43 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def upstream = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host).from(containing(a, b))
         collection.from(upstream)
         when:
-        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.replace { it.filter { f -> !f.name.endsWith(".txt") } }
         upstream.from(containing(c, d))
 
         then:
         collection.files == [b, d] as Set<File>
     }
 
-    def "returning null from update clears collection"() {
+    def "returning null from replace clears collection"() {
         given:
         collection.from(containing(new File("a.txt")))
 
         when:
-        collection.update { null }
+        collection.replace { null }
 
         then:
         collection.isEmpty()
     }
 
-    def "update transformation runs eagerly"() {
+    def "replace transformation runs eagerly"() {
         given:
         Transformer<FileCollection, FileCollection> transform = Mock()
         collection.from(containing(new File("a.txt")))
 
         when:
-        collection.update(transform)
+        collection.replace(transform)
 
         then:
         1 * transform.transform(_)
     }
 
-    def "update transformation result is evaluated lazily"() {
+    def "replace transformation result is evaluated lazily"() {
         given:
         Spec<File> filterSpec = Mock()
         collection.from(containing(new File("a.txt")))
 
         when:
-        collection.update { it.filter(filterSpec) }
+        collection.replace { it.filter(filterSpec) }
 
         then:
         0 * filterSpec._
@@ -1814,7 +1896,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.withActualValue({
             it.from("src1", "src2")
             it.from("src3")
-        } as Action<FileCollectionConfigurer>)
+        })
         then:
         collection.from as List == ["src1", "src2", "src3"]
     }
@@ -1822,8 +1904,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "can incrementally set paths using closure"() {
         when:
         collection.withActualValue {
-            from("src1", "src2")
-            from("src3")
+            it.from("src1", "src2")
+            it.from("src3")
         }
         then:
         collection.from as List == ["src1", "src2", "src3"]
@@ -1833,12 +1915,22 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         when:
         collection.convention("src0")
         collection.withActualValue {
-            from("src1", "src2")
-            from("src3")
+            it.from("src1", "src2")
+            it.from("src3")
         }
         then:
         collection.from as List == ["src0", "src1", "src2", "src3"]
-        !collection.explicit
+        collection.explicit
+    }
+
+    def "can incrementally set paths as convention to the collection using from"() {
+        when:
+        collection.convention("src0")
+        collection.from("src1", "src2")
+        collection.from("src3")
+        then:
+        collection.from as List == ["src0", "src1", "src2", "src3"]
+        collection.explicit
     }
 
     def "can incrementally set explicit value"() {
@@ -1846,8 +1938,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.setFrom("src1")
         collection.convention("unused-src")
         collection.withActualValue {
-            from("src3")
-            from("src4")
+            it.from("src3")
+            it.from("src4")
         }
         then:
         collection.from as List == ["src1", "src3", "src4"]
@@ -1856,9 +1948,18 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def "can unset convention"() {
         given:
         collection.convention("src0")
-        collection.withActualValue {
-            from("src1")
-        }
+        assert !collection.explicit
+
+        expect:
+        collection.setFrom("src1")
+        assert collection.explicit
+
+        when:
+        collection.unset()
+
+        then:
+        assert !collection.explicit
+        collection.from as List == ["src0"]
 
         when:
         collection.unsetConvention()
@@ -1867,52 +1968,82 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from as List == []
     }
 
-    def "conventions are ignored if a value is already explicitly set using #setFrom"() {
+    def "can set convention as explicit value"() {
+        given:
+        collection.convention("src0")
+
+        expect:
+        !collection.explicit
+
         when:
-        collection.setFrom("src3")
-        collection.convention("src1", "src2")
+        collection.setFrom("src1")
+
         then:
-        collection.from as List == ["src3"]
+        collection.from as List == ["src1"]
+
+        when:
+        collection.setToConvention()
+
+        then:
+        assert collection.explicit
+        collection.from as List == ["src0"]
     }
 
-    def "conventions are ignored if a value is already explicitly set using #from"() {
-        when:
-        collection.from("src3")
-        collection.convention("src1", "src2")
-        then:
-        collection.from as List == ["src3"]
-    }
+    def "can set convention as explicit value if unset"() {
+        given:
+        collection.convention("src0")
 
-    def "conventions can be overridden with an explicit value using #setFrom"() {
         when:
-        collection.convention("src1", "src2")
-        collection.setFrom("src3")
-        then:
-        collection.from as List == ["src3"]
-        collection.explicit
-    }
+        collection.setFrom("src1")
 
-    def "conventions can be overridden with an explicit value using #from"() {
-        when:
-        collection.convention("src1", "src2")
-        collection.from("src3")
         then:
-        collection.explicit
-        collection.from as List == ["src3"]
-    }
+        collection.from as List == ["src1"]
 
-    def "conventions are brought back if explicit value is unset"() {
         when:
-        collection.from("src3")
-        collection.convention("src1", "src2")
+        collection.setToConventionIfUnset()
+
         then:
-        collection.from as List == ["src3"]
+        collection.from as List == ["src1"]
 
         when:
         collection.unset()
 
         then:
-        collection.from as List == ["src1", "src2"]
-        !collection.explicit
+        assert !collection.explicit
+
+        when:
+        collection.setToConventionIfUnset()
+
+        then:
+        assert collection.explicit
+        collection.from as List == ["src0"]
+    }
+
+    def "test '#label'"(String label) {
+        given:
+        if (!(convention instanceof Wildcard)) {
+            collection.convention((Iterable) convention)
+        }
+        if (!(explicit instanceof Wildcard)) {
+            collection.setFrom((Iterable) explicit)
+        }
+
+        when:
+        operations.each {operation -> operation.call(collection) }
+
+        then:
+        collection.from.flatten() as List == expected
+
+        where:
+        expected        | explicit      | convention        | label                                         | operations
+        []              | _             | _                 | "no elements by default"                      | { }
+        ["src1"]        | ["src1"]      | _                 | "explicit value when set"                     | { }
+        ["src1"]        | _             | ["src1"]          | "convention used when no explicit value"      | { }
+        ["src3"]        | ["src3"]      | ["src1"]          | "explicit value overrides convention"         | { }
+        ["src1"]        | ["src3"]      | ["src1"]          | "convention used when explicit unset"         | { it.unset() }
+        ["src1", "src2"]| _             | _                 | "from() after convention honors it"           | { it.convention("src1"); it.from("src2") }
+        ["src2"]        | _             | _                 | "from() before convention prevents it"        | { it.from("src2"); it.convention("src1") }
+        ["src1", "src2"]| _             | ["src1"]          | "from() commits convention"                   | { it.from("src2"); it.unsetConvention() }
+        ["src1"]        | _             | ["src1"]          | "from() does not modify convention"           | { it.from("src2"); it.unset() }
     }
 }

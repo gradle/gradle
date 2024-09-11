@@ -19,10 +19,9 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.plugins.DefaultPotentialPluginWithId;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
-import org.gradle.plugin.management.internal.InvalidPluginRequestException;
-import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 // Used for testing the plugins DSL
 public class NoopPluginResolver implements PluginResolver {
@@ -35,10 +34,11 @@ public class NoopPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         if (pluginRequest.getId().equals(NOOP_PLUGIN_ID)) {
-            result.found("noop resolver", new SimplePluginResolution(DefaultPotentialPluginWithId.of(NOOP_PLUGIN_ID, pluginRegistry.inspect(NoopPlugin.class))));
+            return PluginResolutionResult.found(new SimplePluginResolution(DefaultPotentialPluginWithId.of(NOOP_PLUGIN_ID, pluginRegistry.inspect(NoopPlugin.class))));
         }
+        return PluginResolutionResult.notFound();
     }
 
     public static abstract class NoopPlugin implements Plugin<Object> {

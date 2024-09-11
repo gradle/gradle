@@ -18,6 +18,7 @@ package org.gradle.internal;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -26,15 +27,23 @@ import java.util.function.Function;
 /**
  * An object to represent the result of an operation that can potentially fail.
  * The object either holds the result of a successful execution, or an exception encountered during a failed one.
+ * <p>
+ * It is possible for Try to hold null values.
  */
 public abstract class Try<T> {
-
+    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
+    //  We cannot use this syntax until adopting JSpecify with e.g. Jetbrains Annotations, because IDEA wrongly treats all Try usages as having a nullable type, even when
+    //  it is explicitly spelled, e.g.
+    //  Try<String> t = Try.successful("some")
+    //  t.get().length()  // IDEA produces false positive "potential NPE" warning when JB annotations are used.
+    //  Kotlin understands it correctly, though. JSpecify annotations of version 0.3 seem to work well too.
     private Try() {
     }
 
     /**
      * Construct a {@code Try} by executing the given operation.
      * The returned object will either hold the result or the exception thrown during the operation.
+     * If the callable returns null, then the returned Try instance will hold null as its value.
      */
     public static <U> Try<U> ofFailable(Callable<U> failable) {
         try {
@@ -47,8 +56,10 @@ public abstract class Try<T> {
     /**
      * Construct a {@code Try} representing a successful execution.
      * The returned object will hold the given result.
+     * If the result is null, then the returned Try instance will hold null as its value.
      */
     public static <U> Try<U> successful(U result) {
+        // TODO(mlopatkin) see above, <U> should be <U extends @Nullable Object>.
         return new Success<>(result);
     }
 
@@ -195,12 +206,12 @@ public abstract class Try<T> {
 
             Success<?> success = (Success<?>) o;
 
-            return value.equals(success.value);
+            return Objects.equals(value, success.value);
         }
 
         @Override
         public int hashCode() {
-            return value.hashCode();
+            return Objects.hashCode(value);
         }
 
         @Override
@@ -213,7 +224,7 @@ public abstract class Try<T> {
         private final Throwable failure;
 
         public Failure(Throwable failure) {
-            this.failure = failure;
+            this.failure = Objects.requireNonNull(failure, "null failure is not allowed");
         }
 
         @Override

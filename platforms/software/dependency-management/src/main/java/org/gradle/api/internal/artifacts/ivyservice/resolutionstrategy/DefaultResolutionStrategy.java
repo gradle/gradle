@@ -38,13 +38,13 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 import org.gradle.vcs.internal.VcsResolver;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -80,9 +80,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
-    private boolean returnAllVariants = false;
+    private boolean selectableVariantResults = false;
     private boolean keepStateRequiredForGraphResolution = false;
 
+    @Inject
     public DefaultResolutionStrategy(
         DependencySubstitutionRules globalDependencySubstitutionRules,
         VcsResolver vcsResolver,
@@ -357,18 +358,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (dependencyLockingEnabled) {
             return dependencyLockingProvider;
         } else {
-            return NoOpDependencyLockingProvider.getInstance();
+            throw new IllegalStateException("Dependency locking is not enabled");
         }
     }
 
     @Override
     public boolean isDependencyLockingEnabled() {
         return dependencyLockingEnabled;
-    }
-
-    @Override
-    public void confirmUnlockedConfigurationResolved(String configurationName) {
-        dependencyLockingProvider.confirmConfigurationNotLocked(configurationName);
     }
 
     @Override
@@ -404,14 +400,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
+    public void setIncludeAllSelectableVariantResults(boolean selectableVariantResults) {
         mutationValidator.validateMutation(STRATEGY);
-        this.returnAllVariants = returnAllVariants;
+        this.selectableVariantResults = selectableVariantResults;
     }
 
     @Override
-    public boolean getReturnAllVariants() {
-        return this.returnAllVariants;
+    public boolean getIncludeAllSelectableVariantResults() {
+        return this.selectableVariantResults;
     }
 
     @Override

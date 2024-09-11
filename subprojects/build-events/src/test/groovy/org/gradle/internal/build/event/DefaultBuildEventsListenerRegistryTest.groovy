@@ -34,7 +34,7 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -44,7 +44,7 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 
 class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
-    def listenerManager = new DefaultListenerManager(Scopes.Build)
+    def listenerManager = new DefaultListenerManager(Scope.Build)
     def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
     def gradle = Stub(GradleInternal) {
         isRootBuild() >> true

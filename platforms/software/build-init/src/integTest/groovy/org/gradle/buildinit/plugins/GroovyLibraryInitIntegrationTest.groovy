@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
@@ -25,7 +26,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -46,7 +47,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
     def "supports the Spock test framework with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -67,7 +68,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants("my/lib/Library.groovy")
@@ -90,7 +91,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants("my/lib/Library.groovy")
@@ -112,7 +113,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         gradlePropertiesGenerated()
@@ -145,7 +146,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
                     }
             """
         when:
-        run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id, '--overwrite', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")

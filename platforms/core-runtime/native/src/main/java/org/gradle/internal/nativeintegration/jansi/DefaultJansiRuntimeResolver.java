@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
+import java.util.Locale;
+
 import static org.gradle.internal.nativeintegration.jansi.JansiOperatingSystemSupport.*;
 
 /**
@@ -28,7 +30,7 @@ public class DefaultJansiRuntimeResolver implements JansiRuntimeResolver {
 
     @Override
     public String getOperatingSystem() {
-        String name = System.getProperty("os.name").toLowerCase().trim();
+        String name = System.getProperty("os.name").toLowerCase(Locale.ROOT).trim();
 
         if (name.startsWith("linux")) {
             return LINUX.getIdentifier();

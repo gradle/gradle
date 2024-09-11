@@ -30,7 +30,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         def repositoryId2 = 'def'
 
         when:
-        boolean disabled = disabler.disableRepository(repositoryId1, exception)
+        boolean disabled = disabler.tryDisableRepository(repositoryId1, exception)
 
         then:
         disabled
@@ -38,7 +38,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.contains(repositoryId1)
 
         when:
-        disabled = disabler.disableRepository(repositoryId1, exception)
+        disabled = disabler.tryDisableRepository(repositoryId1, exception)
 
         then:
         disabled
@@ -46,7 +46,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.contains(repositoryId1)
 
         when:
-        disabled = disabler.disableRepository(repositoryId2, exception)
+        disabled = disabler.tryDisableRepository(repositoryId2, exception)
 
         then:
         disabled
@@ -60,7 +60,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
 
     def "does not disable repository for #type"() {
         when:
-        boolean disabled = disabler.disableRepository('abc', exception)
+        boolean disabled = disabler.tryDisableRepository('abc', exception)
 
         then:
         !disabled

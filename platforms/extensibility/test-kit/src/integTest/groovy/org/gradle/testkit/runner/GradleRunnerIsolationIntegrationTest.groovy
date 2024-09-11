@@ -36,7 +36,7 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
         gradleUserHome.file("init.gradle") << 'allprojects { ext.myProp2 = \'initScript\' }'
 
         and:
-        buildScript """
+        buildFile """
             task check {
                 doLast {
                     // Uses testkit dir
@@ -53,7 +53,8 @@ class GradleRunnerIsolationIntegrationTest extends BaseGradleRunnerIntegrationTe
             .build()
 
         when:
-        buildScript """
+        buildFile.clear()
+        buildFile """
             task check {
                 doLast {
                     // uses specified user home dir

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instantiation;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.lang.annotation.Annotation;
 
 /**
@@ -23,6 +26,7 @@ import java.lang.annotation.Annotation;
  *
  * <p>Implementations must be registered as global scoped services.</p>
  */
+@ServiceScope(Scope.Global.class)
 public interface InjectAnnotationHandler {
     Class<? extends Annotation> getAnnotationType();
 }

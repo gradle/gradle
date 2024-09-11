@@ -18,10 +18,17 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.junit.Assume.assumeNotNull
 
 class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
@@ -179,6 +186,32 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         "current JVM"   | "when toolchains are not configured" | null     | null           | "current"
         "executable"    | "when configured"                    | null     | "other"        | "other"
         "assigned tool" | "when configured"                    | "other"  | null           | "other"
+    }
+
+    def "fails if no toolchain has a javadoc tool"() {
+        def jre = AvailableJavaHomes.differentVersionJreOnly
+        assumeNotNull(jre)
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jre.javaVersionMajor})
+                }
+            }
+        """
+
+        when:
+        withInstallations(jre).fails("javadoc")
+
+        then:
+        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasResolutions(
+                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
     }
 
     private TestFile configureProjectWithJavaPlugin() {

@@ -67,7 +67,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         fails 'test'
 
         then:
-        outputContains "example.Issue1618Test > thisTestShouldBeMarkedAsFailed FAILED"
+        outputContains "Issue1618Test > thisTestShouldBeMarkedAsFailed FAILED"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")

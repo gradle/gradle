@@ -16,12 +16,14 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceRegistrationProvider {
 
-    @Suppress("unused")
+    @Provides
     fun createKotlinScriptClassloadingCache(
         cacheFactory: CrossBuildInMemoryCacheFactory
     ) = KotlinScriptClassloadingCache(cacheFactory)

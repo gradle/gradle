@@ -37,7 +37,7 @@ class IvyResourcePatternTest extends Specification {
         "http://host/"     | ""                 | "http://host/"
         "http://host"      | ""                 | "http://host"
         "http://host/"     | "/"                | "http://host/"
-        "http://host/repo" | "query?[revision]" | "http://host/repo/query?[revision]"
+        "http://host/repo" | "query?[revision]" | "http://host/repo/query%3F[revision]"
     }
 
     def "substitutes artifact attributes into pattern"() {

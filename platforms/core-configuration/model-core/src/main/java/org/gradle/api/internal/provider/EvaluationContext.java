@@ -55,6 +55,7 @@ public final class EvaluationContext {
      * A scope context. One can obtain an instance by calling {@link #open(EvaluationOwner)}.
      * Closing this context removes the owner from the evaluation context.
      * The primary use case is to serve as an argument for the try-with-resources block.
+     * It can also serve as a token parameter of a method that must be executed within such a block.
      * <p>
      * It is not safe to call {@link #close()} multiple times.
      * The instances of the class may not be unique for different owners being added.
@@ -63,6 +64,25 @@ public final class EvaluationContext {
      * This context must be closed by the same thread that obtained it.
      */
     public interface ScopeContext extends AutoCloseable {
+        /**
+         * Returns the owner of the current scope, which is the last object that started its evaluation.
+         * Can be null if the current scope has no owner (e.g. a just opened nested context).
+         *
+         * @return the owner
+         */
+        @Nullable
+        EvaluationOwner getOwner();
+
+        /**
+         * Opens a nested context. A nested context allows to re-enter evaluation of the objects that are being evaluated in this context.
+         * The newly returned nested context has no owner.
+         * <p>
+         * This method may be marginally more effective than using {@link EvaluationContext#evaluateNested(ScopedEvaluation)}.
+         *
+         * @return the nested context, to close it when done
+         */
+        ScopeContext nested();
+
         /**
          * Removes the owner added to evaluation context when obtaining this class from the context.
          * Must be called exactly once for every {@link #open(EvaluationOwner)} or {@link #nested()} call.
@@ -95,6 +115,14 @@ public final class EvaluationContext {
      */
     public ScopeContext open(EvaluationOwner owner) {
         return getContext().open(owner);
+    }
+
+    /**
+     * Returns the "topmost" evaluation owner or null if nothing is being evaluated right now.
+     */
+    @Nullable
+    public EvaluationOwner getOwner() {
+        return getContext().getOwner();
     }
 
     /**
@@ -166,7 +194,7 @@ public final class EvaluationContext {
     }
 
     private ScopeContext nested() {
-        return setContext(new PerThreadContext(getContext()));
+        return getContext().nested();
     }
 
     private final class PerThreadContext implements ScopeContext {
@@ -198,6 +226,11 @@ public final class EvaluationContext {
         }
 
         @Override
+        public ScopeContext nested() {
+            return setContext(new PerThreadContext(this));
+        }
+
+        @Override
         public void close() {
             // Closing the "nested" context.
             if (parent != null && evaluationStack.isEmpty()) {
@@ -209,6 +242,15 @@ public final class EvaluationContext {
 
         public boolean isInScope(EvaluationOwner owner) {
             return objectsInScope.contains(owner);
+        }
+
+        @Override
+        @Nullable
+        public EvaluationOwner getOwner() {
+            if (evaluationStack.isEmpty()) {
+                return null;
+            }
+            return evaluationStack.get(evaluationStack.size() - 1);
         }
 
         private CircularEvaluationException prepareException(EvaluationOwner circular) {

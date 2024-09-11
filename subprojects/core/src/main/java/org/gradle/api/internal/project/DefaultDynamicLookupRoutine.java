@@ -57,4 +57,9 @@ public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
     public Object invokeMethod(DynamicObject receiver, String name, Object... args) {
         return receiver.invokeMethod(name, args);
     }
+
+    @Override
+    public DynamicInvokeResult tryGetProperty(DynamicObject receiver, String name) {
+        return receiver.tryGetProperty(name);
+    }
 }

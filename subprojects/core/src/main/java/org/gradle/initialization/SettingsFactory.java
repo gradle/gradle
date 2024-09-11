@@ -22,11 +22,13 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.SettingsScopeServices;
@@ -61,7 +63,7 @@ public class SettingsFactory {
             gradle,
             classLoaderScope,
             baseClassLoaderScope,
-            scriptHandlerFactory.create(settingsScript, classLoaderScope),
+            scriptHandlerFactory.create(settingsScript, classLoaderScope, StandaloneDomainObjectContext.forScript(settingsScript)),
             settingsDir,
             settingsScript,
             startParameter
@@ -73,11 +75,11 @@ public class SettingsFactory {
     }
 
     private class SettingsServiceRegistryFactory implements ServiceRegistryFactory {
-        private SettingsScopeServices services;
+        private CloseableServiceRegistry services;
 
         @Override
         public ServiceRegistry createFor(Object domainObject) {
-            services = new SettingsScopeServices(buildScopeServices, (SettingsInternal) domainObject);
+            services = SettingsScopeServices.create(buildScopeServices, (SettingsInternal) domainObject);
             return services;
         }
     }

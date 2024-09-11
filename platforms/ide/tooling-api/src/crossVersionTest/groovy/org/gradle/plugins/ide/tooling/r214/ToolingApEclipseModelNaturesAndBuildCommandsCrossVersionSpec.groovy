@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
 
-@TargetGradleVersion(">=2.14")
+@TargetGradleVersion(">=3.0")
 class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends ToolingApiSpecification {
 
     static final def JAVA_NATURES = ['org.eclipse.jdt.core.javanature']

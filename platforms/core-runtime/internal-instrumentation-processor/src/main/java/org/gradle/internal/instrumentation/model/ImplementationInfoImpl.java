@@ -39,6 +39,7 @@ public class ImplementationInfoImpl implements ImplementationInfo {
         return name;
     }
 
+    @Override
     public String getDescriptor() {
         return descriptor;
     }

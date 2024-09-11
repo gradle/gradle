@@ -43,25 +43,4 @@ public interface SupportsConvention {
      * @since 8.7
      */
     SupportsConvention unsetConvention();
-
-    /**
-     * Sets the value of the property to the current convention value, replacing whatever explicit value the property already had.
-     *
-     * If the property has no convention set at the time this method is invoked,
-     * the effect of invoking it is similar to invoking {@link SupportsConvention#unset()}.
-     *
-     * @since 8.7
-     */
-    SupportsConvention setToConvention();
-
-    /**
-     * Sets the value of the property to the current convention value, if an explicit
-     * value has not been set yet.
-     *
-     * If the property has no convention set at the time this method is invoked,
-     * or if an explicit value has already been set, it has no effect.
-     *
-     * @since 8.7
-     */
-    SupportsConvention setToConventionIfUnset();
 }

@@ -64,6 +64,7 @@ public class ProjectProfile extends Operation {
         return configurationOperation;
     }
 
+    @Override
     public String toString() {
         return projectPath;
     }

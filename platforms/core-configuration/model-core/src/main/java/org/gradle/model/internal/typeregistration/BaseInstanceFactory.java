@@ -100,7 +100,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
                     return;
                 }
                 ImplementationInfoImpl<S> currentImplementationInfo = implementationInfo.get();
-                if (currentImplementationInfo == null || currentImplementationInfo.implementationRegistration.implementationType.isAssignableFrom(registration.implementationRegistration.implementationType)) {
+                if (currentImplementationInfo == null || currentImplementationInfo.implementationRegistration.getImplementationType().isAssignableFrom(registration.implementationRegistration.getImplementationType())) {
                     implementationInfo.set(new ImplementationInfoImpl<S>(publicType, registration.implementationRegistration, getInternalViews(publicType)));
                 }
             }
@@ -368,13 +368,13 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
 
         @Override
         public Object create(MutableModelNode modelNode) {
-            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedCast(implementationRegistration.factory);
-            return implementationFactory.create(publicType, implementationRegistration.implementationType, modelNode.getPath().getName(), modelNode);
+            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedNonnullCast(implementationRegistration.getFactory());
+            return implementationFactory.create(publicType, implementationRegistration.getImplementationType(), modelNode.getPath().getName(), modelNode);
         }
 
         @Override
         public ModelType<?> getDelegateType() {
-            return implementationRegistration.implementationType;
+            return implementationRegistration.getImplementationType();
         }
 
         @Override

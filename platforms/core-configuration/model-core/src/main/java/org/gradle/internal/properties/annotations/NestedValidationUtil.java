@@ -18,7 +18,7 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Optional;
@@ -58,9 +58,9 @@ public class NestedValidationUtil {
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label("with nested type '" + beanType.getName() + "' is not supported")
+                    .id("nested-type-unsupported", "Nested type unsupported", GradleCoreProblemGroup.validation().property())
+                    .contextualLabel("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
-                    .category(DefaultProblemCategory.VALIDATION, "property", "nested-type-unsupported")
                     .severity(WARNING)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
@@ -99,9 +99,9 @@ public class NestedValidationUtil {
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label("where key of nested map is of type '" + keyType.getName() + "'")
+                    .id("nested-map-unsupported-key-type", "Unsupported nested map key", GradleCoreProblemGroup.validation().property())
+                    .contextualLabel("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
-                    .category(DefaultProblemCategory.VALIDATION, "property", "nested-map-unsupported-key-type")
                     .severity(WARNING)
                     .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())

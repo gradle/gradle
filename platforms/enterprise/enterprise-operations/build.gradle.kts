@@ -6,9 +6,12 @@ plugins {
 description = "Build operations consumed by the Develocity plugin"
 
 dependencies {
-    api(project(":build-operations"))
+    api(projects.buildOperations)
 
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.stdlibJavaExtensions)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

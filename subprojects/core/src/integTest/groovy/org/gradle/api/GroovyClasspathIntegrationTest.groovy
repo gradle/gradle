@@ -18,32 +18,32 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-
 class GroovyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     def "script can use io extensions"() {
-        buildFile << """
-tasks.register('show') {
-  outputs.dir('build/test')
-  doLast {
-          // Now setup the writer
-          def pw = new File(projectDir, "build/test/test-file.txt").toPath().newPrintWriter('UTF-8')
-  }
-}
-"""
+        buildFile """
+            tasks.register('show') {
+              outputs.dir('build/test')
+              def projectDir = projectDir
+              doLast {
+                      // Now setup the writer
+                      def pw = new File(projectDir, "build/test/test-file.txt").toPath().newPrintWriter('UTF-8')
+              }
+            }
+        """
 
         expect:
         succeeds("show")
     }
 
     def "script can use dateutil extensions"() {
-        buildFile << """
-tasks.register('show') {
-  doLast {
-          println(new Date().format("DD-MM-YYYY"))
-  }
-}
-"""
+        buildFile """
+            tasks.register('show') {
+              doLast {
+                      println(new Date().format("DD-MM-YYYY"))
+              }
+            }
+        """
 
         expect:
         succeeds("show")

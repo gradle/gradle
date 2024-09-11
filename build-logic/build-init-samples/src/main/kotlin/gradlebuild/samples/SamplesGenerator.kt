@@ -42,8 +42,8 @@ object SamplesGenerator {
         // clear the target directory to remove renamed files and reset the README file
         target.asFile.deleteRecursively()
 
-        val groovyDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
-        val kotlinDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
+        val groovyDslSettings = InitSettings(projectName, false, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
+        val kotlinDslSettings = InitSettings(projectName, false, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
 
         val specificContentId = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) {
             "native-" + descriptor.componentType.toString()
@@ -62,7 +62,12 @@ object SamplesGenerator {
     }
 
     private
-    fun generateSingleProjectReadme(specificContentId: String, templateFolder: Directory, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateSingleProjectReadme(
+        specificContentId: String,
+        templateFolder: Directory,
+        settings: InitSettings, comments: Map<String, List<String>>,
+        descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry
+    ) {
         generateReadmeFragment(templateFolder, "common-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         generateReadmeFragment(templateFolder, "$specificContentId-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         if (descriptor.language === Language.JAVA && descriptor.componentType === ComponentType.LIBRARY) {
@@ -74,7 +79,13 @@ object SamplesGenerator {
     }
 
     private
-    fun generateMultiProjectReadme(specificContentId: String, templateFolder: Directory, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateMultiProjectReadme(
+        specificContentId: String,
+        templateFolder: Directory,
+        settings: InitSettings,
+        comments: Map<String, List<String>>,
+        descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry
+    ) {
         generateReadmeFragment(templateFolder, "multi-common-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         generateReadmeFragment(templateFolder, "$specificContentId-body", settings, comments, descriptor, projectLayoutSetupRegistry)
         generateReadmeFragment(templateFolder, "common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
@@ -144,14 +155,10 @@ Enter selection (default: JUnit 4) [1..4]
         else
             "link:{userManualPath}/${descriptor.language.getName()}_plugin.html[${descriptor.language} Plugin]"
 
-        val pluginType = if (descriptor.componentType === ComponentType.LIBRARY) "Library" else "Application"
         val configurationCacheCompatMatrixLink = "link:{userManualPath}/configuration_cache.html#config_cache:plugins:core"
         val configurationCacheCompatibility = when (descriptor.language) {
-            Language.CPP -> {
-                "WARNING: The {cpp} $pluginType Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
-            }
             Language.SWIFT -> {
-                "WARNING: The Swift $pluginType Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
+                "WARNING: The XCTest Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
             }
             else -> {
                 ""
@@ -175,7 +182,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("testSourceFile", testSourceFile)
             .withBinding("sourceFileTree", sourceFileTree)
             .withBinding("testSourceFileTree", testSourceFileTree)
-            .withBinding("testFramework", if (descriptor.defaultTestFramework == null) "" else "_" + descriptor.defaultTestFramework.toString() + "_")
+            .withBinding("testFramework", "_" + descriptor.defaultTestFramework.toString() + "_")
             .withBinding("buildFileComments", buildFileComments)
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
@@ -222,7 +229,7 @@ Enter selection (default: JUnit 4) [1..4]
 
     private
     fun tasksExecuted(descriptor: CompositeProjectInitDescriptor): Int {
-        var tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
+        val tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
         return tasksExecuted + if (descriptor.language === Language.KOTLIN) 1 else 0
     }
 

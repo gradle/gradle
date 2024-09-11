@@ -19,9 +19,34 @@ package org.gradle.internal.instrumentation.processor.modelreader.api;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public interface CallInterceptionRequestReader<T> {
-    Collection<Result> readRequest(T input);
+
+    /**
+     * @param input the input context to read
+     * @param context the context that is shared between request reads, can be used for caching
+     */
+    Collection<Result> readRequest(T input, ReadRequestContext context);
+
+    class ReadRequestContext {
+        private final Map<String, Object> store = new HashMap<>();
+
+        @SuppressWarnings("unchecked")
+        public <T> T computeIfAbsent(String key, Function<String, T> function) {
+            return (T) store.computeIfAbsent(key, __ -> checkNotNull(function.apply(key)));
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> Optional<T> get(String key) {
+            return Optional.ofNullable((T) store.get(key));
+        }
+    }
 
     interface Result {
         class Success implements Result {

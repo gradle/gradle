@@ -19,6 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -84,17 +85,33 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
         if (notation instanceof URI) {
             URI uri = (URI) notation;
-            if ("file".equals(uri.getScheme()) && uri.getPath() != null) {
-                result.converted(new File(uri.getPath()));
-            } else {
-                result.converted(uri);
+            if ("file".equals(uri.getScheme())) {
+                try {
+                    result.converted(new File(uri));
+                    return;
+                } catch (IllegalArgumentException ignored) {
+                    // Bad file URI, return URI as-is
+                }
             }
+            result.converted(uri);
             return;
         }
         if (notation instanceof CharSequence) {
             String notationString = notation.toString();
             if (notationString.startsWith("file:")) {
-                result.converted(new File(uriDecode(notationString.substring(5))));
+                try {
+                    URI uri = new URI(notationString);
+                    try {
+                        result.converted(new File(uri));
+                        return;
+                    } catch (IllegalArgumentException ignored) {
+                        // Bad file URI, use old logic
+                    }
+                } catch (URISyntaxException ignored) {
+                    // Unparsable, use old logic
+                }
+                // Fallback if relative or unparsable
+                result.converted(new File(fallbackUrlDecode(notationString.substring(5))));
                 return;
             }
             if (notationString.startsWith("http:") || notationString.startsWith("https:")) {
@@ -131,20 +148,15 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
     }
 
-    private static String uriDecode(String path) {
-        try {
-            return new URI(path).getSchemeSpecificPart();
-        } catch (URISyntaxException e) {
-            return fallbackUrlDecode(path);
-        }
-    }
-
     /**
      * Lenient legacy behavior to fall back to when URI cannot be normally parsed.
-     *
-     * TODO: Deprecate this
      */
     private static String fallbackUrlDecode(String path) {
+        DeprecationLogger.deprecateBehaviour("Passing invalid URIs to URI or File converting methods.")
+            .withAdvice("Use a valid URL or a file path instead.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_invalid_url_decoding")
+            .nagUser();
         StringBuffer builder = new StringBuffer();
         Matcher matcher = ENCODED_URI.matcher(path);
         while (matcher.find()) {

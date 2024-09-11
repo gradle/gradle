@@ -17,15 +17,13 @@ package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -47,8 +45,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
     def classPathRegistry = Mock(ClassPathRegistry)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def shadedJarFactory = Mock(RuntimeShadedJarFactory)
-    def gradleInstallation = Mock(CurrentGradleInstallation)
-    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, shadedJarFactory, gradleInstallation)
+    def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, shadedJarFactory)
     def shadedApiJar = testDirectoryProvider.file('gradle-api-shaded.jar')
     def localGroovyFiles = [testDirectoryProvider.file('groovy.jar')]
     def installationBeaconFiles = [testDirectoryProvider.file('gradle-installation.jar')]
@@ -63,8 +60,6 @@ class DependencyClassPathNotationConverterTest extends Specification {
         classPathRegistry.getClassPath('LOCAL_GROOVY') >> DefaultClassPath.of(localGroovyFiles)
         classPathRegistry.getClassPath('GRADLE_INSTALLATION_BEACON') >> DefaultClassPath.of(installationBeaconFiles)
 
-        gradleInstallation.installation >> new GradleInstallation(testDirectoryProvider.file("gradle-home"))
-
         shadedJarFactory.get(RuntimeShadedJarType.API, _) >> shadedApiJar
     }
 
@@ -73,7 +68,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def out = parse(GRADLE_API)
 
         then:
-        out instanceof DefaultSelfResolvingDependency
+        out instanceof DefaultFileCollectionDependency
         out.files as List == [shadedApiJar] + localGroovyFiles + installationBeaconFiles
     }
 
@@ -82,7 +77,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def out = parse(GRADLE_API)
 
         then:
-        out instanceof DefaultSelfResolvingDependency
+        out instanceof DefaultFileCollectionDependency
 
         when: // same instance is reused
         def out2 = parse(GRADLE_API)

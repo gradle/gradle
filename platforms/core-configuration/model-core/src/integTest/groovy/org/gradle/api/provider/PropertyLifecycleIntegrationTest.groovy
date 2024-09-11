@@ -17,8 +17,6 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
 class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
     def "can finalize the value of a property using API"() {
@@ -143,7 +141,6 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """

@@ -62,7 +62,7 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     def spec() {
-        return new IsolatedParametersActionExecutionSpec(TestWorkAction, "action", "impl", null, null, null, false)
+        return new IsolatedParametersActionExecutionSpec(TestWorkAction, "action", "impl", null, null, null, null, false)
     }
 
     static abstract class TestWorkAction implements WorkAction<WorkParameters.None> {

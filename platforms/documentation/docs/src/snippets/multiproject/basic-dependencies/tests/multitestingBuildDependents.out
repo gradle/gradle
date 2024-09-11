@@ -1,0 +1,30 @@
+> Task :api:processResources
+> Task :services:person-service:processResources
+> Task :services:person-service:processTestResources
+> Task :api:processTestResources
+> Task :shared:compileJava
+> Task :shared:processResources
+> Task :shared:classes
+> Task :shared:jar
+> Task :api:compileJava
+> Task :api:classes
+> Task :api:jar
+> Task :api:assemble
+> Task :api:compileTestJava
+> Task :api:testClasses
+> Task :services:person-service:compileJava
+> Task :services:person-service:classes
+> Task :services:person-service:jar
+> Task :services:person-service:assemble
+> Task :services:person-service:compileTestJava
+> Task :services:person-service:testClasses
+> Task :api:test
+> Task :api:check
+> Task :api:build
+> Task :services:person-service:test
+> Task :services:person-service:check
+> Task :services:person-service:build
+> Task :services:person-service:buildDependents
+> Task :api:buildDependents
+
+BUILD SUCCESSFUL in 0s

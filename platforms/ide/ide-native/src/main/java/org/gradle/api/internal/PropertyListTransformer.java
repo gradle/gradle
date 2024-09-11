@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 import com.dd.plist.NSObject;
-import com.dd.plist.PropertyListParser;
+import com.dd.plist.XMLPropertyListWriter;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -56,7 +56,7 @@ public class PropertyListTransformer<T extends NSObject> implements Transformer<
      */
     public void transform(T original, OutputStream destination) {
         try {
-            PropertyListParser.saveAsXML(doTransform(original), destination);
+            XMLPropertyListWriter.write(doTransform(original), destination);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

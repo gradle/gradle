@@ -16,50 +16,57 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import com.google.common.base.Function;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
+import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.InPlaceClasspathBuilder;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
-import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
-import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
-import org.gradle.internal.file.Stat;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 
-import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_JAR_DIR_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_JAR_DIR_NAME;
+import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.LEGACY_INSTRUMENTATION_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_ENTRY_PREFIX;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
 
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class BaseInstrumentingArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
+public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> implements TransformAction<T> {
 
-    public interface InstrumentArtifactTransformParameters extends TransformParameters {
+    public interface Parameters extends TransformParameters {
+        @Internal
+        Property<CacheInstrumentationDataBuildService> getBuildService();
+        @Internal
+        Property<Long> getContextId();
         @Input
         Property<Boolean> getAgentSupported();
     }
+
+    protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
     @Inject
     public abstract ObjectFactory getObjects();
@@ -68,68 +75,68 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
 
-    @Override
-    public void transform(TransformOutputs outputs) {
-        File input = getInput().get().getAsFile();
-        if (!input.exists()) {
-            // Files can be passed to the artifact transform even if they don't exist,
-            // in the case when user adds a file classpath via files("path/to/jar").
-            // Unfortunately we don't filter them out before the artifact transform is run.
+    protected void doTransform(File artifactToTransform, TransformOutputs outputs) {
+        createInstrumentationClasspathMarker(outputs);
+        if (!artifactToTransform.exists()) {
+            createNewFile(outputs.file(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER.getFileName()));
             return;
         }
 
-        // A marker file that indicates that the result is instrumented jar,
-        // this is important so TransformedClassPath can correctly filter instrumented jars.
-        createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
+        if (isAgentSupported()) {
+            // When agent is supported, we output an instrumented jar and an original jar,
+            // so we can then later reconstruct instrumented jars classpath and original jars classpath.
+            // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
+            createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER.getFileName()));
+            doTransform(artifactToTransform, outputs, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
+        } else {
+            createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER.getFileName()));
+            doTransform(artifactToTransform, outputs, originalName -> originalName);
+        }
+    }
 
-        // Instrument jars
-        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
-        File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
-        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
-        transform.transform(outputFile);
+    private boolean isAgentSupported() {
+        return getParameters().getAgentSupported().get();
+    }
 
-        // Copy original jars after in case they are not in global cache
-        if (injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+    private void doTransform(File input, TransformOutputs outputs, Function<String, String> instrumentedEntryNameMapper) {
+        String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
+        File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
+        try (InstrumentingClassTransformProvider provider = instrumentingClassTransformProvider(outputs)) {
+            InstrumentingClassTransform classTransform = provider.getClassTransform();
+            ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
+            ClasspathElementTransform transform = transformFactory.createTransformer(input, classTransform);
+            transform.transform(output);
+        }
+    }
+
+    private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
+        return INSTRUMENTED_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(input.getName());
+    }
+
+    protected void doOutputOriginalArtifact(File input, TransformOutputs outputs) {
+        createInstrumentationClasspathMarker(outputs);
+        // Output original file if it's safe to load from cache loader ELSE copy an entry
+        if (input.isDirectory()) {
+            // Directories are ok to use outside the cache, since they are not locked by the daemon.
+            outputs.dir(input);
+        } else if (internalServices.get().getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
-            outputs.file(getInput());
+            outputs.file(input);
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
-            File copyOfOriginalFile = outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + input.getName());
+            File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName());
             GFileUtils.copyFile(input, copyOfOriginalFile);
         }
     }
 
-    private boolean createNewFile(File file) {
-        try {
-            return file.createNewFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
+    protected abstract InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs);
 
+    protected interface InstrumentingClassTransformProvider extends AutoCloseable {
+        InstrumentingClassTransform getClassTransform();
 
-    static class InjectedInstrumentationServices {
-
-        private final ClasspathElementTransformFactoryForAgent transformFactory;
-        private final ClasspathElementTransformFactoryForLegacy legacyTransformFactory;
-        private final GlobalCacheLocations globalCacheLocations;
-
-        @Inject
-        public InjectedInstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations) {
-            this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
-            this.legacyTransformFactory = new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
-            this.globalCacheLocations = globalCacheLocations;
-        }
-
-        public ClasspathElementTransformFactory getTransformFactory(boolean isAgentSupported) {
-            return isAgentSupported ? transformFactory : legacyTransformFactory;
-        }
-
-        public GlobalCacheLocations getGlobalCacheLocations() {
-            return globalCacheLocations;
-        }
+        @Override
+        void close();
     }
 }

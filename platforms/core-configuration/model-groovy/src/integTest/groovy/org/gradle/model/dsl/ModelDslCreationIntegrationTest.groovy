@@ -24,7 +24,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create and initialize elements"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
                 String getName()
@@ -52,7 +52,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "creator closure can reference inputs"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
                 String getName()
@@ -83,7 +83,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports failure in initialization closure"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
                 String getName()
@@ -112,7 +112,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create elements without mutating"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
                 String getName()
@@ -138,7 +138,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply defaults before creator closure is invoked"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
                 String getName()
@@ -175,7 +175,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "cannot create non managed types"() {
         when:
-        buildScript '''
+        buildFile '''
             apply plugin: 'language-base'
             interface Thing {
                 String getName()
@@ -204,7 +204,7 @@ It must be one of:
 
     def "cannot create non managed types and provide an initialization closure"() {
         when:
-        buildScript '''
+        buildFile '''
             apply plugin: 'language-base'
             interface Thing {
                 String getName()

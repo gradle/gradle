@@ -54,7 +54,7 @@ dependencies {
 
         then:
         failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have lock state.")
-        failure.assertHasResolution("To create the lock state, run a task that will resolve that configuration and add '--write-locks' to the command line.")
+        failure.assertHasResolution("To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.")
         failure.assertHasResolution("For more information on generating lock state")
         lockfileFixture.expectLockStateMissing('unlockedConf')
     }

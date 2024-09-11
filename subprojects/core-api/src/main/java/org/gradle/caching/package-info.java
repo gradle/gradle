@@ -19,7 +19,9 @@
  *
  * @since 3.3
  */
-@NonNullApi
-package org.gradle.caching;
 
-import org.gradle.api.NonNullApi;
+// We already have a similar package-info.java in :build-cache-spi
+// We must have a package-info.java for every package directory, but for each package
+// @NonNullApi must only be declared once, otherwise `:docs:javadocAll` fails.
+//@NonNullApi
+package org.gradle.caching;

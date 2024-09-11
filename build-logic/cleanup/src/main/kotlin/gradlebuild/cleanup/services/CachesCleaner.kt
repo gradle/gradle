@@ -24,6 +24,7 @@ import gradlebuild.cleanup.removeTransformDir
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -45,12 +46,14 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
     private
     var hasCleaned = false
 
+    val logger = Logging.getLogger(CachesCleaner::class.java)
+
     fun cleanUpCaches() {
         synchronized(this) {
             if (hasCleaned) {
                 return
             }
-            println("Cleaning up caches...")
+            logger.lifecycle("Cleaning up caches...")
             val homeDir = parameters.homeDir.get()
 
             homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
@@ -78,7 +81,7 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
 
         // Remove script caches from TestKit integTest temp dir
         // location defined in TempTestKitDirProvider, copied here
-        val testKitTmpDir = File(File(System.getProperty("java.io.tmpdir")), String.format(".gradle-test-kit-%s", System.getProperty("user.name")))
+        val testKitTmpDir = File(File(System.getProperty("java.io.tmpdir")), ".gradle-test-kit-${System.getProperty("user.name")}")
         fileSystemOperations.removeCachedScripts(File(testKitTmpDir, "caches"))
         fileSystemOperations.removeTransformDir(File(testKitTmpDir, "caches"))
 

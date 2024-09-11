@@ -80,6 +80,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -599,7 +600,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     boolean hasUid = false;
                     PGPPublicKey pk = pks.next();
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
-                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
+                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase(Locale.ROOT) + "\n").getBytes(StandardCharsets.US_ASCII));
                     List<String> userIDs = PGPUtils.getUserIDs(pk);
                     for(String uid : userIDs) {
                         hasUid = true;
@@ -630,6 +631,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static class PGPPublicKeyRingListBuilder implements PublicKeyResultBuilder {
         private final ImmutableList.Builder<PGPPublicKeyRing> builder = ImmutableList.builder();
 
+        @Override
         public void keyRing(PGPPublicKeyRing keyring) {
             builder.add(keyring);
         }

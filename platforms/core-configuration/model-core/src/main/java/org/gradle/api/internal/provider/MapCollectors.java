@@ -21,7 +21,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.internal.Cast;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 public class MapCollectors {
@@ -39,6 +41,12 @@ public class MapCollectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -79,6 +87,11 @@ public class MapCollectors {
         public int hashCode() {
             return Objects.hashCode(key, value);
         }
+
+        @Override
+        public String toString() {
+            return String.format("{%s=%s}", key, value);
+        }
     }
 
     public static class EntryWithValueFromProvider<K, V> implements MapCollector<K, V> {
@@ -88,6 +101,11 @@ public class MapCollectors {
         public EntryWithValueFromProvider(K key, ProviderInternal<? extends V> providerOfValue) {
             this.key = key;
             this.providerOfValue = providerOfValue;
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            return new EntriesFromMapProvider<>(providerOfValue.map(value -> ImmutableMap.of(key, value)), true);
         }
 
         @Override
@@ -133,6 +151,11 @@ public class MapCollectors {
         public ValueProducer getProducer() {
             return providerOfValue.getProducer();
         }
+
+        @Override
+        public String toString() {
+            return String.format("entry{%s=%s}", key, providerOfValue);
+        }
     }
 
     public static class EntriesFromMap<K, V> implements MapCollector<K, V> {
@@ -146,6 +169,12 @@ public class MapCollectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -169,26 +198,47 @@ public class MapCollectors {
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
         }
+
+        @Override
+        public String toString() {
+            return entries.toString();
+        }
     }
 
     public static class EntriesFromMapProvider<K, V> implements MapCollector<K, V> {
 
         private final ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries;
+        private final boolean ignoreAbsent;
 
         public EntriesFromMapProvider(ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries) {
-            this.providerOfEntries = providerOfEntries;
+            this(providerOfEntries, false);
+        }
+
+        private EntriesFromMapProvider(ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries, boolean ignoreAbsent) {
+            this.providerOfEntries = ignoreAbsent ? neverMissing(Cast.uncheckedNonnullCast(providerOfEntries)) : providerOfEntries;
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            return ignoreAbsent ? this : new EntriesFromMapProvider<>(providerOfEntries, true);
+        }
+
+        @Nonnull
+        private static <K, V> ProviderInternal<? extends Map<? extends K, ? extends V>> neverMissing(ProviderInternal<Map<? extends K, ? extends V>> provider) {
+            return Cast.uncheckedNonnullCast(provider.orElse(ImmutableMap.of()));
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return providerOfEntries.calculatePresence(consumer);
+            return ignoreAbsent || providerOfEntries.calculatePresence(consumer);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue(consumer);
             if (value.isMissing()) {
-                return value.asType();
+                return ignoreAbsent ? Value.present() : value.asType();
             }
             collector.addAll(value.getWithoutSideEffect().entrySet(), dest);
             return Value.present().withSideEffect(SideEffect.fixedFrom(value));
@@ -212,6 +262,11 @@ public class MapCollectors {
         @Override
         public ValueProducer getProducer() {
             return providerOfEntries.getProducer();
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(providerOfEntries);
         }
     }
 }

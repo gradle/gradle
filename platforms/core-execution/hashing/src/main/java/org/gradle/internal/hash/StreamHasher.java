@@ -15,10 +15,14 @@
  */
 package org.gradle.internal.hash;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+@ServiceScope(Scope.Global.class)
 public interface StreamHasher {
     /**
      * Returns the hash of the given input stream. The stream will not be closed by the method.

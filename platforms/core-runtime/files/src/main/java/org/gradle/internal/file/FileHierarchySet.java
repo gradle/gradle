@@ -117,7 +117,8 @@ public abstract class FileHierarchySet {
         }
     };
 
-    private static class PrefixFileSet extends FileHierarchySet {
+    @VisibleForTesting
+    static class PrefixFileSet extends FileHierarchySet {
         private final Node rootNode;
 
         PrefixFileSet(File rootDir) {
@@ -170,6 +171,7 @@ public abstract class FileHierarchySet {
             return plus(toAbsolutePath(rootDir));
         }
 
+        @SuppressWarnings("ReferenceEquality")
         @Override
         public FileHierarchySet plus(String absolutePath) {
             Node newRoot = rootNode.plus(removeTrailingSeparator(absolutePath));
@@ -248,6 +250,7 @@ public abstract class FileHierarchySet {
             rootNode.visitHierarchy(0, new NodeVisitor() {
                 private boolean first = true;
 
+                @SuppressWarnings("InlineMeInliner")
                 @Override
                 public void visitNode(int depth, Node node) {
                     if (first) {

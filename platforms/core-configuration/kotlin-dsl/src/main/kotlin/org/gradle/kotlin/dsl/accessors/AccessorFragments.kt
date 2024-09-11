@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.Flag
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmVariance
+import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -50,6 +52,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
+import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
@@ -61,9 +64,11 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
+    is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
 }
 
 
+@Suppress("LongMethod")
 private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
@@ -306,7 +311,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 val methodBody: MethodVisitor.() -> Unit = {
                     ALOAD(0)
                     LDC(propertyName)
-                    (1..7).forEach { ALOAD(it) }
+                    for (i in 1..7) { ALOAD(i) }
+                    @Suppress("MaxLineLength")
                     invokeRuntime(
                         "addExternalModuleDependencyTo",
                         "(Lorg/gradle/api/artifacts/dsl/DependencyHandler;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)Lorg/gradle/api/artifacts/ExternalModuleDependency;"
@@ -671,6 +677,13 @@ fun fragmentsForContainerElementOf(
 
 
 private
+fun MetadataFragmentScope.maybeHasAnnotations(flags: Int): Int = when {
+    useLowPriorityInOverloadResolution -> flags + flagsOf(Flag.HAS_ANNOTATIONS)
+    else -> flags
+}
+
+
+private
 fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
 
     val accessorSpec = accessor.spec
@@ -691,6 +704,9 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
+                    if (useLowPriorityInOverloadResolution) {
+                        withLowPriorityInOverloadResolution()
+                    }
                     ALOAD(0)
                     LDC(name.original)
                     invokeRuntime(
@@ -704,6 +720,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
+                    flags = maybeHasAnnotations(readOnlyPropertyFlags),
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = kotlinExtensionType,
@@ -720,6 +737,9 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
+                    if (useLowPriorityInOverloadResolution) {
+                        withLowPriorityInOverloadResolution()
+                    }
                     ALOAD(0)
                     CHECKCAST(GradleTypeName.extensionAware)
                     INVOKEINTERFACE(
@@ -739,6 +759,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
+                    flags = maybeHasAnnotations(publicFunctionFlags),
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -750,6 +771,12 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             }
         )
     )
+}
+
+
+private
+fun MethodVisitor.withLowPriorityInOverloadResolution() {
+    visitAnnotation("Lkotlin/internal/LowPriorityInOverloadResolution;", true).visitEnd()
 }
 
 
@@ -819,6 +846,51 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
 
 
 private
+fun fragmentsForModelDefault(
+    accessor: Accessor.ForModelDefault
+): Fragments {
+
+    val accessorSpec = accessor.spec
+    val className = internalNameForAccessorClassOf(accessorSpec)
+    val (accessibleReceiverType, name, modelType) = accessorSpec
+    val softwareTypeName = name.kotlinIdentifier
+    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
+
+    return className to sequenceOf(
+        AccessorFragment(
+            source = modelDefaultAccessor(accessorSpec),
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    LDC(softwareTypeName)
+                    LDC(jvmPublicType)
+                    ALOAD(1)
+                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    receiverType = receiverType,
+                    returnType = KotlinType.unit,
+                    name = softwareTypeName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
+                    ),
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                name.kotlinIdentifier,
+                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
+            )
+        )
+    )
+}
+
+
+private
 fun MethodVisitor.invokeDependencyHandlerAdd() {
     INVOKEINTERFACE(GradleTypeName.dependencyHandler, "add", "(Ljava/lang/String;Ljava/lang/Object;)Lorg/gradle/api/artifacts/Dependency;")
 }
@@ -878,6 +950,7 @@ val TypeOf<*>.kmType: KmType
             classOf(parameterizedTypeDefinition.concreteClass),
             actualTypeArguments.map { it.kmType }
         )
+
         isWildcard -> (upperBound ?: lowerBound)?.kmType ?: KotlinType.any
         else -> classOf(concreteClass)
     }
@@ -888,6 +961,7 @@ inline fun <reified T> classOf(): KmType =
     classOf(T::class.java)
 
 
+@Suppress("FunctionParameterNaming")
 private
 fun classOf(`class`: Class<*>) =
     classOf(`class`.internalName)
@@ -904,6 +978,7 @@ fun kotlinNameOf(className: InternalName) = className.run {
         value.startsWith("kotlin/jvm/functions/") -> {
             "kotlin/" + value.substringAfter("kotlin/jvm/functions/")
         }
+
         else -> {
             kotlinPrimitiveTypes[value] ?: value.replace('$', '.')
         }

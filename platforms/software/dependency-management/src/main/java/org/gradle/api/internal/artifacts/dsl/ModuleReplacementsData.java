@@ -42,7 +42,7 @@ public interface ModuleReplacementsData {
         private final ModuleIdentifier target;
         private final String reason;
 
-        Replacement(ModuleIdentifier target, String reason) {
+        Replacement(ModuleIdentifier target, @Nullable String reason) {
             this.target = target;
             this.reason = reason;
         }
@@ -51,6 +51,7 @@ public interface ModuleReplacementsData {
             return target;
         }
 
+        @Nullable
         public String getReason() {
             return reason;
         }

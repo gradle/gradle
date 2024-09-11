@@ -18,9 +18,9 @@ package org.gradle.internal.management;
 
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.internal.FinalizableValue;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ToolchainManagementInternal extends ToolchainManagement, FinalizableValue {
 }

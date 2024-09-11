@@ -1,5 +1,5 @@
 plugins {
-    id('com.android.application') version '7.3.0'
+    id('com.android.application') version '8.3.0'
 }
 
 repositories {
@@ -11,6 +11,7 @@ android {
     compileSdkVersion 30
     defaultConfig {
         applicationId 'org.gradle.samples'
+        namespace 'org.gradle.samples'
         minSdkVersion 16
         targetSdkVersion 30
         versionCode 1

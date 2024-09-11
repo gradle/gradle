@@ -20,9 +20,13 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.file.FileSystemLocationPropertyInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
@@ -40,7 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 @SuppressWarnings({"deprecation", "FieldNamingConvention"})
 public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
@@ -73,15 +77,16 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
             // Java bean to Property where old code uses ConventionMapping to set conventions.
             Class<? extends IConventionAware> sourceType = _source.getClass();
             Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
-            if (getter != null && (Property.class.isAssignableFrom(getter.getReturnType()) || SupportsConvention.class.isAssignableFrom(getter.getReturnType()))) {
-                Object target;
+            if (getter != null && SupportsConvention.class.isAssignableFrom(getter.getReturnType())) {
+                SupportsConvention target;
                 try {
                     target = Cast.uncheckedNonnullCast(getter.invoke(_source));
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
                 }
                 if (!mapConventionOn(target, mapping)) {
-                    throw new IllegalStateException(String.format("Unexpected convention-supporting type used in property %s.%s", sourceType.getSimpleName(), propertyName, getter.getReturnType().getName()));
+                    throw new IllegalStateException(String.format(
+                        "Unexpected convention-supporting type %s used in property %s.%s", getter.getReturnType().getName(), sourceType.getSimpleName(), propertyName));
                 }
             } else {
                 throw DocumentedFailure.builder()
@@ -95,10 +100,20 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         return mapping;
     }
 
-    private boolean mapConventionOn(Object target, MappedPropertyImpl mapping) {
-        if (target instanceof Property) {
+    private boolean mapConventionOn(SupportsConvention target, MappedPropertyImpl mapping) {
+        if (target instanceof FileSystemLocationProperty) {
+            FileSystemLocationPropertyInternal<?> asFileSystemLocationProperty = Cast.uncheckedNonnullCast(target);
+            asFileSystemLocationProperty.conventionFromAnyFile(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+        } else if (target instanceof Property) {
             Property<Object> asProperty = Cast.uncheckedNonnullCast(target);
             asProperty.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+        } else if (target instanceof MapProperty) {
+            MapProperty<Object, Object> asMapProperty = Cast.uncheckedNonnullCast(target);
+            DefaultProvider<Map<Object, Object>> convention = new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source)));
+            asMapProperty.convention(convention);
+        } else if (target instanceof HasMultipleValues) {
+            HasMultipleValues<Object> asCollectionProperty = Cast.uncheckedNonnullCast(target);
+            asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source))));
         } else if (target instanceof ConfigurableFileCollection) {
             ConfigurableFileCollection asFileCollection = Cast.uncheckedNonnullCast(target);
             asFileCollection.convention((Callable) () -> mapping.getValue(_convention, _source));

@@ -50,7 +50,7 @@ import java.util.Set;
  */
 public class HttpBuildCacheService implements BuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
-    static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v1";
+    static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v2";
 
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
         HttpStatus.SC_USE_PROXY,

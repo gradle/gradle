@@ -17,32 +17,17 @@
 package org.gradle.plugins.ide.tooling.r30
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion('>=3.0')
 class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile << 'rootProject.name = "root"'
-    }
-
-    @TargetGradleVersion(">=2.6 <3.0")
-    def "Old versions throw runtime exception when querying classpath containers"() {
-        when:
-        EclipseProject project = loadToolingModel(EclipseProject)
-        project.getClasspathContainers()
-
-        then:
-        thrown UnsupportedMethodException
     }
 
     def "Project has no classpath containers"() {

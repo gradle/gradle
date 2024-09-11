@@ -102,4 +102,9 @@ class TestEventLoggerTest extends Specification {
         then:
         !textOutputFactory.toString().contains("formatted exception")
     }
+
+    def "allows empty event set"() {
+        expect:
+        testLogging.setEvents(Collections.emptySet())
+    }
 }

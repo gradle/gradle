@@ -64,7 +64,7 @@ import java.util.Set;
  *                       {
  *                           "module" : "group:name"
  *                           "name" : "...",
- *                           "resolvable" : true|false,
+ *                           "resolvable" : "FAILED" | "RESOLVED" | "RESOLVED_CONSTRAINT" | "UNRESOLVED",
  *                           "alreadyRendered" : true|false
  *                           "hasConflict" : true|false
  *                           "children" : [
@@ -80,7 +80,7 @@ import java.util.Set;
  *                               {
  *                                   "name" : "...",
  *                                   "description" : "...",
- *                                   "resolvable" : true|false,
+ *                                   "resolvable" : "FAILED" | "RESOLVED" | "RESOLVED_CONSTRAINT" | "UNRESOLVED",
  *                                   "hasConflict" : true|false,
  *                                   "children": [
  *                                       {

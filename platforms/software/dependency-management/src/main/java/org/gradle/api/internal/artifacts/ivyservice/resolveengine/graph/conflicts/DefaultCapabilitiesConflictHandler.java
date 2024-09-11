@@ -41,9 +41,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
-    private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(3);
+    private final List<Resolver> resolvers;
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = new HashMap<>();
     private final Deque<CapabilityConflict> conflicts = new ArrayDeque<>();
+
+    public DefaultCapabilitiesConflictHandler(List<Resolver> resolvers) {
+        this.resolvers = resolvers;
+    }
 
     @Override
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
@@ -128,11 +132,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     @Override
-    public void registerResolver(Resolver conflictResolver) {
-        resolvers.add(conflictResolver);
-    }
-
-    @Override
     public boolean hasSeenCapability(Capability capability) {
         return capabilityWithoutVersionToNodes.containsKey(((CapabilityInternal) capability).getCapabilityId());
     }
@@ -210,7 +209,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
                             @Override
                             public String getVariantName() {
-                                return node.getResolvedConfigurationId().getConfiguration();
+                                return node.getMetadata().getName();
                             }
 
                             @Override

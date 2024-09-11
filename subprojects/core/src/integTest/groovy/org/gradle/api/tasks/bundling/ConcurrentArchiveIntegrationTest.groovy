@@ -18,6 +18,8 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -25,12 +27,15 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit zip archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
@@ -89,6 +94,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
     def "can visit and edit tar archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
@@ -144,6 +150,60 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/22685")
+    @ToBeFixedForIsolatedProjects(because = "Access to root project from sub projects")
+    def "can visit and edit zip archive differently from two different projects with the same name in different directories in a multiproject build"() {
+        given: "an archive in the root of a multiproject build"
+        createZip('test.zip') {
+            subdir1 {
+                file ('file1.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        settingsFile << """include ':lib', ':utils:lib'"""
+
+        and: "where each project edits that same archive differently via a visitor"
+        file('lib/build.gradle') << """
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
+            def theArchive = rootProject.file('test.zip')
+            tasks.register('update', UpdateTask) {
+                archive = theArchive
+                replacementText = 'modified by project1'
+            }
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = theArchive
+                beginsWith = 'modified by project1'
+            }
+        """
+
+        file('utils/lib/build.gradle') << """
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
+            def theArchive = rootProject.file('test.zip')
+            tasks.register('update', UpdateTask) {
+                archive = theArchive
+                replacementText = 'edited by project2'
+            }
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = theArchive
+                beginsWith = 'edited by project2'
+            }
+        """
+
+        when:
+        run 'verify'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':lib:update', ':utils:lib:update', ':lib:verify', ':utils:lib:verify')
     }
 
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
@@ -316,6 +376,110 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         server.stop()
     }
 
+    def "only one thread is allowed to extract the same archive at once"() {
+        given:
+        server.start()
+        createTar('test.tar') {
+            file ('file.txt').text = 'original text 1'
+        }
+        buildFile << """
+            task extract(type: Extract) {
+                archiveFile = file('test.tar')
+                destinationDir = file('build/extract')
+            }
+            interface ExtracterParameters extends WorkParameters {
+                RegularFileProperty getArchiveFile()
+                DirectoryProperty getDestinationDir()
+                Property<Integer> getIndex()
+            }
+            abstract class Extracter implements WorkAction<ExtracterParameters> {
+                @Inject
+                abstract FileSystemOperations getFileSystemOperations()
+
+                @Inject
+                abstract ArchiveOperations getArchiveOperations()
+
+                @Override
+                void execute() {
+                    // This synchronizes all extracters so they try to start at the same time
+                    ${server.callFromBuild("wait")}
+                    archiveOperations.tarTree(parameters.archiveFile).visit { fcd ->
+                        // This signals that the extraction has started. We're inside the lock at this point.
+                        ${server.callFromBuild("extract")}
+                        println "Extracting for thread " + parameters.index.get()
+                        fileSystemOperations.copy {
+                            from fcd.file
+                            into parameters.destinationDir
+                            // To make this more reliably fail when the lock is not held, the action needs to take some time
+                            Thread.sleep(1000)
+                        }
+                    }
+                }
+            }
+
+            abstract class Extract extends DefaultTask {
+                @InputFile
+                abstract RegularFileProperty getArchiveFile()
+                @OutputDirectory
+                abstract DirectoryProperty getDestinationDir()
+
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void extract() {
+                    3.times { int i ->
+                        workerExecutor.noIsolation().submit(Extracter) {
+                            archiveFile = this.getArchiveFile()
+                            destinationDir = this.getDestinationDir().dir("thread_" + i)
+                            index = i
+                        }
+                    }
+                }
+            }
+        """
+        when:
+        def waiting = server.expectConcurrentAndBlock(3, "wait", "wait", "wait")
+
+        def handle = executer.withTasks("extract").start()
+        // Wait for all extracters to be ready
+        waiting.waitForAllPendingCalls()
+
+        def firstExtracter = server.expectAndBlock("extract")
+        // release the extracters so they start trying to extract concurrently
+        waiting.releaseAll()
+        // wait for the first extracter to start extracting
+        firstExtracter.waitForAllPendingCalls()
+
+        // If we've made it here successfully, then no concurrent extracts have been seen
+        def secondExtracter = server.expectAndBlock("extract")
+        // release the first extracter so it can finish
+        firstExtracter.releaseAll()
+        // wait for the next one
+        secondExtracter.waitForAllPendingCalls()
+
+        // If we've made it here successfully, then no concurrent extracts have been seen
+        def lastExtracter = server.expectAndBlock("extract")
+        // release the second extracter so it can finish
+        secondExtracter.releaseAll()
+        // wait for the last one
+        lastExtracter.waitForAllPendingCalls()
+        // release the last one so it can finish
+        lastExtracter.releaseAll()
+
+        // wait for the build to finish
+        handle.waitForFinish()
+        then:
+        // we should have extracted the file into a different directory for each extracter
+        file("build/extract/thread_0/file.txt").assertExists()
+        file("build/extract/thread_1/file.txt").assertExists()
+        file("build/extract/thread_2/file.txt").assertExists()
+
+        cleanup:
+        handle?.abort()
+        server.stop()
+    }
+
     def "can operate on 2 different tar files in the same project"() {
         given: "2 archive files"
         createTar('test1.tar') {
@@ -434,6 +598,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "when two identical archives have the same hashes and same decompression cache entry is reused"() {
         given: "2 archive files"
         createTar('test1.tar') {
@@ -469,8 +634,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn tasks.named('update1'), tasks.named('update2')
                 doLast {
                     def cacheDir = file("build/tmp/.cache/expanded")
-                    assert cacheDir.list().size() == 2 // There should only be 2 files here, the .lock file and the single unzipped cache entry
-                    assert cacheDir.list().contains('expanded.lock')
+                    assert cacheDir.list().size() == 1 // There should only be 1 file here, the single unzipped cache entry
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
                         assert f.name.startsWith('tar_')
                     }

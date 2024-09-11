@@ -418,17 +418,9 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
         // Deprecation warnings assertion
-        repeat(4) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
         repeat(5) {
             executer.expectDocumentedDeprecationWarning(
-                "The Project.getConvention() method has been deprecated. " +
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"

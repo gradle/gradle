@@ -118,7 +118,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
 
     private static String echo(String s) {
         if (OperatingSystem.current.windows) {
-            return "'cmd.exe', '/c', 'echo $s'"
+            return "'cmd.exe', '/d', '/c', 'echo $s'"
         }
         return "'echo', '$s'"
     }

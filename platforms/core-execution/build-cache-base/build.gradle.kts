@@ -6,7 +6,13 @@ plugins {
 description = "Common shared build cache classes"
 
 dependencies {
-    api(project(":files"))
+    implementation(projects.stdlibJavaExtensions)
 
-    implementation(project(":base-annotations"))
+    api(projects.files)
+    api(projects.hashing)
+
+    testImplementation(testFixtures(projects.hashing))
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

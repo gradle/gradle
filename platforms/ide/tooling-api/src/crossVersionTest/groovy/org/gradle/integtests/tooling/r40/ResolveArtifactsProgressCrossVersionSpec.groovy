@@ -63,7 +63,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve ${expectedDisplayName('provider', 'jar', '1.0')} (test:provider:1.0)")
@@ -85,7 +85,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve ${expectedDisplayName('provider', 'jar', '1.0')} (test:provider:1.0)")
@@ -107,7 +107,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve ${expectedDisplayName('provider', 'jar', '1.0')} (test:provider:1.0)")
@@ -129,7 +129,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve ${expectedDisplayName('provider', 'jar', '1.0')} (test:provider:1.0)")
@@ -151,7 +151,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve ${expectedDisplayName('other', 'thing', '1.0')} (test:other:1.0)")
@@ -173,7 +173,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 1
         resolveArtifacts.child("Resolve ${expectedDisplayName('other', 'thing', '1.0')} (test:other:1.0)")
@@ -195,7 +195,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.size() == 0
     }
@@ -216,7 +216,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        def resolveArtifacts = events.operation('Resolve files of :configurationWithDependency')
+        def resolveArtifacts = events.operation(resolveConfigurationFiles(':configurationWithDependency'))
         resolveArtifacts.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveArtifacts.children.empty
     }
@@ -314,5 +314,13 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     MavenFileRepository getMavenRepo(String name = "repo") {
         return new MavenFileRepository(file(name))
+    }
+
+    private String resolveConfigurationFiles(String path) {
+        if (targetVersion.baseVersion >= GradleVersion.version("8.7")) {
+            return "Resolve files of configuration '" + path + "'"
+        } else {
+            return "Resolve files of " + path
+        }
     }
 }

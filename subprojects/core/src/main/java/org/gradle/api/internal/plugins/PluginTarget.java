@@ -21,6 +21,11 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 
 import javax.annotation.Nullable;
 
+/**
+ * Represents the target that a plugin should be applied to, such as a Gradle, Settings or Project object.
+ * This is used to apply a plugin to a target in a way that is appropriate for that target, such as adding
+ * additional functionality specific to the target or disallowing certain types of plugins to be applied.
+ */
 public interface PluginTarget {
 
     // Implementations should not wrap exceptions, this is done in DefaultObjectConfigurationAction
@@ -33,4 +38,5 @@ public interface PluginTarget {
 
     void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass);
 
+    default void applyModelDefaults(Plugin<?> plugin) { }
 }

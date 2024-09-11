@@ -25,8 +25,6 @@ import java.util.List;
  * Represents a list of aggregated problems. These are sent at the end of the build.
  * All Problems that occurred more than once during the build are aggregated and sent as a {@link ProblemAggregation}.
  * They won't be sent in between the build only the first one.
- * The aggregation happens based on the {@link ProblemCategory} and {@link Label}.
- * Therefore, the {@link ProblemCategory} and {@link Label} are the same for all aggregated problems and are also present in the this aggregation interface.
  *
  * @since 8.6
  */
@@ -34,27 +32,18 @@ import java.util.List;
 public interface ProblemAggregation {
 
     /**
-     * Returns the problem category that is common for all aggregated problems.
+     * Returns the definition of the problem.
      *
-     * @return the problem category
-     * @since 8.6
+     * @return the definition
+     * @since 8.9
      */
-    ProblemCategory getCategory();
-
-    /**
-     * Returns the problem label that is common for all aggregated problems.
-     *
-     * @return the problem label
-     * @since 8.6
-     */
-    Label getLabel();
+    ProblemDefinition getDefinition();
 
     /**
      * The list of aggregated problems.
      *
      * @return The list of aggregated problems.
-     * @since 8.6
+     * @since 8.8
      */
-    List<ProblemDescriptor> getProblemDescriptors();
-
+    List<ProblemContext> getProblemContext();
 }

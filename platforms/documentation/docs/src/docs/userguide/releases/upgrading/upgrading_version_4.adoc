@@ -50,7 +50,7 @@ In addition, Gradle has added several significant new and improved features that
 
  * <<#rel4.8:switch_to_publishing_plugins,Maven Publish and Ivy Publish Plugins>> that now support digital signatures with the <<signing_plugin#signing_plugin,Signing Plugin>>.
  * Use native <<#rel5.0:bom_import,BOM import>> in your builds.
- * The <<custom_tasks.adoc#worker_api,Worker API>> for enabling units of work to run in parallel.
+ * The <<worker_api.adoc#worker_api,Worker API>> for enabling units of work to run in parallel.
  * A new API for <<#rel4.9:lazy_task_creation,creating and configuring tasks lazily>> that can significantly improve your build's configuration time.
 
 Other notable changes to be aware of that may break your build include:
@@ -154,7 +154,7 @@ Tasks & properties::
  * The internal `@Option` and `@OptionValues` annotations — package `org.gradle.api.internal.tasks.options` — have been removed. Use the public link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[@OptionValues] annotations instead.
  * The `Task.deleteAllActions()` method has been removed with no replacement.
  * The `Task.dependsOnTaskDidWork()` method has been removed — use <<incremental_build.adoc#incremental_build,declared inputs and outputs>> instead.
- * The following properties and methods of `TaskInternal` have been removed — use task dependencies, task rules, reusable utility methods, or the <<custom_tasks.adoc#worker_api,Worker API>> in place of executing a task directly.
+ * The following properties and methods of `TaskInternal` have been removed — use task dependencies, task rules, reusable utility methods, or the <<worker_api.adoc#worker_api,Worker API>> in place of executing a task directly.
  ** `execute()`
  ** `executer`
  ** `getValidators()`
@@ -371,7 +371,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 [[changes_4.1]]
 == Upgrading from 4.0
 
- * Consider using the new <<custom_tasks.adoc#worker_api,Worker API>> to enable units of work within your build to run in parallel.
+ * Consider using the new <<worker_api.adoc#worker_api,Worker API>> to enable units of work within your build to run in parallel.
 
 === Deprecated classes, methods and properties
 
@@ -381,7 +381,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency.
 For example: `project(path: ':myJavaProject', configuration: 'default')`.
@@ -715,7 +715,7 @@ Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAc
 }
 ----
 
-See <<declaring_repositories.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<declaring_repositories_adv.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration

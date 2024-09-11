@@ -89,7 +89,9 @@ abstract class ShadedJar : DefaultTask() {
             if (!manifests.isEmpty) {
                 jarOutputStream.addJarEntry(JarFile.MANIFEST_NAME, manifests.first())
             }
-            jarOutputStream.addJarEntry(BuildReceipt.buildReceiptLocation, buildReceiptFile.singleFile)
+            if (!buildReceiptFile.isEmpty) {
+                jarOutputStream.addJarEntry(BuildReceipt.buildReceiptLocation, buildReceiptFile.singleFile)
+            }
             relocatedClassesConfiguration.files.forEach { classesDir ->
                 val classesDirPath = classesDir.toPath()
                 classesDir.walk().filter {

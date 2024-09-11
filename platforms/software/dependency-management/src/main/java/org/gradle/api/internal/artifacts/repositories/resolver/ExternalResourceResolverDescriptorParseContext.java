@@ -84,7 +84,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
         ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getResult().iterator().next();
-        artifactResolver.resolveArtifact(artifactResolveState.getResolveMetadata(), artifactMetaData, artifactResolveResult);
+        artifactResolver.resolveArtifact(artifactResolveState.getArtifactMetadata(), artifactMetaData, artifactResolveResult);
         File file = artifactResolveResult.getResult().getFile();
         LocallyAvailableExternalResource resource = fileResourceRepository.resource(file);
         ComponentArtifactIdentifier id = artifactMetaData.getId();

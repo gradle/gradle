@@ -34,7 +34,6 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
     }
-
     @Nullable
     @Override
     public byte[] getExpectedContent() {

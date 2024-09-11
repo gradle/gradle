@@ -18,10 +18,10 @@ package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -249,6 +249,7 @@ public abstract class ModelType<T> {
         return wrapper.getRepresentation(false);
     }
 
+    @Override
     public String toString() {
         return wrapper.getRepresentation(true);
     }

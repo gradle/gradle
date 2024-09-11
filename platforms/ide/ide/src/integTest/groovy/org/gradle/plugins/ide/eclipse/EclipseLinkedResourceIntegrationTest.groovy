@@ -72,7 +72,7 @@ configure(project(":projectA")){
     def "can use linked resources and generate metadata twice"() {
         given:
         settingsFile.text = 'rootProject.name = "root"'
-        buildScript '''
+        buildFile '''
             plugins {
                 id 'eclipse'
             }

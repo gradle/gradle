@@ -21,7 +21,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Immutable metadata for a component variant instance that is used to perform dependency graph resolution.
@@ -32,17 +31,15 @@ import java.util.Set;
 public interface VariantGraphResolveMetadata extends HasAttributes {
     /**
      * Returns the name for this variant, which is unique for the variants of its owning component.
+     *
+     * In general, this method should be avoided. The internal engine should not need to know the name of a node and
+     * should instead identify nodes based on their integer node ID. This method should only be used for
+     * diagnostics/reporting and for implementing existing public API methods that require this field.
      */
     String getName();
 
+    @Override
     ImmutableAttributes getAttributes();
-
-    /**
-     * Returns the "sub variants" of this variant.
-     *
-     * <p>This concept should disappear.</p>
-     */
-    Set<? extends Subvariant> getVariants();
 
     List<? extends DependencyMetadata> getDependencies();
 
@@ -54,11 +51,10 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
 
     boolean isExternalVariant();
 
-    interface Subvariant {
-        String getName();
-
-        ImmutableAttributes getAttributes();
-
-        ImmutableCapabilities getCapabilities();
+    /**
+     * Returns true if this variant is deprecated and consuming it in a dependency graph should emit a warning. False otherwise.
+     */
+    default boolean isDeprecated() {
+        return false;
     }
 }

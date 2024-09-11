@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 
 public interface TypeAnnotationMetadata {
     /**
@@ -39,4 +40,9 @@ public interface TypeAnnotationMetadata {
     ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata();
 
     void visitValidationFailures(TypeValidationContext validationContext);
+
+    /**
+     * Retrieves the annotation of the given type, if present on the type itself.
+     */
+    <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType);
 }

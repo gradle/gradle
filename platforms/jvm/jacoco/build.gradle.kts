@@ -1,51 +1,62 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Plugin and integration with JaCoCo code coverage"
 
+errorprone {
+    disabledChecks.addAll(
+        "ReferenceEquality", // 3 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":language-jvm"))
-    implementation(project(":platform-base"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":plugins"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":reporting"))
-    implementation(project(":file-collections"))
-    implementation(project(":plugins-jvm-test-suite"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileOperations)
+    api(projects.platformJvm)
+    api(projects.reporting)
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.loggingApi)
+    implementation(projects.modelCore)
+    implementation(projects.platformBase)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.processServices)
+    implementation(projects.serviceLookup)
+    implementation(projects.testSuitesBase)
+    implementation(projects.testingJvm)
+
     implementation(libs.commonsLang)
-    implementation(libs.inject)
+    implementation(libs.guava)
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.internalIntegTesting)
+
     testFixturesImplementation(libs.jsoup)
     testFixturesImplementation(libs.groovyXml)
 
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":resources"))
-    testImplementation(project(":internal-integ-testing"))
-    testImplementation(project(":language-java"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.internalTesting)
+    testImplementation(projects.resources)
+    testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.languageJava)
+    testImplementation(testFixtures(projects.core))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {
@@ -55,4 +66,7 @@ strictCompile {
 packageCycles {
     excludePatterns.add("org/gradle/internal/jacoco/*")
     excludePatterns.add("org/gradle/testing/jacoco/plugins/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

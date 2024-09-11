@@ -22,8 +22,10 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.io.File;
 
@@ -32,7 +34,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final GradleUserHomeDirProvider userHomeDirProvider;
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final UsedGradleVersions usedGradleVersions;
-    private final ProgressLoggerFactory progressLoggerFactory;
+    private final BuildOperationRunner buildOperationRunner;
     private final CacheConfigurationsInternal cacheConfigurations;
     private boolean alreadyCleaned;
 
@@ -41,14 +43,14 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GradleUserHomeDirProvider userHomeDirProvider,
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         UsedGradleVersions usedGradleVersions,
-        ProgressLoggerFactory progressLoggerFactory,
+        BuildOperationRunner buildOperationRunner,
         CacheConfigurationsInternal cacheConfigurations
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.usedGradleVersions = usedGradleVersions;
-        this.progressLoggerFactory = progressLoggerFactory;
+        this.buildOperationRunner = buildOperationRunner;
         this.cacheConfigurations = cacheConfigurations;
     }
 
@@ -77,15 +79,16 @@ public class GradleUserHomeCleanupService implements Stoppable {
     }
 
     private boolean execute(MonitoredCleanupAction action) {
-        ProgressLogger progressLogger = startNewOperation(action.getClass(), action.getDisplayName());
-        try {
-            return action.execute(new DefaultCleanupProgressMonitor(progressLogger));
-        } finally {
-            progressLogger.completed();
-        }
-    }
+        return buildOperationRunner.call(new CallableBuildOperation<Boolean>() {
+            @Override
+            public Boolean call(BuildOperationContext context) throws Exception {
+                return action.execute(new DefaultCleanupProgressMonitor(context));
+            }
 
-    private ProgressLogger startNewOperation(Class<?> loggerClass, String description) {
-        return progressLoggerFactory.newOperation(loggerClass).start(description, description);
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(action.getDisplayName());
+            }
+        });
     }
 }

@@ -42,6 +42,45 @@ class ProjectCacheDirIntegrationTest extends AbstractIntegrationSpec implements 
         getGcFile(currentCacheDir).assertExists()
     }
 
+    def "do not create default path if project-cache-dir has been specified"() {
+        given:
+        def defaultProjectCacheDir = file(".gradle")
+        def projectCacheDir = file("project-cache-dir")
+
+        // Make sure buildSrc is built
+        file("buildSrc/build.gradle").touch()
+
+        settingsFile << """
+            includeBuild('included')
+        """
+        buildFile << """
+            task doIt {
+                dependsOn gradle.includedBuild("included").task(":doIt")
+                doLast {
+                    println "Hello from root"
+                }
+            }
+        """
+        file("included/settings.gradle") << """
+            rootProject.name = "included"
+        """
+        file("included/build.gradle") << """
+            task doIt {
+                doLast {
+                    println "Hello from included"
+                }
+            }
+        """
+
+        when:
+        succeeds("doIt", "--project-cache-dir", projectCacheDir.name)
+
+        then:
+        result.assertTasksExecuted(":buildSrc:classes", ":buildSrc:compileGroovy", ":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:processResources", ":doIt", ":included:doIt")
+        projectCacheDir.assertExists()
+        defaultProjectCacheDir.assertDoesNotExist()
+    }
+
     @Override
     TestFile getCachesDir() {
         testDirectory.file(".gradle")

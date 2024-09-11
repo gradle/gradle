@@ -28,7 +28,7 @@ class HelpTasksPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "can fetch tasks during configuration - #task"() {
         when:
-        buildScript """
+        buildFile """
             assert tasks.names.contains("$task")
             tasks.findByName "$task"
         """

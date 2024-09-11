@@ -138,7 +138,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     }
 
     def "reuses cached resource if it has not expired"() {
-        def location = new ExternalResourceName("scheme:thing")
+        def location = new ExternalResourceName("thing")
         def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def metaData = Mock(ExternalResourceMetaData)
@@ -152,7 +152,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         result == resultResource
 
         and:
-        1 * index.lookup("scheme:thing") >> cachedResource
+        1 * index.lookup("thing") >> cachedResource
         _ * timeProvider.currentTime >> 24000L
         _ * cachedResource.cachedAt >> 24000L
         _ * cachedResource.cachedFile >> cachedFile

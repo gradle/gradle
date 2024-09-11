@@ -86,6 +86,17 @@ The CodeNarc plugin adds the following dependency configurations:
 | The CodeNarc libraries to use
 |===
 
+[NOTE]
+====
+If CodeNarc requires a different Groovy version than that used to compile Groovy source,  you can supply one using the `codenarc` configuration.
+====
+
+.Specifying the Groovy version
+====
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=specify-groovy-version]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=specify-groovy-version]"]
+====
+
 
 [[sec:codenarc_configuration]]
 == Configuration

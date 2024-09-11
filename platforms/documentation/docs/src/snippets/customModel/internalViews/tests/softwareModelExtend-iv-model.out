@@ -135,6 +135,12 @@ Root project 'internal-view'
           | Creator: 	Project.<init>.tasks.tasks()
           | Rules:
              ⤷ copyToTaskContainer
+    + updateDaemonJvm
+          | Type:   	org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
+          | Value:  	task ':updateDaemonJvm'
+          | Creator: 	Project.<init>.tasks.updateDaemonJvm()
+          | Rules:
+             ⤷ copyToTaskContainer
     + wrapper
           | Type:   	org.gradle.api.tasks.wrapper.Wrapper
           | Value:  	task ':wrapper'

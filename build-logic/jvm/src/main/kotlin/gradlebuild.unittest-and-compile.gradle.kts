@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionExtension
-import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
-import com.gradle.enterprise.gradleplugin.testretry.retry
-import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
-import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
+import com.gradle.develocity.agent.gradle.internal.test.PredictiveTestSelectionConfigurationInternal
+import com.gradle.develocity.agent.gradle.internal.test.TestDistributionConfigurationInternal
+import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
-import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
+import gradlebuild.basics.buildRunningOnCi
+import gradlebuild.basics.testDistributionDogfoodingTag
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testDistributionServerUrl
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
 import gradlebuild.basics.testing.excludeSpockAnnotation
@@ -81,7 +82,7 @@ fun configureSourcesVariant() {
         withSourcesJar()
     }
 
-    @Suppress("unused_variable")
+    @Suppress("UnusedPrivateProperty")
     val transitiveSourcesElements by configurations.creating {
         isCanBeResolved = false
         isCanBeConsumed = true
@@ -102,7 +103,7 @@ fun configureSourcesVariant() {
             outgoing.artifact(it)
         }
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
-            main.kotlin.srcDirs.forEach {
+            kotlinMainSourceSet.srcDirs.forEach {
                 outgoing.artifact(it)
             }
         }
@@ -131,7 +132,7 @@ fun addDependencies() {
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
-        testImplementation(libs.gradleEnterpriseTestAnnotation)
+        testImplementation(libs.develocityTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -141,10 +142,10 @@ fun addDependencies() {
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
         configurations["testRuntimeClasspath"].extendsFrom(platformImplementation)
-        platformImplementation.withDependencies {
-            // use 'withDependencies' to not attempt to find platform project during script compilation
-            add(project.dependencies.create(platform(project(":distributions-dependencies"))))
-        }
+        // use lazy API to not attempt to find platform project during script compilation
+        platformImplementation.dependencies.addLater(provider {
+            project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
+        })
     }
 }
 
@@ -252,15 +253,12 @@ fun configureTests() {
 
         configureJvmForTest()
         addOsAsInputs()
+        configureRerun()
 
         if (BuildEnvironment.isCiServer) {
-            configureRerun()
-            retry {
+            develocity.testRetry {
                 maxRetries.convention(determineMaxRetries())
                 maxFailures = determineMaxFailures()
-            }
-            doFirst {
-                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
             }
         }
 
@@ -268,36 +266,27 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
-        extensions.findByType<TestDistributionExtension>()?.apply {
-            this as TestDistributionExtensionInternal
-            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-            server = uri("https://ge-td-dogfooding.grdev.net")
+        extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
+            this as TestDistributionConfigurationInternal
+            server = uri(testDistributionServerUrl.orElse("https://ge.gradle.org"))
 
-            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
                 }
-                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
-                distribution.maxLocalExecutors = project.maxTestDistributionLocalExecutors
+                maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
+                maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
-                // Test distribution annotation-class filters
-                // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
-                localOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
-                }
-                remoteOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
-                }
-
+                val dogfoodingTag = testDistributionDogfoodingTag.getOrElse("gbt-dogfooding")
                 if (BuildEnvironment.isCiServer) {
                     when {
-                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding")
-                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding")
-                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding")
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", dogfoodingTag)
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", dogfoodingTag)
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", dogfoodingTag)
                     }
                 } else {
-                    requirements = listOf("gbt-dogfooding")
+                    requirements = listOf(dogfoodingTag)
                 }
             }
         }
@@ -306,8 +295,8 @@ fun configureTests() {
             // GitHub actions for contributor PRs uses public build scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
-            extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
-                this as PredictiveTestSelectionExtensionInternal
+            extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
+                this as PredictiveTestSelectionConfigurationInternal
                 server = uri("https://ge.gradle.org")
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
@@ -317,13 +306,17 @@ fun configureTests() {
 
 fun removeTeamcityTempProperty() {
     // Undo: https://github.com/JetBrains/teamcity-gradle/blob/e1dc98db0505748df7bea2e61b5ee3a3ba9933db/gradle-runner-agent/src/main/scripts/init.gradle#L818
-    if (project.hasProperty("teamcity")) {
+    if (project.buildRunningOnCi.get() && project.hasProperty("teamcity")) {
         @Suppress("UNCHECKED_CAST") val teamcity = project.property("teamcity") as MutableMap<String, Any>
         teamcity["teamcity.build.tempDir"] = ""
     }
 }
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
+
+fun Project.isNativeProject() = name.contains("native")
+
+fun Project.isKotlinDslToolingBuilders() = name.contains("kotlin-dsl-tooling-builders")
 
 /**
  * Whether the project supports running with predictive test selection.
@@ -332,7 +325,7 @@ fun Project.isPerformanceProject() = setOf("build-scan-performance", "performanc
  * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
  * When running on Windows with PTS, SimplifiedKotlinScriptEvaluatorTest fails. See https://github.com/gradle/gradle-private/issues/3615.
  */
-fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl").contains(name)
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl", "smoke-ide-test").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

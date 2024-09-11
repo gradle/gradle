@@ -138,9 +138,10 @@ class ApiTypeProvider internal constructor(
     }
 
     private
-    fun <T> open(action: () -> T): T =
-        if (closed) throw IllegalStateException("ApiTypeProvider closed!")
-        else action()
+    fun <T> open(action: () -> T): T {
+        check(!closed) { "ApiTypeProvider closed!" }
+        return action()
+    }
 
     internal
     class Context(
@@ -163,6 +164,10 @@ class ApiType internal constructor(
     private val delegateSupplier: () -> ClassNode,
     private val context: ApiTypeProvider.Context
 ) {
+
+    override fun toString(): String {
+        return binaryName
+    }
 
     internal
     val binaryName: String
@@ -223,6 +228,7 @@ class ApiType internal constructor(
             candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
         }
 
+        @Suppress("LoopWithTooManyJumpStatements")
         while (superTypeStack.isNotEmpty()) {
             val superTypeName = superTypeStack.pop()
 
@@ -311,7 +317,7 @@ class ApiFunction internal constructor(
 }
 
 
-data class ApiTypeUsage internal constructor(
+data class ApiTypeUsage(
     val sourceName: String,
     internal val isNullable: Boolean = false,
     val type: ApiType? = null,
@@ -352,7 +358,7 @@ enum class Variance {
 }
 
 
-data class ApiFunctionParameter internal constructor(
+data class ApiFunctionParameter(
     internal val index: Int,
     internal val isVarargs: Boolean,
     private val nameSupplier: () -> String?,

@@ -46,6 +46,6 @@ Use a settings plugin (`Plugin<Settings>`) to register the `JavaToolchainResolve
 ----
 include::{snippetsPath}/java/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverPlugin.java[tags=java-toolchain-resolver-plugin]
 ----
-<1> The plugin uses <<custom_gradle_types.adoc#property_injection,property injection>>, so it must be `abstract` and a settings plugin.
+<1> The plugin uses <<service_injection.adoc#property_injection,property injection>>, so it must be `abstract` and a settings plugin.
 <2> To register the resolver implementation, use property injection to access the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolverRegistry.html[JavaToolchainResolverRegistry] Gradle service.
 <3> Resolver plugins must apply the `jvm-toolchain-management` base plugin. This dynamically adds the `jvm` block to `toolchainManagement`, which makes registered toolchain repositories usable from the build.

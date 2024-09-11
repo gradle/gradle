@@ -20,26 +20,17 @@ import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 
 
-abstract class BuildEnvironmentExtension {
-    abstract val gitCommitId: Property<String>
-    abstract val gitBranch: Property<String>
-    abstract val repoRoot: DirectoryProperty
-}
-
-
 // `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
-fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
+fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension = extensions.getByType(BuildEnvironmentExtension::class.java)
 
+fun Project.getBuildEnvironmentExtensionOrNull(): BuildEnvironmentExtension? = extensions.findByType(BuildEnvironmentExtension::class.java)
 
-fun Project.repoRoot(): Directory = getBuildEnvironmentExtension()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
-
+fun Project.repoRoot(): Directory = getBuildEnvironmentExtensionOrNull()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
 
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this
@@ -47,7 +38,7 @@ fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.ex
     val parent = dir("..")
     when {
         parent.file("version.txt").asFile.exists() -> parent
-        this == parent -> throw IllegalStateException("Cannot find 'version.txt' file in root of repository")
+        this == parent -> error("Cannot find 'version.txt' file in root of repository")
         else -> parent.parentOrRoot()
     }
 }
@@ -59,26 +50,10 @@ fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
 /**
  * We use command line Git instead of JGit, because JGit's `Repository.resolve` does not work with worktrees.
  */
-fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
+fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitBranch ?: objects.property(String::class.java)
 
 
-fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitCommitId ?: objects.property(String::class.java)
-
-
-@Suppress("UnstableApiUsage")
-fun Project.git(vararg args: String): String {
-    val projectDir = layout.projectDirectory.asFile
-    val execOutput = providers.exec {
-        workingDir = projectDir
-        isIgnoreExitValue = true
-        commandLine = listOf("git", *args)
-        if (OperatingSystem.current().isWindows) {
-            commandLine = listOf("cmd", "/c") + commandLine
-        }
-    }
-    return if (execOutput.result.get().exitValue == 0) execOutput.standardOutput.asText.get().trim()
-    else "<unknown>" // It's a source distribution, we don't know.
-}
+fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitCommitId ?: objects.property(String::class.java)
 
 
 // pre-test/master/queue/alice/feature -> master
@@ -89,7 +64,13 @@ fun toMergeQueueBaseBranch(actualBranch: String): String = when {
     else -> actualBranch
 }
 
-
+/**
+ * The build environment.
+ *
+ * WARNING: Every val in here must not change for they same daemon. If it does, changes will go undetected,
+ *          since this whole object is kept in the classloader between builds.
+ *          Anything that changes must be in a val with a get() method that recomputes the value each time.
+ */
 object BuildEnvironment {
 
     /**
@@ -113,7 +94,8 @@ object BuildEnvironment {
     val isTravis = "TRAVIS" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
     val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
-    val isTeamCityParallelTestsEnabled = "TEAMCITY_PARALLEL_TESTS_ENABLED" in System.getenv()
+    val isTeamCityParallelTestsEnabled
+        get() = "TEAMCITY_PARALLEL_TESTS_ENABLED" in System.getenv()
     val isCodeQl: Boolean by lazy {
         // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
         // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.

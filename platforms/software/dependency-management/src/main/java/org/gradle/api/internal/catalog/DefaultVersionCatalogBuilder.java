@@ -40,10 +40,11 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
@@ -70,7 +71,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_REGEX;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ALIAS_NOT_FINISHED;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_ALIAS_NOTATION;
@@ -83,7 +84,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.U
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
@@ -166,6 +167,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return model.get();
     }
 
+    @Override
     public void withContext(String context, Runnable action) {
         String oldContext = currentContext;
         currentContext = intern(context);
@@ -212,14 +214,15 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return builder.label(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
-            .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
+        return builder.
+            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(message)
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }
 
     private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, Problem problem) {
-        throw throwErrorWithNewProblemsApi(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
+        throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 
     @Nonnull
@@ -390,7 +393,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                     throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().create(builder ->
                         configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
                             .details("Prefix for dependency shouldn't be equal to '" + prefix + "'")
-                            .solution("Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
+                            .solution("Use a different alias which prefix is not equal to " + quotedOxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
                 }
             }
         }
@@ -415,7 +418,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
     @Nonnull
     public static String getExcludedNames(Collection<String> reservedNames) {
-        String namesOrName = oxfordListOf(reservedNames, "or");
+        String namesOrName = quotedOxfordListOf(reservedNames, "or");
         if (reservedNames.size() == 1) {
             return namesOrName;
         }
@@ -483,7 +486,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                         .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {
-                        configurator.solution("Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
+                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
                     }
                 }));
             } else {
@@ -512,7 +515,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                         .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {
-                        configurator.solution("Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
+                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
                     }
                 }));
             } else {

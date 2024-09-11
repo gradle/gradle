@@ -17,20 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.IndexedCacheParameters;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import java.util.function.Supplier;
 
 /**
  * An implementation of an artifact cache manager which performs operations in a read-only
@@ -50,9 +48,8 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
             ArtifactCacheMetadata cacheMetaData) {
         cache = unscopedCacheBuilderFactory
             .cache(cacheMetaData.getCacheDir())
-            .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
             .withDisplayName("read only artifact cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything, it's read-only
+            .withInitialLockMode(FileLockManager.LockMode.None) // Don't need to lock anything, it's read-only
             .open();
     }
 
@@ -62,7 +59,7 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <T> T withFileLock(Factory<? extends T> action) {
+    public <T> T withFileLock(Supplier<? extends T> action) {
         return cache.withFileLock(action);
     }
 
@@ -72,7 +69,7 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <T> T useCache(Factory<? extends T> action) {
+    public <T> T useCache(Supplier<? extends T> action) {
         return cache.useCache(action);
     }
 

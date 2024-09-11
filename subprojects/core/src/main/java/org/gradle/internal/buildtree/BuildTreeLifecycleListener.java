@@ -17,10 +17,10 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 
-@EventScope(Scopes.BuildTree.class)
+@EventScope(Scope.BuildTree.class)
 @StatefulListener
 public interface BuildTreeLifecycleListener {
     /**

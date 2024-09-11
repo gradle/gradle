@@ -20,6 +20,7 @@ import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -320,7 +321,10 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         def result = succeeds("test", "integrationTest")
 
         then:
-        result.assertTaskOrder(":test", ":integrationTest")
+        // Task order is non-deterministic in CC
+        if (!GradleContextualExecuter.isConfigCache()) {
+            result.assertTaskOrder(":test", ":integrationTest")
+        }
 
         and:
         assertTestsRunCount(

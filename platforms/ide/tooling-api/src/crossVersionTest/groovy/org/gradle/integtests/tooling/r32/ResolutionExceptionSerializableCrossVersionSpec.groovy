@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.r32
 
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import spock.lang.Issue
 
@@ -67,7 +67,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @ToolingApiVersion(">=3.2")
     @TargetGradleVersion(">=3.2")
     def "serializes exception when dependencies aren't resolved"() {
         when:
@@ -83,7 +82,7 @@ dependencies {
 
         then:
         failure != null
-        failure.getClass().name in ['org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration$ArtifactResolveException', 'org.gradle.api.artifacts.ResolveException']
+        [failure.class.name, failure.class.superclass.name].contains("org.gradle.api.artifacts.ResolveException")
         failure.cause.toString().contains('Cannot resolve external dependency commons-lang:commons-lang:10.0-NOTEXISTS because no repositories are defined.')
     }
 }

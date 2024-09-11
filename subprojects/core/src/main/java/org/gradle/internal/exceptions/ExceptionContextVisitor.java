@@ -22,4 +22,14 @@ public abstract class ExceptionContextVisitor extends TreeVisitor<Throwable> {
     protected abstract void visitCause(Throwable cause);
 
     protected abstract void visitLocation(String location);
+
+    /**
+     * Should be called after each time this visitor has finished visiting.
+     *
+     * This method can be used to perform any cleanup or final processing related
+     * to the visitor's purpose.
+     */
+    protected void endVisiting() {
+        // default is no-op
+    }
 }

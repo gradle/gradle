@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValue;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -33,14 +33,13 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveRes
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final Map<String, ModuleComponentRepository<?>> repositories = new LinkedHashMap<>();
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final CalculatedValueFactory calculatedValueFactory;
 
-    RepositoryChainArtifactResolver(CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+    RepositoryChainArtifactResolver(CalculatedValueFactory calculatedValueFactory) {
+        this.calculatedValueFactory = calculatedValueFactory;
     }
 
     void add(ModuleComponentRepository<?> repository) {
@@ -51,9 +50,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
-        sourceRepository.getLocalAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
+        sourceRepository.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
+            sourceRepository.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
         }
     }
 
@@ -61,8 +60,8 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
-            CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), (Supplier<File>)() -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
-            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+            CalculatedValue<File> artifactSource = calculatedValueFactory.create(Describables.of(artifact.getId()), () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
+            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueFactory);
         });
 
         result.resolved(resolvableArtifact);
@@ -79,7 +78,10 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     }
 
     private ModuleComponentRepository<?> findSourceRepository(ModuleSources sources) {
-        RepositoryChainModuleSource repositoryChainModuleSource = sources.getSource(RepositoryChainModuleSource.class).get();
+        RepositoryChainModuleSource repositoryChainModuleSource =
+            sources.getSource(RepositoryChainModuleSource.class)
+                   .orElseThrow(() -> new IllegalArgumentException("No sources provided for artifact resolution"));
+
         ModuleComponentRepository<?> moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
         if (moduleVersionRepository == null) {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");

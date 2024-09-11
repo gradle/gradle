@@ -16,11 +16,12 @@
 
 package org.gradle.api.problems
 
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+
 class ReportingScript {
 
-    static String getProblemReportingScript(String taskActionMethodBody) {
+    static String getProblemReportingScript(@GroovyBuildScriptLanguage String taskActionMethodBody) {
         return """
-            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
 
             abstract class ProblemReportingTask extends DefaultTask {

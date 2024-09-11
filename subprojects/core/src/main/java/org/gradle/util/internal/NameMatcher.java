@@ -16,8 +16,12 @@
 package org.gradle.util.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.internal.jvm.Jvm;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -75,11 +79,12 @@ public class NameMatcher {
 
         Pattern camelCasePattern = getPatternForName(pattern);
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
-        String normalisedPattern = pattern.toUpperCase();
+        String normalisedPattern = pattern.toUpperCase(Locale.ROOT);
         Pattern kebabCasePattern = getKebabCasePatternForName(pattern);
         Pattern kebabCasePrefixPattern = Pattern.compile(kebabCasePattern.pattern() + "[\\p{javaLowerCase}\\p{Digit}-]*");
 
         Set<String> caseInsensitiveMatches = new TreeSet<>();
+        Set<String> caseInsensitivePrefixMatches = new TreeSet<>();
         Set<String> caseSensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> kebabCaseMatches = new TreeSet<>();
@@ -96,6 +101,10 @@ public class NameMatcher {
                 caseSensitiveCamelCaseMatches.add(candidate);
                 found = true;
             }
+            if (camelCasePattern.matcher(candidate).lookingAt()) {
+                caseInsensitivePrefixMatches.add(candidate);
+                found = true;
+            }
             if (normalisedCamelCasePattern.matcher(candidate).lookingAt()) {
                 caseInsensitiveCamelCaseMatches.add(candidate);
                 found = true;
@@ -108,7 +117,7 @@ public class NameMatcher {
                 kebabCasePrefixMatches.add(candidate);
                 found = true;
             }
-            if (!found && StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3, pattern.length() / 2)) {
+            if (!found && StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase(Locale.ROOT)) <= Math.min(3, pattern.length() / 2)) {
                 candidates.add(candidate);
             }
         }
@@ -117,6 +126,8 @@ public class NameMatcher {
             matches.addAll(caseInsensitiveMatches);
         } else if (!caseSensitiveCamelCaseMatches.isEmpty()) {
             matches.addAll(caseSensitiveCamelCaseMatches);
+        } else if (!caseInsensitivePrefixMatches.isEmpty()) {
+            matches.addAll(caseInsensitivePrefixMatches);
         } else if (kebabCaseMatches.isEmpty() && kebabCasePrefixMatches.isEmpty()) {
             matches.addAll(caseInsensitiveCamelCaseMatches);
         }
@@ -145,7 +156,20 @@ public class NameMatcher {
                 builder.append(Pattern.quote(prefix));
             }
             builder.append(Pattern.quote(matcher.group()));
-            builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
+            Integer currentJavaVersionMajor = Jvm.current().getJavaVersionMajor();
+            if (currentJavaVersionMajor != null && currentJavaVersionMajor >= 15) {
+                builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
+            } else {
+                // Manually extend character class instead of properties
+                // due to a known issue in regex below Java 15
+                // (https://bugs.openjdk.org/browse/JDK-8239887).
+                // \u00DF-\u00F6(ß-ö) - Covers extended Latin lowercase letters including German
+                //  Eszett and various accented characters.
+                // \u00F8-\u00FF(ø-ÿ) - Covers extended Latin lowercase letters including ø,
+                //  accented vowels, and the thorn.
+                // Note: this approach is not as comprehensive as properties.
+                builder.append("[a-z\\u00DF-\\u00F6\\u00F8-\\u00FF\\p{Digit}]*");
+            }
             pos = matcher.end();
         }
         builder.append(Pattern.quote(name.substring(pos)));
@@ -165,7 +189,7 @@ public class NameMatcher {
             if (pos > 0) {
                 builder.append('-');
             }
-            builder.append(Pattern.quote(matcher.group().toLowerCase()));
+            builder.append(Pattern.quote(matcher.group().toLowerCase(Locale.ROOT)));
             builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
             pos = matcher.end();
         }
@@ -204,5 +228,15 @@ public class NameMatcher {
             return String.format("%s '%s' not found in %s. Some candidates are: %s.", singularItemDescription, pattern, container, GUtil.toString(candidates));
         }
         return String.format("%s '%s' not found in %s.", singularItemDescription, pattern, container);
+    }
+
+    public void configureProblemId(ProblemSpec spec) {
+        if (!getMatches().isEmpty()) {
+            spec.id("ambiguous-matches", "Ambiguous matches", GradleCoreProblemGroup.taskSelection());
+        } else if (!getCandidates().isEmpty()) {
+            spec.id("no-matches", "No matches", GradleCoreProblemGroup.taskSelection());
+        } else {
+            spec.id("selection-failed", "Selection failed", GradleCoreProblemGroup.taskSelection());
+        }
     }
 }

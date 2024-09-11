@@ -26,22 +26,23 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.provider.Provider
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
@@ -51,12 +52,9 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
-    private ListenerManager listenerManager = Stub(ListenerManager.class) {
-        _ * getBroadcaster(ProjectDependencyObservedListener.class) >> Stub(ProjectDependencyObservedListener)
-    }
+    private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
+    private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
@@ -66,23 +64,20 @@ class DefaultConfigurationContainerTest extends Specification {
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
     private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
     }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> metadataBuilder
+        create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
-        metaDataProvider,
-        componentIdentifierFactory,
         lockingProvider,
-        domainObjectContext,
+        StandaloneDomainObjectContext.ANONYMOUS,
         TestFiles.fileCollectionFactory(),
-        buildOperationExecutor,
+        buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,
@@ -90,7 +85,8 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.taskDependencyFactory(),
         ),
         immutableAttributesFactory,
-        Stub(ResolveExceptionContextualizer),
+        Stub(ResolveExceptionMapper),
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
@@ -101,6 +97,9 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,
         callbackActionDecorator,
+        metaDataProvider,
+        StandaloneDomainObjectContext.ANONYMOUS,
+        EmptySchema.INSTANCE,
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)
@@ -442,7 +441,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def verifyLazyConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {
         producer.delegate = configurationContainer
-        def provider = producer()
+        Provider<?> provider = producer()
 
         assert provider.isPresent()
         assert provider.name == name

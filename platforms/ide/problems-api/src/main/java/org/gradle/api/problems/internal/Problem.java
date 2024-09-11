@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,31 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Severity;
-
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface for describing structured information about a problem.
  */
 public interface Problem {
-    /**
-     * Returns the problem category.
-     *
-     * @return the problem category.
-     */
-    ProblemCategory getCategory();
 
     /**
-     * The label of the problem.
-     * <p>
-     * Labels should be short and concise, so they fit approximately in a single line.
+     * Returns the problem definition, i.e. the data that is independent of the report context.
      */
-    String getLabel();
+    ProblemDefinition getDefinition();
+
+    /**
+     * Declares a short, but context-dependent message for this problem.
+     *
+     * @return the contextual label, or null if not available.
+     */
+    @Nullable
+    String getContextualLabel();
+
+    /**
+     * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
+     */
+    List<String> getSolutions();
 
     /**
      * A long description detailing the problem.
@@ -50,28 +52,9 @@ public interface Problem {
     String getDetails();
 
     /**
-     * Problem severity.
-     * <p>
-     * The severity of a problem is a hint to the user about how important the problem is.
-     * ERROR will fail the build, WARNING will not.
-     */
-    Severity getSeverity();
-
-    /**
      * Return the location data associated available for this problem.
      */
     List<ProblemLocation> getLocations();
-
-    /**
-     * A link to the documentation for this problem.
-     */
-    @Nullable
-    DocLink getDocumentationLink();
-
-    /**
-     * A list of possible solutions the user can try to fix the problem.
-     */
-    List<String> getSolutions();
 
     /**
      * The exception that caused the problem.
@@ -82,7 +65,13 @@ public interface Problem {
     /**
      * Additional data attached to the problem.
      * <p>
-     * The only supported value type is {@link String}.
+     * The supported types are listed on {@link AdditionalData}.
      */
-    Map<String, Object> getAdditionalData();
+    @Nullable
+    AdditionalData getAdditionalData();
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     */
+    InternalProblemBuilder toBuilder();
 }

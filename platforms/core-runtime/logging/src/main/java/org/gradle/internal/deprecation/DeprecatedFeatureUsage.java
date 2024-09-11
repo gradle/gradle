@@ -18,6 +18,7 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
@@ -31,6 +32,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final String advice;
     private final String contextualAdvice;
     private final DocLink documentation;
+    private final String problemIdDisplayName;
+    private final String problemId;
 
     private final Type type;
 
@@ -39,8 +42,10 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
-        DocLink documentation,
+        @Nullable DocLink documentation,
         Type type,
+        String problemIdDisplayName,
+        String problemId,
         Class<?> calledFrom
     ) {
         super(summary, calledFrom);
@@ -48,7 +53,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
         this.type = Preconditions.checkNotNull(type);
-        this.documentation = Preconditions.checkNotNull(documentation);
+        this.documentation = documentation;
+        this.problemIdDisplayName = problemIdDisplayName;
+        this.problemId = problemId;
     }
 
     @VisibleForTesting
@@ -59,6 +66,12 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.contextualAdvice = usage.contextualAdvice;
         this.documentation = usage.documentation;
         this.type = usage.type;
+        this.problemIdDisplayName = usage.problemIdDisplayName;
+        this.problemId = usage.problemId;
+    }
+
+    @Nullable public String getProblemId() {
+        return problemId;
     }
 
     /**
@@ -90,7 +103,19 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
          *
          * Example: deprecated CLI switch.
          */
-        BUILD_INVOCATION
+        BUILD_INVOCATION;
+
+        public DeprecationData.Type toDeprecationDataType() {
+            switch (this) {
+                case USER_CODE_DIRECT:
+                    return DeprecationData.Type.USER_CODE_DIRECT;
+                case USER_CODE_INDIRECT:
+                    return DeprecationData.Type.USER_CODE_INDIRECT;
+                case BUILD_INVOCATION:
+                    return DeprecationData.Type.BUILD_INVOCATION;
+            }
+            throw new IllegalStateException("Unknown deprecation type: " + this);
+        }
     }
 
     /**
@@ -126,9 +151,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
      * Link to documentation, describing how to migrate from this deprecated usage.
      *
      * Example: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes
-     *
-     * @since 6.2
      */
+    @Nullable
     public DocLink getDocumentationUrl() {
         return documentation;
     }
@@ -137,13 +161,19 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return type;
     }
 
+    public String getProblemIdDisplayName() {
+        return problemIdDisplayName;
+    }
+
     @Override
     public String formattedMessage() {
         StringBuilder outputBuilder = new StringBuilder(getSummary());
         append(outputBuilder, removalDetails);
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
-        append(outputBuilder, documentation.getConsultDocumentationMessage());
+        if (documentation != null) {
+            append(outputBuilder, documentation.getConsultDocumentationMessage());
+        }
         return outputBuilder.toString();
     }
 

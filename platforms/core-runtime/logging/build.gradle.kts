@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 description = "Logging infrastructure"
@@ -7,25 +8,32 @@ description = "Logging infrastructure"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":build-operations"))
-    api(project(":build-option"))
-    api(project(":cli"))
-    api(project(":enterprise-logging"))
-    api(project(":enterprise-workers"))
-    api(project(":logging-api"))
-    api(project(":messaging"))
-    api(project(":native"))
-    api(project(":problems-api"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.time)
+    api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.buildOption)
+    api(projects.cli)
+    api(projects.enterpriseLogging)
+    api(projects.enterpriseWorkers)
+    api(projects.loggingApi)
+    api(projects.native)
+    api(projects.problemsApi)
 
     api(libs.jansi)
     api(libs.jsr305)
     api(libs.slf4jApi)
 
+    implementation(projects.concurrent)
+    implementation(projects.io)
+    implementation(projects.messaging)
+    implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.errorProneAnnotations)
     implementation(libs.julToSlf4j)
-    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.guava)
@@ -36,22 +44,25 @@ dependencies {
     runtimeOnly(libs.jclToSlf4j)
     runtimeOnly(libs.log4jToSlf4j)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":testing-jvm")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.testingJvm))
     testImplementation(libs.groovyDatetime)
     testImplementation(libs.groovyDateUtil)
 
     integTestImplementation(libs.ansiControlSequenceUtil)
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":enterprise-workers"))
-    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.enterpriseWorkers)
+    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {
     excludePatterns.add("org/gradle/internal/featurelifecycle/**")
     excludePatterns.add("org/gradle/util/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

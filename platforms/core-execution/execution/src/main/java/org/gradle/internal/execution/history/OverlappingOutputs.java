@@ -33,6 +33,7 @@ public class OverlappingOutputs {
         return overlappedFilePath;
     }
 
+    @Override
     public String toString() {
         return String.format("output property '%s' with path '%s'", propertyName, overlappedFilePath);
     }

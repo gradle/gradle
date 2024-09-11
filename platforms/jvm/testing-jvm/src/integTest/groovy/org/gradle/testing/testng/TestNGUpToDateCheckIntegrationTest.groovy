@@ -45,7 +45,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def 'test task is up-to-date when #property is changed because it should not impact output'() {
         given:
-        buildScript """
+        buildFile """
             apply plugin: "java"
             ${mavenCentralRepository()}
             testing {
@@ -73,7 +73,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':test'
 
         when:
-        buildScript """
+        buildFile """
             apply plugin: "java"
             ${mavenCentralRepository()}
             testing {
@@ -101,22 +101,24 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         skipped ':test'
 
         where:
-        property              | modification
-        'suiteName'           | '= "Honeymoon Suite"'
-        'testName'            | '= "Turing completeness"'
-        'parallel'            | '= "methods"'
-        'threadCount'         | '= 2'
-        'listeners'           | '= ["org.testng.reporters.FailedReporter"]'
-        'useDefaultListeners' | '= true'
-        'configFailurePolicy' | '= "continue"'
-        'preserveOrder'       | '= true'
-        'groupByInstances'    | '= true'
+        property                 | modification
+        'suiteName'              | '= "Honeymoon Suite"'
+        'testName'               | '= "Turing completeness"'
+        'parallel'               | '= "methods"'
+        'threadCount'            | '= 2'
+        'suiteThreadPoolSize'    | '= 2'
+        'listeners'              | '= ["org.testng.reporters.FailedReporter"]'
+        'useDefaultListeners'    | '= true'
+        'threadPoolFactoryClass' | '= "some.Class"'
+        'configFailurePolicy'    | '= "continue"'
+        'preserveOrder'          | '= true'
+        'groupByInstances'       | '= true'
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #property is changed"() {
         given:
-        buildScript """
+        buildFile """
             apply plugin: "java"
             ${mavenCentralRepository()}
             testing {
@@ -144,7 +146,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':test'
 
         when:
-        buildScript """
+        buildFile """
             apply plugin: "java"
             ${mavenCentralRepository()}
             testing {

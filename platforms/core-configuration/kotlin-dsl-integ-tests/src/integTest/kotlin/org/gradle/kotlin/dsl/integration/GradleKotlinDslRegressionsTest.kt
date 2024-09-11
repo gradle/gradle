@@ -71,6 +71,10 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
             dependencies {
                 implementation(gradleKotlinDsl())
             }
+            tasks.withType<KotlinCompile>().configureEach {
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+            }
         """)
 
         withFile("src/main/kotlin/code.kt", """
@@ -90,7 +94,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
         result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
             it.assertHasCause("Compilation error. See log for more details")
         }
-        result.assertHasErrorOutput("src/main/kotlin/code.kt:7:25 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch")
+        result.assertHasErrorOutput("src/main/kotlin/code.kt:7:25 Unresolved reference 'set'.")
     }
 
     @Test
@@ -137,6 +141,8 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
                 implementation(gradleKotlinDsl())
             }
             tasks.withType<KotlinCompile>().configureEach {
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
                 compilerOptions.freeCompilerArgs.add("-Xjsr305=strict")
             }
         """)
@@ -156,7 +162,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
         result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
             it.assertHasCause("Compilation error. See log for more details")
         }
-        result.assertHasErrorOutput("src/main/kotlin/code.kt:6:48 Null can not be a value of a non-null type Nothing")
+        result.assertHasErrorOutput("src/main/kotlin/code.kt:6:48 Null cannot be a value of a non-null type '@Nullable() S & Any'.")
     }
 
     @Test

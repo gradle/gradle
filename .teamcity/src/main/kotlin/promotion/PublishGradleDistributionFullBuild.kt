@@ -21,7 +21,7 @@ import vcsroots.gradlePromotionMaster
 abstract class PublishGradleDistributionFullBuild(
     // The branch to be promoted
     promotedBranch: String,
-    prepTask: String,
+    prepTask: String? = null,
     promoteTask: String,
     triggerName: String,
     gitUserName: String = "bot-teamcity",
@@ -31,8 +31,19 @@ abstract class PublishGradleDistributionFullBuild(
 ) : BasePublishGradleDistribution(promotedBranch, prepTask, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
     init {
         steps {
-            buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, "uploadAll")
-            buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, promoteTask)
+            if (prepTask != null) {
+                buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, "uploadAll")
+                buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, promoteTask)
+            } else {
+                buildStep(
+                    listOf(extraParameters, "-PpromotedBranch=$promotedBranch").joinToString(separator = " "),
+                    gitUserName,
+                    gitUserEmail,
+                    triggerName,
+                    promoteTask,
+                    "",
+                )
+            }
         }
     }
 }

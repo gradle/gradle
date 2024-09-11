@@ -18,6 +18,7 @@ package org.gradle.api.problems
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
@@ -27,39 +28,6 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         enableProblemsApiCheck()
-    }
-
-    def "task is going to be implicitly added to the problem"() {
-        given:
-        buildFile """
-            import org.gradle.api.problems.internal.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.forNamespace("org.example.plugin").reporting {
-                        it.label("label")
-                        .category("type")
-                    }
-                }
-            }
-
-            tasks.register("reportProblem", ProblemReportingTask)
-            """
-
-        when:
-        run("reportProblem")
-
-        then:
-        collectedProblems.size() == 1
-        def problem = collectedProblems[0]
-        def locations = (problem["locations"] as Collection)
-        locations[0]["buildTreePath"] == ":reportProblem"
     }
 
     def "plugin id is going to be implicitly added to the problem"() {
@@ -81,9 +49,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
 
                 public void apply(Project project) {
                     getProblems().forNamespace("org.example.plugin").reporting(builder ->
-                        builder
-                            .label("label")
-                            .category("type")
+                        builder.id("type", "label")
                     );
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {
@@ -116,9 +82,6 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         run("reportProblem")
 
         then:
-        collectedProblems.size() == 1
-        def problem = collectedProblems[0]
-        def locations = (problem["locations"] as Collection)
-        locations[0]["pluginId"] == "test.plugin"
+        receivedProblem.oneLocation(PluginIdLocation).pluginId == "test.plugin"
     }
 }

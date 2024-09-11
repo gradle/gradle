@@ -16,17 +16,58 @@
 
 package org.gradle.internal.component;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
+import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
+import org.gradle.internal.deprecation.DeprecationLogger;
+
+import java.util.Collections;
+
 /**
  * This type is {@code deprecated} and will be removed in Gradle 9.0.
  *
  * This is temporarily available for migration only.
- * This exception class is internal and has been replaced by {@link AmbiguousArtifactVariantsException}, which is also internal.
+ * This exception class is internal and has been replaced by {@link ArtifactSelectionException}, which is also internal.
  * If possible, catch a {@link RuntimeException} instead to avoid depending on Gradle internal classes.
  */
-@SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
-public abstract class AmbiguousVariantSelectionException extends ArtifactVariantSelectionException {
+public abstract class AmbiguousVariantSelectionException extends ArtifactSelectionException {
+    private static final ArtifactSelectionFailure EMPTY_RESOLUTION_FAILURE = new ArtifactSelectionFailure() {
+        @Override
+        public ComponentIdentifier getTargetComponent() {
+            return () -> "empty component";
+        }
+
+        @Override
+        public String getTargetVariant() {
+            return "empty variant";
+        }
+
+        @Override
+        public ImmutableAttributes getRequestedAttributes() {
+            return ImmutableAttributes.EMPTY;
+        }
+
+        @Override
+        public String describeRequestTarget() {
+            return "empty target";
+        }
+
+        @Override
+        public ResolutionFailureProblemId getProblemId() {
+            return ResolutionFailureProblemId.UNKNOWN_RESOLUTION_FAILURE;
+        }
+    };
+
     public AmbiguousVariantSelectionException(String message) {
-        super(message);
+        super(message, EMPTY_RESOLUTION_FAILURE, Collections.emptyList());
+
+        DeprecationLogger.deprecateType(AmbiguousVariantSelectionException.class)
+            .withAdvice("The " + AmbiguousVariantSelectionException.class.getName() + " type is temporarily available for migration only.")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
     }
 }

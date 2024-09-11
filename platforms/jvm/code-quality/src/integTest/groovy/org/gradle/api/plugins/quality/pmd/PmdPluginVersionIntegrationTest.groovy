@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality.pmd
 
 
-import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -189,7 +188,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         assumeTrue(fileLockingIssuesSolved())
 
         customCode()
-        customRuleSet()
+        file("customRuleSet.xml") << customRuleSet()
 
         buildFile << """
             pmd {
@@ -209,7 +208,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         assumeTrue(fileLockingIssuesSolved())
 
         customCode()
-        customRuleSet()
+        file("customRuleSet.xml") << customRuleSet()
 
         buildFile << """
             pmd {
@@ -231,7 +230,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSetConfig = resources.text.fromString('''${customRuleSetText()}''')
+                ruleSetConfig = resources.text.fromString('''${customRuleSet()}''')
             }
         """
 
@@ -405,32 +404,5 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         // class that wouldn't fail default rule set but does fail custom rule set
         file("src/main/java/org/gradle/Class2.java") <<
             "package org.gradle; public class Class2 { public void doit() { boolean x = true; if (x) x = false; } }" // missing braces
-    }
-
-    private customRuleSet() {
-        file("customRuleSet.xml") << customRuleSetText()
-    }
-
-    private static customRuleSetText() {
-        String pathToRuleset = "category/java/codestyle.xml/ControlStatementBraces"
-        if (versionNumber < VersionNumber.version(5)) {
-            pathToRuleset = "rulesets/braces.xml"
-        } else if (versionNumber < VersionNumber.version(6)) {
-            pathToRuleset = "rulesets/java/braces.xml"
-        } else if (versionNumber < VersionNumber.version(6, 13)) {
-            pathToRuleset = "category/java/codestyle.xml/IfStmtsMustUseBraces"
-        }
-        """
-            <ruleset name="custom"
-                xmlns="http://pmd.sf.net/ruleset/1.0.0"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
-                xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
-
-                <description>Custom rule set</description>
-
-                <rule ref="${pathToRuleset}"/>
-            </ruleset>
-        """
     }
 }

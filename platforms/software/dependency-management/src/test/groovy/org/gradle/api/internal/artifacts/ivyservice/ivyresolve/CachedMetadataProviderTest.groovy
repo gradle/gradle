@@ -57,7 +57,7 @@ class CachedMetadataProviderTest extends Specification {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         cachedResult.metaData >> componentState
-        componentState.moduleResolveMetadata >> Mock(IvyModuleResolveMetadata)
+        componentState.legacyMetadata >> Mock(IvyModuleResolveMetadata)
         provider = new CachedMetadataProvider(cachedResult)
 
         expect:

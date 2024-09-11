@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * Represents, parses, and compares version numbers. Supports a couple of different schemes: <ul> <li>MAJOR.MINOR.MICRO-QUALIFIER (the default).</li> <li>MAJOR.MINOR.MICRO.PATCH-QUALIFIER.</li> </ul>
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
  * <p>Note that this class considers "1.2.3-something" less than "1.2.3". Qualifiers are compared lexicographically ("1.2.3-alpha" &lt; "1.2.3-beta") and case-insensitive ("1.2.3-alpha" &lt;
  * "1.2.3.RELEASE").
  *
- * <p>To check if a version number is at least "1.2.3", disregarding a potential qualifier like "beta", use {@code version.getBaseVersion().compareTo(VersionNumber.parse("1.2.3")) &gt;= 0}.
+ * <p>To check if a version number is at least "1.2.3", disregarding a potential qualifier like "beta", use {@code version.getBaseVersion().compareTo(VersionNumber.parse("1.2.3")) >= 0}.
  */
 public class VersionNumber implements Comparable<VersionNumber> {
     private static final DefaultScheme DEFAULT_SCHEME = new DefaultScheme();
@@ -151,8 +152,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     @Nullable
-    private String toLowerCase(@Nullable String string) {
-        return string == null ? null : string.toLowerCase();
+    private static String toLowerCase(@Nullable String string) {
+        return string == null ? null : string.toLowerCase(Locale.ROOT);
     }
 
     public interface Scheme {
@@ -175,15 +176,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
             }
             Scanner scanner = new Scanner(versionString);
 
-            int major = 0;
-            int minor = 0;
-            int micro = 0;
-            int patch = 0;
 
             if (!scanner.hasDigit()) {
                 return UNKNOWN;
             }
-            major = scanner.scanDigit();
+            int minor = 0;
+            int micro = 0;
+            int patch = 0;
+            int major = scanner.scanDigit();
             if (scanner.isSeparatorAndDigit('.')) {
                 scanner.skipSeparator();
                 minor = scanner.scanDigit();
@@ -227,8 +227,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
             private boolean oneOf(char... separators) {
                 char current = str.charAt(pos);
-                for (int i = 0; i < separators.length; i++) {
-                    char separator = separators[i];
+                for (char separator : separators) {
                     if (current == separator) {
                         return true;
                     }
@@ -264,28 +263,24 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     private static class DefaultScheme extends AbstractScheme {
-        private static final String VERSION_TEMPLATE = "%d.%d.%d%s";
-
         public DefaultScheme() {
             super(3);
         }
 
         @Override
         public String format(VersionNumber versionNumber) {
-            return String.format(VERSION_TEMPLATE, versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
+            return String.format("%d.%d.%d%s", versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
     }
 
     private static class SchemeWithPatchVersion extends AbstractScheme {
-        private static final String VERSION_TEMPLATE = "%d.%d.%d.%d%s";
-
         private SchemeWithPatchVersion() {
             super(4);
         }
 
         @Override
         public String format(VersionNumber versionNumber) {
-            return String.format(VERSION_TEMPLATE, versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.patch, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
+            return String.format("%d.%d.%d.%d%s", versionNumber.major, versionNumber.minor, versionNumber.micro, versionNumber.patch, versionNumber.qualifier == null ? "" : "-" + versionNumber.qualifier);
         }
     }
 

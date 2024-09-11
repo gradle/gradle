@@ -16,32 +16,15 @@
 
 package org.gradle.plugins.ide.tooling.r30
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelSourceDirectoryAccessRuleCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile << 'rootProject.name = "root"'
-    }
-
-    @TargetGradleVersion(">=2.6 <3.0")
-    def "Older versions throw runtime exception when querying access rules"() {
-        buildFile << "apply plugin: 'java'"
-        file('src/main/java').mkdirs()
-
-        when:
-        EclipseProject project = loadToolingModel(EclipseProject)
-        project.sourceDirectories.find {it.path == 'src/main/java' }.getAccessRules()
-
-        then:
-        thrown UnsupportedMethodException
     }
 
     def "Has no access rules"() {

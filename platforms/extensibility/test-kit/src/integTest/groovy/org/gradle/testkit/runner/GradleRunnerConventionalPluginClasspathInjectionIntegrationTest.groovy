@@ -53,12 +53,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         }
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        !execFailure(result).error.contains("Gradle TestKit (classpath:")
     }
 
     @InspectsBuildOutput
@@ -75,13 +70,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         }
 
         then:
-        execFailure(result).assertHasDescription("""
-            |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-            |
-            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Gradle TestKit (classpath: ${explicitClasspath*.absolutePath.join(File.pathSeparator)})
-            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
-        """.stripMargin().trim())
+        execFailure(result).assertHasErrorOutput("Gradle TestKit (classpath: ${explicitClasspath*.absolutePath.join(File.pathSeparator)})")
     }
 
     def "throws if conventional classpath is requested and metadata cannot be found"() {

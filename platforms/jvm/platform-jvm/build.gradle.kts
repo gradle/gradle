@@ -1,56 +1,59 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":functional"))
-    implementation(project(":dependency-management"))
-    implementation(project(":diagnostics"))
-    implementation(project(":execution"))
-    implementation(project(":file-collections"))
-    implementation(project(":jvm-services"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":native"))
-    implementation(project(":normalization-java"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":platform-base"))
-    implementation(project(":process-services"))
-    implementation(project(":publish"))
-    implementation(project(":resources"))
-    implementation(project(":enterprise-operations"))
+errorprone {
+    disabledChecks.addAll(
+        "StringCharset", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy)
+dependencies {
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.modelCore)
+    api(projects.platformBase)
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(projects.dependencyManagement)
+    implementation(projects.execution)
+    implementation(projects.fileOperations)
+    implementation(projects.functional)
+    implementation(projects.jvmServices)
+    implementation(projects.publish)
+    implementation(projects.serviceLookup)
+
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.inject)
-    implementation(libs.nativePlatform)
-    implementation(libs.futureKotlin("stdlib"))
 
-    testImplementation(project(":snapshots"))
+    testImplementation(projects.snapshots)
     testImplementation(libs.ant)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.diagnostics))
+    testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.platformNative))
 
-    integTestImplementation(project(":internal-integ-testing"))
+    integTestImplementation(projects.internalIntegTesting)
 
     integTestImplementation(libs.slf4jApi)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 strictCompile {
@@ -58,3 +61,6 @@ strictCompile {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

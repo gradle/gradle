@@ -161,7 +161,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
                 testImplementation 'junit:junit:4.13'
             }
             test {
-                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
         when:

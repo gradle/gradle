@@ -103,11 +103,6 @@ public class FreeListBlockStore implements BlockStore {
         store.flush();
     }
 
-    private void verify() {
-        FreeListBlock block = store.readFirst(FreeListBlock.class);
-        verify(block, Integer.MAX_VALUE);
-    }
-
     private void verify(FreeListBlock block, int maxValue) {
         if (block.largestInNextBlock > maxValue) {
             throw new RuntimeException("corrupt free list");

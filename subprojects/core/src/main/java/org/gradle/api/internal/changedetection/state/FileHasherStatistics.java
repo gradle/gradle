@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -30,6 +33,7 @@ public interface FileHasherStatistics {
      */
     long getHashedContentLength();
 
+    @ServiceScope(Scope.Global.class)
     class Collector {
         private final AtomicLong hashedFileCount = new AtomicLong();
         private final AtomicLong hashedContentLength = new AtomicLong();

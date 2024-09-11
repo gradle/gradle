@@ -16,20 +16,20 @@
 
 package org.gradle.internal.scripts;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import java.util.function.Supplier;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface ProjectScopedScriptResolution {
     ProjectScopedScriptResolution NO_OP = new ProjectScopedScriptResolution() {
         @Override
-        public <T> T resolveScriptsForProject(Path identityPath, Supplier<T> action) {
+        public <T> T resolveScriptsForProject(Path identityPath, Path buildPath, Path projectPath, Supplier<T> action) {
             return action.get();
         }
     };
 
-    <T> T resolveScriptsForProject(Path identityPath, Supplier<T> action);
+    <T> T resolveScriptsForProject(Path identityPath, Path buildPath, Path projectPath, Supplier<T> action);
 }

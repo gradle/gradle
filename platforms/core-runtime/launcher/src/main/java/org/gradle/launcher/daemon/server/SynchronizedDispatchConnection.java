@@ -78,6 +78,7 @@ public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable 
         delegate.stop();
     }
 
+    @Override
     public String toString() {
         return delegate.toString();
     }

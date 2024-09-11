@@ -17,7 +17,7 @@
 package org.gradle.workers;
 
 import org.gradle.api.Action;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -44,7 +44,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 3.5
  */
-@ServiceScope(Scopes.Project.class)
+@ServiceScope(Scope.Project.class)
 public interface WorkerExecutor {
 
     /**

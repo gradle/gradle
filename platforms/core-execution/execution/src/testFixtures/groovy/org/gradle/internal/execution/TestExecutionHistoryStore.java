@@ -45,6 +45,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     public void store(String key, AfterExecutionState executionState) {
         executionHistory.put(key, new DefaultPreviousExecutionState(
             executionState.getOriginMetadata(),
+            executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

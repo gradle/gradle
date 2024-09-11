@@ -43,6 +43,7 @@ import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -259,7 +260,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             cacheFactory
         )
         def propertyHandlers = services.getAll(PropertyAnnotationHandler)
-        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
         new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers).visitProperties(task, validationContext, visitor)
     }
 }

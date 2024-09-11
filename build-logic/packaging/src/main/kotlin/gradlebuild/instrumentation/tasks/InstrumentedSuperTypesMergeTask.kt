@@ -86,7 +86,8 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
             .filter { it.exists() }
             .forEach { file ->
                 val properties = Properties()
-                file.inputStream().use { properties.load(it) }
+                // Load properties with reader to use UTF_8 Charset
+                file.reader().use { reader -> properties.load(reader) }
                 properties.forEach { key, value ->
                     val className = key.toString()
                     val superTypeNames = value.toString().split(",")

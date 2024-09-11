@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -49,7 +48,7 @@ public class WorkerDaemonStarter {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
-    public WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction) {
+    public WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Time.startTimer();
         MultiRequestWorkerProcessBuilder<TransportableActionExecutionSpec, DefaultWorkResult> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonServer.class);
@@ -64,7 +63,6 @@ public class WorkerDaemonStarter {
         } else {
             builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
         }
-        builder.onProcessFailure(cleanupAction);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);
         builder.registerArgumentSerializer(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());

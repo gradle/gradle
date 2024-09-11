@@ -67,6 +67,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 '''
 
         when:
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         run taskName
 
         then:
@@ -229,13 +230,15 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Unable to find a matching variant of project :child:
+  - No variants exist.""")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        failure.assertHasCause("""Unable to find a matching variant of project :child:
+  - No variants exist.""")
 
         where:
         fluid << [true, false]
@@ -259,12 +262,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
         where:
@@ -297,14 +300,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
 
         module.pom.expectGetBroken()
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
     }

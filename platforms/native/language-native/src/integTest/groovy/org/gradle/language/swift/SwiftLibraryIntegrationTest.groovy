@@ -24,10 +24,12 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile and link tasks when no source"() {
         given:
@@ -76,6 +78,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleDebug")
         file("build/modules/main/debug/${lib.moduleName}.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertHasDebugSymbolsFor(lib.sourceFileNames)
 
         when:
         succeeds "assembleRelease"

@@ -15,32 +15,47 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ProjectConfigurer projectConfigurer;
+    private final BuildType buildType;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultProjectsPreparer(
         ProjectConfigurer projectConfigurer,
+        BuildType buildType,
         BuildModelParameters buildModelParameters,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationRunner buildOperationRunner
     ) {
         this.projectConfigurer = projectConfigurer;
+        this.buildType = buildType;
         this.buildModelParameters = buildModelParameters;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        if (!buildModelParameters.isConfigureOnDemand() || !gradle.isRootBuild()) {
-            projectConfigurer.configureHierarchy(gradle.getRootProject());
-            new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
+        if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
+            return;
         }
+
+        if (buildModelParameters.isIsolatedProjects()) {
+            if (buildType != BuildType.TASKS && gradle.isRootBuild()) {
+                // Keep it incremental if we are not running tasks
+                return;
+            }
+            projectConfigurer.configureHierarchyInParallel(gradle.getRootProject());
+        } else {
+            projectConfigurer.configureHierarchy(gradle.getRootProject());
+        }
+        new ProjectsEvaluatedNotifier(buildOperationRunner).notify(gradle);
     }
+
 }

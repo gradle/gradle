@@ -20,21 +20,22 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
@@ -50,8 +51,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
-    private ComponentIdentifierFactory componentIdentifierFactory = Mock()
-    private BuildOperationExecutor buildOperationExecutor = Mock()
+    private BuildOperationRunner buildOperationRunner = Mock()
     private DependencyLockingProvider dependencyLockingProvider = Mock()
     private ProjectStateRegistry projectStateRegistry = Mock()
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
@@ -66,21 +66,20 @@ class DefaultConfigurationContainerSpec extends Specification {
         getValidator() >> Mock(MutationValidator)
     }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> metadataBuilder
+        create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
         resolver,
         listenerManager,
-        metaDataProvider,
-        componentIdentifierFactory,
         dependencyLockingProvider,
         domainObjectContext,
         fileCollectionFactory,
-        buildOperationExecutor,
+        buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
         immutableAttributesFactory,
-        Stub(ResolveExceptionContextualizer),
+        Stub(ResolveExceptionMapper),
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
@@ -91,19 +90,22 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
         domainObjectCollectionCallbackActionDecorator,
+        metaDataProvider,
+        domainObjectContext,
+        EmptySchema.INSTANCE,
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)
     )
 
     def setup() {
-        metadataBuilder.withConfigurationsProvider(_) >> metadataBuilder
+        metadataBuilder.newBuilder(_, _) >> metadataBuilder
     }
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         when:
         def compile = configurationContainer.create("compile")
@@ -134,7 +136,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         when:
         def compile = configurationContainer.create("compile") {
@@ -150,7 +152,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "creates detached"() {
         given:
         1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")

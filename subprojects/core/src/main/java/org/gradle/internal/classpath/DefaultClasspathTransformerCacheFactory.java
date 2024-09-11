@@ -18,9 +18,8 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -35,7 +34,6 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("2.2")
@@ -52,10 +50,12 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
 
     private final UsedGradleVersions usedGradleVersions;
     private final CacheConfigurationsInternal cacheConfigurations;
+    private final CacheCleanupStrategyFactory cacheCleanupStrategyFactory;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations, CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         this.usedGradleVersions = usedGradleVersions;
         this.cacheConfigurations = cacheConfigurations;
+        this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
     }
 
     @Override
@@ -63,14 +63,13 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
         return cacheBuilderFactory
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
-        return DefaultCacheCleanupStrategy.from(
+        return cacheCleanupStrategyFactory.create(
             createCleanupAction(fileAccessTimeJournal),
             cacheConfigurations.getCleanupFrequency()::get
         );

@@ -21,6 +21,7 @@ import com.google.common.collect.Ordering;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
@@ -177,7 +178,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Nullable
     private String toLowerCase(@Nullable String string) {
-        return string == null ? null : string.toLowerCase();
+        return string == null ? null : string.toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -204,15 +205,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
             }
             Scanner scanner = new Scanner(versionString);
 
-            int major = 0;
-            int minor = 0;
-            int micro = 0;
-            int patch = 0;
 
             if (!scanner.hasDigit()) {
                 return UNKNOWN;
             }
-            major = scanner.scanDigit();
+            int minor = 0;
+            int micro = 0;
+            int patch = 0;
+            int major = scanner.scanDigit();
             if (scanner.isSeparatorAndDigit('.')) {
                 scanner.skipSeparator();
                 minor = scanner.scanDigit();

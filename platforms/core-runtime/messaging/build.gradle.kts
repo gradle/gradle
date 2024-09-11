@@ -7,23 +7,29 @@ description = "Implementation of messaging between Gradle processes"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":hashing"))
-    api(project(":base-services"))
+    api(projects.concurrent)
+    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
 
-    api(libs.fastutil)
     api(libs.jsr305)
     api(libs.slf4jApi)
 
-    implementation(project(":build-operations"))
+    implementation(projects.io)
+    implementation(projects.buildOperations)
 
     implementation(libs.guava)
-    implementation(libs.kryo)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(projects.serviceRegistryBuilder)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

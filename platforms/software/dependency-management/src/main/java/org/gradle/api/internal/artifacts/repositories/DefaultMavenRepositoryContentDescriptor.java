@@ -86,6 +86,8 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
         if (getRequiredAttributes() != null) {
             copy.setRequiredAttributes(Maps.newHashMap(getRequiredAttributes()));
         }
+        copy.releases = releases;
+        copy.snapshots = snapshots;
         return copy;
     }
 }

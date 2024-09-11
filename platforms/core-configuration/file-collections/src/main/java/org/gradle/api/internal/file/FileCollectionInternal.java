@@ -23,6 +23,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
@@ -59,6 +60,14 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
      * Appends diagnostic information about the contents of this collection to the given formatter.
      */
     TreeFormatter describeContents(TreeFormatter formatter);
+
+    /**
+     * Calculates the execution time value of this file collection. The resulting value is serialized to the configuration cache
+     * and deserialized at execution time, utilizing the logic encapsulated within the value.
+     */
+    default Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
+        return Optional.empty();
+    }
 
     /**
      * Some representation of a source of files.

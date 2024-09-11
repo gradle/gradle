@@ -88,7 +88,7 @@ class DocsTestProject(
     }
 }
 
-class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : BaseGradleBuildType(init = {
+class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : OsAwareBaseGradleBuildType(os = docsTestProject.os, init = {
     id("${asDocsTestId(model, docsTestProject.os)}_Trigger")
     name = docsTestProject.name + " (Trigger)"
     type = Type.COMPOSITE
@@ -117,7 +117,7 @@ class DocsTest(
     docsTestType: DocsTestType,
     testSplitType: TestSplitType,
     testClasses: List<String>,
-) : BaseGradleBuildType(stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = os, stage = stage, init = {
 
     id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
     name = "${docsTestType.docsTestDesc} - ${testJava.version.name.toCapitalized()} ${os.asName()} ($index)"

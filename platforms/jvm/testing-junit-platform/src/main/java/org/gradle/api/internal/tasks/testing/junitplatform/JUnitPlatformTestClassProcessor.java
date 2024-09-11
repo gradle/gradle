@@ -60,14 +60,19 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
-    JUnitPlatformSpec spec;
+    private final JUnitPlatformSpec spec;
+    private final IdGenerator<?> idGenerator;
+    private final Clock clock;
+
     private CollectAllTestClassesExecutor testClassExecutor;
     private BackwardsCompatibleLauncherSession launcherSession;
     private ClassLoader junitClassLoader;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
-        super(idGenerator, actorFactory, clock);
+        super(actorFactory);
         this.spec = spec;
+        this.idGenerator = idGenerator;
+        this.clock = clock;
     }
 
     @Override

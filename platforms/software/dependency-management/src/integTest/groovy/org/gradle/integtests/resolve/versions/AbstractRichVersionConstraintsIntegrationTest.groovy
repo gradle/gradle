@@ -141,6 +141,55 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
+    def "should choose highest special version when multiple prefer versions disagree"() {
+        repository {
+            'org:foo' {
+                '1.1-releaseProguard'()
+                '1.1-release'()
+                '2.0'()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:foo') {
+                        version { prefer '1.1-releaseProguard' }
+                    }
+                    conf('org:foo') {
+                        version { prefer '1.1-release' }
+                    }
+                }
+                conf 'org:foo:[1.0,2.0)'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.1-release' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint("org:foo:{prefer 1.1-releaseProguard}", "org:foo:1.1-release")
+                constraint("org:foo:{prefer 1.1-release}", "org:foo:1.1-release")
+                edge("org:foo:[1.0,2.0)", "org:foo:1.1-release") {
+                    notRequested()
+                    byConstraint()
+                    byReason("didn't match version 2.0")
+                }
+            }
+        }
+    }
+
     def "can combine required and preferred version in single dependency definition"() {
         repository {
             'org:foo' {
@@ -1023,6 +1072,65 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                 }
             }
         }
+    }
+
+    def "preferred versions interact with module replacements"() {
+        given:
+        repository {
+            id("org:original:1.0")
+            id("org:original:2.0")
+            id("org:original:3.0")
+            id("org:replaced:1.0")
+            id("org:replaced:2.0")
+            id("org:replaced:3.0")
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                ${ dep != null ? "conf('$dep')" : "" }
+                conf("${preferred}") {
+                    version {
+                        prefer "2.0"
+                    }
+                }
+
+                modules {
+                    module("org:original") {
+                        replacedBy("org:replaced")
+                    }
+                }
+            }
+        """
+
+        repositoryInteractions {
+            id(resolved) {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds(":checkDeps")
+
+        where:
+        preferred      | dep                | resolved
+        // Test when we prefer org:original:2.0
+        "org:original" | null               | "org:original:2.0"
+        "org:original" | "org:original:1.0" | "org:original:1.0"
+        "org:original" | "org:original:2.0" | "org:original:2.0"
+        "org:original" | "org:original:3.0" | "org:original:3.0"
+        "org:original" | "org:replaced:1.0" | "org:replaced:1.0"
+        "org:original" | "org:replaced:2.0" | "org:replaced:2.0"
+        "org:original" | "org:replaced:3.0" | "org:replaced:3.0"
+
+        // Test when we prefer org:replaced:2.0
+        "org:replaced" | null               | "org:replaced:2.0"
+        "org:replaced" | "org:original:1.0" | "org:replaced:2.0"
+        "org:replaced" | "org:original:2.0" | "org:replaced:2.0"
+        "org:replaced" | "org:original:3.0" | "org:replaced:2.0"
+        "org:replaced" | "org:replaced:1.0" | "org:replaced:1.0"
+        "org:replaced" | "org:replaced:2.0" | "org:replaced:2.0"
+        "org:replaced" | "org:replaced:3.0" | "org:replaced:3.0"
     }
 
 }

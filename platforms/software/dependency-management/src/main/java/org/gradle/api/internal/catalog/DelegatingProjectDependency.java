@@ -18,7 +18,6 @@ package org.gradle.api.internal.catalog;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -28,6 +27,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.Path;
 
@@ -61,8 +61,8 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    public Configuration findProjectConfiguration() {
-        return delegate.findProjectConfiguration();
+    public ProjectIdentity getTargetProjectIdentity() {
+        return delegate.getTargetProjectIdentity();
     }
 
     @Override
@@ -180,6 +180,7 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
         return delegate.contentEquals(dependency);
     }
@@ -196,16 +197,19 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve() {
         return delegate.resolve();
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve(boolean transitive) {
         return delegate.resolve(transitive);
     }
 
     @Override
+    @Deprecated
     public TaskDependency getBuildDependencies() {
         return delegate.getBuildDependencies();
     }

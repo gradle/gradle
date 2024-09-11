@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -32,19 +32,19 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import java.io.OutputStream;
 
 /**
- * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
+ * A {@link BuildActionExecutor} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
  */
-public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> {
+public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
     private final LoggingManagerInternal loggingManager;
-    private final BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer;
+    private final BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer, LoggingManagerInternal loggingManager) {
-        this.executer = executer;
+    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate, LoggingManagerInternal loggingManager) {
+        this.delegate = delegate;
         this.loggingManager = loggingManager;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, BuildRequestContext buildRequestContext) {
+    public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, ClientBuildRequestContext buildRequestContext) {
         ProviderOperationParameters actionParameters = parameters.getOperationParameters();
         attachConsole(actionParameters);
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
@@ -53,7 +53,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<C
         loggingManager.setLevelInternal(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
-            return executer.execute(action, parameters, buildRequestContext);
+            return delegate.execute(action, parameters, buildRequestContext);
         } finally {
             loggingManager.stop();
         }

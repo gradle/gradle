@@ -18,11 +18,9 @@ package org.gradle.plugins.ide.tooling.r49
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
 
-@ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=4.9')
 class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecification {
 

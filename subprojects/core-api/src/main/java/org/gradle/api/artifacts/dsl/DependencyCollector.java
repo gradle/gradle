@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -152,6 +153,40 @@ public interface DependencyCollector {
     <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration);
 
     /**
+     * Add a dependency constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     * @since 8.7
+     */
+    void addConstraint(DependencyConstraint dependencyConstraint);
+
+    /**
+     * Add a dependency constraint and configure it.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     * @param configuration an action to configure the dependency constraint
+     * @since 8.7
+     */
+    void addConstraint(DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration);
+
+    /**
+     * Add a dependency constraint, using a {@link Provider} to lazily create the constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     * @since 8.7
+     */
+    void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint);
+
+    /**
+     * Add a dependency constraint and configure it, using a {@link Provider} to lazily create the constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     * @param configuration an action to configure the dependency constraint
+     * @since 8.7
+     */
+    void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration);
+
+    /**
      * Add a bundle.
      *
      * @param bundle the bundle to add
@@ -214,5 +249,12 @@ public interface DependencyCollector {
      * @since 8.6
      */
     Provider<Set<Dependency>> getDependencies();
+
+    /**
+     * Returns all dependency constraints declared on this collector.
+     *
+     * @since 8.7
+     */
+    Provider<Set<DependencyConstraint>> getDependencyConstraints();
 
 }

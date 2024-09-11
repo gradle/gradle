@@ -19,16 +19,14 @@ package org.gradle.integtests.tooling.r40
 import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
-import spock.lang.Timeout
-
-import java.util.concurrent.TimeUnit
 
 class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
 
-    @Timeout(value = 10, unit = TimeUnit.MINUTES)
     @TargetGradleVersion(">=5.7")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates events for downloading artifacts"() {
         given:
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
@@ -53,7 +51,7 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
         def applyRootBuildScript = configureBuild.child("Configure project :").child(applyRootProjectBuildScript())
 
         def resolveCompileDependencies = events.operation("Resolve dependencies :compileClasspath", "Resolve dependencies of :compileClasspath")
-        def resolveCompileFiles = events.operation("Resolve files :compileClasspath", "Resolve files of :compileClasspath")
+        def resolveCompileFiles = events.operation(resolveConfigurationFiles(":compileClasspath"), resolveConfigurationFiles(":compileClasspath"))
         def resolveB = events.operation("Resolve group:projectB:1.0")
         def resolveD = events.operation("Resolve group:projectD:2.0-SNAPSHOT")
         def resolveArtifactB = events.operation("Resolve projectB-1.0.jar (group:projectB:1.0)")
@@ -95,6 +93,14 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
             return "Apply build file 'build.gradle' to root project 'root'"
         } else {
             return "Apply script build.gradle to root project 'root'"
+        }
+    }
+
+    private String resolveConfigurationFiles(String path) {
+        if (targetVersion.baseVersion >= GradleVersion.version("8.7")) {
+            return "Resolve files of configuration '" + path + "'"
+        } else {
+            return "Resolve files of " + path
         }
     }
 }

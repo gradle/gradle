@@ -36,14 +36,14 @@ import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectState {
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = new ConcurrentHashMap<>();
     private final ProjectStateRegistry projectStateRegistry;

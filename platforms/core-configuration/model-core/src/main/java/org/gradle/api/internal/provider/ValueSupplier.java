@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
@@ -30,7 +32,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Encapsulates the production of some value.
+ * Encapsulates the production of some value by some producer.
+ * <p>
+ * All providers implement this interface, but this interface may be implemented whenever
+ * lazy evaluation is required.
+ * </p>
  */
 public interface ValueSupplier {
     /**
@@ -47,12 +53,18 @@ public interface ValueSupplier {
     /**
      * Carries information about the producer of a value.
      */
-    interface ValueProducer {
+    @SuppressWarnings("ClassInitializationDeadlock")
+    interface ValueProducer extends TaskDependencyContainer {
         NoProducer NO_PRODUCER = new NoProducer();
         UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
 
         default boolean isKnown() {
             return true;
+        }
+
+        @Override
+        default void visitDependencies(TaskDependencyResolveContext context) {
+            visitProducerTasks(context);
         }
 
         void visitProducerTasks(Action<? super Task> visitor);
@@ -662,6 +674,7 @@ public interface ValueSupplier {
      *
      * @see ProviderInternal for a discussion of these states.
      */
+    @SuppressWarnings("ClassInitializationDeadlock")
     abstract class ExecutionTimeValue<T> {
         private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
 

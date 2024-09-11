@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.testing.fixture.MultiJvmTestCompatibility
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
@@ -116,7 +117,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
 
                     // check other environmental stuff
                     assertEquals("Test worker", Thread.currentThread().getName());
-                    assertNull(System.console());
+                    ${MultiJvmTestCompatibility.CONSOLE_CHECK}
 
                     final PrintStream out = System.out;
                     // logging from a shutdown hook

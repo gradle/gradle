@@ -17,11 +17,12 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 
 import javax.annotation.Nullable;
 
-public interface AttributesSchemaInternal extends DescribableAttributesSchema {
+public interface AttributesSchemaInternal extends AttributesSchema {
     /**
      * Returns a matcher that uses the consumer rules from this schema, and the producer rules from the given schema.
      */

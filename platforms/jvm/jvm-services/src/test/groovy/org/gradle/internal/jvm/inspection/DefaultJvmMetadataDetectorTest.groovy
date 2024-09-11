@@ -136,7 +136,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
-        assert metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) == isJ9
+        assert metadata.capabilities.contains(JavaInstallationCapability.J9_VIRTUAL_MACHINE) == isJ9
 
         where:
         jdk              | systemProperties         | isJ9
@@ -218,7 +218,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
     }
 
     private InstallationLocation testLocation(File javaHome) {
-        new InstallationLocation(javaHome, "test")
+        InstallationLocation.userDefined(javaHome, "test")
     }
 
     private static Map<String, String> currentGradle() {

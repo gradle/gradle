@@ -109,6 +109,7 @@ public class WtpFacet extends XmlPersistableConfigurationObject {
         return Objects.hashCode(facets);
     }
 
+    @Override
     public String toString() {
         return "WtpFacet{facets=" + facets + "}";
     }

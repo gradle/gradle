@@ -9,9 +9,12 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.jsr305)
 
-    api(project(":cli"))
-    api(project(":base-annotations"))
-    api(project(":messaging"))
+    api(projects.cli)
+    api(projects.stdlibJavaExtensions)
+    api(projects.messaging)
 
-    implementation(project(":base-services"))
+    implementation(projects.baseServices)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

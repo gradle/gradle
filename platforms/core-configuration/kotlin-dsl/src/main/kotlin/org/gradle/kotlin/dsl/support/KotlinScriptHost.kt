@@ -36,6 +36,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 
 import org.gradle.kotlin.dsl.invoke
 
@@ -77,6 +78,10 @@ class KotlinScriptHost<out T : Any> internal constructor(
         // That would generate this temporary directory inside the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()
     }
+
+    internal
+    val projectAccessorsClassPathGenerator: ProjectAccessorsClassPathGenerator
+        get() = serviceRegistry.get<ProjectAccessorsClassPathGenerator>()
 
     internal
     fun applyObjectConfigurationAction(configure: Action<in ObjectConfigurationAction>) {

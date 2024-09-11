@@ -16,6 +16,8 @@
 
 package org.gradle.api.credentials;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 import javax.annotation.Nullable;
 
 /**
@@ -30,6 +32,7 @@ public interface PasswordCredentials extends Credentials {
      * @return The user name. May be null.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getUsername();
 
     /**
@@ -45,6 +48,7 @@ public interface PasswordCredentials extends Credentials {
      * @return The password. May be null.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getPassword();
 
     /**

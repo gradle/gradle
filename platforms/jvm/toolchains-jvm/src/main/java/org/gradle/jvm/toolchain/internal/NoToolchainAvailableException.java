@@ -21,6 +21,8 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.platform.BuildPlatform;
 
+import java.util.Locale;
+
 @Contextual
 public class NoToolchainAvailableException extends GradleException {
 
@@ -34,7 +36,7 @@ public class NoToolchainAvailableException extends GradleException {
                 "Cannot find a Java installation on your machine matching this tasks requirements: %s for %s on %s.",
                 specification.getDisplayName(),
                 buildPlatform.getOperatingSystem(),
-                buildPlatform.getArchitecture().toString().toLowerCase()
+                buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT)
             ),
             cause
         );

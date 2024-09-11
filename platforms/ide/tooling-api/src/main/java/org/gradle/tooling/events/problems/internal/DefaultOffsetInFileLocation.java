@@ -28,6 +28,7 @@ public class DefaultOffsetInFileLocation extends DefaultFileLocation implements 
         this.length = length;
     }
 
+    @Override
     public int getOffset() {
         return offset;
     }

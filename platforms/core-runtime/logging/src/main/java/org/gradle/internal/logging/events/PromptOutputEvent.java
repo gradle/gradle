@@ -20,27 +20,53 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
-public class PromptOutputEvent extends RenderableOutputEvent {
+import javax.annotation.Nullable;
 
-    private final String prompt;
-
-    public PromptOutputEvent(long timestamp, String prompt) {
+/**
+ * Requests that the client present the given prompt to the user and return the user's response as a single line of text.
+ *
+ * The response is delivered to the {@link org.gradle.api.internal.tasks.userinput.UserInputReader} service.
+ */
+public abstract class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
+    public PromptOutputEvent(long timestamp) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
-        this.prompt = prompt;
     }
 
     @Override
     public void render(StyledTextOutput output) {
-        output.text(prompt);
+        // Add a newline at the start of each question
+        output.println();
+        output.text(getPrompt());
     }
 
-    public String getPrompt() {
-        return prompt;
+    /**
+     * Converts the given text into the response object, or returns a new prompt to display to the user.
+     */
+    public abstract PromptResult<?> convert(String text);
+
+    public static class PromptResult<T> {
+        public final T response;
+        public final String newPrompt;
+
+        private PromptResult(@Nullable T response, @Nullable String newPrompt) {
+            this.response = response;
+            this.newPrompt = newPrompt;
+        }
+
+        public static <T> PromptResult<T> response(T response) {
+            return new PromptResult<T>(response, null);
+        }
+
+        public static <T> PromptResult<T> newPrompt(String newPrompt) {
+            return new PromptResult<T>(null, newPrompt);
+        }
     }
+
+    public abstract String getPrompt();
 
     @Override
     public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] " + prompt;
+        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + getPrompt() + "'";
     }
 
     @Override

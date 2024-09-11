@@ -43,8 +43,8 @@ import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
-import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.util.function.Supplier;
@@ -62,7 +62,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     private final Clock clock;
     private final Stat stat;
     private final CaseSensitivity caseSensitivity;
-    private final FileSystemWatchingInformation fileSystemWatchingInformation;
+    private final BuildLifecycleAwareVirtualFileSystem virtualFileSystem;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
@@ -79,7 +79,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         Clock clock,
         Stat stat,
         CaseSensitivity caseSensitivity,
-        FileSystemWatchingInformation fileSystemWatchingInformation,
+        BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
         BuildSessionActionExecutor delegate
     ) {
         this.inputsListeners = inputListeners;
@@ -92,7 +92,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         this.clock = clock;
         this.stat = stat;
         this.caseSensitivity = caseSensitivity;
-        this.fileSystemWatchingInformation = fileSystemWatchingInformation;
+        this.virtualFileSystem = virtualFileSystem;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.logger = styledTextOutputFactory.create(ContinuousBuildActionExecutor.class, LogLevel.QUIET);
@@ -175,10 +175,13 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
                 fileChangeListeners.addListener(fileEventCollector);
                 lastResult = executeBuildAndAccumulateInputs(action, new AccumulateBuildInputsListener(buildInputs), buildSession);
 
+                // Let the VFS clean itself up after the build
+                virtualFileSystem.afterBuildFinished();
+
                 if (buildInputs.isEmpty()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle did not detect any file system inputs.");
                     return lastResult;
-                } else if (!continuousBuildTriggerHandler.hasBeenTriggered() && !fileSystemWatchingInformation.isWatchingAnyLocations()) {
+                } else if (!continuousBuildTriggerHandler.hasBeenTriggered() && !virtualFileSystem.isWatchingAnyLocations()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as Gradle does not watch any file system locations.");
                     return lastResult;
                 } else {

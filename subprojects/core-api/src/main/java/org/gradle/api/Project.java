@@ -38,10 +38,10 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -49,6 +49,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -66,7 +67,7 @@ import java.util.concurrent.Callable;
  * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
  * you have programmatic access to all of Gradle's features.</p>
  *
- * <h3>Lifecycle</h3>
+ * <h2>Lifecycle</h2>
  *
  * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>{@value #DEFAULT_BUILD_FILE}</code>
  * file. During build initialisation, Gradle assembles a <code>Project</code> object for each project which is to
@@ -89,14 +90,14 @@ import java.util.concurrent.Callable;
  *
  * </ul>
  *
- * <h3>Tasks</h3>
+ * <h2>Tasks</h2>
  *
  * <p>A project is essentially a collection of {@link Task} objects. Each task performs some basic piece of work, such
  * as compiling classes, or running unit tests, or zipping up a WAR file. You add tasks to a project using one of the
  * {@code create()} methods on {@link TaskContainer}, such as {@link TaskContainer#create(String)}.  You can locate existing
  * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link org.gradle.api.tasks.TaskCollection#getByName(String)}.</p>
  *
- * <h3>Dependencies</h3>
+ * <h2>Dependencies</h2>
  *
  * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
  * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations, and
@@ -107,19 +108,19 @@ import java.util.concurrent.Callable;
  * manage the artifacts. The {@link org.gradle.api.artifacts.dsl.RepositoryHandler} returned by {@link
  * #getRepositories()} method to manage the repositories.</p>
  *
- * <h3>Multi-project Builds</h3>
+ * <h2>Multi-project Builds</h2>
  *
  * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
  * uniquely identifies it in the hierarchy.</p>
  *
- * <h3>Plugins</h3>
+ * <h2>Plugins</h2>
  *
  * <p>
  * Plugins can be used to modularise and reuse project configuration.
  * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
  * </p>
  *
- * <a name="properties"></a> <h3>Dynamic Project Properties</h3>
+ * <h2 id="properties">Dynamic Project Properties</h2>
  *
  * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
  * property or method which your script uses is delegated through to the associated <code>Project</code> object.  This
@@ -150,7 +151,7 @@ import java.util.concurrent.Callable;
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  *
  * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- * to a project through the project's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
+ * to a project through the project's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
  *
  * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
@@ -167,11 +168,11 @@ import java.util.concurrent.Callable;
  * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
  * it finds the property in. If not found, an exception is thrown. See {@link #setProperty(String, Object)} for more details.</p>
  *
- * <a name="extraproperties"></a> <h4>Extra Properties</h4>
+ * <h3 id="extraproperties">Extra Properties</h3>
  *
- * All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
+ * <p>All extra properties must be defined through the &quot;ext&quot; namespace. Once an extra property has been defined,
  * it is available directly on the owning object (in the below case the Project, Task, and sub-projects respectively) and can
- * be read and updated. Only the initial declaration that needs to be done via the namespace.
+ * be read and updated. Only the initial declaration that needs to be done via the namespace.</p>
  *
  * <pre>
  * project.ext.prop1 = "foo"
@@ -190,7 +191,7 @@ import java.util.concurrent.Callable;
  * }
  * </pre>
  *
- * <h4>Dynamic Methods</h4>
+ * <h3>Dynamic Methods</h3>
  *
  * <p>A project has 5 method 'scopes', which it searches for methods:</p>
  *
@@ -204,7 +205,7 @@ import java.util.concurrent.Callable;
  * a closure or {@link org.gradle.api.Action} as a parameter.</li>
  *
  * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
- * a project through the project's {@link Convention} object.</li>
+ * a project through the project's {@link org.gradle.api.plugins.Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
@@ -219,6 +220,7 @@ import java.util.concurrent.Callable;
  * </ul>
  */
 @HasInternalProtocol
+@NotToBeMigratedToLazy
 public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
     /**
      * The default project build file name.
@@ -403,7 +405,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>The project object itself.  For example, the <code>rootDir</code> project property.</li>
      *
-     * <li>The project's {@link Convention} object.  For example, the <code>srcRootName</code> java plugin
+     * <li>The project's {@link org.gradle.api.plugins.Convention} object.  For example, the <code>srcRootName</code> java plugin
      * property.</li>
      *
      * <li>The project's extra properties.</li>
@@ -428,6 +430,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Project getProject();
 
     /**
+     * <p>Returns an immutable view of this project, safe for use with isolated projects.</p>
+     *
+     * @return This project as an {@link IsolatedProject}. Never returns null.
+     * @since 8.8
+     */
+    @Incubating
+    IsolatedProject getIsolated();
+
+    /**
      * <p>Returns the set containing this project and its subprojects.</p>
      *
      * @return The set of projects.
@@ -446,7 +457,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * calling {@link #task(java.util.Map, String)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
+     * reference the task by name in your build file. See <a href="#properties">properties</a> for more details</p>
      *
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
@@ -461,6 +472,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * passed to this method to control how the task is created. The following options are available:</p>
      *
      * <table>
+     * <caption>Permitted map keys</caption>
      *
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *
@@ -1182,8 +1194,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Returns the configurations of this project.
-     *
-     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
+     * <p>
+     * Examples: See docs for {@link ConfigurationContainer}
      *
      * @return The configuration of this project.
      */
@@ -1194,8 +1206,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <p>This method executes the given closure against the {@link ConfigurationContainer}
      * for this project. The {@link ConfigurationContainer} is passed to the closure as the closure's delegate.
-     *
-     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
+     * <p>
+     * Examples: See docs for {@link ConfigurationContainer}
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
      */
@@ -1203,7 +1215,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
-     * <h3>Examples:</h3>See docs for {@link ArtifactHandler}
+     * <p>
+     * Examples: See docs for {@link ArtifactHandler}
      */
     ArtifactHandler getArtifacts();
 
@@ -1264,7 +1277,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
+     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
      * using <code>convention</code>. You can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
@@ -1273,7 +1286,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see ExtensionAware#getExtensions()
      */
     @Deprecated
-    Convention getConvention();
+    org.gradle.api.plugins.Convention getConvention();
 
     /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
@@ -1552,9 +1565,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
      * new dependencies. For accessing already declared dependencies, the configurations can be used.
-     *
-     * <h3>Examples:</h3>
-     * See docs for {@link DependencyHandler}
+     * <p>
+     * Examples: See docs for {@link DependencyHandler}
      *
      * @return the dependency handler. Never returns null.
      * @see #getConfigurations()
@@ -1566,9 +1578,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <p>This method executes the given closure against the {@link DependencyHandler} for this project. The {@link
      * DependencyHandler} is passed to the closure as the closure's delegate.
-     *
-     * <h3>Examples:</h3>
-     * See docs for {@link DependencyHandler}
+     * <p>
+     * Examples: See docs for {@link DependencyHandler}
      *
      * @param configureClosure the closure to use to configure the dependencies.
      */

@@ -31,7 +31,7 @@ public class SampleIde {
         File projectDir = projectPath.toFile();
 
         // Initialize the Tooling API
-        return GradleConnector.newConnector().forProjectDirectory(projectDir).connect();
+        return GradleConnector.newConnector().useGradleVersion("8.9").forProjectDirectory(projectDir).connect();
     }
 
     public void buildModel() {
@@ -86,16 +86,17 @@ public class SampleIde {
         // tag::problems-tapi-event[]
         @Override
         public void statusChanged(ProgressEvent progressEvent) {
-            prettyPrint(((ProblemDescriptor) progressEvent.getDescriptor()));
+            if (progressEvent instanceof SingleProblemEvent)
+                prettyPrint((SingleProblemEvent) progressEvent);
         }
         // end::problems-tapi-event[]
 
-        static void prettyPrint(ProblemDescriptor problem) {
+        static void prettyPrint(SingleProblemEvent problem) {
             System.out.println("Problem:");
-            System.out.println(" - category: " + toString(problem.getCategory()));
-            System.out.println(" - label: " + problem.getLabel().getLabel());
+            System.out.println(" - id: " + fqId(problem.getDefinition()));
+            System.out.println(" - display name: " + problem.getDefinition().getId().getDisplayName());
             System.out.println(" - details: " + problem.getDetails().getDetails());
-            System.out.println(" - severity: " + toString(problem.getSeverity()));
+            System.out.println(" - severity: " + toString(problem.getDefinition().getSeverity()));
             for (Location location : problem.getLocations()) {
                 if (location instanceof PluginIdLocation) {
                     System.out.println(" - plugin ID: " + ((PluginIdLocation) location).getPluginId());
@@ -103,11 +104,11 @@ public class SampleIde {
                     System.out.println(" - location: " + location);
                 }
             }
-            RuntimeException exception = problem.getException().getException();
+            Failure exception = problem.getFailure().getFailure();
             if (exception != null) {
                 System.out.println(" - exception: " + exception.getMessage());
             }
-            String url = problem.getDocumentationLink().getUrl();
+            String url = problem.getDefinition().getDocumentationLink().getUrl();
             if (url != null) {
                 System.out.println(" - documentation: " + url);
             }
@@ -121,16 +122,18 @@ public class SampleIde {
             }
         }
 
-        static String toString(ProblemCategory category) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(category.getNamespace());
-            sb.append(":");
-            sb.append(category.getCategory());
-            for (String sc : category.getSubcategories()) {
-                sb.append(":");
-                sb.append(sc);
+        static String fqId(ProblemDefinition definition) {
+            ProblemId id = definition.getId();
+            return fqId(id.getGroup()) + ":" + id.getName();
+        }
+
+        static String fqId(ProblemGroup group) {
+            ProblemGroup parent = group.getParent();
+            if (parent == null) {
+                return group.getName();
+            } else {
+                return fqId(parent) + ":" + group.getName();
             }
-            return sb.toString();
         }
 
         static String toString(Severity severity) {

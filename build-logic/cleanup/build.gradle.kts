@@ -5,6 +5,14 @@ plugins {
 
 description = "Provides a plugin that cleans up after executing tests"
 
+errorprone {
+    disabledChecks.addAll(
+        "CatchAndPrintStackTrace", // 1 occurrences
+        "DefaultCharset", // 3 occurrences
+        "JavaTimeDefaultTimeZone", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")

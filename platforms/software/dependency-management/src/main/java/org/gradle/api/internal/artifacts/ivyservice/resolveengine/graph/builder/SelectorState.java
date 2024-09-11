@@ -369,6 +369,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return fromLock;
     }
 
+    @Override
     public boolean hasStrongOpinion() {
         return forced || (versionConstraint != null && versionConstraint.isStrict());
     }

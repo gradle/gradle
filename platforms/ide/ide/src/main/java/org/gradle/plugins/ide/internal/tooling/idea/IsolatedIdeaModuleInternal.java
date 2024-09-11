@@ -43,6 +43,7 @@ public class IsolatedIdeaModuleInternal implements Serializable {
     private DefaultIdeaCompilerOutput compilerOutput;
     private List<DefaultIdeaDependency> dependencies = ImmutableList.of();
 
+    @Override
     public String toString() {
         return "IsolatedIdeaModuleInternal{"
             + "contentRoot='" + contentRoot.getRootDirectory() + '\''

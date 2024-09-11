@@ -45,7 +45,7 @@ public class DefaultTestLogging implements TestLogging {
 
     @Override
     public void setEvents(Set<TestLogEvent> events) {
-        this.events = EnumSet.copyOf(events);
+        this.events = events.isEmpty() ? EnumSet.noneOf(TestLogEvent.class) : EnumSet.copyOf(events);
     }
 
     @Override

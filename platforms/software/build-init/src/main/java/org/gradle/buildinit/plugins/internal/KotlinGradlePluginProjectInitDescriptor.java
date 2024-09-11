@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Set;
 
@@ -42,12 +43,12 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
         return BuildInitTestFramework.KOTLINTEST;
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
         return ImmutableSet.of(BuildInitTestFramework.KOTLINTEST);
     }
 
@@ -56,7 +57,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin.", "org.jetbrains.kotlin.jvm", kotlinVersion);
+        buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin.", "org.jetbrains.kotlin.jvm", kotlinVersion, "kotlin-jvm");
 
         if (!settings.isUseTestSuites()) {
             buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.",

@@ -50,7 +50,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
     @Override
     public RunClosedProjectBuildDependencies buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
         this.projectOpenStatus = eclipseRuntime.getWorkspace().getProjects().stream()
-            .collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a | b));
+            .collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         List<TaskDependency> buildDependencies = populate(project.getRootProject());
         if (!buildDependencies.isEmpty()) {

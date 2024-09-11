@@ -27,7 +27,6 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,6 +96,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         return serviceType;
     }
 
+    @Override
     public String getName() {
         return serviceName;
     }

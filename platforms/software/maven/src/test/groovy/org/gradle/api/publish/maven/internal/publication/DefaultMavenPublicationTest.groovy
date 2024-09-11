@@ -29,10 +29,10 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
@@ -78,7 +78,11 @@ class DefaultMavenPublicationTest extends Specification {
 
     def "setup"() {
         module = Mock(DependencyMetaDataProvider) {
-            getModule() >> new DefaultModule("group", "name", "version")
+            getModule() >> Mock(Module) {
+                getGroup() >> "group"
+                getName() >> "name"
+                getVersion() >> "version"
+            }
         }
         pomDir = testDirectoryProvider.testDirectory
         pomFile = pomDir.createFile("pom-file")

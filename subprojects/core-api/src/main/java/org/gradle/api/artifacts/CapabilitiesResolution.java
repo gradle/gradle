@@ -61,7 +61,7 @@ public interface CapabilitiesResolution {
     /**
      * Configures the resolution strategy of a specific capability.
      *
-     * @param notation the notation of the capability to configure, {@linkplain Provider Providers} are also accepted
+     * @param notation the {@linkplain ConfigurationPublications#capability(Object) notation} of the capability to configure, {@linkplain Provider Providers} of any notation are also accepted
      *
      * @param action the configuration action
      */

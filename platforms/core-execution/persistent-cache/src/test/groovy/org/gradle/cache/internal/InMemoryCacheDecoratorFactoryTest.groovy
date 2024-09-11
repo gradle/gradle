@@ -19,8 +19,9 @@ package org.gradle.cache.internal
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafeIndexedCache
-import org.gradle.internal.Factory
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 class InMemoryCacheDecoratorFactoryTest extends Specification {
     def cacheFactory = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory())
@@ -39,8 +40,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
         0 * target._
 
@@ -51,7 +52,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         0 * target._
 
         when:
@@ -62,7 +63,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         0 * target._
     }
 
@@ -77,8 +78,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result 1"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result 1"
         0 * target._
 
@@ -89,8 +90,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result 2"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result 2"
         0 * target._
     }
@@ -106,8 +107,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == null
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> null
         0 * target._
 
@@ -118,7 +119,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == null
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         0 * target._
     }
 
@@ -135,8 +136,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
         0 * target._
 
@@ -157,7 +158,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "new value"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         0 * target._
     }
 
@@ -174,8 +175,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
         0 * target._
 
@@ -196,7 +197,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == null
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         0 * target._
     }
 

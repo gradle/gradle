@@ -16,9 +16,13 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public interface ModuleComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
+public interface ModuleComponentGraphResolveMetadata extends ExternalComponentGraphResolveMetadata {
+
+    @Override
+    ModuleComponentIdentifier getId();
+
     /**
      * Was the metadata artifact for this component missing? When true, the metadata for this component was generated using some defaults.
      */

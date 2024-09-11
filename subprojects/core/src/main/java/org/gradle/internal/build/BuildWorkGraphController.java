@@ -17,7 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.composite.internal.TaskIdentifier;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
@@ -25,7 +25,7 @@ import java.util.Collection;
 /**
  * Allows the work graph for a particular build in the build tree to be populated and executed.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildWorkGraphController {
     /**
      * Locates a future task node in this build's work graph, for use from some other build's work graph.

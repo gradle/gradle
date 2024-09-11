@@ -36,7 +36,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.List;
@@ -49,19 +49,9 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
  */
 @SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    public enum BuildCacheState {
-        ENABLED, DISABLED
-    }
-
-    public enum ScanPluginState {
-        APPLIED, NOT_APPLIED
-    }
-
-    private final BuildCacheState buildCacheState;
-    private final ScanPluginState scanPluginState;
 
     private final ExecutionHistoryStore executionHistoryStore;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final AsyncWorkTracker asyncWorkTracker;
     private final org.gradle.api.execution.TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
@@ -75,11 +65,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final PathToFileResolver fileResolver;
 
     public ExecuteActionsTaskExecuter(
-        BuildCacheState buildCacheState,
-        ScanPluginState scanPluginState,
-
         ExecutionHistoryStore executionHistoryStore,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         AsyncWorkTracker asyncWorkTracker,
         org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
@@ -92,11 +79,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver
     ) {
-        this.buildCacheState = buildCacheState;
-        this.scanPluginState = scanPluginState;
-
         this.executionHistoryStore = executionHistoryStore;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
@@ -112,14 +96,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        boolean emitLegacySnapshottingOperations = buildCacheState == BuildCacheState.ENABLED || scanPluginState == ScanPluginState.APPLIED;
         TaskExecution work = new TaskExecution(
             task,
             context,
-            emitLegacySnapshottingOperations,
             actionListener,
             asyncWorkTracker,
-            buildOperationExecutor,
+            buildOperationRunner,
             classLoaderHierarchyHasher,
             executionHistoryStore,
             fileCollectionFactory,

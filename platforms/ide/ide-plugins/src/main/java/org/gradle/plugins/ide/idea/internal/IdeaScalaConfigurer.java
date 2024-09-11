@@ -132,7 +132,7 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "unused"})
     private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
         ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
         if (runtime != null) {
@@ -164,7 +164,7 @@ public class IdeaScalaConfigurer {
             String originalName = newLibrary.getName();
             int suffix = 1;
             while (containsLibraryWithSameName(existingLibraries, newLibrary.getName())) {
-                newLibrary.setName(originalName + "-" + (suffix++));
+                newLibrary.setName(originalName + "-" + suffix++);
             }
             existingLibraries.add(newLibrary);
         }

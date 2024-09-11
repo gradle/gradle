@@ -24,7 +24,7 @@ class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec 
 
     def "managed type implementation class is generated once for each type and reused"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Named {
                 String getName()

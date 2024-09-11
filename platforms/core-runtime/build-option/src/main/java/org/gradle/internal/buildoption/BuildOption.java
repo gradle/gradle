@@ -31,7 +31,7 @@ import java.util.Map;
 public interface BuildOption<T> extends Option {
 
     @Nullable
-    String getGradleProperty();
+    String getProperty();
 
     void applyFromProperty(Map<String, String> properties, T settings);
 
@@ -39,5 +39,5 @@ public interface BuildOption<T> extends Option {
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
 
-    String getDeprecatedGradleProperty();
+    String getDeprecatedProperty();
 }

@@ -18,9 +18,8 @@ package org.gradle.internal.execution.workspace.impl;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -33,8 +32,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.UUID;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
@@ -45,13 +42,15 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         return createWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cacheConfigurations
+            cacheConfigurations,
+            cacheCleanupStrategyFactory
         );
     }
 
@@ -59,13 +58,15 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         return new CacheBasedImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             treeDepthToTrackAndCleanup,
-            cacheConfigurations
+            cacheConfigurations,
+            cacheCleanupStrategyFactory
         );
     }
 
@@ -73,26 +74,20 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         PersistentCache cache = cacheBuilder
-            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
+            .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
             // We don't need to lock the cache for immutable workspaces
             // as we are using unique temporary workspaces to run work in
             // and move them atomically into the cache
             // TODO Should use a read-write lock on the cache's base directory for cleanup, though
-            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withInitialLockMode(FileLockManager.LockMode.None)
             .open();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
-    }
-
-    private static CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
-        return DefaultCacheCleanupStrategy.from(
-            createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations),
-            cacheConfigurations.getCleanupFrequency()::get
-        );
     }
 
     private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {

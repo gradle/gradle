@@ -49,7 +49,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
 
     def "can specify plugin version"() {
         when:
-        buildScript "plugins { id '$PLUGIN_ID' version '1.0' }"
+        buildFile "plugins { id '$PLUGIN_ID' version '1.0' }"
 
         then:
         verifyPluginApplied('1.0')
@@ -58,7 +58,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
     def "can specify plugin version using gradle properties"() {
         when:
         file("gradle.properties") << "myPluginVersion=2.0"
-        buildScript """
+        buildFile """
             plugins {
                 id '$PLUGIN_ID' version "\${myPluginVersion}"
             }
@@ -70,7 +70,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
 
     def "can specify plugin version using command-line project property"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id '$PLUGIN_ID' version "\${myPluginVersion}"
             }
@@ -89,7 +89,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
                 public static final String MY_PLUGIN_VERSION = "2.0";
             }
 """
-        buildScript """
+        buildFile """
             import static MyVersions.*
             plugins {
                 id '$PLUGIN_ID' version "\${MY_PLUGIN_VERSION}"
@@ -107,7 +107,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
                 public static final String MY_PLUGIN_VERSION = "2.0";
             }
 """
-        buildScript """
+        buildFile """
             import static MyVersions.*
             plugins {
                 id '$PLUGIN_ID' version "\${MY_PLUGIN_VERSION}"

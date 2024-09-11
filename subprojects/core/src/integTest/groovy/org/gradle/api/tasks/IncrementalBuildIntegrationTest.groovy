@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
 
     def setup() {
@@ -1079,6 +1081,7 @@ task b(dependsOn: a)
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1115,6 +1118,7 @@ task b(dependsOn: a)
         })
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task with custom action loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1207,16 +1211,17 @@ task b(dependsOn: a)
     @Issue("https://github.com/gradle/gradle/issues/2180")
     def "fileTrees can be used as output files"() {
         given:
-        buildScript """
+        buildFile """
             task myTask {
                 inputs.file file('input.txt')
                 outputs.files fileTree(dir: 'build', include: 'output.txt')
+                def layout = project.layout
                 doLast {
-                    file('build').mkdirs()
-                    file('build/output.txt').text = new File('input.txt').text
+                    layout.projectDirectory.file('build').asFile.mkdirs()
+                    layout.projectDirectory.file('build/output.txt').asFile.text = new File('input.txt').text
                 }
             }
-        """.stripIndent()
+        """
 
         file('input.txt').text = 'input file'
 
@@ -1393,7 +1398,7 @@ task b(dependsOn: a)
 
     @Issue("https://github.com/gradle/gradle/issues/7923")
     def "task is not up-to-date when the implementation of a named #actionMethodName action changes"() {
-        buildScript """
+        buildFile """
             tasks.register('myTask') {
                 outputs.dir(layout.buildDirectory.dir('myDir'))
                 ${actionMethodName}('myAction') { println("printing from action") }

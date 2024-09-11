@@ -18,11 +18,11 @@ package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 
 val fileHeader: String
-    get() = fileHeaderFor(kotlinDslPackageName)
+    get() = fileHeaderFor(KOTLIN_DSL_PACKAGE_NAME)
 
 
 fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
-    """$licenseHeader
+    """$LICENSE_HEADER
 
 @file:Suppress(
     "unused",
@@ -33,23 +33,19 @@ fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
     "redundant_projection",
     "RemoveRedundantBackticks",
     "ObjectPropertyName",
-    "deprecation"
+    "deprecation",
+    "detekt:all"
 )
 @file:org.gradle.api.Generated${if (isIncubating) "\n@file:org.gradle.api.Incubating" else ""}
-
-/* ktlint-disable */
 
 package $packageName
 """
 
+const val KOTLIN_DSL_PACKAGE_NAME = "org.gradle.kotlin.dsl"
 
-const val kotlinDslPackageName = "org.gradle.kotlin.dsl"
+const val KOTLIN_DSL_PACKAGE_PATH = "org/gradle/kotlin/dsl"
 
-
-const val kotlinDslPackagePath = "org/gradle/kotlin/dsl"
-
-
-const val licenseHeader = """/*
+const val LICENSE_HEADER = """/*
  * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

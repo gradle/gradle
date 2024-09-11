@@ -32,7 +32,14 @@ public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperatio
     private final String className;
     private final String methodName;
 
-    public DefaultJvmTestOperationDescriptor(InternalJvmTestDescriptor internalJvmTestDescriptor, OperationDescriptor parent, JvmTestKind jvmTestKind, String suiteName, String className, String methodName) {
+    public DefaultJvmTestOperationDescriptor(
+        InternalJvmTestDescriptor internalJvmTestDescriptor,
+        OperationDescriptor parent,
+        JvmTestKind jvmTestKind,
+        String suiteName,
+        String className,
+        String methodName
+    ) {
         super(internalJvmTestDescriptor, parent);
         this.jvmTestKind = jvmTestKind;
         this.suiteName = suiteName;

@@ -82,7 +82,7 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "build"
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:runtimeClasspath'")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':app:runtimeClasspath'")
         failure.assertHasCause("Could not find lib.pom (project :included-logging:lib)")
     }
 

@@ -101,11 +101,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
 
         where:
         methodName                         | role              | methodCall                              || allowed
-        'setExcludeRules(Set)'             | 'consumable'      | "setExcludeRules([] as Set)"            || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
         'getConsistentResolutionSource()'  | 'consumable'      | "getConsistentResolutionSource()"       || [ProperMethodUsage.RESOLVABLE]
         'getConsistentResolutionSource()'  | 'dependencyScope' | "getConsistentResolutionSource()"       || [ProperMethodUsage.RESOLVABLE]
-        'getDependenciesResolverFactory()' | 'consumable'      | "getDependenciesResolverFactory()"      || [ProperMethodUsage.RESOLVABLE]
-        'getDependenciesResolverFactory()' | 'dependencyScope' | "getDependenciesResolverFactory()"      || [ProperMethodUsage.RESOLVABLE]
         'getSyntheticDependencies()'       | 'consumable'      | "getSyntheticDependencies()"            || [ProperMethodUsage.RESOLVABLE]
         'getSyntheticDependencies()'       | 'dependencyScope' | "getSyntheticDependencies()"            || [ProperMethodUsage.RESOLVABLE]
         'callAndResetResolutionState()'    | 'consumable'      | "callAndResetResolutionState { 'foo' }" || [ProperMethodUsage.RESOLVABLE]

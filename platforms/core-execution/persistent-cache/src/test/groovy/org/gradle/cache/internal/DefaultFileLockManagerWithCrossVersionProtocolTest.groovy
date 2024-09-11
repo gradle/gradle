@@ -17,13 +17,13 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 
 class DefaultFileLockManagerWithCrossVersionProtocolTest extends AbstractFileLockManagerTest {
     @Override
-    protected LockOptionsBuilder options() {
-        return LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand).useCrossVersionImplementation()
+    protected DefaultLockOptions options() {
+        return DefaultLockOptions.mode(FileLockManager.LockMode.OnDemand).useCrossVersionImplementation()
     }
 
     void isVersionLockFile(TestFile lockFile, boolean dirty) {

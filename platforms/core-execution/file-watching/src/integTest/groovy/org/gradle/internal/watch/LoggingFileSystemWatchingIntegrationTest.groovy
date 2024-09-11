@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+import com.gradle.develocity.testing.annotations.LocalOnly
 import net.rubygrapefruit.platform.internal.jni.NativeLogger
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.daemon.DaemonFixture

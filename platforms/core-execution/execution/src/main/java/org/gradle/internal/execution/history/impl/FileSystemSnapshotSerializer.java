@@ -218,10 +218,6 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
             }
             return popped;
         }
-
-        public boolean isEmpty() {
-            return stack.isEmpty();
-        }
     }
 
     private static String toAbsolutePath(Collection<String> parents, String fileName) {

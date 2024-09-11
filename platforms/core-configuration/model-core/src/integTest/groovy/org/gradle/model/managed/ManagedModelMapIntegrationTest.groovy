@@ -24,7 +24,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can create a map of model elements"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing extends Named {
               void setValue(String value)
@@ -75,7 +75,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can create a map of abstract class backed managed model elements"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             abstract class Thing implements Named {
               abstract String getName()
@@ -128,7 +128,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "rule can create a map of various supported types"() {
         // TODO - can't actually add anything to these maps yet
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing extends Named {
               void setValue(String value)
@@ -179,7 +179,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when rule creates a map of unsupported type"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Container {
               ModelMap<InputStream> getThings()
@@ -209,7 +209,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
     def "reports failure that occurs in collection item initializer"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person extends Named {
               String getValue()
@@ -242,7 +242,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
     def "cannot read when mutable"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person extends Named {
               String getValue()
@@ -273,7 +273,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
     def "cannot mutate when used as an input"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person extends Named {
               String getValue()
@@ -303,7 +303,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
     def "cannot mutate when used as subject of validate rule"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person extends Named {
               String getValue()
@@ -338,7 +338,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
     def "can read children of map when used as input"() {
         when:
-        buildScript """
+        buildFile """
             @Managed
             interface Parent {
                 String getName();
@@ -409,7 +409,7 @@ parent
 
     def "can read children of map when used as subject of validate rule"() {
         given:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Person extends Named {
               String getValue()
@@ -446,7 +446,7 @@ parent
 
     def "name is not populated when entity is not named"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
               String getName()

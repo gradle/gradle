@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
+import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
+import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
+import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
+import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -86,7 +89,7 @@ public class DependencyVerificationReportWriter {
 
     public VerificationReport generateReport(
         String displayName,
-        Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
+        Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
         boolean useKeyServers
     ) {
         assertInitialized();
@@ -107,7 +110,7 @@ public class DependencyVerificationReportWriter {
 
     public void doRender(
         String displayName,
-        Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
+        Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
         DependencyVerificationReportRenderer renderer,
         boolean useKeyServers
     ) {
@@ -118,7 +121,7 @@ public class DependencyVerificationReportWriter {
         renderer.startNewSection(displayName);
         renderer.startArtifactErrors(() -> {
             // Sorting entries so that error messages are always displayed in a reproducible order
-            failuresByArtifact.asMap()
+            failuresByArtifact
                 .entrySet()
                 .stream()
                 .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))
@@ -148,8 +151,8 @@ public class DependencyVerificationReportWriter {
 
     private String extractFailedFilePaths(VerificationFailure f) {
         String shortenPath = shortenPath(f.getFilePath());
-        if (f instanceof SignatureVerificationFailure) {
-            File signatureFile = ((SignatureVerificationFailure) f).getSignatureFile();
+        File signatureFile = f.getSignatureFile();
+        if (signatureFile != null) {
             return shortenPath + " (signature: " + shortenPath(signatureFile) + ")";
         }
         return shortenPath;
@@ -178,17 +181,21 @@ public class DependencyVerificationReportWriter {
         VerificationFailure failure = wrapper.getFailure();
         if (failure instanceof MissingChecksums) {
             state.hasMissing();
-        } else {
-            if (failure instanceof SignatureVerificationFailure) {
-                state.failedSignatures();
-                if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
-                    state.maybeCompromised();
-                } else {
-                    state.hasUntrustedKeys();
-                }
-            } else {
+        } else if (failure instanceof SignatureVerificationFailure) {
+            state.failedSignatures();
+            if (((SignatureVerificationFailure) failure).getErrors().values().stream().map(SignatureVerificationFailure.SignatureError::getKind).noneMatch(kind -> kind == SignatureVerificationFailure.FailureKind.PASSED_NOT_TRUSTED)) {
                 state.maybeCompromised();
+            } else {
+                state.hasUntrustedKeys();
             }
+        } else if (failure instanceof InvalidSignature) {
+            state.failedSignatures();
+            state.maybeCompromised();
+        } else if (failure instanceof DeletedArtifact || failure instanceof ChecksumVerificationFailure || failure instanceof OnlyIgnoredKeys || failure instanceof MissingSignature) {
+            state.maybeCompromised();
+        } else {
+            // should never happen, just to make sure we don't miss any new failure type
+            throw new IllegalArgumentException("Unknown failure type: " + failure.getClass());
         }
         renderer.reportFailure(wrapper);
     }

@@ -19,14 +19,19 @@ package org.gradle.internal.buildevents
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.problems.internal.DefaultProblemBuilder
+import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemAwareFailure
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.exceptions.ContextAwareException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.FailureResolutionAware
 import org.gradle.internal.exceptions.LocationAwareException
@@ -34,6 +39,8 @@ import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import spock.lang.Specification
+
+import java.lang.reflect.Field
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -413,8 +420,8 @@ org.gradle.api.GradleException: $MESSAGE
         def exception = new TestException() {
             @Override
             void appendResolutions(FailureResolutionAware.Context context) {
-                context.appendResolution { output -> output.append("resolution 1.")}
-                context.appendResolution { output -> output.append("resolution 2.")}
+                context.appendResolution { output -> output.append("resolution 1.") }
+                context.appendResolution { output -> output.append("resolution 2.") }
             }
         }
 
@@ -441,7 +448,7 @@ $GET_HELP
             @Override
             void appendResolutions(FailureResolutionAware.Context context) {
                 context.doNotSuggestResolutionsThatRequireBuildDefinition()
-                context.appendResolution { output -> output.append("resolution 1.")}
+                context.appendResolution { output -> output.append("resolution 1.") }
             }
         }
 
@@ -461,6 +468,219 @@ $GET_HELP
 """
     }
 
+    // region Duplicate Exception Branch Filtering
+    def "multi-cause exceptions have branches with identical root causes summarized properly"() {
+        def ultimateCause = new RuntimeException("ultimate cause")
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause
+{info}> {normal}There is 1 more failure with an identical cause.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
+
+    def "multi-cause exceptions have branches with identical root causes and additional intermediate failures summarized properly"() {
+        def ultimateCause = new RuntimeException("ultimate cause")
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
+        def intermediateFailure = new DefaultMultiCauseException("intermediate failure", ultimateCause)
+        def branch3 = new DefaultMultiCauseException("third failure", intermediateFailure)
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause
+{info}> {normal}There are 2 more failures with identical causes.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
+
+    def "multi-cause exceptions have branches with identical root causes summarized properly when ultimate cause is self-caused"() {
+        def ultimateCause = new RuntimeException("ultimate cause")
+        Field field = Throwable.class.getDeclaredField("cause")
+        field.setAccessible(true)
+        field.set(ultimateCause, ultimateCause)
+
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause
+{info}> {normal}There is 1 more failure with an identical cause.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
+
+    def "multi-cause exceptions with multiple branches with a set of identical root causes are summarized properly"() {
+        def ultimateCause1 = new RuntimeException("ultimate cause 1")
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause1)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause1)
+        def intermediateFailure1 = new DefaultMultiCauseException("intermediate failure", ultimateCause1)
+        def branch3 = new DefaultMultiCauseException("third failure", intermediateFailure1)
+
+        def ultimateCause2 = new RuntimeException("ultimate cause 2")
+        def branch4 = new DefaultMultiCauseException("forth failure", ultimateCause2)
+        def branch5 = new DefaultMultiCauseException("fifth failure", ultimateCause2)
+        def intermediateFailure2 = new DefaultMultiCauseException("intermediate failure 2", ultimateCause2)
+        def branch6 = new DefaultMultiCauseException("sixth failure", intermediateFailure2)
+
+        Throwable exception = new ContextAwareException(new TypedResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3, branch4, branch5, branch6]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause 1
+{info}> {normal}forth failure
+   {info}> {normal}ultimate cause 2
+{info}> {normal}There are 4 more failures with identical causes.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
+    // endregion Duplicate Exception Branch Filtering
+
+    def "singular exceptions containing problems are rendered"() {
+        given:
+        def problem1 = new DefaultProblemBuilder()
+            .id("group-1", "Group 1")
+            .build()
+        def problem2 = new DefaultProblemBuilder()
+            .id("group-2", "Group 2")
+            .build()
+        def failure = new ContextAwareException(
+            new GradleException(
+                "<root problem message>",
+                new TestProblemAwareFailure(problem1, problem2)
+            )
+        )
+
+        when:
+        reporter.buildFinished(result(failure))
+
+        then:
+        output.value.contains(
+            """\
+* What went wrong:
+<root problem message>
+{info}> {normal}<problem-bearing exception message>
+
+Group 1 (generic:group-1)
+  Group 1
+Group 2 (generic:group-2)
+  Group 2
+"""
+        )
+    }
+
+    def "multi-cause exceptions containing problems are rendered"() {
+        given:
+        def problem1 = new DefaultProblemBuilder()
+            .id("group-1", "Group 1")
+            .build()
+        def problem2 = new DefaultProblemBuilder()
+            .id("group-2", "Group 2")
+            .build()
+        def failure = new MultipleBuildFailures(
+            Arrays.asList(
+                new ContextAwareException(
+                    new GradleException(
+                        "<root problem-1 message>",
+                        new TestProblemAwareFailure(problem1)
+                    )
+                ),
+                new ContextAwareException(
+                    new GradleException(
+                        "<root problem-2 message>",
+                        new TestProblemAwareFailure(problem2)
+                    )
+                )
+            )
+        )
+
+        when:
+        reporter.buildFinished(result(failure))
+
+        then:
+        output.value.contains(
+            """\
+* What went wrong:
+<root problem-1 message>
+{info}> {normal}<problem-bearing exception message>
+
+Group 1 (generic:group-1)
+  Group 1
+""")
+        output.value.contains(
+            """\
+* What went wrong:
+<root problem-2 message>
+{info}> {normal}<problem-bearing exception message>
+
+Group 2 (generic:group-2)
+  Group 2
+""")
+    }
+
     def result(Throwable failure) {
         BuildResult result = Mock()
         result.failure >> failure
@@ -472,4 +692,19 @@ $GET_HELP
             super(MESSAGE)
         }
     }
+
+    class TestProblemAwareFailure extends Throwable implements ProblemAwareFailure {
+        List<Problem> problems
+
+        TestProblemAwareFailure(Problem... problems) {
+            super("<problem-bearing exception message>")
+            this.problems = Arrays.asList(problems)
+        }
+
+        @Override
+        Collection<Problem> getProblems() {
+            return problems
+        }
+    }
+
 }

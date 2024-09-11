@@ -1,50 +1,69 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":snapshots"))
-    implementation(project(":dependency-management"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-option"))
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+        "InlineMeInliner", // 1 occurrences
+        "MixedMutabilityReturnType", // 1 occurrences
+        "NonApiType", // 5 occurrences
+        "ProtectedMembersInFinalClass", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy)
+dependencies {
+    api(projects.jvmServices)
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.enterpriseLogging)
+    api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.modelCore)
+    api(projects.platformBase)
+    api(projects.reportRendering)
+    api(projects.reporting)
+
+    api(libs.groovy)
+    api(libs.jsr305)
+    api(libs.inject)
+
+    implementation(projects.concurrent)
+    implementation(projects.functional)
+    implementation(projects.loggingApi)
+
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.jatl)
 
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation(projects.processServices)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.logging))
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
+    integTestImplementation(testFixtures(projects.declarativeDslProvider))
 
-    testFixturesApi(testFixtures(project(":platform-native")))
-    testFixturesApi(testFixtures(project(":logging")))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesApi(testFixtures(projects.platformNative))
+    testFixturesApi(testFixtures(projects.logging))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))  {
+    integTestDistributionRuntimeOnly(projects.distributionsFull)  {
         because("There are integration tests that assert that all the tasks of a full distribution are reported (these should probably move to ':integTests').")
     }
 }
@@ -53,4 +72,7 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

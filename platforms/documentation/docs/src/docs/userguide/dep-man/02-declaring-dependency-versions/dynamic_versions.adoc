@@ -13,89 +13,93 @@
 // limitations under the License.
 
 [[sec:dynamic_versions_and_changing_modules]]
-= Handling versions which change over time
+= Handling dynamic versions
 
-There are many situations when you want to use the latest version of a particular module dependency, or the latest in a range of versions.
-This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions.
+There are many situations when you might need to use the latest version of a specific module dependency or the latest within a range of versions. This is often necessary during development or when creating a library that is compatible with various dependency versions.
+
 You can easily depend on these constantly changing dependencies by using a _dynamic version_.
-A <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic version>> can be either a version range (e.g. `2.+`) or it can be a placeholder for the latest version available e.g. `latest.integration`.
 
-Alternatively, the module you request can change over time even for the same version, a so-called <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing version>>.
-An example of this type of _changing module_ is a Maven `SNAPSHOT` module, which always points at the latest artifact published.
-In other words, a standard Maven snapshot is a module that is continually evolving, it is a "changing module".
+A <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic version>> can be either a version range (e.g., `2.+`) or a placeholder for the latest version available, e.g., `latest.integration`.
 
-CAUTION: Using dynamic versions and changing modules can lead to unreproducible builds. As new versions of a particular module are published, its API may become incompatible with your source code. Use this feature with caution!
+TIP: For reproducible builds, use <<dependency_locking.adoc#dependency-locking,dependency locking>> when declaring dependencies with dynamic versions.
+
+Alternatively, the module you request can change even for the same version, which is known as a <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing version>>.
+An example of a _changing module_ is a Maven `SNAPSHOT` module, which always points to the latest artifact published.
+In other words, a standard Maven snapshot is a module that is continually evolving; it is a "changing module".
+
+CAUTION: Using dynamic versions and changing modules can lead to unreproducible builds. As new versions of a particular module are published, its API may become incompatible with your source code. Use this feature with caution.
 
 [[sub:declaring_dependency_with_dynamic_version]]
 == Declaring a dynamic version
 
 Projects might adopt a more aggressive approach for consuming dependencies to modules.
-For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time.
+For example, you might want to integrate the latest version of a dependency to consume cutting-edge features at any given time.
 A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given module.
 
-CAUTION: Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
+CAUTION: Using dynamic versions in a build can break it. As soon as a new version of the dependency that contains an incompatible API change is released, your source code might stop compiling.
 
-.Declaring a dependency with a dynamic version
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
-A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
+A link:https://scans.gradle.com/[Build Scan] can effectively visualize dynamic dependency versions and their respective selected versions:
 
-.Dynamic dependencies in build scan
 image::dependency-management-dynamic-dependency-build-scan.png[]
 
-By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories.
-The <<#sec:controlling-dynamic-version-caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
+Gradle caches dynamic versions of dependencies for 24 hours by default, during which it does not attempt to resolve newer versions from the declared repositories.
+You can adjust the caching <<#sec:controlling-dynamic-version-caching,threshold>> to resolve new versions sooner.
 
 [[sub:declaring_dependency_with_changing_version]]
 == Declaring a changing version
 
-A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a module with a so-called _changing version_.
+A team may implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a module with a so-called _changing version_.
 A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#what-is-a-snapshot-version[snapshot versions].
 Snapshot versions contain the suffix `-SNAPSHOT`.
-The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
-.Declaring a dependency with a changing version
+The following example demonstrates how to declare a snapshot version on the Spring dependency:
+
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 By default, Gradle caches changing versions of dependencies for 24 hours.
-Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<#sec:controlling-dynamic-version-caching,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+Within this time frame, Gradle does not try to resolve newer versions from the declared repositories.
+The <<#sec:controlling-dynamic-version-caching,threshold is configurable>>.
 
-Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module.
+Gradle is flexible enough to treat any version as a changing version, e.g., if you want to model snapshot behavior for an Ivy module.
 All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
 
 [[sec:controlling-dynamic-version-caching]]
 == Controlling dynamic version caching
 
-By default, Gradle caches dynamic versions and changing modules for 24 hours. During that time frame Gradle does not contact any of the declared, remote repositories for new versions. If you want Gradle to check the remote repository more frequently or with every execution of your build, then you will need to change the time to live (TTL) threshold.
+By default, Gradle caches dynamic versions and changing modules for 24 hours.
+Gradle does not contact any of the declared remote repositories for new versions during that time.
+You must change the time to live (TTL) threshold if you want Gradle to check the remote repository more frequently or with every build execution.
 
-NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to the increased number of HTTP(s) calls.
+NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to increased HTTP(s) calls.
 
 You can override the default cache modes using <<#sec:controlling_dependency_caching_command_line,command line options>>. You can also <<#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
 
 [[sec:controlling_dependency_caching_programmatically]]
 == Controlling dependency caching programmatically
 
-You can fine-tune certain aspects of caching programmatically using the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html[ResolutionStrategy] for a configuration. The programmatic approach is useful if you would like to change the settings permanently.
+You can fine-tune certain aspects of caching programmatically using the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html[ResolutionStrategy] for a configuration. The programmatic approach is useful if you want to change the settings permanently.
 
-By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
+By default, Gradle caches dynamic versions for 24 hours.
+To change how long Gradle will cache the resolved version for a dynamic version, use:
 
-.Dynamic version cache control
 ====
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
 ====
 
-By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
+By default, Gradle caches changing modules for 24 hours.
+To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
-.Changing module cache control
 ====
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
@@ -107,17 +111,18 @@ include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changin
 [[sec:offline-mode]]
 === Avoiding network access with offline mode
 
-The `--offline` command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again. When running with offline, Gradle will never attempt to access the network to perform dependency resolution. If required modules are not present in the dependency cache, build execution will fail.
+The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.
+When running with `offline`, Gradle will not attempt to access the network for dependency resolution.
+If the required modules are not in the dependency cache, the build will fail.
 
 [[sec:refreshing-dependencies]]
 === Refreshing dependencies
 
 You can control the behavior of dependency caching for a distinct build invocation from the command line.
-Command line options are helpful for making a selective, ad-hoc choice for a single execution of the build.
-
+Command line options help make a selective, ad-hoc choice for a single build execution.
 
 At times, the Gradle Dependency Cache can become out of sync with the actual state of the configured repositories.
-Perhaps a repository was initially misconfigured, or perhaps a "non-changing" module was published incorrectly.
+Perhaps a repository was initially misconfigured, or maybe a "non-changing" module was published incorrectly.
 To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
 
 The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts.
@@ -126,7 +131,7 @@ However, where possible Gradle will check if the previously downloaded artifacts
 This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
 
 - new versions of dynamic dependencies
-- new versions of changing modules (modules which use the same version string but can have different contents)
+- new versions of changing modules (modules that use the same version string but can have different contents)
 
 --
 Refreshing dependencies will cause Gradle to invalidate its listing caches.
@@ -137,16 +142,16 @@ However:
 
 In other words, refreshing dependencies _only_ has an impact if you actually use dynamic dependencies _or_ that you have changing dependencies that you were not aware of (in which case it is your responsibility to declare them correctly to Gradle as changing dependencies).
 
-It's a common misconception to think that using `--refresh-dependencies` will force download of dependencies.
+It's a common misconception to think that using `--refresh-dependencies` will force the download of dependencies.
 This is **not** the case: Gradle will only perform what is strictly required to refresh the dynamic dependencies.
-This _may_ involve downloading new listing or metadata files, or even artifacts, but if nothing changed, the impact is minimal.
+This _may_ involve downloading new listings, metadata files, or even artifacts, but the impact is minimal if nothing changed.
 --
 
 [[sec:component_selection_rules]]
 == Using component selection rules
 
 Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector.
-Rules are applied against every available version and allow the version to be explicitly rejected by rule.
+Rules are applied against every available version and allow the version to be explicitly rejected.
 This allows Gradle to ignore any component instance that does not satisfy conditions set by the rule.
 Examples include:
 
@@ -154,12 +159,11 @@ Examples include:
 * For a static version like `1.4` an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.
 
 Rules are configured via the link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelectionRules.html[ComponentSelectionRules] object.
-Each rule configured will be called with a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] object as an argument which contains information about the candidate version being considered.
+Each rule configured will be called with a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] object as an argument that contains information about the candidate version being considered.
 Calling link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[ComponentSelection.reject(java.lang.String)] causes the given candidate version to be explicitly rejected, in which case the candidate will not be considered for the selector.
 
-The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate.
+The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate:
 
-.Component selection rule
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
@@ -170,9 +174,8 @@ The version selected will be the first version found that all component selectio
 A version is considered accepted if no rule explicitly rejects it.
 
 Similarly, rules can be targeted at specific modules.
-Modules must be specified in the form of `group:module`.
+Modules must be specified in the form of `group:module`:
 
-.Component selection rule with module target
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
@@ -180,12 +183,11 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-selecti
 
 Component selection rules can also consider component metadata when selecting a version.
 Possible additional metadata that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
-Note that this extra information may not always be available and thus should be checked for `null` values.
+Note that this extra information may not always be available and thus should be checked for `null` values:
 
-.Component selection rule with metadata
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
 ====
 
-Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as parameter when declaring a component selection rule.
+Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as a parameter when declaring a component selection rule.

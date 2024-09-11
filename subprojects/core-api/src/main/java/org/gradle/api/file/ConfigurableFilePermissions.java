@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Provides the means of specifying file and directory access permissions for all classes of system users.
@@ -38,7 +37,6 @@ import org.gradle.api.Incubating;
  * </pre>
  * @since 8.3
  */
-@Incubating
 public interface ConfigurableFilePermissions extends FilePermissions {
 
     /**
@@ -135,9 +133,9 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      *     <li><code>w</code> if WRITING is permitted, <code>-</code> if it is not; must be 2nd in the set</li>
      *     <li><code>x</code> if EXECUTING is permitted, <code>-</code> if it is not; must be 3rd in the set</li>
      * </ul>
-     * <p>
-     * Examples:
+     *
      * <table>
+     *   <caption>Examples of Unix style permissions</caption>
      *   <tr>
      *     <th>Numeric</th>
      *     <th>Symbolic</th>

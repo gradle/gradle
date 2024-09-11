@@ -103,14 +103,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      */
     boolean isDependencyLockingEnabled();
 
-    /**
-     * Confirms that an unlocked configuration has been resolved.
-     * This allows the lock state for said configuration to be dropped if it existed before.
-     *
-     * @param configurationName the unlocked configuration
-     */
-    void confirmUnlockedConfigurationResolved(String configurationName);
-
     CapabilitiesResolutionInternal getCapabilitiesResolutionRules();
 
     boolean isFailingOnDynamicVersions();
@@ -119,7 +111,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
     boolean isDependencyVerificationEnabled();
 
-    void setReturnAllVariants(boolean returnAllVariants);
+    void setIncludeAllSelectableVariantResults(boolean selectableVariantResults);
 
-    boolean getReturnAllVariants();
+    boolean getIncludeAllSelectableVariantResults();
 }

@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 
@@ -27,6 +29,11 @@ import javax.annotation.Nullable;
  * The meta-data for a component that is resolved from a module in a binary repository.
  *
  * <p>Implementations of this type should be immutable and thread safe.</p>
+ *
+ * This type is being replaced by several other interfaces. Try to avoid this interface.
+ * @see ComponentGraphResolveMetadata
+ * @see ModuleComponentGraphResolveMetadata
+ * @see ComponentArtifactResolveMetadata
  */
 public interface ModuleComponentResolveMetadata extends ExternalComponentResolveMetadata, ModuleComponentGraphResolveMetadata {
     /**

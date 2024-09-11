@@ -28,7 +28,7 @@ class Gradleception(
     buildJvm: Jvm,
     jvmDescription: String,
     bundleGroovy4: Boolean = false,
-) : BaseGradleBuildType(stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
     val idParts = mutableListOf<String>()
     val labels = mutableListOf<String>()
     val descriptionParts = mutableListOf<String>()
@@ -130,7 +130,7 @@ class Gradleception(
 
             localGradle {
                 name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                tasks = "clean sanityCheck test " + if (bundleGroovy4) "--dry-run" else ""
+                tasks = "clean sanityCheck test -PflakyTests=exclude"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }

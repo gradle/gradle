@@ -120,19 +120,21 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that I can declare 'implementation' dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   //configuring dependency to specific configuration of the module
- *   implementation configuration: 'someConf', group: 'org.someOrg', name: 'someModule', version: '1.0'
+ *   // Configuring dependency to specific configuration of the module
+ *   // This notation should _only_ be used for Ivy dependencies
+ *   implementation(group: "org.someOrg", name: "someModule", version: "1.0", configuration: "someConf")
  *
- *   //configuring dependency on 'someLib' module
+ *   // Configuring dependency on 'someLib' module
  *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
- *     //explicitly adding the dependency artifact:
+ *     // Explicitly adding the dependency artifact:
+ *     // Prefer variant-aware dependency resolution
  *     artifact {
- *       //useful when some artifact properties unconventional
- *       name = 'someArtifact' //artifact name different than module name
+ *       // Useful when some artifact properties unconventional
+ *       name = 'someArtifact' // Artifact name different than module name
  *       extension = 'someExt'
  *       type = 'someType'
  *       classifier = 'someClassifier'
@@ -221,7 +223,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
+ * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.FileCollectionDependency}.</p>
  *
  * <h3>Dependencies to other configurations</h3>
  *
@@ -259,7 +261,7 @@ import java.util.Map;
  * <h3>Client module dependencies</h3>
  *
  * <strong>Client module dependencies are deprecated and will be removed in Gradle 9.0.
- * Use component metadata rules instead.</strong>
+ * Please use component metadata rules instead.</strong>
  *
  * <p>To add a client module to a configuration you can use the notation:</p>
  *
@@ -363,7 +365,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param notation The module notation, in one of the notations described above.
      * @return The dependency.
      *
-     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
+     * @deprecated Please use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
     Dependency module(Object notation);
@@ -376,7 +378,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency.
      *
-     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
+     * @deprecated Please use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
     Dependency module(Object notation, Closure configureClosure);

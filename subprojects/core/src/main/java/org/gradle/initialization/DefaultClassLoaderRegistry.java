@@ -65,6 +65,9 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         for (String packageName : apiAggregate.getExportedPackages()) {
             apiSpec.allowPackage(packageName);
         }
+        for (String packageName : apiAggregate.getUnexportedPackages()) {
+            apiSpec.disallowPackage(packageName);
+        }
         return apiSpec;
     }
 

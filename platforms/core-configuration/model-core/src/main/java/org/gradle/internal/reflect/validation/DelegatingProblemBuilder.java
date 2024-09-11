@@ -16,11 +16,14 @@
 
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.AdditionalDataSpec;
+import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
 
@@ -39,8 +42,18 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder label(String label) {
-        return validateDelegate(delegate).label(label);
+    public InternalProblemBuilder id(String name, String displayName) {
+        return validateDelegate(delegate).id(name, displayName);
+    }
+
+    @Override
+    public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
+        return validateDelegate(delegate).id(name, displayName, parent);
+    }
+
+    @Override
+    public InternalProblemBuilder contextualLabel(String contextualLabel) {
+        return validateDelegate(delegate).contextualLabel(contextualLabel);
     }
 
     @Override
@@ -89,11 +102,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder category(String category, String... details) {
-        return validateDelegate(delegate.category(category, details));
-    }
-
-    @Override
     public InternalProblemBuilder details(String details) {
         return validateDelegate(delegate.details(details));
     }
@@ -109,8 +117,8 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder additionalData(String key, Object value) {
-        return validateDelegate(delegate.additionalData(key, value));
+    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
+        return validateDelegate(delegate.additionalData(specType, config));
     }
 
     @Override

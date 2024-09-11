@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * A generator of ids for various model and result objects.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ComponentIdGenerator {
     private final AtomicLong nextId = new AtomicLong();
 

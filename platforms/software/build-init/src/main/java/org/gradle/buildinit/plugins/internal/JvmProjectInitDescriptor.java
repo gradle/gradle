@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -79,12 +80,20 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public BuildInitTestFramework getDefaultTestFramework() {
+    public BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption) {
+        if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            // This is the only supported option
+            return BuildInitTestFramework.JUNIT_JUPITER;
+        }
         return description.getDefaultTestFramework();
     }
 
     @Override
-    public Set<BuildInitTestFramework> getTestFrameworks() {
+    public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
+        if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            // This is the only supported option
+            return Collections.singleton(BuildInitTestFramework.JUNIT_JUPITER);
+        }
         return description.getSupportedTestFrameworks();
     }
 
@@ -105,7 +114,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         description.getPluginName().ifPresent(languagePlugin -> {
             String pluginVersionProperty = description.getPluginVersionProperty();
             String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
-            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion);
+            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion, description.getExplicitPluginAlias());
         });
 
         settings.getJavaLanguageVersion().ifPresent(languageVersion -> {

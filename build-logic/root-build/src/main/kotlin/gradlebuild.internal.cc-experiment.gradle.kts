@@ -60,7 +60,6 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "NativeProjectWithDepsGeneratorTask",
             "CppMultiProjectGeneratorTask",
             "BuildBuilderGenerator",
-            "GenerateSamplePageAsciidoc",
             "PerformanceTest",
             "BuildCommitDistribution",
             "DetermineBaselines",

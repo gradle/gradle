@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
@@ -48,28 +47,19 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
             buildscript {
                 $repositoriesBlock
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.7.22")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.7.22")
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
                 }
             }
             plugins {
-                kotlin("jvm") version "1.7.22"
+                kotlin("jvm") version "1.9.21"
             }
             """
         )
 
-        if (GradleContextualExecuter.isConfigCache()) {
-            executer.expectDocumentedDeprecationWarning(
-                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Simply remove the call. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
-        }
-
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.7.22 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.9.21 -> $embeddedKotlinVersion"))
         }
     }
 

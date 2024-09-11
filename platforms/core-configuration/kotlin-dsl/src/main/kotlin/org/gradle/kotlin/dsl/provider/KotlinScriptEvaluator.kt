@@ -23,36 +23,38 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
-import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
-import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hashing.newHasher
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation.Output
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -70,6 +72,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import java.io.File
+import java.util.Optional
 
 
 interface KotlinScriptEvaluator {
@@ -86,6 +89,7 @@ interface KotlinScriptEvaluator {
 }
 
 
+@Suppress("unused", "LongParameterList")
 internal
 class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
@@ -99,14 +103,18 @@ class StandardKotlinScriptEvaluator(
     private val classpathHasher: ClasspathHasher,
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
-    private val buildOperationExecutor: BuildOperationExecutor,
+    private val buildOperationRunner: BuildOperationRunner,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
+    private val internalOptions: InternalOptions,
     private val gradlePropertiesController: GradlePropertiesController,
+    private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
+    private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
+    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -119,7 +127,6 @@ class StandardKotlinScriptEvaluator(
         options: EvalOptions
     ) {
         withOptions(options) {
-
             interpreter.eval(
                 target,
                 scriptSource,
@@ -151,7 +158,21 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(gradlePropertiesController))
+        when(propertyUpgradeReportConfig.isEnabled) {
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
+            false -> Interpreter(InterpreterHost(gradlePropertiesController))
+        }
+    }
+
+    /**
+     * An interpreter host that doesn't cache compiled scripts in memory.
+     * Used for property upgrade report since we don't cache a report in-memory.
+     */
+    inner class InterpreterHostWithoutInMemoryCache(
+        gradleProperties: GradlePropertiesController
+    ) : Interpreter.Host by InterpreterHost(gradleProperties) {
+        override fun cachedClassFor(programId: ProgramId): CompiledScript? = null
+        override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
     }
 
     inner class InterpreterHost(
@@ -162,23 +183,24 @@ class StandardKotlinScriptEvaluator(
             kotlinCompilerOptions(gradleProperties)
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
-            (scriptHost.target as? ProjectInternal)?.let {
-                val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
-                stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
-            } ?: ClassPath.EMPTY
+            (scriptHost.target as? ProjectInternal)
+                ?.let {
+                    val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+                    stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
+                } ?: ClassPath.EMPTY
 
-        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
-            val project = scriptHost.target as Project
-            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
-                project,
-                compilationClassPathOf(scriptHost.targetScope)
-            ).bin
-        }
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            (scriptHost.target as? ExtensionAware)
+                ?.let { scriptTarget ->
+                    scriptHost.projectAccessorsClassPathGenerator.projectAccessorsClassPath(
+                        scriptTarget,
+                        compilationClassPathOf(scriptHost.targetScope)
+                    ).bin
+                } ?: ClassPath.EMPTY
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
 
-            buildOperationExecutor.call(object : CallableBuildOperation<String> {
+            buildOperationRunner.call(object : CallableBuildOperation<String> {
 
                 override fun call(context: BuildOperationContext): String =
                     action().also {
@@ -258,9 +280,10 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost)
+            val output = executionEngineFor(scriptHost)
                 .createRequest(
-                    CompileKotlinScript(
+                    KotlinScriptCompilationAndInstrumentation(
+                        scriptHost.scriptSource,
                         programId,
                         compilationClassPath,
                         accessorsClassPath,
@@ -268,12 +291,18 @@ class StandardKotlinScriptEvaluator(
                         classpathHasher,
                         workspaceProvider,
                         fileCollectionFactory,
-                        inputFingerprinter
+                        inputFingerprinter,
+                        internalOptions,
+                        transformFactoryForLegacy,
+                        gradleCoreTypeRegistry,
+                        propertyUpgradeReportConfig
                     )
                 )
                 .execute()
-                .getOutputAs(File::class.java)
+                .getOutputAs(Output::class.java)
                 .get()
+            propertyUpgradeReportConfig.reportCollector.collect(output.propertyUpgradeReport)
+            output.instrumentedOutput
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -289,8 +318,7 @@ class StandardKotlinScriptEvaluator(
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
-            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
-            val classpath = instrumentedClasses.plus(accessorsClassPath)
+            val classpath = DefaultClassPath.of(location).plus(accessorsClassPath)
             return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
         }
 
@@ -348,95 +376,70 @@ class StandardKotlinScriptEvaluator(
                 null
             )
     }
-}
+
+    internal
+    class KotlinScriptCompilationAndInstrumentation(
+        source: ScriptSource,
+        private val programId: ProgramId,
+        private val compilationClassPath: ClassPath,
+        private val accessorsClassPath: ClassPath,
+        private val compileTo: (File) -> Unit,
+        private val classpathHasher: ClasspathHasher,
+        workspaceProvider: KotlinDslWorkspaceProvider,
+        fileCollectionFactory: FileCollectionFactory,
+        inputFingerprinter: InputFingerprinter,
+        internalOptions: InternalOptions,
+        transformFactory: ClasspathElementTransformFactoryForLegacy,
+        gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+        private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
+
+    ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, propertyUpgradeReportConfig) {
+
+        companion object {
+            const val JVM_TARGET = "jvmTarget"
+            const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
+            const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
+            const val TEMPLATE_ID = "templateId"
+            const val SOURCE_HASH = "sourceHash"
+            const val COMPILATION_CLASS_PATH = "compilationClassPath"
+            const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
+            val CACHING_DISABLED_PROPERTY: InternalFlag = InternalFlag("org.gradle.internal.kotlin-script-caching-disabled")
+            val CACHING_DISABLED_REASON: CachingDisabledReason = CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation disabled by property")
+        }
+
+        override fun getDisplayName(): String =
+            "Kotlin DSL script compilation (${programId.templateId})"
 
 
-internal
-class CompileKotlinScript(
-    private val programId: ProgramId,
-    private val compilationClassPath: ClassPath,
-    private val accessorsClassPath: ClassPath,
-    private val compileTo: (File) -> Unit,
-    private val classpathHasher: ClasspathHasher,
-    private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val inputFingerprinter: InputFingerprinter
-) : ImmutableUnitOfWork {
-
-    companion object {
-        const val JVM_TARGET = "jvmTarget"
-        const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
-        const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
-        const val TEMPLATE_ID = "templateId"
-        const val SOURCE_HASH = "sourceHash"
-        const val COMPILATION_CLASS_PATH = "compilationClassPath"
-        const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-    }
-
-    override fun visitIdentityInputs(
-        visitor: InputVisitor
-    ) {
-        visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
-        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
-        visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
-        visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
-        visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
-        visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
-        visitor.visitClassPathProperty(ACCESSORS_CLASS_PATH, accessorsClassPath)
-    }
-
-    override fun visitOutputs(
-        workspace: File,
-        visitor: UnitOfWork.OutputVisitor
-    ) {
-        val classesDir = classesDir(workspace)
-        visitor.visitOutputProperty(
-            "classesDir",
-            TreeType.DIRECTORY,
-            OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir))
-        )
-    }
-
-    override fun identify(
-        identityInputs: MutableMap<String, ValueSnapshot>,
-        identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
-    ): UnitOfWork.Identity {
-        val identityHash = newHasher().let { hasher ->
-            identityInputs.values.forEach {
-                requireNotNull(it).appendToHasher(hasher)
+        override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
+            if (cachingDisabledByProperty) {
+                return Optional.of(CACHING_DISABLED_REASON)
             }
-            hasher.hash().toString()
+
+            return super.shouldDisableCaching(detectedOverlappingOutputs)
         }
-        return UnitOfWork.Identity { identityHash }
-    }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
-        val workspace = executionRequest.workspace
-        compileTo(classesDir(workspace))
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
+        override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
+            super.visitIdentityInputs(visitor)
+            visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
+            visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
+            visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
+            visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+            visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
+            visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
+            visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
         }
-    }
 
-    override fun getDisplayName(): String =
-        "Kotlin DSL script compilation (${programId.templateId})"
+        override fun compile(workspace: File): File {
+            return File(workspace, "classes").apply {
+                mkdirs()
+                compileTo.invoke(this)
+            }
+        }
 
-    override fun loadAlreadyProducedOutput(workspace: File): Any =
-        classesDir(workspace)
-
-    override fun getWorkspaceProvider() = workspaceProvider.scripts
-
-    override fun getInputFingerprinter() = inputFingerprinter
-
-    private
-    fun classesDir(workspace: File) =
-        workspace.resolve("classes")
-
-    private
-    fun InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
-        visitInputProperty(propertyName) {
-            classpathHasher.hash(classPath)
+        override fun instrumentedOutput(workspace: File): File {
+            return File(workspace, "instrumented/classes")
         }
     }
 }

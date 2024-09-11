@@ -180,7 +180,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 
 The semantics are again equivalent: adding a single bundle is equivalent to adding all dependencies which are part of the bundle individually.
 
-[[sec:plugins]]
+[[sec:plugins_ver]]
 ==== Plugins
 
 In addition to libraries, version catalog supports declaring plugin versions.
@@ -433,7 +433,7 @@ The actual version will be subject to traditional conflict resolution, if any.
 [[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 
-A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
+A <<glossary.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
 In most cases it's exclusively composed of <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> which will either _suggest_ dependency versions or _enforce_ some versions.
 As such, this is a perfect tool whenever you need to _share dependency versions between projects_.
 In this case, a project will typically be organized this way:

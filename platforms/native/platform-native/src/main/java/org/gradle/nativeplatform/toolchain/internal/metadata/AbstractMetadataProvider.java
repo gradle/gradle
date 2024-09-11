@@ -44,6 +44,7 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
     @Override
     public SearchResult<T> getCompilerMetaData(List<File> path, Action<? super CompilerExecSpec> configureAction) {
         DefaultCompilerExecSpec execSpec = new DefaultCompilerExecSpec();
+        execSpec.environment("LC_MESSAGES", "C");
         configureAction.execute(execSpec);
 
         List<String> allArgs = ImmutableList.<String>builder().addAll(execSpec.args).addAll(compilerArgs()).build();

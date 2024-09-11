@@ -1,3 +1,3 @@
 plugins {
-    id("org.asciidoctor.jvm.convert") version "3.2.0"
+    id("org.asciidoctor.jvm.convert") version "4.0.2"
 }

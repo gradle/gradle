@@ -4,42 +4,51 @@ plugins {
 
 description = "Provider-side implementation for running tooling model builders"
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-services-groovy")) // for 'Specs'
-    implementation(project(":enterprise-operations"))
-    implementation(project(":build-events"))
-    implementation(project(":composite-builds"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":functional"))
-    implementation(project(":dependency-management"))
-    implementation(project(":launcher"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":reporting"))
-    implementation(project(":resources"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":tooling-api"))
-    implementation(project(":workers"))
+errorprone {
+    disabledChecks.addAll(
+        "InlineMeSuggester", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy) // for 'Closure'
+dependencies {
+    implementation(projects.baseServicesGroovy) // for 'Specs'
+    implementation(projects.coreApi)
+    implementation(projects.dependencyManagement)
+    implementation(projects.launcher)
+    implementation(projects.resources)
+    implementation(projects.testingBase)
+    implementation(projects.testingJvm)
+    implementation(projects.workers)
+    implementation(projects.testingBaseInfrastructure)
     implementation(libs.guava)
-    implementation(libs.gson)
     implementation(libs.commonsIo)
 
-    testCompileOnly(project(":toolchains-jvm")) {
+    api(libs.jsr305)
+    api(projects.baseServices)
+    api(projects.buildEvents)
+    api(projects.buildOperations)
+    api(projects.core)
+    api(projects.daemonProtocol)
+    api(projects.enterpriseOperations)
+    api(projects.stdlibJavaExtensions)
+    api(projects.problemsApi)
+    api(projects.serviceProvider)
+    api(projects.toolingApi)
+
+    runtimeOnly(projects.compositeBuilds)
+    runtimeOnly(libs.groovy) // for 'Closure'
+
+    testCompileOnly(projects.toolchainsJvm) {
         because("JavaLauncher is required for mocking Test.")
     }
-    testImplementation(project(":file-collections"))
-    testImplementation(project(":platform-jvm"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.fileCollections)
+    testImplementation(projects.platformJvm)
+    testImplementation(testFixtures(projects.core))
 }
 
 strictCompile {
     ignoreDeprecations()
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -31,7 +31,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
 
         when:
-        buildScript """
+        buildFile """
             ${testPluginImpl()}
 
             allprojects { apply type: TestPlugin }
@@ -86,7 +86,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
 
         when:
-        buildScript """
+        buildFile """
             allprojects { apply type: TestPlugin }
 
             $code {
@@ -119,7 +119,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b'"
 
         when:
-        buildScript """
+        buildFile """
             allprojects { apply type: TestPlugin }
 
             $code {
@@ -171,7 +171,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
     def "model block must receive transformed closure"() {
         when:
-        buildScript """
+        buildFile """
             ${testPluginImpl()}
             apply type: TestPlugin
 

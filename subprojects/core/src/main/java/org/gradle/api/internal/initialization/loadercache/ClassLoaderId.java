@@ -22,6 +22,8 @@ import org.gradle.api.Describable;
  * Opaque identifier of the classloader. Needed for correct behavior of classloader invalidation.
  */
 public interface ClassLoaderId extends Describable {
+    @Override
     boolean equals(Object o);
+    @Override
     int hashCode();
 }

@@ -27,7 +27,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
@@ -74,7 +73,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !metadata.changing
         !metadata.missing
         metadata.status == "integration"
-        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        metadata.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
 
         def immutable = metadata.asImmutable()
@@ -82,7 +81,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !immutable.changing
         !immutable.missing
         immutable.status == "integration"
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
@@ -282,8 +281,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         expect:
         def immutable = metadata.asImmutable()
-        def variantsForTraversal = immutable.getVariantsForGraphTraversal().orElse(null)
-        variantsForTraversal != null
+        def variantsForTraversal = immutable.getVariantsForGraphTraversal()
         variantsForTraversal.size() == 2
         variantsForTraversal[0].name == 'api'
         variantsForTraversal[0].dependencies.size() == 1
@@ -300,11 +298,11 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         api.dependencies[0].selector.module == "m1"
         api.dependencies[0].selector.version == "v1"
 
-        api.variants.size() == 1
-        api.variants[0].asDescribable().displayName == "group:module:version variant api"
-        api.variants[0].attributes == attributes1
-        api.variants[0].artifacts.size() == 2
-        def artifacts1 = api.variants[0].artifacts as List
+        api.artifactVariants.size() == 1
+        api.artifactVariants[0].asDescribable().displayName == "group:module:version variant api"
+        api.artifactVariants[0].attributes == attributes1
+        api.artifactVariants[0].artifacts.size() == 2
+        def artifacts1 = api.artifactVariants[0].artifacts as List
         artifacts1[0].name.name == 'f1'
         artifacts1[0].name.type == 'jar'
         artifacts1[0].name.classifier == null
@@ -314,14 +312,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         runtime.name == 'runtime'
         runtime.asDescribable().displayName == 'group:module:version variant runtime'
         runtime.attributes == attributes2
-        runtime.variants.size() == 1
+        runtime.artifactVariants.size() == 1
 
         runtime.dependencies.size() == 2
 
-        runtime.variants[0].asDescribable().displayName == "group:module:version variant runtime"
-        runtime.variants[0].attributes == attributes2
-        runtime.variants[0].artifacts.size() == 1
-        def artifacts2 = runtime.variants[0].artifacts as List
+        runtime.artifactVariants[0].asDescribable().displayName == "group:module:version variant runtime"
+        runtime.artifactVariants[0].attributes == attributes2
+        runtime.artifactVariants[0].artifacts.size() == 1
+        def artifacts2 = runtime.artifactVariants[0].artifacts as List
         artifacts2[0].name.name == 'f2'
         artifacts2[0].name.type == 'zip'
         artifacts2[0].name.classifier == null

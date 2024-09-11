@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel;
 /**
  * Indicates an event that can trigger an immediate update to the console.
  */
-public class UpdateNowEvent extends OutputEvent {
+public class UpdateNowEvent extends OutputEvent implements InteractiveEvent {
 
     private final long timestamp;
 

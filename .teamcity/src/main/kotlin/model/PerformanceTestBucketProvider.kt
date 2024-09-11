@@ -113,7 +113,7 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
         .groupBy({ it.testProject }, { scenario ->
             listOf(testProjectToScenarioDurations, testProjectScenarioDurationsFallback)
                 .mapNotNull { it.getOrDefault(scenario.testProject, emptyList()).firstOrNull { duration -> duration.scenario == scenario.scenario } }
-                .firstOrNull() ?: throw IllegalArgumentException("No durations found for $scenario")
+                .firstOrNull() ?: PerformanceTestDuration(scenario.scenario, 1) // Fallback for new performance tests (don't use 0 to avoid division by zero)
         })
         .entries
         .map { TestProjectDuration(it.key, it.value) }

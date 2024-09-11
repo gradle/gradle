@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface BuildTreeLocalComponentProvider {
     /**
      * Get the local component for the project identified by {@code projectIdentifier}. The returned metadata will
-     * use foreign component identifiers for local components originating from builds different from {@code currentBuild}.
+     * use foreign component identifiers for local components originating from builds different from {@code currentBuildPath}.
      */
-    LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, BuildIdentifier currentBuild);
+    LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, Path currentBuildPath);
 }

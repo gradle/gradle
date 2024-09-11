@@ -17,7 +17,7 @@
 package org.gradle.internal.code;
 
 import org.gradle.api.Action;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 /**
  * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface UserCodeApplicationContext {
     /**
      * Applies some user code, assigning an ID for this particular application.

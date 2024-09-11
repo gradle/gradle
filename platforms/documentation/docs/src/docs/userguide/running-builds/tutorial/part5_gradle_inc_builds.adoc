@@ -15,12 +15,23 @@
 [[part5_gradle_inc_builds]]
 = Part 5: Exploring Incremental Builds
 
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/ec69d0b8-9171-4969-ac3e-82dea16f87b0/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">Incremental Builds and Build Caching with Gradle&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
+
 Learn the basics of Gradle's incremental builds.
 
 ****
 **In this section you will:**
 
+- Use Gradle properties
 - Understand incremental builds
+- Explore task outcome labels
 ****
 
 [[part5_begin]]
@@ -44,20 +55,22 @@ To better see incremental builds in action, we are going to switch the console o
 
 In the top-level folder of your app (`tutorial`), create a `gradle.properties` file.
 
-[source]
+[source,properties]
 ----
 $ touch gradle.properties
 ----
 
 Add `org.gradle.console=verbose` so the contents of the file look like this:
-[source]
+
+.gradle.properties
+[source,properties]
 ----
 org.gradle.console=verbose
 ----
 
 == Step 3. Analyzing Incremental Builds
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:clean :app:build
 
@@ -85,7 +98,7 @@ No surprise here, Gradle invoked all the tasks needed to build the app.
 This was done successfully.
 
 Run the build again to view the _incremental build_ optimization in action:
-[source]
+[source,text]
 ----
 $ ./gradlew :app:build
 

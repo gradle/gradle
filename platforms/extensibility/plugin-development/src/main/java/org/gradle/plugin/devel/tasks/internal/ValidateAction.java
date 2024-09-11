@@ -30,12 +30,12 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -182,9 +182,9 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 validationContext.visitTypeProblem(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
-                            .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", GradleCoreProblemGroup.validation().type())
+                            .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
-                            .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON))
                             .severity(WARNING)
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                             .solution("Add " + disableCachingAnnotation + "(because = ...)")

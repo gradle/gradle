@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 
 import java.util.Collection;
 
@@ -44,6 +46,11 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
     public boolean add(final DependencyConstraint dependencyConstraint) {
         assertConfigurationIsDeclarable();
         clientConfiguration.maybeEmitDeclarationDeprecation();
+        if (dependencyConstraint instanceof DependencyConstraintInternal) {
+            ((DependencyConstraintInternal) dependencyConstraint).addMutationValidator(constraint ->
+                ((MutationValidator) clientConfiguration).validateMutation(MutationValidator.MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES)
+            );
+        }
         return addInternalDependencyConstraint(dependencyConstraint);
     }
 

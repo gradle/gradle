@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal
 
-import org.gradle.api.Action
-
-import static org.gradle.util.internal.WrapUtil.toList
+import groovy.test.NotYetImplemented
+import org.gradle.util.TestUtil
 
 class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
     DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence, callbackActionDecorator)
@@ -62,134 +61,54 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
         set.iterator().collect { it } == ["a", "b", "c", "d"]
     }
 
-    def callsVetoActionBeforeObjectIsAdded() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
+    def "withType works with addLater"() {
+        given:
+        def value = Mock(Subtype)
 
         when:
-        container.add("a")
+        container.addLater(TestUtil.providerFactory().provider { value })
+        def result = collect(container.withType(Subtype))
 
         then:
-        1 * action.execute(null)
-        0 * _
+        result == [value]
     }
 
-    def objectIsNotAddedWhenVetoActionThrowsAnException() {
-        def action = Mock(Action)
-        def failure = new RuntimeException()
-        container.beforeCollectionChanges(action)
+    @NotYetImplemented
+    def "withType works with addAllLater for list"() {
+        given:
+        def value = Mock(Subtype)
 
         when:
-        container.add("a")
+        container.addAllLater(TestUtil.providerFactory().provider { [value] })
+        def result = collect(container.withType(Subtype))
 
         then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        1 * action.execute(null) >> { throw failure }
-
-        and:
-        !toList(container).contains("a")
+        result == [value]
     }
 
-    def callsVetoActionOnceBeforeCollectionIsAdded() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
+    @NotYetImplemented
+    def "withType works for addAllLater and set property"() {
+        def value = Mock(Subtype)
+        def property = TestUtil.objectFactory().setProperty(CharSequence)
+        property.add(value)
 
         when:
-        container.addAll(["a", "b"])
+        container.addAllLater(property)
+        def result = collect(container.withType(Subtype))
 
         then:
-        1 * action.execute(null)
-        0 * _
+        result == [value]
     }
 
-    def callsVetoActionBeforeObjectIsRemoved() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
+    interface Subtype extends CharSequence {}
 
-        when:
-        container.remove("a")
-
-        then:
-        1 * action.execute(null)
-        0 * _
+    static <T> Collection<T> collect(Iterable<T> iterable) {
+        def result = []
+        Iterator it = iterable.iterator()
+        while (it.hasNext()) {
+            result.add(it.next())
+        }
+        result
     }
 
-    def callsVetoActionBeforeObjectIsRemovedUsingIterator() {
-        def action = Mock(Action)
-
-        container.add("a")
-        container.beforeCollectionChanges(action)
-
-        def iterator = container.iterator()
-        iterator.next()
-
-        when:
-        iterator.remove()
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def objectIsNotRemovedWhenVetoActionThrowsAnException() {
-        def action = Mock(Action)
-        def failure = new RuntimeException()
-
-        container.add("a")
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.remove("a")
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        1 * action.execute(null) >> { throw failure }
-
-        and:
-        toList(container).contains("a")
-    }
-
-    def callsVetoActionBeforeCollectionIsCleared() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.clear()
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsRemoved() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.removeAll(["a", "b"])
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsIntersected() {
-        def action = Mock(Action)
-        container.add("a")
-        container.add("b")
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.retainAll(toList())
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
 }

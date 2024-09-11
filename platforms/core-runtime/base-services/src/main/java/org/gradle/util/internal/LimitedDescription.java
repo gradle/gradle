@@ -23,7 +23,10 @@ import java.util.List;
 
 /**
  * Discards old entries when current count is over the limit.
+ *
+ * @deprecated Used only by a deprecated public class GFileUtils. Prefer Guava's EvictionQueue in the new code.
  */
+@Deprecated
 public class LimitedDescription {
 
     private final LinkedList<String> content;
@@ -42,6 +45,7 @@ public class LimitedDescription {
         return this;
     }
 
+    @Override
     public String toString() {
         if (content.size() == 0) {
             return "<<empty>>";

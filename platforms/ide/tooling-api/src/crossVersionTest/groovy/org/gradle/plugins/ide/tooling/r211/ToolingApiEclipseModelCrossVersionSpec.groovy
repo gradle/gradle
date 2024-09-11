@@ -19,12 +19,11 @@ package org.gradle.plugins.ide.tooling.r211
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
-@TargetGradleVersion(">=2.11")
+@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -90,26 +89,6 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
         then:
         rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.VERSION_1_5
-    }
-
-    @TargetGradleVersion("=2.9")
-    def "older Gradle versions throw exception when querying target bytecode level"() {
-        when:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
-        rootProject.javaSourceSettings.targetBytecodeVersion
-
-        then:
-        thrown(UnsupportedMethodException)
-    }
-
-    @TargetGradleVersion("=2.9")
-    def "older Gradle versions throw exception when querying target runtime"() {
-        when:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
-        rootProject.javaSourceSettings.jdk
-
-        then:
-        thrown(UnsupportedMethodException)
     }
 
     def "Multi-project build can define different target bytecode level for subprojects"() {

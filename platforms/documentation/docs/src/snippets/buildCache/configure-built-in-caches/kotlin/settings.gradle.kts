@@ -3,7 +3,6 @@ rootProject.name = "configure-built-in-caches"
 buildCache {
     local {
         directory = File(rootDir, "build-cache")
-        removeUnusedEntriesAfterDays = 30
     }
 }
 // end::configure-directory-build-cache[]

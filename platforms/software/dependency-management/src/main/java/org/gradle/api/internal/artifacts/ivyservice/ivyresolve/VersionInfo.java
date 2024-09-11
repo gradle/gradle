@@ -29,10 +29,12 @@ public class VersionInfo implements Versioned {
         return version;
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof VersionInfo && version.equals(((VersionInfo) other).getVersion());
     }
 
+    @Override
     public int hashCode() {
         return version.hashCode();
     }

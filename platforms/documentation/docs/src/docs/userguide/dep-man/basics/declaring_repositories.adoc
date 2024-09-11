@@ -1,0 +1,231 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring-basic-repositories]]
+= 3. Declaring repositories
+
+Gradle needs to know where it can download the dependencies used in the project.
+
+For example, the `com.google.guava:guava:30.0-jre` dependency can be downloaded from the public Maven Central repository `mavenCentral()`.
+Gradle will find and download the `guava` source code (as a `jar`) from Maven Central and use it build the project.
+
+You can add any number of repositories for your dependencies by configuring the `repositories` block in your `build.gradle(.kts)` file:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+    mavenCentral()  // <1>
+    maven {         // <2>
+        url = uri("https://company/com/maven2")
+    }
+    mavenLocal()    // <3>
+    flatDir {       // <4>
+        dirs("libs")
+    }
+}
+----
+<1> Public repository
+<2> Private/Custom repository
+<3> Local repository
+<4> File location
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+repositories {
+    mavenCentral()  // <1>
+    maven {         // <2>
+        url = uri("https://company/com/maven2")
+    }
+    mavenLocal()    // <3>
+    flatDir {       // <4>
+        dirs "libs"
+    }
+}
+----
+<1> Public repository
+<2> Private/Custom repository
+<3> Local repository
+<4> File location
+=====
+====
+
+Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
+
+If a library is available from more than one of the listed repositories, Gradle will simply pick the first one.
+
+[[sec:declaring_public_repository]]
+== Declaring a public repository
+
+Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
+Popular public repositories include link:https://repo.maven.apache.org/maven2/[Maven Central] and the link:https://maven.google.com/[Google Android] repository.
+
+Gradle provides built-in shorthand notations for these widely-used repositories:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+repositories {
+    mavenCentral()
+    google()
+    gradlePluginPortal()
+}
+----
+=====
+====
+
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
+All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
+
+[[sec:declaring_custom_repository]]
+== Declaring a private or custom repository
+
+Most enterprise projects establish a binary repository accessible only within their intranet.
+In-house repositories allow teams to publish internal binaries, manage users and security, and ensure uptime and availability.
+
+Specifying a custom URL is useful for declaring less popular but publicly-available repositories.
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+    maven {
+        url = uri("https://maven-central.storage.apis.com")
+    }
+    ivy {
+        url = uri("https://github.com/ivy-rep/")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.build.gradle
+----
+repositories {
+    maven {
+        url = uri("https://maven-central.storage.apis.com")
+    }
+    ivy {
+        url = uri("https://github.com/ivy-rep/")
+    }
+}
+----
+=====
+====
+
+[[sec:declaring_local_repository]]
+== Declaring a local repository
+
+Gradle can consume dependencies available in a link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
+
+To declare the local Maven cache as a repository, add this to your build script:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
+====
+
+[[sec:repository-types]]
+== Understanding supported repository types
+
+Gradle supports a wide range of sources for dependencies, both in terms of format and in terms of connectivity.
+You may resolve dependencies from:
+
+* Different formats
+** a <<declaring_repositories_adv.adoc#sec:maven_repo,Maven compatible>> artifact repository (e.g: Maven Central)
+** an <<declaring_repositories_adv.adoc#sec:ivy_repositories,Ivy compatible>> artifact repository (including custom layouts)
+** <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,local (flat) directories>>
+* with different connectivity
+** <<declaring_repositories_adv.adoc#sec:authentication_schemes, authenticated repositories>>
+** a wide variety of <<declaring_repositories_adv.adoc#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage based on the presence of artifacts.
+
+Here is a quick snapshot:
+
+[source,groovy]
+.build.gradle
+----
+repositories {
+
+    // Ivy Repository with Custom Layout
+    ivy {
+        url 'https://your.ivy.repo/url'
+        layout 'pattern', {
+            ivy '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
+            artifact '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
+        }
+    }
+
+    // Authenticated HTTPS Maven Repository
+    maven {
+        url 'https://your.secure.repo/url'
+        credentials {
+            username = 'your-username'
+            password = 'your-password'
+        }
+    }
+
+    // SFTP Repository
+    maven {
+        url 'sftp://your.sftp.repo/url'
+        credentials {
+            username = 'your-username'
+            password = 'your-password'
+        }
+    }
+
+    // AWS S3 Repository
+    maven {
+        url "s3://your-bucket/repository-path"
+        credentials(AwsCredentials) {
+            accessKey = 'your-access-key'
+            secretKey = 'your-secret-key'
+        }
+    }
+
+    // Google Cloud Storage Repository
+    maven {
+        url "gcs://your-bucket/repository-path"
+    }
+}
+----
+
+[.text-right]
+**Next Step:** <<centralizing_dependencies.adoc#centralizing-dependencies,Learn about Centralizing Dependencies>> >>

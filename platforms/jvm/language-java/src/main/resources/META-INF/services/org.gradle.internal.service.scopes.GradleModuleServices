@@ -1,0 +1,3 @@
+org.gradle.api.internal.tasks.CompileServices
+org.gradle.language.java.internal.JavaToolchainServices
+org.gradle.language.java.internal.JavaLanguageServices

@@ -53,6 +53,7 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
         return dependency;
     }
 
+    @Override
     public String toString() {
         String versionConstraintAsString = getVersionConstraint().toString();
         return versionConstraintAsString.isEmpty()

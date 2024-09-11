@@ -15,6 +15,9 @@
  */
 package org.gradle.api.component;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A software component factory is responsible for providing to
  * plugins a way to create software components. Currently the
@@ -27,6 +30,7 @@ package org.gradle.api.component;
  *
  * @since 5.3
  */
+@ServiceScope(Scope.Global.class)
 public interface SoftwareComponentFactory {
     /**
      * Creates an adhoc software component, which can be used by plugins to

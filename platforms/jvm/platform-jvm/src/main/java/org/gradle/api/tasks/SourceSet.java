@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 import javax.annotation.Nullable;
 
@@ -47,6 +48,7 @@ import javax.annotation.Nullable;
  * }
  * </pre>
  */
+@NotToBeMigratedToLazy
 public interface SourceSet extends ExtensionAware {
     /**
      * The name of the main source set.

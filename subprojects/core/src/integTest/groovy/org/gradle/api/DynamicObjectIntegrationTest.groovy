@@ -17,7 +17,11 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -67,8 +71,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        expectProjectConventionDeprecationWarnings()
-        expectConventionTypeDeprecationWarnings(2)
+        expectConventionTypeDeprecationWarnings()
 
         expect:
         succeeds("testTask")
@@ -105,7 +108,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "}"
         )
 
-        expectProjectConventionDeprecationWarnings()
         expectConventionTypeDeprecationWarnings()
 
         expect:
@@ -126,8 +128,7 @@ class ConventionBean {
 }
 '''
 
-        expectProjectConventionDeprecationWarnings()
-        expectConventionTypeDeprecationWarnings(2)
+        expectConventionTypeDeprecationWarnings()
 
         expect:
         succeeds()
@@ -238,6 +239,7 @@ assert 'overridden value' == global
 
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -291,10 +293,10 @@ assert 'overridden value' == global
             }
 '''
 
-        expectConventionTypeDeprecationWarnings(7)
-        expectAbstractTaskConventionDeprecationWarnings(3)
+        expectConventionTypeDeprecationWarnings(9)
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -350,6 +352,7 @@ assert 'overridden value' == global
 
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds("defaultTask")
     }
 
@@ -445,6 +448,10 @@ assert 'overridden value' == global
         succeeds("test")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotIsolatedProjects,
+        reason = "Exercises IP incompatible behavior: Groovy method inheritance"
+    )
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -465,8 +472,7 @@ assert 'overridden value' == global
             assert prop3(12) == 24
         """
 
-        expectProjectConventionDeprecationWarnings()
-        expectConventionTypeDeprecationWarnings(2)
+        expectConventionTypeDeprecationWarnings()
 
         expect:
         succeeds()
@@ -487,6 +493,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -834,6 +841,7 @@ task print(type: MyTask) {
     }
 
     @Issue("GRADLE-2163")
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canDecorateBooleanPrimitiveProperties() {
 
         buildFile """
@@ -906,7 +914,6 @@ task print(type: MyTask) {
             }
         """
 
-        expectProjectConventionDeprecationWarnings(4)
         expectConventionTypeDeprecationWarnings(4)
 
         expect:
@@ -1067,32 +1074,10 @@ task print(type: MyTask) {
         succeeds("run")
     }
 
-    private void expectProjectConventionDeprecationWarnings(int repeated = 1) {
-        repeated.times {
-            executer.expectDocumentedDeprecationWarning(
-                "The Project.getConvention() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
-    }
-
     private void expectConventionTypeDeprecationWarnings(int repeated = 1) {
         repeated.times {
             executer.expectDocumentedDeprecationWarning(
                 "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
-    }
-
-    private void expectAbstractTaskConventionDeprecationWarnings(int repeated = 1) {
-        repeated.times {
-            executer.expectDocumentedDeprecationWarning(
-                "The AbstractTask.getConvention() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"

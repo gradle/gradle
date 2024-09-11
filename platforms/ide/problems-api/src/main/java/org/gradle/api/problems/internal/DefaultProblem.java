@@ -16,75 +16,50 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements InternalProblem, Serializable {
-    private final String label;
-    private Severity severity;
-    private final List<ProblemLocation> locations;
-    private final DocLink documentationLink;
-    private final String description;
+public class DefaultProblem implements Serializable, Problem {
+    private final ProblemDefinition problemDefinition;
+    private final String contextualLabel;
     private final List<String> solutions;
-    private final RuntimeException cause;
-    private final ProblemCategory problemCategory;
-    private final Map<String, Object> additionalData;
+    private final List<ProblemLocation> problemLocations;
+    private final String details;
+    private final RuntimeException exception;
+    private final AdditionalData additionalData;
 
     protected DefaultProblem(
-        String label,
-        Severity severity,
-        List<ProblemLocation> locations,
-        @Nullable DocLink documentationUrl,
-        @Nullable String description,
-        @Nullable List<String> solutions,
-        @Nullable RuntimeException cause,
-        ProblemCategory problemCategory,
-        Map<String, Object> additionalData
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> problemLocations,
+        @Nullable String details,
+        RuntimeException exception,
+        @Nullable AdditionalData additionalData
     ) {
-        this.label = label;
-        this.severity = severity;
-        this.locations = ImmutableList.copyOf(locations);
-        this.documentationLink = documentationUrl;
-        this.description = description;
-        this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
-        this.cause = cause;
-        this.problemCategory = problemCategory;
-        this.additionalData = ImmutableMap.copyOf(additionalData);
+        this.problemDefinition = problemDefinition;
+        this.contextualLabel = contextualLabel;
+        this.solutions = solutions;
+        this.problemLocations = problemLocations;
+        this.details = details;
+        this.exception = exception;
+        this.additionalData = additionalData;
     }
 
     @Override
-    public String getLabel() {
-        return label;
-    }
-
-    @Override
-    public Severity getSeverity() {
-        return severity;
-    }
-
-    @Override
-    public List<ProblemLocation> getLocations() {
-        return locations;
+    public ProblemDefinition getDefinition() {
+        return problemDefinition;
     }
 
     @Nullable
     @Override
-    public DocLink getDocumentationLink() {
-        return documentationLink;
-    }
-
-    @Override
-    public String getDetails() {
-        return description;
+    public String getContextualLabel() {
+        return contextualLabel;
     }
 
     @Override
@@ -92,23 +67,26 @@ public class DefaultProblem implements InternalProblem, Serializable {
         return solutions;
     }
 
+    @Nullable
+    @Override
+    public String getDetails() {
+        return details;
+    }
+
+    @Override
+    public List<ProblemLocation> getLocations() {
+        return problemLocations;
+    }
+
+    @Nullable
     @Override
     public RuntimeException getException() {
-        return cause;
+        return exception;
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        return problemCategory;
-    }
-
-    @Override
-    public Map<String, Object> getAdditionalData() {
+    public AdditionalData getAdditionalData() {
         return additionalData;
-    }
-
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
     }
 
     @Override
@@ -129,20 +107,18 @@ public class DefaultProblem implements InternalProblem, Serializable {
             return false;
         }
         DefaultProblem that = (DefaultProblem) o;
-        return equals(label, that.label) &&
-            severity == that.severity &&
-            equals(locations, that.locations) &&
-            equals(problemCategory, that.problemCategory) &&
-            equals(documentationLink, that.documentationLink) &&
-            equals(description, that.description) &&
+        return equals(problemDefinition, that.problemDefinition) &&
+            equals(contextualLabel, that.contextualLabel) &&
             equals(solutions, that.solutions) &&
-            equals(cause, that.cause) &&
+            equals(problemLocations, that.problemLocations) &&
+            equals(details, that.details) &&
+            equals(exception, that.exception) &&
             equals(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData});
+        return Arrays.hashCode(new Object[]{problemDefinition, contextualLabel});
     }
 
 }

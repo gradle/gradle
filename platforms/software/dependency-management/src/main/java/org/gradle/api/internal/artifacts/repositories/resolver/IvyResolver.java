@@ -27,8 +27,9 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -36,8 +37,9 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata> {
+public class IvyResolver extends ExternalResourceResolver {
 
     private final boolean dynamicResolve;
     private final boolean m2Compatible;
@@ -81,11 +83,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     }
 
     @Override
-    protected Class<IvyModuleResolveMetadata> getSupportedMetadataType() {
-        return IvyModuleResolveMetadata.class;
-    }
-
-    @Override
     public boolean isDynamicResolveMode() {
         return dynamicResolve;
     }
@@ -112,18 +109,20 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
 
         @Override
-        protected void resolveJavadocArtifacts(IvyModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            ConfigurationMetadata configuration = module.getConfiguration("javadoc");
-            if (configuration != null) {
-                result.resolved(configuration.getArtifacts());
+        protected void resolveJavadocArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            IvyComponentArtifactResolveMetadata ivyModule = (IvyComponentArtifactResolveMetadata) module;
+            List<? extends ComponentArtifactMetadata> artifacts = ivyModule.getConfigurationArtifacts("javadoc");
+            if (artifacts != null) {
+                result.resolved(artifacts);
             }
         }
 
         @Override
-        protected void resolveSourceArtifacts(IvyModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            ConfigurationMetadata configuration = module.getConfiguration("sources");
-            if (configuration != null) {
-                result.resolved(configuration.getArtifacts());
+        protected void resolveSourceArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            IvyComponentArtifactResolveMetadata ivyModule = (IvyComponentArtifactResolveMetadata) module;
+            List<? extends ComponentArtifactMetadata> artifacts = ivyModule.getConfigurationArtifacts("sources");
+            if (artifacts != null) {
+                result.resolved(artifacts);
             }
         }
     }

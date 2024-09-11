@@ -25,7 +25,7 @@ import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener
 import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -39,14 +39,14 @@ abstract class BaseBuildScanPluginCheckInFixture {
     private final MavenFileRepository mavenRepo
     private final GradleExecuter pluginBuildExecuter
 
-    String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
-    String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
+    String runtimeVersion = AutoAppliedDevelocityPlugin.VERSION
+    String artifactVersion = AutoAppliedDevelocityPlugin.VERSION
 
     final String id
     final String packageName
     final String simpleClassName
     final String className
-    final String pluginArtifactGroup = AutoAppliedGradleEnterprisePlugin.GROUP
+    final String pluginArtifactGroup = AutoAppliedDevelocityPlugin.GROUP
     final String pluginArtifactName
 
     boolean doCheckIn = true
@@ -164,6 +164,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "${propertyPrefix}.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                    println "${propertyPrefix}.endOfBuild.buildResult.problems = \${buildResult.problems.size()}"
                                     if (System.getProperty("build-listener-failure") != null) {
                                         throw new RuntimeException("broken")
                                     }

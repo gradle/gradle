@@ -69,7 +69,7 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
 
     def "test report task can handle test tasks that did not run tests"() {
         given:
-        buildScript """
+        buildFile """
             $junitSetup
 
             def test = tasks.named('test', Test)
@@ -101,7 +101,7 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
 
     def "results or reports are linked to in error output"() {
         given:
-        buildScript """
+        buildFile """
             $junitSetup
             test {
                 reports.all { it.required = true }
@@ -138,7 +138,7 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
 
     def "output per test case flag invalidates outputs"() {
         when:
-        buildScript """
+        buildFile """
             $junitSetup
             test.reports.junitXml.outputPerTestCase = false
         """

@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
-    @TargetGradleVersion(">=2.8")
+    @TargetGradleVersion(">=3.0")
     def "makes sure module names are unique in gradle"() {
         given:
         file('build.gradle').text = """

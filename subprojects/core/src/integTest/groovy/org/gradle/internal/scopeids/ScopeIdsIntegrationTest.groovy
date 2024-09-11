@@ -56,7 +56,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         file("b/build.gradle") << "task t {}"
         file("b/buildSrc/build.gradle") << ""
 
-        buildScript """
+        buildFile """
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
                 dependsOn gradle.includedBuild("b").task(":t")
@@ -76,7 +76,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file("other/settings.gradle").touch()
-        buildScript """
+        buildFile """
             task t(type: GradleBuild) {
                 dir = file("other")
             }
@@ -96,7 +96,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         settingsFile << "rootProject.name = 'root'"
-        buildScript """
+        buildFile """
             task t(type: GradleBuild) {
                 startParameter.gradleUserHomeDir = new File("${TextUtil.normaliseFileSeparators(file("other-home").absolutePath)}")
             }
@@ -113,7 +113,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
     def "gradle-build with same root and user dir inherits all"() {
         when:
         settingsFile << "rootProject.name = 'root'"
-        buildScript """
+        buildFile """
             task t(type: GradleBuild) {}
         """
 

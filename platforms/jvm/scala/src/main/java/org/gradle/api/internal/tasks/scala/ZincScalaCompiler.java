@@ -82,6 +82,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         this.analysisStoreProvider = analysisStoreProvider;
     }
 
+    @Override
     public WorkResult execute(final ScalaJavaJointCompileSpec spec) {
 
         LOGGER.info("Compiling with Zinc Scala compiler.");

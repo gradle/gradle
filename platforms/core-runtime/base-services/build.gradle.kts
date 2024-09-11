@@ -24,28 +24,34 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
 moduleIdentity.createBuildReceipt()
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":hashing"))
-    api(project(":build-operations"))
+    api(projects.concurrent)
+    api(projects.stdlibJavaExtensions)
+    api(projects.fileTemp)
+    api(projects.serviceLookup)
+    api(projects.hashing)
+    api(projects.buildOperations)
+    api(libs.inject)
     api(libs.jsr305)
     api(libs.guava)
 
-    implementation(libs.asm)
+    implementation(projects.io)
+    implementation(projects.time)
+    implementation(projects.baseAsm)
+
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.slf4jApi)
 
-    integTestImplementation(project(":logging"))
+    integTestImplementation(projects.logging)
 
-    testFixturesApi(project(":hashing"))
+    testFixturesApi(projects.hashing)
     testFixturesImplementation(libs.guava)
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
     testImplementation(libs.xerces)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    jmh(platform(project(":distributions-dependencies")))
+    jmh(platform(projects.distributionsDependencies))
     jmh(libs.bouncycastleProvider)
     jmh(libs.guava)
 }
@@ -56,4 +62,6 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
-
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

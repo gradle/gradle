@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.tooling.r35
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
@@ -26,7 +25,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 
-@ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.5")
 class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends ToolingApiSpecification {
 

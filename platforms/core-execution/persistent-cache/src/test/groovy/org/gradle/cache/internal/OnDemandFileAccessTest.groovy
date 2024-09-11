@@ -19,12 +19,13 @@ import org.gradle.cache.FileAccess
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockManager.LockMode
-import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import java.util.function.Supplier
+
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
@@ -40,7 +41,7 @@ class OnDemandFileAccessTest extends Specification {
     }
 
     def "acquires shared lock to read file"() {
-        def action = {} as Factory
+        def action = {} as Supplier
 
         when:
         lock.readFile(action)

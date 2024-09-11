@@ -16,10 +16,11 @@
 
 package org.gradle.internal.deprecation
 
+
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -38,10 +39,10 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
     def problemEmitter = Stub(ProblemEmitter)
-    def problems = new DefaultProblems(problemEmitter)
+    def problems = new DefaultProblems([problemEmitter])
 
     def setup() {
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter))
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, problems, diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {
@@ -60,7 +61,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, buildOperationProgressEventEmitter, problems)
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, problems, diagnosticsFactory.newUnlimitedStream())
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
@@ -157,7 +158,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.Summary, buildOperationProgressEventEmitter, problems)
+        DeprecationLogger.init(WarningMode.Summary, buildOperationProgressEventEmitter, problems, diagnosticsFactory.newUnlimitedStream())
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         when:

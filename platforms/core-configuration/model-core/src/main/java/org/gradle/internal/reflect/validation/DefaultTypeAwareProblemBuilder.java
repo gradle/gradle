@@ -17,20 +17,20 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.TypeValidationData;
+import org.gradle.api.problems.internal.TypeValidationDataSpec;
 
 import javax.annotation.Nullable;
-
-import static java.lang.Boolean.TRUE;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
-
-    public static final String TYPE_NAME = "typeName";
-    public static final String PLUGIN_ID = "pluginId";
-    public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
-    public static final String PROPERTY_NAME = "propertyName";
-    public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
 
     public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
         super(problemBuilder);
@@ -39,20 +39,14 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     @Override
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
         if (classWithAnnotationAttached != null) {
-            additionalData(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+            additionalData(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
         }
         return this;
     }
 
     @Override
-    public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
-        additionalData(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
-        return this;
-    }
-
-    @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        additionalData(PROPERTY_NAME, propertyName);
+        additionalData(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
         return this;
     }
 
@@ -62,9 +56,79 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             return this;
         }
         String pp = getParentProperty(parentProperty);
-        additionalData(PARENT_PROPERTY_NAME, pp);
+        additionalData(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
         parentPropertyAdditionalData = pp;
         return this;
+    }
+
+    @Override
+    public Problem build() {
+        Problem problem = super.build();
+        Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
+        String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
+        String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
+        return problem.toBuilder().contextualLabel(prefix + text).build();
+    }
+
+    private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {
+        if (!problemId.getGroup().equals(GradleCoreProblemGroup.validation().property())) {
+            return false;
+        } else {
+            List<String> candidates = Arrays.asList("unknown-implementation", "unknown-implementation-nested", "implicit-dependency");
+            return candidates.contains(problemId.getName());
+        }
+    }
+
+    public static String introductionFor(Optional<TypeValidationData> additionalData, boolean typeIrrelevantInErrorMessage) {
+        Optional<String> rootType = additionalData.map(TypeValidationData::getTypeName)
+            .map(Object::toString)
+            .filter(DefaultTypeAwareProblemBuilder::shouldRenderType);
+        Optional<DefaultPluginId> pluginId = additionalData.map(TypeValidationData::getPluginId)
+            .map(Object::toString)
+            .map(DefaultPluginId::new);
+
+        StringBuilder builder = new StringBuilder();
+        boolean typeRelevant = rootType.isPresent() && !typeIrrelevantInErrorMessage;
+        if (typeRelevant) {
+            if (pluginId.isPresent()) {
+                builder.append("In plugin '")
+                    .append(pluginId.get())
+                    .append("' type '");
+            } else {
+                builder.append("Type '");
+            }
+            builder.append(rootType.get()).append("' ");
+        }
+
+        Object property = additionalData.map(TypeValidationData::getPropertyName).orElse(null);
+        if (property != null) {
+            if (typeRelevant) {
+                builder.append("property '");
+            } else {
+                if (pluginId.isPresent()) {
+                    builder.append("In plugin '")
+                        .append(pluginId.get())
+                        .append("' property '");
+                } else {
+                    builder.append("Property '");
+                }
+            }
+            additionalData.map(TypeValidationData::getParentPropertyName).ifPresent(parentProperty -> {
+                builder.append(parentProperty);
+                builder.append('.');
+            });
+            builder.append(property)
+                .append("' ");
+        }
+        return builder.toString();
+    }
+
+    // A heuristic to determine if the type is relevant or not.
+    // The "DefaultTask" type may appear in error messages
+    // (if using "adhoc" tasks) but isn't visible to this
+    // class so we have to rely on text matching for now.
+    private static boolean shouldRenderType(String className) {
+        return !"org.gradle.api.DefaultTask".equals(className);
     }
 
     private String parentPropertyAdditionalData = null;

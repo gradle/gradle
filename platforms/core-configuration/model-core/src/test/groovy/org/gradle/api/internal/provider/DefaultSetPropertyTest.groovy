@@ -33,6 +33,11 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
     }
 
     @Override
+    String getCollectionName() {
+        return "set"
+    }
+
+    @Override
     protected Class<? extends ImmutableCollection<?>> getImmutableCollectionType() {
         return ImmutableSet.class
     }

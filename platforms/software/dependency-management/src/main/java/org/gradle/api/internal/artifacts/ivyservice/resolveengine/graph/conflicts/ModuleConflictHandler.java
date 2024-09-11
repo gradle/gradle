@@ -18,6 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
-public interface ModuleConflictHandler extends ConflictHandler<CandidateModule, ConflictResolutionResult, ModuleConflictResolver<ComponentState>> {
+public interface ModuleConflictHandler extends ConflictHandler<CandidateModule, ConflictResolutionResult> {
     ModuleConflictResolver<ComponentState> getResolver();
 }

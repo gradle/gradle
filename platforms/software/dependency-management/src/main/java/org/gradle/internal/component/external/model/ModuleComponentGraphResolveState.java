@@ -27,13 +27,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
  */
 @ThreadSafe
-public interface ModuleComponentGraphResolveState extends ComponentGraphResolveState {
+public interface ModuleComponentGraphResolveState extends ExternalComponentGraphResolveState {
     @Override
     ModuleComponentIdentifier getId();
 
     @Override
     ModuleComponentGraphResolveMetadata getMetadata();
-
-    // Try to avoid using this, this is here to allow migration away from ModuleComponentResolveMetadata
-    ModuleComponentResolveMetadata getModuleResolveMetadata();
 }

@@ -16,12 +16,13 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -66,6 +67,7 @@ public class Install {
         final File localZipFile = localDistribution.getZipFile();
 
         return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
+            @Override
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
@@ -132,7 +134,7 @@ public class Install {
 
             forceFetch(tmpZipFile, distributionUrl);
 
-            BufferedReader reader = new BufferedReader(new FileReader(tmpZipFile));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tmpZipFile), "UTF-8"));
             try {
                 return reader.readLine();
             } finally {
@@ -236,14 +238,16 @@ public class Install {
                 "Your Gradle distribution may have been tampered with.%n" +
                 "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n" +
                 "%n" +
-                " Distribution Url: %s%n" +
+                "Distribution Url: %s%n" +
                 "Download Location: %s%n" +
                 "Expected checksum: '%s'%n" +
-                "  Actual checksum: '%s'%n",
+                "Actual checksum:   '%s'%n" +
+                "Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.",
             sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
         throw new RuntimeException(message);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<File> listDirs(File distDir) {
         if (!distDir.exists()) {
             return emptyList();
@@ -272,7 +276,7 @@ public class Install {
             ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
             Process p = pb.start();
             if (p.waitFor() != 0) {
-                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
                 Formatter stdout = new Formatter();
                 String line;
                 while ((line = is.readLine()) != null) {

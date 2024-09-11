@@ -35,7 +35,7 @@ import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
 
-public class DefaultDependencyConstraint implements DependencyConstraintInternal {
+public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
@@ -94,6 +94,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
             warnAboutInternalApiUse();
             return this;
         }
+        validateMutation();
         if (attributes == null) {
             attributes = attributesFactory.mutable();
         }
@@ -131,6 +132,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
 
     @Override
     public void version(Action<? super MutableVersionConstraint> configureAction) {
+        validateMutation();
         configureAction.execute(versionConstraint);
     }
 
@@ -156,6 +158,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
 
     @Override
     public void because(String reason) {
+        validateMutation();
         this.reason = reason;
     }
 
@@ -178,6 +181,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
 
     @Override
     public void setForce(boolean force) {
+        validateMutation();
         this.force = force;
     }
 

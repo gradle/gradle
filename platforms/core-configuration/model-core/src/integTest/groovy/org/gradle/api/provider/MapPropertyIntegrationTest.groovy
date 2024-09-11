@@ -380,66 +380,83 @@ task thing {
         '"${str.substring(0, 1)}"' | 'project.provider { "${str.toLowerCase().substring(1, 2)}" }'
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Test relies on modifying properties at execution time, but CC finalizes them before execution"
-    )
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << '''
+        interface MyExtension {
+            MapProperty<String, String> getProp()
+        }
+
+        project.extensions.create('myExt', MyExtension)
+
         task wrongValueTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                verify.prop = 123
+                myExt.prop = 123
             }
         }
 
         task wrongRuntimeKeyType {
+            def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                verify.prop = [123: 'value']
-                verify.prop.get()
+                myExt.prop = [123: 'value']
+                myExt.prop.get()
             }
         }
 
         task wrongRuntimeValueType {
+            def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                verify.prop = ['key': 123]
-                verify.prop.get()
+                myExt.prop = ['key': 123]
+                myExt.prop.get()
             }
         }
 
         task wrongPropertyTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop = objects.property(Integer)
+                myExt.prop = objects.property(Integer)
             }
         }
 
         task wrongPropertyTypeApi {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop.set(objects.property(Integer))
+                myExt.prop.set(objects.property(Integer))
             }
         }
 
         task wrongRuntimeKeyTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop = objects.mapProperty(Integer, String)
+                myExt.prop = objects.mapProperty(Integer, String)
             }
         }
 
         task wrongRuntimeValueTypeDsl {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop = objects.mapProperty(String, Integer)
+                myExt.prop = objects.mapProperty(String, Integer)
             }
         }
 
         task wrongRuntimeKeyTypeApi {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop.set(objects.mapProperty(Integer, String))
+                myExt.prop.set(objects.mapProperty(Integer, String))
             }
         }
 
         task wrongRuntimeValueTypeApi {
+            def myExt = project.extensions.getByType(MyExtension)
+            def objects = objects
             doLast {
-                verify.prop.set(objects.mapProperty(String, Integer))
+                myExt.prop.set(objects.mapProperty(String, Integer))
             }
         }
         '''.stripIndent()

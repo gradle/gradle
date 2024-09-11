@@ -37,7 +37,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
     def "Can access plugin classes when resolved but not applied"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION" apply false
             }
@@ -61,7 +61,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         settingsFile << """
             include 'sub'
         """
-        buildScript """
+        buildFile """
             plugins {
                 id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION" apply false
             }
@@ -81,7 +81,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can resolve and apply a plugin from portal"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
             }
@@ -96,7 +96,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
     def "resolving a non-existing plugin results in an informative error message"() {
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id "org.gradle.non-existing" version "1.0"
             }
@@ -120,7 +120,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         def helloWorldName = 'gradle-hello-world-plugin'
 
         when:
-        buildScript """
+        buildFile """
             buildscript {
                 repositories {
                     gradlePluginPortal()
@@ -142,7 +142,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
     def "resolution fails if Gradle is in offline mode"() {
         given:
-        buildScript """
+        buildFile """
             plugins {
                 id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
             }
@@ -161,7 +161,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         mavenRepo.module('com.android.tools', 'r8', '1.5.70').publish()
 
         when:
-        buildScript """
+        buildFile """
             buildscript {
                 repositories {
                     exclusiveContent {
@@ -196,7 +196,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         given:
         mavenRepo.module('com.android.tools', 'r8', '1.5.70').publish()
 
-        buildScript """
+        buildFile """
             buildscript {
                 repositories {
                     exclusiveContent {

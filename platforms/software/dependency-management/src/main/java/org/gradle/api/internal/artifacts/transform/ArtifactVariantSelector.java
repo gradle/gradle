@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.model.GraphVariantSelector;
 
 /**
@@ -45,7 +45,7 @@ public interface ArtifactVariantSelector {
         ResolvedArtifactSet asTransformed(
             ResolvedVariant sourceVariant,
             VariantDefinition variantDefinition,
-            TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
+            TransformUpstreamDependenciesResolver dependenciesResolver,
             TransformedVariantFactory transformedVariantFactory
         );
     }

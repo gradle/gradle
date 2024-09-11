@@ -86,7 +86,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
-            String value = properties.get(gradleProperty);
+            String value = properties.get(property);
 
             if (value != null) {
                 LogLevel level = parseLogLevel(value);
@@ -144,7 +144,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
-            String value = properties.get(gradleProperty);
+            String value = properties.get(property);
 
             if (value != null) {
                 if (value.equalsIgnoreCase("internal")) {
@@ -188,7 +188,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
-            String consoleValue = TextUtil.capitalize(TextUtil.toLowerCaseLocaleSafe(value));
+            String consoleValue = TextUtil.capitalize(value.toLowerCase(Locale.ROOT));
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
@@ -209,7 +209,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         @Override
         public void applyTo(String value, LoggingConfiguration settings, final Origin origin) {
             try {
-                settings.setWarningMode(WarningMode.valueOf(TextUtil.capitalize(TextUtil.toLowerCaseLocaleSafe(value))));
+                settings.setWarningMode(WarningMode.valueOf(TextUtil.capitalize(value.toLowerCase(Locale.ROOT))));
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }

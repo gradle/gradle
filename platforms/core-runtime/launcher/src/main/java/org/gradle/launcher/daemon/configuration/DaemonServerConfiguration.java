@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.configuration;
 
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+
 import java.io.File;
 import java.util.List;
 
@@ -31,9 +33,11 @@ public interface DaemonServerConfiguration {
 
     List<String> getJvmOptions();
 
-    DaemonParameters.Priority getPriority();
+    DaemonPriority getPriority();
 
     boolean isSingleUse();
 
     boolean isInstrumentationAgentAllowed();
+
+    NativeServicesMode getNativeServicesMode();
 }

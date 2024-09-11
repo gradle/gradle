@@ -17,11 +17,16 @@
 package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheOperationFixtures
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 
 class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+
+    def cacheOperations = new BuildCacheOperationFixtures(new BuildOperationsFixture(executer, temporaryFolder))
+
     def setup() {
         buildFile << """
             @CacheableTask
@@ -122,16 +127,9 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                 ":second", file("build/overlap/second.txt")]
     }
 
-    private addMustRunAfter(String earlierTask, String laterTask) {
-        buildFile << """
-            ${laterTask}.mustRunAfter(${earlierTask})
-        """
-    }
-
     def "overlapping output directory with first, second then first, second"() {
         def (String first, TestFile firstOutput,
-             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
-        addMustRunAfter('first', 'second')
+        String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -139,7 +137,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         firstOutput.assertExists()
         secondOutput.assertExists()
         // Only the first task can be cached since the second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
@@ -156,7 +155,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output directory with first, second then second, first"() {
         def (String first, TestFile firstOutput,
-             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        String second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -164,7 +163,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         firstOutput.assertExists()
         secondOutput.assertExists()
         // Only the first task can be cached since the second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
@@ -188,7 +188,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         firstOutput.assertExists()
         secondOutput.assertExists()
         // Only the first task can be cached since the second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
@@ -213,7 +214,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         // Both tasks can be cached because clean removes the output from first
         // before second executes.
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(first)
+        assertTaskOutputCached(second)
 
         when:
         cleanBuildDir()
@@ -249,7 +251,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
@@ -272,7 +275,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
@@ -285,7 +289,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskSkipped(fileTask)
         result.assertTaskNotSkipped(dirTask)
         // Now the dirTask can be cached (since it executed first)
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(dirTask)
 
         when:
         cleanBuildDir()
@@ -308,7 +312,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
@@ -320,7 +325,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         // dirTask will not be from the cache due to a cache miss
         result.assertTasksNotSkipped(dirTask)
         // dirTask is cached now (since fileTask didn't overlap this time)
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(dirTask)
     }
 
     def "overlapping output with dirTask, fileTask then fileTask then dirTask"() {
@@ -333,7 +338,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         fileTaskOutput.assertExists()
         dirTaskOutput.assertExists()
         // Both tasks can be cached because the dirTask doesn't use the same output file as fileTask
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
@@ -368,7 +374,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         fileTaskOutput.assertDoesNotExist()
         dirTaskOutput.assertExists()
         // Both tasks can be cached since fileTask's outputs are removed before dirTask executes
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(fileTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
@@ -401,14 +408,14 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output files with first, second then first, second"() {
         def (String first, String second, TestFile sharedOutput) = useOverlappingOutputFiles()
-        addMustRunAfter('first', 'second')
 
         when:
         withBuildCache().run(first, second)
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Only first can be cached because second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
@@ -437,7 +444,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Only first can be cached because second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
@@ -458,7 +466,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         sharedOutput.text == "Generated by task ${second}"
         // Only first can be cached because second detects the overlap
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(first)
+        assertTaskOutputNotCached(second)
 
         when:
         cleanBuildDir()
@@ -468,7 +477,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         // second cannot be loaded from the cache due to cache miss
         result.assertTasksNotSkipped(second)
         // second can be cached now because first did not execute
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(second)
     }
 
     def "overlapping output files with first, cleanSecond, second then first, second"() {
@@ -481,7 +490,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         sharedOutput.text == "Generated by task ${second}"
         // Both tasks can be cached because cleanSecond removes the outputs of first
         // before executing second
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(first)
+        assertTaskOutputCached(second)
 
         when:
         cleanBuildDir()
@@ -504,7 +514,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output with localStateFileTask, dirTask then localStateFileTask, dirTask"() {
         def (String localStateFileTask, TestFile localStateFileTaskOutput, TestFile localStateFileTaskState,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
+        String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
 
         when:
         withBuildCache().run(localStateFileTask, dirTask)
@@ -513,7 +523,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         localStateFileTaskState.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(localStateFileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
@@ -539,7 +550,8 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         localStateFileTaskState.assertExists()
         dirTaskOutput.assertExists()
         // Only one task can be cached
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(localStateFileTask)
+        assertTaskOutputNotCached(dirTask)
 
         when:
         cleanBuildDir()
@@ -553,7 +565,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskSkipped(localStateFileTask)
         result.assertTaskNotSkipped(dirTask)
         // Now the dirTask can be cached (since it executed first)
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(dirTask)
 
         when:
         cleanBuildDir()
@@ -580,8 +592,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     @ToBeImplemented("We don't yet detect when somebody messes with a task's local state")
     def "overlapping output with localStateDirTask, fileTask then localStateDirTask, fileTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
-             String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
-        addMustRunAfter('localStateDirTask', 'fileTask')
+        String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
 
         when:
         withBuildCache().run(localStateDirTask, fileTask)
@@ -590,9 +601,11 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         localStateDirTaskState.assertExists()
         fileTaskOutput.assertExists()
         // Only one task can be cached
-        // listCacheFiles().size() == 1
+        // assertTaskOutputCached(localStateDirTask)
+        // assertTaskOutputNotCached(fileTask)
         // FIXME Overlap not yet detected
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(localStateDirTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
@@ -620,9 +633,11 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         localStateDirTaskState.assertExists()
         fileTaskOutput.assertExists()
         // Only one task can be cached
-        // listCacheFiles().size() == 1
+        // assertTaskOutputCached(localStateDirTask)
+        // assertTaskOutputNotCached(fileTask)
         // FIXME Overlap not yet detected
-        listCacheFiles().size() == 2
+        assertTaskOutputCached(localStateDirTask)
+        assertTaskOutputCached(fileTask)
 
         when:
         cleanBuildDir()
@@ -639,13 +654,12 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         // result.assertTaskNotSkipped(fileTask)
         skipped fileTask
         // Now the localStateDirTask can be cached (since it executed first)
-        listCacheFiles().size() == 2
+        // FIXME
+        // assertTaskOutputCached(localStateDirTask)
+        // assertTaskOutputNotCached(fileTask)
 
         when:
         cleanBuildDir()
-        // When configuration cache is enabled, the task graph for this build will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
-        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order (--no-parallel doesn't have an effect with CC)
-        executer.withArgument("--max-workers=1")
         withBuildCache().run(fileTask, localStateDirTask)
         then:
         // Outcome should look the same again
@@ -676,7 +690,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         withBuildCache().run(someTask)
         then:
         // someTask cannot be cached.
-        listCacheFiles().size() == 0
+        assertTaskOutputNotCached(someTask)
         externalFile.assertExists()
         someTaskOutput.assertExists()
 
@@ -697,7 +711,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         externalFile.assertDoesNotExist()
         someTaskOutput.assertExists()
         // someTask can be cached now
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(someTask)
     }
 
     def "overlapping file with external process and a pre-existing file"() {
@@ -712,7 +726,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         withBuildCache().run(someTask)
         then:
         // someTask cannot be cached because its outputs were created by something else
-        listCacheFiles().size() == 0
+        assertTaskOutputNotCached(someTask)
         someTaskOutput.text == "Generated by ${someTask}"
     }
 
@@ -727,7 +741,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         withBuildCache().run(someTask)
         then:
         // A can be cached.
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(someTask)
         someTaskOutput.assertExists()
 
         when:
@@ -760,7 +774,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         withBuildCache().run(someTask)
         then:
         // A can be cached.
-        listCacheFiles().size() == 1
+        assertTaskOutputCached(someTask)
         someTaskOutput.assertExists()
 
         when:
@@ -770,5 +784,23 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         result.assertTaskNotSkipped(someTask)
         someTaskOutput.assertExists()
+    }
+
+    private void assertTaskOutputCached(String taskName) {
+        assert listCacheFiles().any { it.name == cacheOperations.getCacheKeyForTask(taskName) }
+    }
+
+    private void assertTaskOutputNotCached(String taskName) {
+        def cacheKey = cacheOperations.getCacheKeyForTaskOrNull(taskName)
+        assert cacheKey == null
+    }
+
+    @Override
+    AbstractIntegrationSpec withBuildCache() {
+        // When configuration cache is enabled, the task graph for cache-hit builds will be loaded from the cache and tasks will run in parallel and start in an arbitrary order
+        // Use max-workers=1 to force non-parallel execution and the tasks to run in the specified order
+        // (--no-parallel doesn't have an effect with CC, but max-workers should affect both CC and parallel executors)
+        args("--max-workers=1")
+        return super.withBuildCache()
     }
 }

@@ -12,8 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[build_scans]]
+[[inspecting_build_scans]]
 = Inspecting Gradle Builds
+
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/b5069222-cfd0-4393-b645-7a2c713853d5/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">How to Use Build Scans&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
 
 Gradle provides multiple ways to inspect your build:
 

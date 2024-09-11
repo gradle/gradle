@@ -12,10 +12,16 @@
 test-splits/
 /gradle/verification-keyring.gpg
 
+# Kotlin
+# ------
+.kotlin
+
 # IDEA
 # ----
 !/.idea
 /.idea/*
+# Needed to track entry points and nullability annotations (see https://youtrack.jetbrains.com/issue/IDEA-354114 and https://youtrack.jetbrains.com/issue/IDEA-354115)
+!/.idea/misc.xml
 !/.idea/codeStyles
 !/.idea/inspectionProfiles
 !/.idea/icon.png

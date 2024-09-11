@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -31,6 +32,7 @@ import java.io.File;
  * @param <T> The type of location.
  * @since 5.6
  */
+@HasInternalProtocol
 public interface FileSystemLocationProperty<T extends FileSystemLocation> extends Property<T> {
     /**
      * Views the location of this file as a {@link File}.

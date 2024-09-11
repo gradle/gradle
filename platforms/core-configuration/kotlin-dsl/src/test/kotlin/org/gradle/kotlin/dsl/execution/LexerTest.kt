@@ -44,7 +44,7 @@ class LexerTest {
                     "\n// ..." +
                     "\n   @TaskAction" +
                     "\nprintln(\"Yolo!\")",
-                buildscript, plugins
+                arrayOf(buildscript, plugins)
             ),
             equalTo(
                 Packaged(
@@ -77,7 +77,7 @@ class LexerTest {
         assertThat(
             lex(
                 "kuku@ someblock {}",
-                buildscript, plugins
+                arrayOf(buildscript, plugins)
             ),
             equalTo(
                 Packaged(
@@ -100,7 +100,7 @@ class LexerTest {
                 "plugins.withType<GroovyBasePlugin> {\n" +
                     "   print(\"\${this@all.name}-groovy.xml\")\n" +
                     "}",
-                buildscript, plugins
+                arrayOf(buildscript, plugins)
             ),
             equalTo(
                 Packaged(
@@ -137,7 +137,7 @@ class LexerTest {
                 "\n" +
                 "/* /* one more weird comment here */ */" +
                 "package com.example\n" +
-                "plugins { }\n", plugins),
+                "plugins { }\n", arrayOf(plugins)),
             equalTo(
                 Packaged(
                     "com.example",

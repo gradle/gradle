@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * @since 4.5
  */
 @SupportsKotlinAssignmentOverloading
-public interface HasMultipleValues<T> extends HasConfigurableValue {
+public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConvention {
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
      *

@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import com.google.common.base.Objects;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.internal.serialize.ClassLoaderObjectInputStream;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
@@ -81,6 +81,10 @@ public class JavaSerializedValueSnapshot implements ValueSnapshot {
     }
 
     protected Object populateClass(Class<?> originalClass) {
+        return javaDeserialized(originalClass, serializedValue);
+    }
+
+    private static Object javaDeserialized(Class<?> originalClass, byte[] serializedValue) {
         try {
             return new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
         } catch (Exception e) {

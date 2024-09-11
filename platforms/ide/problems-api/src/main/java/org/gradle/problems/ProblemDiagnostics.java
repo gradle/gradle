@@ -17,6 +17,7 @@
 package org.gradle.problems;
 
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -25,6 +26,19 @@ import java.util.List;
  * An immutable set of diagnostic information for a problem.
  */
 public interface ProblemDiagnostics {
+
+    /**
+     * A stack tracing failure associated with the problem.
+     * <p>
+     * Usually, if the problem was caused by an exception, the failure would correspond to that exception.
+     * However, problems that are registered explicitly (e.g. deprecation warnings) will not have an associated exception.
+     * In this case, the failure can be synthetic to provide the stack trace for the problem origin.
+     * <p>
+     * The failure can also be omitted due to limits. Its absence does not mean there was no exception causing the problem.
+     */
+    @Nullable
+    Failure getFailure();
+
     /**
      * Returns an exception that can be thrown when this problem should result in an error.
      *

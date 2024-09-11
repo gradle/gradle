@@ -48,6 +48,7 @@ public abstract class SimpleReport implements ConfigurableReport {
         return displayName.getDisplayName();
     }
 
+    @Override
     public String toString() {
         return "Report " + getName();
     }
@@ -55,6 +56,7 @@ public abstract class SimpleReport implements ConfigurableReport {
     @Override
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
 
+    @Deprecated
     @Override
     public void setDestination(File file) {
         DeprecationLogger.deprecateProperty(Report.class, "destination")

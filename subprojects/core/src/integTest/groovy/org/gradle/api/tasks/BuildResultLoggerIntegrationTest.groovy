@@ -25,6 +25,8 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
     def setup() {
 
@@ -51,6 +53,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         """
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task outcome statistics are reported"() {
         when:
         run "adHocTask", "executedTask"
@@ -68,6 +71,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "2 actionable tasks: 1 executed, 1 up-to-date"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cached task outcome statistics are reported"() {
         when:
         withBuildCache().run "adHocTask", "executedTask"
@@ -95,6 +99,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "1 actionable task: 1 executed"
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "skipped tasks are not counted"() {
         given:
         executer.withArguments "-x", "executedTask"

@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
@@ -147,6 +148,7 @@ Artifacts
         succeeds('testResolve')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "file access on another project")
     def "mainSourceElements can be consumed by another task in a different project via Dependency Management"() {
         def subADir = createDir("subA")
         def buildFileA = subADir.file("build.gradle") << """
@@ -538,7 +540,7 @@ Artifacts
 
     def "accessing reportsDir convention from the java plugin convention is deprecated"() {
         given:
-        buildScript("""
+        buildFile("""
             plugins { id 'java' }
             println(reportsDir)
         """)
@@ -549,12 +551,6 @@ Artifacts
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
         )
         succeeds('help')
     }

@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -64,10 +65,18 @@ public class VersionCatalogDependencyRegistry {
         return "libs." + libraryEntry.alias.replaceAll("-", ".");
     }
 
-    public String registerPlugin(String pluginId, String version) {
-        String alias = fullyQualifiedAliases ? coordinatesToAlias(pluginId) : pluginIdToAlias(pluginId);
+    public String registerPlugin(String pluginId, String version, @Nullable String pluginAlias) {
+        String alias = pluginAliasOf(pluginId, pluginAlias);
         PluginEntry pluginEntry = findOrCreatePluginEntry(alias, pluginId, version);
         return "libs.plugins." + pluginEntry.alias.replaceAll("-", ".");
+    }
+
+    private String pluginAliasOf(String pluginId, @Nullable String pluginAlias) {
+        if (fullyQualifiedAliases) {
+            return coordinatesToAlias(pluginId);
+        }
+
+        return pluginAlias != null ? pluginAlias : pluginIdToAlias(pluginId);
     }
 
     private VersionEntry findOrCreateVersionEntry(String alias, String module, String version) {
@@ -118,7 +127,8 @@ public class VersionCatalogDependencyRegistry {
 
     private static String pluginIdToAlias(String pluginId) {
         String[] pluginIdComponents = pluginId.split("\\.");
-        return coordinatesToAlias(pluginIdComponents[pluginIdComponents.length - 1]);
+        String pluginIdLastComponent = pluginIdComponents[pluginIdComponents.length - 1];
+        return coordinatesToAlias(pluginIdLastComponent);
     }
 
     private static String moduleToAlias(String module) {

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[continous_build]]
-= Continuous Build
+[[continuous_builds]]
+= Continuous Builds
 
 Continuous Build allows you to automatically re-execute the requested tasks when file inputs change.
 You can execute the build in this mode using the `-t` or `--continuous` command-line option.

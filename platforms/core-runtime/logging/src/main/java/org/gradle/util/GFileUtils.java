@@ -22,7 +22,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -293,6 +292,7 @@ public class GFileUtils {
      * @return tail content
      * @throws org.gradle.util.GFileUtils.TailReadingException when reading failed
      */
+    @SuppressWarnings("DefaultCharset")
     public static String tail(File file, int maxLines) throws TailReadingException {
         logDeprecation();
         BufferedReader reader = null;
@@ -301,7 +301,7 @@ public class GFileUtils {
             fileReader = new FileReader(file);
             reader = new BufferedReader(fileReader);
 
-            LimitedDescription description = new LimitedDescription(maxLines);
+            org.gradle.util.internal.LimitedDescription description = new org.gradle.util.internal.LimitedDescription(maxLines);
             String line = reader.readLine();
             while (line != null) {
                 description.append(line);

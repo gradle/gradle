@@ -89,10 +89,12 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
     attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
     isCanBeResolved = true
     isCanBeConsumed = false
-    withDependencies {
-        this.add(project.dependencies.create(project))
-        this.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
-    }
+    dependencies.addAllLater(provider {
+        listOf(
+            project.dependencies.create(project),
+            project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies")))
+        )
+    })
 }
 
 fun addShadedJarTask(): TaskProvider<ShadedJar> {
@@ -113,11 +115,8 @@ fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
     fun targetFile(): File {
         val file = findProperty(installPathProperty)?.let { File(findProperty(installPathProperty) as String) }
 
-        if (true == file?.isAbsolute) {
-            return file
-        } else {
-            throw IllegalArgumentException("Property $installPathProperty is required and must be absolute!")
-        }
+        require(true == file?.isAbsolute) { "Property $installPathProperty is required and must be absolute!" }
+        return file!!
     }
     tasks.register<Copy>("install${project.name.kebabToPascal()}ShadedJar") {
         from(shadedJarTask.map { it.jarFile })

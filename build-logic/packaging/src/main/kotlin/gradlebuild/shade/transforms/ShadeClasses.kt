@@ -35,19 +35,19 @@ import org.gradle.work.DisableCachingByDefault
 
 
 private
-const val classTreeFileName = "classTree.json"
+const val CLASS_TREE_FILE_NAME = "classTree.json"
 
 
 private
-const val entryPointsFileName = "entryPoints.json"
+const val ENTRY_POINTS_FILE_NAME = "entryPoints.json"
 
 
 private
-const val relocatedClassesDirName = "classes"
+const val RELOCATED_CLASSES_DIR_NAME = "classes"
 
 
 private
-const val manifestFileName = "MANIFEST.MF"
+const val MANIFEST_FILE_NAME = "MANIFEST.MF"
 
 
 @CacheableTransform
@@ -70,17 +70,17 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
 
     override fun transform(outputs: TransformOutputs) {
         val outputDirectory = outputs.dir("shadedClasses")
-        val classesDir = outputDirectory.resolve(relocatedClassesDirName)
+        val classesDir = outputDirectory.resolve(RELOCATED_CLASSES_DIR_NAME)
         classesDir.mkdir()
-        val manifestFile = outputDirectory.resolve(manifestFileName)
+        val manifestFile = outputDirectory.resolve(MANIFEST_FILE_NAME)
         val buildReceiptFile = outputDirectory.resolve(BuildReceipt.buildReceiptFileName)
 
         val classGraph = JarAnalyzer(parameters.shadowPackage.get(), parameters.keepPackages.get(), parameters.unshadedPackages.get(), parameters.ignoredPackages.get()).analyze(input.get().asFile, classesDir, manifestFile, buildReceiptFile)
 
-        outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
+        outputDirectory.resolve(CLASS_TREE_FILE_NAME).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)
         }
-        outputDirectory.resolve(entryPointsFileName).bufferedWriter().use {
+        outputDirectory.resolve(ENTRY_POINTS_FILE_NAME).bufferedWriter().use {
             Gson().toJson(classGraph.entryPoints.map { it.outputClassFilename }, it)
         }
     }
@@ -94,7 +94,7 @@ abstract class FindClassTrees : TransformAction<TransformParameters.None> {
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.file(input.get().asFile.resolve(classTreeFileName))
+        outputs.file(input.get().asFile.resolve(CLASS_TREE_FILE_NAME))
     }
 }
 
@@ -106,7 +106,7 @@ abstract class FindEntryPoints : TransformAction<TransformParameters.None> {
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.file(input.get().asFile.resolve(entryPointsFileName))
+        outputs.file(input.get().asFile.resolve(ENTRY_POINTS_FILE_NAME))
     }
 }
 
@@ -118,7 +118,7 @@ abstract class FindRelocatedClasses : TransformAction<TransformParameters.None> 
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.dir(input.get().asFile.resolve(relocatedClassesDirName))
+        outputs.dir(input.get().asFile.resolve(RELOCATED_CLASSES_DIR_NAME))
     }
 }
 
@@ -130,7 +130,7 @@ abstract class FindManifests : TransformAction<TransformParameters.None> {
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        val manifest = input.get().asFile.resolve(manifestFileName)
+        val manifest = input.get().asFile.resolve(MANIFEST_FILE_NAME)
         if (manifest.exists()) {
             outputs.file(manifest)
         }

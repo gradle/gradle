@@ -18,9 +18,15 @@ package org.gradle.internal.nativeintegration.services
 
 import net.rubygrapefruit.platform.Native
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.internal.Cast
+import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.reflect.JavaMethod
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceLookup
+import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
@@ -29,17 +35,23 @@ import java.lang.reflect.Constructor
 
 class NativeServicesInitializationTest extends Specification {
 
-    def "cannot get an instance of NativeServices without initializing first" () {
+    def "cannot get an instance of NativeServices without initializing first"() {
         // Construct an isolated classloader so we can load a pristine NativeServices class
         // that's guaranteed not to have been initialized before
         URL[] jars = [
             jar(NativeServices),
-            jar(ServiceRegistry),
+            jar(ServiceLookup),
+            jar(ServiceRegistration),
+            jar(ServiceRegistryBuilder),
+            jar(DefaultServiceRegistry),
+            jar(UserCodeApplicationContext),
             jar(Native),
             jar(LoggerFactory),
             jar(Chmod),
             jar(TemporaryFileProvider),
-            jar(Inject)
+            jar(Cast),
+            jar(Inject),
+            jar(Stoppable)
         ]
         ClassLoader classLoader = new URLClassLoader(jars, null as ClassLoader)
         Class nativeServicesClass = classLoader.loadClass(NativeServices.getName())
@@ -53,7 +65,7 @@ class NativeServicesInitializationTest extends Specification {
         e.message == "Cannot get an instance of NativeServices without first calling initialize()."
     }
 
-    def "no public constructors on NativeServices" () {
+    def "no public constructors on NativeServices"() {
         Constructor[] constructors = NativeServices.getConstructors()
 
         expect:

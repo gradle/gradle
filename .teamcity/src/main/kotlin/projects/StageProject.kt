@@ -7,6 +7,7 @@ import configurations.DocsTestProject
 import configurations.DocsTestTrigger
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
+import configurations.OsAwareBaseGradleBuildType
 import configurations.PartialTrigger
 import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
@@ -32,20 +33,23 @@ class StageProject(
     functionalTestBucketProvider: FunctionalTestBucketProvider,
     performanceTestBucketProvider: PerformanceTestBucketProvider,
     stage: Stage,
-    previousPerformanceTestPasses: List<PerformanceTestsPass>
+    previousPerformanceTestPasses: List<PerformanceTestsPass>,
+    previousCrossVersionTests: List<BaseGradleBuildType>
 ) : Project({
     this.id("${model.projectId}_Stage_${stage.stageName.id}")
     this.uuid = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stage.stageName.uuid}"
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
-    val specificBuildTypes: List<BaseGradleBuildType>
+    val specificBuildTypes: List<OsAwareBaseGradleBuildType>
 
     val performanceTests: List<PerformanceTestsPass>
 
-    val functionalTests: List<BaseGradleBuildType>
+    val functionalTests: List<OsAwareBaseGradleBuildType>
 
-    val docsTestTriggers: List<BaseGradleBuildType>
+    val crossVersionTests: List<OsAwareBaseGradleBuildType>
+
+    val docsTestTriggers: List<OsAwareBaseGradleBuildType>
 
     init {
         features {
@@ -81,7 +85,7 @@ class StageProject(
         }
 
         functionalTests = topLevelFunctionalTests + functionalTestsPass
-        val crossVersionTests = topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } + functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
+        crossVersionTests = topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } + functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
         if (stage.stageName !in listOf(StageName.QUICK_FEEDBACK_LINUX_ONLY, StageName.QUICK_FEEDBACK)) {
             if (topLevelFunctionalTests.size + functionalTestProjects.size > 1) {
                 buildType(PartialTrigger("All Functional Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_FuncTests", model, functionalTests))
@@ -91,7 +95,7 @@ class StageProject(
                 buildType(PartialTrigger("All Smoke Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SmokeTests", model, smokeTests))
             }
             if (crossVersionTests.size > 1) {
-                buildType(PartialTrigger("All Cross-Version Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_CrossVersionTests", model, crossVersionTests))
+                buildType(PartialTrigger("All Cross-Version Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_CrossVersionTests", model, crossVersionTests + previousCrossVersionTests))
             }
 
             // in gradleBuildSmokeTest, most of the tests are for using the configuration cache on gradle/gradle

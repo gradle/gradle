@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.derived
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JvmDerivedVariantsIntegrationTest extends AbstractIntegrationSpec {
@@ -37,15 +36,6 @@ version = "1.0"
 java {
     withJavadocJar()
     withSourcesJar()
-}
-
-java {
-    sourceSets {
-        foo
-    }
-    registerFeature("foo") {
-        usingSourceSet(sourceSets.foo)
-    }
 }
 
 publishing {
@@ -175,77 +165,6 @@ task resolve {
         when:
         removeGMM()
         and:
-        succeeds(":consumer:resolve")
-        then:
-        noExceptionThrown()
-    }
-
-    def "can re-select artifacts if dependency has explicit artifact when"() {
-        file("consumer/build.gradle") << """
-dependencies {
-    implementation 'com.example:test'
-    implementation 'com.example:test:1.0:foo'
-}
-
-task resolve {
-    def normal = configurations.runtimeClasspath.incoming.files
-    def reselected = configurations.runtimeClasspath.incoming.artifactView {
-        withVariantReselection()
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
-        }
-    }.files
-    doLast {
-        assert normal*.name == ["test-1.0.jar", "test-1.0-foo.jar"]
-        assert reselected*.name == ["test-1.0-sources.jar"]
-    }
-}
-"""
-        when:
-        succeeds(":consumer:resolve")
-        then:
-        noExceptionThrown()
-
-        when:
-        removeGMM()
-        and:
-        succeeds(":consumer:resolve")
-        then:
-        noExceptionThrown()
-    }
-
-    @NotYetImplemented // Currently we throw an exception since we can't decide between the production and foo sources
-    def "variant reselection only re-selects among variants with the same capabilities"() {
-        file("consumer/build.gradle") << """
-dependencies {
-    implementation('com.example:test:1.0') {
-        capabilities {
-            requireCapability("com.example:test-foo:1.0")
-        }
-    }
-}
-
-task resolve {
-    def normal = configurations.runtimeClasspath.incoming.files
-    def reselected = configurations.runtimeClasspath.incoming.artifactView {
-        withVariantReselection()
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
-        }
-    }.files
-    doLast {
-        assert normal*.name == ["test-1.0-foo.jar"]
-        assert reselected*.name == ["test-1.0-foo-sources.jar"]
-    }
-}
-"""
-        when:
         succeeds(":consumer:resolve")
         then:
         noExceptionThrown()

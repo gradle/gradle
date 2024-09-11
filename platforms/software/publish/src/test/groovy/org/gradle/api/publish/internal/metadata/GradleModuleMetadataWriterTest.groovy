@@ -81,13 +81,12 @@ class GradleModuleMetadataWriterTest extends Specification {
     def resolverFactory = new TestDependencyCoordinateResolverFactory()
 
     private writeTo(Writer writer, PublicationInternal publication, List<PublicationInternal> publications) {
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), ':task')
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), ':task', [] as Set)
         ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
             publication,
             publications,
             checker,
-            resolverFactory,
-            []
+            resolverFactory
         ).build().get()
         checker.validate()
 

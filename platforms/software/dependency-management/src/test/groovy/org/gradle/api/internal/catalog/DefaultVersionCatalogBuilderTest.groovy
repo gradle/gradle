@@ -379,4 +379,22 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
             existing('v1', 'v2')
         })
     }
+
+    def "has all defined aliases"() {
+        builder.library("foo-lib1", "org", "foo").version("lib-version")
+        builder.library("foo-lib2", "org", "foo").version("lib-version2")
+        builder.bundle("foo-bundle", ["foo-lib1", "foo-lib2"])
+        builder.plugin("foo-plugin", "foo.bar").version("plugin-version")
+        builder.version("foo-version", "1.0.0")
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.hasDependency("foo-lib1")
+        model.hasDependency("foo-lib2")
+        model.hasBundle("foo-bundle")
+        model.hasPlugin("foo-plugin")
+        model.hasVersion("foo-version")
+    }
 }

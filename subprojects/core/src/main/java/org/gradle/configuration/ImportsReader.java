@@ -16,9 +16,13 @@
 
 package org.gradle.configuration;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scope.Global.class)
 public interface ImportsReader {
     /**
      * Returns the list of packages that are imported by default into each Gradle build script.

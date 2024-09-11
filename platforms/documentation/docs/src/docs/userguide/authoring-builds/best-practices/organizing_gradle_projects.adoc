@@ -139,7 +139,7 @@ Complex build logic is usually a good candidate for being encapsulated either as
 Custom task and plugin implementations should not live in the build script.
 It is very convenient to use `buildSrc` for that purpose as long as the code does not need to be shared among multiple, independent projects.
 
-The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
+The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles this code and puts it in the classpath of your build script.
 For multi-project builds there can be only one `buildSrc` directory, which has to sit in the root project directory.
 `buildSrc` should be preferred over <<plugins.adoc#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
 
@@ -284,7 +284,7 @@ Furthermore, updating the initialization script logic uniformly can prove challe
 Custom Gradle distributions are a practical solution to this very problem.
 A custom Gradle distribution is comprised of the standard Gradle distribution plus one or many custom initialization scripts.
 The initialization scripts come bundled with the distribution and are applied every time the build is run.
-Developers only need to point their checked-in <<gradle_wrapper.adoc#gradle_wrapper,Wrapper>> files to the URL of the custom Gradle distribution.
+Developers only need to point their checked-in <<gradle_wrapper.adoc#gradle_wrapper_reference,Wrapper>> files to the URL of the custom Gradle distribution.
 
 Custom Gradle distributions may also contain a `gradle.properties` file in the root of the distribution, which provide an organization-wide <<build_environment.adoc#sec:gradle_configuration_properties,set of properties that control the build environment>>.
 

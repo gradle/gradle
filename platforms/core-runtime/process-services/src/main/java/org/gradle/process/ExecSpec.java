@@ -15,6 +15,8 @@
  */
 package org.gradle.process;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 import java.util.List;
 
 /**
@@ -95,6 +97,7 @@ public interface ExecSpec extends BaseExecSpec {
     /**
      * Returns the arguments for the command to be executed. Defaults to an empty list.
      */
+    @ToBeReplacedByLazyProperty
     List<String> getArgs();
 
     /**
@@ -102,5 +105,6 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @since 4.6
      */
+    @ToBeReplacedByLazyProperty
     List<CommandLineArgumentProvider> getArgumentProviders();
 }
