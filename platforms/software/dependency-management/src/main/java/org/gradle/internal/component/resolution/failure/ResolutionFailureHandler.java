@@ -101,9 +101,11 @@ public class ResolutionFailureHandler {
 
     private static void configureAdditionalDataBuilder(InternalProblems problems) {
         AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
-        additionalDataBuilderFactory.registerAdditionalDataProvider(
-            ResolutionFailureDataSpec.class,
-            data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data));
+        if (!additionalDataBuilderFactory.hasProviderForSpec(ResolutionFailureDataSpec.class)) {
+            additionalDataBuilderFactory.registerAdditionalDataProvider(
+                ResolutionFailureDataSpec.class,
+                data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data));
+        }
     }
 
     // region Component Selection failures
