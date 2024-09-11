@@ -558,8 +558,7 @@ class DefaultConfigurationCacheIO internal constructor(
             flowProviders = service(),
             transformStepNodeFactory = service(),
             parallelStore = startParameter.isParallelStore,
-            parallelLoad = startParameter.isParallelLoad,
-            enableSingletonCaching = startParameter.enableSingletonCaching
+            parallelLoad = startParameter.isParallelLoad
         )
 
     private

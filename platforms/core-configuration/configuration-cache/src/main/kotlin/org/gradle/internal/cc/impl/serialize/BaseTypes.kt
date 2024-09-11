@@ -16,11 +16,15 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.internal.MutationGuards
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
+import org.gradle.api.specs.Specs
+import org.gradle.internal.ImmutableActionSet
 import org.gradle.internal.serialize.codecs.core.JavaRecordCodec
 import org.gradle.internal.serialize.codecs.guava.guavaTypes
 import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
+import org.gradle.util.Path
 
 
 internal
@@ -29,4 +33,14 @@ fun BindingsBuilder.baseTypes() {
     guavaTypes()
     bind(JavaRecordCodec)
     bind(BuildIdentifierSerializer())
+    addSingletons()
+}
+
+
+private fun BindingsBuilder.addSingletons() {
+    withSingleton(Path.ROOT)
+    withSingleton(Specs.SATISFIES_ALL)
+    withSingleton(Specs.SATISFIES_NONE)
+    withSingleton(ImmutableActionSet.empty<Any>())
+    withSingleton(MutationGuards.identity())
 }
