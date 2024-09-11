@@ -211,9 +211,12 @@ public interface ProviderFactory {
      *
      * <p>The process input and output streams cannot be configured.
      *
+     * <p>For more sophisticated use cases, like handling execution exceptions, supplying input streams or processing the output in a streaming way, use {@link ValueSource}.
+     *
      * @param action the configuration of the external process with the output stream
      * pre-configured.
      * @return an interface that allows lazy access to the process' output.
+     *
      * @since 7.5
      */
     ExecOutput exec(Action<? super ExecSpec> action);
@@ -226,6 +229,8 @@ public interface ProviderFactory {
      * check if the cached model is still up-to-date.
      *
      * <p>The process input and output streams cannot be configured.
+     *
+     * <p>For more sophisticated use cases, like handling execution exceptions, supplying input streams or processing the output in a streaming way, use {@link ValueSource}.
      *
      * @param action the configuration of the external process with the output stream
      * pre-configured.
