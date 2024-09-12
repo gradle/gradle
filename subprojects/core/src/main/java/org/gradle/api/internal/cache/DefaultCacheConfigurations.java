@@ -80,7 +80,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, Clock clock, int defaultDays) {
         CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name, clock);
-        resourceConfiguration.getEntryRetentionAge().convention(TimeUnit.DAYS.toMillis(defaultDays));
+        resourceConfiguration.getEntryRetention().convention(CacheResourceConfigurationInternal.EntryRetention.relative(TimeUnit.DAYS.toMillis(defaultDays)));
         return resourceConfiguration;
     }
 
@@ -157,16 +157,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public void synchronize(CacheConfigurationsInternal persistentCacheConfigurations) {
-        persistentCacheConfigurations.getReleasedWrappers().getEntryRetentionAge().value(getReleasedWrappers().getEntryRetentionAge());
-        persistentCacheConfigurations.getSnapshotWrappers().getEntryRetentionAge().value(getSnapshotWrappers().getEntryRetentionAge());
-        persistentCacheConfigurations.getDownloadedResources().getEntryRetentionAge().value(getDownloadedResources().getEntryRetentionAge());
-        persistentCacheConfigurations.getCreatedResources().getEntryRetentionAge().value(getCreatedResources().getEntryRetentionAge());
-        persistentCacheConfigurations.getBuildCache().getEntryRetentionAge().value(getBuildCache().getEntryRetentionAge());
-        persistentCacheConfigurations.getReleasedWrappers().getEntryRetentionTimestamp().value(getReleasedWrappers().getEntryRetentionTimestamp());
-        persistentCacheConfigurations.getSnapshotWrappers().getEntryRetentionTimestamp().value(getSnapshotWrappers().getEntryRetentionTimestamp());
-        persistentCacheConfigurations.getDownloadedResources().getEntryRetentionTimestamp().value(getDownloadedResources().getEntryRetentionTimestamp());
-        persistentCacheConfigurations.getCreatedResources().getEntryRetentionTimestamp().value(getCreatedResources().getEntryRetentionTimestamp());
-        persistentCacheConfigurations.getBuildCache().getEntryRetentionTimestamp().value(getBuildCache().getEntryRetentionTimestamp());
+        persistentCacheConfigurations.getReleasedWrappers().getEntryRetention().value(getReleasedWrappers().getEntryRetention());
+        persistentCacheConfigurations.getSnapshotWrappers().getEntryRetention().value(getSnapshotWrappers().getEntryRetention());
+        persistentCacheConfigurations.getDownloadedResources().getEntryRetention().value(getDownloadedResources().getEntryRetention());
+        persistentCacheConfigurations.getCreatedResources().getEntryRetention().value(getCreatedResources().getEntryRetention());
+        persistentCacheConfigurations.getBuildCache().getEntryRetention().value(getBuildCache().getEntryRetention());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
         persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
@@ -179,16 +174,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @VisibleForTesting
     void finalizeConfigurationValues() {
-        releasedWrappersConfiguration.getEntryRetentionAge().finalizeValue();
-        releasedWrappersConfiguration.getEntryRetentionTimestamp().finalizeValue();
-        snapshotWrappersConfiguration.getEntryRetentionAge().finalizeValue();
-        snapshotWrappersConfiguration.getEntryRetentionTimestamp().finalizeValue();
-        downloadedResourcesConfiguration.getEntryRetentionAge().finalizeValue();
-        downloadedResourcesConfiguration.getEntryRetentionTimestamp().finalizeValue();
-        createdResourcesConfiguration.getEntryRetentionAge().finalizeValue();
-        createdResourcesConfiguration.getEntryRetentionTimestamp().finalizeValue();
-        buildCacheConfiguration.getEntryRetentionAge().finalizeValue();
-        buildCacheConfiguration.getEntryRetentionTimestamp().finalizeValue();
+        releasedWrappersConfiguration.getEntryRetention().finalizeValue();
+        snapshotWrappersConfiguration.getEntryRetention().finalizeValue();
+        downloadedResourcesConfiguration.getEntryRetention().finalizeValue();
+        createdResourcesConfiguration.getEntryRetention().finalizeValue();
+        buildCacheConfiguration.getEntryRetention().finalizeValue();
         getCleanup().finalizeValue();
         getMarkingStrategy().finalizeValue();
     }
@@ -225,43 +215,43 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
         private final String name;
         private final Clock clock;
-        private final Property<Long> entryRetentionAge;
-        private final Property<Long> entryRetentionTimestamp;
+        private final Property<EntryRetention> entryRetention;
 
         @Inject
         public DefaultCacheResourceConfiguration(PropertyHost propertyHost, String name, Clock clock) {
             this.name = name;
             this.clock = clock;
-            this.entryRetentionAge = new ContextualErrorMessageProperty<>(propertyHost, Long.class, "entryRetentionAge");
-            this.entryRetentionTimestamp = new ContextualErrorMessageProperty<>(propertyHost, Long.class, "entryRetentionTimestamp");
+            this.entryRetention = new ContextualErrorMessageProperty<>(propertyHost, EntryRetention.class, "entryRetention");
         }
 
         @Override
-        public Property<Long> getEntryRetentionAge() {
-            return entryRetentionAge;
-        }
-
-        @Override
-        public Property<Long> getEntryRetentionTimestamp() {
-            return entryRetentionTimestamp;
+        public Property<EntryRetention> getEntryRetention() {
+            return entryRetention;
         }
 
         @Override
         public Supplier<Long> getEntryRetentionTimestampSupplier() {
             return () -> {
-                if (entryRetentionTimestamp.isPresent()) {
-                    return entryRetentionTimestamp.get();
+                EntryRetention retentionValue = entryRetention.get();
+                if (retentionValue.isRelative()) {
+                    return clock.getCurrentTime() - retentionValue.getTimeInMillis();
                 }
-                return clock.getCurrentTime() - entryRetentionAge.get();
+                return retentionValue.getTimeInMillis();
             };
+        }
+
+        @Override
+        public void setRemoveEntriesUnusedSince(long timestamp) {
+            getEntryRetention().set(EntryRetention.absolute(timestamp));
         }
 
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
             if (removeUnusedEntriesAfterDays < 1) {
-                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'entryRetentionAge' property.");
+                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'removeEntriesUnusedSince' property.");
             }
-            getEntryRetentionAge().set(TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays));
+            long daysInMillis = TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
+            getEntryRetention().set(EntryRetention.relative(daysInMillis));
         }
     }
 
