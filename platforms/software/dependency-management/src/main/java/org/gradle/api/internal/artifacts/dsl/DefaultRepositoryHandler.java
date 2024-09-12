@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -38,6 +37,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -232,7 +232,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public static class ExclusiveContentRepositorySpec implements ExclusiveContentRepository {
         private final RepositoryHandler repositories;
-        private final List<Factory<? extends ArtifactRepository>> forRepositories = Lists.newArrayListWithExpectedSize(2);
+        private final List<Factory<? extends ArtifactRepository>> forRepositories = new ArrayList<>(2);
         private Action<? super InclusiveRepositoryContentDescriptor> filter;
 
         public ExclusiveContentRepositorySpec(RepositoryHandler repositories) {

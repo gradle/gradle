@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -63,7 +63,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             // We don't remove them from the list in the first place because it proved to be
             // slower than filtering as needed.
             ModuleIdentifier rootId = null;
-            final List<NodeState> candidatesForConflict = Lists.newArrayListWithCapacity(nodes.size());
+            final List<NodeState> candidatesForConflict = new ArrayList<>(nodes.size());
             for (NodeState ns : nodes) {
                 if (ns.isSelected()) {
                     candidatesForConflict.add(ns);
@@ -242,7 +242,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         private Collection<NodeState> conflictedNodes(NodeState node, Collection<NodeState> nodes) {
-            List<NodeState> conflictedNodes = Lists.newArrayList(nodes);
+            List<NodeState> conflictedNodes = new ArrayList<>(nodes);
             conflictedNodes.remove(node);
             return conflictedNodes;
         }

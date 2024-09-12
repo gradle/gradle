@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import com.google.common.collect.Lists;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.FileLockManager;
@@ -356,7 +355,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             int missingKeysLen = decoder.readSmallInt();
             List<String> missingKeys = null;
             if (missingKeysLen > 0) {
-                missingKeys = Lists.newArrayListWithCapacity(missingKeysLen);
+                missingKeys = new ArrayList<>(missingKeysLen);
                 for (int i = 0; i < missingKeysLen; i++) {
                     missingKeys.add(stringSerializer.read(decoder));
                 }
@@ -368,7 +367,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             int len = decoder.readSmallInt();
             List<PGPPublicKey> keys = null;
             if (len > 0) {
-                keys = Lists.newArrayListWithCapacity(len);
+                keys = new ArrayList<>(len);
                 for (int i = 0; i < len; i++) {
                     keys.add(publicKeySerializer.read(decoder));
                 }

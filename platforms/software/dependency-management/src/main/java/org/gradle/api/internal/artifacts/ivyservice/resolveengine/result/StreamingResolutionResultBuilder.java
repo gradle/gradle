@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -40,6 +39,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -222,7 +222,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             Long fromId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
                             if (size > 0) {
-                                List<ResolvedGraphDependency> deps = Lists.newArrayListWithExpectedSize(size);
+                                List<ResolvedGraphDependency> deps = new ArrayList<>(size);
                                 for (int i = 0; i < size; i++) {
                                     deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
                                 }
