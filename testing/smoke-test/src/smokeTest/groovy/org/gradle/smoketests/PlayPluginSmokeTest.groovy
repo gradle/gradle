@@ -21,11 +21,9 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Ignore("https://github.com/gradle/gradle/issues/30530")
 class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)

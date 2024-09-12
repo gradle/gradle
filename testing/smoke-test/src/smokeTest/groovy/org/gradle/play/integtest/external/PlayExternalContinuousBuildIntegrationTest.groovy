@@ -18,9 +18,7 @@ package org.gradle.play.integtest.external
 
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.external.RunningPlayApp
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle/issues/30530")
 class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
 
