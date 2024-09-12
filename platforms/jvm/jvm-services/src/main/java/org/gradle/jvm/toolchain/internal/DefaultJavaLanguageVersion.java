@@ -17,11 +17,12 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.jvm.JavaVersionParser;
+import org.gradle.internal.ImmutableValueObject;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.Serializable;
 
-public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializable {
+public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializable, ImmutableValueObject {
 
     static final int LOWER_CACHED_VERSION = 4;
     static final int HIGHER_CACHED_VERSION = 19;
