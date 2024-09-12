@@ -93,7 +93,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         // Use the deprecated retention period if configured on `DirectoryBuildCache`, or use the central 'buildCache' cleanup config if not.
         // If the deprecated property remains at the default, we can safely use the central value (which has the same default).
         Supplier<Long> removeUnusedEntriesOlderThan = removeUnusedEntriesAfterDays == CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
-            ? cacheConfigurations.getBuildCache().getRemoveUnusedEntriesOlderThanAsSupplier()
+            ? cacheConfigurations.getBuildCache().getEntryRetentionTimestampSupplier()
             : TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
 
         PersistentCache persistentCache = unscopedCacheBuilderFactory

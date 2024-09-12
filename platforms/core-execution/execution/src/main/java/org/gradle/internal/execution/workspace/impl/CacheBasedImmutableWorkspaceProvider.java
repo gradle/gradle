@@ -94,7 +94,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         return new LeastRecentlyUsedCacheCleanup(
             new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
             fileAccessTimeJournal,
-            cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
+            cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier()
         );
     }
 
