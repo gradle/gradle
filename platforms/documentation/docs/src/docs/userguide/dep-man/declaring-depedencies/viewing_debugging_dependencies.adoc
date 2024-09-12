@@ -27,7 +27,7 @@ To visualize dependencies, you can use:
 - A link:https://scans.gradle.com/[Build Scan]
 
 [[sec:listing_dependencies]]
-== The `dependencies` task
+== List project dependencies using the `dependencies` task
 
 Gradle provides the built-in `dependencies` task to render a dependency tree from the command line.
 By default, the task shows dependencies for all <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
@@ -121,7 +121,7 @@ include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencies
 ----
 
 [[sec:identifying_reason_dependency_selection]]
-== The `dependencyInsight` task
+== Identify the selected version using the `dependencyInsight` task
 
 A project may request two different versions of the same dependency either directly or transitively that may result in a <<dependency_resolution.adoc#sec:version-conflict,version conflict>>.
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
@@ -206,7 +206,7 @@ May be followed by a `because` text.
 
 If multiple selection reasons exist, the insight report lists all of them.
 
-== Build Scans
+== Get a holistic view using Build Scans
 
 The dependency tree in a link:https://scans.gradle.com/[Build Scan] shows information about conflicts.
 

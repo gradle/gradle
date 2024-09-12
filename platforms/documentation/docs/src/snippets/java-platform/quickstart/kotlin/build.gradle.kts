@@ -4,7 +4,6 @@ plugins {
 }
 // end::use-plugin[]
 
-
 // tag::repo[]
 repositories {
     mavenCentral()
