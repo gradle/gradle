@@ -990,7 +990,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:buildDependentsLibA0",
+    "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:buildDependentsLibA00",
     "groups" : [ {
       "testProject" : "nativeDependents",
       "coverage" : {
