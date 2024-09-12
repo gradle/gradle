@@ -45,6 +45,42 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         """
 
         when:
+        if (shouldCheckDeprecations()) {
+            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
+        executer.withConsole(consoleType)
+        succeeds("run")
+
+        then:
+        def output = result.groupedOutput.task(':run').output
+        output.contains(EXPECTED_OUTPUT)
+        def errorOutput = errorsShouldAppearOnStdout() ? output : result.getError()
+        errorOutput.contains(EXPECTED_ERROR)
+    }
+
+    def "ExecOperations.javaexec output is grouped with its task output"() {
+        given:
+        generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
+        buildFile << """
+            apply plugin: 'java'
+
+            task run {
+                dependsOn 'compileJava'
+                def execOps = services.get(ExecOperations)
+                def execClasspath = sourceSets.main.runtimeClasspath
+                doLast {
+                    execOps.javaexec {
+                        classpath = execClasspath
+                        mainClass = 'Main'
+                    }
+                }
+            }
+        """
+
+        when:
         executer.withConsole(consoleType)
         succeeds("run")
 
@@ -86,6 +122,33 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
             task run {
                 doLast {
                     project.exec {
+                        commandLine ${echo(EXPECTED_OUTPUT)}
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withConsole(consoleType)
+        if (shouldCheckDeprecations()) {
+            executer.expectDocumentedDeprecationWarning("The Project.exec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
+        succeeds("run")
+
+        then:
+        result.groupedOutput.task(':run').output.contains(EXPECTED_OUTPUT)
+    }
+
+    def "ExecOperations.exec output is grouped with its task output"() {
+        given:
+        buildFile << """
+            task run {
+                def execOps = services.get(ExecOperations)
+                doLast {
+                    execOps.exec {
                         commandLine ${echo(EXPECTED_OUTPUT)}
                     }
                 }
