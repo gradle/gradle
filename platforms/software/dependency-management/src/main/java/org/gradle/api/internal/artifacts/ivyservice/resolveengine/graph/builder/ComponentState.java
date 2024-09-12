@@ -77,14 +77,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+    ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
         this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(id);
-        this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
+        this.hashCode = 31 * id.hashCode() ^ Long.hashCode(resultId);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public Long getResultId() {
+    public long getResultId() {
         return resultId;
     }
 

@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -58,6 +57,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -535,7 +535,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Mock(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
+        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -1044,9 +1044,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def resolvedComponentResult = Mock(ResolvedComponentResult)
-        Supplier<ResolvedComponentResult> rootSource = () -> resolvedComponentResult
-        def result = new MinimalResolutionResult(rootSource, ImmutableAttributes.EMPTY)
+        def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
+        Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
+        def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
@@ -1747,13 +1747,13 @@ All Artifacts:
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
@@ -1771,7 +1771,7 @@ All Artifacts:
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -1783,7 +1783,7 @@ All Artifacts:
     }
 
     private visitedArtifacts(Set<File> files = []) {
-        Stub(VisitedArtifactSet) {
+        Mock(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(files)
         }
     }
