@@ -189,7 +189,14 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+            .withAdvice("Use a lenient ArtifactView instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+            .nagUser();
+
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
         resolutionHost.rethrowFailure("files", visitor.getFailures());

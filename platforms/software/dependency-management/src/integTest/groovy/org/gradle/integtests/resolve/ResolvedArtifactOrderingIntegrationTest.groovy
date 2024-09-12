@@ -106,6 +106,9 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             }
 """
 
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
+        }
         assert succeeds("check${name}")
     }
 
