@@ -1,0 +1,188 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring-repositories]]
+= Declaring repositories
+
+[[sec:repository-types]]
+== Supported repository types
+
+Gradle supports a wide range of sources for dependencies, both in terms of format and in terms of connectivity.
+You may resolve dependencies from:
+
+* Different formats
+** a <<declaring_repositories_adv.adoc#sec:maven_repo,Maven compatible>> artifact repository (e.g: Maven Central)
+** an <<declaring_repositories_adv.adoc#sec:ivy_repositories,Ivy compatible>> artifact repository (including custom layouts)
+** <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,local (flat) directories>>
+* with different connectivity
+** <<declaring_repositories_adv.adoc#sec:authentication_schemes, authenticated repositories>>
+** a wide variety of <<declaring_repositories_adv.adoc#sec:supported_transport_protocols,remote protocols>> such as HTTPS, SFTP, AWS S3 and Google Cloud Storage
+
+[[sub:flat_dir_resolver]]
+=== Flat directory repository
+
+Some projects might prefer to store dependencies on a shared drive or as part of the project source code instead of a binary repository product. If you want to use a (flat) filesystem directory as a repository, simply type:
+
+.Flat repository resolver
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=flat-dir-multi]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=flat-dir-multi]"]
+====
+
+This adds repositories which look into one or more directories for finding dependencies.
+
+This type of repository does not support any meta-data formats like Ivy XML or Maven POM files.
+Instead, Gradle will dynamically generate a module descriptor (without any dependency information) based on the presence of artifacts.
+
+[NOTE]
+====
+As Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories declared in the build.
+
+For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module.
+
+For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory.
+====
+
+If you only work with flat directory repositories you don't need to set all attributes of a dependency.
+
+[[sec:maven_repo]]
+== Maven repositories
+
+Many organizations host dependencies in an in-house Maven repository only accessible within the company's network.
+Gradle can declare Maven repositories by URL.
+
+For adding a custom Maven repository you can do:
+
+.Adding custom Maven repository
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
+====
+
+[[sub:custom-maven-repo]]
+=== Setting up composite Maven repositories
+
+Sometimes a repository will have the POMs published to one location, and the JARs and other artifacts published at another location.
+To define such a repository, you can do:
+
+.Adding additional Maven repositories for JAR files
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo-with-jar-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo-with-jar-repo]"]
+====
+
+Gradle will look at the base `url` location for the POM and the JAR.
+If the JAR can't be found there, the extra `artifactUrls` are used to look for JARs.
+
+[[sub:accessing_secured_maven_repositories]]
+=== Accessing authenticated Maven repositories
+
+You can specify credentials for Maven repositories secured by different type of authentication.
+
+See <<#sec:supported_transport_protocols>> for authentication options.
+
+[[sub:maven_local]]
+=== Local Maven repository
+
+Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
+Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
+
+NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
+A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
+
+WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
+
+To declare the local Maven cache as a repository add this to your build script:
+
+.Adding the local Maven cache as a repository
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
+====
+
+Gradle uses the same logic as Maven to identify the location of your local Maven cache.
+If a local repository location is defined in a `settings.xml`, this location will be used.
+The `settings.xml` in `<home directory of the current user>/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`.
+If no `settings.xml` is available, Gradle uses the default location `<home directory of the current user>/.m2/repository`.
+
+[[sec:ivy_repositories]]
+== Ivy repositories
+
+Organizations might decide to host dependencies in an in-house Ivy repository. Gradle can declare Ivy repositories by URL.
+
+[[sub:defining_an_ivy_repository_with_a_standard_layout]]
+=== Defining an Ivy repository with a standard layout
+
+To declare an Ivy repository using the standard layout no additional customization is needed. You just declare the URL.
+
+.Ivy repository
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo]"]
+====
+
+[[sub:defining_a_named_layout_for_an_ivy_repository]]
+=== Defining a named layout for an Ivy repository
+
+You can specify that your repository conforms to the Ivy or Maven default layout by using a named layout.
+
+.Ivy repository with named layout
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo-with-maven-layout]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-maven-layout]"]
+====
+
+Valid named layout values are `'gradle'` (the default), `'maven'` and `'ivy'`. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String)[IvyArtifactRepository.layout(java.lang.String)] in the API documentation for details of these named layouts.
+
+[[sub:defining_custom_pattern_layout_for_an_ivy_repository]]
+=== Defining custom pattern layout for an Ivy repository
+
+To define an Ivy repository with a non-standard layout, you can define a _pattern_ layout for the repository:
+
+.Ivy repository with pattern layout
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo-with-pattern-layout]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-pattern-layout]"]
+====
+
+To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can define separate patterns to use to locate the Ivy files and artifacts:
+
+Each `artifact` or `ivy` specified for a repository adds an _additional_ pattern to use. The patterns are used in the order that they are defined.
+
+.Ivy repository with multiple custom patterns
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo-with-custom-pattern]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-custom-pattern]"]
+====
+
+Optionally, a repository with pattern layout can have its `'organisation'` part laid out in Maven style, with forward slashes replacing dots as separators. For example, the organisation `my.company` would then be represented as `my/company`.
+
+.Ivy repository with Maven compatible layout
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo-with-m2compatible-layout]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-m2compatible-layout]"]
+====
+
+[[sub:accessing_secured_ivy_repositories]]
+=== Accessing authenticated Ivy repositories
+
+You can specify credentials for Ivy repositories secured by basic authentication.
+
+.Ivy repository with authentication
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-ivy-repo]"]
+====
+
+See <<#sec:supported_transport_protocols>> for authentication options.
