@@ -1759,7 +1759,6 @@ All Artifacts:
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
-            select(_) >> selectedArtifacts(failure)
             select(_, _) >> selectedArtifacts(failure)
         }
 
@@ -1787,7 +1786,7 @@ All Artifacts:
 
     private visitedArtifacts(Set<File> files = []) {
         Mock(VisitedArtifactSet) {
-            select(_) >> selectedArtifacts(files)
+            select(_, _) >> selectedArtifacts(files)
         }
     }
 
