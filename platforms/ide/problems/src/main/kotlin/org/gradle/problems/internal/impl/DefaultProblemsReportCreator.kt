@@ -55,7 +55,7 @@ class DefaultProblemsReportCreator(
     private val buildNameProvider: BuildNameProvider
 ) : ProblemReportCreator {
 
-    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report", "problem-report")
+    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report", "problem-report", false)
     private val taskNames: List<String> = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
 
