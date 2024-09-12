@@ -29,8 +29,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def selector = Stub(ArtifactVariantSelector)
 
         given:
-        artifacts1.select(selector, _, _) >> variant1Artifacts
-        artifacts2.select(selector, _, _) >> variant2Artifacts
+        artifacts1.select(selector, _) >> variant1Artifacts
+        artifacts2.select(selector, _) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
         def selected = results.select(selector, Mock(ArtifactSelectionSpec), false)
@@ -52,8 +52,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def selector = Stub(ArtifactVariantSelector)
 
         given:
-        artifacts1.select(selector, _, _) >> variant1Artifacts
-        artifacts2.select(selector, _, _) >> variant2Artifacts
+        artifacts1.select(selector, _) >> variant1Artifacts
+        artifacts2.select(selector, _) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
         def selected = results.select(selector, Mock(ArtifactSelectionSpec), false)
@@ -75,8 +75,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def selector = Stub(ArtifactVariantSelector)
 
         given:
-        artifacts1.select(selector, _, _) >> variant1Artifacts
-        artifacts2.select(selector, _, _) >> variant2Artifacts
+        artifacts1.select(selector, _) >> variant1Artifacts
+        artifacts2.select(selector, _) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
         def selected = results.select(selector, Mock(ArtifactSelectionSpec), true)
@@ -98,8 +98,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def selector = Stub(ArtifactVariantSelector)
 
         given:
-        artifacts1.select(selector, _, _) >> variant1Artifacts
-        artifacts2.select(selector, _, _) >> variant2Artifacts
+        artifacts1.select(selector, _) >> variant1Artifacts
+        artifacts2.select(selector, _) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
         def selected = results.select(selector, Mock(ArtifactSelectionSpec), true)
@@ -117,8 +117,8 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def selector = Stub(ArtifactVariantSelector)
 
         given:
-        artifacts1.select(selector, _, _) >> variant1Artifacts
-        artifacts2.select(selector, _, _) >> variant2Artifacts
+        artifacts1.select(selector, _) >> variant1Artifacts
+        artifacts2.select(selector, _) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults([artifacts1, artifacts2])
         def selected = results.select(selector, Mock(ArtifactSelectionSpec), true)
