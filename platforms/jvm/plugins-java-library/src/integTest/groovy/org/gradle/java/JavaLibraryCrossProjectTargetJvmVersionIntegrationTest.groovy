@@ -32,7 +32,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         buildFile << """
             allprojects {
                 apply plugin: 'java-library'
-            }
+            }`
 
             dependencies {
                 api project(':producer')

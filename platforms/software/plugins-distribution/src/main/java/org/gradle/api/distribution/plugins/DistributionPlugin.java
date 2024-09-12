@@ -21,16 +21,13 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.lifecycle.LifecycleExtension;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Sync;
@@ -39,6 +36,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.internal.TextUtil;
 
 import javax.inject.Inject;
@@ -129,8 +127,7 @@ public abstract class DistributionPlugin implements Plugin<Project> {
             task.with(childSpec);
         });
 
-        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+        project.getExtensions().getByType(LifecycleExtension.class).getStages().getByName(LifecycleBasePlugin.ASSEMBLE).getOutputs().from(archiveTask);
     }
 
     private void addInstallTask(final Project project, final String taskName, final Distribution distribution) {

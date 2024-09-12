@@ -630,4 +630,19 @@ Artifacts
         expect:
         succeeds("verify")
     }
+
+    def "assemble builds jar artifact"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+        """
+
+        when:
+        succeeds("build")
+
+        then:
+        result.assertTaskExecuted(":jar")
+        result.assertTaskExecuted(":test")
+    }
 }

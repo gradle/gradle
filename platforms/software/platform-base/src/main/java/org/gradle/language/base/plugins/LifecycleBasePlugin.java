@@ -20,6 +20,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.lifecycle.LifecycleExtension;
+import org.gradle.api.lifecycle.LifecycleStage;
+import org.gradle.api.lifecycle.internal.DefaultLifecycleExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -32,20 +35,35 @@ import org.gradle.language.base.internal.plugins.CleanRule;
  */
 public abstract class LifecycleBasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean";
-    public static final String ASSEMBLE_TASK_NAME = "assemble";
-    public static final String CHECK_TASK_NAME = "check";
-    public static final String BUILD_TASK_NAME = "build";
+    public static final String ASSEMBLE = "assemble";
+    public static final String ASSEMBLE_TASK_NAME = ASSEMBLE;
+    public static final String CHECK = "check";
+    public static final String CHECK_TASK_NAME = CHECK;
+    public static final String BUILD = "build";
+    public static final String BUILD_TASK_NAME = BUILD;
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
+    public static final String LIFECYCLE_EXTENSION = "lifecycle";
 
     @Override
     public void apply(final Project project) {
         final ProjectInternal projectInternal = (ProjectInternal) project;
+        LifecycleExtension extension = addLifecycleStages(project);
         addClean(projectInternal);
         addCleanRule(project);
-        addAssemble(project);
-        addCheck(project);
-        addBuild(project);
+        addAssemble(project, extension);
+        addCheck(project, extension);
+        addBuild(project, extension);
+    }
+
+    private LifecycleExtension addLifecycleStages(Project project) {
+        LifecycleExtension extension = project.getExtensions().create(LifecycleExtension.class, LIFECYCLE_EXTENSION, DefaultLifecycleExtension.class);
+        LifecycleStage assemble = extension.getStages().create(ASSEMBLE);
+        LifecycleStage check = extension.getStages().create(CHECK);
+        LifecycleStage build = extension.getStages().create(BUILD);
+        build.getMembers().add(assemble);
+        build.getMembers().add(check);
+        return extension;
     }
 
     private void addClean(final ProjectInternal project) {
@@ -67,26 +85,37 @@ public abstract class LifecycleBasePlugin implements Plugin<Project> {
         project.getTasks().addRule(new CleanRule(project.getTasks()));
     }
 
-    private void addAssemble(Project project) {
+    private void addAssemble(Project project, LifecycleExtension extension) {
+        LifecycleStage assemble = extension.getStages().getByName(ASSEMBLE);
         project.getTasks().register(ASSEMBLE_TASK_NAME, assembleTask -> {
             assembleTask.setDescription("Assembles the outputs of this project.");
             assembleTask.setGroup(BUILD_GROUP);
+            assembleTask.dependsOn(assemble.getAllOutputs());
         });
     }
 
-    private void addCheck(Project project) {
+    private void addCheck(Project project, LifecycleExtension extension) {
+        LifecycleStage check = extension.getStages().getByName(CHECK);
         project.getTasks().register(CHECK_TASK_NAME, checkTask -> {
             checkTask.setDescription("Runs all checks.");
             checkTask.setGroup(VERIFICATION_GROUP);
+            checkTask.dependsOn(check.getAllOutputs());
         });
     }
 
-    private void addBuild(final Project project) {
+    private void addBuild(final Project project, LifecycleExtension extension) {
+        LifecycleStage build = extension.getStages().getByName(BUILD);
         project.getTasks().register(BUILD_TASK_NAME, buildTask -> {
             buildTask.setDescription("Assembles and tests this project.");
             buildTask.setGroup(BUILD_GROUP);
+
+            // This is only so that the assemble and check tasks actually execute when the build task is run.
+            // The build lifecycle already knows about assemble and check, so this is technically not necessary in
+            // order to produce the lifecycle outputs for assemble and check.  This is only here for backwards
+            // compatibility.
             buildTask.dependsOn(ASSEMBLE_TASK_NAME);
             buildTask.dependsOn(CHECK_TASK_NAME);
+            buildTask.dependsOn(build.getAllOutputs());
         });
     }
 }

@@ -28,8 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.lifecycle.LifecycleExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -37,6 +37,7 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -95,8 +96,9 @@ public abstract class WarPlugin implements Plugin<Project> {
             warTask.setGroup(BasePlugin.BUILD_GROUP);
         });
 
+        project.getExtensions().getByType(LifecycleExtension.class).getStages().getByName(LifecycleBasePlugin.ASSEMBLE).getOutputs().from(war);
+
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
     }

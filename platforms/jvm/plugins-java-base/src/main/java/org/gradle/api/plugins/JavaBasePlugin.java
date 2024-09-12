@@ -40,6 +40,8 @@ import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
+import org.gradle.api.lifecycle.LifecycleExtension;
+import org.gradle.api.lifecycle.LifecycleStage;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
@@ -101,7 +103,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
     public static final String BUILD_TASK_NAME = LifecycleBasePlugin.BUILD_TASK_NAME;
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
-    public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
+    public static final String BUILD_NEEDED = "buildNeeded";
+    public static final String BUILD_NEEDED_TASK_NAME = BUILD_NEEDED;
 
     /**
      * Task group name for documentation-related tasks.
@@ -355,10 +358,13 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBuildNeeded(Project project) {
+        LifecycleExtension lifecycleExtension = project.getExtensions().getByType(LifecycleExtension.class);
+        LifecycleStage lifecycleStage = lifecycleExtension.getStages().create(BUILD_NEEDED_TASK_NAME);
         project.getTasks().register(BUILD_NEEDED_TASK_NAME, buildTask -> {
             buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
             buildTask.setGroup(BasePlugin.BUILD_GROUP);
             buildTask.dependsOn(BUILD_TASK_NAME);
+            buildTask.dependsOn(lifecycleStage.getAllOutputs());
         });
     }
 

@@ -22,14 +22,19 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.lifecycle.LifecycleExtension;
+import org.gradle.api.lifecycle.LifecycleStage;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -51,10 +56,13 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 
 /**
@@ -266,8 +274,9 @@ public abstract class JavaPlugin implements Plugin<Project> {
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
         // Build the main jar when running `assemble`.
-        DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
-        publicationSet.addCandidate(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        LifecycleExtension lifecycleExtension = project.getExtensions().getByType(LifecycleExtension.class);
+        LifecycleStage assemble = lifecycleExtension.getStages().getByName(LifecycleBasePlugin.ASSEMBLE);
+        assemble.getOutputs().from(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().getFiles());
 
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         configureSourceSets(buildOutputCleanupRegistry, sourceSets);
@@ -397,10 +406,22 @@ public abstract class JavaPlugin implements Plugin<Project> {
     }
 
     private static void configureBuild(Project project) {
-        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        LifecycleExtension lifecycleExtension = project.getExtensions().getByType(LifecycleExtension.class);
+        LifecycleStage buildNeeded = lifecycleExtension.getStages().getByName(JavaBasePlugin.BUILD_NEEDED);
+        addMembersFromOtherProjects(project, buildNeeded, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+//        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
+//            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+    }
+
+    private static void addMembersFromOtherProjects(Project project, LifecycleStage stage, String configurationName) {
+        final Configuration configuration = project.getConfigurations().getByName(configurationName);
+        stage.getMembers().addAll(project.provider(() -> configuration.getAllDependencies().withType(ProjectDependency.class).stream().map(projectDependency -> {
+                Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+                ProjectState projectState = ((ProjectInternal)project).getServices().get(ProjectStateRegistry.class).stateFor(identityPath);
+                return projectState.getMutableModel().getExtensions().getByType(LifecycleExtension.class).getStages().getByName(JavaBasePlugin.BUILD_NEEDED);
+        }).collect(Collectors.toSet())));
     }
 
     /**
