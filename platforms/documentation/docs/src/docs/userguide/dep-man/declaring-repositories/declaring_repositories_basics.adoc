@@ -15,19 +15,30 @@
 [[declaring-repositories]]
 = Declaring Repositories Basics
 
-Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
+Gradle can resolve local or external dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
+
+Repositories are declared in your `build.gradle(.kts)` file:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=repo-intro]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=repo-intro]"]
+====
+
+To centralize repository declarations in your `settings.gradle(.kts)` file, head over to <<centralizing_repositories.adoc#centralized-repository-declaration,Centralizing Repository Declarations>>.
 
 [[sec:declaring_public_repository]]
 == Declaring a publicly-available repository
 
-Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
+Organizations building software may want to leverage public binary repositories to download and consume open-source dependencies.
 Popular public repositories include <<#sub:maven_central,Maven Central>> and the <<#sub:maven_google,Google Android>> repository.
+
 Gradle provides built-in shorthand notations for these widely-used repositories.
 
 image::dependency-management-shortcut-repositories.png[]
 
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
+
 Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
 [[sub:maven_central]]
@@ -59,11 +70,23 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 
 Most enterprise projects set up a binary repository available only within an intranet.
 In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability.
+
 Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
+====
 
 Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
 Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`.
+
 For a full coverage see the <<supported_repository_types.adoc#repository-types,section on supported repository types>>.
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-auth]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
+====
 
 You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
 
@@ -72,29 +95,21 @@ You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layou
 
 You can define more than one repository for resolving dependencies.
 Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other.
-You can mix any type of repository described in the <<supported_repository_types.adoc#repository-types,reference section>>.
 
-This example demonstrates how to declare various named and custom URL repositories for a project:
+You can mix any type of repository described in the <<supported_repository_types.adoc#repository-types,reference section>>.
 
 ====
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
 ====
 
-[NOTE]
-====
 The order of declaration determines how Gradle will check for dependencies at runtime.
-If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_.
+If Gradle finds a module descriptor in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
+
 You can learn more about the inner workings of <<dependency_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
-====
 
-=== Strict limitation to declared repositories
-
-Maven POM metadata can reference additional repositories.
+NOTE: Maven POM metadata can reference additional repositories.
 These will be _ignored_ by Gradle, which will only use the repositories declared in the build itself.
-
-NOTE: This is a reproducibility safe-guard but also a security protection.
-Without it, an updated version of a dependency could pull artifacts from anywhere into your build.
 
 [[sub:local-repos]]
 === Local repositories
@@ -102,25 +117,32 @@ Without it, an updated version of a dependency could pull artifacts from anywher
 The following sections describe repositories format, Maven or Ivy.
 These can be declared as local repositories, using a local filesystem path to access them.
 
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/kotlin/buildSrc/src/main/kotlin",files="myproject.java-library-conventions.gradle.kts[tags=custom-repo]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy/buildSrc/src/main/groovy",files="myproject.java-library-conventions.gradle[tags=custom-repo]"]
+====
+
 The difference with the flat directory repository is that they do respect a format and contain metadata.
 
 When such a repository is configured, Gradle totally bypasses its <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>> for it as there can be no guarantee that content may not change between executions.
 Because of that limitation, they can have a performance impact.
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=local-ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
+====
 
 They also make build reproducibility much harder to achieve and their use should be limited to tinkering or prototyping.
 
 [[sub:maven_local]]
 === Local Maven repository
 
-Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
-Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
+Gradle can consume dependencies from a link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
+Declaring this repository is particularly useful for teams who publish artifacts locally and then consume them in other projects.
 
-NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
-A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
+NOTE: Gradle manages its own <<dependency_resolution.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
 
-WARNING: Before adding Maven local as a repository, you should <<declaring_repositories_basics.adoc#sec:case-for-maven-local, make sure this is really required>>.
-
-To declare the local Maven cache as a repository add this to your build script:
+You should ensure that using the local Maven repository is necessary before adding m`avenLocal()` to your build script:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
@@ -128,119 +150,31 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 ====
 
 Gradle uses the same logic as Maven to identify the location of your local Maven cache.
-If a local repository location is defined in a `settings.xml`, this location will be used.
-The `settings.xml` in `<home directory of the current user>/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`.
-If no `settings.xml` is available, Gradle uses the default location `<home directory of the current user>/.m2/repository`.
+If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`
+Otherwise, Gradle defaults to `~/.m2/repository`.
 
 [[sec:case-for-maven-local]]
-== The case for mavenLocal()
+TIP: As a general recommendation, avoid using `mavenLocal()`.
 
-As a general advice, you should avoid adding `mavenLocal()` as a repository.
-There are different issues with using `mavenLocal()` that you should be aware of:
-
-* Maven uses it as a cache, not a repository, meaning it can contain partial modules.
-** For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found.
-* As a <<sub:local-repos,local repository>>, Gradle does not trust its content, because:
-** Origin of artifacts cannot be tracked, which is a correctness and security problem
-** Artifacts can be easily overwritten, which is a security, correctness and reproducibility problem
-* To mitigate the fact that metadata and/or artifacts can be changed, Gradle does not perform <<dependency_resolution.adoc#sec:dependency_cache,any caching>> for <<sub:local-repos,local repositories>>
-** As a consequence, your builds are slower
-** Given that order of repositories is important, adding `mavenLocal()` _first_ means that all your builds are going to be slower
-
-There are a few cases where you might have to use `mavenLocal()`:
-
-* For interoperability with Maven
-** For example, project A is built with Maven, project B is built with Gradle, and you need to share the artifacts during development
-** It is _always_ preferable to use an internal full featured repository instead
-** In case this is not possible, you should limit this to _local builds only_
-* For interoperability with Gradle itself
-** In a multi-repository world, you want to check that changes to project A work with project B
-** It is preferable to use <<composite_builds.adoc#composite_builds, composite builds>> for this use case
-** If for some reason neither composite builds nor full featured repository are possible, then `mavenLocal()` is a last resort option
-
-After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<filtering_repository_content.adoc#repository-content-filtering,a repository filter>>.
-This will make sure it only provides what is expected and nothing else.
-
-[[sec:plugin-vs-build-repos]]
-== Plugin repositories vs. build repositories
-
-Gradle will use repositories at two different phases during your build.
-
-The first phase is when <<build_lifecycle.adoc#sec:build_phases,configuring your build>> and loading the plugins it applied.
-To do that Gradle will use a special set of repositories.
-
-The second phase is during dependency resolution.
-At this point Gradle will use the repositories declared in your project, as shown in the previous sections.
 
 [[sub:plugin-repos]]
-=== Plugin repositories
+== Plugin repositories
 
-By default Gradle will use the http://plugins.gradle.org[Gradle plugin portal] to look for plugins.
+[[sec:plugin-vs-build-repos]]
+Gradle uses repositories in two distinct phases during the build process:
 
-However, for different reasons, there are plugins available in other, public or not, repositories.
-When a build requires one of these plugins, additional repositories need to be specified so that Gradle knows where to search.
+1. **Configuration Phase:** During this phase, when the build is being <<build_lifecycle.adoc#sec:build_phases,configured>> and plugins are being applied, Gradle uses a special set of repositories to locate and load the required plugins.
 
-As the way to declare the repositories and what they are expected to contain depends on the way the plugin is applied, it is best to refer to <<plugins.adoc#sec:custom_plugin_repositories, Custom Plugin Repositories>>.
+2. **Dependency Resolution Phase:** In this phase, after the build has been configured, Gradle resolves the project dependencies using the repositories declared in the build script.
 
-[[sub:centralized-repository-declaration]]
-== Centralizing repositories declaration
-
-Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle offers a way to declare them in a central place for all projects.
-
-NOTE: Central declaration of repositories is an incubating feature.
-
-Repositories used by convention in every subproject can be declared in the `settings.gradle(.kts)` file:
+By default, Gradle uses the http://plugins.gradle.org[Gradle Plugin Portal] to search for plugins:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=declare_repositories_settings]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=declare_repositories_settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/kotlin/buildSrc",files="build.gradle.kts[tags=plugin-portal]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy/buildSrc",files="build.gradle[tags=plugin-portal]"]
 ====
 
-The `dependencyResolutionManagement` repositories block accepts the same notations as in a project. This includes Maven or Ivy repositories, with or without credentials, etc.
+However, some plugins may be hosted in other repositories (public or private).
+To include these plugins, you need to specify additional repositories in your build script so Gradle knows where to search.
 
-By default, repositories declared by a project in `build.gradle(.kts)` will *override* whatever is declared in `settings.gradle(.kts)`:
-
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_projects]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_projects]"]
-====
-
-There are three modes for dependency resolution management:
-
-[cols="1,1,1,1"]
-|===
-|Mode |Description |Default? |Use-Case
-
-|`PREFER_PROJECT`
-|Any repository declared on a project will cause the project to use the repositories declared by the project, ignoring those declared in settings.
-|Yes
-|Useful when teams need to use different repositories not common among subprojects.
-
-|`PREFER_SETTINGS`
-|Any repository declared directly in a project, either directly or via a plugin, will be ignored.
-|No
-|Useful for enforcing large teams to use approved repositories only, but will not fail the build when a project or plugin declares a repository.
-
-|`FAIL_ON_PROJECT_REPOS`
-|Any repository declared directly in a project, either directly or via a plugin, will trigger a build error.
-|No
-|Useful for enforcing large teams to use approved repositories only.
-|===
-
-You can change the behavior to prefer the repositories in the `settings.gradle(.kts)` file by using `repositoriesMode`:
-
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_settings]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_settings]"]
-====
-
-[[sub:fail_build_on_project_repositories]]
-
-Gradle will warn you if a project or a plugin declares a repository in a project.
-
-You can force Gradle to _fail the build_ if you want to enforce that *only* settings repositories are used:
-
-====
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
-include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=enforce_settings]"]
-====
+Since declaring repositories depends on how the plugin is applied, refer to the <<plugins.adoc#sec:custom_plugin_repositories,Custom Plugin Repositories>> for more details on configuring repositories for plugins from different sources.
