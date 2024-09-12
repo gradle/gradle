@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -52,6 +51,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -257,7 +257,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
 
     private List<Artifact> readDependencyArtifactDescriptors(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
-        List<Artifact> result = Lists.newArrayListWithCapacity(size);
+        List<Artifact> result = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             IvyArtifactName ivyArtifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
             result.add(new Artifact(ivyArtifactName, readStringSet(decoder)));
@@ -267,7 +267,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
 
     private List<Exclude> readDependencyExcludes(Decoder decoder) throws IOException {
         int len = decoder.readSmallInt();
-        List<Exclude> result = Lists.newArrayListWithCapacity(len);
+        List<Exclude> result = new ArrayList<>(len);
         for (int i = 0; i < len; i++) {
             DefaultExclude rule = readExcludeRule(decoder);
             result.add(rule);

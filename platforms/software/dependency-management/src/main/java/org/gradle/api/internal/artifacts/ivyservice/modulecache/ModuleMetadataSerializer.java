@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -583,7 +582,7 @@ public class ModuleMetadataSerializer {
 
         private List<Artifact> readArtifacts() throws IOException {
             int size = readCount();
-            List<Artifact> result = Lists.newArrayListWithCapacity(size);
+            List<Artifact> result = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
                 result.add(new Artifact(ivyArtifactName, readStringSet()));
@@ -593,7 +592,7 @@ public class ModuleMetadataSerializer {
 
         private List<IvyDependencyDescriptor> readIvyDependencies() throws IOException {
             int len = readCount();
-            List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(len);
+            List<IvyDependencyDescriptor> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 result.add(readIvyDependency());
             }
@@ -625,7 +624,7 @@ public class ModuleMetadataSerializer {
 
         private List<Artifact> readDependencyArtifactDescriptors() throws IOException {
             int size = readCount();
-            List<Artifact> result = Lists.newArrayListWithCapacity(size);
+            List<Artifact> result = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
                 result.add(new Artifact(ivyArtifactName, readStringSet()));
@@ -635,7 +634,7 @@ public class ModuleMetadataSerializer {
 
         private List<Exclude> readDependencyExcludes() throws IOException {
             int len = readCount();
-            List<Exclude> result = Lists.newArrayListWithCapacity(len);
+            List<Exclude> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 DefaultExclude rule = readExcludeRule();
                 result.add(rule);
@@ -663,7 +662,7 @@ public class ModuleMetadataSerializer {
 
         private List<MavenDependencyDescriptor> readMavenDependencies(Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
             int len = readCount();
-            List<MavenDependencyDescriptor> result = Lists.newArrayListWithCapacity(len);
+            List<MavenDependencyDescriptor> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 result.add(readMavenDependency(deduplicationDependencyCache));
             }
@@ -690,7 +689,7 @@ public class ModuleMetadataSerializer {
 
         private List<ExcludeMetadata> readMavenDependencyExcludes() throws IOException {
             int len = readCount();
-            List<ExcludeMetadata> result = Lists.newArrayListWithCapacity(len);
+            List<ExcludeMetadata> result = new ArrayList<>(len);
             for (int i = 0; i < len; i++) {
                 String moduleOrg = readString();
                 String moduleName = readString();
