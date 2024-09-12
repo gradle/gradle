@@ -92,9 +92,12 @@ class PerformanceTest(
                         name = "GRADLE_RUNNER${if (repeatIndex == 0) "" else "_2"}"
                         tasks = ""
                         workingDir = os.perfTestWorkingDir
+
+                        val typeExtraParameters = if (type.extraParameters.isEmpty()) "" else " ${type.extraParameters}"
+
                         gradleParams = (
                             performanceTestCommandLine(
-                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it ${type.extraParameters}" }}",
+                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it$typeExtraParameters" }}",
                                 "%performance.baselines%",
                                 extraParameters,
                                 os,
