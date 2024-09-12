@@ -94,6 +94,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -662,7 +663,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionHost getHost() {
-            return new DefaultResolutionHost(DefaultConfiguration.this);
+            return new DefaultResolutionHost(DefaultConfiguration.this, DefaultConfiguration.this.defaultConfigurationFactory.getProblems());
         }
 
         @Override
@@ -1946,15 +1947,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolutionHost getResolutionHost() {
-        return new DefaultResolutionHost(this);
+        return new DefaultResolutionHost(this, defaultConfigurationFactory.getProblems());
     }
 
     private static class DefaultResolutionHost implements ResolutionHost {
-
         private final DefaultConfiguration configuration;
+        private final InternalProblems problemsService;
 
-        public DefaultResolutionHost(DefaultConfiguration configuration) {
+        public DefaultResolutionHost(DefaultConfiguration configuration, InternalProblems problemsService) {
             this.configuration = configuration;
+            this.problemsService = problemsService;
+        }
+
+        @Override
+        public InternalProblems getProblems() {
+            return problemsService;
         }
 
         @Override
@@ -1963,8 +1970,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
-            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, type, configuration.getDisplayName()));
+        public Optional<? extends ResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, resolutionType, configuration.getDisplayName()));
         }
 
         @Override

@@ -45,8 +45,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     }
 
     @Override
-    public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
-        SelectedArtifactResults artifacts = artifactsResults.select(artifactVariantSelector, spec, false);
+    public SelectedArtifactSet select(ArtifactSelectionSpec spec, boolean lenient) {
+        SelectedArtifactResults artifacts = artifactsResults.select(artifactVariantSelector, spec, lenient);
         return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
     }
 }
