@@ -18,11 +18,15 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
+import org.gradle.internal.ImmutableValueObject;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -118,9 +122,9 @@ public interface JvmInstallationMetadata {
 
     boolean isValidInstallation();
 
-    class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
+    class DefaultJvmInstallationMetadata implements JvmInstallationMetadata, ImmutableValueObject, Serializable {
 
-        private final Path javaHome;
+        private final File javaHome;
         private final JavaVersion languageVersion;
         private final int javaMajorVersion;
         private final String javaVersion;
@@ -132,7 +136,22 @@ public interface JvmInstallationMetadata {
         private final String jvmVendor;
         private final String architecture;
 
-        private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
+        private transient Cached<Set<JavaInstallationCapability>> capabilities = cachedCapabilities();
+
+        private transient Cached<Path> javaHomeAsPath = cachedJavaHomeAsPath();
+
+        private Cached<Path> cachedJavaHomeAsPath() {
+            return Cached.of(this::getJavaHomeAsPath);
+        }
+
+        private Path getJavaHomeAsPath() {
+            return javaHome.toPath();
+        }
+
+        @Nonnull
+        private Cached<Set<JavaInstallationCapability>> cachedCapabilities() {
+            return Cached.of(this::gatherCapabilities);
+        }
 
         private DefaultJvmInstallationMetadata(
             File javaHome,
@@ -145,7 +164,7 @@ public interface JvmInstallationMetadata {
             String jvmVendor,
             String architecture
         ) {
-            this.javaHome = javaHome.toPath();
+            this.javaHome = javaHome;
             this.languageVersion = JavaVersion.toVersion(javaVersion);
             this.javaMajorVersion = JavaVersionParser.parseMajorVersion(javaVersion);
             this.javaVersion = javaVersion;
@@ -160,7 +179,7 @@ public interface JvmInstallationMetadata {
 
         @Override
         public Path getJavaHome() {
-            return javaHome;
+            return javaHomeAsPath.get();
         }
 
         @Override
@@ -261,7 +280,7 @@ public interface JvmInstallationMetadata {
         }
 
         private File getToolByExecutable(String name) {
-            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
+            return new File(new File(javaHomeAsPath.get().toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
         }
 
         @Override
@@ -293,6 +312,17 @@ public interface JvmInstallationMetadata {
                     ", architecture='" + architecture + '\'' +
                     '}';
         }
+
+        private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+            stream.defaultWriteObject();
+        }
+
+        private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+            stream.defaultReadObject();
+            capabilities = cachedCapabilities();
+            javaHomeAsPath = cachedJavaHomeAsPath();
+        }
+
     }
 
     class FailureInstallationMetadata implements JvmInstallationMetadata {
