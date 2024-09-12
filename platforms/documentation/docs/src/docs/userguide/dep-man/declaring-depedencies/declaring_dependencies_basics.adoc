@@ -198,15 +198,15 @@ include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradl
 [[sec:documenting-dependencies]]
 == Documenting dependencies
 
-When declaring a dependency or a <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraint>>, you can provide a custom reason to clarify why the dependency is included.
-This helps make your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> easier to interpret.
+When declaring a dependency or a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, you can provide a custom reason to clarify why the dependency is included.
+This helps make your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> easier to interpret:
 
 ====
 include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
 include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
 ====
 
-In this example, the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html#because(java.lang.String)[`because()`] method provides a reason for including the `asm` library, which helps explain its purpose in the context of the build.
+In this example, the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html#because(java.lang.String)[`because()`] method provides a reason for including the `asm` library, which helps explain its purpose in the context of the build:
 
 ----
 $ gradle -q dependencyInsight --dependency asm

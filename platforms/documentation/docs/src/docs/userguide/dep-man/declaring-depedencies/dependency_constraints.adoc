@@ -22,16 +22,11 @@ A direct dependency is also referred to as a _first level dependency_.
 For example, if your project source code requires Guava, Guava should be declared as _direct dependency_.
 - *Transitive dependencies* are dependencies that your component needs, but only because another dependency needs them.
 
-*Dependency constraints* are a mechanism that allows you to impose specific requirements on the versions of dependencies used in your project, even if those dependencies are brought in transitively by other libraries:
-
-====
-include::sample[dir="snippets/java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
-include::sample[dir="snippets/java-platform/multiproject/groovy/platform",files="build.gradle[tags=project-constraints]"]
-====
+*Dependency constraints* are a mechanism that allows you to impose specific requirements on the versions of dependencies used in your project, even if those dependencies are brought in transitively by other libraries
 
 TIP: It is recommended to use <<dependency_versions.adoc#single-version-declarations,dependency versions>> instead of dependency constraints.
 
-Dependency constrains are best used to create platforms:
+Dependency constrains are best used to create <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>>:
 
 ====
 include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=define-platform]"]

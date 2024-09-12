@@ -268,7 +268,7 @@ Another related concept is the ability to publish <<publishing_maven.adoc#publis
 
 Using `strictly` in a library requires careful consideration, as it affects downstream consumers.
 However, when used correctly, it helps consumers understand which combinations of libraries may be incompatible in their context.
-For more details, refer to the section on <<endorsing_strict_versions.adoc#sec:enforcing_dependency_version,overriding dependency versions>>.
+For more details, refer to the section on <<dependency_versions.adoc#sec:enforcing_dependency_version,overriding dependency versions>>.
 
 [NOTE]
 ====
@@ -322,7 +322,7 @@ Then if a consumer chooses `1.1` (or any other version in the range), the build 
 [[forced_dependencies_vs_strict_dependencies]]
 === Forced dependencies vs strict dependencies
 
-If you need to enforce a specific version at the configuration level, use <<resolution_rules.adoc,resolution_rules,Resolution Rules>> instead:
+If you need to enforce a specific version at the configuration level, use <<resolution_rules.adoc#resolution_rules,Resolution Rules>> instead:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]

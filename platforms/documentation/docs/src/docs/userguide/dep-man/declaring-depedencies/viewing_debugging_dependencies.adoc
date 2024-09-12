@@ -75,7 +75,7 @@ compileClasspath - Compile classpath for source set 'main'.
 The `dependencies` task marks dependency trees with the following annotations:
 
 - `(*)`: Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
-- `(c)`: This element is a <<dependency_constraints.adoc#sec:direct-vs-transitive-deps,dependency constraint>>, not a dependency. Look for the matching dependency elsewhere in the tree.
+- `(c)`: This element is a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, not a dependency. Look for the matching dependency elsewhere in the tree.
 - `(n)`: A dependency or dependency configuration that <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,cannot be resolved>>.
 
 === Specifying a dependency configuration
