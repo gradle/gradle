@@ -137,7 +137,6 @@ Configurations have two key flags:
 
 In short, a configuration's role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
 
-.Configuration roles
 |===
 |Configuration role|can be resolved|can be consumed
 |Dependency Scope|false|false
