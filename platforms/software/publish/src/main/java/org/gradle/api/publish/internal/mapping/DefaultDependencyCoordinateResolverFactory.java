@@ -84,12 +84,12 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
             ResolutionBackedVariant resolutionBackedVariant = (ResolutionBackedVariant) variant;
             configuration = resolutionBackedVariant.getResolutionConfiguration();
 
-            boolean useResolvedCoordinates = resolutionBackedVariant.getPublishResolvedCoordinates();
-            if (useResolvedCoordinates && configuration == null) {
-                throw new InvalidUserDataException("Cannot enable dependency mapping without configuring a resolution configuration.");
-            } else if (useResolvedCoordinates) {
-                ResolutionResult resolutionResult = configuration.getIncoming().getResolutionResult();
-                return resolutionResult.getRootComponent().zip(resolutionResult.getRootVariant(), this::getVariantMappingResolvers);
+            if (resolutionBackedVariant.getPublishResolvedCoordinates()) {
+                if (configuration == null) {
+                    throw new InvalidUserDataException("Cannot enable dependency mapping without configuring a resolution configuration.");
+                } else {
+                    return getDependencyMappingResolver(configuration);
+                }
             }
         }
 
@@ -110,8 +110,11 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
             }
 
             if (configuration != null) {
-                componentResolver = configuration.getIncoming().getResolutionResult().getRootComponent()
-                    .map(this::getComponentMappingResolver);
+                if (USE_LEGACY_VERSION_MAPPING) {
+                    componentResolver = getLegacyResolver(configuration);
+                } else {
+                    componentResolver = getDependencyMappingResolver(configuration).map(DependencyResolvers::getComponentResolver);
+                }
             }
         }
 
@@ -123,32 +126,26 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         return componentResolver.map(cr -> new DependencyResolvers(new VariantResolverAdapter(cr), cr));
     }
 
-    private ComponentDependencyResolver getComponentMappingResolver(ResolvedComponentResult root) {
-        if (USE_LEGACY_VERSION_MAPPING) {
-            return new VersionMappingComponentDependencyResolver(projectDependencyResolver, root);
-        } else {
-            return new ResolutionBackedComponentDependencyResolver(
-                root,
-                moduleIdentifierFactory,
-                projectDependencyResolver
-            );
-        }
+    private Provider<DependencyResolvers> getDependencyMappingResolver(Configuration configuration) {
+        ResolutionResult resolutionResult = configuration.getIncoming().getResolutionResult();
+        return resolutionResult.getRootComponent().zip(resolutionResult.getRootVariant(), this::getVariantMappingResolvers);
     }
 
     private DependencyResolvers getVariantMappingResolvers(ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant) {
-        ComponentDependencyResolver componentResolver =
-            new ResolutionBackedComponentDependencyResolver(rootComponent, moduleIdentifierFactory, projectDependencyResolver);
-
-        VariantDependencyResolver variantResolver = new ResolutionBackedVariantDependencyResolver(
+        ResolutionBackedPublicationDependencyResolver resolver = new ResolutionBackedPublicationDependencyResolver(
             projectDependencyResolver,
             moduleIdentifierFactory,
             rootComponent,
             rootVariant,
-            attributeDesugaring,
-            componentResolver
+            attributeDesugaring
         );
 
-        return new DependencyResolvers(variantResolver, componentResolver);
+        return new DependencyResolvers(resolver, resolver);
+    }
+
+    private Provider<ComponentDependencyResolver> getLegacyResolver(Configuration configuration) {
+        return configuration.getIncoming().getResolutionResult().getRootComponent()
+            .map(root -> new VersionMappingComponentDependencyResolver(projectDependencyResolver, root));
     }
 
     /**
