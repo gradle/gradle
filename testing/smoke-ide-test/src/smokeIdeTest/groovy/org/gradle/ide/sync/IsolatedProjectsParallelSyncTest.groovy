@@ -19,7 +19,9 @@ package org.gradle.ide.sync
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/4438")
 class IsolatedProjectsParallelSyncTest extends AbstractIdeaSyncTest {
 
     @Rule
