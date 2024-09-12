@@ -291,6 +291,7 @@ Class <org.gradle.api.internal.artifacts.verification.verifier.VerificationFailu
 Class <org.gradle.api.internal.cache.CacheConfigurationsInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheConfigurationsInternal.java:0)
 Class <org.gradle.api.internal.cache.CacheDirTagMarkingStrategy> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheDirTagMarkingStrategy.java:0)
 Class <org.gradle.api.internal.cache.CacheDirUtil> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheDirUtil.java:0)
+Class <org.gradle.api.internal.cache.CacheResourceConfigurationInternal$EntryRetention> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheResourceConfigurationInternal.java:0)
 Class <org.gradle.api.internal.cache.CacheResourceConfigurationInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheResourceConfigurationInternal.java:0)
 Class <org.gradle.api.internal.cache.CleanupInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CleanupInternal.java:0)
 Class <org.gradle.api.internal.cache.DefaultCacheConfigurations$ContextualErrorMessageProperty> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCacheConfigurations.java:0)
