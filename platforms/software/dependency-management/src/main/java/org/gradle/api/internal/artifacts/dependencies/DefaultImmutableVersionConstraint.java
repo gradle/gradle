@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.util.internal.GUtil;
@@ -115,7 +116,10 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         if (versionConstraint instanceof ImmutableVersionConstraint) {
             return (ImmutableVersionConstraint) versionConstraint;
         }
-        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
+        if (versionConstraint instanceof DefaultMutableVersionConstraint) {
+            return ((DefaultMutableVersionConstraint) versionConstraint).asImmutable();
+        }
+        throw new InvalidUserCodeException("Unrecognized VersionConstraint implementation: " + versionConstraint.getClass().getName());
     }
 
     public static ImmutableVersionConstraint of(@Nullable String version) {

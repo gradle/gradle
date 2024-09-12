@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
+import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -38,6 +38,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +49,14 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
+    // Services
     private ImmutableAttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private ObjectFactory objectFactory;
-    private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-    private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
+
+    // State
+    private Set<ExcludeRule> excludeRules;
+    private Set<DependencyArtifact> artifacts;
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private AttributeContainerInternal attributes;
     private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
@@ -87,7 +91,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public void setTargetConfiguration(@Nullable String configuration) {
         validateMutation(this.configuration, configuration);
         validateNotVariantAware();
-        if (!artifacts.isEmpty()) {
+        if (!getArtifacts().isEmpty()) {
             throw new InvalidUserCodeException("Cannot set target configuration when artifacts have been specified");
         }
         this.configuration = configuration;
@@ -95,7 +99,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public ModuleDependency exclude(Map<String, String> excludeProperties) {
-        if (excludeRuleContainer.maybeAdd(excludeProperties)) {
+        ExcludeRule rule = ExcludeRuleNotationConverter.parser().parseNotation(excludeProperties);
+        if (addExcludeRule(rule)) {
             validateMutation();
         }
         return this;
@@ -103,26 +108,34 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public Set<ExcludeRule> getExcludeRules() {
-        return excludeRuleContainer.getRules();
+        if (excludeRules == null) {
+            return Collections.emptySet();
+        }
+        return Collections.unmodifiableSet(excludeRules);
     }
 
-    private void setExcludeRuleContainer(DefaultExcludeRuleContainer excludeRuleContainer) {
-        this.excludeRuleContainer = excludeRuleContainer;
+    private boolean addExcludeRule(ExcludeRule excludeRule) {
+        if (excludeRules == null) {
+            excludeRules = new HashSet<>();
+        }
+        return excludeRules.add(excludeRule);
     }
 
     @Override
     public Set<DependencyArtifact> getArtifacts() {
-        return artifacts;
-    }
-
-    public void setArtifacts(Set<DependencyArtifact> artifacts) {
-        this.artifacts = artifacts;
+        if (artifacts == null) {
+            return Collections.emptySet();
+        }
+        return Collections.unmodifiableSet(artifacts);
     }
 
     @Override
     public AbstractModuleDependency addArtifact(DependencyArtifact artifact) {
         validateNotVariantAware();
         validateNoTargetConfiguration();
+        if (artifacts == null) {
+            artifacts = new LinkedHashSet<>();
+        }
         artifacts.add(artifact);
         return this;
     }
@@ -134,12 +147,10 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
-        validateNotVariantAware();
-        validateNoTargetConfiguration();
         DefaultDependencyArtifact artifact = createDependencyArtifactWithDefaults();
         configureAction.execute(artifact);
         artifact.validate();
-        artifacts.add(artifact);
+        addArtifact(artifact);
         return artifact;
     }
 
@@ -154,8 +165,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     protected void copyTo(AbstractModuleDependency target) {
         super.copyTo(target);
-        target.setArtifacts(new LinkedHashSet<>(getArtifacts()));
-        target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
+        getArtifacts().forEach(target::addArtifact);
+        getExcludeRules().forEach(target::addExcludeRule);
         target.setTransitive(isTransitive());
         if (attributes != null) {
             // We can only have attributes if we have the factory, then need to copy

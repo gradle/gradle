@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private String preferredVersion;
     private String strictVersion;
     private String branch;
-    private final List<String> rejectedVersions = new ArrayList<>(1);
+    private List<String> rejectedVersions;
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
         this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
@@ -47,8 +48,11 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion, List<String> rejects, @Nullable String branch) {
         updateVersions(preferredVersion, requiredVersion, strictVersion);
-        for (String reject : rejects) {
-            this.rejectedVersions.add(nullToEmpty(reject));
+        if (!rejects.isEmpty()) {
+            this.rejectedVersions = new ArrayList<>(rejects.size());
+            for (String reject : rejects) {
+                this.rejectedVersions.add(nullToEmpty(reject));
+            }
         }
         this.branch = branch;
     }
@@ -57,7 +61,9 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         this.preferredVersion = nullToEmpty(preferredVersion);
         this.requiredVersion = nullToEmpty(requiredVersion);
         this.strictVersion = nullToEmpty(strictVersion);
-        this.rejectedVersions.clear();
+        if (rejectedVersions != null) {
+            this.rejectedVersions.clear();
+        }
     }
 
     public static DefaultMutableVersionConstraint withVersion(String version) {
@@ -70,7 +76,8 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public ImmutableVersionConstraint asImmutable() {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch);
+        List<String> rejected = this.rejectedVersions != null ? this.rejectedVersions : Collections.emptyList();
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejected, branch);
     }
 
     @Nullable
@@ -116,19 +123,29 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void reject(String... versions) {
-        this.rejectedVersions.clear();
-        Collections.addAll(rejectedVersions, versions);
+        if (rejectedVersions != null) {
+            rejectedVersions.clear();
+            rejectedVersions.addAll(Arrays.asList(versions));
+        } else {
+            rejectedVersions = new ArrayList<>(Arrays.asList(versions));
+        }
     }
 
     @Override
     public void rejectAll() {
         updateVersions(null, null, null);
+        if (rejectedVersions == null) {
+            rejectedVersions = new ArrayList<>(1);
+        }
         this.rejectedVersions.add("+");
     }
 
     @Override
     public List<String> getRejectedVersions() {
-       return rejectedVersions;
+        if (rejectedVersions == null) {
+            rejectedVersions = new ArrayList<>();
+        }
+        return rejectedVersions;
     }
 
     public String getVersion() {
@@ -141,9 +158,6 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
             return false;
         }
 
@@ -161,17 +175,20 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         if (branch != null ? !branch.equals(that.branch) : that.branch != null) {
             return false;
         }
-        return rejectedVersions.equals(that.rejectedVersions);
+        if (rejectedVersions != null ? !rejectedVersions.equals(that.rejectedVersions) : that.rejectedVersions != null) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
+        int result = 0;
         result = 31 * result + (requiredVersion != null ? requiredVersion.hashCode() : 0);
         result = 31 * result + (preferredVersion != null ? preferredVersion.hashCode() : 0);
         result = 31 * result + (strictVersion != null ? strictVersion.hashCode() : 0);
         result = 31 * result + (branch != null ? branch.hashCode() : 0);
-        result = 31 * result + rejectedVersions.hashCode();
+        result = 31 * result + (rejectedVersions != null ? rejectedVersions.hashCode() : 0);
         return result;
     }
 }

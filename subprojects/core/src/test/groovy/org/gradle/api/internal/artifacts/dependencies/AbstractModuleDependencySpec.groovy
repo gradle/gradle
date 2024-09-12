@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
 abstract class AbstractModuleDependencySpec extends Specification {
@@ -88,17 +87,28 @@ abstract class AbstractModuleDependencySpec extends Specification {
     }
 
     void "can exclude dependencies"() {
-        def excludeArgs1 = WrapUtil.toMap("group", "aGroup")
-        def excludeArgs2 = WrapUtil.toMap("module", "aModule")
+        def excludeArgs1 = ["group": "aGroup"]
+        def excludeArgs2 = ["module": "aModule"]
+        def excludeArgs3 = [group: "aGroup", module: "aModule"]
 
         when:
         dependency.exclude(excludeArgs1)
         dependency.exclude(excludeArgs2)
+        dependency.exclude(excludeArgs3)
 
         then:
-        dependency.excludeRules.size() == 2
+        dependency.excludeRules.size() == 3
         dependency.excludeRules.contains(new DefaultExcludeRule("aGroup", null))
         dependency.excludeRules.contains(new DefaultExcludeRule(null, "aModule"))
+        dependency.excludeRules.contains(new DefaultExcludeRule("aGroup", "aModule"))
+    }
+
+    void "throws exception when invalid exclude key is used"() {
+        when:
+        dependency.exclude(["invalid": "aGroup"])
+
+        then:
+        thrown InvalidUserDataException
     }
 
     void "can add artifacts"() {
@@ -310,7 +320,6 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
         when:
         dep.artifact {
-            throw new AssertionError()
         }
 
         then:
@@ -384,7 +393,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.requestedCapabilities == dependency.requestedCapabilities
 
         assert copiedDependency.attributes.is(ImmutableAttributes.EMPTY) || !copiedDependency.attributes.is(dependency.attributes)
-        assert !copiedDependency.artifacts.is(dependency.artifacts)
-        assert !copiedDependency.excludeRules.is(dependency.excludeRules)
+        assert copiedDependency.artifacts.is(Collections.EMPTY_SET) || !copiedDependency.artifacts.is(dependency.artifacts)
+        assert copiedDependency.excludeRules.is(Collections.EMPTY_SET) || !copiedDependency.excludeRules.is(dependency.excludeRules)
     }
 }

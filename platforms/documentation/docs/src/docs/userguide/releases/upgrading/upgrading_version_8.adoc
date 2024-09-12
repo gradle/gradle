@@ -203,6 +203,12 @@ The existing method does not behave as specified by its javadoc, and we do not p
 
 Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
 
+==== Deprecated `ExcludeRuleContainer`
+
+The ExcludeRuleContainer type is deprecated and will be removed in Gradle 9.0.
+
+No current public API uses this type.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 

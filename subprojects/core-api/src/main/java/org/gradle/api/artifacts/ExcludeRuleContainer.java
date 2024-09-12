@@ -20,7 +20,10 @@ import java.util.Set;
 
 /**
  * <p>A container for adding exclude rules for dependencies.</p>
+ *
+ * @deprecated This class will be removed in Gradle 9.0
  */
+@Deprecated
 public interface ExcludeRuleContainer {
     /**
      * Returns all the exclude rules added to this container. If no exclude rules has been added an empty list is
