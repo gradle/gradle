@@ -1,8 +1,10 @@
-The Gradle team is excited to announce Gradle @version@.
-
-This is the first patch release for Gradle 8.10.
+Gradle @version@ is the second patch release for Gradle 8.10.
 
 It fixes the following issues:
+* TODO
+
+
+Issues fixed in the first patch release:
 * [#30239](https://github.com/gradle/gradle/issues/30239) Gradle 8.10 Significantly Slower Due to Dependency Resolution
 * [#30272](https://github.com/gradle/gradle/issues/30272) Broken equals() contract for LifecycleAwareProject
 * [#30385](https://github.com/gradle/gradle/issues/30385) Gradle should not validate isolated projects when isolated projects is disabled
