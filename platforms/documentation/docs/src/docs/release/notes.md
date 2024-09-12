@@ -146,8 +146,7 @@ The following Swift and C++ plugins are now [configuration cache](userguide/perf
 - [CppUnit](userguide/cpp_unit_test_plugin.html)
 - [GoogleTest](userguide/cpp_testing.html)
 - [Visual Studio](userguide/visual_studio_plugin.html)
-
-The [`xcode`](userguide/xcode_plugin.html) is not yet compatible.
+- [XCode](userguide/xcode_plugin.html)
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
