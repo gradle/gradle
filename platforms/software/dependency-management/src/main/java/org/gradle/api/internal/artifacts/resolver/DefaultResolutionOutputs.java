@@ -200,7 +200,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             );
         }
 
-        private SelectedArtifactSet selectArtifacts(ResolverResults results) {
+        private SelectedArtifactSet selectArtifacts(ResolverResults resolverResults) {
             // If the user set the view attributes, we allow variant matching to fail for no matching variants.
             // If we are using the original request attributes, variant matching should not fail.
             // TODO #27773: This is probably not desired behavior. It can be very confusing to request new attributes and
@@ -209,13 +209,13 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             // deprecate views that select no artifacts without the user specifying that switch.
             boolean allowNoMatchingVariants = !viewAttributes.isEmpty();
 
-            return results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
+            return resolverResults.getVisitedArtifacts().select(new ArtifactSelectionSpec(
                 getAttributes(),
                 componentFilter,
                 reselectVariants,
                 allowNoMatchingVariants,
                 resolutionAccess.getDefaultSortOrder()
-            ));
+            ), lenient);
         }
 
         @Override

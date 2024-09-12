@@ -20,8 +20,13 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 import java.util.List;
 
+/**
+ * Resolves the dependencies of something and produces results.
+ * <p>
+ * This resolution is always lenient, in the sense that resolution failures will not cause
+ * exceptions to be thrown or the build to immediately fail.
+ */
 public interface ConfigurationResolver {
-
     /**
      * Traverses enough of the graph to calculate the build dependencies of the given resolve context. All failures are packaged in the result.
      */
@@ -36,5 +41,4 @@ public interface ConfigurationResolver {
      * Returns the list of repositories available to resolve a given resolve context.
      */
     List<ResolutionAwareRepository> getAllRepositories();
-
 }

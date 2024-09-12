@@ -219,7 +219,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             // set of build dependencies than actually required. This is because it takes a lot of extra information
             // from the visited graph to properly filter artifacts by dependencySpec, and we don't want capture that when
             // calculating build dependencies.
-            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext))
+            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext), false)
         );
 
         return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);
@@ -298,7 +298,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
         MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
-        Optional<? extends ResolveException> failure = resolutionHost.mapFailure("dependencies", nonFatalFailures);
+        Optional<? extends ResolveException> failure = resolutionHost.consolidateFailures("dependencies", nonFatalFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure.orElse(null));
 
         // Only write dependency locks if resolution completed without failure.

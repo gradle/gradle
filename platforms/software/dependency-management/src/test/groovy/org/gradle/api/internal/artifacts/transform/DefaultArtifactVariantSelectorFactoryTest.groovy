@@ -29,6 +29,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.internal.Describables
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
@@ -59,7 +61,8 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variantSelectionFailureProcessor,
         StandaloneDomainObjectContext.ANONYMOUS,
         TestUtil.calculatedValueContainerFactory(),
-        TestUtil.taskDependencyFactory()
+        TestUtil.taskDependencyFactory(),
+        new DefaultProblems([new NoOpProblemEmitter()])
     )
 
     def "selects producer variant with requested attributes"() {

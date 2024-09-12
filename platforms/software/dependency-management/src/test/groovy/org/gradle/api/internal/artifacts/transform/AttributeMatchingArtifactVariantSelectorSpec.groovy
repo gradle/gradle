@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.internal.Describables
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
@@ -160,7 +162,8 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
             consumerProvidedVariantFinder,
             attributesFactory,
             transformedVariantFactory,
-            failureProcessor
+            failureProcessor,
+            new DefaultProblems([new NoOpProblemEmitter()])
         )
     }
 

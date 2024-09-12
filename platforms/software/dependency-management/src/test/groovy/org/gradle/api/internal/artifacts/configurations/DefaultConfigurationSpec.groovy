@@ -65,6 +65,8 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factories
@@ -530,7 +532,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -1758,6 +1760,7 @@ All Artifacts:
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
+            select(_, _) >> selectedArtifacts(failure)
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -1855,7 +1858,8 @@ All Artifacts:
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory()
+            TestFiles.taskDependencyFactory(),
+            new DefaultProblems([new NoOpProblemEmitter()])
         )
     }
 

@@ -26,7 +26,7 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def selector = Stub(ArtifactVariantSelector)
 
         when:
-        target.select(_, _) >> ResolvedArtifactSet.EMPTY
+        target.select(_, _, _) >> ResolvedArtifactSet.EMPTY
 
         then:
         new NoBuildDependenciesArtifactSet(target).select(selector, Mock(ArtifactSelectionSpec)) == ResolvedArtifactSet.EMPTY
@@ -39,7 +39,7 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def visitor = Mock(TaskDependencyResolveContext)
 
         given:
-        target.select(_, _) >> selected
+        target.select(_, _, _) >> selected
 
         when:
         def wrapper = new NoBuildDependenciesArtifactSet(target).select(selector, Mock(ArtifactSelectionSpec))
