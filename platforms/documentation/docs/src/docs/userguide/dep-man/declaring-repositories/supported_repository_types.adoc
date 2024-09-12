@@ -18,9 +18,9 @@
 Gradle supports various sources for resolving dependencies, accommodating different formats and connectivity methods.
 You can resolve dependencies from:
 
-- <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,Local (flat) directories>>
-- <<declaring_repositories_adv.adoc#sec:maven_repo,Maven-compatible artifact repositories>> (e.g., Maven Central)
-- <<declaring_repositories_adv.adoc#sec:ivy_repositories,Ivy-compatible artifact repositories>> (including custom layouts)
+- <<#sub:flat_dir_resolver,Local (flat) directories>>
+- <<#sec:maven_repo,Maven-compatible artifact repositories>> (e.g., Maven Central)
+- <<#sec:ivy_repositories,Ivy-compatible artifact repositories>> (including custom layouts)
 
 [[sub:flat_dir_resolver]]
 == Flat directory repository
@@ -71,7 +71,7 @@ Gradle will first look for POMs and artifacts at the base URL, and if the artifa
 === Authenticated Maven repository
 
 You can specify credentials for Maven repositories that require authentication.
-See <<#sec:supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
 
 [[sub:maven_local]]
 === Local Maven repository
@@ -88,7 +88,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 
-WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
+WARNING: Before adding Maven local as a repository, you should <<declaring_repositories_basics.adoc#sec:case-for-maven-local, make sure this is really required>>.
 
 Gradle uses the same logic as Maven to determine the location of your local Maven cache.
 It prioritizes the `settings.xml` in the user’s home directory,`<user_home>/.m2`, over the one in `__M2_HOME__/conf`.
@@ -157,4 +157,4 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-ivy-repo]"]
 ====
 
-Refer to <<#sec:supported_transport_protocols>> for more details on authentication options.
+Refer to <<supported_repository_protocols.adoc#supported_transport_protocols>> for more details on authentication options.

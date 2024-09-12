@@ -15,9 +15,10 @@
 [[supported_transport_protocols]]
 = Supported Protocols
 
+Gradle supports a variety of transport protocols for Maven and Ivy repositories.
+
 == Supported transport protocols
 
-Gradle supports a variety of transport protocols for Maven and Ivy repositories.
 These protocols determine how Gradle communicates with the repositories to resolve dependencies.
 
 [cols="1,5,2"]
@@ -52,6 +53,7 @@ These protocols determine how Gradle communicates with the repositories to resol
 NOTE: Username and password should never be stored in plain text in your build files. Instead, store credentials in a local `gradle.properties` file or use an open-source Gradle plugin for encrypting and consuming credentials, such as the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
 
 The transport protocol is specified as part of the repository URL.
+
 Below are examples of how to declare repositories using various protocols:
 
 .Declaring HTTP-based Maven and Ivy Repositories
