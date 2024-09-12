@@ -33,8 +33,9 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
-import org.gradle.process.ExecSpec;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,11 @@ public abstract class IdePlugin implements Plugin<Project> {
     private TaskProvider<Task> lifecycleTask;
     private TaskProvider<Delete> cleanTask;
     protected Project project;
+
+    @Inject
+    protected ExecOperations getExecOperations() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns the path to the correct Gradle distribution to use. The wrapper of the generating project will be used only if the execution context of the currently running Gradle is in the Gradle home (typical of a wrapper execution context). If this isn't the case, we try to use the current Gradle home, if available, as the distribution. Finally, if nothing matches, we default to the system-wide Gradle distribution.
@@ -188,16 +194,13 @@ public abstract class IdePlugin implements Plugin<Project> {
                 openTask.dependsOn(lifecycleTask);
                 openTask.setGroup("IDE");
                 openTask.setDescription("Opens the " + workspace.getDisplayName());
+
+                ExecOperations execOperations = getExecOperations();
                 openTask.doLast(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
                         if (OperatingSystem.current().isMacOsX()) {
-                            project.exec(new Action<ExecSpec>() {
-                                @Override
-                                public void execute(ExecSpec execSpec) {
-                                    execSpec.commandLine("open", workspace.getLocation().get());
-                                }
-                            });
+                            execOperations.exec(execSpec -> execSpec.commandLine("open", workspace.getLocation().get()));
                         } else {
                             try {
                                 Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());

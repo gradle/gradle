@@ -4229,7 +4229,6 @@ Class <org.gradle.plugins.ide.internal.IdePlugin$5> is not annotated (directly o
 Class <org.gradle.plugins.ide.internal.IdePlugin$6> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
 Class <org.gradle.plugins.ide.internal.IdePlugin$7> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
 Class <org.gradle.plugins.ide.internal.IdePlugin$8> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
-Class <org.gradle.plugins.ide.internal.IdePlugin$9$1$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
 Class <org.gradle.plugins.ide.internal.IdePlugin$9$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
 Class <org.gradle.plugins.ide.internal.IdePlugin$9> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
 Class <org.gradle.plugins.ide.internal.IdePlugin> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (IdePlugin.java:0)
