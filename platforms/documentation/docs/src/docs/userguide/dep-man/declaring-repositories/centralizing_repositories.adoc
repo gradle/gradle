@@ -12,33 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring-repositories]]
-= Declaring repositories
+[[centralized-repository-declaration]]
+= Centralizing Repository Declarations
 
-[[sub:centralized-repository-declaration]]
-== Centralizing repositories declaration
-
-Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle offers a way to declare them in a central place for all projects.
+Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle provides a way to declare them centrally for all projects.
 
 NOTE: Central declaration of repositories is an incubating feature.
 
-Repositories used by convention in every subproject can be declared in the `settings.gradle(.kts)` file:
+You can declare repositories that will be used by convention in every subproject in the `settings.gradle(.kts)` file:
 
-.Declaring a Maven repository in settings
 ====
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=declare_repositories_settings]"]
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=declare_repositories_settings]"]
 ====
 
-The `dependencyResolutionManagement` repositories block accepts the same notations as in a project. This includes Maven or Ivy repositories, with or without credentials, etc.
+The `dependencyResolutionManagement` repositories block accepts the same notations as in a project, including Maven or Ivy repositories, with or without credentials.
 
-By default, repositories declared by a project in `build.gradle(.kts)` will *override* whatever is declared in `settings.gradle(.kts)`:
+== Repositories mode
 
-.Preferring project repositories
+By default, repositories declared in a project’s `build.gradle(.kts)` file will override those declared in `settings.gradle(.kts)`.
+However, you can control this behavior using the `repositoriesMode` setting:
+
 ====
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_projects]"]
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_projects]"]
 ====
+
+== Available modes
 
 There are three modes for dependency resolution management:
 
@@ -47,36 +47,33 @@ There are three modes for dependency resolution management:
 |Mode |Description |Default? |Use-Case
 
 |`PREFER_PROJECT`
-|Any repository declared on a project will cause the project to use the repositories declared by the project, ignoring those declared in settings.
+|Repositories declared in a project override those declared in `settings.gradle(.kts)`.
 |Yes
-|Useful when teams need to use different repositories not common among subprojects.
+|Useful when teams need to use different repositories specific to their subprojects.
 
 |`PREFER_SETTINGS`
-|Any repository declared directly in a project, either directly or via a plugin, will be ignored.
+|Repositories declared in `settings.gradle(.kts)` override those declared in a project.
 |No
-|Useful for enforcing large teams to use approved repositories only, but will not fail the build when a project or plugin declares a repository.
+|Useful for enforcing the use of approved repositories across large teams.
 
 |`FAIL_ON_PROJECT_REPOS`
-|Any repository declared directly in a project, either directly or via a plugin, will trigger a build error.
+|Declaring a repository in a project triggers a build error.
 |No
-|Useful for enforcing large teams to use approved repositories only.
+|Strictly enforces the use of repositories declared in `settings.gradle(.kts)`.
 |===
 
-You can change the behavior to prefer the repositories in the `settings.gradle(.kts)` file by using `repositoriesMode`:
+You can change the behavior to prefer the repositories in `settings.gradle(.kts)`:
 
-.Preferring settings repositories
 ====
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=prefer_settings]"]
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_settings]"]
 ====
 
 [[sub:fail_build_on_project_repositories]]
+Gradle will warn you if a project or plugin declares a repository when using this mode.
 
-Gradle will warn you if a project or a plugin declares a repository in a project.
+To enforce that *only* repositories declared in `settings.gradle(.kts)` are used, you can configure Gradle to fail the build:
 
-You can force Gradle to _fail the build_ if you want to enforce that *only* settings repositories are used:
-
-.Enforcing settings repositories
 ====
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=enforce_settings]"]

@@ -13,31 +13,101 @@
 // limitations under the License.
 
 [[declaring-repositories]]
-= Declaring repositories
+= Metadata Formats
+
+Metadata refers to the information associated with a module or dependency that describes its characteristics, relationships, and requirements.
+
+This metadata includes details such as:
+
+1. **Module Identity**: The group, name, and version (GAV) coordinates that uniquely identify the module.
+2. **Dependencies**: A list of other modules or libraries that this module depends on, including their versions and configurations.
+3. **Variants**: Different forms of the module (e.g., API, implementation, runtime) that can be consumed or resolved based on the context.
+4. **Artifacts**: The actual files (like JARs, ZIPs, etc.) produced by the module, which may include compiled code, resources, or documentation.
+5. **Capabilities**: Describes the functionality or features that a module provides or consumes, helping to avoid conflicts when different modules provide the same capability.
+
+This metadata is typically stored in files like `pom.xml` for Maven or `ivy.xml` for Ivy, and Gradle can also generate and consume metadata in its own format, called Gradle Module Metadata (GMM).
+This metadata plays a crucial role in dependency resolution, ensuring that the right versions and variants of modules are used in a build.
+
+[[sec:supported-metadata-formats]]
+== Supported metadata formats
+
+External module dependencies require module metadata so that Gradle can determine the transitive dependencies of a module.
+Gradle supports various metadata formats to achieve this.
+
+[[sub:supported-md-gradle]]
+=== Gradle Module Metadata (GMM) files
+
+Gradle Module Metadata is specifically designed to support all features of Gradle's dependency management model, making it the preferred format.
+
+You can find the https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification here].
+
+[source,json]
+----
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.example",
+    "module": "my-library",
+    "version": "1.0"
+  }
+}
+----
+
+[[sub:supported-md-pom]]
+=== POM files
+
+Gradle natively supports https://maven.apache.org/pom.html[Maven POM files].
+By default, Gradle will first look for a POM file.
+However, if the file contains a special marker, Gradle will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
+
+[source,xml]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>my-library</artifactId>
+  <version>1.0</version>
+</project>
+----
+
+[[sub:supported-md-ivy]]
+=== Ivy files
+
+Gradle also supports http://ant.apache.org/ivy/[Apache Ivy metadata files].
+Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, it will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
+
+[source,xml]
+----
+<ivy-module version="2.0">
+  <info organisation="com.example" module="my-library" revision="1.0"/>
+  <dependencies>
+    <dependency org="org.example" name="dependency" rev="1.2"/>
+  </dependencies>
+</ivy-module>
+----
 
 [[sec:supported_metadata_sources]]
 == Supported metadata sources
 
-When searching for a module in a repository, Gradle, by default, checks for <<declaring_dependencies_adv.adoc#sec:supported-metadata-formats,supported metadata file formats>> in that repository.
-In a Maven repository, Gradle looks for a `.pom` file, in an ivy repository it looks for an `ivy.xml` file and in a flat directory repository it looks directly for `.jar` files as it does not expect any metadata.
-Starting with 5.0, Gradle also looks for `.module` (Gradle module metadata) files.
+When searching for a module in a repository, Gradle checks for supported metadata file formats by default.
 
-However, if you define a customized repository you might want to configure this behavior.
-For example, you can define a Maven repository without `.pom` files but only jars.
-To do so, you can configure _metadata sources_ for any repository.
+In a Maven repository, Gradle looks for `.pom` files.
+In an Ivy repository, it checks for `ivy.xml` files.
+And in a flat directory repository, it looks directly for `.jar` files without expecting any metadata.
+Starting with Gradle 5.0, Gradle also looks for `.module` (Gradle module metadata) files.
 
-.Maven repository that supports artifacts without metadata
+If you define a custom repository, you can configure how Gradle searches for metadata.
+For instance, you can set up a Maven repository that only contains JAR files without POM files.
+This is done by configuring metadata sources for the repository:
+
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-metadata-sources]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-metadata-sources]"]
 ====
 
-You can specify multiple sources to tell Gradle to keep looking if a file was not found.
-In that case, the order of checking for sources is predefined.
-
+You can specify multiple metadata sources, and Gradle will search through them in a predefined order.
 The following metadata sources are supported:
 
-.Supported metadata sources
 [%header%autowidth,compact]
 |===
 | Metadata source | Description | Order | Maven | Ivy / flat dir
@@ -67,28 +137,25 @@ The following metadata sources are supported:
 | yes
 |===
 
---
-The defaults for Ivy and Maven repositories change with Gradle 6.0.
-Before 6.0, `artifact()` was included in the defaults.
-Leading to some inefficiency when modules are missing completely.
+The default behavior for Ivy and Maven repositories has changed with Gradle 6.0, where `artifact()` is no longer included by default, improving efficiency when modules are missing.
 
-To restore this behavior, for example, for Maven central you can use:
-```
-mavenCentral { metadataSources { mavenPom(); artifact() } }
-```
+To restore the old behavior or configure new behavior in older Gradle versions, you can specify the metadata sources explicitly:
 
-In a similar way, you can opt into the new behavior in older Gradle versions using:
-```
-mavenCentral { metadataSources { mavenPom() } }
-```
---
+[source,kotlin]
+----
+mavenCentral {
+    metadataSources {
+        mavenPom()
+        artifact()
+    }
+}
+----
 
-Since Gradle 5.3, when parsing a metadata file, be it Ivy or Maven, Gradle will look for a marker indicating that a matching Gradle Module Metadata files exists.
-If it is found, it will be used instead of the Ivy or Maven file.
+Since Gradle 5.3, when parsing metadata files (Ivy or Maven), Gradle checks for a marker that indicates the presence of a matching Gradle Module Metadata file.
+If found, Gradle will prefer the Gradle metadata.
 
-Starting with Gradle 5.6, you can disable this behavior by adding `ignoreGradleMetadataRedirection()` to the metadataSources declaration.
+To disable this behavior, use the `ignoreGradleMetadataRedirection()` option:
 
-.Maven repository that does not use gradle metadata redirection
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]

@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring-repositories]]
-= Declaring repositories
-
-[[sec:repository-content-filtering]]
-== Repository content filtering
+[[repository-content-filtering]]
+= Filtering Repository Content
 
 Gradle exposes an API to declare what a repository may or may not contain.
 There are different use cases for it:
@@ -28,9 +25,8 @@ There are different use cases for it:
 It's even more important when considering that the declared order of repositories matter.
 
 [[sec:declaring-repository-filter]]
-=== Declaring a repository filter
+== Declaring a repository filter
 
-.Declaring repository contents
 ====
 include::sample[dir="snippets//dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-filter]"]
@@ -47,7 +43,7 @@ When using a strict version, it is possible to use a version range, using <<sing
 In addition, there are filtering options by resolution context: configuration name or even configuration attributes.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
 
-=== Declaring content exclusively found in one repository
+== Declaring content exclusively found in one repository
 
 Filters declared using the <<#sec:declaring-repository-filter,repository-level content filter>> are not exclusive.
 This means that declaring that a repository _includes_ an artifact doesn't mean that the other repositories can't have it either: you must declare what every repository contains in extension.
@@ -58,7 +54,6 @@ If you do so:
 - an artifact declared in a repository _can't_ be found in any other
 - exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content>>)
 
-.Declaring exclusive repository contents
 ====
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
@@ -80,7 +75,6 @@ Your options are either to declare all repositories in settings or to use non-ex
 For <<sec:maven_repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.
 Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
 
-.Splitting snapshots and releases
 ====
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
