@@ -94,8 +94,9 @@ fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 fun Project.extractCiData() {
     if (isCiServer) {
         buildScan {
+            val execOps = serviceOf<ExecOperations>()
             background {
-                setCompileAllScanSearch(execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
+                setCompileAllScanSearch(execOps.execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
             }
             if (isEc2Agent()) {
                 tag("EC2")
