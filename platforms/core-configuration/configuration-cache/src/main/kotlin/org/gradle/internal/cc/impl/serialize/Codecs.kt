@@ -68,6 +68,7 @@ import org.gradle.internal.serialize.codecs.core.FileTreeCodec
 import org.gradle.internal.serialize.codecs.core.FileValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
+import org.gradle.internal.serialize.codecs.core.ImmutableValueObjectCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.IntersectionPatternSetCodec
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
@@ -205,6 +206,8 @@ class Codecs(
 
             groovyCodecs()
             bind(SerializedLambdaParametersCheckingCodec)
+
+            bind(ImmutableValueObjectCodec)
 
             // Dependency management types
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
