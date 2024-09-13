@@ -28,10 +28,8 @@ import org.gradle.api.problems.internal.InternalProblems;
  * throw the exception.  Instead, exceptions that implement this interface understand how to report themselves as
  * problems as some later time, when the Dependency Resolution machinery can be confident that the exception represents
  * a failure that should be reported to the user.
- *
- * @param <T> the type of exception that will be thrown when the problem is reported (should be the same type as the implementing class)
  */
-public interface ReportableAsProblem<T extends Throwable> {
+public interface ReportableAsProblem {
     /**
      * Reports this exception as a problem to the given {@link InternalProblems} service.
      * <p>
@@ -41,5 +39,5 @@ public interface ReportableAsProblem<T extends Throwable> {
      * @return the exception to report (should be {@code this})
      */
     @SuppressWarnings("UnusedReturnValue")
-    T reportAsProblem(InternalProblems problemsService);
+    Throwable reportAsProblem(InternalProblems problemsService);
 }

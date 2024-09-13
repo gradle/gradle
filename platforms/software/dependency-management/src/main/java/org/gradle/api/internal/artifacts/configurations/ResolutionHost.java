@@ -97,13 +97,14 @@ public interface ResolutionHost {
      *
      * @param failures the exceptions to inspect
      */
+    @SuppressWarnings("ThrowableNotThrown")
     default void reportProblems(Collection<Throwable> failures) {
         Queue<Throwable> exceptionQueue = new LinkedList<>(failures);
         Throwable current = exceptionQueue.poll();
 
         while (current != null) {
             if (current instanceof ReportableAsProblem) {
-                ((ReportableAsProblem<?>) current).reportAsProblem(getProblems());
+                ((ReportableAsProblem) current).reportAsProblem(getProblems());
             }
 
             if (current instanceof MultiCauseException) {
