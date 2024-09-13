@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility;
 
+import gradlebuild.basics.Gradle9PropertyUpgradeSupport;
 import japicmp.filter.Filter;
 import me.champeau.gradle.japicmp.JApiCmpWorkAction;
 import me.champeau.gradle.japicmp.JApiCmpWorkerAction;
@@ -95,7 +96,7 @@ public abstract class JapicmpTask extends DefaultTask {
     private void execForNewGradle(final List<JApiCmpWorkerAction.Archive> baseline, final List<JApiCmpWorkerAction.Archive> current) {
         WorkQueue queue = getWorkerExecutor().processIsolation(spec -> {
             spec.getClasspath().from(calculateWorkerClasspath());
-            spec.getForkOptions().setMaxHeapSize("1g");
+            Gradle9PropertyUpgradeSupport.setProperty(spec.getForkOptions(), "setMaxHeapSize", "1g");
         });
         queue.submit(JApiCmpWorkAction.class, params -> params.getConfiguration().set(calculateWorkerConfiguration(baseline, current)));
     }

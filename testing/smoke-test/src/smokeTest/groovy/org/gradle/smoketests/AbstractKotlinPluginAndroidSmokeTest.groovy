@@ -57,6 +57,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
             .deprecations(AndroidDeprecations) {
                 expectIsPropertyDeprecationWarnings()
             }
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
             .build()
 
         then:
