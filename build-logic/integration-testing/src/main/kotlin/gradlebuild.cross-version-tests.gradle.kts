@@ -53,8 +53,10 @@ fun createQuickFeedbackTasks() {
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
             this.setSystemPropertiesOfTestJVM("latest")
-            this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
-            this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
+            systemProperty("org.gradle.integtest.crossVersion", "true")
+            releasedVersions?.lowestTestedVersion?.version?.let {
+                systemProperty("org.gradle.integtest.crossVersion.lowestTestedVersion", it)
+            }
 
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
             // discard existing options configuration and add a deprecation warning.  Just set the existing options.
@@ -82,9 +84,9 @@ fun createAggregateTasks(sourceSet: SourceSet) {
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
-            this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
-            this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
-            this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions.lowestTestedVersion.version
+            systemProperty("org.gradle.integtest.versions", targetVersion.version)
+            systemProperty("org.gradle.integtest.crossVersion", "true")
+            systemProperty("org.gradle.integtest.crossVersion.lowestTestedVersion", releasedVersions.lowestTestedVersion.version)
             this.useJUnitPlatform {
                 includeEngines("cross-version-test-engine")
             }
