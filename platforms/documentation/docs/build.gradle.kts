@@ -627,7 +627,7 @@ tasks.named<Test>("docsTest") {
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
     testClassesDirs = sourceSets.docsTest.get().output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
-    systemProperties.clear()
+    systemProperties = emptyMap<String, Any>()
 
     filter {
         // Only execute C++ sample tests on Linux because it is the configured target

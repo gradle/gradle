@@ -16,9 +16,9 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.basics.Gradle10PropertyUpgradeSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
@@ -33,13 +33,10 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.util.GradleVersion;
 import org.gradle.internal.UncheckedException;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashSet;
@@ -172,15 +169,15 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         }
 
         public void setTitle(String title) {
-            setProperty(javadoc, "setTitle", title);
+            Gradle10PropertyUpgradeSupport.setProperty(javadoc, "setTitle", title);
         }
 
         public void setClasspath(FileCollection classpath) {
-            setProperty(javadoc, "setClasspath", classpath);
+            Gradle10PropertyUpgradeSupport.setProperty(javadoc, "setClasspath", classpath);
         }
 
         public void setDestinationDir(File destinationDir) {
-            setProperty(javadoc, "setDestinationDir", destinationDir);
+            Gradle10PropertyUpgradeSupport.setProperty(javadoc, "setDestinationDir", destinationDir);
         }
     }
 
@@ -196,39 +193,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         }
 
         public void setClasspath(FileCollection classpath) {
-            setProperty(checkstyle, "setClasspath", classpath);
-        }
-    }
-
-    private static  <T> void setProperty(Task task, String setterName, T value) {
-        if (GradleVersion.current().compareTo(GradleVersion.version("10.0")) < 0) {
-            setPropertyPreGradle10(task, setterName, value);
-        } else {
-            setPropertyPostGradle10(task, setterName, value);
-        }
-    }
-
-    private static void setPropertyPostGradle10(Task task, String setterName, Object value) {
-        try {
-            // Task is Task_Decorated, so it has set<Property>(Object) setter
-            task.getClass().getMethod(setterName, Object.class).invoke(task, value);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void setPropertyPreGradle10(Task task, String setterName, Object value) {
-        try {
-            for (Method method : task.getClass().getMethods()) {
-                if (method.getParameters().length == 1
-                    && method.getName().equals(setterName)
-                    && method.getParameters()[0].getType().isAssignableFrom(value.getClass())) {
-                    method.invoke(task, value);
-                    return;
-                }
-            }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            Gradle10PropertyUpgradeSupport.setProperty(checkstyle, "setClasspath", classpath);
         }
     }
 

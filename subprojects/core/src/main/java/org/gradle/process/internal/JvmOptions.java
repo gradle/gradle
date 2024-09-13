@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JvmDebugSpec.DefaultJvmDebugSpec;
-import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
 import org.gradle.util.internal.ArgumentsSplitter;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -63,12 +62,12 @@ public class JvmOptions {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
-    public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Arrays.asList(
+    public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Collections.unmodifiableList(Arrays.asList(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JDK_ENABLE_ADS_KEY,
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
         // Gradle specific
         HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
-    );
+    ));
 
     // Store this because Locale.default is mutable and we want the unchanged default
     // We are assuming this class will be initialized before any code has a chance to change the default
@@ -169,7 +168,7 @@ public class JvmOptions {
         return getDebugArgument(debugSpec);
     }
 
-    public static String getDebugArgument(JvmDebugSpec options) {
+    private static String getDebugArgument(JvmDebugSpec options) {
         boolean server = options.isServer();
         boolean suspend = options.isSuspend();
         int port = options.getPort();
@@ -213,29 +212,12 @@ public class JvmOptions {
         return extraJvmArgs;
     }
 
-    public void checkDebugConfiguration(Iterable<?> arguments) {
-        List<String> debugArgs = collectDebugArgs(arguments);
+    private void checkDebugConfiguration(Iterable<?> arguments) {
+        List<String> debugArgs = AllJvmArgsAdapterUtil.collectDebugArgs(arguments);
         if (!debugArgs.isEmpty() && debugSpec.isEnabled()) {
             LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
             debugSpec.setEnabled(false);
         }
-    }
-
-    private static List<String> collectDebugArgs(Iterable<?> arguments) {
-        List<String> debugArgs = new ArrayList<>();
-        for (Object extraJvmArg : arguments) {
-            String extraJvmArgString = extraJvmArg.toString();
-            if (isDebugArg(extraJvmArgString)) {
-                debugArgs.add(extraJvmArgString);
-            }
-        }
-        return debugArgs;
-    }
-
-    private static boolean isDebugArg(String extraJvmArgString) {
-        return extraJvmArgString.equals("-Xdebug")
-            || extraJvmArgString.startsWith("-Xrunjdwp")
-            || extraJvmArgString.startsWith("-agentlib:jdwp");
     }
 
     /**
@@ -373,37 +355,50 @@ public class JvmOptions {
         return debugSpec;
     }
 
-    public void copyTo(JavaForkOptions target) {
-        target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(mutableSystemProperties);
-        target.setMinHeapSize(minHeapSize);
-        target.setMaxHeapSize(maxHeapSize);
-        target.bootstrapClasspath(getBootstrapClasspath().getFiles());
-        target.setEnableAssertions(assertionsEnabled);
-        copyDebugOptionsTo(new JavaDebugOptionsBackedSpec(target.getDebugOptions()));
-        target.systemProperties(immutableSystemProperties);
+    public void copyFrom(JavaForkOptionsInternal source) {
+        setAllJvmArgs(Collections.emptyList());
+        jvmArgs(source.getJvmArgs().get());
+        source.getJvmArgumentProviders().get().forEach(provider -> jvmArgs(provider.asArguments()));
+        if (source.getExtraJvmArgs() != null) {
+            setExtraJvmArgs(source.getExtraJvmArgs());
+        }
+        systemProperties(source.getSystemProperties().get());
+        if (source.getMinHeapSize().isPresent()) {
+            setMinHeapSize(source.getMinHeapSize().get());
+        }
+        if (source.getMaxHeapSize().isPresent()) {
+            setMaxHeapSize(source.getMaxHeapSize().get());
+        }
+        if (source.getEnableAssertions().isPresent()) {
+            setEnableAssertions(source.getEnableAssertions().get());
+        }
+        setBootstrapClasspath(source.getBootstrapClasspath().getFiles());
+        if (source.getDefaultCharacterEncoding().isPresent()) {
+            setDefaultCharacterEncoding(source.getDefaultCharacterEncoding().get());
+        }
+        copyDebugOptionsFrom(new JvmDebugSpec.JavaDebugOptionsBackedSpec(source.getDebugOptions()));
     }
 
-    public JvmOptions createCopy(FileCollectionFactory fileCollectionFactory) {
-        JvmOptions target = new JvmOptions(fileCollectionFactory);
-        target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(mutableSystemProperties);
-        target.setMinHeapSize(minHeapSize);
-        target.setMaxHeapSize(maxHeapSize);
-        if (bootstrapClasspath != null) {
-            target.setBootstrapClasspath(getBootstrapClasspath().getFiles());
-        }
-        target.setEnableAssertions(assertionsEnabled);
-        copyDebugOptionsTo(target.getDebugSpec());
+    public void copyTo(JavaForkOptions target) {
+        extraJvmArgs.forEach(arg -> target.getJvmArgs().add(arg.toString()));
+        target.getSystemProperties().set(mutableSystemProperties);
+        target.getMinHeapSize().set(minHeapSize);
+        target.getMaxHeapSize().set(maxHeapSize);
+        target.bootstrapClasspath(getBootstrapClasspath().getFiles());
+        target.getEnableAssertions().set(assertionsEnabled);
+        copyDebugOptionsTo(new JvmDebugSpec.JavaDebugOptionsBackedSpec(target.getDebugOptions()));
         target.systemProperties(immutableSystemProperties);
-        return target;
     }
 
     private void copyDebugOptionsTo(JvmDebugSpec otherOptions) {
         copyDebugOptions(debugSpec, otherOptions);
     }
 
-    private static void copyDebugOptions(JvmDebugSpec from, JvmDebugSpec to) {
+    private void copyDebugOptionsFrom(JvmDebugSpec otherOptions) {
+        copyDebugOptions(otherOptions, debugSpec);
+    }
+
+    static void copyDebugOptions(JvmDebugSpec from, JvmDebugSpec to) {
         // This severs the connection between from this debugOptions to the other debugOptions
         to.setEnabled(from.isEnabled());
         to.setHost(from.getHost());
