@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal
 
+import org.gradle.api.cache.Cleanup
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.cache.DefaultCacheConfigurations
@@ -33,6 +34,10 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
     def clock = new FixedClock()
     def directoryBuildCache = Mock(DirectoryBuildCache)
     def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement), clock)
+
+    def "setup"() {
+        cacheConfigurations.cleanup.set(Cleanup.DEFAULT)
+    }
 
     def "uses directory build cache expiry when set to value other than default"() {
         when:
@@ -97,6 +102,25 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
         def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
         expiration.entryRetentionTimestampSupplier.get() == clock.currentTime - cacheExpirySecs * 1000
         expiration.description == "after 2h 25m 44s"
+    }
+
+    def "describes entry expiration when cleanup is disabled with #configType config"() {
+        when:
+        cacheConfigurations.buildCache.removeUnusedEntriesAfterDays = 1
+        cacheConfigurations.cleanup.set(Cleanup.DISABLED)
+
+        and:
+        1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> removeUnusedEntriesAfterDays
+        0 * _
+
+        then:
+        def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
+        expiration.description == "disabled"
+
+        where:
+        configType    | removeUnusedEntriesAfterDays
+        "legacy"      | 10
+        "init-script" | CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
     }
 
     // Since we are relying on System.currentTimeMillis(), we can't assert the exact value

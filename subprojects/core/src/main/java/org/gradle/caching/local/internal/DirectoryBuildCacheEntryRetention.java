@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import org.gradle.api.cache.Cleanup;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -30,9 +31,12 @@ import java.util.function.Supplier;
 
 public class DirectoryBuildCacheEntryRetention {
     private final Supplier<Long> entryRetentionTimestampSupplier;
-    private final String description;
+    private final String retentionDescription;
+    private final boolean cleanupDisabled;
 
     public DirectoryBuildCacheEntryRetention(DirectoryBuildCache directoryBuildCache, CacheConfigurationsInternal cacheConfigurations) {
+        this.cleanupDisabled = cacheConfigurations.getCleanup().get() == Cleanup.DISABLED;
+
         @SuppressWarnings("deprecation")
         int deprecatedRemoveUnusedEntriesAfter = directoryBuildCache.getRemoveUnusedEntriesAfterDays();
 
@@ -40,13 +44,13 @@ public class DirectoryBuildCacheEntryRetention {
         // If the deprecated property remains at the default, we can safely use the central value (which has the same default).
         if (deprecatedRemoveUnusedEntriesAfter != CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES) {
             this.entryRetentionTimestampSupplier = TimestampSuppliers.daysAgo(deprecatedRemoveUnusedEntriesAfter);
-            this.description = "after " + deprecatedRemoveUnusedEntriesAfter + " days";
+            this.retentionDescription = "after " + deprecatedRemoveUnusedEntriesAfter + " days";
             return;
         }
 
         CacheResourceConfigurationInternal buildCacheConfig = cacheConfigurations.getBuildCache();
         this.entryRetentionTimestampSupplier = buildCacheConfig.getEntryRetentionTimestampSupplier();
-        this.description = describeEntryRetention(buildCacheConfig.getEntryRetention().get());
+        this.retentionDescription = describeEntryRetention(buildCacheConfig.getEntryRetention().get());
     }
 
     public Supplier<Long> getEntryRetentionTimestampSupplier() {
@@ -54,7 +58,10 @@ public class DirectoryBuildCacheEntryRetention {
     }
 
     public String getDescription() {
-        return description;
+        if (cleanupDisabled) {
+            return "disabled";
+        }
+        return retentionDescription;
     }
 
     private static String describeEntryRetention(CacheResourceConfigurationInternal.EntryRetention entryRetention) {
