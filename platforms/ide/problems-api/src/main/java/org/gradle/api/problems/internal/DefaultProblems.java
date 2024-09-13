@@ -27,8 +27,6 @@ import org.gradle.problems.buildtree.ProblemStream;
 
 import java.util.Collection;
 
-import static org.gradle.api.problems.internal.DefaultProblemCategory.GRADLE_CORE_NAMESPACE;
-
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
@@ -55,10 +53,7 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public ProblemReporter forNamespace(String namespace) {
-        if (GRADLE_CORE_NAMESPACE.equals(namespace)) {
-            throw new IllegalStateException("Cannot use " + GRADLE_CORE_NAMESPACE + " namespace. Reserved for internal use.");
-        }
+    public ProblemReporter getReporter() {
         return createReporter(emitter, problemStream, problemsForThrowables);
     }
 

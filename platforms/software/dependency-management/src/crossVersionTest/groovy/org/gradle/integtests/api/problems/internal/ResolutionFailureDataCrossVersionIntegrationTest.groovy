@@ -38,7 +38,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
 
-            getProblems().forNamespace("org.example.plugin").reporting {
+            getProblems().getReporter().reporting {
                 it.id("id", "shortProblemMessage")
                 .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }

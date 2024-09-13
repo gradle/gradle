@@ -15,7 +15,7 @@ public class ProblemReportingPlugin implements Plugin<Project> {
 
     @Inject
     public ProblemReportingPlugin(Problems problems) { // <1>
-        this.problemReporter = problems.forNamespace("org.myorg"); // <2>
+        this.problemReporter = problems.getReporter(); // <2>
     }
 
     public void apply(Project project) {
