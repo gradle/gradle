@@ -74,14 +74,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
-        spec.execute(problemBuilder);
-        problemBuilder.withException(e);
-        throw throwError(e, problemBuilder.build());
-    }
-
-    @Override
     public Problem create(Action<InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         action.execute(defaultProblemBuilder);

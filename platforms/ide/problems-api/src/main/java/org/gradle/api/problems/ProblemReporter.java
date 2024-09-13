@@ -48,14 +48,4 @@ public interface ProblemReporter {
      * @since 8.6
      */
     RuntimeException throwing(Action<ProblemSpec> spec);
-
-    /**
-     * Configures a new problem using an existing exception as input, reports it, and uses it to throw a new exception.
-     * <p>
-     * The spec must specify the problem label and the category. Any additional configuration is optional.
-     *
-     * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
-     * @since 8.6
-     */
-    RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec);
 }
