@@ -19,6 +19,8 @@ package org.gradle.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 
+import java.io.Serializable;
+
 /**
  * An immutable composite {@link Action} implementation which has set semantics. Optimized for high execute to mutate ratio, and for a small number of actions.
  *
@@ -149,7 +151,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
 
     abstract ImmutableActionSet<T> addOne(Action<? super T> action);
 
-    private static class EmptySet<T> extends ImmutableActionSet<T> {
+    private static class EmptySet<T> extends ImmutableActionSet<T> implements ImmutableValueObject, Serializable {
         @Override
         ImmutableActionSet<T> addOne(Action<? super T> action) {
             return new SingletonSet<T>(action);
