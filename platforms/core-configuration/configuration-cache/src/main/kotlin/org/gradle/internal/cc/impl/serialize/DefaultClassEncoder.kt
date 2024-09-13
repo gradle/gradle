@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.internal.cc.impl.ConfigurationCacheError
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.graph.ClassEncoder
@@ -72,9 +73,9 @@ class DefaultClassEncoder(
             val className = type.name
             writeString(className)
             val classLoader = type.classLoader
-            if (!encodeClassLoader(classLoader)) {
-                // Ensure class can be found in the default classloader
-                DefaultClassDecoder.classForName(className, null)
+            if (!encodeClassLoader(classLoader) && classLoader != null) {
+                // Ensure class can be found in the default classloader since its original classloader could not be encoded.
+                ensureClassCanBeFoundInDefaultClassLoader(className, classLoader)
             }
         }
     }
@@ -118,6 +119,19 @@ class DefaultClassEncoder(
             writeClassPath(scope.localClassPath)
             writeHashCode(scope.localImplementationHash)
             writeClassPath(scope.exportClassPath)
+        }
+    }
+
+    private
+    fun ensureClassCanBeFoundInDefaultClassLoader(className: String, originalClassLoader: ClassLoader) {
+        try {
+            classForName(className, null)
+        } catch (e: ClassNotFoundException) {
+            throw ConfigurationCacheError(
+                "Class '${className}' cannot be encoded because ${describeClassLoader(originalClassLoader)} could not be encoded " +
+                    "and the class is not available through the default class loader.",
+                e
+            )
         }
     }
 

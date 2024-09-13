@@ -30,11 +30,6 @@ import org.gradle.internal.serialize.graph.ownerService
 internal
 class DefaultClassDecoder : ClassDecoder {
 
-    companion object {
-        fun classForName(name: String, classLoader: ClassLoader?): Class<*> =
-            Class.forName(name, false, classLoader ?: DefaultClassEncoder::class.java.classLoader)
-    }
-
     private
     val classes = ReadIdentities()
 
