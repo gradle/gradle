@@ -160,7 +160,7 @@ tasks.named<Test>("docsTest") {
     }
 
     // 'integTest.samplesdir' and the Gradle installation are passed by installationEnvProvider above
-    systemProperties.clear()
+    systemProperties = emptyMap<String, Any>()
 
     filter {
         if (!javaVersion.isJava11Compatible) {

@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt.setSystemProperties(org.gradle.process.JavaForkOptions,kotlin.Pair[])",
+            "acceptation": "JavaForkOptions.getSystemProperties() upgrade",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

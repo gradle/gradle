@@ -30,9 +30,9 @@ public class MinimalCompilerDaemonForkOptionsConverter implements Transformer<Ja
     @Override
     public JavaForkOptions transform(MinimalCompilerDaemonForkOptions minimalCompilerDaemonForkOptions) {
         JavaForkOptions javaForkOptions = forkOptionsFactory.newJavaForkOptions();
-        javaForkOptions.setMinHeapSize(minimalCompilerDaemonForkOptions.getMemoryInitialSize());
-        javaForkOptions.setMaxHeapSize(minimalCompilerDaemonForkOptions.getMemoryMaximumSize());
-        javaForkOptions.setJvmArgs(minimalCompilerDaemonForkOptions.getJvmArgs());
+        javaForkOptions.getMinHeapSize().set(minimalCompilerDaemonForkOptions.getMemoryInitialSize());
+        javaForkOptions.getMaxHeapSize().set(minimalCompilerDaemonForkOptions.getMemoryMaximumSize());
+        javaForkOptions.getJvmArgs().set(minimalCompilerDaemonForkOptions.getJvmArgs());
         return javaForkOptions;
     }
 }
