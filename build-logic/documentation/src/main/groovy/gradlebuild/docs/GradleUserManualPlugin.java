@@ -16,6 +16,7 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.basics.Gradle10PropertyUpgradeSupport;
 import gradlebuild.docs.dsl.source.GenerateApiMapping;
 import gradlebuild.docs.dsl.source.GenerateDefaultImports;
 import org.asciidoctor.gradle.jvm.AsciidoctorTask;
@@ -34,6 +35,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.process.JavaForkOptions;
 import org.ysb33r.grolifant.api.core.jvm.ExecutionMode;
 
 import java.util.ArrayList;
@@ -298,6 +300,20 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             userManual.getRenderedDocumentation().from(userguide);
         });
     }
+
+    private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
+        attributes.put("source-highlighter", "highlight.js");
+        //attributes.put("highlightjs-theme", "atom-one-dark");
+        attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
+    }
+
+    /**
+     * TODO: Remove this workaround after Gradle 9
+     */
+    private static void setMaxHeapSize(JavaForkOptions options, String value) {
+        Gradle10PropertyUpgradeSupport.setProperty(options, "setMaxHeapSize", value);
+    }
+
 
     private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
