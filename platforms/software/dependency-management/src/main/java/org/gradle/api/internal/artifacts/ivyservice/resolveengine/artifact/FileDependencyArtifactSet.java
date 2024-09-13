@@ -48,4 +48,5 @@ public class FileDependencyArtifactSet implements ArtifactSet {
             spec.getAllowNoMatchingVariants()
         );
     }
+
 }
