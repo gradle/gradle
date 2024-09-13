@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.initialization.Settings
@@ -173,7 +174,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType)
+        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
 }

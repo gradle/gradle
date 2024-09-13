@@ -23,6 +23,7 @@ import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -57,6 +58,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Type
 
 
 internal
@@ -84,6 +86,7 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
                     /**
                      * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
                      */
+                    @${Incubating::class.simpleName}
                     fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
                         name: String,
                         configure: Action<in $elementTypeKotlinString>
@@ -97,7 +100,9 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
                 """.trimIndent()
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMethod(signature, annotations = {
+                    visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
+                }) {
                     ALOAD(0)
                     ALOAD(1)
                     ALOAD(2)
@@ -107,6 +112,7 @@ private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerE
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
+                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
                     receiverType = kotlinReceiverType,
                     valueParameters = listOf(
                         newValueParameterOf("name", KotlinType.string),
