@@ -21,7 +21,10 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.ImmutableValueObject;
 import org.gradle.util.Configurable;
+
+import java.io.Serializable;
 
 /**
  * A file based report to be created.
@@ -30,12 +33,7 @@ import org.gradle.util.Configurable;
  */
 public interface Report extends Configurable<Report> {
 
-    Namer<Report> NAMER = new Namer<Report>() {
-        @Override
-        public String determineName(Report report) {
-            return report.getName();
-        }
-    };
+    Namer<Report> NAMER = new ReportNamer();
 
     /**
      * The symbolic name of this report.
@@ -106,4 +104,11 @@ public interface Report extends Configurable<Report> {
     @Input
     OutputType getOutputType();
 
+}
+
+class ReportNamer implements Namer<Report>, ImmutableValueObject, Serializable {
+    @Override
+    public String determineName(Report report) {
+        return report.getName();
+    }
 }
