@@ -50,8 +50,14 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
+    private
+    var disposed = false
+
     override fun afterStart() {
-        listenerManager.add(this)
+        synchronized(lock) {
+            assertNotDisposed("afterStart")
+            listenerManager.add(this)
+        }
     }
 
     /**
@@ -59,6 +65,9 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
      */
     fun dispose() {
         synchronized(lock) {
+            if (disposed) {
+                return
+            }
             // TODO:configuration-cache find a way to make `dispose` unnecessary;
             //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
             //  from DefaultConfigurationCacheHost so a decision based on the configured
@@ -67,6 +76,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             scopeSpecs.clear()
             loaders.clear()
             listenerManager.remove(this)
+            disposed = true
         }
     }
 
@@ -76,12 +86,14 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         synchronized(lock) {
+            assertNotDisposed("scopeFor")
             return loaders[classLoader]
         }
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
+            assertNotDisposed("childScopeCreated")
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
                 return
@@ -105,6 +117,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
         synchronized(lock) {
+            assertNotDisposed("classloaderCreated")
             val spec = scopeSpecs[scopeId]
             require(spec != null)
             // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
@@ -117,6 +130,13 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
+        }
+    }
+
+    private
+    fun assertNotDisposed(method: String) {
+        check(!disposed) {
+            "${javaClass.simpleName}.$method cannot be used after being disposed of."
         }
     }
 }
