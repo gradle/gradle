@@ -19,12 +19,20 @@ package org.gradle.workers.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.ClassLoaderSpec
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.ExecFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.file.TestFiles.execFactory
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class DaemonForkOptionsTest extends Specification {
+
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+
+    private ExecFactory execFactory = TestFiles.execFactory(tmpDir.testDirectory)
+
     def "is compatible with itself"() {
         def spec1 = Mock(ClassLoaderSpec)
         def spec2 = Mock(ClassLoaderSpec)
@@ -153,7 +161,7 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "is compatible with compatible java forkOptions"() {
-        def javaForkOptions = TestFiles.execFactory().newJavaForkOptions()
+        def javaForkOptions = execFactory.newJavaForkOptions()
         javaForkOptions.workingDir = systemSpecificAbsolutePath("foo")
         javaForkOptions.minHeapSize = "128m"
         javaForkOptions.maxHeapSize = "1g"
@@ -168,12 +176,12 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "is not compatible with incompatible java forkOptions"() {
-        def javaForkOptions1 = TestFiles.execFactory().newJavaForkOptions()
+        def javaForkOptions1 = execFactory.newJavaForkOptions()
         javaForkOptions1.workingDir = systemSpecificAbsolutePath("foo")
         javaForkOptions1.minHeapSize = "128m"
         javaForkOptions1.maxHeapSize = "1g"
         javaForkOptions1.jvmArgs = ["-server", "-verbose:gc"]
-        def javaForkOptions2 = TestFiles.execFactory().newJavaForkOptions()
+        def javaForkOptions2 = execFactory.newJavaForkOptions()
         javaForkOptions2.workingDir = systemSpecificAbsolutePath("foo")
         javaForkOptions2.minHeapSize = "256m"
         javaForkOptions2.maxHeapSize = "1g"
@@ -188,12 +196,12 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     DaemonForkOptionsBuilder daemonForkOptionsBuilder() {
-        def javaForkOptions = TestFiles.execFactory().newJavaForkOptions()
+        def javaForkOptions = execFactory.newJavaForkOptions()
         javaForkOptions.workingDir = systemSpecificAbsolutePath("foo")
         return daemonForkOptionsBuilder(javaForkOptions)
     }
 
     DaemonForkOptionsBuilder daemonForkOptionsBuilder(JavaForkOptions javaForkOptions) {
-        return new DaemonForkOptionsBuilder(execFactory()).javaForkOptions(javaForkOptions)
+        return new DaemonForkOptionsBuilder(execFactory).javaForkOptions(javaForkOptions)
     }
 }

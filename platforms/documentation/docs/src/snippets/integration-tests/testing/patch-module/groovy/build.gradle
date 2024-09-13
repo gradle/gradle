@@ -16,7 +16,7 @@ tasks.named('compileTestJava') {
     options.compilerArgs += patchArgs
 }
 tasks.named('test') {
-    jvmArgs += patchArgs
+    jvmArgs(patchArgs)
 }
 // end::patchArgs[]
 
