@@ -39,7 +39,7 @@ class JavaExecSubclassingIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 void exec() {
-                    jvmArgs = jvmArgs
+                    jvmArgs = jvmArgs.get() + ["-DmyProp=myValue"]
                     super.exec()
                 }
             }
@@ -51,6 +51,7 @@ class JavaExecSubclassingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Changing property value of task ':run' property 'jvmArgs' at execution time. This behavior has been deprecated. Starting with Gradle 11, changing property value of task ':run' property 'jvmArgs' at execution time will become an error.")
         run("run")
 
         then:
