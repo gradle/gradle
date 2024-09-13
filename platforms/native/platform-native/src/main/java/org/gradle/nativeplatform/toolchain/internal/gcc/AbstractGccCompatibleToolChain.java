@@ -25,6 +25,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
@@ -334,7 +335,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && (targetPlatform.getOperatingSystem().isMacOsX()
-                        || targetPlatform.getOperatingSystem().isLinux())
+                        || (targetPlatform.getOperatingSystem().isLinux() && DefaultNativePlatform.getCurrentArchitecture().isArm64()))
                 && targetPlatform.getArchitecture().isArm();
         }
 
