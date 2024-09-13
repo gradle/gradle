@@ -18,27 +18,26 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
-import org.gradle.internal.serialize.graph.ClassLoaderRole
-import org.gradle.internal.cc.impl.serialize.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
+import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
+import org.gradle.internal.cc.impl.serialize.ScopeLookup
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
+import java.util.IdentityHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
-    private
-    val listenerManager: ClassLoaderScopeRegistryListenerManager
-
+    private val listenerManager: ClassLoaderScopeRegistryListenerManager
 ) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeLifecycleListener, Closeable {
 
     private
@@ -48,7 +47,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
-    val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
+    val loaders = IdentityHashMap<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
     @Volatile
     private
