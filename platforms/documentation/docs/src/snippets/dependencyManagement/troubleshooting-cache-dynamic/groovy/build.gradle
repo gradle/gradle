@@ -6,9 +6,11 @@ repositories {
     mavenCentral()
 }
 
+// tag::dynamic[]
 dependencies {
     implementation 'org.springframework:spring-web:5.+'
 }
+// end::dynamic[]
 
 // tag::dynamic-version-cache-control[]
 configurations.all {
