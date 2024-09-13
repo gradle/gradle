@@ -663,7 +663,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionHost getHost() {
-            return new DefaultResolutionHost(DefaultConfiguration.this, DefaultConfiguration.this.defaultConfigurationFactory.getProblems());
+            return new DefaultResolutionHost(DefaultConfiguration.this);
         }
 
         @Override
@@ -1856,6 +1856,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
+    public InternalProblems getProblems() {
+        return defaultConfigurationFactory.getProblems();
+    }
+
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override
@@ -1947,21 +1951,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolutionHost getResolutionHost() {
-        return new DefaultResolutionHost(this, defaultConfigurationFactory.getProblems());
+        return new DefaultResolutionHost(this);
     }
 
     private static class DefaultResolutionHost implements ResolutionHost {
         private final DefaultConfiguration configuration;
-        private final InternalProblems problemsService;
 
-        public DefaultResolutionHost(DefaultConfiguration configuration, InternalProblems problemsService) {
+        public DefaultResolutionHost(DefaultConfiguration configuration) {
             this.configuration = configuration;
-            this.problemsService = problemsService;
         }
 
         @Override
         public InternalProblems getProblems() {
-            return problemsService;
+            return configuration.getProblems();
         }
 
         @Override
