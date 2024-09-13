@@ -44,7 +44,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -72,6 +71,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
@@ -1972,7 +1972,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public Optional<? extends ResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
             return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, resolutionType, configuration.getDisplayName()));
         }
 

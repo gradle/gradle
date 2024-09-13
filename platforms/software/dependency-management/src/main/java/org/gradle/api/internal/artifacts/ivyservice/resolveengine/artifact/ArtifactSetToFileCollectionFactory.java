@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
@@ -190,7 +189,7 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public Optional<? extends ResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
