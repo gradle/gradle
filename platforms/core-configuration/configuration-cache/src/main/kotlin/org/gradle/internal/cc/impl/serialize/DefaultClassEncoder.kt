@@ -69,8 +69,13 @@ class DefaultClassEncoder(
         } else {
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
-            writeString(type.name)
-            encodeClassLoader(type.classLoader)
+            val className = type.name
+            writeString(className)
+            val classLoader = type.classLoader
+            if (!encodeClassLoader(classLoader)) {
+                // Ensure class can be found in the default classloader
+                DefaultClassDecoder.classForName(className, null)
+            }
         }
     }
 
