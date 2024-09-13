@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Encoder
@@ -69,19 +70,31 @@ class DefaultClassEncoder(
         } else {
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
-            writeString(type.name)
-            encodeClassLoader(type.classLoader)
+            val className = type.name
+            writeString(className)
+            val classLoader = type.classLoader
+            if (!writeClassLoaderScopeOf(classLoader) && classLoader != null) {
+                // Ensure class can be found in the default classloader since its original classloader could not be encoded.
+                ensureClassCanBeFoundInDefaultClassLoader(className, classLoader)
+            }
         }
     }
 
     override fun Encoder.encodeClassLoader(classLoader: ClassLoader?) {
+        writeClassLoaderScopeOf(classLoader)
+    }
+
+    private
+    fun Encoder.writeClassLoaderScopeOf(classLoader: ClassLoader?): Boolean {
         val scope = classLoader?.let { scopeLookup.scopeFor(it) }
         if (scope == null) {
             writeBoolean(false)
+            return false
         } else {
             writeBoolean(true)
             writeScope(scope.first)
             writeBoolean(scope.second.local)
+            return true
         }
     }
 
@@ -111,6 +124,19 @@ class DefaultClassEncoder(
             writeClassPath(scope.localClassPath)
             writeHashCode(scope.localImplementationHash)
             writeClassPath(scope.exportClassPath)
+        }
+    }
+
+    private
+    fun ensureClassCanBeFoundInDefaultClassLoader(className: String, originalClassLoader: ClassLoader) {
+        try {
+            classForName(className, null)
+        } catch (e: ClassNotFoundException) {
+            throw ConfigurationCacheError(
+                "Class '${className}' cannot be encoded because ${describeClassLoader(originalClassLoader)} could not be encoded " +
+                    "and the class is not available through the default class loader.",
+                e
+            )
         }
     }
 
