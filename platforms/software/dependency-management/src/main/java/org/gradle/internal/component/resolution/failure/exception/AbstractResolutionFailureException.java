@@ -49,7 +49,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * {@link VariantSelectionByAttributesException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual
-public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem<AbstractResolutionFailureException> {
+public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem {
     private static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
     private final ImmutableList<String> resolutions;
