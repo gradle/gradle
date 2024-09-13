@@ -179,7 +179,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             detectJavaVersion(executable),
             javaModuleDetector.inferClasspath(testIsModule, task.getClasspath()),
             javaModuleDetector.inferModulePath(testIsModule, task.getClasspath()),
-            forkOptions.getAllJvmArgs(),
+            forkOptions.getAllJvmArgs().get(),
             DefaultProcessForkOptions.getActualEnvironment(forkOptions)
         );
     }
