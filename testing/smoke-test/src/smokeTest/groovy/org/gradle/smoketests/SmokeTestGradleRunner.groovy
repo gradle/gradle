@@ -204,6 +204,21 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
+    SmokeTestGradleRunner expectChangingPropertyValueAtExecutionTimeDeprecationWarning(String propertyName) {
+        return expectDeprecationWarning(
+            "Changing property value of property '$propertyName' at execution time. This behavior has been deprecated. " +
+                "Starting with Gradle 11, changing property value of property '$propertyName' at execution time will become an error.",
+            "https://github.com/gradle/gradle/issues/30948"
+        )
+    }
+
+    SmokeTestGradleRunner maybeExpectChangingPropertyValueAtExecutionTimeDeprecationWarning(String propertyName) {
+        return maybeExpectLegacyDeprecationWarning(
+            "Changing property value of property '$propertyName' at execution time. This behavior has been deprecated. " +
+                "Starting with Gradle 11, changing property value of property '$propertyName' at execution time will become an error."
+        )
+    }
+
     SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
         LOGGER.warn("Ignoring deprecation warnings because: {}", reason)
         ignoreDeprecationWarnings = true

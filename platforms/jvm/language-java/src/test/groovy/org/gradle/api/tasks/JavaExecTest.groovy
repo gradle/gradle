@@ -29,8 +29,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def task = project.tasks.create("run", JavaExec)
 
         then:
-        task.jvmArgs != null
-        task.jvmArgs.isEmpty()
+        task.jvmArgs.get().isEmpty()
     }
 
     def 'fails if custom executable does not exist'() {

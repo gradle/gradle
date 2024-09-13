@@ -93,8 +93,8 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
      * @since 8.4
      */
     protected void configureForkOptions(JavaForkOptions forkOptions) {
-        forkOptions.setMinHeapSize(getMinHeapSize().getOrNull());
-        forkOptions.setMaxHeapSize(getMaxHeapSize().getOrNull());
+        forkOptions.getMinHeapSize().set(getMinHeapSize());
+        forkOptions.getMaxHeapSize().set(getMaxHeapSize());
         forkOptions.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
         maybeAddOpensJvmArgs(getJavaLauncher().get(), forkOptions);
     }
