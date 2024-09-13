@@ -221,7 +221,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 module("org.hibernate:hibernate-core:5.4.18.Final") {
                     module("org.dom4j:dom4j:2.1.3") {
                         byConflictResolution("latest version of capability org.dom4j:dom4j")
-                        byConflictResolution("between versions 2.1.3 and 1.6.1")
+                        module("jaxen:jaxen:1.1.6")
                     }
                 }
                 edge("jaxen:jaxen:1.1.1", "jaxen:jaxen:1.1.6") {
@@ -410,6 +410,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     module("org.dom4j:dom4j:2.1.3") {
                         byConflictResolution("latest version of capability org.dom4j:dom4j")
                         byConflictResolution("between versions 2.1.3 and 1.6.1")
+                        module("jaxen:jaxen:1.1.6")
                     }
                 }
                 edge("jaxen:jaxen:1.1.1", "jaxen:jaxen:1.1.6") {

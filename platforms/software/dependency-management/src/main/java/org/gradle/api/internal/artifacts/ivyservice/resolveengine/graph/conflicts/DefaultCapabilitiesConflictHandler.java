@@ -230,12 +230,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         for (Resolver resolver : resolvers) {
             resolver.resolve(details);
             if (details.hasResult()) {
-                resolutionAction.execute(details);
-
-                if (conflict.nodes.size() > 1) {
-                    assert details.reason != null;
-                    details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
-                }
 
                 for (NodeState node : conflict.nodes) {
                     Set<String> conflictsForNode = nodesToConflicts.get(node);
@@ -243,6 +237,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                     if (conflictsForNode.isEmpty()) {
                         nodesToConflicts.remove(node);
                     }
+                }
+
+                resolutionAction.execute(details);
+
+                if (conflict.nodes.size() > 1) {
+                    assert details.reason != null;
+                    details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
                 }
 
                 return;

@@ -173,20 +173,9 @@ public class DependencyGraphBuilder {
                 final NodeState node = resolveState.pop();
                 LOGGER.debug("Visiting configuration {}.", node);
 
-                if (!node.isSelected()) {
-                    capabilitiesConflictHandler.unregisterNode(node);
-                }
-
-                // TODO: Why is this not node.isSelected()?
-                // It seems that node.isSelected can return true while component.isSelected() returns false
+                // TODO: We should also be able to continue when !node.isSelected()
                 if (!node.getComponent().isSelected()) {
                     node.cleanupConstraints();
-                    continue;
-                }
-
-                if (registerCapabilitiesForNode(node, resolveState)) {
-                    // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
-                    // There is no reason to continue processing this node otherwise.
                     continue;
                 }
 

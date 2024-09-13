@@ -92,7 +92,7 @@ public class NodeState implements DependencyGraphNode {
     private List<EdgeState> virtualEdges;
     private boolean queued;
     private boolean evicted;
-    private int transitiveEdgeCount;
+    private int transitiveIncomingEdgeCount;
     private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
     private Set<EdgeState> edgesToRecompute;
@@ -232,7 +232,9 @@ public class NodeState implements DependencyGraphNode {
         //      If net exclusions for this node have changed, remove previous state and traverse outgoing edges again.
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
-        if (transitiveEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
+        // TODO: This code also handles deselecting nodes that have been removed from
+        //  the graph, but should not. We should simplify this.
+        if (transitiveIncomingEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
             handleNonTransitiveNode(discoveredEdges);
             return;
         }
@@ -456,7 +458,7 @@ public class NodeState implements DependencyGraphNode {
             cachedFilteredDependencyStates = null;
         }
         List<? extends DependencyMetadata> dependencies = getAllDependencies();
-        if (transitiveEdgeCount == 0 && metadata.isExternalVariant()) {
+        if (transitiveIncomingEdgeCount == 0 && metadata.isExternalVariant()) {
             // there must be a single dependency state because this variant is an "available-at"
             // variant and here we are in the case the "including" component said that transitive
             // should be false so we need to arbitrarily carry that onto the dependency metadata
@@ -648,11 +650,15 @@ public class NodeState implements DependencyGraphNode {
 
     void addIncomingEdge(EdgeState dependencyEdge) {
         if (!incomingEdges.contains(dependencyEdge)) {
+            boolean hasEnteredGraph = incomingEdges.isEmpty();
             incomingEdges.add(dependencyEdge);
+            if (hasEnteredGraph) {
+                resolveState.getCapabilitiesConflictHandler().registerNode(this);
+            }
             incomingHash += dependencyEdge.hashCode();
             resolveState.onMoreSelected(this);
             if (dependencyEdge.isTransitive()) {
-                transitiveEdgeCount++;
+                transitiveIncomingEdgeCount++;
             }
         }
     }
@@ -661,9 +667,12 @@ public class NodeState implements DependencyGraphNode {
         if (incomingEdges.remove(dependencyEdge)) {
             incomingHash -= dependencyEdge.hashCode();
             if (dependencyEdge.isTransitive()) {
-                transitiveEdgeCount--;
+                transitiveIncomingEdgeCount--;
             }
-            resolveState.onFewerSelected(this);
+            if (incomingEdges.isEmpty()) {
+                resolveState.getCapabilitiesConflictHandler().unregisterNode(this);
+                resolveState.onFewerSelected(this);
+            }
         }
     }
 
@@ -1074,7 +1083,7 @@ public class NodeState implements DependencyGraphNode {
     private void clearIncomingEdges() {
         incomingEdges.clear();
         incomingHash = 0;
-        transitiveEdgeCount = 0;
+        transitiveIncomingEdgeCount = 0;
     }
 
     public void deselect() {
