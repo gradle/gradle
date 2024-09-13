@@ -120,11 +120,11 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 settings.caches {
                     markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers.removeEntriesUnusedSince = ${releasedDistTimestamp}
-                    snapshotWrappers.removeEntriesUnusedSince = ${snapshotDistTimestamp}
-                    downloadedResources.removeEntriesUnusedSince = ${downloadedResourcesTimestamp}
-                    createdResources.removeEntriesUnusedSince = ${createdResourcesTimestamp}
-                    buildCache.removeEntriesUnusedSince = ${createdResourcesTimestamp}
+                    releasedWrappers.removeUnusedEntriesOlderThan = ${releasedDistTimestamp}
+                    snapshotWrappers.removeUnusedEntriesOlderThan = ${snapshotDistTimestamp}
+                    downloadedResources.removeUnusedEntriesOlderThan = ${downloadedResourcesTimestamp}
+                    createdResources.removeUnusedEntriesOlderThan = ${createdResourcesTimestamp}
+                    buildCache.removeUnusedEntriesOlderThan = ${createdResourcesTimestamp}
                 }
             }
         """
@@ -167,7 +167,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         'cleanup'                                          | 'cleanup'         | 'Cleanup.DISABLED'
         // 'buildCache' is indicative of all `CacheResourceConfigurations` instances
         'buildCache.removeUnusedEntriesAfterDays'          | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
-        'buildCache.removeEntriesUnusedSince'              | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
+        'buildCache.removeUnusedEntriesOlderThan'              | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
     }
 
     static String modifyCacheConfiguration(String property, String value) {

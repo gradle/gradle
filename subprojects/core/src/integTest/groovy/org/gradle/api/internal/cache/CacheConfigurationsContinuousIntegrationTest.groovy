@@ -103,11 +103,11 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                 settings.caches {
                     markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers.removeEntriesUnusedSince = retentionTimestamp
-                    snapshotWrappers.removeEntriesUnusedSince = retentionTimestamp
-                    downloadedResources.removeEntriesUnusedSince = retentionTimestamp
-                    createdResources.removeEntriesUnusedSince = retentionTimestamp
-                    buildCache.removeEntriesUnusedSince = retentionTimestamp
+                    releasedWrappers.removeUnusedEntriesOlderThan = retentionTimestamp
+                    snapshotWrappers.removeUnusedEntriesOlderThan = retentionTimestamp
+                    downloadedResources.removeUnusedEntriesOlderThan = retentionTimestamp
+                    createdResources.removeUnusedEntriesOlderThan = retentionTimestamp
+                    buildCache.removeUnusedEntriesOlderThan = retentionTimestamp
                 }
             }
         """
