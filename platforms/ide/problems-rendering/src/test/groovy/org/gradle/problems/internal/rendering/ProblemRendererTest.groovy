@@ -74,7 +74,7 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "  formatted-problem-details"
+        renderedTextLines[0] == "formatted-problem-details"
     }
 
     def "individual problem with multiline formatted additional data will be indented correctly"() {
@@ -89,8 +89,8 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "  formatted-problem-details"
-        renderedTextLines[1] == "  with multiple lines"
+        renderedTextLines[0] == "formatted-problem-details"
+        renderedTextLines[1] == "with multiple lines"
     }
 
     def "individual problem with details are displayed"() {

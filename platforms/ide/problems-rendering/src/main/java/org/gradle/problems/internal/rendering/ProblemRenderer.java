@@ -16,6 +16,7 @@
 
 package org.gradle.problems.internal.rendering;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.Problem;
@@ -29,10 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@NonNullApi
 public class ProblemRenderer {
 
     private final PrintWriter output;
-    private int problemCount = 0;
 
     public ProblemRenderer(Writer writer) {
         output = new PrintWriter(writer);
@@ -49,7 +50,6 @@ public class ProblemRenderer {
         }
 
         renderingGroups.forEach((id, groupedProblems) -> renderProblemGroup(output, id, groupedProblems));
-        problemCount++;
     }
 
     public void render(Problem problem) {
@@ -67,7 +67,7 @@ public class ProblemRenderer {
             .orElse(Collections.emptyMap());
 
         if (additionalData.containsKey("formatted")) {
-            formatMultiline(output, additionalData.get("formatted"), 1);
+            formatMultiline(output, additionalData.get("formatted"), 0);
         } else {
             if (problem.getContextualLabel() != null) {
                 formatMultiline(output, problem.getContextualLabel(), 1);
@@ -87,9 +87,5 @@ public class ProblemRenderer {
             }
             output.printf("%s%n", line);
         }
-    }
-
-    public int getProblemCount() {
-        return problemCount;
     }
 }

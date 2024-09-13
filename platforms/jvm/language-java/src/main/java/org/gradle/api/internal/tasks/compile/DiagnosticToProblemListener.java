@@ -38,10 +38,13 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A {@link DiagnosticListener} that consumes {@link Diagnostic} messages, and reports them as Gradle {@link Problems}.
@@ -57,7 +60,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private final InternalProblemReporter problemReporter;
     private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
-    private final Collection<Problem> problemsReported = new ArrayList<>();
+    private final List<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
@@ -113,10 +116,15 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
      *
      * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
      */
-    void printDiagnosticCounts() {
+    String diagnosticCounts() {
         Log logger = Log.instance(new Context());
-        printDiagnosticCount(logger, "error", errorCount);
-        printDiagnosticCount(logger, "warn", warningCount);
+        Optional<String> error = diagnosticCount(logger, "error", errorCount);
+        Optional<String> warning = diagnosticCount(logger, "warn", warningCount);
+
+        return Stream.of(error, warning)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.joining(System.lineSeparator()));
     }
 
     /**
@@ -131,15 +139,16 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
      * @param logger the logger used to localize the message
      * @param kind the kind of diagnostic (error, or warn)
      * @param number the total number of diagnostics of the given kind
+     * @return the human-readable count of diagnostics of the given kind, or {@code #Optional.empty()} if there are no diagnostics of the given kind
      */
-    private static void printDiagnosticCount(Log logger, String kind, int number) {
+    private static Optional<String> diagnosticCount(Log logger, String kind, int number) {
         // Compiler only handles 'error' and 'warn' kinds
         if (!("error".equals(kind) || "warn".equals(kind))) {
             throw new IllegalArgumentException("kind must be either 'error' or 'warn'");
         }
         // If there are no diagnostics of this kind, we don't need to print anything
         if (number == 0) {
-            return;
+            return Optional.empty();
         }
 
         // See the distributions' respective `compiler.java` files to see the keys used for localization.
@@ -152,8 +161,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             keyBuilder.append(".plural");
         }
 
-        String localizedMessage = logger.localize(keyBuilder.toString(), number);
-        System.err.println(localizedMessage);
+        return Optional.of(logger.localize(keyBuilder.toString(), number));
     }
 
     @VisibleForTesting
@@ -277,7 +285,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
-    public Collection<Problem> getReportedProblems() {
-        return Collections.unmodifiableCollection(problemsReported);
+    public List<Problem> getReportedProblems() {
+        return Collections.unmodifiableList(problemsReported);
     }
 }
