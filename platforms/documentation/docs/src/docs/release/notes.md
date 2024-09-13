@@ -9,7 +9,7 @@ Include only their name, impactful features should be called out separately belo
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 
-We would like to thank the following community members for their contributions to this release of Gradle:
+We would like to thank the following community members for their contributions to this release of Gradle: [Matthew Von-Maszewski](https://github.com/matthewvon)
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
@@ -134,6 +134,12 @@ The feature also works with the [`--continue`](userguide/command_line_interface.
 ### Core plugin improvements
 
 Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
+
+#### Linux arm64 as a build target
+
+TODO
+
+Thanks to [Matthew Von-Maszewski](https://github.com/matthewvon) for the contribution.
 
 #### Configuration cache compatibility for Swift and C++ plugins
 
