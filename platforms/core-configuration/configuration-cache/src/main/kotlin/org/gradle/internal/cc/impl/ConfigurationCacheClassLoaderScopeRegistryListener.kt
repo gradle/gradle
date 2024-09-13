@@ -50,7 +50,12 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
+    @Volatile
+    private
+    var disposed = false
+
     override fun afterStart() {
+        assertNotDisposed("afterStart")
         listenerManager.add(this)
     }
 
@@ -58,6 +63,9 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
      */
     fun dispose() {
+        if (disposed) {
+            return
+        }
         synchronized(lock) {
             // TODO:configuration-cache find a way to make `dispose` unnecessary;
             //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
@@ -67,6 +75,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             scopeSpecs.clear()
             loaders.clear()
             listenerManager.remove(this)
+            disposed = true
         }
     }
 
@@ -75,12 +84,14 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
+        assertNotDisposed("scopeFor")
         synchronized(lock) {
             return loaders[classLoader]
         }
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
+        assertNotDisposed("childScopeCreated")
         synchronized(lock) {
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
@@ -104,6 +115,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
+        assertNotDisposed("classloaderCreated")
         synchronized(lock) {
             val spec = scopeSpecs[scopeId]
             require(spec != null)
@@ -117,6 +129,13 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
+        }
+    }
+
+    private
+    fun assertNotDisposed(method: String) {
+        require(!disposed) {
+            "${javaClass.name}.$method cannot be used after being disposed!"
         }
     }
 }
