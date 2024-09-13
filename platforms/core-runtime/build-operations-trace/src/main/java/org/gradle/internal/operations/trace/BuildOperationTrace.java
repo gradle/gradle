@@ -90,7 +90,6 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * The «path-base» param is optional.
  * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of "operations" will be used.
  * <p>
- * <p>
  * The generation of trees can be very memory hungry and thus can be disabled with
  * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
  * </p>
