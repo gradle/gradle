@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.collect.ImmutableSetMultimap;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
