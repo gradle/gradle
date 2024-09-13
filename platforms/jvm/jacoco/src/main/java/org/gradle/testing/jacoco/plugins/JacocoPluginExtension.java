@@ -175,8 +175,7 @@ public abstract class JacocoPluginExtension {
 
         @Override
         public Iterable<String> asArguments() {
-            return jacoco.getEnabled().zip(jacoco.getAsJvmArg(), (enabled, args) -> enabled ? ImmutableList.of(args) : Collections.<String>emptyList())
-                .getOrElse(Collections.emptyList());
+            return jacoco.getEnabled().get() ? ImmutableList.of(jacoco.getAsJvmArg().get()) : Collections.emptyList();
         }
 
         @Internal

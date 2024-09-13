@@ -135,8 +135,8 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
 
         then:
-        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
-        run.jvmArgs == ['-Dfoo=bar', '-Xmx500m']
+        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME] as JavaExec
+        run.jvmArgs.get() == ['-Dfoo=bar', '-Xmx500m']
     }
 
     void "applicationDefaultJvmArgs in project delegates to defaultJvmOpts in startScripts task"() {

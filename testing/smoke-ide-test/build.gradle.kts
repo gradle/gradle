@@ -38,7 +38,7 @@ plugins.withType<IdeaPlugin> {
 tasks.register<SmokeIdeTest>("smokeIdeTest") {
     group = "Verification"
     maxParallelForks = 1
-    systemProperties["org.gradle.integtest.executer"] = "forking"
+    systemProperty("org.gradle.integtest.executer", "forking")
     testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
     classpath = smokeIdeTestSourceSet.runtimeClasspath
     dependsOn(unzipIdeStarter)
