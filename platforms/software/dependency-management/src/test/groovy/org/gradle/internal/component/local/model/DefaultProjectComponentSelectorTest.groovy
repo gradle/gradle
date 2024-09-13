@@ -98,7 +98,13 @@ class DefaultProjectComponentSelectorTest extends Specification {
         expect:
         selector.capabilitySelectors == capabilities
 
-        selector.requestedCapabilities.size() == 1 // We do not have access to the project instance and cannot derived a capability for the feature selector.
+        // A ProjectComponentSelector only has access to the project identity, but does not have
+        // access to the project group, name, and version, which are mutable and are only known
+        // at the time of resolving this selector to a project component.
+        // We try to implement `getRequestedCapabilities` on a best-effort basis, but we cannot
+        // "resolve" a feature capability selector to a concrete capability without knowing the
+        // target project's mutable state.
+        selector.requestedCapabilities.size() == 1
         selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilities[0]).backingCapability
 
     }

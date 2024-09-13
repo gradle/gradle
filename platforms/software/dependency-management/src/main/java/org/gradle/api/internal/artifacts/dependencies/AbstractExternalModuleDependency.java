@@ -133,6 +133,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return getCapabilitySelectors().stream()
             .map(c -> {

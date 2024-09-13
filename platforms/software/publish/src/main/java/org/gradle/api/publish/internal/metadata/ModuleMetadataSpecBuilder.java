@@ -324,29 +324,32 @@ public class ModuleMetadataSpecBuilder {
 
         ArrayList<ModuleMetadataSpec.Capability> metadataCapabilities = new ArrayList<>();
         for (CapabilitySelector capabilitySelector : capabilitySelectors) {
-            if (capabilitySelector instanceof SpecificCapabilitySelector) {
-                SpecificCapabilitySelector specificSelector = (SpecificCapabilitySelector) capabilitySelector;
-                metadataCapabilities.add(
-                    new ModuleMetadataSpec.Capability(
-                        specificSelector.getGroup(),
-                        specificSelector.getName(),
-                        null
-                    )
-                );
-            } else if (capabilitySelector instanceof FeatureCapabilitySelector) {
-                FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) capabilitySelector;
-                metadataCapabilities.add(
-                    new ModuleMetadataSpec.Capability(
-                        targetComponent.group,
-                        targetComponent.name + "-" + featureSelector.getFeatureName(),
-                        null
-                    )
-                );
-            } else {
-                throw new UnsupportedOperationException("Unsupported capability selector type: " + capabilitySelector.getClass().getName());
-            }
+            metadataCapabilities.add(resolveCapability(targetComponent, capabilitySelector));
         }
         return metadataCapabilities;
+    }
+
+    private static ModuleMetadataSpec.Capability resolveCapability(
+        ModuleMetadataSpec.DependencyCoordinates componentCoordinates,
+        CapabilitySelector capabilitySelector
+    ) {
+        if (capabilitySelector instanceof SpecificCapabilitySelector) {
+            SpecificCapabilitySelector specificSelector = (SpecificCapabilitySelector) capabilitySelector;
+            return new ModuleMetadataSpec.Capability(
+                specificSelector.getGroup(),
+                specificSelector.getName(),
+                null
+            );
+        } else if (capabilitySelector instanceof FeatureCapabilitySelector) {
+            FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) capabilitySelector;
+            return new ModuleMetadataSpec.Capability(
+                componentCoordinates.group,
+                componentCoordinates.name + "-" + featureSelector.getFeatureName(),
+                null
+            );
+        } else {
+            throw new UnsupportedOperationException("Unsupported capability selector type: " + capabilitySelector.getClass().getName());
+        }
     }
 
     private List<ModuleMetadataSpec.Attribute> attributesFor(AttributeContainer attributes) {

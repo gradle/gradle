@@ -104,6 +104,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return capabilitySelectors.stream()
             .filter(c -> c instanceof SpecificCapabilitySelector)

@@ -22,8 +22,11 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.WrapUtil
@@ -342,8 +345,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
             it.requireCapability('org:original:1')
             it.requireFeature('foo')
         }
-        def capabilitySelector1 = dependency.capabilitySelectors[0]
-        def capabilitySelector2 = dependency.capabilitySelectors[1]
+        def originalSelectors = new HashSet<>(dependency.capabilitySelectors)
 
         when:
         def copy = dependency.copy()
@@ -353,12 +355,12 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        dependency.capabilitySelectors == [capabilitySelector1, capabilitySelector2] as Set
+        dependency.capabilitySelectors == originalSelectors
         copy.capabilitySelectors.size() == 4
-        copy.capabilitySelectors[0] == capabilitySelector1
-        copy.capabilitySelectors[1] == capabilitySelector2
-        copy.capabilitySelectors[2].name == 'copy'
-        copy.capabilitySelectors[3].featureName == 'bar'
+        copy.capabilitySelectors == (dependency.capabilitySelectors + [
+            new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "copy", "1")),
+            new DefaultFeatureCapabilitySelector("bar")
+        ] as Set)
     }
 
     def "requested capabilities exposes all capability selector types"() {

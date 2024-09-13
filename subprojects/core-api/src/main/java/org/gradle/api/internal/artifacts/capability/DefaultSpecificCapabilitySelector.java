@@ -19,7 +19,10 @@ package org.gradle.api.internal.artifacts.capability;
 import org.gradle.api.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 
-public class DefaultSpecificCapabilitySelector implements SpecificCapabilitySelector {
+/**
+ * Default implementation of {@link SpecificCapabilitySelector}.
+ */
+public final class DefaultSpecificCapabilitySelector implements SpecificCapabilitySelector {
 
     // Ideally we would only hold a group and version, but for
     // backwards compatibility reasons we need to hold the requested
@@ -44,13 +47,14 @@ public class DefaultSpecificCapabilitySelector implements SpecificCapabilitySele
     public String getDisplayName() {
         // We intentionally do not display the version here.
         // An exact version selector does not have a version.
-        return getGroup() + ":" + getName();
+        return "capability selector '" + getGroup() + ":" + getName() + "'";
     }
 
     /**
      * The originally requested capability, including the version, which is ignored
      * during capability selection. Avoid this method if possible.
      */
+    @Deprecated
     public ImmutableCapability getBackingCapability() {
         return backingCapability;
     }

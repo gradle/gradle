@@ -105,6 +105,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return capabilitySelectors.stream()
             .map(c -> {

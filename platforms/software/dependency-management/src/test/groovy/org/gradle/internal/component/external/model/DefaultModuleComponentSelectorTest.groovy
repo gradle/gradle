@@ -134,12 +134,12 @@ class DefaultModuleComponentSelectorTest extends Specification {
     }
 
     def "can create new selector with capabilities"() {
-        def capabilities = ImmutableSet.of(
+        def capabilitySelectors = ImmutableSet.of(
             new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1")),
             new DefaultFeatureCapabilitySelector("foo")
         )
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, capabilities)
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, capabilitySelectors)
 
         then:
         selector.group == 'some-group'
@@ -150,8 +150,8 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.attributes.isEmpty()
-        selector.capabilitySelectors == capabilities
-        selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilities[0]).backingCapability
+        selector.capabilitySelectors == capabilitySelectors
+        selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilitySelectors[0]).backingCapability
         selector.requestedCapabilities[1] == new DefaultImmutableCapability("some-group", "some-name-foo", "1.0")
         selector.displayName == 'some-group:some-name:1.0'
         selector.toString() == 'some-group:some-name:1.0'

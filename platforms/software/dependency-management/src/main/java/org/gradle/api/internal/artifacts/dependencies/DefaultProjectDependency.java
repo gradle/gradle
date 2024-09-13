@@ -198,6 +198,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
         return getCapabilitySelectors().stream()
             .map(c -> {

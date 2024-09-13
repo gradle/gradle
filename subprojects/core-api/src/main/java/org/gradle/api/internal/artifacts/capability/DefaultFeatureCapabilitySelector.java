@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.capability;
 
 import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
 
-public class DefaultFeatureCapabilitySelector implements FeatureCapabilitySelector {
+/**
+ * Default implementation of {@link FeatureCapabilitySelector}.
+ */
+public final class DefaultFeatureCapabilitySelector implements FeatureCapabilitySelector {
 
     private final String featureName;
 
@@ -33,7 +36,7 @@ public class DefaultFeatureCapabilitySelector implements FeatureCapabilitySelect
 
     @Override
     public String getDisplayName() {
-        return "feature '" + featureName + "'";
+        return "capability selector for feature '" + featureName + "'";
     }
 
     @Override

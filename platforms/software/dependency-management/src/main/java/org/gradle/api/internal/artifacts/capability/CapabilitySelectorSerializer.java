@@ -66,6 +66,7 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static void writeExactCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
