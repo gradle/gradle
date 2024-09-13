@@ -17,9 +17,14 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.provider.MapPropertyInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -27,16 +32,23 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
-    private final JvmOptions options;
     private final FileCollectionFactory fileCollectionFactory;
     private final ObjectFactory objectFactory;
-    private List<CommandLineArgumentProvider> jvmArgumentProviders;
+    private final ListProperty<String> jvmArgs;
+    private final ListProperty<CommandLineArgumentProvider> jvmArgumentProviders;
+    private final MapProperty<String, Object> systemProperties;
+    private final ConfigurableFileCollection bootstrapClasspath;
+    private final Property<String> minHeapSize;
+    private final Property<String> maxHeapSize;
+    private final Property<String> defaultCharacterEncoding;
+    private final Property<Boolean> enableAssertions;
+    private final JavaDebugOptions debugOptions;
+    private Iterable<?> extraJvmArgs;
 
     @Inject
     public DefaultJavaForkOptions(
@@ -47,56 +59,40 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         super(resolver);
         this.objectFactory = objectFactory;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.options = new JvmOptions(objectFactory, fileCollectionFactory);
+        this.jvmArgs = objectFactory.listProperty(String.class);
+        this.jvmArgumentProviders = objectFactory.listProperty(CommandLineArgumentProvider.class);
+        this.systemProperties = objectFactory.mapProperty(String.class, Object.class);
+        this.bootstrapClasspath = fileCollectionFactory.configurableFiles();
+        this.minHeapSize = objectFactory.property(String.class);
+        this.maxHeapSize = objectFactory.property(String.class);
+        this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
+        this.defaultCharacterEncoding = objectFactory.property(String.class);
+        this.enableAssertions = objectFactory.property(Boolean.class);
     }
 
     @Override
-    public List<String> getAllJvmArgs() {
-        if (hasJvmArgumentProviders(this)) {
-            JvmOptions copy = options.createCopy(objectFactory, fileCollectionFactory);
-            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                copy.jvmArgs(jvmArgumentProvider.asArguments());
-            }
+    public Provider<List<String>> getAllJvmArgs() {
+        return getJvmArgumentProviders().map(providers -> {
+            JvmOptions copy = new JvmOptions(objectFactory, fileCollectionFactory);
+            copy.copyFrom(this);
             return copy.getAllJvmArgs();
-        } else {
-            return options.getAllJvmArgs();
-        }
+        });
     }
 
     @Override
-    public void setAllJvmArgs(List<String> arguments) {
-        options.setAllJvmArgs(arguments);
-        if (hasJvmArgumentProviders(this)) {
-            jvmArgumentProviders.clear();
-        }
-    }
-
-    @Override
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        options.setAllJvmArgs(arguments);
-        if (hasJvmArgumentProviders(this)) {
-            jvmArgumentProviders.clear();
-        }
-    }
-
-    @Override
-    public List<String> getJvmArgs() {
-        return options.getJvmArgs();
-    }
-
-    @Override
-    public void setJvmArgs(List<String> arguments) {
-        options.setJvmArgs(arguments);
-    }
-
-    @Override
-    public void setJvmArgs(Iterable<?> arguments) {
-        options.setJvmArgs(arguments);
+    public ListProperty<String> getJvmArgs() {
+        return jvmArgs;
     }
 
     @Override
     public JavaForkOptions jvmArgs(Iterable<?> arguments) {
-        options.jvmArgs(arguments);
+        for (Object argument : arguments) {
+            if (argument instanceof Provider) {
+                getJvmArgs().add(((Provider<?>) argument).map(Object::toString));
+            } else {
+                getJvmArgs().add(argument.toString());
+            }
+        }
         return this;
     }
 
@@ -107,109 +103,76 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        if (jvmArgumentProviders == null) {
-            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
-        }
+    public ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return jvmArgumentProviders;
     }
 
     @Override
-    public Map<String, Object> getSystemProperties() {
-        return options.getMutableSystemProperties();
-    }
-
-    @Override
-    public void setSystemProperties(Map<String, ?> properties) {
-        options.setSystemProperties(properties);
+    public MapProperty<String, Object> getSystemProperties() {
+        return systemProperties;
     }
 
     @Override
     public JavaForkOptions systemProperties(Map<String, ?> properties) {
-        options.systemProperties(properties);
+        properties.forEach(this::systemProperty);
         return this;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public JavaForkOptions systemProperty(String name, Object value) {
-        options.systemProperty(name, value);
+        if (value instanceof Provider) {
+            ((MapPropertyInternal<String, Object>) getSystemProperties()).insert(name, (Provider<?>) value);
+        } else {
+            getSystemProperties().put(name, value == null ? "" : value);
+        }
         return this;
     }
 
     @Override
-    public FileCollection getBootstrapClasspath() {
-        return options.getBootstrapClasspath();
-    }
-
-    @Override
-    public void setBootstrapClasspath(FileCollection classpath) {
-        options.setBootstrapClasspath(classpath);
+    public ConfigurableFileCollection getBootstrapClasspath() {
+        return bootstrapClasspath;
     }
 
     @Override
     public JavaForkOptions bootstrapClasspath(Object... classpath) {
-        options.bootstrapClasspath(classpath);
+        getBootstrapClasspath().from(classpath);
         return this;
     }
 
     @Override
-    public String getMinHeapSize() {
-        return options.getMinHeapSize();
+    public Property<String> getMinHeapSize() {
+        return minHeapSize;
     }
 
     @Override
-    public void setMinHeapSize(String heapSize) {
-        options.setMinHeapSize(heapSize);
+    public Property<String> getMaxHeapSize() {
+        return maxHeapSize;
     }
 
     @Override
-    public String getMaxHeapSize() {
-        return options.getMaxHeapSize();
+    public Property<String> getDefaultCharacterEncoding() {
+        return defaultCharacterEncoding;
     }
 
     @Override
-    public void setMaxHeapSize(String heapSize) {
-        options.setMaxHeapSize(heapSize);
+    public Property<Boolean> getEnableAssertions() {
+        return enableAssertions;
     }
 
     @Override
-    public String getDefaultCharacterEncoding() {
-        return options.getDefaultCharacterEncoding();
-    }
-
-    @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        options.setDefaultCharacterEncoding(defaultCharacterEncoding);
-    }
-
-    @Override
-    public boolean getEnableAssertions() {
-        return options.getEnableAssertions();
-    }
-
-    @Override
-    public void setEnableAssertions(boolean enabled) {
-        options.setEnableAssertions(enabled);
-    }
-
-    @Override
-    public boolean getDebug() {
-        return options.getDebug();
-    }
-
-    @Override
-    public void setDebug(boolean enabled) {
-        options.setDebug(enabled);
+    public Property<Boolean> getDebug() {
+        return getDebugOptions().getEnabled();
     }
 
     @Override
     public JavaDebugOptions getDebugOptions() {
-        return options.getDebugOptions();
+        return debugOptions;
     }
 
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
-        action.execute(options.getDebugOptions());
+        action.execute(debugOptions);
     }
 
     @Override
@@ -221,28 +184,26 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
-        options.copyTo(target);
-        if (jvmArgumentProviders != null) {
-            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                target.jvmArgs(jvmArgumentProvider.asArguments());
-            }
-        }
+        target.getJvmArgs().set(getJvmArgs());
+        target.getSystemProperties().set(getSystemProperties());
+        target.getMinHeapSize().set(getMinHeapSize());
+        target.getMaxHeapSize().set(getMaxHeapSize());
+        target.bootstrapClasspath(getBootstrapClasspath());
+        target.getEnableAssertions().set(getEnableAssertions());
+        JvmOptions.copyDebugOptions(this.getDebugOptions(), target.getDebugOptions());
+        target.getJvmArgumentProviders().set(getJvmArgumentProviders());
         return this;
     }
 
     @Override
     public void checkDebugConfiguration(Iterable<?> arguments) {
-        options.checkDebugConfiguration(arguments);
+        AllJvmArgsAdapterUtil.checkDebugConfiguration(getDebugOptions(), arguments);
     }
 
     @Override
     public EffectiveJavaForkOptions toEffectiveJavaForkOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        JvmOptions copy = options.createCopy(objectFactory, fileCollectionFactory);
-        if (jvmArgumentProviders != null) {
-            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                copy.jvmArgs(jvmArgumentProvider.asArguments());
-            }
-        }
+        JvmOptions copy = new JvmOptions(objectFactory, fileCollectionFactory);
+        copy.copyFrom(this);
         return new EffectiveJavaForkOptions(
             getExecutable(),
             getWorkingDir(),
@@ -253,19 +214,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Override
     public void setExtraJvmArgs(Iterable<?> arguments) {
-        options.setExtraJvmArgs(arguments);
+        this.extraJvmArgs = arguments;
     }
 
     @Override
     public Iterable<?> getExtraJvmArgs() {
-        return options.getExtraJvmArgs();
-    }
-
-    private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
-        return !isNullOrEmpty(forkOptions.jvmArgumentProviders);
-    }
-
-    private static <T> boolean isNullOrEmpty(List<T> list) {
-        return list == null || list.isEmpty();
+        return extraJvmArgs;
     }
 }

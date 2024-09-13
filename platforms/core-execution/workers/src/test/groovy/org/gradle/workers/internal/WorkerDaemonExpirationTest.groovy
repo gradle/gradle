@@ -21,18 +21,26 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.ExecFactory
 import org.gradle.process.internal.health.memory.DefaultMBeanAttributeProvider
 import org.gradle.process.internal.health.memory.JvmMemoryStatus
 import org.gradle.process.internal.health.memory.MBeanOsMemoryInfo
 import org.gradle.process.internal.health.memory.MaximumHeapHelper
 import org.gradle.process.internal.health.memory.MemoryAmount
 import org.gradle.process.internal.health.memory.MemoryManager
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class WorkerDaemonExpirationTest extends Specification {
     static final int OS_MEMORY_GB = 6
+
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+
+    private ExecFactory execFactory = TestFiles.execFactory(tmpDir.testDirectory)
 
     def defaultOptions = daemonForkOptions(null, null, ['default-options'])
     def oneGbOptions = daemonForkOptions('1g', '1g', ['one-gb-options'])
@@ -203,7 +211,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private JavaForkOptions javaForkOptions(String minHeap, String maxHeap, List<String> jvmArgs) {
-        def options = TestFiles.execFactory().newJavaForkOptions()
+        def options = execFactory.newJavaForkOptions()
         options.workingDir = systemSpecificAbsolutePath("foo")
         options.minHeapSize = minHeap
         options.maxHeapSize = maxHeap

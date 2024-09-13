@@ -31,8 +31,6 @@ import spock.lang.Specification
 import java.nio.charset.Charset
 import java.util.concurrent.Executor
 
-import static java.util.Arrays.asList
-
 class JavaExecHandleBuilderTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -50,14 +48,6 @@ class JavaExecHandleBuilderTest extends Specification {
 
     FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory()
 
-    def cannotSetAllJvmArgs() {
-        when:
-        builder.setAllJvmArgs(asList("arg"))
-
-        then:
-        thrown(UnsupportedOperationException)
-    }
-
     def "builds commandLine for Java process - input encoding #inputEncoding"() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
@@ -67,12 +57,12 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.jvmArgs("jvm1", "jvm2")
         builder.classpath(jar1, jar2)
         builder.systemProperty("prop", "value")
-        builder.minHeapSize = "64m"
-        builder.maxHeapSize = "1g"
-        builder.defaultCharacterEncoding = inputEncoding
+        builder.minHeapSize.set("64m")
+        builder.maxHeapSize.set("1g")
+        builder.defaultCharacterEncoding.set(inputEncoding)
 
         when:
-        List jvmArgs = builder.getAllJvmArgs()
+        List jvmArgs = builder.getAllJvmArgs().get()
 
         then:
         jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", "mainClass"]

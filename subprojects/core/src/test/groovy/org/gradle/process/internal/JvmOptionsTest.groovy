@@ -18,8 +18,10 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
@@ -33,7 +35,14 @@ import static org.gradle.process.internal.JvmOptions.USER_VARIANT_KEY
 import static org.gradle.process.internal.JvmOptions.fromString
 
 class JvmOptionsTest extends Specification {
+
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     final String defaultCharset = Charset.defaultCharset().name()
+    private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
+    private final pathToFileResolver = TestFiles.pathToFileResolver(tmpDir.testDirectory)
+    private final objectFactory = TestUtil.objectFactory(tmpDir.testDirectory)
 
     def "reads options from String"() {
         expect:
@@ -135,19 +144,20 @@ class JvmOptionsTest extends Specification {
     }
 
     def "copyTo respects defaultFileEncoding"() {
-        JavaForkOptions target = Mock(JavaForkOptions)
+        JavaForkOptions target = newJavaForkOptions()
+        def options = createOpts()
+
         when:
-        parse("-Dfile.encoding=UTF-8 -Dfoo.encoding=blah -Dfile.encoding=UTF-16").copyTo(target)
+        options.systemProperties(["foo.encoding": "blah", "file.encoding": "UTF-16"])
+        options.getMutableSystemProperties().put("file.encoding", "UTF-8")
+        options.copyTo(target)
+
         then:
-        1 * target.systemProperties({
-            it == new TreeMap(["file.encoding": "UTF-16"] + localeProperties())
-        })
-        1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
+        target.systemProperties.get() == ["file.encoding": "UTF-16", "foo.encoding": "blah"] + localeProperties()
     }
 
     def "copyTo copies debugOptions"() {
-        JavaDebugOptions debugOptions = new DefaultJavaDebugOptions();
-        JavaForkOptions target = Mock(JavaForkOptions) { it.debugOptions >> debugOptions }
+        JavaForkOptions target = newJavaForkOptions()
         JvmOptions source = parse("-Dx=y")
         source.debugOptions.host.set("*")
         source.debugOptions.port.set(1234)
@@ -283,6 +293,10 @@ class JvmOptionsTest extends Specification {
         opts
     }
 
+    private JavaForkOptions newJavaForkOptions() {
+        return objectFactory.newInstance(DefaultJavaForkOptions, objectFactory, pathToFileResolver, fileCollectionFactory)
+    }
+
     private static List<String> localePropertyStrings(Locale locale = Locale.default) {
         localeProperties(locale).collect {
             it.value ? "-D$it.key=$it.value" : "-D$it.key"
@@ -294,5 +308,6 @@ class JvmOptionsTest extends Specification {
             ["user.$it".toString(), locale."$it".toString()]
         }
     }
+
 
 }
