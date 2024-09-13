@@ -16,7 +16,9 @@
 
 package gradlebuild.basics.testing
 
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.testing.Test
+import java.util.function.BiFunction
 
 
 enum class TestType(val prefix: String, val executers: List<String>) {
@@ -24,6 +26,16 @@ enum class TestType(val prefix: String, val executers: List<String>) {
     CROSSVERSION("crossVersion", listOf("embedded", "forking"))
 }
 
+/**
+ * TODO: Remove this after Gradle 9.0
+ */
+private
+fun MapProperty<String, Any>.compute(key: String, remappingFunction: BiFunction<in String, in Any?, out Any?>): Any? {
+    val map = this.get().toMutableMap()
+    val v = map.compute(key, remappingFunction)
+    this.set(map)
+    return v
+}
 
 fun Test.includeSpockAnnotation(fqcn: String) {
     systemProperties.compute("include.spock.annotation") { _, oldValue ->

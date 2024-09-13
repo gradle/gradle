@@ -28,7 +28,7 @@ abstract public class CreateMD5 extends SourceTask {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(workerSpec -> {
             workerSpec.getClasspath().from(getCodecClasspath());
             workerSpec.forkOptions(options -> {
-                options.setMaxHeapSize("64m"); // <2>
+                options.getMaxHeapSize().set("64m"); // <2>
             });
         });
 

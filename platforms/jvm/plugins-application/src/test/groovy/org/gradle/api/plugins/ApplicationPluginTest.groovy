@@ -64,7 +64,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
         task.applicationName.get() == project.application.applicationName.get()
-        task.outputDir.getAsFile().get() == project.file('build/scripts')
+        task.outputDir == project.file('build/scripts')
         task.defaultJvmOpts.get() == []
         task.gitRef.get() == DefaultGradleVersion.current().getScriptTemplateGitRevision()
     }
@@ -122,8 +122,8 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         project.application.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
 
         then:
-        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
-        run.jvmArgs == ['-Dfoo=bar', '-Xmx500m']
+        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME] as JavaExec
+        run.jvmArgs.get() == ['-Dfoo=bar', '-Xmx500m']
     }
 
     def "applicationDefaultJvmArgs in project delegates to defaultJvmOpts in startScripts task"() {
