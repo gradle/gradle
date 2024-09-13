@@ -219,7 +219,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             // set of build dependencies than actually required. This is because it takes a lot of extra information
             // from the visited graph to properly filter artifacts by dependencySpec, and we don't want capture that when
             // calculating build dependencies.
-            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext), false)
+            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext))
         );
 
         return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);

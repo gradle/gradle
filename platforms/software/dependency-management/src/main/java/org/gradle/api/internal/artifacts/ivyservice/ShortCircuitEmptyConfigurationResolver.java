@@ -126,7 +126,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(ArtifactSelectionSpec spec, boolean lenient) {
+        public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
             return this;
         }
 

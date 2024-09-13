@@ -215,7 +215,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 reselectVariants,
                 allowNoMatchingVariants,
                 resolutionAccess.getDefaultSortOrder()
-            ), lenient);
+            ));
         }
 
         @Override

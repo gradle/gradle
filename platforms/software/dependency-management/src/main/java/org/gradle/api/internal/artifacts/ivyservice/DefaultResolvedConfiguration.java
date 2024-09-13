@@ -81,7 +81,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
             .nagUser();
 
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-        visitedArtifacts.select(configuration.getImplicitSelectionSpec(), false).visitArtifacts(visitor, false);
+        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.getFiles();
     }
@@ -125,7 +125,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitedArtifacts.select(configuration.getImplicitSelectionSpec(), false).visitArtifacts(visitor, false);
+        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }

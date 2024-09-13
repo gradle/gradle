@@ -25,7 +25,6 @@ public interface VisitedArtifactSet {
      * Implementations are lazy, so that the selection happens only when the contents are queried.
      *
      * @param spec Parameters controlling the artifact selection process
-     * @param lenient Whether errors encountered finding artifacts that cannot be selected should be treated as failures
      */
-    SelectedArtifactSet select(ArtifactSelectionSpec spec, boolean lenient);
+    SelectedArtifactSet select(ArtifactSelectionSpec spec);
 }
