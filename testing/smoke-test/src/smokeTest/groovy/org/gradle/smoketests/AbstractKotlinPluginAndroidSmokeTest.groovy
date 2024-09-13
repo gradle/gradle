@@ -54,7 +54,9 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
         when:
-        def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage").build()
+        def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS

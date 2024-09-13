@@ -218,16 +218,16 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             def input = providers.gradleProperty('inputFile').map {
                 projectDir.file(it)
             }
-            run.jvmArgumentProviders << objects.newInstance(MyApplicationJvmArguments).tap {
+            run.jvmArgumentProviders.add(objects.newInstance(MyApplicationJvmArguments).tap {
                 it.inputFile.set(input)
-            }
+            })
 
             def output = providers.gradleProperty('outputFile').map {
                 projectDir.file(it)
             }
-            run.argumentProviders << objects.newInstance(MyApplicationCommandLineArguments).tap {
+            run.argumentProviders.add(objects.newInstance(MyApplicationCommandLineArguments).tap {
                 it.outputFile.set(output)
-            }
+            })
 
         """
         inputFile.text = "first"
