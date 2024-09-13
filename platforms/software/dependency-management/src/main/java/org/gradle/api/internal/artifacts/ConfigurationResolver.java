@@ -23,8 +23,9 @@ import java.util.List;
 /**
  * Resolves {@link ResolveContext}s and produces {@link ResolverResults}.
  * <p>
- * This resolution is always lenient, in the sense that resolution failures will not cause
- * exceptions to be thrown or the build to immediately fail.
+ * This resolution is lenient, except for some fatal failure cases,
+ * in the sense that resolution failures in most cases will not cause exceptions
+ * to be thrown. Instead, recoverable failures are packaged in the result type.
  */
 public interface ConfigurationResolver {
     /**
