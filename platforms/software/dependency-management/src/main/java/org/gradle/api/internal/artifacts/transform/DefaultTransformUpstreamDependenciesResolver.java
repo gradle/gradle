@@ -171,7 +171,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             resolverResults.map(results ->
                 results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
                     fullAttributes, filter, false, false, artifactDependencySortOrder
-                ), false)
+                ))
             ),
             false,
             resolutionHost,

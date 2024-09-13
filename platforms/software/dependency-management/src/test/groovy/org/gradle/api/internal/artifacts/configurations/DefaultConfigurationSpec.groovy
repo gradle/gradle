@@ -532,7 +532,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -1759,7 +1759,7 @@ All Artifacts:
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
-            select(_, _) >> selectedArtifacts(failure)
+            select(_) >> selectedArtifacts(failure)
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -1786,7 +1786,7 @@ All Artifacts:
 
     private visitedArtifacts(Set<File> files = []) {
         Mock(VisitedArtifactSet) {
-            select(_, _) >> selectedArtifacts(files)
+            select(_) >> selectedArtifacts(files)
         }
     }
 
