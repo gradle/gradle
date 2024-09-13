@@ -23,6 +23,7 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
+import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -79,17 +80,16 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         when:
         fails("compileJava")
 
-
         then:
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
 
         result.error.contains("2 errors\n")
@@ -107,23 +107,23 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
             solutions.empty
         }
         verifyAll(receivedProblem(3)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
 
         result.error.contains("4 errors\n")
@@ -140,12 +140,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
 
         result.error.contains("2 warnings\n")
@@ -163,22 +163,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
 
         result.error.contains("4 warnings\n")
@@ -196,22 +196,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(3)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
 
         result.error.contains("4 errors\n")
@@ -232,22 +232,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "ERROR", true)
             fqid == 'compilation:java:java-compilation-error'
-            details == '\';\' expected'
+            contextualLabel =='\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
         }
 
         result.error.contains("2 errors\n")
@@ -270,7 +270,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "ERROR", false)
             fqid == 'compilation:java:java-compilation-error'
-            details == 'warnings found and -Werror specified'
+            contextualLabel =='warnings found and -Werror specified'
             solutions.empty
             additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
         }
@@ -287,7 +287,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(1)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
             solutions.empty
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
                 it.path == fooFileLocation.absolutePath
@@ -300,7 +300,7 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
         verifyAll(receivedProblem(2)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
             solutions.empty
             additionalData.asMap ["formatted"] == """\
 ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
@@ -316,7 +316,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         disableProblemsApiCheck()
 
         given:
-        def generator = new ProblematicClassGenerator("Foo")
+        def generator = new ProblematicClassGenerator(testDirectory, "Foo")
         generator.save()
 
         when:
@@ -330,7 +330,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         disableProblemsApiCheck()
 
         given:
-        def generator = new ProblematicClassGenerator()
+        def generator = new ProblematicClassGenerator(testDirectory)
         for (int i = 1; i <= warningCount; i++) {
             generator.addWarning()
         }
@@ -352,7 +352,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         disableProblemsApiCheck()
 
         given:
-        def generator = new ProblematicClassGenerator()
+        def generator = new ProblematicClassGenerator(testDirectory)
         generator.save()
 
         when:
@@ -366,7 +366,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         disableProblemsApiCheck()
 
         given:
-        def generator = new ProblematicClassGenerator()
+        def generator = new ProblematicClassGenerator(testDirectory)
         for (int i = 1; i <= errorCount; i++) {
             generator.addError()
         }
@@ -390,7 +390,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         given:
         setupAnnotationProcessors(JavaVersion.VERSION_1_8)
 
-        def generator = new ProblematicClassGenerator("Foo")
+        def generator = new ProblematicClassGenerator(testDirectory, "Foo")
         generator.addWarning()
         generator.save()
         possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
@@ -405,7 +405,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
             // In JDK8, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
         }
@@ -417,7 +417,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         given:
         setupAnnotationProcessors(jdk.javaVersion)
 
-        def generator = new ProblematicClassGenerator("Foo")
+        def generator = new ProblematicClassGenerator(testDirectory, "Foo")
         generator.addWarning()
         generator.save()
         possibleFileLocations.put(generator.sourceFile.absolutePath, 1)
@@ -432,7 +432,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         verifyAll(receivedProblem(0)) {
             assertProblem(it, "WARNING", true)
             fqid == 'compilation:java:java-compilation-warning'
-            details == 'redundant cast to java.lang.String'
+            contextualLabel =='redundant cast to java.lang.String'
             // In JDK11, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to String")
         }
@@ -455,7 +455,10 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
             fqid == 'compilation:java:initialization-failed'
-            details.endsWith('invalid flag: -invalid-flag')
+            // Message can change between JDK versions:
+            //  - JDK1.8: error: invalid flag: -invalid-flag
+            //  - JDK11:         invalid flag: -invalid-flag
+            contextualLabel.endsWith('invalid flag: -invalid-flag')
             exception.message.endsWith('invalid flag: -invalid-flag')
         }
     }
@@ -490,8 +493,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
                 throw new IllegalArgumentException("Unknown severity: ${severity}")
         }
 
-        def details = problem.details
-        assert details: "Expected details to be non-null, but was null"
+        assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
         def locations = problem.locations
         // We use this counter to assert that we have visited all locations
@@ -528,69 +530,26 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     }
 
     TestFile writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {
-        def generator = new ProblematicClassGenerator(className, sourceSet)
+        def generator = new ProblematicClassGenerator(testDirectory, className, sourceSet)
         generator.addError()
         generator.addError()
         return generator.save()
     }
 
     TestFile writeJavaCausingTwoCompilationWarnings(String className) {
-        def generator = new ProblematicClassGenerator(className)
+        def generator = new ProblematicClassGenerator(testDirectory, className)
         generator.addWarning()
         generator.addWarning()
         return generator.save()
     }
 
     TestFile writeJavaCausingTwoCompilationErrorsAndTwoWarnings(String className) {
-        def generator = new ProblematicClassGenerator(className)
+        def generator = new ProblematicClassGenerator(testDirectory, className)
         generator.addError()
         generator.addError()
         generator.addWarning()
         generator.addWarning()
         return generator.save()
-    }
-
-    class ProblematicClassGenerator {
-        private final TestFile sourceFile
-        private int warningIndex = 0
-        private int errorIndex = 0
-
-        ProblematicClassGenerator(String className = "Foo", String sourceSet = "main") {
-            this.sourceFile = file("src/${sourceSet}/java/${className}.java")
-
-            // Get the class name from the file name
-            this.sourceFile << """\
-public class ${className} {
-
-"""
-        }
-
-        void addWarning() {
-            warningIndex += 1
-            sourceFile << """\
-    public void warning${warningIndex}() {
-        // Unnecessary cast will trigger a warning
-        String s = (String)"Hello World";
-    }
-"""
-        }
-
-        void addError() {
-            errorIndex += 1
-            sourceFile << """\
-public void error${errorIndex}() {
-    // Missing semicolon will trigger an error
-    String s = "Hello, World!"
-}
-"""
-        }
-
-        TestFile save() throws Exception {
-            sourceFile << """\
-
-}"""
-            return sourceFile
-        }
     }
 
     def setupAnnotationProcessors(JavaVersion testedJdkVersion) {

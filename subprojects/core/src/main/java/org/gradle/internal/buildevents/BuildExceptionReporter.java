@@ -19,10 +19,12 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -39,9 +41,11 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.problems.internal.rendering.ProblemRenderer;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nonnull;
+import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
@@ -65,12 +69,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * Reports the build exception, if any.
  */
+@NonNullApi
 public class BuildExceptionReporter implements Action<Throwable> {
     private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
 
+    @NonNullApi
     private enum ExceptionStyle {
         NONE, FULL
     }
@@ -188,6 +194,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
+        private final StringWriter problemWriter = new StringWriter();
+        private final ProblemRenderer renderer = new ProblemRenderer(problemWriter);
 
         private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
@@ -210,6 +218,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
+            if (node instanceof ProblemAwareFailure) {
+                ProblemAwareFailure problemAwareFailure = (ProblemAwareFailure) node;
+                problemAwareFailure.getProblems().forEach(renderer::render);
+            }
+
             if (shouldBePrinted(node)) {
                 printedNodes.add(node);
                 if (null == node.getCause() || isUsefulMessage(getMessage(node))) {
@@ -285,6 +298,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         protected void endVisiting() {
+            if (renderer.getProblemCount() > 0) {
+                failureDetails.details.format("%n%n");
+                failureDetails.details.text(problemWriter.toString());
+            }
             if (suppressedDuplicateBranchCount > 0) {
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 boolean plural = suppressedDuplicateBranchCount > 1;
@@ -414,6 +431,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    @NonNullApi
     private static class FailureDetails {
         Throwable failure;
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
@@ -451,6 +469,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    @NonNullApi
     private class ContextImpl implements FailureResolutionAware.Context {
         private final BufferingStyledTextOutput resolution;
 

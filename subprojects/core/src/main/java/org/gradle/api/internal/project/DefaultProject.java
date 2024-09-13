@@ -46,16 +46,12 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -64,6 +60,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -103,11 +100,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
-import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -460,10 +453,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public Object getGroup() {
         if (group != null) {
             return group;
-        } else if (this == rootProject) {
+        } else if (this.equals(rootProject)) {
             return "";
         }
-        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        group = rootProject.getName() + (getParent().equals(rootProject) ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
         return group;
     }
 
@@ -511,7 +504,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getCrossProjectModelAccess().getChildProjects(this, this);
+        return getChildProjects(this);
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
+        return getCrossProjectModelAccess().getChildProjects(referrer, this);
     }
 
     @Override
@@ -593,6 +591,25 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public int hashCode() {
+        return getIdentityPath().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (other instanceof ProjectInternal) {
+            return getIdentityPath().equals(((ProjectInternal) other).getIdentityPath());
+        }
+        return false;
+    }
+
+    @Override
     public String absoluteProjectPath(String path) {
         return getProjectPath().absolutePath(path);
     }
@@ -603,15 +620,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    @Nonnull
     public Path getProjectPath() {
         return owner.getProjectPath();
     }
 
-    @Nullable
+    @Nonnull
     @Override
-    public Path getProjectIdentityPath() {
-        return getIdentityPath();
+    public ProjectIdentity getProjectIdentity() {
+        return owner.getIdentity();
     }
 
     @Override
@@ -1040,26 +1056,26 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("beforeEvaluate(Action)");
+        assertEagerContext("beforeEvaluate(Action)");
         evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("afterEvaluate(Action)");
+        assertEagerContext("afterEvaluate(Action)");
         failAfterProjectIsEvaluated("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("beforeEvaluate(Closure)");
+        assertEagerContext("beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("afterEvaluate(Closure)");
+        assertEagerContext("afterEvaluate(Closure)");
         failAfterProjectIsEvaluated("afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
@@ -1468,8 +1484,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             : nextBatch.getSource();
     }
 
-    private void assertMutatingMethodAllowed(String methodName) {
-        MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
+    /**
+     * Assert that the current thread is not running a lazy action on a domain object within this project.
+     *  This method should be called by methods that must not be called in lazy actions.
+     */
+    private void assertEagerContext(String methodName) {
+        getProjectConfigurator().getLazyBehaviorGuard().assertEagerContext(methodName, this, Project.class);
     }
 
     @Override
@@ -1479,33 +1499,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public DetachedResolver newDetachedResolver() {
-        DependencyManagementServices dms = getServices().get(DependencyManagementServices.class);
-        InstantiatorFactory instantiatorFactory = services.get(InstantiatorFactory.class);
-        CloseableServiceRegistry lookup = ServiceRegistryBuilder.builder()
-            .displayName("detached resolver services")
-            .parent(services)
-            .provider(new ServiceRegistrationProvider() {
-                @Provides
-                public DependencyResolutionServices createDependencyResolutionServices(
-                    FileResolver fileResolver,
-                    FileCollectionFactory fileCollectionFactory,
-                    DependencyMetaDataProvider dependencyMetaDataProvider,
-                    DomainObjectContext domainObjectContext
-                ) {
-                    return dms.create(
-                        fileResolver,
-                        fileCollectionFactory,
-                        dependencyMetaDataProvider,
-                        new UnknownProjectFinder("Detached resolvers do not support resolving projects"),
-                        new DetachedDependencyResolutionDomainObjectContext(domainObjectContext)
-                    );
-                }
-            })
-            .build();
-
-        return instantiatorFactory.decorate(lookup).newInstance(
-            LocalDetachedResolver.class
+        DependencyManagementServices dms = getGradle().getServices().get(DependencyManagementServices.class);
+        DependencyResolutionServices resolver = dms.newDetachedResolver(
+            services.get(FileResolver.class),
+            services.get(FileCollectionFactory.class),
+            StandaloneDomainObjectContext.detachedFrom(this)
         );
+
+        return new LocalDetachedResolver(resolver);
     }
 
     public static class LocalDetachedResolver implements DetachedResolver {
@@ -1529,72 +1530,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         @Override
         public ConfigurationContainer getConfigurations() {
             return resolutionServices.getConfigurationContainer();
-        }
-    }
-
-    private static class DetachedDependencyResolutionDomainObjectContext implements DomainObjectContext {
-        private final DomainObjectContext delegate;
-
-        private DetachedDependencyResolutionDomainObjectContext(DomainObjectContext delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Path identityPath(String name) {
-            return delegate.identityPath(name);
-        }
-
-        @Override
-        public Path projectPath(String name) {
-            return delegate.projectPath(name);
-        }
-
-        @Override
-        @Nullable
-        public Path getProjectPath() {
-            return delegate.getProjectPath();
-        }
-
-        @Override
-        @Nullable
-        public ProjectInternal getProject() {
-            return delegate.getProject();
-        }
-
-        @Nullable
-        @Override
-        public Path getProjectIdentityPath() {
-            return delegate.getProjectIdentityPath();
-        }
-
-        @Override
-        public ModelContainer<?> getModel() {
-            return delegate.getModel();
-        }
-
-        @Override
-        public Path getBuildPath() {
-            return delegate.getBuildPath();
-        }
-
-        @Override
-        public boolean isRootScript() {
-            return delegate.isRootScript();
-        }
-
-        @Override
-        public boolean isPluginContext() {
-            return delegate.isPluginContext();
-        }
-
-        @Override
-        public boolean isScript() {
-            return delegate.isScript();
-        }
-
-        @Override
-        public boolean isDetachedState() {
-            return true;
         }
     }
 }

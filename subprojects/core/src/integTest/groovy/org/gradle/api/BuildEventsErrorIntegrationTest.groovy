@@ -17,16 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
-
-    def expectBuildScopeListenerDeprecation(String invocation) {
-        executer.expectDocumentedDeprecationWarning("Listener registration using $invocation() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-    }
 
     def "produces reasonable error message when taskGraph.whenReady closure fails"() {
         buildFile << """
@@ -46,7 +39,6 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasLineNumber(3)
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "produces reasonable error message when taskGraph.whenReady action fails"() {
         buildFile << """
     def action = {
@@ -111,9 +103,6 @@ gradle.${method} {
 gradle.rootProject { task a }
 """
         when:
-        if (deprecation) {
-            expectBuildScopeListenerDeprecation("Gradle.${method}")
-        }
         fails "a"
 
         then:
@@ -123,11 +112,11 @@ gradle.rootProject { task a }
                 .assertHasLineNumber(3)
 
         where:
-        method              | deprecation
-        "settingsEvaluated" | false
-        "projectsLoaded"    | false
-        "projectsEvaluated" | false
-        "buildFinished"     | true
+        method              | _
+        "settingsEvaluated" | _
+        "projectsLoaded"    | _
+        "projectsEvaluated" | _
+        "buildFinished"     | _
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*Gradle.buildFinished.*")
@@ -140,9 +129,6 @@ gradle.${method}(action)
 gradle.rootProject { task a }
 """
         when:
-        if (deprecation) {
-            expectBuildScopeListenerDeprecation("Gradle.${method}")
-        }
         fails "a"
 
         then:
@@ -152,11 +138,11 @@ gradle.rootProject { task a }
                 .assertHasLineNumber(3)
 
         where:
-        method              | deprecation
-        "settingsEvaluated" | false
-        "projectsLoaded"    | false
-        "projectsEvaluated" | false
-        "buildFinished"     | true
+        method              | _
+        "settingsEvaluated" | _
+        "projectsLoaded"    | _
+        "projectsEvaluated" | _
+        "buildFinished"     | _
     }
 
     @UnsupportedWithConfigurationCache
@@ -173,7 +159,6 @@ gradle.addListener(listener)
 gradle.rootProject { task a }
 """
         when:
-        expectBuildScopeListenerDeprecation("Gradle.addListener")
         fails "a"
 
         then:
@@ -202,7 +187,6 @@ gradle.rootProject { task a }
 """
 
         when:
-        expectBuildScopeListenerDeprecation("Gradle.buildFinished")
         fails("broken")
 
         then:

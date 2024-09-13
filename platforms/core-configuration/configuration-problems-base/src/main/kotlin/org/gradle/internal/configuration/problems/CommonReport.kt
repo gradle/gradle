@@ -59,7 +59,8 @@ class CommonReport(
     temporaryFileProvider: TemporaryFileProvider,
     internalOptions: InternalOptions,
     reportContext: String,
-    reportFileName: String
+    reportFileName: String,
+    val distinctReports: Boolean = true // true if every build should have its separate report, false if the previous report should be overwritten
 ) : Closeable {
 
     companion object {
@@ -142,7 +143,8 @@ class CommonReport(
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            private val groovyJsonClassLoader: ClassLoader
+            private val groovyJsonClassLoader: ClassLoader,
+            private val distinctReports: Boolean
         ) : State() {
 
             private
@@ -226,11 +228,13 @@ class CommonReport(
 
             private
             fun moveSpoolFileTo(outputDirectory: File): File {
-                val reportDir = outputDirectory.resolve(reportHash())
+                val reportDir = if (distinctReports) outputDirectory.resolve(reportHash()) else outputDirectory
                 val reportFile = reportDir.resolve("$reportFileName.html")
                 if (!reportFile.exists()) {
-                    require(reportDir.mkdirs()) {
-                        "Could not create $reportFileName directory '$reportDir'"
+                    if (!reportDir.exists()) {
+                        require(reportDir.mkdirs()) {
+                            "Could not create $reportFileName directory '$reportDir'"
+                        }
                     }
                     Files.move(spoolFile.toPath(), reportFile.toPath())
                 }
@@ -254,7 +258,8 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            CharBuf::class.java.classLoader
+            CharBuf::class.java.classLoader,
+            distinctReports
         ).onDiagnostic(problem)
     }
 

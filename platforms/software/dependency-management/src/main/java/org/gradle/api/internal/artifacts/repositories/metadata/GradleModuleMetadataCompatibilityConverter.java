@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
@@ -29,6 +28,7 @@ import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GradleModuleMetadataCompatibilityConverter {
@@ -59,7 +59,7 @@ public class GradleModuleMetadataCompatibilityConverter {
                 for (ComponentVariant.File file : mutableVariant.getFiles()) {
                     if (file.getUri().contains("SNAPSHOT")) {
                         if (invalidFiles == null) {
-                            invalidFiles = Lists.newArrayListWithExpectedSize(2);
+                            invalidFiles = new ArrayList<>(2);
                         }
                         invalidFiles.add(file);
                     }

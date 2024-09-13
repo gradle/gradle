@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -36,6 +35,7 @@ import org.gradle.internal.component.model.DefaultExternalComponentGraphResolveS
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -125,7 +125,7 @@ public class LenientPlatformGraphResolveState extends DefaultExternalComponentGr
 
         private List<ModuleDependencyMetadata> registerPlatformEdge(@Nullable List<ModuleDependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector, ComponentIdentifier platformId, boolean force) {
             if (result == null) {
-                result = Lists.newArrayListWithExpectedSize(modules.size());
+                result = new ArrayList<>(modules.size());
             }
             result.add(new LenientPlatformDependencyMetadata(
                 resolveState,

@@ -33,9 +33,9 @@ import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 
 
 class ModelToDocumentMutationPlannerTest {
@@ -125,8 +125,8 @@ class ModelToDocumentMutationPlannerTest {
         val mutationPlan = planMutation(nestedConfigureElementPresent, addNestedConfigureBlock())
 
         // Expected to do nothing:
-        assertEquals(emptyList(), mutationPlan.documentMutations)
-        assertEquals(emptyList(), mutationPlan.modelMutationIssues)
+        assertEquals(emptyList<DocumentMutation>(), mutationPlan.documentMutations)
+        assertEquals(emptyList<ModelMutationIssue>(), mutationPlan.modelMutationIssues)
     }
 
     @Test
@@ -232,7 +232,7 @@ class ModelToDocumentMutationPlannerTest {
         scopeLocation: ScopeLocation = ScopeLocation.fromTopLevel().alsoInNestedScopes()
     ) = ModelMutationRequest(scopeLocation, mutation)
 
-    // TODO: set property and there isn't actually one, so it shoudl fail or insert one, depending on the request
+    // TODO: set property and there isn't actually one, so it should fail or insert one, depending on the request
     // TODO: mutations in top level blocks
 
     private

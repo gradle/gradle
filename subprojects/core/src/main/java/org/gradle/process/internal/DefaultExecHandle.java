@@ -17,13 +17,11 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
-import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
@@ -46,7 +44,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Default implementation for the ExecHandle interface.
  *
- * <h3>State flows</h3>
+ * <h2>State flows</h2>
  *
  * <ul>
  *   <li>INIT -&gt; STARTED -&gt; [SUCCEEDED|FAILED|ABORTED|DETACHED]</li>
@@ -90,7 +88,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final StreamsHandler outputHandler;
     private final StreamsHandler inputHandler;
     private final boolean redirectErrorStream;
-    private final ProcessLauncher processLauncher;
     private int timeoutMillis;
     private boolean daemon;
 
@@ -139,9 +136,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.stateChanged = lock.newCondition();
         this.state = ExecHandleState.INIT;
         this.buildCancellationToken = buildCancellationToken;
-        processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
-        shutdownHookAction = new ExecHandleShutdownHookAction(this);
-        broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
+        this.shutdownHookAction = new ExecHandleShutdownHookAction(this);
+        this.broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
+
         broadcast.addAll(listeners);
     }
 
@@ -265,7 +262,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
             broadcast.getSource().beforeExecutionStarted(this);
             execHandleRunner = new ExecHandleRunner(
-                this, new CompositeStreamsHandler(), processLauncher, executor, CurrentBuildOperationRef.instance().get()
+                this, new CompositeStreamsHandler(), executor, CurrentBuildOperationRef.instance().get()
             );
             executor.execute(execHandleRunner);
 

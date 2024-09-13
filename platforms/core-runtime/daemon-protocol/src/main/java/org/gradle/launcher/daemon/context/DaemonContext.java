@@ -51,7 +51,15 @@ public interface DaemonContext {
      */
     File getJavaHome();
 
+    /**
+     * Version of the JVM used by the daemon.
+     */
     JavaLanguageVersion getJavaVersion();
+
+    /**
+     * Vendor string of the JVM used by the daemon.
+     */
+    String getJavaVendor();
 
     /**
      * The directory that should be used for daemon storage (not including the gradle version number).

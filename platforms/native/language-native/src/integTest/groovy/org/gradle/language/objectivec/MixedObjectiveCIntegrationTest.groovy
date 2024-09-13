@@ -26,10 +26,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
-@Requires([
-    UnitTestPreconditions.NotWindows,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.NotWindows)
 class MixedObjectiveCIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     @Override

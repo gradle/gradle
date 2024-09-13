@@ -58,7 +58,7 @@
     --invalid-tag-background-color: #ffe6e6;
     --invalid-tag-text-color: #000000;
 
-    .dark-mode {
+    body.dark-theme {
         --body-text-color: #e0e0e3;
         --block-text-color: #e6e7ef;
         --body-background-color: #404040;
@@ -89,7 +89,72 @@
         --invalid-tag-background-color: #ffe6e6;
         --invalid-tag-text-color: #000000;
     }
+
+    @media (prefers-color-scheme: dark) {
+        --body-text-color: #e0e0e3;
+        --block-text-color: #e6e7ef;
+        --body-background-color: #404040;
+        --section-background-color: #484848;
+        --detail-background-color: #404040;
+        --navbar-background-color: #3d6178;
+        --navbar-text-color: #ffffff;
+        --subnav-background-color: #303030;
+        --selected-background-color: #f8981d;
+        --selected-text-color: #253441;
+        --selected-link-color: #1f389c;
+        --even-row-color: #484848;
+        --odd-row-color: #383838;
+        --title-color: #ffffff;
+        --link-color: #86cdfb;
+        --link-color-active: #ffb863;
+        --snippet-background-color: #383838;
+        --snippet-text-color: var(--block-text-color);
+        --snippet-highlight-color: #f7c590;
+        --border-color: #383838;
+        --table-border-color: #000000;
+        --search-input-background-color: #000000;
+        --search-input-text-color: #ffffff;
+        --search-input-placeholder-color: #909090;
+        --search-tag-highlight-color: #ffff00;
+        --copy-icon-brightness: 250%;
+        --copy-button-background-color-active: rgba(168, 168, 176, 0.3);
+        --invalid-tag-background-color: #ffe6e6;
+        --invalid-tag-text-color: #000000;
+
+        body.light-theme {
+            --body-text-color: #353833;
+            --block-text-color: #474747;
+            --body-background-color: #ffffff;
+            --section-background-color: #f8f8f8;
+            --detail-background-color: #ffffff;
+            --navbar-background-color: #4D7A97;
+            --navbar-text-color: #ffffff;
+            --subnav-background-color: #dee3e9;
+            --selected-background-color: #f8981d;
+            --selected-text-color: #253441;
+            --selected-link-color: #1f389c;
+            --even-row-color: #ffffff;
+            --odd-row-color: #eeeeef;
+            --title-color: #2c4557;
+            --link-color: #4A6782;
+            --link-color-active: #bb7a2a;
+            --snippet-background-color: #ebecee;
+            --snippet-text-color: var(--block-text-color);
+            --snippet-highlight-color: #f7c590;
+            --border-color: #ededed;
+            --table-border-color: #000000;
+            --search-input-background-color: #ffffff;
+            --search-input-text-color: #000000;
+            --search-input-placeholder-color: #909090;
+            --search-tag-highlight-color: #ffff00;
+            --copy-icon-brightness: 100%;
+            --copy-button-background-color-active: rgba(168, 168, 176, 0.3);
+            --invalid-tag-background-color: #ffe6e6;
+            --invalid-tag-text-color: #000000;
+        }
+    }
 }
+
 /*
  * Styles for individual HTML elements.
  *
@@ -755,7 +820,7 @@ main, nav, header, footer, section {
 }
 ul.ui-autocomplete {
     position:fixed;
-    z-index:1;
+    z-index:2;
     background-color: var(--body-background-color);
 }
 ul.ui-autocomplete li {
@@ -1467,7 +1532,7 @@ table {
 .fixedNav {
     position: fixed;
     width:100%;
-    z-index:999;
+    z-index:1;
     background-color:var(--navbar-background-color);
 }
 .topNav {
@@ -1740,6 +1805,7 @@ table tr td dl, table tr td dl dt, table tr td dl dd {
     border-left:1px solid #EEE;
     border-right:1px solid #EEE;
     border-bottom:1px solid #EEE;
+    border-top:1px solid #EEE;
 }
 .overviewSummary, .memberSummary, .requiresSummary, .packagesSummary, .providesSummary, .usesSummary  {
     padding:0px;

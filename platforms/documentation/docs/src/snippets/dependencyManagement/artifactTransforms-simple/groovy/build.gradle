@@ -1,0 +1,57 @@
+import org.gradle.api.artifacts.transform.TransformParameters
+
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation("com.google.guava:guava:33.2.1-jre")
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::artifact-transform-imp[]
+abstract class MyTransform implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        def inputFile = inputArtifact.get().asFile
+        def outputFile = outputs.file(inputFile.name.replace(".jar", "-transformed.jar"))
+        // Perform transformation logic here
+        inputFile.withInputStream { input ->
+            outputFile.withOutputStream { output ->
+                output << input
+            }
+        }
+    }
+}
+// end::artifact-transform-imp[]
+
+// tag::artifact-transform-use[]
+configurations.named("runtimeClasspath") {
+    attributes {
+        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "transformed-jar")
+    }
+}
+// end::artifact-transform-use[]
+
+// tag::artifact-transform-registration[]
+dependencies {
+    registerTransform(MyTransform) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar")
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "transformed-jar")
+    }
+}
+// end::artifact-transform-registration[]
+
+tasks.register("resolve") {
+    def files = configurations.runtimeClasspath.incoming.files
+    def fileNames = files.collect { it.name }
+    doLast {
+        assert fileNames.contains("guava-33.2.1-jre-transformed.jar")
+    }
+}

@@ -19,7 +19,6 @@ package org.gradle.integtests.composite
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.exceptions.LocationAwareException
 
 class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -88,10 +87,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         includedBuilds << buildC
     }
 
-    protected GradleExecuter expectedDeprecatedListenerRegistration(deprecatedInvocation) {
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${deprecatedInvocation}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-    }
-
     @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events on included builds"() {
         given:
@@ -99,20 +94,15 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         dependency buildB, 'org.test:buildC:1.0'
 
         when:
-        expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         execute()
 
         then:
         verifyBuildEvents()
     }
 
-
     @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for unused included builds"() {
         when:
-        expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         execute()
 
         then:
@@ -136,8 +126,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         dependency(pluginBuild, 'org.test:b2:1.0')
 
         when:
-        expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         execute()
 
         then:
@@ -164,8 +152,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 """
 
         when:
-        expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         execute()
 
         then:
@@ -199,10 +185,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         """
 
         when:
-        2.times {
-            expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        }
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         execute()
 
         then:
@@ -249,10 +231,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         """
 
         when:
-        2.times {
-            expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        }
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         executeAndExpectFailure("help")
 
         then:
@@ -298,10 +276,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         """
 
         when:
-        4.times {
-            expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        }
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         executeAndExpectFailure("help")
 
         then:
@@ -354,10 +328,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         """
 
         when:
-        4.times {
-            expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        }
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         executeAndExpectFailure("help")
 
         then:
@@ -414,10 +384,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         """
 
         when:
-        4.times {
-            expectedDeprecatedListenerRegistration("Gradle.buildFinished")
-        }
-        expectedDeprecatedListenerRegistration("Gradle.addBuildListener")
         executeAndExpectFailure("broken")
 
         then:

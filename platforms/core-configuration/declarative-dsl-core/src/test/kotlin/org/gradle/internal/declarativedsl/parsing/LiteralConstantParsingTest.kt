@@ -16,8 +16,7 @@
 
 package org.gradle.internal.declarativedsl.parsing
 
-import org.gradle.util.internal.ToBeImplemented
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 class LiteralConstantParsingTest {
 

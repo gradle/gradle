@@ -19,11 +19,11 @@ package org.gradle.internal.declarativedsl.dom
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-object DomTest {
+class DomTest {
     @Test
     fun `converts a simple language tree to document`() {
         val tree = parseAsTopLevelBlock(

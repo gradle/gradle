@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -28,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
+import org.gradle.cache.internal.Store
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
@@ -38,6 +41,8 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Supplier
+
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.of
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.requested
@@ -45,12 +50,30 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 
 class StreamingResolutionResultBuilderTest extends Specification {
+
+    AdhocHandlingComponentResultSerializer componentResultSerializer = new AdhocHandlingComponentResultSerializer(
+        new ThisBuildTreeOnlyComponentResultSerializer(
+            DependencyManagementTestUtil.componentSelectionDescriptorFactory()
+        ),
+        new CompleteComponentResultSerializer(
+            DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+            new DefaultImmutableModuleIdentifierFactory(),
+            AttributeTestUtil.attributesFactory(),
+            TestUtil.objectInstantiator()
+        )
+    )
+
+    class DummyStore implements Store<ResolvedComponentResult> {
+        ResolvedComponentResult load(Supplier<ResolvedComponentResult> createIfNotPresent) {
+            return createIfNotPresent.get()
+        }
+    }
+
     def builder = new StreamingResolutionResultBuilder(
         new DummyBinaryStore(),
         new DummyStore(),
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-        new ThisBuildOnlyComponentDetailsSerializer(new DefaultImmutableModuleIdentifierFactory()),
-        new ThisBuildOnlySelectedVariantSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+        componentResultSerializer,
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false
     )

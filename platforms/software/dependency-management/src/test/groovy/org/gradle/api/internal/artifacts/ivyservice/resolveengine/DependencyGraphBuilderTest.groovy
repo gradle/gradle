@@ -48,10 +48,8 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -132,8 +130,7 @@ class DependencyGraphBuilderTest extends Specification {
         TestUtil.calculatedValueContainerFactory()
     )
 
-    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems)))
+    def variantSelector = new GraphVariantSelector(DependencyManagementTestUtil.newFailureHandler())
 
     DependencyGraphBuilder builder = new DependencyGraphBuilder(
         moduleExclusions,

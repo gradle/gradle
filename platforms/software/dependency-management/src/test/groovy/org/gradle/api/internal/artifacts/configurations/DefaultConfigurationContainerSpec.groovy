@@ -29,7 +29,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
@@ -91,7 +91,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         instantiator,
         domainObjectCollectionCallbackActionDecorator,
         metaDataProvider,
-        RootScriptDomainObjectContext.INSTANCE,
+        domainObjectContext,
         EmptySchema.INSTANCE,
         rootComponentMetadataBuilderFactory,
         configurationFactory,
@@ -105,7 +105,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         when:
         def compile = configurationContainer.create("compile")
@@ -136,7 +136,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         when:
         def compile = configurationContainer.create("compile") {
@@ -152,7 +152,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "creates detached"() {
         given:
         1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")

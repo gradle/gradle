@@ -32,6 +32,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
 import org.gradle.platform.Architecture
 import org.gradle.platform.BuildPlatform
+import org.gradle.platform.OperatingSystem
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -186,7 +187,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=8, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=8, vendor=any vendor, implementation=vendor-specific} for LINUX on x86_64."
 
         where:
         capabilities << [
@@ -222,7 +223,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any vendor, implementation=vendor-specific} for LINUX on x86_64."
         e.cause.message == "Configured toolchain download repositories can't match requested specification"
     }
 
@@ -551,8 +552,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     ) {
         def buildPlatform = new BuildPlatform() {
             @Override
-            org.gradle.platform.OperatingSystem getOperatingSystem() {
-                return org.gradle.platform.OperatingSystem.LINUX
+            OperatingSystem getOperatingSystem() {
+                return OperatingSystem.LINUX
             }
 
             @Override

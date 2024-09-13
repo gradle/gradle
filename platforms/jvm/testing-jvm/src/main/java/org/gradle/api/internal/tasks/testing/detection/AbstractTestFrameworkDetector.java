@@ -144,9 +144,12 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     /**
-     * Uses a TestClassVisitor to detect whether the class in the testClassFile is a test class. <p/> If the class is not a test, this function will go up the inheritance tree to check if a parent
-     * class is a test class. First the package of the parent class is checked, if it is a java.lang or groovy.lang the class can't be a test class, otherwise the parent class is scanned. <p/> When a
-     * parent class is a test class all the extending classes are marked as test classes.
+     * Uses a TestClassVisitor to detect whether the class in the testClassFile is a test class.
+     * <p>
+     * If the class is not a test, this function will go up the inheritance tree to check if a parent
+     * class is a test class. First the package of the parent class is checked, if it is a java.lang or groovy.lang the class can't be a test class, otherwise the parent class is scanned.
+     * <p>
+     * When a parent class is a test class all the extending classes are marked as test classes.
      */
     private boolean processTestClass(File testClassFile, boolean superClass, Factory<String> fallbackClassNameProvider) {
         TestClass testClass = readClassFile(testClassFile, fallbackClassNameProvider);

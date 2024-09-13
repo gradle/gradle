@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -26,6 +27,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -38,6 +40,7 @@ import java.util.Map;
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
+@SuppressWarnings("deprecation")
 public abstract class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
@@ -275,6 +278,15 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     }
 
     /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super GroovyForkOptions> action) {
+        action.execute(forkOptions);
+    }
+
+    /**
      * Returns optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
      * Only takes effect when compiling against Groovy 1.8 or higher.
      *
@@ -374,10 +386,22 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     /**
      * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public GroovyCompileOptions fork(Map<String, Object> forkArgs) {
+
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "fork(Map)")
+            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         fork = true;
-        forkOptions.define(forkArgs);
+
+        // Disable deprecation to avoid double-warning
+        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
         return this;
     }
 }

@@ -1,3 +1,28 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.debugOptions(org.gradle.api.Action)",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.forkOptions(org.gradle.api.Action)",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.forkOptions(org.gradle.api.Action)",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }

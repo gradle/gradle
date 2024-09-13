@@ -242,7 +242,7 @@ With this configuration, the `my-app` composite build will substitute any depend
 [[deactivate_included_build_substitutions]]
 === Deactivate included build substitutions for a configuration
 
-If you need to <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolve>> a published version of a module that is also available as part of an included build, you can deactivate the included build substitution rules on the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] of the Configuration that is resolved.
+If you need to <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,resolve>> a published version of a module that is also available as part of an included build, you can deactivate the included build substitution rules on the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] of the Configuration that is resolved.
 This is necessary because the rules are globally applied in the build, and Gradle does not consider published versions during resolution by default.
 
 For example, we create a separate `publishedRuntimeClasspath` configuration that gets resolved to the published versions of modules that also exist in one of the local builds.

@@ -23,7 +23,7 @@ You will also benefit from robust support for multi-project builds and easy-to-u
 The biggest challenge in migrating from Ant to Gradle is that there is no such thing as a standard Ant build.
 That makes it difficult to provide specific instructions.
 Fortunately, Gradle has some great integration features with Ant that can make the process relatively smooth.
-Migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn't difficult because Gradle has a similar model based on <<dependency_management_terminology#sub:terminology_configuration,dependency configurations>> that works with Ivy-compatible repositories.
+Migrating from https://ant.apache.org/ivy/[Ivy]-based dependency management isn't difficult because Gradle has a similar model based on <<glossary.adoc#sub:terminology_configuration,dependency configurations>> that works with Ivy-compatible repositories.
 
 We will start by outlining the things you should consider when migrating a build from Ant to Gradle and offer some general guidelines on how to proceed.
 
@@ -205,7 +205,7 @@ But if the build performs some extra processing on the compiled classes, or does
 [[migant:managing_dependencies]]
 == Managing dependencies
 
-Ant builds typically take one of two approaches to dealing with binary <<dependency_management_terminology#sub:terminology_dependency,dependencies>> (such as libraries):
+Ant builds typically take one of two approaches to dealing with binary <<glossary.adoc#sub:terminology_dependency,dependencies>> (such as libraries):
 
  * Storing them with the project in a local "lib" directory
  * Using https://ant.apache.org/ivy/[Apache Ivy] to manage them
@@ -219,7 +219,7 @@ Let's look at each case, in detail, in the following sections.
 When you are attempting to migrate a build that stores its dependencies on the filesystem, either locally or on the network, you should consider whether you want to eventually move to managed dependencies using remote repositories.
 That's because you can incorporate filesystem dependencies into a Gradle build in one of two ways:
 
- * Define a <<declaring_repositories.adoc#sub:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
+ * Define a <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
  * Attach the files directly to the appropriate dependency configurations (<<declaring_dependencies#sub:file_dependencies,file dependencies>>)
 
 It's easier to migrate to managed dependencies served from Maven, or Ivy-compatible repositories, if you take the first approach, but doing so requires all your files to conform to the naming convention "<moduleName>-<version>.<extension>".
@@ -263,7 +263,7 @@ Then, if you add a normal Maven or Ivy-compatible repository at a later date, Gr
 Apache Ivy is a standalone dependency management tool that is widely used with Ant. It works similarly to Gradle.
 In fact, they both allow you to:
 
- * Define your own <<dependency_management_terminology#sub:terminology_configuration,configurations>>
+ * Define your own <<glossary.adoc#sub:terminology_configuration,configurations>>
  * Extend configurations from one another
  * Attach dependencies to configurations
  * Resolve dependencies from Ivy-compatible repositories
@@ -271,7 +271,7 @@ In fact, they both allow you to:
 
 The most notable difference is that Gradle has standard configurations for specific types of projects.
 For example, the <<java_plugin#tab:configurations,Java Plugin>> defines configurations like `implementation`, `testImplementation` and `runtimeOnly`.
-You are able to <<declaring_dependencies.adoc#sec:defining-custom-configurations,define your own dependency configurations>> if needed.
+You are able to <<declaring_dependencies_adv.adoc#sec:defining-custom-configurations,define your own dependency configurations>> if needed.
 
 As such, it's typically straightforward to migrate from Ivy to Gradle:
 
@@ -279,7 +279,7 @@ As such, it's typically straightforward to migrate from Ivy to Gradle:
  * Transcribe any configuration declarations from your module descriptors into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[configurations {}] block of the build script for any custom configurations that can't be replaced by Gradle's standard ones.
  * Transcribe the resolvers from your Ivy settings file into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[repositories {}] block of the build script.
 
-See the chapters on <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,Managing Dependency Configurations>>, <<declaring_dependencies.adoc#sec:dependency-types,Declaring Dependencies>> and <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>> for more information.
+See the chapters on <<dependency_configurations.adoc#sec:what-are-dependency-configurations,Managing Dependency Configurations>>, <<declaring_dependencies.adoc#sec:dependency-types,Declaring Dependencies>> and <<declaring_repositories.adoc#declaring-basic-repositories,Declaring Repositories>> for more information.
 
 Ivy provides several Ant tasks that handle Ivy's process for fetching dependencies.
 The basic steps of that process consist of:
@@ -307,7 +307,7 @@ See the chapter on <<dependency_constraints.adoc#dependency-constraints,controll
 
 Resolution::
 At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache.
-Gradle searches the repositories for those dependencies, with the search order defined by <<declaring_repositories.adoc#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
+Gradle searches the repositories for those dependencies, with the search order defined by <<declaring_repositories_adv.adoc#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
 +
 It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use conventions like `1.0.+`.
 You can also use the special `latest.integration` and `latest.release` labels.

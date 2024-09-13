@@ -191,7 +191,15 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
+
+        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
+            .withAdvice("Use Object.equals(Object) instead")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_content_equals")
+            .nagUser();
+
         if (this == dependency) {
             return true;
         }

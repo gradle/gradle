@@ -98,8 +98,8 @@ class PerformanceTestBuildTypeTest {
             (
                 listOf(
                     "clean",
-                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:largeTestProjectPerformanceTest",
+                    ":performance:smallTestProjectPerformanceTest",
                     "extraParameters"
                 ) + expectedRunnerParams
                 ).joinToString(" "),
@@ -163,8 +163,8 @@ class PerformanceTestBuildTypeTest {
             (
                 listOf(
                     "clean",
-                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:largeTestProjectPerformanceTest",
+                    ":performance:smallTestProjectPerformanceTest",
                     "extraParameters"
                 ) + expectedRunnerParams
                 ).joinToString(" "),

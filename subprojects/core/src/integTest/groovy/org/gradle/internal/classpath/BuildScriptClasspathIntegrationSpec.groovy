@@ -405,7 +405,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("JAR = 11")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "class with #lambdaCount lambdas can be instrumented"() {
         given:
         createDir("buildSrc/src/main/java") {
@@ -435,6 +434,20 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 @Input
                 abstract ListProperty<Runnable> getMyActions()
 
+                @Input
+                abstract Property<Class<?>> getActionClass()
+
+                @TaskAction
+                def printLambdaCount() {
+                    println("generated method count = \${getDeserializeMethodsCount(actionClass.get())}")
+                }
+
+                def getDeserializeMethodsCount(Class<?> cls) {
+                    return Arrays.stream(cls.getDeclaredMethods()).filter {
+                        it.name.startsWith('\$deserializeLambda')
+                    }.count()
+                }
+
                 @TaskAction
                 def runMyActions() {
                     myActions.get().forEach {
@@ -443,18 +456,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 }
             }
 
-            def getDeserializeMethodsCount(Class<?> cls) {
-                return Arrays.stream(cls.getDeclaredMethods()).filter {
-                    it.name.startsWith('\$deserializeLambda')
-                }.count()
-            }
-
             tasks.register("lambda", LambdaTask) {
                 myActions = new ManyLambdas().createLotsOfLambdas()
-
-                doFirst {
-                    println("generated method count = \${getDeserializeMethodsCount(ManyLambdas)}")
-                }
+                actionClass = ManyLambdas
             }
         """)
 

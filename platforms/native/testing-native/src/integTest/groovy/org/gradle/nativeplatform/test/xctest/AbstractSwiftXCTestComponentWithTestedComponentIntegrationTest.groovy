@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -31,7 +30,6 @@ import static org.junit.Assume.assumeTrue
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
     // TODO: This test can be generalized so it's not opinionated on Swift 4.x but could also work on Swift 5.x
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForConfigurationCache
     def "take swift source compatibility from tested component"() {
         given:
         makeSingleProject()
@@ -60,7 +58,6 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
-    @ToBeFixedForConfigurationCache
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
         assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)
@@ -72,12 +69,14 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
             ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.${xctestSourceCompatibility.name()}
 
             task verifyBinariesSwiftVersion {
+                def testComponentVersions = provider { ${testedComponentDsl}.binaries.get().collect { it.targetPlatform.sourceCompatibility } }
+                def componentVersions = provider { ${componentUnderTestDsl}.binaries.get().collect { it.targetPlatform.sourceCompatibility } }
                 doLast {
-                    ${testedComponentDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${componentSourceCompatibility.name()}
+                    testComponentVersions.get().each {
+                        assert it == SwiftVersion.${componentSourceCompatibility.name()}
                     }
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${xctestSourceCompatibility.name()}
+                    componentVersions.get().each {
+                        assert it == SwiftVersion.${xctestSourceCompatibility.name()}
                     }
                 }
             }

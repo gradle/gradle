@@ -17,17 +17,17 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
-import org.gradle.internal.component.resolution.failure.formatting.StyledAttributeDescriber;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
+import org.gradle.internal.component.resolution.failure.formatting.StyledAttributeDescriber;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
@@ -40,9 +40,18 @@ public abstract class NoCompatibleVariantsFailureDescriber extends AbstractResol
     private static final String NO_VARIANTS_EXIST_PREFIX = "Creating consumable variants is explained in more detail at ";
     private static final String NO_VARIANTS_EXIST_SECTION = "sec:resolvable-consumable-configs";
 
+    private final AttributeDescriberRegistry attributeDescribers;
+
+    @Inject
+    public NoCompatibleVariantsFailureDescriber(
+        AttributeDescriberRegistry attributeDescribers
+    ) {
+        this.attributeDescribers = attributeDescribers;
+    }
+
     @Override
-    public VariantSelectionByAttributesException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
+    public VariantSelectionByAttributesException describeFailure(NoCompatibleVariantsFailure failure) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers.getDescribers());
         FailureSubType failureSubType = FailureSubType.determineFailureSubType(failure);
         String message = buildFailureMsg(new StyledAttributeDescriber(describer), failure, failureSubType);
         List<String> resolutions = buildResolutions(failureSubType);

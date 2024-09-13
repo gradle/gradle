@@ -24,6 +24,7 @@ plugins {
     kotlin("jvm")
     id("gradlebuild.jvm-library")
     id("gradlebuild.detekt")
+    id("gradlebuild.private-javadoc")
 }
 
 configurations.transitiveSourcesElements {

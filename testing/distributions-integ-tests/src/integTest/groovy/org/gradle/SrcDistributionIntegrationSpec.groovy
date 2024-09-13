@@ -59,6 +59,9 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         executer.with {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
+            // we add implicit Xmx1024m in AbstractGradleExecuter.getImplicitBuildJvmArgs()
+            // that's too small for this build
+            useOnlyRequestedJvmOpts()
             withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")

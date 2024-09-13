@@ -24,21 +24,24 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.IncubationLogger
 import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCacheStartParameter(
+class ConfigurationCacheStartParameter internal constructor(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
-    private val modelParameters: BuildModelParameters
+    private val modelParameters: BuildModelParameters,
+    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
 
     /**
@@ -72,12 +75,41 @@ class ConfigurationCacheStartParameter(
      */
     val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
 
+    /**
+     * Whether configuration cache storing/loading should be done in parallel.
+     *
+     * Same as [StartParameterInternal.configurationCacheParallel].
+     *
+     * @see StartParameterInternal.configurationCacheParallel
+     */
+    val isParallelCache: Boolean by lazy {
+        startParameter.isConfigurationCacheParallel.also { enabled ->
+            if (enabled) {
+                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
+            }
+        }
+    }
+
+    /**
+     * Whether configuration should be stored in parallel.
+     *
+     * The default is the value of [isParallelCache].
+     */
+    val isParallelStore = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
+
+    /**
+     * Whether configuration should be loaded in parallel.
+     *
+     * The default is `true`.
+     */
+    val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel
-        get() = modelParameters.configurationCacheLogLevel
+        get() = loggingParameters.logLevel
 
     val isIgnoreInputsInTaskGraphSerialization: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization

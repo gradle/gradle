@@ -9,7 +9,6 @@ errorprone {
         "DefaultCharset", // 1 occurrences
         "JavaLangClash", // 1 occurrences
         "MixedMutabilityReturnType", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
         "UnusedMethod", // 2 occurrences
         "UnusedVariable", // 10 occurrences
     )
@@ -24,6 +23,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.files)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
@@ -90,3 +90,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

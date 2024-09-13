@@ -32,3 +32,6 @@ dependencies {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

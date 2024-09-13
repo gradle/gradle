@@ -9,8 +9,6 @@ JVM-specific dependencies blocks and JVM test suite interfaces."""
 errorprone {
     disabledChecks.addAll(
         "OverridesJavaxInjectableMethod", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
@@ -54,4 +52,7 @@ dependencies {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

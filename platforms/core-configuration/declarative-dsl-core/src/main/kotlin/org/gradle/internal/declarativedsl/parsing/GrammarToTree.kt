@@ -271,7 +271,7 @@ class GrammarToTree(
         when (val tokenType = node.tokenType) {
             ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
             BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<PropertyAccess>
-            REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, tree.sourceData(node)))
+            REFERENCE_EXPRESSION -> propertyAccess(tree, node, null, referenceExpression(node).value, tree.sourceData(node))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
             ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
             else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in property access statement: $tokenType")
@@ -291,7 +291,7 @@ class GrammarToTree(
                             val modifiers = tree.children(it)
                             modifiers.forEach { modifier ->
                                 when (modifier.tokenType) {
-                                    ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.AnnotationUsage))
+                                    ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, AnnotationUsage))
                                     else -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.ValModifierNotSupported))
                                 }
                             }
@@ -357,7 +357,7 @@ class GrammarToTree(
 
                 elementIfNoFailures {
                     if (referenceSelector != null) {
-                        Element(PropertyAccess(checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!))
+                        propertyAccess(tree, node, checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!)
                     } else {
                         val functionCall = checked(functionCallSelector!!)
                         Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
@@ -365,6 +365,18 @@ class GrammarToTree(
                 }
             }
         }
+
+    private
+    fun propertyAccess(
+        tree: CachingLightTree,
+        node: LighterASTNode,
+        receiver: Expr?,
+        name: String,
+        sourceData: SourceData
+    ): ElementResult<PropertyAccess> = when(name) {
+        "_" -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedSimpleIdentifier)
+        else -> Element(PropertyAccess(receiver, name, sourceData))
+    }
 
     private
     fun stringTemplate(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
@@ -681,7 +693,10 @@ class GrammarToTree(
         }
 
     private
-    fun referenceExpression(node: LighterASTNode): Syntactic<String> = Syntactic(node.asText)
+    fun referenceExpression(node: LighterASTNode): Syntactic<String> {
+        val value = node.asText
+        return Syntactic(value)
+    }
 
     private
     fun packageNode(tree: LightTree): LighterASTNode =

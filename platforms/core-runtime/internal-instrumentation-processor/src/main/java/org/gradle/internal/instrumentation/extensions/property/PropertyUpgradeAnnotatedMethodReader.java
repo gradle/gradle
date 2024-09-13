@@ -16,6 +16,9 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -24,6 +27,10 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.R
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.DefaultValue;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo.BridgeType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -61,18 +68,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT;
 import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES;
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE;
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
@@ -80,6 +92,7 @@ import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIV
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyType.FILE_COLLECTION;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.isAssignableToFileSystemLocation;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.isAnnotationOfType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getTypeParameterOrThrow;
@@ -87,6 +100,8 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final TypeName DEFAULT_TYPE = ClassName.get(DefaultValue.class);
+    private static final String TO_BE_REPLACED_SETTERS_KEY_PREFIX = "@ToBeReplacedByLazyPropertySetters_";
+    private static final String TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX = "@ToBeReplacedByLazyPropertySettersVisited_";
 
     private final String projectName;
     private final Elements elements;
@@ -108,36 +123,57 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .collect(Collectors.joining());
     }
 
-    private String getGroovyInterceptorsClassName() {
-        return GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_" + projectName;
+    @SuppressWarnings("DuplicatedCode")
+    private String getGroovyInterceptorsClassName(BytecodeInterceptorType interceptorType) {
+        switch (interceptorType) {
+            case BYTECODE_UPGRADE:
+                return GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_" + projectName;
+            case BYTECODE_UPGRADE_REPORT:
+                return GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT + "_" + projectName;
+            case INSTRUMENTATION:
+            default:
+                throw new IllegalArgumentException("Unsupported interceptor type: " + interceptorType);
+        }
     }
 
-    private String getJavaInterceptorsClassName() {
-        return JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_" + projectName;
+    @SuppressWarnings("DuplicatedCode")
+    private String getJavaInterceptorsClassName(BytecodeInterceptorType interceptorType) {
+        switch (interceptorType) {
+            case BYTECODE_UPGRADE:
+                return JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_" + projectName;
+            case BYTECODE_UPGRADE_REPORT:
+                return JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES_REPORT + "_" + projectName;
+            case INSTRUMENTATION:
+            default:
+                throw new IllegalArgumentException("Unsupported interceptor type: " + interceptorType);
+        }
     }
 
     @Override
-    public Collection<Result> readRequest(ExecutableElement method) {
+    public Collection<Result> readRequest(ExecutableElement method, ReadRequestContext context) {
         Optional<? extends AnnotationMirror> annotation = AnnotationUtils.findAnnotationMirror(method, ReplacesEagerProperty.class);
+        if (!annotation.isPresent()) {
+            annotation = AnnotationUtils.findAnnotationMirror(method, ToBeReplacedByLazyProperty.class);
+        }
         if (!annotation.isPresent()) {
             return Collections.emptySet();
         }
 
+        AnnotationMirror annotationMirror = annotation.get();
         if (projectName == null) {
             // We validate project name here because we want to fail only if there is an @ReplacesEagerProperty annotation used in the project
             return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
-        } else if (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get")) {
+        } else if (isAnnotationOfType(annotationMirror, ReplacesEagerProperty.class) && (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get"))) {
             return Collections.singletonList(new InvalidRequest(String.format("Method '%s.%s' annotated with @ReplacesEagerProperty should be a simple getter: name should start with 'get' and method should not have any parameters.", method.getEnclosingElement(), method)));
         }
 
         try {
-            AnnotationMirror annotationMirror = annotation.get();
-            List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror);
+            List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror, context);
             List<CallInterceptionRequest> requests = new ArrayList<>();
             for (AccessorSpec accessorSpec : accessorSpecs) {
                 switch (accessorSpec.accessorType) {
                     case GETTER:
-                        if (isGroovyProperty(accessorSpec.methodName)) {
+                        if (accessorSpec.interceptorType != BYTECODE_UPGRADE_REPORT && isGroovyProperty(accessorSpec.methodName)) {
                             CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(accessorSpec, method);
                             requests.add(groovyPropertyRequest);
                         }
@@ -161,7 +197,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @SuppressWarnings("unchecked")
-    private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror) {
+    private List<AccessorSpec> readAccessorSpecsFromReplacesEagerProperty(ExecutableElement method, AnnotationMirror annotationMirror, ReadRequestContext context) {
+        if (isAnnotationOfType(annotationMirror, ToBeReplacedByLazyProperty.class)) {
+            return readAccessorSpecsFromToBeReplacedByLazyProperty(method, annotationMirror, context);
+        }
+
         Element element = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "adapter")
             .map(v -> types.asElement((TypeMirror) v.getValue()))
             .orElseThrow(() -> new IllegalArgumentException("Missing adapter value"));
@@ -190,6 +230,88 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
+    private List<AccessorSpec> readAccessorSpecsFromToBeReplacedByLazyProperty(ExecutableElement annotatedMethod, AnnotationMirror annotation, ReadRequestContext context) {
+        boolean skipForReport = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "unreported")
+            .map(v -> (boolean) v.getValue())
+            .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'unreported' attribute in @%s", ToBeReplacedByLazyProperty.class.getSimpleName())));
+        if (skipForReport) {
+            return Collections.emptyList();
+        }
+
+        String propertyName = getPropertyName(annotatedMethod);
+        String settersKey = TO_BE_REPLACED_SETTERS_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
+        String propertySettersVisitedKey = TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
+        Collection<ExecutableElement> setters;
+        Set<String> propertySettersVisited = context.computeIfAbsent(propertySettersVisitedKey, key -> new HashSet<>());
+        if (isSetterMethodName(annotatedMethod.getSimpleName().toString()) || !propertySettersVisited.add(propertyName)) {
+            // If setter is annotated we should not visit other setters
+            // also some booleans have two getters, is and get getter, so lets visit setters only once.
+            setters = Collections.emptyList();
+        } else {
+            setters = context.computeIfAbsent(settersKey, key -> getAllSetters(annotatedMethod.getEnclosingElement())).get(propertyName);
+        }
+
+        DeprecationSpec deprecationSpec = new DeprecationSpec(false, RemovedIn.UNSPECIFIED, -1, "", false);
+        String generatedClassName = "org.gradle.internal.classpath.generated." + annotatedMethod.getEnclosingElement().getSimpleName() + "_ReportingAdapter";
+        return Stream.concat(Stream.of(annotatedMethod), setters.stream())
+            .map(method -> bridgedMethodToAccessorSpec(
+                method,
+                generatedClassName,
+                BridgeType.INSTANCE_METHOD_BRIDGE,
+                deprecationSpec,
+                BinaryCompatibility.ACCESSORS_KEPT,
+                BYTECODE_UPGRADE_REPORT))
+            .collect(Collectors.toList());
+    }
+
+    private static Multimap<String, ExecutableElement> getAllSetters(Element element) {
+        return TypeUtils.getExecutableElementsFromElements(Stream.of(element)).stream()
+            .filter(method -> isSetterMethodName(method.getSimpleName().toString()) && method.getParameters().size() == 1)
+            .collect(Multimaps.toMultimap(
+                PropertyUpgradeAnnotatedMethodReader::getPropertyName,
+                Function.identity(),
+                ArrayListMultimap::create
+            ));
+    }
+
+    private static AccessorSpec bridgedMethodToAccessorSpec(
+        ExecutableElement method,
+        String generatedClassName,
+        BridgeType bridgeType,
+        DeprecationSpec deprecationSpec,
+        BinaryCompatibility binaryCompatibility,
+        BytecodeInterceptorType bytecodeInterceptorType
+    ) {
+        String methodName = method.getSimpleName().toString();
+        String propertyName = getPropertyName(methodName);
+        TypeName returnType = TypeName.get(method.getReturnType());
+
+        // First parameters of adapter is always a type we upgrade, so we skip it for parameters of an accessor
+        int skipParameters = bridgeType == BridgeType.ADAPTER_METHOD_BRIDGE ? 1 : 0;
+        List<ParameterInfo> parameters = method.getParameters().stream().skip(skipParameters)
+            .map(parameter -> new ParameterInfoImpl(
+                parameter.getSimpleName().toString(),
+                TypeUtils.extractType(parameter.asType()),
+                METHOD_PARAMETER
+            ))
+            .collect(Collectors.toList());
+
+        AccessorType accessorType = parameters.isEmpty() ? AccessorType.GETTER : AccessorType.SETTER;
+        BridgedMethodInfo bridgedMethodInfo = new BridgedMethodInfo(method, bridgeType);
+        return new AccessorSpec(
+            generatedClassName,
+            accessorType,
+            propertyName,
+            methodName,
+            returnType,
+            parameters,
+            deprecationSpec,
+            binaryCompatibility,
+            bytecodeInterceptorType,
+            bridgedMethodInfo
+        );
+    }
+
     private List<AccessorSpec> readAccessorSpecsFromAdapter(Element adapter, Element upgradedElement, AnnotationMirror annotationMirror) {
         List<ExecutableElement> bridgedMethods = TypeUtils.getExecutableElementsFromElements(Stream.of(adapter)).stream()
             .filter(method -> method.getAnnotation(BytecodeUpgrade.class) != null)
@@ -197,7 +319,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         validateBridgedMethods(adapter, upgradedElement, bridgedMethods);
 
         return bridgedMethods.stream()
-            .map(method -> bridgedMethodToAccessorSpec(method, annotationMirror))
+            .map(method -> adapterBridgedMethodToAccessorSpec(method, annotationMirror))
             .collect(Collectors.toList());
     }
 
@@ -233,15 +355,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             && !element.getModifiers().contains(Modifier.PRIVATE);
     }
 
-    private AccessorSpec bridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {
-        DeprecationSpec deprecationSpec = readDeprecationSpec(annotationMirror);
-        BinaryCompatibility binaryCompatibility = readBinaryCompatibility(annotationMirror);
-        String methodName = method.getSimpleName().toString();
-        String propertyName = getPropertyName(methodName);
-        AccessorType accessorType = method.getParameters().size() > 1
-            ? AccessorType.SETTER
-            : AccessorType.GETTER;
-        TypeName returnType = TypeName.get(method.getReturnType());
+    private AccessorSpec adapterBridgedMethodToAccessorSpec(ExecutableElement method, AnnotationMirror annotationMirror) {
         Element innerClass = method.getEnclosingElement();
         Element topClass = innerClass.getEnclosingElement();
         PackageElement packageElement = elements.getPackageOf(innerClass);
@@ -254,24 +368,16 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             innerClass.getSimpleName().toString()
         );
 
-        List<ParameterInfo> parameters = method.getParameters().stream()
-            .skip(1)
-            .map(parameter -> new ParameterInfoImpl(
-                parameter.getSimpleName().toString(),
-                TypeUtils.extractType(parameter.asType()),
-                METHOD_PARAMETER
-            ))
-            .collect(Collectors.toList());
-        return new AccessorSpec(
+        DeprecationSpec deprecationSpec = readDeprecationSpec(annotationMirror);
+        BinaryCompatibility binaryCompatibility = readBinaryCompatibility(annotationMirror);
+        return bridgedMethodToAccessorSpec(
+            method,
             generatedClassName,
-            accessorType,
-            propertyName,
-            methodName,
-            returnType,
-            parameters,
+            BridgeType.ADAPTER_METHOD_BRIDGE,
             deprecationSpec,
             binaryCompatibility,
-            method);
+            BYTECODE_UPGRADE
+        );
     }
 
     private DeprecationSpec readDeprecationSpec(AnnotationMirror annotation) {
@@ -370,6 +476,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             parameters,
             deprecationSpec,
             binaryCompatibility,
+            BYTECODE_UPGRADE,
             null
         );
     }
@@ -426,8 +533,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private CallInterceptionRequest createGroovyPropertyInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
-        String interceptorsClassName = getGroovyInterceptorsClassName();
-        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, BYTECODE_UPGRADE));
+        String interceptorsClassName = getGroovyInterceptorsClassName(accessor.interceptorType);
+        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, accessor.interceptorType));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         Type returnType = TypeUtils.extractRawType(accessor.returnType);
         return new CallInterceptionRequestImpl(
@@ -463,10 +570,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     @Nonnull
     private List<RequestExtra> getJvmRequestExtras(AccessorSpec accessor, ExecutableElement method, BinaryCompatibility binaryCompatibility) {
-        String interceptorsClassName = getJavaInterceptorsClassName();
+        String interceptorsClassName = getJavaInterceptorsClassName(accessor.interceptorType);
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
-        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
+        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, accessor.interceptorType));
         String implementationClass = accessor.generatedClassName;
         TypeName newPropertyType = TypeName.get(method.getReturnType());
         String propertyName = getPropertyName(method);
@@ -522,11 +629,19 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private static String getPropertyName(String methodName) {
         if (methodName.startsWith("is") && methodName.length() > 2 && Character.isUpperCase(methodName.charAt(2))) {
             return Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
-        } else if ((methodName.startsWith("get") || methodName.startsWith("set")) && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3))) {
+        } else if (isGetterMethodName(methodName) || isSetterMethodName(methodName)) {
             return Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
         } else {
             return methodName;
         }
+    }
+
+    private static boolean isGetterMethodName(String methodName) {
+        return methodName.startsWith("get") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3));
+    }
+
+    private static boolean isSetterMethodName(String methodName) {
+        return methodName.startsWith("set") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3));
     }
 
     // TODO Consolidate with AnnotationCallInterceptionRequestReaderImpl#Failure
@@ -545,7 +660,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final List<ParameterInfo> parameters;
         private final BinaryCompatibility binaryCompatibility;
         private final DeprecationSpec deprecationSpec;
-        private final ExecutableElement bridgedMethod;
+        private final BridgedMethodInfo bridgedMethod;
+        private final BytecodeInterceptorType interceptorType;
 
         private AccessorSpec(
             String generatedClassName,
@@ -556,7 +672,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             List<ParameterInfo> parameters,
             DeprecationSpec deprecationSpec,
             BinaryCompatibility binaryCompatibility,
-            @Nullable ExecutableElement bridgedMethod
+            BytecodeInterceptorType interceptorType,
+            @Nullable BridgedMethodInfo bridgedMethod
         ) {
             this.generatedClassName = generatedClassName;
             this.propertyName = propertyName;
@@ -566,6 +683,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             this.parameters = parameters;
             this.deprecationSpec = deprecationSpec;
             this.binaryCompatibility = binaryCompatibility;
+            this.interceptorType = interceptorType;
             this.bridgedMethod = bridgedMethod;
         }
     }

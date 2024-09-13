@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -98,7 +99,7 @@ public class Maven2Gradle {
             buildSrcScriptBuilder.create(workingDir).generate();
 
             String conventionPluginId = InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + ".java-conventions";
-            String conventionPluginFileWithoutExt = buildLocation + "/src/main/" + dsl.name().toLowerCase() + "/" + conventionPluginId;
+            String conventionPluginFileWithoutExt = buildLocation + "/src/main/" + dsl.name().toLowerCase(Locale.ROOT) + "/" + conventionPluginId;
             BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversionWithoutVersionCatalog(dsl, buildContentGenerationContext, conventionPluginFileWithoutExt, useIncubatingAPIs, insecureProtocolOption);
 
             generateSettings(rootProject.getArtifactId(), allProjects, buildContentGenerationContext);

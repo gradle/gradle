@@ -81,7 +81,6 @@ public class GradleEnterprisePluginManager {
      * This should never happen due to the auto apply behavior.
      * It's only here as a kind of safeguard or fallback.
      */
-    @SuppressWarnings("deprecation")
     public void registerMissingPluginWarning(GradleInternal gradle) {
         if (gradle.isRootBuild()) {
             StartParameter startParameter = gradle.getStartParameter();

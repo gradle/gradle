@@ -269,7 +269,7 @@ In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbra
 A project generally has a number of dependencies it needs to do its work.
 These dependencies are often libraries of precompiled classes that are imported in the project's source code.
 
-Dependencies are managed via <<dependency_management_terminology.adoc#sub:terminology_configuration,configurations>> and are retrieved from repositories.
+Dependencies are managed via <<glossary.adoc#sub:terminology_configuration,configurations>> and are retrieved from repositories.
 
 Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
 Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.

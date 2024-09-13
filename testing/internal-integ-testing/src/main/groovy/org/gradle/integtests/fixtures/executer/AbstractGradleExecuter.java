@@ -25,6 +25,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -42,6 +43,9 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
@@ -54,6 +58,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -63,7 +68,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -115,7 +119,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         ValidationServicesFixture.getServices()
     ).getServices();
 
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ExecHandleFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
@@ -616,24 +620,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
-        if (getJavaVersionFromJavaHome().compareTo(JavaVersion.VERSION_1_8) < 0) {
-            // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
-            buildJvmOpts.add("-XX:MaxPermSize=320m");
-        } else {
-            buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
-        }
+        buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
+
         buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
         buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir());
         return buildJvmOpts;
-    }
-
-    private boolean xmxSpecified() {
-        for (String arg : buildJvmOpts) {
-            if (arg.startsWith("-Xmx")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -1116,11 +1107,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (consoleType != null) {
-            allArgs.add("--console=" + TextUtil.toLowerCaseLocaleSafe(consoleType.toString()));
+            String s = consoleType.toString();
+            allArgs.add("--console=" + s.toLowerCase(Locale.ROOT));
         }
 
+        // Rich console output is difficult to check, so we disable warnings
+        WarningMode warningMode = isRichConsole() ? WarningMode.None : this.warningMode;
         if (warningMode != null) {
-            allArgs.add("--warning-mode=" + TextUtil.toLowerCaseLocaleSafe(warningMode.toString()));
+            String s = warningMode.toString();
+            allArgs.add("--warning-mode=" + s.toLowerCase(Locale.ROOT));
         }
 
         if (disableToolchainDownload) {
@@ -1360,12 +1355,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected Action<ExecutionResult> getResultAssertion() {
         boolean shouldCheckDeprecations = checkDeprecations;
 
-        // Rich consoles mess with our deprecation log scraping
-        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
-        if ((isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED) ||
-            consoleType == ConsoleOutput.Verbose ||
-            consoleType == ConsoleOutput.Rich
-        ) {
+        // Rich consoles mess with our deprecation log scraping,
+        // and we anyway set --warning-mode=none for rich consoles, see #getAllArgs()
+        if (isRichConsole()) {
             shouldCheckDeprecations = false;
         }
 
@@ -1389,6 +1381,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             shouldCheckDeprecations,
             jdkWarningChecksOn
         );
+    }
+
+    private boolean isRichConsole() {
+        boolean isAuto = consoleType == null || consoleType == ConsoleOutput.Auto;
+        return isAuto && consoleAttachment != ConsoleAttachment.NOT_ATTACHED
+            || consoleType == ConsoleOutput.Verbose
+            || consoleType == ConsoleOutput.Rich;
     }
 
     @Override

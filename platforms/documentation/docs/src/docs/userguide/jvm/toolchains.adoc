@@ -248,7 +248,7 @@ include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings
 Use the `resolverClass` property to link these configurations to plugins.
 <3> Toolchain declaration order matters.
 Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
-<4> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
+<4> You can configure toolchain repositories with the same set of <<declaring_repositories_adv.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
 
 WARNING: The `jvm` block in `toolchainManagement` only resolves after applying a toolchain resolver plugin.
 

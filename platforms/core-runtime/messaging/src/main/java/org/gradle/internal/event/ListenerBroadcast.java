@@ -21,6 +21,7 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -35,13 +36,17 @@ import java.util.Collection;
  * @param <T> The listener type.
  */
 public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
-    private ProxyDispatchAdapter<T> source;
-    private BroadcastDispatch<T> broadcast;
+
     private final Class<T> type;
+
+    @Nullable
+    private ProxyDispatchAdapter<T> source;
+
+    private BroadcastDispatch<T> broadcast;
 
     public ListenerBroadcast(Class<T> type) {
         this.type = type;
-        broadcast = BroadcastDispatch.empty(type);
+        this.broadcast = BroadcastDispatch.empty(type);
     }
 
     /**

@@ -18,6 +18,7 @@ package org.gradle.internal.event
 
 import com.google.common.reflect.ClassPath
 import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.StatefulListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -280,6 +281,39 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
         then:
         instant.bReceived > instant.aHandled
+    }
+
+    def notifyDoesntBlockWhenAnotherThreadIsNotifyingOnTheSameNonThreadSafeType() {
+        given:
+        ParallelTestListener listener1 = new ParallelTestListener() {
+            @Override
+            void something(String p) {
+                if (p == "a") {
+                    instant.aReceived
+                    thread.block()
+                    instant.aHandled
+                } else {
+                    instant.bReceived
+                }
+            }
+        }
+
+        manager.addListener(listener1)
+        def broadcaster = manager.getBroadcaster(StatefulTestListener.class)
+
+        when:
+        async {
+            start {
+                broadcaster.something("a")
+            }
+            start {
+                thread.blockUntil.aReceived
+                broadcaster.something("b")
+            }
+        }
+
+        then:
+        instant.bReceived < instant.aHandled
     }
 
     def notifyDoesNotBlockWhenAnotherThreadIsNotifyingOnDifferentType() {
@@ -1061,4 +1095,8 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
     interface StatefulTestListener {
         void something(String value)
     }
+
+    @EventScope(Scope.BuildTree.class)
+    @ParallelListener
+    interface ParallelTestListener extends StatefulTestListener {}
 }

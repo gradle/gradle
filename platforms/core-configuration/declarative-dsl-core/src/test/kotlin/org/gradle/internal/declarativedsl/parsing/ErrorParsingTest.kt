@@ -1,10 +1,65 @@
 package org.gradle.internal.declarativedsl.parsing
 
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
 class ErrorParsingTest {
+
+    @Test
+    fun `reserved keywords are categorized as errors by the lexer`() {
+        val keyword = "in" // hard keyword in Kotlin
+        val code = """
+            a.$keyword.b(7);
+            $keyword = 1;
+        """.trimIndent()
+
+        val expected = """
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting an element,
+                    potentialElementSource = indexes: 0..4, line/column: 1/1..1/5, file: test,
+                    erroneousSource = indexes: 2..4, line/column: 1/3..1/5, file: test
+                )
+            )
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting a statement,
+                    potentialElementSource = indexes: 11..13, line/column: 2/1..2/3, file: test,
+                    erroneousSource = indexes: 11..13, line/column: 2/1..2/3, file: test
+                )
+            )
+            ErroneousStatement (
+                ParsingError(
+                    message = Unexpected tokens (use ';' to separate expressions on the same line),
+                    potentialElementSource = indexes: 14..17, line/column: 2/4..2/7, file: test,
+                    erroneousSource = indexes: 14..17, line/column: 2/4..2/7, file: test
+                )
+            )
+            ErroneousStatement (
+                ParsingError(
+                    message = Expecting an element,
+                    potentialElementSource = indexes: 17..18, line/column: 2/7..2/8, file: test,
+                    erroneousSource = indexes: 17..18, line/column: 2/7..2/8, file: test
+                )
+            )""".trimIndent()
+        ParseTestUtil.parse(code).assert(expected)
+    }
+
+    @Test
+    fun `illegal simple identifier`() {
+        val code = "_=1"
+
+        val expected = """
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = UnsupportedSimpleIdentifier,
+                    potentialElementSource = indexes: 0..1, line/column: 1/1..1/2, file: test,
+                    erroneousSource = indexes: 0..1, line/column: 1/1..1/2, file: test
+                )
+            )""".trimIndent()
+        ParseTestUtil.parse(code).assert(expected)
+    }
 
     @Test
     fun `single unparsable expression`() {

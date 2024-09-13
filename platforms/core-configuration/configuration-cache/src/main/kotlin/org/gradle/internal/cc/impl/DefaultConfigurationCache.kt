@@ -413,9 +413,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveWorkGraph() {
-        saveToCache(
-            stateType = StateType.Work,
-        ) { stateFile -> writeConfigurationCacheState(stateFile) }
+        saveToCache(stateType = StateType.Work) { stateFile ->
+            writeConfigurationCacheState(stateFile)
+        }
     }
 
     private
@@ -434,7 +434,7 @@ class DefaultConfigurationCache internal constructor(
                     action(stateFile)
                     val storeFailure = problems.queryFailure()
                     StoreResult(stateFile.stateFile.file, storeFailure)
-                } catch (error: ConfigurationCacheError) {
+                } catch (error: Exception) {
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
                     throw error
@@ -489,9 +489,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        deferredRootBuildGradle.gradle.owner.projects.withMutableStateOfAllProjects {
-            cacheIO.writeRootBuildStateTo(stateFile)
-        }
+        cacheIO.writeRootBuildStateTo(stateFile)
 
     private
     fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
@@ -601,7 +599,7 @@ class DefaultConfigurationCache internal constructor(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
-        cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
+        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
             withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val buildPath: Path

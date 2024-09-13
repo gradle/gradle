@@ -49,3 +49,6 @@ dependencies {
 strictCompile {
     ignoreDeprecations()
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

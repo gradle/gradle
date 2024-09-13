@@ -25,6 +25,9 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.slf4jApi)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.internalInstrumentationApi)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

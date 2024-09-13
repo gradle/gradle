@@ -135,7 +135,7 @@ The `write-verification-metadata` flag requires the list of <<#sec:checksum-veri
 
 Executing this command line will cause Gradle to:
 
-* resolve all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable configurations>>, which includes:
+* resolve all <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,resolvable configurations>>, which includes:
 ** configurations from the root project
 ** configurations from all subprojects
 ** configurations from `buildSrc`

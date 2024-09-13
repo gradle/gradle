@@ -24,9 +24,13 @@ import java.lang.annotation.Target;
 
 /**
  * Attached to a listener interface to indicate that its events are stateful.
- *
- * <p>The listener infrastructure will ensure that a listener of this type will either receive all events, or no events.
- * Currently, this is done by disallowing the registration of a listener of this type once any events have been fired.
+ * <p>
+ * The listener infrastructure will ensure that a listener of this type will either receive all events, or no events.
+ * Currently, this is done by disallowing the registration and de-registration of a listener of this type once any events
+ * have been fired.
+ * <p>
+ * As a benefit to forbidding mutation of listeners after events have been fired, the listener infrastructure can
+ * concurrently notify {@link ParallelListener parallel} listeners of stateful events.
  *
  * @see Scope
  */

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -113,7 +112,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         String prefers = decoder.readString();
         String strictly = decoder.readString();
         int rejectCount = decoder.readSmallInt();
-        List<String> rejects = Lists.newArrayListWithCapacity(rejectCount);
+        List<String> rejects = new ArrayList<>(rejectCount);
         for (int i = 0; i < rejectCount; i++) {
             rejects.add(decoder.readString());
         }

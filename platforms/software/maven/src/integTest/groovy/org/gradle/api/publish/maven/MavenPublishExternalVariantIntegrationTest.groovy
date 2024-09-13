@@ -24,8 +24,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
  * Tests behavior of publishing variants that depend on components with multiple coordinates.
  *
  * Particularly,
- * {@link org.gradle.api.publish.internal.mapping.ResolutionBackedVariantDependencyResolver},
- * {@link org.gradle.api.publish.internal.mapping.ResolutionBackedComponentDependencyResolver}, and
+ * {@link org.gradle.api.publish.internal.mapping.ResolutionBackedPublicationDependencyResolver} and
  * {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver}
  * are exercised.
  */

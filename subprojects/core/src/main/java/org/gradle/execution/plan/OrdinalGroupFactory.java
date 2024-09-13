@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Preserves identity of {@see OrdinalGroup} instances so there's a 1-to-1 mapping of ordinals to groups allowing groups
+ * Preserves identity of {@link OrdinalGroup} instances so there's a 1-to-1 mapping of ordinals to groups allowing groups
  * to be freely compared by identity.
  */
 @ServiceScope(Scope.Build.class)

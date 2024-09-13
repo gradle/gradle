@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -58,6 +59,7 @@ import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
@@ -95,7 +97,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
-    private val encryptionService: EncryptionService
+    private val encryptionService: EncryptionService,
+    private val configurationTimeBarrier: ConfigurationTimeBarrier
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -265,6 +268,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+            if (!atConfigurationTime()) {
+                return
+            }
+
             error("Unexpected project dependency observed outside of fingerprinting: consumer=$consumingProjectPath, target=$targetProjectPath")
         }
 
@@ -272,6 +279,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         fun closeStreams() {
             fingerprintWriter.close()
         }
+
+        private
+        fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
     }
 
     private
@@ -290,10 +300,14 @@ class ConfigurationCacheFingerprintController internal constructor(
     var writingState: WritingState = Idle()
 
     private
-    val lazyProjectComponentObservationListener = lazy {
-        ProjectComponentObservationListener { consumingProjectPath, targetProjectPath ->
-            writingState.projectObserved(consumingProjectPath, targetProjectPath)
-        }
+    val projectComponentObservationListener = ProjectObservationListener(this)
+
+    @ParallelListener
+    private class ProjectObservationListener(
+        private val controller: ConfigurationCacheFingerprintController
+    ) : ProjectComponentObservationListener {
+        override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) =
+            controller.writingState.projectObserved(consumingProjectPath, targetProjectPath)
     }
 
     // Start fingerprinting if not already started and not already committed
@@ -331,10 +345,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     }
 
     override fun stop() {
-        if (lazyProjectComponentObservationListener.isInitialized()) {
-            listenerManager.removeListener(lazyProjectComponentObservationListener)
-        }
-
         writingState = writingState.dispose()
     }
 
@@ -357,8 +367,8 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     fun addListener(listener: ConfigurationCacheFingerprintWriter) {
-        // removed when the controller is stopped, because the listener is stateful and cannot be added a second time
-        listenerManager.addListener(lazyProjectComponentObservationListener.value)
+        // Never removed, as stateful listeners cannot be removed after events have been emitted
+        listenerManager.addListener(projectComponentObservationListener)
 
         listenerManager.addListener(listener)
         workInputListeners.addListener(listener)

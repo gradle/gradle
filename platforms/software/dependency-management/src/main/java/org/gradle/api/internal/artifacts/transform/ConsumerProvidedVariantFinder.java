@@ -23,7 +23,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.collections.ImmutableFilteredList;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -238,7 +238,7 @@ public class ConsumerProvidedVariantFinder {
             public CacheKey(List<ImmutableAttributes> variantAttributes, ImmutableAttributes requested) {
                 this.variantAttributes = variantAttributes;
                 this.requested = requested;
-                this.hashCode = variantAttributes.hashCode() ^ requested.hashCode();
+                this.hashCode = 31 * variantAttributes.hashCode() + requested.hashCode();
             }
 
             @Override
@@ -283,7 +283,7 @@ public class ConsumerProvidedVariantFinder {
             public CacheKey(ImmutableAttributes candidate, ImmutableAttributes requested) {
                 this.candidate = candidate;
                 this.requested = requested;
-                this.hashCode = candidate.hashCode() ^ requested.hashCode();
+                this.hashCode = 31 * candidate.hashCode() + requested.hashCode();
             }
 
             @Override

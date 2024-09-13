@@ -133,10 +133,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         applyInlinePlugin(settingsFile, 'Settings', addGradleListeners('settings plugin'))
 
         when:
-        3.times {
-            executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-            executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addBuildListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-        }
         run()
 
         then:
@@ -223,10 +219,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         applyScript(buildFile, scriptFile)
 
         when:
-        6.times {
-            executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-            executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addBuildListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-        }
         run()
 
         then:
@@ -601,7 +593,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         initFile << addGradleListeners('init')
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         run()
 
         then:
@@ -719,7 +710,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addListener() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         run()
 
         then:

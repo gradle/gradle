@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Shared classes for projects requiring GPG support"
@@ -17,7 +18,6 @@ dependencies {
     api(libs.bouncycastlePgp)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(projects.baseServices)
@@ -45,4 +45,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/type/pgp/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

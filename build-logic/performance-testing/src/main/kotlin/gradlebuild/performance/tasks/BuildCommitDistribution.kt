@@ -23,6 +23,7 @@ import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -162,9 +163,15 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
     private
     fun getBuildCommands(): Array<String> {
+        val mirrorInitScript = temporaryDir.resolve("mirroring-init-script.gradle")
+        BuildCommitDistribution::class.java.getResource("/mirroring-init-script.gradle")?.let { mirrorInitScript.writeText(it.readText()) }
+
         val buildCommands = mutableListOf(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
             "--no-configuration-cache",
+            "--init-script",
+            mirrorInitScript.absolutePath,
+            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)}",
             "clean",
             "-Dscan.tag.BuildCommitDistribution",
             ":distributions-full:binDistributionZip",

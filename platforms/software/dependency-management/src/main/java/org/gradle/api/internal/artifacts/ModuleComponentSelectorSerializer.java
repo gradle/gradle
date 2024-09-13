@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
@@ -31,6 +30,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +59,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         String preferred = decoder.readString();
         String strictly = decoder.readString();
         int cpt = decoder.readSmallInt();
-        List<String> rejects = Lists.newArrayListWithCapacity(cpt);
+        List<String> rejects = new ArrayList<>(cpt);
         for (int i = 0; i < cpt; i++) {
             rejects.add(decoder.readString());
         }

@@ -291,7 +291,7 @@ include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files
 
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 How often Gradle will perform this clean-up and how long entries will be retained is configurable via an init-script as demonstrated
-<<directory_layout#dir:gradle_user_home:configure_cache_cleanup,in this section>>.
+<<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup, in this section>>.
 
 [[sec:build_cache_configure_remote]]
 === Remote HTTP build cache

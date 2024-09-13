@@ -23,8 +23,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class TestEventsIntegrationTest extends AbstractIntegrationSpec {
-    @UnsupportedWithConfigurationCache(because = "expects deprecation that is only issued without CC")
+    @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
     def "nags when #type is registered via gradle.addListener() and feature preview is enabled"() {
+        settingsFile """
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        """
         buildFile """
             def testListener = new TestListener() {
                 void beforeSuite(TestDescriptor suite) {}

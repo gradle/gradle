@@ -394,7 +394,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 Gradle exposes an API to declare what a repository may or may not contain.
 This feature offers a fine grained control on which repository serve which artifacts, which can be one way of controlling the source of dependencies.
 
-Head over to <<declaring_repositories.adoc#sec:repository-content-filtering,the section on repository content filtering>> to know more about this feature.
+Head over to <<declaring_repositories_adv.adoc#sec:repository-content-filtering,the section on repository content filtering>> to know more about this feature.
 
 [[sec:ivy_dynamic_resolve_mode]]
 == Enabling Ivy dynamic resolve mode

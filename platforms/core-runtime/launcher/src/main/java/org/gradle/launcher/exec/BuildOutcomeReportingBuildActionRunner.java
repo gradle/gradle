@@ -52,7 +52,6 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         this.buildLoggerFactory = buildLoggerFactory;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         StartParameter startParameter = action.getStartParameter();

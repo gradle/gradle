@@ -98,10 +98,10 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
     /**
      * Walk the type hierarchy until we find the interface type and keep track the chain of the type parameters.
      *
-     * E.g.: For `interface Baz<T>`, interface `Bar<T extends CharSequence> extends Baz<T>` and `class Foo implements Bar<String>`,
-     * we'll have mapping `T extends CharSequence -> String` and `T -> String`.
+     * E.g.: For {@code interface Baz<T>}, interface {@code Bar<T extends CharSequence> extends Baz<T>} and {@code class Foo implements Bar<String>},
+     * we'll have mapping {@code T extends CharSequence -> String} and {@code T -> String}.
      *
-     * When we come to `Baz<T>`, we can then query the mapping for `T` and get `String`.
+     * When we come to {@code Baz<T>}, we can then query the mapping for {@code T} and get {@code String}.
      */
     @Nonnull
     private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {

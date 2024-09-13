@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -305,7 +306,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private String getClassName0(ClassNode classNode) {
         String name = classNode.getClassName();
-        String loweredName = name.toLowerCase();
+        String loweredName = name.toLowerCase(Locale.ROOT);
         if (!classNameCounter.containsKey(loweredName)) {
             classNameCounter.put(loweredName, 0);
             return name;
@@ -527,7 +528,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
             .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }
 

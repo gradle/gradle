@@ -28,22 +28,19 @@ import javax.inject.Inject;
 public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
 
     private final Gradle gradle;
-    private final BuildFeatures features;
+    private final BuildFeatures buildFeatures;
 
     @Inject
-    public DefaultDevelocityBuildLifecycleService(Gradle gradle, BuildFeatures features) {
+    public DefaultDevelocityBuildLifecycleService(Gradle gradle, BuildFeatures buildFeatures) {
         this.gradle = gradle;
-        this.features = features;
+        this.buildFeatures = buildFeatures;
     }
 
     @Override
     public void beforeProject(Action<? super Project> action) {
-        // Preserve behavior when Isolated Projects is not enabled:
-        // - `allprojects` executes eagerly before any project has been evaluated, allowing its effects
-        //   to be observable from other eager configuration blocks (e.g., `subprojects { ... }`).
-        // - `lifecycle.beforeProject` executes just before each project is evaluated. Therefore, its effects
-        //   are not observable from eager configuration blocks, which would anyway be incompatible with
-        //   Isolated Projects.
+        // GradleLifecycle#beforeProject isolates the action to be safe with Isolated Projects.
+        // This brings additional serializability requirements for any state referenced by the action.
+        // Therefore, the new callback cannot be used without Isolated Projects, because it implies a breaking change in behavior
         if (isIsolatedProjects()) {
             gradle.getLifecycle().beforeProject(action::execute);
         } else {
@@ -52,6 +49,6 @@ public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLi
     }
 
     private boolean isIsolatedProjects() {
-        return features.getIsolatedProjects().getActive().getOrElse(false);
+        return buildFeatures.getIsolatedProjects().getActive().getOrElse(false);
     }
 }

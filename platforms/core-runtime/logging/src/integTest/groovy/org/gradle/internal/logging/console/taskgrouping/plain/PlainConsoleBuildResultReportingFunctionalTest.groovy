@@ -21,9 +21,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildResu
 
 class PlainConsoleBuildResultReportingFunctionalTest extends AbstractConsoleBuildResultFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
-
-    @Override
-    def setup() {
-        executer.withArgument("-Dorg.gradle.configuration-cache.internal.deprecation.buildScopeListener=false")
-    }
 }

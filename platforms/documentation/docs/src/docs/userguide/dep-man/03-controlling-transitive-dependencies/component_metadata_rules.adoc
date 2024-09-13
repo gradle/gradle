@@ -110,7 +110,7 @@ The following details of each variant can be adjusted:
 
 - The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant — `attributes {}` block
 - The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides — `withCapabilities { }` block
-- The <<declaring_dependencies.adoc#declaring-dependencies,dependencies>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencies {}` block
+- The <<declaring_dependencies.adoc#declaring-basic-dependencies,dependencies>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencies {}` block
 - The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencyConstraints {}` block
 - The location of the published files that make up the actual content of the variant — `withFiles { }` block
 
@@ -159,7 +159,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 ====
 
 Within the `withDependencies` block you have access to the full list of dependencies and can use all methods available on the Java collection interface to inspect and modify that list.
-In addition, there are `add(notation, configureAction)` methods accepting the usual notations similar to <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies>> in the build script.
+In addition, there are `add(notation, configureAction)` methods accepting the usual notations similar to <<declaring_dependencies.adoc#declaring-basic-dependencies,declaring dependencies>> in the build script.
 Dependency constraints can be inspected and modified the same way in the `withDependencyConstraints` block.
 
 If we take a closer look at the Jaxen 1.1.4 pom, we observe that the _dom4j_, _jdom_ and _xerces_ dependencies are still there but marked as _optional_.

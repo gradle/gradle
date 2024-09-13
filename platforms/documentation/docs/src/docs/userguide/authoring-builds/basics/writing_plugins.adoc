@@ -22,7 +22,42 @@ Additionally, if you find yourself duplicating build logic across subprojects an
 == Custom plugin
 
 A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
-The example below is the most straightforward plugin, a "hello world" *plugin*:
+
+To create a "hello world" *plugin*:
+
+[source,kotlin]
+----
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+abstract class SamplePlugin : Plugin<Project> { // <1>
+    override fun apply(project: Project) {      // <2>
+        project.tasks.create("SampleTask") {
+            println("Hello world!")
+        }
+    }
+}
+----
+<1> Extend the `org.gradle.api.Plugin` interface.
+<2> Override the `apply` method.
+
+=== 1. Extend the `org.gradle.api.Plugin` interface
+Create a class that extends the `Plugin` interface.
+
+[source,kotlin]
+----
+abstract class MyCreateFilePlugin : Plugin<Project> {
+    override fun apply() {}
+}
+----
+
+=== 2. Override the `apply` method
+Add tasks and other logic in the `apply()` method.
+
+When `SamplePlugin` is applied in your project, Gradle calls the `fun apply() {}` method defined.
+This adds the `SampleTask` to your project.
+
+You can then apply the plugin in your build script:
 
 .build.gradle.kts
 [source,kotlin]
@@ -30,28 +65,64 @@ The example below is the most straightforward plugin, a "hello world" *plugin*:
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+plugins {
+    application
+}
+
+//
+// More build script logic
+//
+
 abstract class SamplePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.tasks.create("SampleTask") {
-            println("Hello world!")
+        project.tasks.register("createFileTask") {
+            val fileText = "HELLO FROM MY PLUGIN"
+            val myFile = File("myfile.txt")
+            myFile.createNewFile()
+            myFile.writeText(fileText)
         }
     }
 }
+
+apply<SamplePlugin>()   // <1>
+----
+<1> Apply the `SamplePlugin`.
+
+Note that this is a simple hello-world example and does not reflect best practices.
+
+IMPORTANT: Script plugins are *not* recommended. Plugin code should *not* be in your `build.gradle(.kts)` file.
+
+Plugins should always be written as _pre-compiled script plugins_, _convention plugins_ or _binary plugins_.
+
+== Pre-compiled script plugin
+
+Pre-compiled script plugins offer an easy way to rapidly prototype and experiment.
+They let you package build logic as `*.gradle(.kts)` script files using the Groovy or Kotlin DSL.
+These scripts reside in specific directories, such as `src/main/groovy` or `src/main/kotlin`.
+
+To apply one, simply use its `ID` derived from the script filename (without `.gradle`).
+You can think of the file itself as the plugin, so you do not need to subclass the `Plugin` interface in a precompiled script.
+
+Let's take a look at an example with the following structure:
+
+[source,text]
+----
+└── buildSrc
+    ├── build.gradle.kts
+    └── src
+       └── main
+          └── kotlin
+             └── my-create-file-plugin.gradle.kts
 ----
 
-== Script plugin
+Our `my-create-file-plugin.gradle.kts` file contains the following code:
 
-Many plugins start as a script plugin coded in a build script.
-This offers an easy way to rapidly prototype and experiment when building a plugin.
-Let's take a look at an example:
-
-.build.gradle.kts
+.buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts
 [source,kotlin]
 ----
-// Define a task
-abstract class CreateFileTask : DefaultTask() {                                     // <1>
+abstract class CreateFileTask : DefaultTask() {
     @get:Input
-    abstract val fileText: Property<String>                                         // <2>
+    abstract val fileText: Property<String>
 
     @Input
     val fileName = "myfile.txt"
@@ -66,81 +137,40 @@ abstract class CreateFileTask : DefaultTask() {                                 
     }
 }
 
-// Define a plugin
-abstract class MyPlugin : Plugin<Project> {                                         // <3>
-    override fun apply(project: Project) {
-        tasks {
-            register("createFileTask", CreateFileTask::class) {
-                group = "from my plugin"
-                description = "Create myfile.txt in the current directory"
-                fileText.set("HELLO FROM MY PLUGIN")
-            }
-        }
-    }
-}
-
-// Apply the local plugin
-apply<MyPlugin>()                                                                   // <4>
-----
-<1> Subclass `DefaultTask()`.
-<2> Use lazy configuration in the task.
-<3> Extend the `org.gradle.api.Plugin` interface.
-<4> Apply the script plugin.
-
-=== 1. Subclass `DefaultTask()`
-First, build a task by subclassing `DefaultTask()`.
-
-[source,kotlin]
-----
-abstract class CreateFileTask : DefaultTask() { }
-----
-
-This simple task adds a file to our application’s root directory.
-
-=== 2. Use Lazy Configuration
-Gradle has a concept called _lazy configuration_, which allows task inputs and outputs to be referenced before they are actually set.
-This is done via the link:{javadocPath}/org/gradle/api/provider/Property.html[`Property`] class type.
-
-[source,kotlin]
-----
-abstract val fileText: Property<String>
-----
-
-One advantage of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
-The `Property` class also knows which task it’s linked to, enabling Gradle to add the required task dependency automatically.
-
-=== 3. Extend the `org.gradle.api.Plugin` interface
-Next, create a new class that extends the `org.gradle.api.Plugin` interface.
-
-[source]
-----
-abstract class MyPlugin : Plugin<Project> {
-    override fun apply() {}
+tasks.register("createFileTask", CreateFileTask::class) {
+    group = "from my plugin"
+    description = "Create myfile.txt in the current directory"
+    fileText.set("HELLO FROM MY PLUGIN")
 }
 ----
 
-You can add tasks and other logic in the `apply()` method.
+And the `buildSrc` build file contains the following:
 
-=== 4. Apply the script plugin
-Finally, apply the local plugin in the build script.
-
-[source]
+.buildSrc/build.gradle.kts
+[source,kotlin]
 ----
-apply<MyPlugin>()
+plugins {
+    `kotlin-dsl`
+}
 ----
 
-When `MyPlugin` is applied in the build script, Gradle calls the `fun apply() {}` method defined in the custom `MyPlugin` class.
+The pre-compiled script can now be applied in the `build.gradle(.kts`) file of any subproject:
 
-This makes the plugin available to the application.
+[source,kotlin]
+----
+plugins {
+    id("my-create-file-plugin")  // Apply the plugin
+}
+----
 
-NOTE: Script plugins are NOT recommended. Script plugins offer an easy way to rapidly prototype build logic, before migrating it to a more permanent solution such as *convention plugins* or *binary plugins*.
+The `createFileTask` task from the plugin is now available in your subproject.
 
 == Convention Plugins
 
 Convention plugins are a way to encapsulate and reuse common build logic in Gradle.
 They allow you to define a set of conventions for a project, and then apply those conventions to other projects or modules.
 
-The example above has been re-written as a convention plugin stored in `buildSrc`:
+The example above has been re-written as a convention plugin as a Kotlin script called `MyConventionPlugin.kt` and stored in `buildSrc`:
 
 .buildSrc/src/main/kotlin/MyConventionPlugin.kt
 [source,kotlin]
@@ -190,8 +220,8 @@ The plugin can be given an `id` using a `gradlePlugin{}` block so that it can be
 gradlePlugin {
     plugins {
         create("my-convention-plugin") {
-            id = "com.gradle.plugin.my-convention-plugin"
-            implementationClass = "com.gradle.plugin.MyConventionPlugin"
+            id = "my-convention-plugin"
+            implementationClass = "MyConventionPlugin"
         }
     }
 }
@@ -205,7 +235,7 @@ With the newly created `id`, the plugin can be applied in other build scripts ac
 ----
 plugins {
     application
-    id("com.gradle.plugin.my-convention-plugin") // Apply the new plugin
+    id("my-convention-plugin") // Apply the plugin
 }
 ----
 

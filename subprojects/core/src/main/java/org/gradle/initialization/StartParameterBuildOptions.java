@@ -79,9 +79,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheIgnoredFileSystemCheckInputs());
         options.add(new ConfigurationCacheDebugOption());
+        options.add(new ConfigurationCacheParallelOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         options.add(new IsolatedProjectsOption());
+        options.add(new PropertyUpgradeReportOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -588,6 +590,21 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    public static class ConfigurationCacheParallelOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.parallel";
+
+        public ConfigurationCacheParallelOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheParallel(value);
+        }
+
+    }
+
     public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.internal.recreate-cache";
@@ -616,6 +633,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    public static class PropertyUpgradeReportOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "property-upgrade-report";
+
+        public PropertyUpgradeReportOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Runs build with experimental property upgrade report."));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setPropertyUpgradeReportEnabled(true);
         }
     }
 }

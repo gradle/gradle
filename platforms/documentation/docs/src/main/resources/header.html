@@ -26,17 +26,24 @@
                             </svg>
                         </a>
                         <script type="text/javascript">
-                            const themeToggleBtn = document.querySelector('.theme-toggle');
-                            const theme = localStorage.getItem('theme');
-                            theme && document.body.classList.add(theme);
-                            const handleThemeToggle = () => {
-                              if (document.body.classList.contains('dark-mode')) {
-                                localStorage.setItem('theme', 'dark-mode');
+                            const btn = document.querySelector(".theme-toggle");
+                            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+                            const currentTheme = localStorage.getItem("theme");
+                            if (currentTheme == "dark") {
+                              document.body.classList.toggle("dark-theme");
+                            } else if (currentTheme == "light") {
+                              document.body.classList.toggle("light-theme");
+                            }
+                            btn.addEventListener("click", function () {
+                              if (prefersDarkScheme.matches) {
+                                document.body.classList.toggle("light-theme");
+                                var theme = document.body.classList.contains("light-theme")? "light" : "dark";
                               } else {
-                                localStorage.removeItem('theme');
+                                document.body.classList.toggle("dark-theme");
+                                var theme = document.body.classList.contains("dark-theme")? "dark" : "light";
                               }
-                            };
-                            themeToggleBtn.addEventListener('click', handleThemeToggle);
+                              localStorage.setItem("theme", theme);
+                            });
                         </script>
                     </li>
                     <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
@@ -252,42 +259,20 @@
                 <li><a href="../userguide/logging.html">Logging with Gradle</a></li>
             </ul>
 
-            <h3 id="authoring-gradle-builds-java">Authoring JVM Builds</h3>
+            <h3 id="managing-dependencies">Dependency Management</h3>
             <ul>
-                <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
-                <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
-                    <ul id="java-toolchains">
-                        <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
-                        <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
-                    </ul>
-                </li>
-                <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
-                    <ul id="jvm-plugins">
-                        <li><a href="../userguide/java_library_plugin.html">Java Library Plugin</a></li>
-                        <li><a href="../userguide/application_plugin.html">Java Application Plugin</a></li>
-                        <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
-                        <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
-                        <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
-                    </ul>
-                </li>
-            </ul>
-
-            <h3 id="managing-dependencies">Working with Dependencies</h3>
-            <ul>
-                <li><a href="../userguide/dependency_management_terminology.html">Terminology</a></li>
+                <li><a href="../userguide/getting_started_dep_man.html">Getting Started</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics-dependency-management" aria-expanded="false" aria-controls="learning-the-basics-dependency-management">Learning the Basics</a>
                     <ul id="learning-the-basics-dependency-management">
-                        <li><a href="../userguide/core_dependency_management.html">What is Dependency Management?</a></li>
-                        <li><a href="../userguide/declaring_repositories.html">Declaring Repositories</a></li>
-                        <li><a href="../userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
-                        <li><a href="../userguide/library_vs_application.html">Understanding Library and Application Differences</a></li>
-                        <li><a href="../userguide/viewing_debugging_dependencies.html">Viewing and Debugging Dependencies</a></li>
-                        <li><a href="../userguide/dependency_resolution.html">Understanding Resolution</a></li>
-                        <li><a href="../userguide/dependency_verification.html">Verifying dependencies</a></li>
+                        <li><a href="../userguide/declaring_dependencies.html">1. Declaring Dependencies</a></li>
+                        <li><a href="../userguide/dependency_configurations.html">2. Dependency Configurations</a></li>
+                        <li><a href="../userguide/declaring_repositories.html">3. Declaring Repositories</a></li>
+                        <li><a href="../userguide/centralizing_dependencies.html">4. Centralizing Dependencies</a></li>
+                        <li><a href="../userguide/dependency_constraints_conflicts.html">5. Dependency Constraints and Conflict Resolution</a></li>
                     </ul>
                 </li>
+                <li><a href="../userguide/declaring_dependencies_adv.html">Advanced Dependency Declaration</a></li>
+                <li><a href="../userguide/declaring_repositories_adv.html">Advanced Repository Declaration</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependency-versions" aria-expanded="false" aria-controls="declaring-dependency-versions">Declaring Versions</a>
                     <ul id="declaring-dependency-versions">
                         <li><a href="../userguide/single_versions.html">Declaring Versions and Ranges</a></li>
@@ -326,6 +311,28 @@
                         <li><a href="../userguide/publishing_customization.html">Customizing Publishing</a></li>
                         <li><a href="../userguide/publishing_maven.html">Maven Publish Plugin</a></li>
                         <li><a href="../userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="authoring-gradle-builds-java">Authoring JVM Builds</h3>
+            <ul>
+                <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
+                <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
+                    <ul id="java-toolchains">
+                        <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
+                        <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
+                    </ul>
+                </li>
+                <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
+                    <ul id="jvm-plugins">
+                        <li><a href="../userguide/java_library_plugin.html">Java Library Plugin</a></li>
+                        <li><a href="../userguide/application_plugin.html">Java Application Plugin</a></li>
+                        <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
+                        <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
+                        <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
                     </ul>
                 </li>
             </ul>
@@ -374,6 +381,7 @@
                         <li><a href="../kotlin-dsl/index.html" target="_blank">Kotlin DSL API</a></li>
                         <li><a href="../userguide/migrating_from_groovy_to_kotlin_dsl.html">Groovy to Kotlin DSL Migration</a></li>
                         <li><a href="../samples/index.html">Samples</a></li>
+                        <li><a href="../userguide/glossary.html">Glossary</a></li>
                     </ul>
                 </li>
                 <li><a href="https://community.gradle.org/cookbook/">Gradle Cookbook</a></li>

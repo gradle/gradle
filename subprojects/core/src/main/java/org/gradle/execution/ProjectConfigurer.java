@@ -34,8 +34,12 @@ public interface ProjectConfigurer {
     void configureFully(ProjectState projectState);
 
     /**
-     * Configures the given project and all its sub-projects.
+     * Configures the given project and all its subprojects.
      */
     void configureHierarchy(ProjectInternal project);
 
+    /**
+     * Configures the given project and all its subprojects in parallel.
+     */
+    void configureHierarchyInParallel(ProjectInternal project);
 }

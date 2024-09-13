@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -28,9 +28,9 @@ dependencies {
     implementation(libs.asmTree)
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
+    implementation(libs.guava)
 
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.baseServices)
     implementation(projects.baseAsm)
 
     testCompileOnly(libs.jetbrainsAnnotations)
@@ -57,4 +57,7 @@ tasks.named<Test>("test").configure {
             "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
         )
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

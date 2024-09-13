@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
 import spock.lang.Specification

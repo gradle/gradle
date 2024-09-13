@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.intellij.lang.annotations.Language
@@ -37,20 +38,22 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
     static final String MAX_PROBLEMS_GRADLE_PROP = "${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
     static final String MAX_PROBLEMS_SYS_PROP = "-D$MAX_PROBLEMS_GRADLE_PROP"
 
+    static final String ENABLE_PARALLEL_CACHE = "-D${ConfigurationCacheParallelOption.PROPERTY_NAME}=true"
+
     void buildKotlinFile(@Language(value = "kotlin") String script) {
         buildKotlinFile << script
     }
 
     void configurationCacheRun(String... tasks) {
-        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *tasks)
+        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, *tasks)
     }
 
     void configurationCacheRunLenient(String... tasks) {
-        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, WARN_PROBLEMS_CLI_OPT, *tasks)
+        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
     void configurationCacheFails(String... tasks) {
-        fails(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *tasks)
+        fails(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, *tasks)
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {

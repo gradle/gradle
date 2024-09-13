@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,7 @@ public class Dimensions {
 
     public static String createDimensionSuffix(String dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(dimensionValue.toLowerCase());
+            return StringUtils.capitalize(dimensionValue.toLowerCase(Locale.ROOT));
         }
         return "";
     }

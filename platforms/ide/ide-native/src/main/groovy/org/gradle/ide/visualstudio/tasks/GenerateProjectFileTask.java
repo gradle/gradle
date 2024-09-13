@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -28,15 +31,24 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
+import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.util.internal.VersionNumber;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
@@ -44,7 +56,10 @@ import java.util.concurrent.Callable;
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
-    private DefaultVisualStudioProject visualStudioProject;
+    private transient DefaultVisualStudioProject visualStudioProject;
+    private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
+    private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getProjectFile().getLocation()));
+    private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
     private String gradleExe;
     private String gradleArgs;
 
@@ -57,15 +72,15 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
         getConventionMapping().map("gradleExe", new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
-                final String rootDir = getTransformer().transform(getProject().getRootDir());
+            public Object call() {
+                final String rootDir = transformer.get().transform(getProject().getRootDir());
                 String args = "";
                 if (!rootDir.equals(".")) {
                     args = " -p \"" + rootDir + "\"";
                 }
 
                 if (gradlew.isFile()) {
-                    return "\"" + getTransformer().transform(gradlew) + "\"" + args;
+                    return "\"" + transformer.get().transform(gradlew) + "\"" + args;
                 }
 
                 return "\"gradle\"" + args;
@@ -82,9 +97,20 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
-    @Nested
+    @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
+    }
+
+    /**
+     * Returns the {@link ProjectSpec} for this task.
+     *
+     * @since 8.11
+     */
+    @Nested
+    @Incubating
+    protected ProjectSpec getSpec() {
+        return spec.get();
     }
 
     @Override
@@ -96,42 +122,43 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     @Override
     @OutputFile
     public File getOutputFile() {
-        return visualStudioProject.getProjectFile().getLocation();
+        return outputFile.get();
     }
 
     @Override
     protected VisualStudioProjectFile create() {
-        return new VisualStudioProjectFile(getXmlTransformer(), getTransformer());
+        return new VisualStudioProjectFile(getXmlTransformer(), transformer.get());
     }
 
     @Override
     protected void configure(VisualStudioProjectFile projectFile) {
-        DefaultVisualStudioProject vsProject = visualStudioProject;
-        projectFile.setGradleCommand(buildGradleCommand());
-        projectFile.setProjectUuid(DefaultVisualStudioProject.getUUID(getOutputFile()));
-        projectFile.setVisualStudioVersion(visualStudioProject.getVisualStudioVersion().get());
-        projectFile.setSdkVersion(visualStudioProject.getSdkVersion().get());
+        ProjectSpec spec = this.spec.get();
 
-        for (File sourceFile : vsProject.getSourceFiles()) {
+        projectFile.setGradleCommand(spec.gradleCommand);
+        projectFile.setProjectUuid(DefaultVisualStudioProject.getUUID(outputFile.get()));
+        projectFile.setVisualStudioVersion(spec.visualStudioVersion.get());
+        projectFile.setSdkVersion(spec.sdkVersion.get());
+
+        for (File sourceFile : spec.sourceFiles) {
             projectFile.addSourceFile(sourceFile);
         }
 
-        for (File resourceFile : vsProject.getResourceFiles()) {
+        for (File resourceFile : spec.resourceFiles) {
             projectFile.addResource(resourceFile);
         }
 
-        for (File headerFile : vsProject.getHeaderFiles()) {
+        for (File headerFile : spec.headerFiles) {
             projectFile.addHeaderFile(headerFile);
         }
 
-        if (vsProject.getConfigurations().stream().noneMatch(it -> it.isBuildable())) {
-            getLogger().warn("'" + vsProject.getComponentName() + "' component in project '" + getProject().getPath() + "' is not buildable.");
+        if (spec.warning != null) {
+            getLogger().warn(spec.warning);
         }
-        for (VisualStudioProjectConfiguration configuration : vsProject.getConfigurations()) {
+        for (VisualStudioProjectFile.ConfigurationSpec configuration : spec.configurations) {
             projectFile.addConfiguration(configuration);
         }
 
-        for (Action<? super XmlProvider> xmlAction : vsProject.getProjectFile().getXmlActions()) {
+        for (Action<? super XmlProvider> xmlAction : spec.xmlActions) {
             getXmlTransformer().addAction(xmlAction);
         }
     }
@@ -144,10 +171,9 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         } else {
             return exe + " " + args.trim();
         }
-
     }
 
-    @Input
+    @Internal
     public String getGradleExe() {
         return gradleExe;
     }
@@ -157,13 +183,209 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     }
 
     @Nullable
-    @Optional
-    @Input
+    @Internal
     public String getGradleArgs() {
         return gradleArgs;
     }
 
     public void setGradleArgs(@Nullable String gradleArgs) {
         this.gradleArgs = gradleArgs;
+    }
+
+    private ProjectSpec calculateSpec() {
+        String warning;
+        if (visualStudioProject.getConfigurations().stream().noneMatch(it -> it.isBuildable())) {
+            warning = "'" + visualStudioProject.getComponentName() + "' component in project '" + getProject().getPath() + "' is not buildable.";
+        } else {
+            warning = null;
+        }
+
+        List<VisualStudioProjectFile.ConfigurationSpec> configurations = new ArrayList<>();
+        for (VisualStudioProjectConfiguration configuration : visualStudioProject.getConfigurations()) {
+            VisualStudioTargetBinary targetBinary = configuration.getTargetBinary();
+            if (targetBinary != null) {
+                configurations.add(new VisualStudioProjectFile.ConfigurationSpec(
+                    configuration.getName(),
+                    configuration.getConfigurationName(),
+                    configuration.getProject().getName(),
+                    configuration.getPlatformName(),
+                    configuration.getType(),
+                    configuration.isBuildable(),
+                    targetBinary.isDebuggable(),
+                    targetBinary.getIncludePaths(),
+                    targetBinary.getBuildTaskPath(),
+                    targetBinary.getCleanTaskPath(),
+                    targetBinary.getCompilerDefines(),
+                    targetBinary.getOutputFile(),
+                    targetBinary.getLanguageStandard()
+                ));
+            } else {
+                configurations.add(new VisualStudioProjectFile.ConfigurationSpec(
+                    configuration.getName(),
+                    configuration.getConfigurationName(),
+                    configuration.getProject().getName(),
+                    configuration.getPlatformName(),
+                    configuration.getType(),
+                    configuration.isBuildable(),
+                    false,
+                    Collections.emptySet(),
+                    null,
+                    null,
+                    Collections.emptyList(),
+                    null,
+                    null
+                ));
+            }
+        }
+
+        return new ProjectSpec(
+            visualStudioProject.getVisualStudioVersion(),
+            visualStudioProject.getSdkVersion(),
+            visualStudioProject.getSourceFiles(),
+            visualStudioProject.getResourceFiles(),
+            visualStudioProject.getHeaderFiles(),
+            buildGradleCommand(),
+            warning,
+            configurations,
+            visualStudioProject.getProjectFile().getXmlActions()
+        );
+    }
+
+    /**
+     * The data to use to generate the project file.
+     *
+     * @since 8.11
+     */
+    @Incubating
+    protected static class ProjectSpec {
+        final Provider<VersionNumber> visualStudioVersion;
+        final Provider<VersionNumber> sdkVersion;
+        final FileCollection sourceFiles;
+        final Set<File> resourceFiles;
+        final FileCollection headerFiles;
+        final String gradleCommand;
+        final String warning;
+        final List<VisualStudioProjectFile.ConfigurationSpec> configurations;
+        final List<Action<? super XmlProvider>> xmlActions;
+
+        private ProjectSpec(
+            Provider<VersionNumber> visualStudioVersion,
+            Provider<VersionNumber> sdkVersion,
+            FileCollection sourceFiles,
+            Set<File> resourceFiles,
+            FileCollection headerFiles,
+            String gradleCommand,
+            @Nullable String warning,
+            List<VisualStudioProjectFile.ConfigurationSpec> configurations,
+            List<Action<? super XmlProvider>> xmlActions
+        ) {
+            this.visualStudioVersion = visualStudioVersion;
+            this.sdkVersion = sdkVersion;
+            this.sourceFiles = sourceFiles;
+            this.resourceFiles = resourceFiles;
+            this.headerFiles = headerFiles;
+            this.gradleCommand = gradleCommand;
+            this.warning = warning;
+            this.configurations = configurations;
+            this.xmlActions = xmlActions;
+        }
+
+        /**
+         * The VS version for this project.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Provider<String> getVisualStudioVersion() {
+            return visualStudioVersion.map(VersionNumber::toString);
+        }
+
+        /**
+         * The SDK version for this project.
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Provider<String> getSdkVersion() {
+            return sdkVersion.map(VersionNumber::toString);
+        }
+
+        /**
+         * The source files for this project.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Provider<Set<String>> getSourceFilePaths() {
+            return sourceFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+        }
+
+        /**
+         * The resource files for this project.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Set<String> getResourceFilePaths() {
+            return collect(resourceFiles, File::getAbsolutePath);
+        }
+
+        /**
+         * The header files for this project.
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public Provider<Set<String>> getHeaderFilesPaths() {
+            return headerFiles.getElements().map(files -> collect(files, file -> file.getAsFile().getAbsolutePath()));
+        }
+
+        /**
+         * Command to use to run Gradle from the project.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Incubating
+        public String getGradleCommand() {
+            return gradleCommand;
+        }
+
+        /**
+         * Warning to report to users after generating the project file.
+         *
+         * @since 8.11
+         */
+        @Input
+        @Optional
+        @Incubating
+        public String getWarning() {
+            return warning;
+        }
+
+        /**
+         * Configurations to include in the project.
+         *
+         * @since 8.11
+         */
+        @Nested
+        @Incubating
+        public List<VisualStudioProjectFile.ConfigurationSpec> getConfigurations() {
+            return configurations;
+        }
+
+        /**
+         * Additional XML generation actions.
+         *
+         * @since 8.11
+         */
+        @Nested
+        @Incubating
+        public List<Action<? super XmlProvider>> getXmlActions() {
+            return xmlActions;
+        }
     }
 }

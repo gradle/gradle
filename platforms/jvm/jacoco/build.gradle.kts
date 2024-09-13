@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Plugin and integration with JaCoCo code coverage"
@@ -16,6 +17,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.fileOperations)
     api(projects.platformJvm)
     api(projects.reporting)
 
@@ -23,7 +25,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
@@ -65,4 +66,7 @@ strictCompile {
 packageCycles {
     excludePatterns.add("org/gradle/internal/jacoco/*")
     excludePatterns.add("org/gradle/testing/jacoco/plugins/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

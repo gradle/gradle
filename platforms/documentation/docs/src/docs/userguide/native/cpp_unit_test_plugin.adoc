@@ -15,8 +15,6 @@
 [[cpp_unit_test_plugin]]
 = {cpp} Unit Test
 
-WARNING: The {cpp} Unit Test Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The {cpp} Unit Test Plugin provides the tasks, configurations and conventions for integrating with a {cpp} executable-based testing framework, such as https://github.com/google/googletest[Google Test].
 
 [[sec:cpp_unit_test_usage]]

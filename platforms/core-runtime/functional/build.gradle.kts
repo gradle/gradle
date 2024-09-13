@@ -11,3 +11,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

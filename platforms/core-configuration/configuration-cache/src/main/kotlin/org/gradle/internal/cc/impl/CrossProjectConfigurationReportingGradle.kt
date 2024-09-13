@@ -132,12 +132,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getLifecycle(): GradleLifecycle =
         delegate.lifecycle
 
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun addListener(listener: Any) {
         delegate.addListener(maybeWrapListener(listener))
     }
 
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun removeListener(listener: Any) {
         delegate.removeListener(maybeWrapListener(listener))
     }
@@ -282,12 +280,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
         // already reported as configuration cache problem, no need to override
         delegate.buildFinished(action)
 
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun addBuildListener(buildListener: BuildListener) =
         // already reported as configuration cache problem, no need to override
         delegate.addBuildListener(buildListener)
 
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun useLogger(logger: Any) =
         delegate.useLogger(logger)
 

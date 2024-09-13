@@ -24,10 +24,6 @@ public class LocaleSafeDecimalFormat {
 
     /**
      * Regardless of the default locale, comma ('.') is used as decimal separator
-     *
-     * @param source
-     * @return
-     * @throws ParseException
      */
     public BigDecimal parse(String source) throws ParseException {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();

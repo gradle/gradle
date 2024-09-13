@@ -15,8 +15,8 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.baseServices)
-    implementation(projects.logging)
     implementation(projects.daemonProtocol)
+    implementation(projects.logging)
 
     testImplementation(testFixtures(projects.core))
 
@@ -27,4 +27,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -37,6 +37,7 @@ import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -196,7 +197,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.buildFinished() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         succeeds("all")
 
         then:
@@ -378,7 +378,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.buildFinished() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         succeeds "t"
 
         List<BuildOperationRecord.Progress> output = []
@@ -392,6 +391,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForIsolatedProjects(because = "Different amount of events for IP mode")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4454")
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -431,8 +431,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .findAll { it.details.get("category") != LoggingDeprecatedFeatureHandler.class.name }
 
         // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
-        // when configuration cache is enabled also "Configuration cache entry reused."
-        def expectedEvents = GradleContextualExecuter.configCache ? 15 : 14
+        // when configuration cache is enabled also "Configuration cache entry reused." and "Parallel Configuration Cache is an incubating feature."
+        def expectedEvents = GradleContextualExecuter.configCache ? 16 : 14
 
         assert progressOutputEvents.size() == expectedEvents
     }

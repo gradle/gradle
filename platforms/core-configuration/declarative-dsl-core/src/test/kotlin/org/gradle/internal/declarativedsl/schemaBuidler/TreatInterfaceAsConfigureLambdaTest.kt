@@ -17,12 +17,12 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.reflect.typeOf
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 
 class TreatInterfaceAsConfigureLambdaTest {

@@ -116,6 +116,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
+        // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be a replaced with a future problem listener feature.
         for (ProblemEmitter emitter : emitters) {
             emitter.emit(problem, id);
         }

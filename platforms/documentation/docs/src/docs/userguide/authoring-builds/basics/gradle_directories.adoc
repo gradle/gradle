@@ -71,9 +71,11 @@ Consult the <<directory_layout.adoc#dir:gradle_user_home,Gradle Directories refe
 
 The project root directory contains all source files from your project.
 
-It also contains files and directories Gradle generates, such as `.gradle` and `build`.
+It also contains files and directories Gradle generates, such as `.gradle` and `build`, as well as the Gradle configuration directory: `gradle`.
 
-While `.gradle` is usually checked into source control, the `build` directory contains the output of your builds as well as transient files Gradle uses to support features like incremental builds.
+TIP: `gradle` and `.gradle` directories are different.
+
+While `gradle` is usually checked into source control, `build` and `.gradle` directories contain the output of your builds, caches, and other transient files Gradle uses to support features like incremental builds.
 
 The anatomy of a typical project root directory looks as follows:
 

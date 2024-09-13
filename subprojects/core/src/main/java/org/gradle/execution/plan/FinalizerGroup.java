@@ -47,9 +47,13 @@ public class FinalizerGroup extends HasFinalizers {
     private boolean hasBeenScheduled;
 
     public FinalizerGroup(TaskNode node, NodeGroup delegate) {
-        this.ordinal = delegate.asOrdinal();
+        this(node, delegate, delegate.asOrdinal());
+    }
+
+    public FinalizerGroup(TaskNode node, NodeGroup delegate, @Nullable OrdinalGroup ordinal) {
         this.node = node;
         this.delegate = delegate;
+        this.ordinal = ordinal;
     }
 
     @Override

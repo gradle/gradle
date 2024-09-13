@@ -17,6 +17,7 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -91,6 +92,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | VALID
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "the #configuration configuration is setup correctly for consumption in the #plugin plugin"() {
         when:
         createDirs("sub")
@@ -149,6 +151,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
     def "the #configuration configuration is setup correctly for resolution in the #plugin plugin"() {
         given:
+        settingsFile << "rootProject.name = 'test'"
         buildFile << """
             plugins { id '$plugin' }
             task resolve {
@@ -174,7 +177,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for resolution. This will fail with an error in Gradle 8.0. Please resolve the ${alternatives} configuration instead.")
         !valid(alternatives)        || output.contains("> Task :resolve\n\n")
         !forbidden(alternatives)    || errorOutput.contains("Resolving dependency configuration '$configuration' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '$configuration' should be resolved.")
-        !doesNotExist(alternatives) || errorOutput.contains("Could not get unknown property '$configuration' for configuration container of type org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer.")
+        !doesNotExist(alternatives) || errorOutput.contains("Could not get unknown property '$configuration' for configuration container for root project 'test' of type org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer.")
 
         where:
         plugin         | configuration                  | alternatives

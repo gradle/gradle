@@ -35,7 +35,6 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
-import org.gradle.internal.extensions.core.add
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
@@ -44,6 +43,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
 
@@ -81,7 +81,11 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(TaskExecutionAccessCheckerProvider)
             add(DefaultConfigurationCacheHost::class.java)
             add(DefaultConfigurationCacheIO::class.java)
-            add<IsolatedProjectEvaluationListenerProvider, DefaultIsolatedProjectEvaluationListenerProvider>()
+            add(
+                IsolatedProjectEvaluationListenerProvider::class.java,
+                GradleLifecycleActionExecutor::class.java,
+                DefaultIsolatedProjectEvaluationListenerProvider::class.java
+            )
         }
     }
 

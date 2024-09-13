@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.parsing
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
 class BasicParsingTest {

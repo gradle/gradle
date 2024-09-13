@@ -38,3 +38,6 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

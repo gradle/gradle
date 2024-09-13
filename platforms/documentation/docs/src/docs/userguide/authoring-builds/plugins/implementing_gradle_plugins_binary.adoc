@@ -544,7 +544,7 @@ You might want to automatically download an artifact using Gradle’s dependency
 Ideally, the plugin implementation does not need to ask the user for the coordinates of that dependency - it can simply predefine a sensible default version.
 
 Let’s look at an example of a plugin that downloads files containing data for further processing.
-The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-dependencies,assigning those external dependencies with dependency coordinates>>:
+The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-basic-dependencies,assigning those external dependencies with dependency coordinates>>:
 
 .DataProcessingPlugin.java
 [source,java]
@@ -632,7 +632,7 @@ First, we declare a separate _source set_ and a _feature variant_ for our Gradle
 Then, we do some specific wiring to turn the feature into a proper Gradle plugin variant:
 
 <1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
-<2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. Gradle uses this information to determine which variant to select during plugin resolution.
+<2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. Gradle uses this information to determine which variant to select during plugin resolution.
 <3> Configure the `processGradle7Resources` task to ensure the plugin descriptor file is added to the Gradle7 variant Jar.
 <4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
 
@@ -666,6 +666,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====
 
+[[reporting_problems]]
 == Reporting problems
 
 Plugins can report problems through Gradle's problem-reporting APIs.

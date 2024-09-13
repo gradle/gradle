@@ -18,11 +18,11 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.jvm.JpmsConfiguration;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
@@ -30,38 +30,37 @@ import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens=java.base/java.util=ALL-UNNAMED");
 
     private final ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
+
     private final File gradleUserHomeDir;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
-    private final DaemonJvmOptions jvmOptions;
+    private final JvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.ENABLED;
     private Map<String, String> envVariables;
     private boolean enabled = true;
-    private boolean hasJvmArgs;
-    private boolean userDefinedImmutableJvmArgs;
     private boolean foreground;
     private boolean stop;
     private boolean status;
@@ -73,13 +72,11 @@ public class DaemonParameters {
     }
 
     public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
-        jvmOptions = new DaemonJvmOptions(fileCollectionFactory);
+        jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
-            List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
             jvmOptions.systemProperties(extraSystemProperties);
-            List<String> immutableAfter = jvmOptions.getAllImmutableJvmArgs();
-            userDefinedImmutableJvmArgs = !immutableBefore.equals(immutableAfter);
         }
+        jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
         envVariables = new HashMap<>(System.getenv());
@@ -125,10 +122,6 @@ public class DaemonParameters {
         return jvmOptions.getAllImmutableJvmArgs();
     }
 
-    public List<String> getEffectiveSingleUseJvmArgs() {
-        return jvmOptions.getAllSingleUseImmutableJvmArgs();
-    }
-
     public DaemonJvmCriteria getRequestedJvmCriteria() {
         return requestedJvmCriteria;
     }
@@ -140,27 +133,33 @@ public class DaemonParameters {
     public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> buildProperties) {
         String requestedVersion = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
         if (requestedVersion != null) {
+            JavaLanguageVersion javaVersion;
             try {
-                JavaLanguageVersion javaVersion = DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
-                setRequestedJvmCriteria(new DaemonJvmCriteria.Spec(javaVersion, DefaultJvmVendorSpec.any(), JvmImplementation.VENDOR_SPECIFIC));
+                javaVersion = DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
             } catch (Exception e) {
                 // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
                 throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
             }
-        }
-    }
 
-    // TODO: Move this to the construction of DaemonRequestContext to avoid mutating the parameters? Is that possible?
-    public void applyDefaultsFromJvmCriteria(JvmVersionDetector detector) {
-        if (getRequestedJvmCriteria().probeJavaLanguageVersion(detector).asInt() >= 9) {
-            Set<String> jpmsArgs = new LinkedHashSet<>(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
-            jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
-            jvmOptions.jvmArgs(jpmsArgs);
+            final JvmVendorSpec javaVendor;
+            String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
+
+            if (requestedVendor != null) {
+                Optional<JvmVendor.KnownJvmVendor> knownVendor =
+                    Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
+
+                if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
+                    javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
+                } else {
+                    javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
+                }
+            } else {
+                // match any vendor
+                javaVendor = DefaultJvmVendorSpec.any();
+            }
+
+            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(javaVersion, javaVendor, JvmImplementation.VENDOR_SPECIFIC);
         }
-        if (hasJvmArgs) {
-            return;
-        }
-        jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
     }
 
     public Map<String, String> getSystemProperties() {
@@ -173,27 +172,19 @@ public class DaemonParameters {
         Map<String, String> systemProperties = new HashMap<String, String>();
         GUtil.addToMap(systemProperties, System.getProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
-        GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getImmutableSystemProperties());
         return systemProperties;
     }
 
     public Map<String, String> getMutableAndImmutableSystemProperties() {
         Map<String, String> systemProperties = new HashMap<String, String>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
-        GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getImmutableSystemProperties());
         return systemProperties;
     }
 
     public void setJvmArgs(Iterable<String> jvmArgs) {
-        hasJvmArgs = true;
-        List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
         jvmOptions.setAllJvmArgs(jvmArgs);
-        List<String> immutableAfter = jvmOptions.getAllImmutableJvmArgs();
-        userDefinedImmutableJvmArgs = userDefinedImmutableJvmArgs || !immutableBefore.equals(immutableAfter);
-    }
-
-    public boolean hasUserDefinedImmutableJvmArgs() {
-        return userDefinedImmutableJvmArgs;
     }
 
     public void setEnvironmentVariables(Map<String, String> envVariables) {
@@ -201,7 +192,6 @@ public class DaemonParameters {
     }
 
     public void setDebug(boolean debug) {
-        userDefinedImmutableJvmArgs = userDefinedImmutableJvmArgs || debug;
         jvmOptions.setDebug(debug);
     }
 

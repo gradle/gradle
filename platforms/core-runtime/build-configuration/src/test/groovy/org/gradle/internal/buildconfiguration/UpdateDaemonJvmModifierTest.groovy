@@ -16,9 +16,8 @@
 
 package org.gradle.internal.buildconfiguration
 
-import org.gradle.api.JavaVersion
 import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier
-import org.gradle.internal.jvm.inspection.JvmVendor
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,7 +32,7 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "writes expected properties into file"() {
         when:
-        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, JvmVendor.fromString("IBM"), JvmImplementation.VENDOR_SPECIFIC)
+        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM", JvmImplementation.VENDOR_SPECIFIC)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -44,7 +43,7 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "writes only non-null properties into file"() {
         when:
-        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, null, JvmImplementation.VENDOR_SPECIFIC)
+        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), null, JvmImplementation.VENDOR_SPECIFIC)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -54,7 +53,7 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "writes only java version when no other properties are given"() {
         when:
-        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, null, null)
+        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), null, null)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -70,7 +69,7 @@ class UpdateDaemonJvmModifierTest extends Specification {
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY}=vendor-specific
         """
         when:
-        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_15, null, null)
+        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(15), null, null)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "15"
@@ -85,7 +84,7 @@ class UpdateDaemonJvmModifierTest extends Specification {
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY}=15
         """
         when:
-        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, JvmVendor.fromString("IBM"), JvmImplementation.VENDOR_SPECIFIC)
+        UpdateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM", JvmImplementation.VENDOR_SPECIFIC)
         then:
         def props = daemonJvmPropertiesFile.properties
         props.size() == 3

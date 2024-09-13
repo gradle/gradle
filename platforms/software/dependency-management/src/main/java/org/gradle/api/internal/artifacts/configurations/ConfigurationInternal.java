@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -54,6 +54,8 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     void runDependencyActions();
 
     void markAsObserved(InternalState requestedState);
+
+    DomainObjectContext getDomainObjectContext();
 
     void addMutationValidator(MutationValidator validator);
 
@@ -110,14 +112,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * @param role the role specifying the usage the conf should possess
      */
      void setAllowedUsageFromRole(ConfigurationRole role);
-
-     /**
-      * Returns the identity of this configuration, which can be used to get the configuration's name, project path, and build path
-      * for comparison purposes.
-      *
-      * @return identity of this configuration
-      */
-     ConfigurationIdentity getIdentity();
 
     /**
      * Test if the given configuration can either be declared against or extends another

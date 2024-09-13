@@ -114,7 +114,7 @@ The closure passed to the `initscript()` method configures a link:{javadocPath}/
 You declare the init script classpath by adding dependencies to the `classpath` configuration.
 
 This is the same way you declare, for example, the Java compilation classpath.
-You can use any of the dependency types described in <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>, except project dependencies.
+You can use any of the dependency types described in <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>>, except project dependencies.
 
 Having declared the init script classpath, you can use the classes in your init script as you would any other classes on the classpath.
 The following example adds to the previous example and uses classes from the init script classpath.

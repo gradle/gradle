@@ -26,7 +26,6 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         initFile = temporaryFolder.createFile("initscripts/init.gradle")
         executer.usingInitScript(initFile);
-        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.buildFinished() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
     }
 
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")

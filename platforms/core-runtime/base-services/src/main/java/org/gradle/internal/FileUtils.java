@@ -23,6 +23,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -106,7 +107,7 @@ public class FileUtils {
     public static Collection<? extends File> calculateRoots(Iterable<? extends File> files) {
         List<File> sortedFiles = Lists.newArrayList(files);
         Collections.sort(sortedFiles, FILE_SEGMENT_COMPARATOR);
-        List<File> result = Lists.newArrayListWithExpectedSize(sortedFiles.size());
+        List<File> result = new ArrayList<File>(sortedFiles.size());
 
         File currentRoot = null;
         for (File file : sortedFiles) {

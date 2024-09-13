@@ -26,17 +26,17 @@ import java.util.function.Predicate;
 
 public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<JvmInstallationMetadata> {
 
-    private static final JvmVendorSpec ANY = new DefaultJvmVendorSpec(v -> true, "any");
+    private static final JvmVendorSpec ANY = new DefaultJvmVendorSpec(v -> true, "any vendor");
 
     private final Predicate<JvmVendor> matcher;
     private final String description;
 
     public static JvmVendorSpec matching(String match) {
-        return new DefaultJvmVendorSpec(vendor -> StringUtils.containsIgnoreCase(vendor.getRawVendor(), match), "matching('" + match + "')");
+        return new DefaultJvmVendorSpec(vendor -> StringUtils.containsIgnoreCase(vendor.getRawVendor(), match), "vendor matching('" + match + "')");
     }
 
     public static JvmVendorSpec of(JvmVendor.KnownJvmVendor knownVendor) {
-        return new DefaultJvmVendorSpec(vendor -> vendor.getKnownVendor() == knownVendor, knownVendor.toString());
+        return new DefaultJvmVendorSpec(vendor -> vendor.getKnownVendor() == knownVendor, knownVendor.asJvmVendor().getDisplayName());
     }
 
     public static JvmVendorSpec any() {

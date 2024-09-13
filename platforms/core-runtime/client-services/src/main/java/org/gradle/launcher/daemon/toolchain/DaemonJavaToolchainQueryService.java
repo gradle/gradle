@@ -51,7 +51,7 @@ public class DaemonJavaToolchainQueryService {
         Optional<JvmToolchainMetadata> installation = locateToolchain(toolchainSpec);
         if (!installation.isPresent()) {
             String exceptionMessage = String.format(
-                "Cannot find a Java installation on your machine (%s) matching the Daemon JVM defined requirements: %s.", OperatingSystem.current(), toolchainSpec
+                "Cannot find a Java installation on your machine (%s) matching: %s.", OperatingSystem.current(), toolchainSpec
             );
             throw new GradleException(exceptionMessage);
         }

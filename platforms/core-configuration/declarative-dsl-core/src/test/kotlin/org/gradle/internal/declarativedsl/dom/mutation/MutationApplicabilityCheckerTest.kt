@@ -27,12 +27,13 @@ import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
+import org.junit.jupiter.api.Assertions.fail
 
 
 internal
-object MutationApplicabilityCheckerTest {
+class MutationApplicabilityCheckerTest {
 
     @Test
     fun `detects applicability of element addition`() {
@@ -174,6 +175,23 @@ object MutationApplicabilityCheckerTest {
             ),
             setXResult.toSet()
         )
+    }
+
+    @Test
+    fun `reports no applicability and does not fail on incompatible mutations`() {
+        val incompatibleMutation = object : MutationDefinition {
+            override val id: String = "com.example.incompatible"
+            override val name: String = "Incompatible"
+            override val description: String = "This mutation is not compatible with any schema and throws an exception on planning"
+            override val parameters: List<MutationParameter<*>> = emptyList()
+
+            override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = false
+
+            override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+                fail("tried to define the mutation sequence for an incompatible mutation!")
+        }
+
+        assertEquals(emptyList<MutationApplicability>(), MutationApplicabilityChecker(schema, documentWithResolution(schema, ParseTestUtil.parse(""))).checkApplicability(incompatibleMutation))
     }
 
     private

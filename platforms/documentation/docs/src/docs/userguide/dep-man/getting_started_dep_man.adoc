@@ -1,0 +1,84 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_management_in_gradle]]
+= Dependency Management
+
+Software projects typically depend on other libraries to function.
+These libraries can either be sourced from other projects in the same build or from external repositories.
+
+Gradle's dependency management infrastructure provides APIs to declare, resolve, and expose binaries required by and provided by a project.
+
+Understanding dependency management in Gradle is important for structuring projects into components.
+It is also important when you want to reuse existing libraries, or you need to upgrade those libraries while managing their versions.
+
+Let's look at a Java project where the code relies on link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] which is a suite of Google Core libraries for Java.
+The build file of the project includes the following:
+
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro]"]
+====
+
+Within the `dependencies` block, there are three things to notice when a dependency is declared:
+
+1. The configuration: `implementation` also known as the scope the dependency is applied to
+2. The module ID: `com.google.guava:guava` is made up of a `group` and an artifact `name` which are uniquely identifiable
+3. The version: `32.1.2-jre` which is not always required
+
+Dependencies can be local or external.
+To let Gradle know where to find external dependencies, use the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.
+
+Let's expand our example:
+
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-repo]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-repo]"]
+====
+
+In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
+
+== 1. Declaring Dependencies
+
+You can add external libraries to your Java project, such as Guava.
+These libraries are <<declaring_dependencies.adoc#declaring-basic-dependencies, _dependencies_>> of your project.
+They are added using the `dependencies{}` block in your build file.
+
+== 2. Dependency Configurations
+
+You can declare dependencies for different scopes. For example, you can declare dependencies that are only used at compile time.
+Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
+
+== 3. Declaring Repositories
+
+You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
+
+During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+
+== 4. Centralizing Dependencies
+
+<<centralizing_dependencies.adoc#centralizing-dependencies, Centralizing dependencies>> in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
+
+This is typically done using platforms and version catalogs.
+A platform is a set of modules intended to be used together.
+A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
+
+== 5. Dependency Constraints and Conflict Resolution
+
+Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
+This usually leads to failing builds.
+
+Gradle manages two types of conflicts: version conflicts, and capability conflicts.
+
+You can <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,customize Gradle's handling of dependencies and conflict resolution>> with a number of available APIs.

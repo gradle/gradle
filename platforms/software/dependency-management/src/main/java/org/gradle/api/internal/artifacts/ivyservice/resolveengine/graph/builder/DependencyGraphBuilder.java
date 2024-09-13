@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -44,8 +43,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -212,7 +211,7 @@ public class DependencyGraphBuilder {
                 for (ModuleResolveState state : resolveState.getModules()) {
                     if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
                         Collection<ComponentState> versions = state.getVersions();
-                        implicitProvidersForCapability = Lists.newArrayListWithExpectedSize(versions.size());
+                        implicitProvidersForCapability = new ArrayList<>(versions.size());
                         for (ComponentState version : versions) {
                             List<NodeState> nodes = version.getNodes();
                             for (NodeState nodeState : nodes) {
@@ -514,7 +513,7 @@ public class DependencyGraphBuilder {
             Set<VariantGraphResolveMetadata> incompatibleNodeMetadatas = incompatibleNodes.stream()
                 .map(NodeState::getMetadata)
                 .collect(Collectors.toSet());
-            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(consumerSchema, selected.getMetadata(), incompatibleNodeMetadatas);
+            AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }
