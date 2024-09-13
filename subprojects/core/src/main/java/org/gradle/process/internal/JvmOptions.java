@@ -35,6 +35,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -224,28 +225,7 @@ public class JvmOptions {
     }
 
     public void checkDebugConfiguration(Iterable<?> arguments) {
-        List<String> debugArgs = collectDebugArgs(arguments);
-        if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
-            LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
-            debugOptions.getEnabled().set(false);
-        }
-    }
-
-    private static List<String> collectDebugArgs(Iterable<?> arguments) {
-        List<String> debugArgs = new ArrayList<>();
-        for (Object extraJvmArg : arguments) {
-            String extraJvmArgString = extraJvmArg.toString();
-            if (isDebugArg(extraJvmArgString)) {
-                debugArgs.add(extraJvmArgString);
-            }
-        }
-        return debugArgs;
-    }
-
-    private static boolean isDebugArg(String extraJvmArgString) {
-        return extraJvmArgString.equals("-Xdebug")
-            || extraJvmArgString.startsWith("-Xrunjdwp")
-            || extraJvmArgString.startsWith("-agentlib:jdwp");
+        AllJvmArgsAdapterUtil.checkDebugConfiguration(debugOptions, arguments);
     }
 
     public void jvmArgs(Iterable<?> arguments) {
@@ -380,34 +360,47 @@ public class JvmOptions {
         return debugOptions;
     }
 
-    public void copyTo(JavaForkOptions target) {
-        target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(mutableSystemProperties);
-        target.setMinHeapSize(minHeapSize);
-        target.setMaxHeapSize(maxHeapSize);
-        target.bootstrapClasspath(getBootstrapClasspath().getFiles());
-        target.setEnableAssertions(assertionsEnabled);
-        copyDebugOptionsTo(target.getDebugOptions());
-        target.systemProperties(immutableSystemProperties);
+    public void copyFrom(JavaForkOptionsInternal source) {
+        setAllJvmArgs(Collections.emptyList());
+        jvmArgs(source.getJvmArgs().get());
+        source.getJvmArgumentProviders().get().forEach(provider -> jvmArgs(provider.asArguments()));
+        if (source.getExtraJvmArgs() != null) {
+            setExtraJvmArgs(source.getExtraJvmArgs());
+        }
+        systemProperties(source.getSystemProperties().get());
+        if (source.getMinHeapSize().isPresent()) {
+            setMinHeapSize(source.getMinHeapSize().get());
+        }
+        if (source.getMaxHeapSize().isPresent()) {
+            setMaxHeapSize(source.getMaxHeapSize().get());
+        }
+        if (source.getEnableAssertions().isPresent()) {
+            setEnableAssertions(source.getEnableAssertions().get());
+        }
+        setBootstrapClasspath(source.getBootstrapClasspath().getFiles());
+        if (source.getDefaultCharacterEncoding().isPresent()) {
+            setDefaultCharacterEncoding(source.getDefaultCharacterEncoding().get());
+        }
+        copyDebugOptionsFrom(source.getDebugOptions());
     }
 
-    public JvmOptions createCopy(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        JvmOptions target = new JvmOptions(objectFactory, fileCollectionFactory);
-        target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(mutableSystemProperties);
-        target.setMinHeapSize(minHeapSize);
-        target.setMaxHeapSize(maxHeapSize);
-        if (bootstrapClasspath != null) {
-            target.setBootstrapClasspath(getBootstrapClasspath().getFiles());
-        }
-        target.setEnableAssertions(assertionsEnabled);
+    public void copyTo(JavaForkOptions target) {
+        extraJvmArgs.forEach(arg -> target.getJvmArgs().add(arg.toString()));
+        target.getSystemProperties().set(mutableSystemProperties);
+        target.getMinHeapSize().set(minHeapSize);
+        target.getMaxHeapSize().set(maxHeapSize);
+        target.bootstrapClasspath(getBootstrapClasspath());
+        target.getEnableAssertions().set(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());
         target.systemProperties(immutableSystemProperties);
-        return target;
     }
 
     private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
         copyDebugOptions(debugOptions, otherOptions);
+    }
+
+    private void copyDebugOptionsFrom(JavaDebugOptions otherOptions) {
+        copyDebugOptions(otherOptions, debugOptions);
     }
 
     static void copyDebugOptions(JavaDebugOptions from, JavaDebugOptions to) {

@@ -26,7 +26,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -94,21 +96,23 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public List<String> getAllJvmArgs() {
+    public Provider<List<String>> getAllJvmArgs() {
         return getAllJvmArgs(this.classpath);
     }
 
-    private List<String> getAllJvmArgs(FileCollection realClasspath) {
-        List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
-        boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
+    private Provider<List<String>> getAllJvmArgs(FileCollection realClasspath) {
+        return javaOptions.getAllJvmArgs().map(allArgs -> {
+            allArgs = new ArrayList<>(allArgs);
+            boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
 
-        if (runAsModule) {
-            addModularJavaRunArgs(realClasspath, allArgs);
-        } else {
-            addClassicJavaRunArgs(realClasspath, allArgs);
-        }
+            if (runAsModule) {
+                addModularJavaRunArgs(realClasspath, allArgs);
+            } else {
+                addClassicJavaRunArgs(realClasspath, allArgs);
+            }
 
-        return allArgs;
+            return allArgs;
+        });
     }
 
     private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
@@ -152,28 +156,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public void setAllJvmArgs(List<String> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<String> getJvmArgs() {
+    public ListProperty<String> getJvmArgs() {
         return javaOptions.getJvmArgs();
-    }
-
-    @Override
-    public void setJvmArgs(List<String> arguments) {
-        javaOptions.setJvmArgs(arguments);
-    }
-
-    @Override
-    public void setJvmArgs(Iterable<?> arguments) {
-        javaOptions.setJvmArgs(arguments);
     }
 
     @Override
@@ -194,13 +178,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public Map<String, Object> getSystemProperties() {
+    public MapProperty<String, Object> getSystemProperties() {
         return javaOptions.getSystemProperties();
-    }
-
-    @Override
-    public void setSystemProperties(Map<String, ?> properties) {
-        javaOptions.setSystemProperties(properties);
     }
 
     @Override
@@ -216,13 +195,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public FileCollection getBootstrapClasspath() {
+    public ConfigurableFileCollection getBootstrapClasspath() {
         return javaOptions.getBootstrapClasspath();
-    }
-
-    @Override
-    public void setBootstrapClasspath(FileCollection classpath) {
-        javaOptions.setBootstrapClasspath(classpath);
     }
 
     @Override
@@ -232,53 +206,28 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public String getMinHeapSize() {
+    public Property<String> getMinHeapSize() {
         return javaOptions.getMinHeapSize();
     }
 
     @Override
-    public void setMinHeapSize(String heapSize) {
-        javaOptions.setMinHeapSize(heapSize);
-    }
-
-    @Override
-    public String getDefaultCharacterEncoding() {
+    public Property<String> getDefaultCharacterEncoding() {
         return javaOptions.getDefaultCharacterEncoding();
     }
 
     @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        javaOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
-    }
-
-    @Override
-    public String getMaxHeapSize() {
+    public Property<String> getMaxHeapSize() {
         return javaOptions.getMaxHeapSize();
     }
 
     @Override
-    public void setMaxHeapSize(String heapSize) {
-        javaOptions.setMaxHeapSize(heapSize);
-    }
-
-    @Override
-    public boolean getEnableAssertions() {
+    public Property<Boolean> getEnableAssertions() {
         return javaOptions.getEnableAssertions();
     }
 
     @Override
-    public void setEnableAssertions(boolean enabled) {
-        javaOptions.setEnableAssertions(enabled);
-    }
-
-    @Override
-    public boolean getDebug() {
+    public Property<Boolean> getDebug() {
         return javaOptions.getDebug();
-    }
-
-    @Override
-    public void setDebug(boolean enabled) {
-        javaOptions.setDebug(enabled);
     }
 
     @Override
@@ -367,7 +316,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     private List<String> getAllArguments(FileCollection realClasspath) {
-        List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
+        List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath).get());
         arguments.addAll(applicationArgsSpec.getAllArguments());
         return arguments;
     }
@@ -422,7 +371,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaOptions.getJvmArgumentProviders();
     }
 
