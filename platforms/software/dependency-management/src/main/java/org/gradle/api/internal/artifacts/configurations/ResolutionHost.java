@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -80,9 +80,10 @@ public interface ResolutionHost {
      *
      * @param resolutionType what was resolved, e.g. "dependencies", "artifacts", "files"
      * @param failures the exceptions encountered during resolution
-     * @return an {@link org.gradle.internal.exceptions.MultiCauseException} containing all the failures, or {@link Optional#empty()} if there are no failures
+     * @return a {@link TypedResolveException}, which is a {@link MultiCauseException} containing all the failures,
+     * or {@link Optional#empty()} if there are no failures
      */
-    Optional<? extends ResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures);
+    Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures);
 
     /**
      * If the given failure (or their ancestor causes) are {@link ReportableAsProblem}, they will all be reported to the problems
