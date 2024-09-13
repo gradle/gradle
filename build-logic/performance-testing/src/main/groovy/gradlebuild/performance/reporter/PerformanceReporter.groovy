@@ -66,7 +66,7 @@ class PerformanceReporter {
                 spec.args(reportDir.path, projectName)
                 spec.args(resultJsons*.path)
                 spec.systemProperties(databaseParameters)
-                spec.debug = debugReportGeneration
+                spec.debugOptions.enabled.set(debugReportGeneration)
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.systemProperty("org.gradle.performance.execution.channel.patterns", channelPatterns.join(","))
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)

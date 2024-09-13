@@ -17,10 +17,13 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -73,6 +76,10 @@ public class DefaultJavaExecAction implements JavaExecAction {
     @Override
     public Property<String> getMainClass() {
         return javaExecHandleBuilder.getMainClass();
+    }
+
+    public void setExtraJvmArgs(List<String> jvmArgs) {
+        javaExecHandleBuilder.setExtraJvmArgs(jvmArgs);
     }
 
     @Nullable
@@ -182,13 +189,8 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public Map<String, @Nullable Object> getSystemProperties() {
+    public MapProperty<String, @Nullable Object> getSystemProperties() {
         return javaExecHandleBuilder.getSystemProperties();
-    }
-
-    @Override
-    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
-        javaExecHandleBuilder.setSystemProperties(properties);
     }
 
     @Override
@@ -205,51 +207,26 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Nullable
     @Override
-    public String getDefaultCharacterEncoding() {
+    public Property<String> getDefaultCharacterEncoding() {
         return javaExecHandleBuilder.getDefaultCharacterEncoding();
     }
 
-    @Override
-    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
-        javaExecHandleBuilder.setDefaultCharacterEncoding(defaultCharacterEncoding);
-    }
-
     @Nullable
     @Override
-    public String getMinHeapSize() {
+    public Property<String> getMinHeapSize() {
         return javaExecHandleBuilder.getMinHeapSize();
     }
 
-    @Override
-    public void setMinHeapSize(@Nullable String heapSize) {
-        javaExecHandleBuilder.setMinHeapSize(heapSize);
-    }
-
     @Nullable
     @Override
-    public String getMaxHeapSize() {
+    public Property<String> getMaxHeapSize() {
         return javaExecHandleBuilder.getMaxHeapSize();
     }
 
-    @Override
-    public void setMaxHeapSize(@Nullable String heapSize) {
-        javaExecHandleBuilder.setMaxHeapSize(heapSize);
-    }
-
     @Nullable
     @Override
-    public List<String> getJvmArgs() {
+    public ListProperty<String> getJvmArgs() {
         return javaExecHandleBuilder.getJvmArgs();
-    }
-
-    @Override
-    public void setJvmArgs(@Nullable List<String> arguments) {
-        javaExecHandleBuilder.setJvmArgs(arguments);
-    }
-
-    @Override
-    public void setJvmArgs(@Nullable Iterable<?> arguments) {
-        javaExecHandleBuilder.setJvmArgs(arguments);
     }
 
     @Override
@@ -265,18 +242,13 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaExecHandleBuilder.getJvmArgumentProviders();
     }
 
     @Override
-    public FileCollection getBootstrapClasspath() {
+    public ConfigurableFileCollection getBootstrapClasspath() {
         return javaExecHandleBuilder.getBootstrapClasspath();
-    }
-
-    @Override
-    public void setBootstrapClasspath(FileCollection classpath) {
-        javaExecHandleBuilder.setBootstrapClasspath(classpath);
     }
 
     @Override
@@ -286,23 +258,13 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public boolean getEnableAssertions() {
+    public Property<Boolean> getEnableAssertions() {
         return javaExecHandleBuilder.getEnableAssertions();
     }
 
     @Override
-    public void setEnableAssertions(boolean enabled) {
-        javaExecHandleBuilder.setEnableAssertions(enabled);
-    }
-
-    @Override
-    public boolean getDebug() {
+    public Property<Boolean> getDebug() {
         return javaExecHandleBuilder.getDebug();
-    }
-
-    @Override
-    public void setDebug(boolean enabled) {
-        javaExecHandleBuilder.setDebug(enabled);
     }
 
     @Override
@@ -316,18 +278,8 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public List<String> getAllJvmArgs() {
+    public Provider<List<String>> getAllJvmArgs() {
         return javaExecHandleBuilder.getAllJvmArgs();
-    }
-
-    @Override
-    public void setAllJvmArgs(List<String> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -399,6 +351,7 @@ public class DefaultJavaExecAction implements JavaExecAction {
         javaExecHandleBuilder.listener(listener);
         return this;
     }
+
 
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
