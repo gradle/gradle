@@ -216,7 +216,7 @@ public abstract class ScalaDoc extends SourceTask {
             worker.getClasspath().from(getScalaClasspath());
             JavaForkOptions forkOptions = worker.getForkOptions();
             if (getMaxMemory().isPresent()) {
-                forkOptions.setMaxHeapSize(getMaxMemory().get());
+                forkOptions.getMaxHeapSize().set(getMaxMemory());
             }
 
             forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());

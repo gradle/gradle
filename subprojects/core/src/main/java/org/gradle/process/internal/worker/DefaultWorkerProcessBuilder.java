@@ -247,14 +247,14 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         javaCommand.args("'" + displayName + "'");
-        if (javaCommand.getMaxHeapSize() == null) {
-            javaCommand.setMaxHeapSize("512m");
+        if (!javaCommand.getMaxHeapSize().isPresent()) {
+            javaCommand.getMaxHeapSize().set("512m");
         }
         ExecHandle execHandle = javaCommand.build();
 
         workerProcess.setExecHandle(execHandle);
 
-        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMaxHeapSize()));
+        return new MemoryRequestingWorkerProcess(workerProcess, memoryManager, MemoryAmount.parseNotation(javaCommand.getMaxHeapSize().get()));
     }
 
     private static class MemoryRequestingWorkerProcess implements WorkerProcess {
