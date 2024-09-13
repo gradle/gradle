@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import java.util.List;
 
 /**
- * Resolves the dependencies of something and produces results.
+ * Resolves {@link ResolveContext}s and produces {@link ResolverResults}.
  * <p>
  * This resolution is always lenient, in the sense that resolution failures will not cause
  * exceptions to be thrown or the build to immediately fail.
