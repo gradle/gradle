@@ -69,7 +69,7 @@ tasks {
         dependsOn(shrinkGradle)
         group = "Verification"
         maxParallelForks = 1
-        systemProperties["org.gradle.integtest.executer"] = "forking"
+        systemProperty("org.gradle.integtest.executer", "forking")
         // The spawned IDE child process needs JAVA_HOME: IDEA's launch script requires it
         // and IDEA resolves gradleJvm=#JAVA_HOME from the IDE process's env. CI agents
         // don't always set JAVA_HOME, Test forks don't always propagate it, and

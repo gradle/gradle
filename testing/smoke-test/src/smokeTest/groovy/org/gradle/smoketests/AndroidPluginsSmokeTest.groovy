@@ -59,6 +59,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
             .build()
 
         then:
@@ -95,6 +96,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'abi change on library'
         abiChange.run()
         result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }
@@ -119,8 +121,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .build()
         result = runner
             .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
-            }.build()
+            }.maybeExpectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
