@@ -209,7 +209,7 @@ public interface ConfigurableFilePermissions extends FilePermissions {
      * i.e. from 0 (included) to 512 (excluded).
      * <p>
      * When represented in octal form, the numbers have the same meaning as their string
-     * counterparts (see {@link #unix(String)}), so the following statement are all equivalent:
+     * counterparts (see {@link #unix(String)}), so the following statements are all equivalent:
      *
      * <pre>
      *   unix("0740")         // octal number as string
