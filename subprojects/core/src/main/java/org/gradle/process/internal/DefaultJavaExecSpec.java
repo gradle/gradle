@@ -23,6 +23,7 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -33,7 +34,6 @@ import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
@@ -185,22 +185,12 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
-    public List<String> getAllJvmArgs() {
-        List<String> allJvmArgs = new ArrayList<>(super.getAllJvmArgs());
-        allJvmArgs.addAll(getJvmArguments().get());
-        return Collections.unmodifiableList(allJvmArgs);
-    }
-
-    @Override
-    public void setAllJvmArgs(List<String> arguments) {
-        getJvmArguments().empty();
-        super.setAllJvmArgs(arguments);
-    }
-
-    @Override
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        getJvmArguments().empty();
-        super.setAllJvmArgs(arguments);
+    public Provider<List<String>> getAllJvmArgs() {
+        return super.getAllJvmArgs().zip(getJvmArguments(), (baseArgs, jvmArgs) -> {
+            List<String> combinedArgs = new ArrayList<>(baseArgs);
+            combinedArgs.addAll(jvmArgs);
+            return combinedArgs;
+        });
     }
 
     @Override
