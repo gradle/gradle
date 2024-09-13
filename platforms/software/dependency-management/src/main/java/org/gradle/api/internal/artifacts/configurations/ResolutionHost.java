@@ -104,9 +104,10 @@ public interface ResolutionHost {
     @SuppressWarnings("ThrowableNotThrown")
     default void reportProblems(Collection<Throwable> failures) {
         Queue<Throwable> exceptionQueue = new LinkedList<>(failures);
-        Throwable current = exceptionQueue.poll();
 
-        while (current != null) {
+        while (!exceptionQueue.isEmpty()) {
+            Throwable current = exceptionQueue.poll();
+
             if (current instanceof ReportableAsProblem) {
                 ((ReportableAsProblem) current).reportAsProblem(getProblems());
             }
@@ -118,8 +119,6 @@ public interface ResolutionHost {
                     exceptionQueue.add(current.getCause());
                 }
             }
-
-            current = exceptionQueue.poll();
         }
     }
 }
