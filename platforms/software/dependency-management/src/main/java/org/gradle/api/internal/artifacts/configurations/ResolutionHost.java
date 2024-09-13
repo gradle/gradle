@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -36,6 +37,8 @@ import java.util.Queue;
  * being resolved. This type should remain as minimal as possible.</p>
  *
  * TODO: Split the interface into two: one for tracking what is doing the resolving and one for mapping resolution problems
+ * We already have {@link ResolveExceptionMapper}, which might be perfect for this purpose, we'd just have to refactor to
+ * pass that type alongside this one.
  */
 public interface ResolutionHost {
 
