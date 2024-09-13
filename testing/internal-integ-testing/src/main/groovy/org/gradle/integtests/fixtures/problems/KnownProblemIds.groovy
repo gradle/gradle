@@ -26,7 +26,7 @@ class KnownProblemIds {
             definition.id.fqid ==~ pattern
         }?.value
         assert knownDefinition != null, "Unknown problem id: ${definition.id.fqid}"
-        assert definition.id.displayName ==~ knownDefinition, "Unexpected display name for problem: expected '${knownDefinition}', got '${definition.id.displayName}'"
+        assert definition.id.displayName == knownDefinition, "Unexpected display name for problem: expected '${knownDefinition}', got '${definition.id.displayName}'"
 
         def groupFqid = groupOf(definition.id.fqid)
         while (groupFqid != null) {
