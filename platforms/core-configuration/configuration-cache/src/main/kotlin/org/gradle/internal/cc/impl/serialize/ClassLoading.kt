@@ -26,7 +26,9 @@ fun classForName(name: String, classLoader: ClassLoader?): Class<*> =
     try {
         Class.forName(name, false, classLoader ?: defaultClassLoader)
     } catch (e: ClassNotFoundException) {
-        throw ClassNotFoundException("Class '$name' not found in ${describeOptionalClassLoader(classLoader)}.", e)
+        throw ClassNotFoundException("Class '$name' not found in ${describeOptionalClassLoader(classLoader)}.").apply {
+            addSuppressed(e)
+        }
     }
 
 
