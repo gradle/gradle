@@ -70,6 +70,6 @@ public class DirectoryBuildCacheEntryRetention {
         }
 
         // Always render the timestamp in UTC
-        return "at " + Instant.ofEpochMilli(entryRetentionMillis).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+        return "older than " + Instant.ofEpochMilli(entryRetentionMillis).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
     }
 }

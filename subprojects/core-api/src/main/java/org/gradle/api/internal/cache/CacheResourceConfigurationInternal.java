@@ -26,7 +26,7 @@ public interface CacheResourceConfigurationInternal extends CacheResourceConfigu
      * Specifies the timestamp after which an entry must have been used in order to be retained in the cache.
      * Any entries not used more recently than this timestamp will be candidates for eviction.
      */
-    void setRemoveEntriesUnusedSince(long timestamp);
+    void setRemoveUnusedEntriesOlderThan(long timestamp);
 
     /**
      * Configures the retention strategy that determines when an unused entry can be removed from the cache.

@@ -51,7 +51,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
-        result.local.config.removeUnusedEntries == "after 3 days"
+        result.local.config."remove unused entries" == "after 3 days"
         result.local.type == 'directory'
         result.local.push == true
 
@@ -94,7 +94,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
-        result.local.config.removeUnusedEntries == "after 5 days"
+        result.local.config."remove unused entries" == "after 5 days"
         result.local.type == 'directory'
         result.local.push == true
 
@@ -108,7 +108,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    buildCache.removeEntriesUnusedSince = java.time.ZonedDateTime.of(2024, 11, 10, 9,35, 44, 0, java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+                    buildCache.removeUnusedEntriesOlderThan = java.time.ZonedDateTime.of(2024, 11, 10, 9,35, 44, 0, java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
                 }
             }
         """
@@ -137,7 +137,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
         result.local.className == 'org.gradle.caching.local.DirectoryBuildCache'
         result.local.config.location == cacheDir.absoluteFile.toString()
-        result.local.config.removeUnusedEntries == "at 2024-11-10 09:35:44 UTC"
+        result.local.config."remove unused entries" == "older than 2024-11-10 09:35:44 UTC"
         result.local.type == 'directory'
         result.local.push == true
 

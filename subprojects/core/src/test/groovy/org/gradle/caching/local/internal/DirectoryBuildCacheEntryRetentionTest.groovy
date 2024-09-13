@@ -70,7 +70,7 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
     def "uses cache retention set to absolute timestamp"() {
         when:
         def timestamp = ZonedDateTime.of(2024, 11, 10, 9,35, 44, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
-        cacheConfigurations.buildCache.removeEntriesUnusedSince = timestamp
+        cacheConfigurations.buildCache.removeUnusedEntriesOlderThan = timestamp
 
         and:
         1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
@@ -79,7 +79,7 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
         then:
         def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
         expiration.entryRetentionTimestampSupplier.get() == timestamp
-        expiration.description == "at 2024-11-10 09:35:44 UTC"
+        expiration.description == "older than 2024-11-10 09:35:44 UTC"
     }
 
     def "describes entry expiration less than one day"() {

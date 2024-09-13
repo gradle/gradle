@@ -86,7 +86,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
-            config("removeUnusedEntries", entryExpiration.getDescription());
+            config("remove unused entries", entryExpiration.getDescription());
 
         PersistentCache persistentCache = unscopedCacheBuilderFactory
             .cache(target)

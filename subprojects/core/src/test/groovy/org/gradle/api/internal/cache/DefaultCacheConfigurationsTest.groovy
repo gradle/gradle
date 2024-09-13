@@ -43,7 +43,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         config.entryRetentionTimestampSupplier.get() == clock.currentTime - daysToMillis(3)
 
         when:
-        config.removeEntriesUnusedSince = 1000
+        config.removeUnusedEntriesOlderThan = 1000
 
         then:
         config.entryRetentionTimestampSupplier.get() == 1000
