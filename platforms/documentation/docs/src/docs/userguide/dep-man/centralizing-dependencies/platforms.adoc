@@ -50,7 +50,7 @@ If <<rich_versions.adoc#sec:strict-version,strict version>> enforcement isn't ne
 
 == Creating a platform
 
-In Java projects, the `java-platform` plugin combined with <<dependency-constraints.adoc#dependency-constraints,dependency constraints>> can be used to create a platform:
+In Java projects, the `java-platform` plugin combined with <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> can be used to create a platform:
 
 [source,kotlin]
 ----
