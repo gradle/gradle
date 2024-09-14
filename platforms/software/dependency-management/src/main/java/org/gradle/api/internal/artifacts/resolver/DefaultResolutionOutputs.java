@@ -45,6 +45,8 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Collections;
+
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
  * converting internal results in the form of {@link ResolverResults} into public facing types like:
@@ -103,7 +105,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private VisitedGraphResults getVisitedGraphResults() {
         VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
         graph.getResolutionFailure().ifPresent(ex -> {
-            throw ex;
+            resolutionAccess.getHost().rethrowFailure("dependencies", Collections.singleton(ex));
         });
         return graph;
     }
