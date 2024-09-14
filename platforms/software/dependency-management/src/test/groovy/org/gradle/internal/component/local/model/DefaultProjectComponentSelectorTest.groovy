@@ -87,9 +87,22 @@ class DefaultProjectComponentSelectorTest extends Specification {
         !selector.matchesStrictly(differentIdPath)
     }
 
-    def "capabilities are exposed"() {
+    def "specific capability selectors are exposed as a selector and a requested capability"() {
         def capabilities = ImmutableSet.of(
-            new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1")),
+            new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1"))
+        )
+        def identity = new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        ProjectComponentSelector selector = new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, capabilities)
+
+        expect:
+        selector.capabilitySelectors == capabilities
+
+        selector.requestedCapabilities.size() == 1
+        selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilities[0]).backingCapability
+    }
+
+    def "feature capability selectors are exposed as selectors but not requested capabilities"() {
+        def capabilities = ImmutableSet.of(
             new DefaultFeatureCapabilitySelector("foo")
         )
         def identity = new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
@@ -104,8 +117,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
         // We try to implement `getRequestedCapabilities` on a best-effort basis, but we cannot
         // "resolve" a feature capability selector to a concrete capability without knowing the
         // target project's mutable state.
-        selector.requestedCapabilities.size() == 1
-        selector.requestedCapabilities[0] == ((DefaultSpecificCapabilitySelector) capabilities[0]).backingCapability
+        selector.requestedCapabilities.size() == 0
 
     }
 }

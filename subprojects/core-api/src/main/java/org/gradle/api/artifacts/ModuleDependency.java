@@ -223,7 +223,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
 
     /**
-     * Returns the set of explicitly requested capabilities for this dependency.
+     * Returns the explicitly requested capabilities for this dependency.
      * <p>
      * Prefer {@link #getCapabilitySelectors()}. This method is not Isolated Projects compatible.
      *

@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.capability;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A {@link CapabilitySelector} that selects a specific capability by group and name.
@@ -25,7 +24,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 8.11
  */
 @Incubating
-@HasInternalProtocol
 public interface SpecificCapabilitySelector extends CapabilitySelector {
 
     /**

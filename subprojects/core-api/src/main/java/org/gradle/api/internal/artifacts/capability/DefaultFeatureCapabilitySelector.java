@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.capability;
 
 import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 /**
  * Default implementation of {@link FeatureCapabilitySelector}.
  */
-public final class DefaultFeatureCapabilitySelector implements FeatureCapabilitySelector {
+public final class DefaultFeatureCapabilitySelector implements CapabilitySelectorInternal, FeatureCapabilitySelector {
 
     private final String featureName;
 
@@ -32,6 +33,12 @@ public final class DefaultFeatureCapabilitySelector implements FeatureCapability
     @Override
     public String getFeatureName() {
         return featureName;
+    }
+
+    @Override
+    public boolean matches(String capabilityGroup, String capabilityName, ImmutableCapability implicitCapability) {
+        return capabilityGroup.equals(implicitCapability.getGroup()) &&
+            capabilityName.equals(implicitCapability.getName() + "-" + featureName);
     }
 
     @Override

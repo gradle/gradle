@@ -22,7 +22,7 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 /**
  * Default implementation of {@link SpecificCapabilitySelector}.
  */
-public final class DefaultSpecificCapabilitySelector implements SpecificCapabilitySelector {
+public final class DefaultSpecificCapabilitySelector implements CapabilitySelectorInternal, SpecificCapabilitySelector {
 
     // Ideally we would only hold a group and version, but for
     // backwards compatibility reasons we need to hold the requested
@@ -41,6 +41,11 @@ public final class DefaultSpecificCapabilitySelector implements SpecificCapabili
     @Override
     public String getName() {
         return backingCapability.getName();
+    }
+
+    @Override
+    public boolean matches(String capabilityGroup, String capabilityName, ImmutableCapability implicitCapability) {
+        return capabilityGroup.equals(getGroup()) && capabilityName.equals(getName());
     }
 
     @Override

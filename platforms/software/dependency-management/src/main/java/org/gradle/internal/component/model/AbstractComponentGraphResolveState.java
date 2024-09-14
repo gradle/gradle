@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
@@ -36,6 +37,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     private final long instanceId;
     private final T graphMetadata;
     private final AttributeDesugaring attributeDesugaring;
+    private final ImmutableCapability implicitCapability;
 
     // The public view of all graph variants of this component, mapped by their instance ID.
     private final ConcurrentHashMap<Long, ResolvedVariantResult> publicVariants = new ConcurrentHashMap<>();
@@ -44,6 +46,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
         this.attributeDesugaring = attributeDesugaring;
+        this.implicitCapability =  DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
     }
 
     @Override
@@ -89,6 +92,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     @Override
     public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         artifactResolver.resolveArtifactsWithType(getArtifactMetadata(), artifactType, result);
+    }
+
+    @Override
+    public ImmutableCapability getDefaultCapability() {
+        return implicitCapability;
     }
 
     protected ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
