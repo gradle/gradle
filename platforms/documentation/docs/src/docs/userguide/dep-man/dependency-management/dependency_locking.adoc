@@ -15,7 +15,7 @@
 [[dependency-locking]]
 = Locking Versions
 
-Using <<dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can make builds non-deterministic, causing them to break unexpectedly, sometimes due to a transitive dependency outside the build author's control.
+Using <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can make builds non-deterministic, causing them to break unexpectedly, sometimes due to a transitive dependency outside the build author's control.
 
 ====
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic]"]
