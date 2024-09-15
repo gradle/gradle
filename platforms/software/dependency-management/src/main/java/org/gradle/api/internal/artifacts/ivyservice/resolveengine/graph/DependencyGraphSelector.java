@@ -22,14 +22,10 @@ import org.gradle.api.artifacts.component.ComponentSelector;
  * A dependency selector in the dependency graph
  */
 public interface DependencyGraphSelector {
-    /**
-     * Returns a simple id for this selector, unique across selectors in the same graph.
-     * This id cannot be used across graphs.
-     */
-    Long getResultId();
 
     /**
-     * Returns the requested dependency.
+     * Returns the component selector that this selector is based on.
      */
-    ComponentSelector getRequested();
+    ComponentSelector getComponentSelector();
+
 }

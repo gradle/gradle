@@ -39,7 +39,7 @@ abstract class MessageBuilderHelper {
         for (List<EdgeState> path : acc) {
             EdgeState target = Iterators.getLast(path.iterator());
             StringBuilder sb = new StringBuilder();
-            if (target.getSelector().getDependencyMetadata().isConstraint()) {
+            if (target.getDependencyMetadata().isConstraint()) {
                 sb.append("Constraint path ");
             } else {
                 sb.append("Dependency path ");

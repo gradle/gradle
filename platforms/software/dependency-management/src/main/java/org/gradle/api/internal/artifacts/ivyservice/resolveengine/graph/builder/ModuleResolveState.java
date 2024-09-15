@@ -352,13 +352,12 @@ public class ModuleResolveState implements CandidateModule {
         return attributesFactory.safeConcat(mergedConstraintAttributes.asImmutable(), attributes);
     }
 
-    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
+    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selector) {
         try {
-            DependencyMetadata dependencyMetadata = selectorState.getDependencyMetadata();
-            boolean constraint = dependencyMetadata.isConstraint();
+            boolean constraint = selector.isConstraint();
             if (constraint) {
-                ComponentSelector selector = dependencyMetadata.getSelector();
-                ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
+                ComponentSelector componentSelector = selector.getComponentSelector();
+                ImmutableAttributes attributes = ((AttributeContainerInternal) componentSelector.getAttributes()).asImmutable();
                 dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
             }
         } catch (AttributeMergingException e) {

@@ -46,7 +46,9 @@ import static org.gradle.util.Path.path
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(
-        new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+        new DeduplicatingAttributeContainerSerializer(
+            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
+        ),
         new CapabilitySelectorSerializer()
     )
 
