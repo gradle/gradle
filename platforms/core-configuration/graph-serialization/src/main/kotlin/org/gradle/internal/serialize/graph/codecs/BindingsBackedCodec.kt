@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize.graph.codecs
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.graph.Codec
