@@ -1170,14 +1170,14 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public void setBeforeProjectActionsState(@Nullable Object state) {
-        delegate.setBeforeProjectActionsState(state);
+    public void setLifecycleActionsState(@Nullable Object state) {
+        delegate.setLifecycleActionsState(state);
     }
 
     @Nullable
     @Override
-    public Object getBeforeProjectActionsState() {
-        return delegate.getBeforeProjectActionsState();
+    public Object getLifecycleActionsState() {
+        return delegate.getLifecycleActionsState();
     }
 
     @Override

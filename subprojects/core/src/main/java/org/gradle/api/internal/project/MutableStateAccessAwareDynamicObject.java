@@ -96,7 +96,7 @@ public class MutableStateAccessAwareDynamicObject extends AbstractDynamicObject 
 
     @Override
     public Map<String, ?> getProperties() {
-//        onMutableStateAccess.run();??
+        onMutableStateAccess.run();
         return delegate.getProperties();
     }
 

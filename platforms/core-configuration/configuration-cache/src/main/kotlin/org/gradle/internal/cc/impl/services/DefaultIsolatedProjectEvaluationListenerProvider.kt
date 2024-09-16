@@ -214,9 +214,9 @@ private
 fun Project.isReadyForEagerBeforeProjectActions() = uncheckedCast<ProjectInternal>().isReadyForEagerBeforeProjectActions
 
 private
-fun Project.getBeforeProjectActionsState() = uncheckedCast<ProjectInternal>().beforeProjectActionsState
+fun Project.getBeforeProjectActionsState() = uncheckedCast<ProjectInternal>().lifecycleActionsState
 
 private
 fun Project.setBeforeProjectActionsState(state: IsolatedProjectActionsState?) {
-    uncheckedCast<ProjectInternal>().setBeforeProjectActionsState(state)
+    uncheckedCast<ProjectInternal>().setLifecycleActionsState(state)
 }

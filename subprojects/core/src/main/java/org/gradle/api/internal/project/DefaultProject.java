@@ -608,13 +608,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract RoleBasedConfigurationContainerInternal getConfigurations();
 
     @Override
-    public void setBeforeProjectActionsState(@Nullable Object state) {
+    public void setLifecycleActionsState(@Nullable Object state) {
         beforeProjectActionState = state;
     }
 
     @Override
     @Nullable
-    public Object getBeforeProjectActionsState() {
+    public Object getLifecycleActionsState() {
         return beforeProjectActionState;
     }
 
