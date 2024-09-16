@@ -67,7 +67,7 @@ Previously, the API only exposed the root component, which exposed the first-lev
 This API allows dependency graphs to be traversed more precisely, at the variant-level instead of at the component level.
 When traversing at the variant level, it is possible to differentiate between the production code of a component and its test fixtures.
 
-TODO #29930: Link to userguide on how to traverse a graph
+For more details on how to perform a graph traversal, see the new [programmatic dependency resolution](userguide/programmatic_dependency_resolution.html) chapter of the user guide.
 
 <a name="config-cache"></a>
 ### Configuration cache improvements
