@@ -120,6 +120,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
 
                 if (!rootProjectActions.isEmpty()) {
+                    rootProject.setReadyForEagerBeforeProjectActions(true);
                     gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }

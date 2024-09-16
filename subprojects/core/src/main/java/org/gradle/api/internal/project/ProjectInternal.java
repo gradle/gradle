@@ -246,6 +246,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     RoleBasedConfigurationContainerInternal getConfigurations();
 
+    void setBeforeProjectActionsState(@Nullable Object state);
+
+    @Nullable
+    Object getBeforeProjectActionsState();
+
+    ProjectInternal setReadyForEagerBeforeProjectActions(boolean ready);
+
+    boolean isReadyForEagerBeforeProjectActions();
+
     interface DetachedResolver {
         RepositoryHandler getRepositories();
 

@@ -1168,4 +1168,25 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
     }
+
+    @Override
+    public void setBeforeProjectActionsState(@Nullable Object state) {
+        delegate.setBeforeProjectActionsState(state);
+    }
+
+    @Nullable
+    @Override
+    public Object getBeforeProjectActionsState() {
+        return delegate.getBeforeProjectActionsState();
+    }
+
+    @Override
+    public ProjectInternal setReadyForEagerBeforeProjectActions(boolean ready) {
+        return delegate.setReadyForEagerBeforeProjectActions(ready);
+    }
+
+    @Override
+    public boolean isReadyForEagerBeforeProjectActions() {
+        return delegate.isReadyForEagerBeforeProjectActions();
+    }
 }
