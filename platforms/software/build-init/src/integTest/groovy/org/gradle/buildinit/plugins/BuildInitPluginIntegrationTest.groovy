@@ -236,7 +236,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         fails('init', '--type', 'some-unknown-library')
 
         then:
-        failure.assertHasCause("""The requested build type 'some-unknown-library' is not supported. Supported types:
+        failure.assertHasCause("""The requested build type: 'some-unknown-library' is not supported. Supported types:
   - 'basic'
   - 'cpp-application'
   - 'cpp-library'

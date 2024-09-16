@@ -195,8 +195,8 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
         outputDoesNotContain("MyPlugin applied.")
-        assertLoadedSpec("First Project Type")
-        assertLoadedSpec("Second Project Type")
+        assertLoadedSpec("First Project Type", "first-project-type")
+        assertLoadedSpec("Second Project Type", "second-project-type")
 
         // Note: If running in non-interactive mode, first template is automatically used
         assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
@@ -215,8 +215,8 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         assertResolvedPlugin("org.example.myplugin", "1.0")
         assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
         outputDoesNotContain("MyPlugin applied.")
-        assertLoadedSpec("First Project Type")
-        assertLoadedSpec("Second Project Type")
+        assertLoadedSpec("First Project Type", "first-project-type")
+        assertLoadedSpec("Second Project Type", "second-project-type")
 
         // Note: If running in non-interactive mode, first template is used
         assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
@@ -234,8 +234,8 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
         outputDoesNotContain("MyPlugin applied.")
-        assertLoadedSpec("First Project Type")
-        assertLoadedSpec("Second Project Type")
+        assertLoadedSpec("First Project Type", "first-project-type")
+        assertLoadedSpec("Second Project Type", "second-project-type")
 
         // Note: If running in non-interactive mode, first template is used
         assertProjectFileGenerated("project.output", "MyGenerator created this Second Project Type project.")
@@ -251,7 +251,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
 
         then:
         assertResolvedPlugin("org.gradle.experimental.jvm-ecosystem", "0.1.13")
-        assertLoadedSpec("Declarative Java Application Project")
+        assertLoadedSpec("Declarative Java Application Project", "declarative-java-application-project")
 
         // Smoke test 2 DCL files
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {

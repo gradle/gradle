@@ -161,8 +161,8 @@ trait TestsInitProjectSpecsViaPlugin {
         outputContains("Resolved plugin [id: '$id', version: '$version', apply: false]")
     }
 
-    void assertLoadedSpec(String specName) {
-        outputContains("Loaded project spec: '" + specName + "'")
+    void assertLoadedSpec(String specName, String type) {
+        outputContains("Loaded project spec: '" + specName + " (" + type + ")'")
     }
 
     void assertProjectFileGenerated(String fileName, String content) {
