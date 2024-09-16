@@ -105,7 +105,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private VisitedGraphResults getVisitedGraphResults() {
         VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
         graph.getResolutionFailure().ifPresent(ex -> {
-            resolutionAccess.getHost().rethrowFailure("dependencies", Collections.singleton(ex));
+            resolutionAccess.getHost().rethrowFailuresAndReportProblems("dependencies", Collections.singleton(ex));
         });
         return graph;
     }
