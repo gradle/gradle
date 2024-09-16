@@ -151,7 +151,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            role
+            role,
+            problemsService
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -192,7 +193,8 @@ public class DefaultConfigurationFactory {
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
-            taskDependencyFactory
+            taskDependencyFactory,
+            problemsService
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -233,7 +235,8 @@ public class DefaultConfigurationFactory {
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
-            taskDependencyFactory
+            taskDependencyFactory,
+            problemsService
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -274,7 +277,8 @@ public class DefaultConfigurationFactory {
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
-            taskDependencyFactory
+            taskDependencyFactory,
+            problemsService
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;

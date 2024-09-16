@@ -239,6 +239,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private final InternalProblems problemsService;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -268,6 +269,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
+        InternalProblems problemsService,
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
@@ -315,6 +317,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.problemsService = problemsService;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -1857,7 +1860,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     public InternalProblems getProblems() {
-        return defaultConfigurationFactory.getProblems();
+        return problemsService;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {

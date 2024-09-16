@@ -332,9 +332,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES.name()
             additionalData.asMap['problemDisplayName'] == "Incompatible nodes of a single component were selected"
         }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
-        }
     }
 
     def "demonstrate no matching artifact variants exception"() {
