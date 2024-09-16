@@ -59,10 +59,10 @@ public final class InitProjectRegistry {
         switch (matchingSpecs.size()) {
             case 0:
                 throw new IllegalStateException("Project spec with type: '" + type + "' was not found!" + System.lineSeparator() +
-                    "Known types: " + System.lineSeparator() +
+                    "Known types:" + System.lineSeparator() +
                     getProjectSpecs().stream()
                         .map(InitProjectSpec::getType)
-                        .map(t -> "\t - " + t)
+                        .map(t -> " - " + t)
                         .collect(Collectors.joining(System.lineSeparator()))
                 );
             case 1:
