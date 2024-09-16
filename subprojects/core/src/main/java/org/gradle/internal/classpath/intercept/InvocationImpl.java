@@ -16,9 +16,11 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
+
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
+import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
 
 /**
  * A simple implementation of the Invocation that accepts a lambda for {@link #callNext()} implementation.

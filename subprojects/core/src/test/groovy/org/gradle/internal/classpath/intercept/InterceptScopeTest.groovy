@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.intercept
 
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope
 import spock.lang.Specification
 
 class InterceptScopeTest extends Specification {

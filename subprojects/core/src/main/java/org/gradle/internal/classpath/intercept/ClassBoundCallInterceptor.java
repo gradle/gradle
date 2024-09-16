@@ -16,6 +16,10 @@
 
 package org.gradle.internal.classpath.intercept;
 
+import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
+
 import javax.annotation.Nullable;
 
 /**

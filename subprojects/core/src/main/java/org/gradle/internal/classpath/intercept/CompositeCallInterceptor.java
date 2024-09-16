@@ -17,6 +17,12 @@
 package org.gradle.internal.classpath.intercept;
 
 import com.google.common.collect.Sets;
+import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
+import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
 
 import javax.annotation.Nullable;
 import java.util.Set;

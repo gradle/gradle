@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.GradleException;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractCallInterceptor implements CallInterceptor {
@@ -42,7 +44,7 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
     private final Set<InterceptScope> interceptScopes;
 
     protected AbstractCallInterceptor(InterceptScope... interceptScopes) {
-        this.interceptScopes = ImmutableSet.copyOf(interceptScopes);
+        this.interceptScopes = Collections.unmodifiableSet(CollectionUtils.addAll(new LinkedHashSet<>(), interceptScopes));
     }
 
     @Override
@@ -53,6 +55,7 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
     }
 
     @Nullable
+    @SuppressWarnings("unused")
     private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
         boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
         return intercept(new MethodHandleInvocation(original, args, isSpread), consumer);
