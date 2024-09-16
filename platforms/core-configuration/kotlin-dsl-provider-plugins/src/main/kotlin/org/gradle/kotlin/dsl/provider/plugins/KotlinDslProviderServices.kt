@@ -37,8 +37,8 @@ internal
 object GradleUserHomeServices : ServiceRegistrationProvider {
 
     @Provides
-    fun createProjectSchemaProvider(kotlinDslDclSchemaCache: KotlinDslDclSchemaCache) =
-        DefaultProjectSchemaProvider(kotlinDslDclSchemaCache)
+    fun createProjectSchemaProvider(kotlinDslDclSchemaCollector: KotlinDslDclSchemaCollector) =
+        DefaultProjectSchemaProvider(kotlinDslDclSchemaCollector)
 
     @Provides
     fun createKotlinScriptBasePluginsApplicator() =
@@ -50,6 +50,9 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
 
     @Provides
     @PrivateService
-    fun createKotlinDslDclSchemaCache(cacheFactory: CrossBuildInMemoryCacheFactory) =
-        CrossBuildInKotlinDslDclSchemaCache(cacheFactory.newClassCache())
+    internal fun createKotlinDslDclSchemaCollector(cacheFactory: CrossBuildInMemoryCacheFactory): KotlinDslDclSchemaCollector =
+        CachedKotlinDslDclSchemaCollector(
+            CrossBuildInMemoryKotlinDslDclSchemaCache(cacheFactory.newClassCache()),
+            DefaultKotlinDslDclSchemaCollector()
+        )
 }

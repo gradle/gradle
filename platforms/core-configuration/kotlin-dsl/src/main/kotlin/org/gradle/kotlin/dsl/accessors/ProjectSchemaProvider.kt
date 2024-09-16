@@ -52,7 +52,7 @@ data class ProjectSchema<out T>(
     val containerElements: List<ProjectSchemaEntry<T>>,
     val configurations: List<ConfigurationEntry<String>>,
     val modelDefaults: List<ProjectSchemaEntry<T>>,
-    val containerElementFactories: List<ContainerElementFactoryEntry<out T>>,
+    val containerElementFactories: List<ContainerElementFactoryEntry<T>>,
     val scriptTarget: Any? = null
 ) {
 
@@ -101,7 +101,7 @@ data class ConfigurationEntry<T>(
 }
 
 
-data class ContainerElementFactoryEntry<T>(
+data class ContainerElementFactoryEntry<out T>(
     val factoryName: String,
     val containerReceiverType: T,
     val publicType: T

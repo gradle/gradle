@@ -26,7 +26,7 @@ interface KotlinDslDclSchemaCache {
     fun getOrPutContainerElementFactories(forClass: Class<*>, produceIfAbsent: () -> ContainerElementFactories): ContainerElementFactories
 }
 
-class CrossBuildInKotlinDslDclSchemaCache(
+class CrossBuildInMemoryKotlinDslDclSchemaCache(
     private val containerElementFactoriesCache: CrossBuildInMemoryCache<Class<*>, ContainerElementFactories>
 ) : KotlinDslDclSchemaCache {
     override fun getOrPutContainerElementFactories(forClass: Class<*>, produceIfAbsent: () -> ContainerElementFactories): ContainerElementFactories =

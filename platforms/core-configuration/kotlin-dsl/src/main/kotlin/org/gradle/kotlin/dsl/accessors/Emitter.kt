@@ -238,7 +238,7 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
-private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<out TypeAccessibility>) =
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) =
     TypedContainerElementFactoryEntry(AccessorNameSpec(containerElementFactoryEntry.factoryName), containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
 
 private

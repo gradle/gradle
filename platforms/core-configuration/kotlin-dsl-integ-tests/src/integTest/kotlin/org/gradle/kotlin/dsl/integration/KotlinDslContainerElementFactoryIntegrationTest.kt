@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
 
@@ -41,12 +42,15 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         """
         )
 
-        with(build("dependencies")) {
+        buildAndFail("dependencies") // no DCL support by default
+            .assertHasErrorOutput("Unresolved reference: configuration")
+
+        with(build("dependencies", enableDclCliFlag)) {
             assertTasksExecuted(":dependencies")
             assertOutputContains("myConfiguration\nNo dependencies")
         }
 
-        with(build("compileMySourceSetJava")) {
+        with(build("compileMySourceSetJava", enableDclCliFlag)) {
             assertTasksSkipped(":compileMySourceSetJava")
             assertOutputContains("created my source set!")
         }
@@ -90,9 +94,15 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
             }
         """.trimIndent())
 
-        with(build("printNames")) {
+        buildAndFail("printNames") // no DCL support by default
+            .assertHasErrorOutput("Unresolved reference: customName")
+
+        with(build("printNames", enableDclCliFlag)) {
             assertTaskExecuted(":printNames")
             assertOutputContains("[one, two]")
         }
     }
+
+    private val enableDclCliFlag =
+        "-D${StartParameterBuildOptions.KotlinDslDslEnabledOption.PROPERTY_NAME}=true"
 }

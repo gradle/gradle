@@ -17,13 +17,14 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -55,7 +56,9 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.deserialization.Flags
@@ -79,7 +82,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory
+    private val asyncIO: AsyncIOScopeFactory,
 ) {
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath =
@@ -102,7 +105,8 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                     fileCollectionFactory,
                     inputFingerprinter,
                     workspaceProvider,
-                    asyncIO
+                    asyncIO,
+                    isDclEnabledForScriptTarget(scriptTarget),
                 )
                 executionEngine.createRequest(work)
                     .execute()
@@ -120,6 +124,12 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     }
 }
 
+fun isDclEnabledForScriptTarget(target: Any): Boolean =
+    when (target) {
+        is Project -> target.serviceOf<StartParameterInternal>().isKotlinDslDclEnabled
+        is Settings -> target.serviceOf<StartParameterInternal>().isKotlinDslDclEnabled
+        else -> false
+    }
 
 internal
 class GenerateProjectAccessors(
@@ -129,11 +139,13 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val asyncIO: AsyncIOScopeFactory
+    private val asyncIO: AsyncIOScopeFactory,
+    private val isDclEnabled: Boolean
 ) : ImmutableUnitOfWork {
 
     companion object {
         const val TARGET_SCHEMA_INPUT_PROPERTY = "targetSchema"
+        const val DCL_ENABLED_INPUT_PROPERTY = "dcl"
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
@@ -164,6 +176,7 @@ class GenerateProjectAccessors(
     override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
         val hasher = Hashing.newHasher()
         requireNotNull(identityInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        requireNotNull(identityInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
         return UnitOfWork.Identity { identityHash }
@@ -177,6 +190,7 @@ class GenerateProjectAccessors(
 
     override fun visitIdentityInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(TARGET_SCHEMA_INPUT_PROPERTY) { hashCodeFor(scriptTargetSchema) }
+        visitor.visitInputProperty(DCL_ENABLED_INPUT_PROPERTY) { isDclEnabled }
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
@@ -580,6 +594,7 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.conventions)
     putAll(schema.tasks)
     putAll(schema.containerElements)
+    putContainerElementFactoryEntries(schema.containerElementFactories)
     putAllSorted(schema.configurations.map { it.target })
     hash()
 }
@@ -599,6 +614,15 @@ fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
         putString(entry.target.kotlinString)
         putString(entry.name)
         putString(entry.type.kotlinString)
+    }
+}
+
+private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElementFactoryEntry<SchemaType>>) {
+    putInt(entries.size)
+    entries.forEach { entry ->
+        putString(entry.factoryName)
+        putString(entry.containerReceiverType.kotlinString)
+        putString(entry.publicType.kotlinString)
     }
 }
 
