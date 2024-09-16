@@ -34,7 +34,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
