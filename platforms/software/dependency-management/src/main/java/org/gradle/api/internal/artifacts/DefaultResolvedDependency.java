@@ -138,7 +138,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
         if (!visitor.getFailures().isEmpty()) {
-            resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+            resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         }
         return visitor.getArtifacts();
     }
