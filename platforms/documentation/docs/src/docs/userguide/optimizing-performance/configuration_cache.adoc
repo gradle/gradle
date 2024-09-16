@@ -380,7 +380,7 @@ a|
 link:{gradle-issues}13479[[.red]#✖#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
 link:{gradle-issues}13480[[.red]#✖#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
 link:{gradle-issues}13482[[.green]#✓#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
-link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+link:{gradle-issues}13483[[.green]#✓#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
 
 a|
 [horizontal]
