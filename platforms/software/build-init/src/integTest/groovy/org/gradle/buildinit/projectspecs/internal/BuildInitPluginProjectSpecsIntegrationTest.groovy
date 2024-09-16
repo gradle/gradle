@@ -37,7 +37,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with root build file present"() {
@@ -51,7 +51,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with root KTS build file present"() {
@@ -65,7 +65,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with settings file present"() {
@@ -77,7 +77,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with settings KTS file present"() {
@@ -89,7 +89,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with root build and settings files present"() {
@@ -107,7 +107,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with root build and settings KTS files present"() {
@@ -125,7 +125,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
     }
 
     def "can specify plugin using argument to init with root build and settings files present in multiproject build"() {
@@ -152,7 +152,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
         // TODO: should appear exactly once, but no way to automatically verify this currently.  Looking at the output, it is true currently
     }
 
@@ -180,7 +180,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         initSucceedsWithPluginSupplyingSpec(ARBITRARY_PLUGIN_SPEC)
 
         then:
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
         // TODO: should appear exactly once, but no way to automatically verify this currently.  Looking at the output, it is true currently
     }
 
@@ -213,7 +213,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
 
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
-        assertResolvedPlugin(ARBITRARY_PLUGIN_VERSION, ARBITRARY_PLUGIN_ID)
+        assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
         outputDoesNotContain("MyPlugin applied.")
         assertLoadedSpec("First Project Type")
         assertLoadedSpec("Second Project Type")
