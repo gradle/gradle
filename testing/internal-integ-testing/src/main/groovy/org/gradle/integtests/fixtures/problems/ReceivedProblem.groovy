@@ -23,7 +23,6 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalData
 import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.FileLocation
-import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
@@ -133,11 +132,6 @@ class ReceivedProblem implements Problem {
     @Override
     ReceivedException getException() {
         exception
-    }
-
-    @Override
-    InternalProblemBuilder toBuilder() {
-        throw new UnsupportedOperationException("Not implemented")
     }
 
     static class ReceivedProblemDefinition implements ProblemDefinition {

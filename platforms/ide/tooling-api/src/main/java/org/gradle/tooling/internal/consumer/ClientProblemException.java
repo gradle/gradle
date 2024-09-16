@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
+import org.gradle.tooling.events.problems.ProblemReport;
 
-import java.io.Serializable;
+@NonNullApi
+public class ClientProblemException extends Exception {
 
-/**
- * A problem severity.
- *
- * @since 8.6
- */
-@Incubating
-public enum Severity implements Serializable {
-    ADVICE("Advice"),
-    WARNING("Warning"),
-    ERROR("Error");
-    private final String displayName;
+    private final ProblemReport consumerProblem;
 
-    Severity(String displayName) {
-        this.displayName = displayName;
+    ClientProblemException(ProblemReport consumerProblem, Throwable cause) {
+        super(cause);
+        this.consumerProblem = consumerProblem;
     }
 
-    @Override
-    public String toString() {
-        return displayName;
+    public ProblemReport getProblem() {
+        return consumerProblem;
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.tooling.internal.protocol.InternalProblemException;
 
 import java.util.Collection;
 
@@ -64,10 +65,10 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         }
     }
 
-    private RuntimeException throwError(RuntimeException exception, Problem problem) {
+    private RuntimeException throwError(RuntimeException exception, final Problem problem) {
         report(problem);
         problems.put(exception, problem);
-        throw exception;
+        throw new InternalProblemException(exception, new DefaultProblemReport(problem.getContextualLabel()));
     }
 
     @Override

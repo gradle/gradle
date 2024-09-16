@@ -25,9 +25,12 @@ import java.io.Serializable;
 @Incubating
 public class DefaultProblemGroup implements ProblemGroup, Serializable {
 
-    private final String name;
-    private final String displayName;
-    private final ProblemGroup parent;
+    String name;
+    String displayName;
+    ProblemGroup parent;
+
+    public DefaultProblemGroup() {
+    }
 
     public DefaultProblemGroup(String groupId, String displayName) {
         this(groupId, displayName, null);
@@ -53,29 +56,5 @@ public class DefaultProblemGroup implements ProblemGroup, Serializable {
     @Override
     public ProblemGroup getParent() {
         return parent;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || o.getClass().isAssignableFrom(ProblemGroup.class)) {
-            return false;
-        }
-
-        ProblemGroup that = (ProblemGroup) o;
-
-        if (!name.equals(that.getName())) {
-            return false;
-        }
-        return parent != null ? parent.equals(that.getParent()) : that.getParent() == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + (parent != null ? parent.hashCode() : 0);
-        return result;
     }
 }

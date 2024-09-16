@@ -206,6 +206,13 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             .collect(toImmutableList());
     }
 
+    /*      onProblem(problem) {
+                def data = problem.getAdditionalData();
+                if (data instanceof ResolutionFailure) {
+                    //
+                }
+            }
+     */
 
     @SuppressWarnings("unchecked")
     private static InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {

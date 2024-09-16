@@ -22,12 +22,19 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ListenerFailedException;
 import org.gradle.tooling.TestExecutionException;
+import org.gradle.tooling.events.problems.ProblemReport;
+import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
+import org.gradle.tooling.events.problems.internal.DefaultProblemReport;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
+import org.gradle.tooling.internal.protocol.InternalProblemException;
+import org.gradle.tooling.internal.protocol.InternalProblemReport;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
+
+import java.lang.reflect.Field;
 
 public class ConnectionExceptionTransformer {
     private final ConnectionFailureMessageProvider messageProvider;
@@ -50,12 +57,51 @@ public class ConnectionExceptionTransformer {
         } else if (failure instanceof InternalTestExecutionException) {
             return new TestExecutionException(connectionFailureMessage(failure), failure.getCause());
         } else if (failure instanceof BuildExceptionVersion1) {
-            return new BuildException(connectionFailureMessage(failure), failure.getCause());
+            return new BuildException(connectionFailureMessage(failure), replaceCauses(failure.getCause()));
         } else if (failure instanceof ListenerNotificationException) {
             return new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses());
         } else {
             return new GradleConnectionException(connectionFailureMessage(failure), failure);
         }
+    }
+
+    private static Throwable replaceCauses(Throwable t) {
+        Throwable current = t;
+        Throwable cause = t.getCause();
+        while (current != null && cause != null) {
+            if (cause instanceof InternalProblemException) {
+                InternalProblemReport problem = ((InternalProblemException) cause).getProblem();
+                ProblemReport consumerProblem = toConsumerProblemReport(problem);
+                ClientProblemException replacement = new ClientProblemException(consumerProblem, cause.getCause());
+                initCause(current, replacement);
+            }
+            current = current.getCause();
+            cause = cause.getCause();
+        }
+        return t;
+    }
+
+
+    private static void initCause(Throwable current, ClientProblemException replacement) {
+        try {
+            Field f = Throwable.class.getDeclaredField("cause");
+            f.setAccessible(true);
+            f.set(current, replacement);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static ProblemReport toConsumerProblemReport(InternalProblemReport problem) {
+        return new DefaultProblemReport(
+            null,
+            new DefaultContextualLabel(problem.getContextualLabel()),
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     private String connectionFailureMessage(Throwable failure) {

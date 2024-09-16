@@ -14,40 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 
 import java.io.Serializable;
 
-/**
- * Represents an identifier for a problem definition.
- * <p>
- * Two problem IDs are considered equal if their {@link #getName()} and their groups are equal.
- *
- * @since 8.8
- */
-@Incubating
-public interface ProblemId extends Serializable {
+@NonNullApi
+public interface InternalProblemReport extends Serializable {
 
-    /**
-     * The name of the problem.
-     *
-     * @since 8.8
-     */
-    String getName();
-
-    /**
-     * A human-readable label describing the problem ID.
-     *
-     * @since 8.8
-     */
-    String getDisplayName();
-
-    /**
-     * The parent group.
-     *
-     * @since 8.8
-     */
-    ProblemGroup getGroup();
+    String getContextualLabel();
 }
