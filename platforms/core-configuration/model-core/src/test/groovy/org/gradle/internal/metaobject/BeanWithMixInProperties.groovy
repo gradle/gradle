@@ -20,8 +20,8 @@ class BeanWithMixInProperties implements PropertyMixIn {
     String prop
 
     @Override
-    PropertyAccess getAdditionalProperties() {
-        return new PropertyAccess() {
+    NamedReference getAdditionalProperties() {
+        return new NamedReference() {
             @Override
             boolean hasProperty(String name) {
                 return name == "dyno"

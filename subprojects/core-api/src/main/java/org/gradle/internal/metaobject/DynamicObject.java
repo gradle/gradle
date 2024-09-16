@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
  * The {@link org.gradle.internal.extensibility.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
-public interface DynamicObject extends MethodAccess, PropertyAccess {
+public interface DynamicObject extends MethodAccess, NamedReference {
     /**
      * Creates a {@link MissingPropertyException} for getting an unknown property of this object.
      */

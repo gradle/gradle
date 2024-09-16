@@ -28,7 +28,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.internal.metaobject.PropertyAccess;
+import org.gradle.internal.metaobject.NamedReference;
 import org.gradle.internal.metaobject.PropertyMixIn;
 
 import java.util.List;
@@ -162,7 +162,7 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
 
     @Internal
     @Override
-    public PropertyAccess getAdditionalProperties() {
+    public NamedReference getAdditionalProperties() {
         return ((PropertyMixIn) getDelegate()).getAdditionalProperties();
     }
 }

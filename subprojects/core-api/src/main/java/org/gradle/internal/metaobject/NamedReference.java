@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Provides dynamic access to properties of some object.
  */
-public interface PropertyAccess {
+public interface NamedReference {
     /**
      * Returns true when this object is known to have the given property.
      *

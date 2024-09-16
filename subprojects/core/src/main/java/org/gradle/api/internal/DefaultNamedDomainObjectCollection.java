@@ -48,7 +48,7 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.internal.metaobject.PropertyAccess;
+import org.gradle.internal.metaobject.NamedReference;
 import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
@@ -424,7 +424,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public PropertyAccess getAdditionalProperties() {
+    public NamedReference getAdditionalProperties() {
         return getElementsAsDynamicObject();
     }
 

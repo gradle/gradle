@@ -22,5 +22,5 @@ package org.gradle.internal.metaobject;
  * Note that when a type implements this interface, dynamic Groovy dispatch will not be used to discover opaque properties. That is, methods such as propertyMissing() will be ignored.
  */
 public interface PropertyMixIn {
-    PropertyAccess getAdditionalProperties();
+    NamedReference getAdditionalProperties();
 }

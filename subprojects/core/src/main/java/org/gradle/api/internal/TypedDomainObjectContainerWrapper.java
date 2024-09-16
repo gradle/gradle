@@ -23,7 +23,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.internal.metaobject.PropertyAccess;
+import org.gradle.internal.metaobject.NamedReference;
 import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -63,7 +63,7 @@ public class TypedDomainObjectContainerWrapper<U> extends DelegatingNamedDomainO
     }
 
     @Override
-    public PropertyAccess getAdditionalProperties() {
+    public NamedReference getAdditionalProperties() {
         return parent.getAdditionalProperties();
     }
 
