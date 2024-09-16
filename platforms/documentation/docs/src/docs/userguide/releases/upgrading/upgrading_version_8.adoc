@@ -63,6 +63,20 @@ with:
 
 There is no impact when using the CLI options to configure which JVM version to use for the Gradle Daemon.
 
+==== Name matching changes
+
+Name matching logic has been updated to have numbers as word boundaries for camelCase names.
+Previously, given two tasks, `uniqueA` and `unique1`, the request `unique` would match `unique1`.
+Now, the same request will fail as ambiguous.
+
+If you experience issues with name matching, please using the exact name instead of a short form.
+
+This change affects:
+
+* task selection;
+* project selection;
+* configuration selection in dependency reports tasks.
+
 === Deprecations
 
 [[deprecated_fork_options_java_home]]
