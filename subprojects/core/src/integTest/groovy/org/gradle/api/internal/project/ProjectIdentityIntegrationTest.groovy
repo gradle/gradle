@@ -77,7 +77,7 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("Action executed: b")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def 'projects doesnt survive build finish'() {
         given:
         executer.requireIsolatedDaemons()
