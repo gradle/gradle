@@ -25,35 +25,44 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         given:
         settingsFile << """
             rootProject.name = 'test'
-            include 'b'
+            include 'a', 'b'
         """
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
 
             configurations.api.outgoing {
                 capability 'org:capability:1.0'
             }
 
             dependencies {
-                api project(":b")
+                api(project(":a"))
+                api(project(":b"))
             }
 
         """
-        file('b/build.gradle') << """
-            apply plugin: 'java-library'
+        ["a", "b"].each {
+            file("${it}/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
 
-            configurations.api.outgoing {
-                capability 'test:b:unspecified'
-                capability group:'org', name:'capability', version:'1.0'
-            }
-        """
+                configurations.api.outgoing {
+                    capability 'test:${it}:unspecified'
+                    capability group:'org', name:'capability', version:'1.0'
+                }
+            """
+        }
 
         when:
         fails 'compileJava'
 
         then:
+        failure.assertHasCause("""Module 'test:a' has been rejected:
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [test:b:unspecified(apiElements)]""")
         failure.assertHasCause("""Module 'test:b' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(compileClasspath)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [test:a:unspecified(apiElements)]""")
     }
 
     def 'fails to resolve undeclared test fixture'() {
