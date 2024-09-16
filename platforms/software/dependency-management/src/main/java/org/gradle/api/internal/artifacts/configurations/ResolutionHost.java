@@ -26,9 +26,11 @@ import org.gradle.internal.exceptions.MultiCauseException;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 
 /**
  * The "Host" or owner of a resolution -- the thing in charge of the resolution, or the thing being resolved.
@@ -103,10 +105,16 @@ public interface ResolutionHost {
      */
     @SuppressWarnings("ThrowableNotThrown")
     default void reportProblems(Collection<Throwable> failures) {
+        Set<Throwable> seen = new HashSet<>(failures.size() * 2); // Assume every failure has a cause
         Queue<Throwable> exceptionQueue = new LinkedList<>(failures);
 
         while (!exceptionQueue.isEmpty()) {
             Throwable current = exceptionQueue.poll();
+
+            // If we have self-caused exceptions, or other circular references, we may encounter the same failure again, in which case we can skip processing
+            if (!seen.add(current)) {
+                continue;
+            }
 
             if (current instanceof ReportableAsProblem) {
                 ((ReportableAsProblem) current).reportAsProblem(getProblems());
