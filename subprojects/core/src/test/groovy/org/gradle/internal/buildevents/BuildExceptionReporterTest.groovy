@@ -626,9 +626,7 @@ $GET_HELP
 <root problem message>
 {info}> {normal}<problem-bearing exception message>
 
-Group 1 (generic:group-1)
   Group 1
-Group 2 (generic:group-2)
   Group 2
 """
         )
@@ -670,7 +668,6 @@ Group 2 (generic:group-2)
 <root problem-1 message>
 {info}> {normal}<problem-bearing exception message>
 
-Group 1 (generic:group-1)
   Group 1
 """)
         output.value.contains(
@@ -679,7 +676,6 @@ Group 1 (generic:group-1)
 <root problem-2 message>
 {info}> {normal}<problem-bearing exception message>
 
-Group 2 (generic:group-2)
   Group 2
 """)
     }
