@@ -26,9 +26,13 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
+import org.gradle.api.problems.internal.DefaultResolutionFailureData;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ResolutionFailureData;
+import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -85,13 +89,23 @@ public class ResolutionFailureHandler {
 
     private final InternalProblems problemsService;
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
-
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
 
-    public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problemsService) {
-        this.problemsService = problemsService;
+    public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problems) {
+        this.problemsService = problems;
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
+
+        configureAdditionalDataBuilder(problems);
+    }
+
+    private static void configureAdditionalDataBuilder(InternalProblems problems) {
+        AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
+        if (!additionalDataBuilderFactory.hasProviderForSpec(ResolutionFailureDataSpec.class)) {
+            additionalDataBuilderFactory.registerAdditionalDataProvider(
+                ResolutionFailureDataSpec.class,
+                data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data));
+        }
     }
 
     // region Component Selection failures
@@ -244,7 +258,8 @@ public class ResolutionFailureHandler {
             builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
                 .contextualLabel(exception.getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
-                .severity(ERROR);
+                .severity(ERROR)
+                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(exception.getFailure()));
         });
         problemsService.getInternalReporter().report(problem);
 

@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks.internal
 import com.google.common.collect.HashMultimap
 import com.google.gson.Gson
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemReporter
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.DeprecationDataSpec
@@ -30,12 +31,13 @@ import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.TypeValidationData
 import org.gradle.api.problems.internal.TypeValidationDataSpec
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import spock.lang.Specification
 
 class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
-    InternalProblemReporter problemReporter = new DefaultProblemReporter([Stub(ProblemEmitter)], null, org.gradle.internal.operations.CurrentBuildOperationRef.instance(), HashMultimap.create())
+    InternalProblemReporter problemReporter = new DefaultProblemReporter([Stub(ProblemEmitter)], null, CurrentBuildOperationRef.instance(), HashMultimap.create(), new AdditionalDataBuilderFactory())
 
     def "can serialize and deserialize a validation problem"() {
         given:

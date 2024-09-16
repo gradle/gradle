@@ -29,4 +29,6 @@ public interface InternalProblems extends Problems {
     InternalProblemReporter getInternalReporter();
 
     Multimap<Throwable, Problem> getProblemsForThrowables();
+
+    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
 }

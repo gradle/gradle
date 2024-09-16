@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.internal.component.resolution.failure
 
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
@@ -75,6 +76,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
     }
 
@@ -113,6 +117,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
     }
 
@@ -141,6 +148,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
+            additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
     }
 
@@ -168,6 +178,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
         }
     }
 
@@ -198,6 +211,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['requestTarget'] == "com.squareup.okhttp3:okhttp:4.4.0"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
         }
     }
 
@@ -225,6 +241,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:configuration-not-compatible'
+            additionalData.asMap['requestTarget'] == "mismatch"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CONFIGURATION_NOT_COMPATIBLE.name()
+            additionalData.asMap['problemDisplayName'] == "Configuration selected by name is not compatible"
         }
     }
 
@@ -250,6 +269,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
+            additionalData.asMap['requestTarget'] == "project :producer"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
         }
     }
 
@@ -274,6 +296,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:configuration-does-not-exist'
+            additionalData.asMap['requestTarget'] == "absent"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.CONFIGURATION_DOES_NOT_EXIST.name()
+            additionalData.asMap['problemDisplayName'] == "Configuration selected by name does not exist"
         }
     }
     // endregion Variant Selection failure
@@ -305,6 +330,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
+            additionalData.asMap['requestTarget'] == "org.example:${testDirectory.name}:1.0"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.INCOMPATIBLE_MULTIPLE_NODES.name()
+            additionalData.asMap['problemDisplayName'] == "Incompatible nodes of a single component were selected"
         }
     }
 
@@ -330,9 +358,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-artifact'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
+            additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:no-compatible-artifact'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
+            additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
         }
     }
 
@@ -371,9 +405,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
         }
     }
 
@@ -397,9 +437,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts exist that would match the request"
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
+            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
+            additionalData.asMap['problemDisplayName'] == "Multiple artifacts exist that would match the request"
         }
     }
     // endregion Artifact Selection failures
@@ -433,6 +479,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-variants-with-matching-capabilities'
+            additionalData.asMap['requestTarget'] == "com.google.code.gson:gson:2.8.5"
+            additionalData.asMap['problemId'] == ResolutionFailureProblemId. NO_VARIANTS_WITH_MATCHING_CAPABILITIES.name()
+            additionalData.asMap['problemDisplayName'] == "No variants exist with capabilities that would match the request"
         }
     }
     // endregion dependencyInsight failures
