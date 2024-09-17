@@ -20,26 +20,30 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Displays the dependency tree for a configuration.
@@ -47,22 +51,18 @@ import java.util.TreeSet;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractDependencyReportTask extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
 
-    private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
+    private final Transient<SetProperty<Configuration>> configurations = Transient.of(getObjectFactory().setProperty(Configuration.class));
 
-    private transient Set<Configuration> configurations;
+    public AbstractDependencyReportTask() {
+        getRenderer().convention(new AsciiDependencyReportRenderer()).finalizeValueOnRead();
+        getConfigurations().add(getSelectedConfiguration().map(name -> ConfigurationFinder.find(getTaskConfigurations(), name)));
+    }
 
     @Override
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
-    public ReportRenderer getRenderer() {
-        return renderer;
-    }
-
-    /**
-     * Set the renderer to use to build a report. If unset, AsciiGraphRenderer will be used.
-     */
-    public void setRenderer(DependencyReportRenderer renderer) {
-        this.renderer = renderer;
-    }
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setRenderer", originalType = DependencyReportRenderer.class)
+    })
+    public abstract Property<DependencyReportRenderer> getRenderer();
 
     /**
      * Report model.
@@ -80,26 +80,24 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
 
     @Override
     protected DependencyReportModel calculateReportModelFor(Project project) {
-        SortedSet<Configuration> sortedConfigurations = new TreeSet<>(Comparator.comparing(Configuration::getName));
-        sortedConfigurations.addAll(getReportConfigurations());
-        List<ConfigurationDetails> configurationDetails = new ArrayList<>(sortedConfigurations.size());
-        for (Configuration configuration : sortedConfigurations) {
-            configurationDetails.add(ConfigurationDetails.of(configuration));
-        }
+        List<ConfigurationDetails> configurationDetails = getConfigurations()
+            .getOrElse(getConfigurationsWithDependencies())
+            .stream()
+            .sorted(Comparator.comparing(Configuration::getName))
+            .map(ConfigurationDetails::of)
+            .collect(Collectors.toList());
+
         return new DependencyReportModel(configurationDetails);
     }
 
     @Override
     protected void generateReportFor(ProjectDetails project, DependencyReportModel model) {
+        DependencyReportRenderer renderer = getRenderer().get();
         for (ConfigurationDetails configuration : model.configurations) {
             renderer.startConfiguration(configuration);
             renderer.render(configuration);
             renderer.completeConfiguration(configuration);
         }
-    }
-
-    private Set<Configuration> getReportConfigurations() {
-        return configurations != null ? configurations : getConfigurationsWithDependencies();
     }
 
     /**
@@ -109,34 +107,30 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      * @return the configurations.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Set<Configuration> getConfigurations() {
-        return configurations;
+    @ReplacesEagerProperty
+    public SetProperty<Configuration> getConfigurations() {
+        return Objects.requireNonNull(configurations.get());
     }
 
     /**
-     * Sets the configurations to generate the report for.
+     * The single configuration (by name) to generate the report for.
      *
-     * @param configurations The configuration. Must not be null.
+     * @since 9.0
      */
-    public void setConfigurations(Set<Configuration> configurations) {
-        this.configurations = configurations;
-    }
-
-    /**
-     * Sets the single configuration (by name) to generate the report for.
-     *
-     * @param configurationName name of the configuration to generate the report for
-     */
-    @ToBeReplacedByLazyProperty
+    @Input
+    @Optional
     @Option(option = "configuration", description = "The configuration to generate the report for.")
-    public void setConfiguration(String configurationName) {
-        this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
+    public abstract Property<String> getSelectedConfiguration();
+
+    @Deprecated
+    public void setConfiguration(String configuration) {
+        ProviderApiDeprecationLogger.logDeprecation(AbstractDependencyReportTask.class, "setConfiguration(String)", "getSelectedConfiguration()");
+        getSelectedConfiguration().set(configuration);
     }
 
     private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
-        for (Configuration configuration : Objects.requireNonNull(getTaskConfigurations())) {
+        for (Configuration configuration : getTaskConfigurations()) {
             if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
@@ -144,8 +138,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         return filteredConfigurations;
     }
 
-    @Internal
-    public ConfigurationContainer getTaskConfigurations() {
-        return getProject().getConfigurations();
-    }
+    @Inject
+    protected abstract ConfigurationContainer getTaskConfigurations();
 }
