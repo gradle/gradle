@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Action;
-import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
@@ -255,15 +254,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * */
     @Nullable
     Object getLifecycleActionsState();
-
-    ProjectInternal setReadyForEagerBeforeProjectActions(boolean ready);
-
-    /**
-     * Indicates whether the project is ready for registered {@link org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)} actions
-     * to be executed eagerly right before the project's mutable state accessed. Projects become ready for this immediately after cross-project access.
-     * See {@link DefaultCrossProjectModelAccess}
-     * */
-    boolean isReadyForEagerBeforeProjectActions();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

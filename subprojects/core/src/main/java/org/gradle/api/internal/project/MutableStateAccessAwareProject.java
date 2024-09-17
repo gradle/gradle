@@ -1179,14 +1179,4 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public Object getLifecycleActionsState() {
         return delegate.getLifecycleActionsState();
     }
-
-    @Override
-    public ProjectInternal setReadyForEagerBeforeProjectActions(boolean ready) {
-        return delegate.setReadyForEagerBeforeProjectActions(ready);
-    }
-
-    @Override
-    public boolean isReadyForEagerBeforeProjectActions() {
-        return delegate.isReadyForEagerBeforeProjectActions();
-    }
 }

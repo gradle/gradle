@@ -45,16 +45,9 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     @Override
     public void configureHierarchy(ProjectInternal project) {
-        withRestoringReadyForEagerBeforeProjectActions(project, () -> configure(project));
+        configure(project);
         for (Project sub : project.getSubprojects()) {
-            withRestoringReadyForEagerBeforeProjectActions((ProjectInternal) sub, () -> configure((ProjectInternal) sub));
+            configure((ProjectInternal) sub);
         }
-    }
-
-    private static void withRestoringReadyForEagerBeforeProjectActions(ProjectInternal project, Runnable action) {
-        boolean isReadyForEagerBeforeProjectActions = project.isReadyForEagerBeforeProjectActions();
-        project.setReadyForEagerBeforeProjectActions(false);
-        action.run();
-        project.setReadyForEagerBeforeProjectActions(isReadyForEagerBeforeProjectActions);
     }
 }

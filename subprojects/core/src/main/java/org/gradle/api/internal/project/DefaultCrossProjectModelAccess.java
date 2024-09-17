@@ -36,13 +36,12 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
-        return project.setReadyForEagerBeforeProjectActions(true);
+        return project;
     }
 
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        ProjectInternal project = projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
-        return project == null ? null : project.setReadyForEagerBeforeProjectActions(true);
+        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
     }
 
     @Override
@@ -57,16 +56,12 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return projectRegistry.getSubProjects(relativeTo.getPath()).stream()
-            .map(projectInternal -> projectInternal.setReadyForEagerBeforeProjectActions(true))
-            .collect(Collectors.toCollection(TreeSet::new));
+        return new TreeSet<>(projectRegistry.getSubProjects(relativeTo.getPath()));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return projectRegistry.getAllProjects(relativeTo.getPath()).stream()
-            .map(projectInternal -> projectInternal.setReadyForEagerBeforeProjectActions(true))
-            .collect(Collectors.toCollection(TreeSet::new));
+        return new TreeSet<>(projectRegistry.getAllProjects(relativeTo.getPath()));
     }
 
     @Override

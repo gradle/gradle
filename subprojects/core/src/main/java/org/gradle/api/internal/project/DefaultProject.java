@@ -221,8 +221,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     private Object beforeProjectActionState;
 
-    private boolean isReadyForEagerBeforeAction = false;
-
     public DefaultProject(
         String name,
         @Nullable ProjectInternal parent,
@@ -386,17 +384,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private String instanceDescriptorFor(String path) {
         return "Project.<init>." + path + "()";
-    }
-
-    @Override
-    public ProjectInternal setReadyForEagerBeforeProjectActions(boolean ready) {
-        isReadyForEagerBeforeAction = ready;
-        return this;
-    }
-
-    @Override
-    public boolean isReadyForEagerBeforeProjectActions() {
-        return isReadyForEagerBeforeAction;
     }
 
     @Override

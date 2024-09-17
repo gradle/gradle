@@ -48,6 +48,7 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
+    @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "IP enables parallel configuration")
     def 'project lifetime is same as build'() {
         given:
         settingsFile """
