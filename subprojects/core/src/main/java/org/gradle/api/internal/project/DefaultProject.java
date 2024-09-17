@@ -827,6 +827,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public ProjectInternal evaluateUnchecked() {
+        services.get(ProjectEvaluator.class).evaluate(this, state); // avoid getServices() call
+        return this;
+    }
+
+    @Override
     public ProjectInternal bindAllModelRules() {
         onMutableStateAccess();
         try {

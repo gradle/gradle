@@ -318,6 +318,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    public ProjectInternal evaluateUnchecked() {
+        return delegate.evaluateUnchecked();
+    }
+
+    @Override
     public ProjectInternal bindAllModelRules() {
         onMutableStateAccess("bindAllModelRules");
         return delegate.bindAllModelRules();

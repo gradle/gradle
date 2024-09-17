@@ -79,6 +79,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     Project evaluate();
 
+    /***
+     * This method should be used by internal Gradle code to trigger project evaluation.
+     */
+    ProjectInternal evaluateUnchecked();
+
     ProjectInternal bindAllModelRules();
 
     @Override
