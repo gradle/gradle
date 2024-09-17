@@ -16,13 +16,11 @@
 
 package org.gradle.buildinit.projectspecs.internal
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.builtinit.projectspecs.internal.internal.TestInitProjectGenerator
 import org.gradle.builtinit.projectspecs.internal.internal.TestInitProjectSpec
-import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
-
 /**
  * Unit tests for {@link InitProjectRegistry}.
  */
