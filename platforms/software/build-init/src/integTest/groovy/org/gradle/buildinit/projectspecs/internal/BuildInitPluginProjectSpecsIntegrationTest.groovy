@@ -30,6 +30,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem"
     private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.13"
+    private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
 
     private static final String ARBITRARY_PLUGIN_ID = "org.barfuin.gradle.taskinfo"
     private static final String ARBITRARY_PLUGIN_VERSION = "2.2.0"
@@ -250,7 +251,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
     def "can generate declarative project type using argument to init"() {
         when:
         executer.withJvm(AvailableJavaHomes.getJdk21())
-        initSucceedsWithPluginSupplyingSpec("$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION")
+        initSucceedsWithPluginSupplyingSpec(DECLARATIVE_PLUGIN_SPEC)
 
         then:
         assertResolvedPlugin(DECLARATIVE_JVM_PLUGIN_ID, DECLARATIVE_PLUGIN_VERSION)
@@ -330,7 +331,7 @@ defaults {
         when:
         targetDir = file("new-project").with { createDir() }
 
-        def args = ["-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION".toString(),
+        def args = ["-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$DECLARATIVE_PLUGIN_SPEC".toString(),
                     "init",
                     "--type", "unknown-project-type",
                     "--overwrite",
@@ -349,7 +350,7 @@ Known types:
 
         def args = ["init"]
         if (pluginsProp) {
-            args << "-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$DE:$DE".toString()
+            args << "-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$pluginsProp".toString()
         }
         if (type) {
             args << "--type" << type

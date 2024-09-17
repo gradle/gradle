@@ -71,7 +71,10 @@ class InitProjectRegistryTest extends Specification {
 
         then: "Unknown spec type can't be found"
         def e = thrown(IllegalStateException)
-        e.message == "Project spec with type: 'unknown' was not found!"
+        e.message == """Project spec with type: 'unknown' was not found!
+Known types:
+ - spec1
+ - spec2"""
     }
 
     def "multiple specs with same type cause error upon lookup by type"() {

@@ -21,6 +21,7 @@ import org.gradle.buildinit.projectspecs.InitProjectGenerator;
 import org.gradle.buildinit.projectspecs.InitProjectSpec;
 import org.gradle.buildinit.projectspecs.InitProjectSource;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public final class InitProjectSpecLoader {
         ServiceLoader.load(InitProjectSource.class, projectPluginClassloader).forEach(supplier -> {
             List<InitProjectSpec> specs = supplier.getProjectSpecs();
             specs.forEach(template -> logger.info("Loaded project spec: '{} ({})', supplied by: '{}', generated via: '{}'", template.getDisplayName(), template.getType(), supplier.getClass().getName(), supplier.getProjectGenerator().getName()));
-            specsByGenerator.put(supplier.getProjectGenerator(), specs);
+            specsByGenerator.computeIfAbsent(supplier.getProjectGenerator(), k -> new ArrayList<>()).addAll(specs);
         });
 
         return new InitProjectRegistry(specsByGenerator);
