@@ -52,6 +52,7 @@ import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.InlineStringDecoder
 import org.gradle.internal.serialize.graph.InlineStringEncoder
+import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -81,8 +82,12 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.math.MathContext
+import java.math.RoundingMode
+import java.util.Collections
 import java.util.IdentityHashMap
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.pow
 
 
 @ServiceScope(Scope.Build::class)
@@ -276,12 +281,12 @@ class DefaultConfigurationCacheIO internal constructor(
 
 
     interface Collector {
-        fun collect(obj: Any?)
+        fun collect(context: IsolateContext, obj: Any?, length: Long?)
         fun printStats(context: String)
 
         companion object {
             val NULL_COLLECTOR = object : Collector {
-                override fun collect(obj: Any?) {
+                override fun collect(context: IsolateContext, obj: Any?, length: Long?) {
                 }
                 override fun printStats(context: String) {
                 }
@@ -292,29 +297,81 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     class DefaultCollector: Collector {
-        val stats = IdentityHashMap<Any, AtomicInteger>()
 
-        override fun collect(obj: Any?) {
+        private
+        data class Operation(
+            val context: IsolateContext,
+            val length: Long
+        )
+
+        private
+        class Stats {
+            val totalLength: Long get() = operations.sumOf(Operation::length)
+            val count: Int get() = operations.size
+            var operations = mutableListOf<Operation>()
+            override fun toString(): String {
+                val lengths = operations.map(Operation::length)
+                val maxLength = lengths.max()
+                val minLength = lengths.min()
+                val meanLength = lengths.average()
+                val stdDeviation = Math.sqrt(lengths.map { (it - meanLength).pow(2) }.average())
+                val contexts = operations.map { it.context }.toSet().size
+                val contextString = contexts.takeIf { it > 1 }?.let { " in $it contexts" }
+                return if (totalLength > 0) {
+                    "$count (total: $totalLength, max: $maxLength, min: $minLength, avg: ${meanLength.toBigDecimal()}, stdDev: ${stdDeviation.toBigDecimal().toEngineeringString()}${contextString ?: ""})"
+                } else
+                    "$count " + (contextString ?: "")
+            }
+
+            fun addStat(context: IsolateContext, length: Long?): Stats {
+                operations.add(Operation(context, length ?: 0))
+                return this
+            }
+
+            private
+            fun Double.toBigDecimal() = toBigDecimal(MC)
+
+            companion object {
+                private val MC: MathContext = MathContext(5, RoundingMode.HALF_EVEN)
+            }
+        }
+
+        val stats: MutableMap<Any, AtomicReference<Stats>> = Collections.synchronizedMap(IdentityHashMap())
+
+        override fun collect(context: IsolateContext, obj: Any?, length: Long?) {
             obj?.takeUnless {
                 Primitives.isWrapperType(it.javaClass) || it.javaClass.isEnum || it is String || it is File || it is Class<*>
             }?.let {
                 synchronized(stats) {
-                    stats.computeIfAbsent(it) { AtomicInteger(0) }
-                }.incrementAndGet()
+                    stats.computeIfAbsent(it) { AtomicReference(Stats()) }
+                }.updateAndGet {
+                    it.addStat(context, length)
+                }
             }
         }
 
         override fun printStats(context: String) {
-            println("Stats for $context: ${stats.size}")
+            println("[stats] Stats for $context: ${stats.size}")
             stats.asSequence()
-                .filter { it.value.get() > 1 }
-                .sortedByDescending { it.value.get() }
+                .filter { it.value.get().count > 1 }
+                .sortedByDescending { it.value.get().totalLength }
                 .take(100)
                 .forEach {
-                    println("${it.value.get()} - ${it.key} (${it.key.javaClass.name})")
+                    val simpleString = "${it.key.javaClass.simpleName}@${System.identityHashCode(it.key).let(Integer::toHexString)}"
+                    val fullString = it.key.toString()
+                    println("[stats] ${it.value.get()} - ${simpleString} - (${fullString})")
                 }
-            println("End of stats for $context")
+            println("[stats] End of stats for $context")
         }
+
+        private
+        fun Any.toString(limit: Int): String =
+            toString().let {
+                if (it.length <= limit)
+                    it
+                else
+                    it.substring(0, limit) + "..."
+            }
     }
 
     private
@@ -532,7 +589,7 @@ class DefaultConfigurationCacheIO internal constructor(
         stringEncoder: StringEncoder = InlineStringEncoder,
     ): CloseableWriteContext = DefaultWriteContext(
         codecs.userTypesCodec(),
-        encoder,
+        encoder as PositionAwareEncoder,
         beanStateWriterLookup,
         logger,
         tracer,

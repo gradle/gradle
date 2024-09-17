@@ -29,6 +29,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.beans.services.BeanConstructors
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateReaderLookup
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
@@ -134,7 +135,7 @@ abstract class AbstractUserTypeCodecTest {
     fun writeContextFor(encoder: FlushableEncoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
         DefaultWriteContext(
             codec = codec,
-            encoder = encoder,
+            encoder = encoder as PositionAwareEncoder,
             classEncoder = DefaultClassEncoder(mock()),
             beanStateWriterLookup = DefaultBeanStateWriterLookup(),
             logger = mock(),
