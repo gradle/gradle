@@ -80,10 +80,27 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.expectDocumentedDeprecationWarning("'MyExtension' declares a property with a Boolean type. This behavior has been deprecated. This will change in Gradle 9.0. " +
+        executer.expectDocumentedDeprecationWarning("'MyExtension' declares a property with a Boolean type. This behavior has been deprecated. Starting with Gradle 9.0, this property will be ignored. " +
             "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
             "Change the return type of 'isProperty' to boolean or rename 'isProperty' to 'getProperty'. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
+        succeeds("assertProperty")
+    }
+
+    def "does not emit deprecation warning when a decorated class exposes both a Boolean is-getter and normal getter"() {
+        buildFile << """
+            abstract class MyExtension {
+                Boolean isProperty() { return Boolean.TRUE } // The deprecated one
+                Boolean getProperty() { return Boolean.TRUE } // The non-breaking fix for deprecation, which should fix the warning.
+            }
+            def myext = extensions.create("myext", MyExtension)
+            task assertProperty {
+                doLast {
+                    assert myext.property
+                }
+            }
+        """
+        expect:
         succeeds("assertProperty")
     }
 }
