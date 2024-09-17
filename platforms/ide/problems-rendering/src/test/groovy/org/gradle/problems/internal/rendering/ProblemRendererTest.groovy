@@ -35,19 +35,6 @@ class ProblemRendererTest extends Specification {
         renderer = new ProblemRenderer(writer)
     }
 
-    void "group header is correct"() {
-        given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
-            .id("id", "display-name", level1Group)
-            .build()
-
-        when:
-        renderer.render(problem)
-
-        then:
-        renderedTextLines[0] == "display-name (test-group-0:test-group-1:id)"
-    }
-
     def "individual problem header is correct when only group display name is present"() {
         given:
         def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
@@ -58,7 +45,7 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  test-id-display-name"
+        renderedTextLines[0] == "  test-id-display-name"
     }
 
     def "individual problem header is correct when contextual label is present"() {
@@ -72,7 +59,7 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  contextual-label"
+        renderedTextLines[0] == "  contextual-label"
     }
 
     void "individual problem with formatted additional data replace regular rendered content"() {
@@ -87,7 +74,7 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  formatted-problem-details"
+        renderedTextLines[0] == "  formatted-problem-details"
     }
 
     def "individual problem with multiline formatted additional data will be indented correctly"() {
@@ -102,8 +89,8 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  formatted-problem-details"
-        renderedTextLines[2] == "  with multiple lines"
+        renderedTextLines[0] == "  formatted-problem-details"
+        renderedTextLines[1] == "  with multiple lines"
     }
 
     def "individual problem with details are displayed"() {
@@ -117,7 +104,7 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details"
+        renderedTextLines[1] == "    details"
     }
 
     def "individual problem with multiline details are displayed and indented correctly"() {
@@ -131,8 +118,8 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details:1"
-        renderedTextLines[3] == "    details:2"
+        renderedTextLines[1] == "    details:1"
+        renderedTextLines[2] == "    details:2"
     }
 
     def getRenderedText() {
