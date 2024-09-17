@@ -53,6 +53,7 @@ dependencies {
     }
 
     testImplementation(projects.resources)
+    testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.internalIntegTesting)
