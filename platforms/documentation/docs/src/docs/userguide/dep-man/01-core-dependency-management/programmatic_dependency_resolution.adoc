@@ -137,7 +137,7 @@ For more details on the attribute matching process, see the <<variant_attributes
 
 By default, the attributes used for artifact selection are the same as those used for variant selection during graph resolution.
 These attributes are specified by the `Configuration#getAttributes()` property.
-To perform artifact selection (and implicitly, graph resolution) using these defaults attributes, use the `FileCollection` and `ArtifactCollection` APIs:
+To perform artifact selection (and implicitly, graph resolution) using these default attributes, use the `FileCollection` and `ArtifactCollection` APIs.
 
 NOTE: Files can also be accessed from the configuration's `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedArtifact` and `ResolvedDependency` APIs.
 However, these APIs are in maintenance mode and are discouraged for use in new development.
@@ -237,7 +237,7 @@ include::{snippetsPath}/dependencyManagement/artifactTransforms-unzip/tests/arti
 ==== Performing variant reselection
 
 Standard artifact selection can only select between and transform artifact sets exposed by the node under selection.
-However, in some cases, it may be desirable to select artifacts from a variant _parallel_ to graph node being selected.
+However, in some cases, it may be desirable to select artifacts from a variant _parallel_ to the graph node being selected.
 
 Consider the example component structure below, describing a typical local Java library with sources and javadoc:
 
@@ -286,7 +286,7 @@ The graph resolution attributes specified on the configuration are completely ig
 
 ==== Performing lenient artifact resolution
 
-The `ArtifactView` API can also be used perform lenient artifact resolution.
+The `ArtifactView` API can also be used to perform lenient artifact resolution.
 This allows artifact resolution to be performed on a graph that contains failures -- for example when a requested module was not found, the requested module version did not exist, or a conflict was not resolved.
 Furthermore, lenient artifact resolution can be used to resolve artifacts when the graph was successfully resolved, but the corresponding artifacts could not be downloaded.
 
