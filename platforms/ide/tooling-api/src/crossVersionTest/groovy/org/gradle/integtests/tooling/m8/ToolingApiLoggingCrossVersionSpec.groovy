@@ -150,6 +150,7 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         def executer = targetDist.executer(temporaryFolder, getBuildContext())
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
+            .noExtraLogging() // use default logging level, NoDaemonGradleExecuter sets --info otherwise
 
         if (targetDist.toolingApiMergesStderrIntoStdout) {
             // The TAPI provider merges the streams, so need to merge the streams for command-line execution too
