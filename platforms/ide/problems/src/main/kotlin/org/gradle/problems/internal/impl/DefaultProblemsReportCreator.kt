@@ -126,8 +126,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                 problem.definition.documentationLink?.let { property("documentationLink", it.url) }
                 problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
                 property("problemId") {
-                    val list = listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName)) +
-                        generateSequence(problem.definition.id.group) { it.parent }.toList().asReversed()
+                    val list = generateSequence(problem.definition.id.group) { it.parent }.toList() + listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName))
                     jsonObjectList(list) { group ->
                         property("name", group.name)
                         property("displayName", group.displayName)
