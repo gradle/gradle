@@ -45,3 +45,13 @@ include("gradle-plugin")
 include("publishing")
 
 rootProject.name = "build-logic-commons"
+
+// Make sure all the build-logic is compiled for the right Java version
+gradle.lifecycle.beforeProject {
+    pluginManager.withPlugin("java-base") {
+        the<JavaPluginExtension>().toolchain {
+            languageVersion = JavaLanguageVersion.of(11)
+            vendor = JvmVendorSpec.ADOPTIUM
+        }
+    }
+}
