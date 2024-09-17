@@ -31,6 +31,7 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
@@ -541,6 +542,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         for (Annotation annotation : annotations.values()) {
             metadataBuilder.declareAnnotation(annotation);
+        }
+
+        // Warn on Boolean is-getters that are not ignored
+        if (accessorType == PropertyAccessorType.IS_GETTER && method.getReturnType() == Boolean.class && ignoredMethodAnnotations.stream().noneMatch(metadataBuilder::hasAnnotation)) {
+            DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
+                .withAdvice(String.format(
+                    "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or replace the return type of '%s.%s' with 'boolean'.",
+                    method.getName().replace("is", "get"),
+                    method.getDeclaringClass().getCanonicalName(), method.getName()
+                ))
+                .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
+                .startingWithGradle9("this property will be ignored by Gradle")
+                .withUpgradeGuideSection(8, "groovy_boolean_properties")
+                .nagUser();
         }
     }
 

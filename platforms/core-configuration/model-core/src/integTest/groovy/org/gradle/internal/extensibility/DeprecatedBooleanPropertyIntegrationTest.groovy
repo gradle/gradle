@@ -80,9 +80,9 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         expect:
-        executer.expectDocumentedDeprecationWarning("'MyExtension' declares a property with a Boolean type. This behavior has been deprecated. Starting with Gradle 9.0, this property will be ignored. " +
+        executer.expectDocumentedDeprecationWarning("Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. " +
             "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
-            "Change the return type of 'isProperty' to boolean or rename 'isProperty' to 'getProperty'. " +
+            "Add a method named 'getProperty' with the same behavior, or replace the return type of 'MyExtension.isProperty' with 'boolean'. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
         succeeds("assertProperty")
     }
@@ -90,6 +90,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
     def "does not emit deprecation warning when a decorated class exposes both a Boolean is-getter and normal getter"() {
         buildFile << """
             abstract class MyExtension {
+                // This type serves as an example of how to fix the issue:
                 Boolean isProperty() { return Boolean.TRUE } // The deprecated one
                 Boolean getProperty() { return Boolean.TRUE } // The non-breaking fix for deprecation, which should fix the warning.
             }
@@ -99,6 +100,59 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
                     assert myext.property
                 }
             }
+        """
+        expect:
+        succeeds("assertProperty")
+    }
+
+    def "emits a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter"() {
+        buildFile << """
+            class MyValue {
+                @Input
+                Boolean isProperty() { return Boolean.TRUE }
+            }
+            class MyTask extends DefaultTask {
+                @Nested
+                MyValue value = new MyValue()
+
+                @TaskAction
+                void doAction() {
+                    assert value.property
+                }
+            }
+            tasks.create("assertProperty", MyTask)
+        """
+        expect:
+        executer.expectDocumentedDeprecationWarning("Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. " +
+            "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
+            "Add a method named 'getProperty' with the same behavior, or replace the return type of 'MyValue.isProperty' with 'boolean'. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
+        succeeds("assertProperty")
+    }
+
+    def "does not emit a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter and normal getter"() {
+        buildFile << """
+            class MyValue {
+                // This type serves as an example of how to fix the issue:
+
+                @Deprecated // Deprecate the old property to users
+                @ReplacedBy("getProperty") // Changed to ignore the property and inform users of the replacement
+                Boolean isProperty() { return Boolean.TRUE }
+
+                // The new replacement method, which now is used as the @Input
+                @Input
+                Boolean getProperty() { return Boolean.TRUE }
+            }
+            class MyTask extends DefaultTask {
+                @Nested
+                MyValue value = new MyValue()
+
+                @TaskAction
+                void doAction() {
+                    assert value.property
+                }
+            }
+            tasks.create("assertProperty", MyTask)
         """
         expect:
         succeeds("assertProperty")
