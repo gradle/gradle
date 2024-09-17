@@ -110,7 +110,7 @@ A `{ }` block is called a _lambda_ in Kotlin or a _closure_ in Groovy.
 Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
 It is the short form for:
 
-[source,kotlin]
+[source,text]
 ----
 plugins(function() {
     id("plugin")

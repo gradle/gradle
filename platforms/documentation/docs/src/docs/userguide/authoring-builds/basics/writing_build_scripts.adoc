@@ -134,7 +134,7 @@ This object is called a _lambda_ in Kotlin or a _closure_ in Groovy.
 Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
 It is the short form for:
 
-[source]
+[source,text]
 ----
 plugins(function() {
     id("plugin")
@@ -233,7 +233,7 @@ Plugins can be applied using the `PluginDependenciesSpec` plugins script block.
 
 The plugins block is preferred:
 
-[source]
+[source,text]
 ----
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
@@ -254,7 +254,7 @@ Dependencies include plugins, libraries, or components that Gradle must download
 The build script lets Gradle know where to look for the binaries of the dependencies.
 More than one location can be provided:
 
-[source]
+[source,kotlin]
 ----
 repositories {
     mavenCentral()
@@ -274,7 +274,7 @@ Dependencies are managed via <<glossary.adoc#sub:terminology_configuration,confi
 Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
 Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
 
-[source]
+[source,kotlin]
 ----
 dependencies {
     implementation("com.google.guava:guava:32.1.1-jre")
@@ -292,7 +292,7 @@ The link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] object has an as
 
 In the example, the `application` plugin added an `application` property, which is used to detail the main class of our Java application:
 
-[source]
+[source,kotlin]
 ----
 application {
     mainClass = "com.example.Main"
@@ -309,7 +309,7 @@ While tasks are typically defined in plugins, you may need to register or config
 
 You can register tasks in a project using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register(java.lang.String)`] method:
 
-[source]
+[source,kotlin]
 ----
 tasks.register<Zip>("zip-reports") {
     from 'Reports/'
@@ -321,7 +321,7 @@ tasks.register<Zip>("zip-reports") {
 
 You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*:
 
-[source]
+[source,kotlin]
 ----
 tasks.create<Zip>("zip-reports") {
     from 'Reports/'
@@ -335,7 +335,7 @@ TIP: `register()`, which enables <<task_configuration_avoidance.adoc#task_config
 
 You can locate a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
-[source]
+[source,kotlin]
 ----
 tasks.named<Test>("test") {
     useJUnitPlatform()
@@ -344,7 +344,7 @@ tasks.named<Test>("test") {
 
 The example below configures the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] task to automatically generate HTML documentation from Java code:
 
-[source]
+[source,kotlin]
 ----
 tasks.named("javadoc").configure {
     exclude 'app/Internal*.java'
@@ -357,21 +357,21 @@ tasks.named("javadoc").configure {
 
 A build script is made up of zero or more statements and script blocks:
 
-[source]
+[source,text]
 ----
 println(project.layout.projectDirectory);
 ----
 
 Statements can include method calls, property assignments, and local variable definitions:
 
-[source]
+[source,text]
 ----
 version = '1.0.0.GA'
 ----
 
 A script block is a method call which takes a closure/lambda as a parameter:
 
-[source]
+[source,text]
 ----
 configurations {
 }
@@ -379,7 +379,7 @@ configurations {
 
 The closure/lambda configures some delegate object as it executes:
 
-[source]
+[source,text]
 ----
 repositories {
     google()
@@ -513,7 +513,6 @@ As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionExc
 
 Gradle implicitly adds the following imports to each script:
 
-.Gradle default imports
 [source,groovy]
 ----
 include::default-imports.txt[]

@@ -93,7 +93,6 @@ plugins {
 
 For example:
 
-.build.gradle
 [source,text]
 ----
 plugins {
@@ -202,7 +201,7 @@ The plugin DSL provides a concise and convenient way to declare plugin dependenc
 [[sec:binary_plugins]]
 The plugins block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[`PluginDependenciesSpec`]:
 
-[source, build.gradle.kts]
+[source, text]
 ----
 plugins {
     application                                     // by name
@@ -255,11 +254,7 @@ It is constrained to be idempotent (produce the same result every time) and side
 
 The form is:
 
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
+[source,text]
 ----
 plugins {
     id(«plugin id»)                             // <1>
@@ -268,22 +263,6 @@ plugins {
 ----
 <1> for core Gradle plugins or plugins already available to the build script
 <2> for binary Gradle plugins that need to be resolved
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id «plugin id»                            // <1>
-    id «plugin id» version «plugin version»   // <2>
-}
-----
-<1> for core Gradle plugins or plugins already available to the build script
-<2> for binary Gradle plugins that need to be resolved
-=====
-====
 
 [.multi-language-text.lang-kotlin]
 Where `«plugin id»` and `«plugin version»` are a string.
@@ -345,7 +324,8 @@ The `buildscript` block is used for:
 
 So when you want to use a library in the build script itself, you must add this library on the script classpath using `buildScript`:
 
-[source,build.gradle]
+[source,groovy]
+.build.gradle
 ----
 import org.apache.commons.codec.binary.Base64
 
@@ -370,7 +350,8 @@ tasks.register('encode') {
 
 And you can apply the globally declared dependencies in the subproject that needs it:
 
-[source,subproject/build.gradle]
+[source,groovy]
+.subproject/build.gradle
 ----
 plugins {
     id 'com.android.application'
@@ -393,7 +374,8 @@ A script plugin is an ad-hoc plugin, typically written and applied in the same b
 It is applied using the <<sec:old_plugin_application,legacy application method>>:
 
 [[sec:binary_plugin_example]]
-[source, build.gradle.kts]
+[source, kotlin]
+.build.gradle.kts
 ----
 class MyPlugin : Plugin<Project> {
     override fun apply(project: Project) {
@@ -406,7 +388,8 @@ apply<MyPlugin>()
 
 Let's take a rudimentary example of a plugin written in a file called `other.gradle` located in the same directory as the `build.gradle` file:
 
-[source, other.gradle]
+[source, groovy]
+.other.gradle
 ----
 public class Other implements Plugin<Project> {
     @Override
@@ -418,14 +401,16 @@ public class Other implements Plugin<Project> {
 
 First, import the external file using:
 
-[source, build.gradle]
+[source, groovy]
+.build.gradle
 ----
 apply from: 'other.gradle'
 ----
 
 Then you can apply it:
 
-[source, build.gradle]
+[source, groovy]
+.build.gradle
 ----
 apply plugin: Other
 ----
@@ -576,8 +561,8 @@ When a project uses a version catalog, plugins can be referenced via aliases whe
 
 Let's take a look at a simple Version Catalog:
 
-.gradle/libs.versions.toml
 [source,toml]
+.gradle/libs.versions.toml
 ----
 [versions]
 intellij-plugin = "1.6"
@@ -588,8 +573,8 @@ jetbrains-intellij = { id = "org.jetbrains.intellij", version.ref = "intellij-pl
 
 Then a plugin can be applied to any build script using the `alias` method:
 
-.build.gradle.kts
 [source,kotlin]
+.build.gradle.kts
 ----
 plugins {
     alias(libs.plugins.jetbrains.intellij)
