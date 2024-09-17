@@ -25,6 +25,11 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
+import org.gradle.api.problems.internal.DefaultResolutionFailureData;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ResolutionFailureData;
+import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -78,15 +83,15 @@ public class ResolutionFailureHandler {
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
 
-    public ResolutionFailureHandler(InstanceGenerator instanceGenerator) {
+    public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problemsService) {
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
 
-        configureAdditionalDataBuilder(problems);
+        configureAdditionalDataBuilder(problemsService);
     }
 
-    private static void configureAdditionalDataBuilder(InternalProblems problems) {
-        AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
+    private static void configureAdditionalDataBuilder(InternalProblems problemsService) {
+        AdditionalDataBuilderFactory additionalDataBuilderFactory = problemsService.getAdditionalDataBuilderFactory();
         if (!additionalDataBuilderFactory.hasProviderForSpec(ResolutionFailureDataSpec.class)) {
             additionalDataBuilderFactory.registerAdditionalDataProvider(
                 ResolutionFailureDataSpec.class,
