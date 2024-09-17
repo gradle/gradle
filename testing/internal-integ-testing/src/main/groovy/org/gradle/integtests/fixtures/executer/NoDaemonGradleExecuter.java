@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.fail;
 
@@ -117,7 +118,27 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<>(super.getAllArgs());
         addPropagatedSystemProperties(args);
+        if(!isQuiet() && isAllowExtraLogging()) {
+            if (!containsLoggingArgument(args)) {
+                args.add(0, "-i");
+            }
+        }
+
+        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
+        if (getUserHomeDir() != null) {
+            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        }
+
         return args;
+    }
+
+    private boolean containsLoggingArgument(List<String> args) {
+        for (String logArg : asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet")) {
+            if (args.contains(logArg)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
