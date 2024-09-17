@@ -16,9 +16,11 @@
 
 package org.gradle.buildinit.projectspecs.internal
 
-
+import org.gradle.api.JavaVersion
 import org.gradle.builtinit.projectspecs.internal.internal.TestInitProjectGenerator
 import org.gradle.builtinit.projectspecs.internal.internal.TestInitProjectSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 /**
@@ -71,10 +73,10 @@ class InitProjectRegistryTest extends Specification {
 
         then: "Unknown spec type can't be found"
         def e = thrown(IllegalStateException)
-        e.message == """Project spec with type: 'unknown' was not found!
+        e.message == TextUtil.toPlatformLineSeparators("""Project spec with type: 'unknown' was not found!
 Known types:
  - spec1
- - spec2"""
+ - spec2""")
     }
 
     def "multiple specs with same type cause error upon lookup by type"() {

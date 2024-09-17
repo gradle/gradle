@@ -330,6 +330,7 @@ defaults {
     def "gives decent error message when triggered with unknown init-type after loading project specs"() {
         when:
         targetDir = file("new-project").with { createDir() }
+        withInstallations(Jvm.current(), AvailableJavaHomes.getJdk(JavaVersion.VERSION_17))
 
         def args = ["-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$DECLARATIVE_PLUGIN_SPEC".toString(),
                     "init",
