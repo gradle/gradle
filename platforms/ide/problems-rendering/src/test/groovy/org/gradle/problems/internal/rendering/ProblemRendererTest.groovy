@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.rendering
 
 import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.GeneralDataSpec
@@ -34,22 +35,9 @@ class ProblemRendererTest extends Specification {
         renderer = new ProblemRenderer(writer)
     }
 
-    void "group header is correct"() {
-        given:
-        def problem = new DefaultProblemBuilder()
-            .id("id", "display-name", level1Group)
-            .build()
-
-        when:
-        renderer.render(problem)
-
-        then:
-        renderedTextLines[0] == "display-name (test-group-0:test-group-1:id)"
-    }
-
     def "individual problem header is correct when only group display name is present"() {
         given:
-        def problem = new DefaultProblemBuilder()
+        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
             .id("test-id", "test-id-display-name", level1Group)
             .build()
 
@@ -57,12 +45,12 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  test-id-display-name"
+        renderedTextLines[0] == "  test-id-display-name"
     }
 
     def "individual problem header is correct when contextual label is present"() {
         given:
-        def problem = new DefaultProblemBuilder()
+        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
             .id("test-id", "display-name", level1Group)
             .contextualLabel("contextual-label")
             .build()
@@ -71,12 +59,12 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  contextual-label"
+        renderedTextLines[0] == "  contextual-label"
     }
 
     void "individual problem with formatted additional data replace regular rendered content"() {
         given:
-        def problem = new DefaultProblemBuilder()
+        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
             .id("id", "display-name", level1Group)
             .additionalData(GeneralDataSpec) {
                 it.put('formatted', 'formatted-problem-details')
@@ -86,12 +74,12 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  formatted-problem-details"
+        renderedTextLines[0] == "  formatted-problem-details"
     }
 
     def "individual problem with multiline formatted additional data will be indented correctly"() {
         given:
-        def problem = new DefaultProblemBuilder()
+        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
             .id("id", "display-name", level1Group)
             .additionalData(GeneralDataSpec) {
                 it.put('formatted', 'formatted-problem-details\nwith multiple lines')
@@ -101,13 +89,13 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[1] == "  formatted-problem-details"
-        renderedTextLines[2] == "  with multiple lines"
+        renderedTextLines[0] == "  formatted-problem-details"
+        renderedTextLines[1] == "  with multiple lines"
     }
 
     def "individual problem with details are displayed"() {
         given:
-        def problem = new DefaultProblemBuilder()
+        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
             .id("id", "display-name", level1Group)
             .details("details")
             .build()
@@ -116,12 +104,12 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details"
+        renderedTextLines[1] == "    details"
     }
 
     def "individual problem with multiline details are displayed and indented correctly"() {
         given:
-        def problem = new DefaultProblemBuilder()
+        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
             .id("id", "display-name", level1Group)
             .details("details:1\ndetails:2")
             .build()
@@ -130,8 +118,8 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details:1"
-        renderedTextLines[3] == "    details:2"
+        renderedTextLines[1] == "    details:1"
+        renderedTextLines[2] == "    details:2"
     }
 
     def getRenderedText() {

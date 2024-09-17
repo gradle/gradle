@@ -24,13 +24,10 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.support.unzipTo
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 
 /**
@@ -50,19 +47,18 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.withTemporaryDir("unzipped-distribution") { unzippedDistroDir ->
+        outputs.withTemporaryDir { unzippedDistroDir ->
             unzipTo(unzippedDistroDir, input.get().asFile)
             distroDirFrom(unzippedDistroDir)?.let { distroRootDir ->
-                projectDirectoriesOf(distroRootDir)
-                    .flatMap { projectDir -> subDirsOf(projectDir.resolve("src/main")) }
-                    .forEach { srcDir ->
-                        val relativePath = srcDir.relativeTo(unzippedDistroDir).path
-                        val srcDirHash = Hashing.md5().hashString(relativePath).toCompactString()
-                        // Use a relative output dir file in order to get a managed directory
-                        val outputSrcDir = outputs.dir(srcDirHash)
-                        // Move source from temporary unzipped distro into managed transform cached directory
-                        Files.move(srcDir.toPath(), outputSrcDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                projectDirectoriesOf(distroRootDir).forEach { projectDir ->
+                    // Use a relative output dir file in order to get a managed directory
+                    val outputSrcDir = outputs.dir(projectDir.name)
+                    subDirsOf(projectDir.resolve("src/main")).forEach { srcDir ->
+                        srcDir.listFiles()?.forEach { srcDirChild ->
+                            srcDirChild.copyRecursively(outputSrcDir.resolve(srcDirChild.name))
+                        }
                     }
+                }
             }
         }
     }
@@ -73,10 +69,13 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
      * This is necessary because we should not use regular system temporary directories for security reasons and
      * because no temporary file provider is available in transform actions.
      *
+     * This adds an empty directory to the transform outputs. In this case it should not create downstream issues
+     * given the consumers of this transform's output are IDEs indexing sources.
+     *
      * See https://github.com/gradle/gradle/issues/30440
      */
-    private fun TransformOutputs.withTemporaryDir(name: String, block: (File) -> Unit) {
-        val dir = dir(name)
+    private fun TransformOutputs.withTemporaryDir(block: (File) -> Unit) {
+        val dir = dir("empty")
         block(dir)
         if (!dir.deleteRecursively() || !dir.mkdirs()) {
             throw IOException("Unable to clear artifact transform temporary directory $dir")

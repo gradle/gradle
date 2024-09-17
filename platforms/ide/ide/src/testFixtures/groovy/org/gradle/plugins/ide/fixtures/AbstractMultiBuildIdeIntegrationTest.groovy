@@ -52,8 +52,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
 
     @ToBeFixedForConfigurationCache(because = "ide plugins", bottomSpecs = [
         "EclipseMultiBuildIntegrationTest",
-        "IdeaMultiBuildIntegrationTest",
-        "XCodeMultiBuildIntegrationTest"
+        "IdeaMultiBuildIntegrationTest"
     ])
     def "workspace includes projects from included builds"() {
         buildTestFixture.withBuildInSubDir()
@@ -93,8 +92,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
 
     @ToBeFixedForConfigurationCache(because = "ide plugins", bottomSpecs = [
         "EclipseMultiBuildIntegrationTest",
-        "IdeaMultiBuildIntegrationTest",
-        "XCodeMultiBuildIntegrationTest"
+        "IdeaMultiBuildIntegrationTest"
     ])
     def "workspace includes projects from nested included builds"() {
         buildTestFixture.withBuildInSubDir()

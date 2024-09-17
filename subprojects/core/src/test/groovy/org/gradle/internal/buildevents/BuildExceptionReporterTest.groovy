@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemAwareFailure
@@ -601,10 +602,11 @@ $GET_HELP
 
     def "singular exceptions containing problems are rendered"() {
         given:
-        def problem1 = new DefaultProblemBuilder()
+        def additionalDataBuilderFactory = new AdditionalDataBuilderFactory()
+        def problem1 = new DefaultProblemBuilder(additionalDataBuilderFactory)
             .id("group-1", "Group 1")
             .build()
-        def problem2 = new DefaultProblemBuilder()
+        def problem2 = new DefaultProblemBuilder(additionalDataBuilderFactory)
             .id("group-2", "Group 2")
             .build()
         def failure = new ContextAwareException(
@@ -624,9 +626,7 @@ $GET_HELP
 <root problem message>
 {info}> {normal}<problem-bearing exception message>
 
-Group 1 (generic:group-1)
   Group 1
-Group 2 (generic:group-2)
   Group 2
 """
         )
@@ -634,10 +634,11 @@ Group 2 (generic:group-2)
 
     def "multi-cause exceptions containing problems are rendered"() {
         given:
-        def problem1 = new DefaultProblemBuilder()
+        def additionalDataBuilderFactory = new AdditionalDataBuilderFactory()
+        def problem1 = new DefaultProblemBuilder(additionalDataBuilderFactory)
             .id("group-1", "Group 1")
             .build()
-        def problem2 = new DefaultProblemBuilder()
+        def problem2 = new DefaultProblemBuilder(additionalDataBuilderFactory)
             .id("group-2", "Group 2")
             .build()
         def failure = new MultipleBuildFailures(
@@ -667,7 +668,6 @@ Group 2 (generic:group-2)
 <root problem-1 message>
 {info}> {normal}<problem-bearing exception message>
 
-Group 1 (generic:group-1)
   Group 1
 """)
         output.value.contains(
@@ -676,7 +676,6 @@ Group 1 (generic:group-1)
 <root problem-2 message>
 {info}> {normal}<problem-bearing exception message>
 
-Group 2 (generic:group-2)
   Group 2
 """)
     }

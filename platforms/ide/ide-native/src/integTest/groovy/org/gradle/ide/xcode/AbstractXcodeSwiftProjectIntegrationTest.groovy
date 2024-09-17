@@ -79,7 +79,6 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         swift5Component | SwiftVersion.SWIFT5
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for unbuildable swift component with #sourceCompatibility source compatibility"() {
         given:
         makeSingleProject()

@@ -117,6 +117,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.resourcesHttp))
     testImplementation(testFixtures(projects.snapshots))
+    testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.versionControl))
 
     integTestImplementation(projects.buildOption)

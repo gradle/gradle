@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -146,7 +145,7 @@ public class ModuleResolveState implements CandidateModule {
         if (areAllCandidatesForSelection(values)) {
             return values;
         }
-        List<ComponentState> versions = Lists.newArrayListWithCapacity(values.size());
+        List<ComponentState> versions = new ArrayList<>(values.size());
         for (ComponentState componentState : values) {
             if (componentState.isCandidateForConflictResolution()) {
                 versions.add(componentState);

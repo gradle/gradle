@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.internal.resolver;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Table;
@@ -45,6 +44,7 @@ import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -212,7 +212,7 @@ public class IdeDependencySet {
         }
 
         private List<Class<? extends Artifact>> getAuxiliaryArtifactTypes(IdeDependencyVisitor visitor) {
-            List<Class<? extends Artifact>> types = Lists.newArrayListWithCapacity(2);
+            List<Class<? extends Artifact>> types = new ArrayList<>(2);
             if (visitor.downloadSources()) {
                 types.add(SourcesArtifact.class);
             }

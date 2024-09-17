@@ -57,9 +57,6 @@ public class ProblemRenderer {
     }
 
     static void renderProblemGroup(PrintWriter output, ProblemId id, List<Problem> groupedProblems) {
-        output.printf(
-            "%s (%s)%n", id.getDisplayName(), id
-        );
         groupedProblems.forEach(problem -> renderProblem(output, problem));
     }
 

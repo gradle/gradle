@@ -558,7 +558,8 @@ class DefaultConfigurationCacheIO internal constructor(
             flowProviders = service(),
             transformStepNodeFactory = service(),
             parallelStore = startParameter.isParallelStore,
-            parallelLoad = startParameter.isParallelLoad
+            parallelLoad = startParameter.isParallelLoad,
+            problems = service(),
         )
 
     private

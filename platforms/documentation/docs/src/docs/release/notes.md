@@ -9,7 +9,7 @@ Include only their name, impactful features should be called out separately belo
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 
-We would like to thank the following community members for their contributions to this release of Gradle:
+We would like to thank the following community members for their contributions to this release of Gradle: [Matthew Von-Maszewski](https://github.com/matthewvon)
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
@@ -67,7 +67,7 @@ Previously, the API only exposed the root component, which exposed the first-lev
 This API allows dependency graphs to be traversed more precisely, at the variant-level instead of at the component level.
 When traversing at the variant level, it is possible to differentiate between the production code of a component and its test fixtures.
 
-TODO #29930: Link to userguide on how to traverse a graph
+For more details on how to perform a graph traversal, see the new [programmatic dependency resolution](userguide/programmatic_dependency_resolution.html) chapter of the user guide.
 
 <a name="config-cache"></a>
 ### Configuration cache improvements
@@ -135,6 +135,12 @@ The feature also works with the [`--continue`](userguide/command_line_interface.
 
 Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
 
+#### Linux arm64 as a build target
+
+TODO
+
+Thanks to [Matthew Von-Maszewski](https://github.com/matthewvon) for the contribution.
+
 #### Configuration cache compatibility for Swift and C++ plugins
 
 The following Swift and C++ plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible: 
@@ -146,8 +152,7 @@ The following Swift and C++ plugins are now [configuration cache](userguide/perf
 - [CppUnit](userguide/cpp_unit_test_plugin.html)
 - [GoogleTest](userguide/cpp_testing.html)
 - [Visual Studio](userguide/visual_studio_plugin.html)
-
-The [`xcode`](userguide/xcode_plugin.html) is not yet compatible.
+- [XCode](userguide/xcode_plugin.html)
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

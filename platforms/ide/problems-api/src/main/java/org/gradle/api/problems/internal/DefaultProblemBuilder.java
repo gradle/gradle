@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
-
+    @Nullable
     private ProblemStream problemStream;
 
     private ProblemId id;
@@ -44,18 +44,21 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private RuntimeException exception;
     private AdditionalData additionalData;
     private boolean collectLocation = false;
+    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
-    public DefaultProblemBuilder() {
+    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
     }
 
-    public DefaultProblemBuilder(ProblemStream problemStream) {
-        this();
+    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        this(additionalDataBuilderFactory);
         this.problemStream = problemStream;
     }
 
-    public DefaultProblemBuilder(Problem problem) {
+    public DefaultProblemBuilder(Problem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        this(additionalDataBuilderFactory);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
@@ -70,6 +73,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.problemStream = null;
     }
 
+    @SuppressWarnings("ConstantValue")
     @Override
     public Problem build() {
         // id is mandatory
@@ -81,7 +85,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
-                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + AdditionalDataBuilderFactory.getSupportedTypes());
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
         }
 
         RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
@@ -94,6 +98,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, RuntimeException exceptionForProblemInstantiation) {
+        assert problemStream != null;
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
@@ -105,6 +110,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private static DefaultPluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
+        assert problemDiagnostics.getSource() != null;
         return new DefaultPluginIdLocation(problemDiagnostics.getSource().getPluginId());
     }
 
@@ -114,7 +120,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return DefaultLineInFileLocation.from(path, line);
     }
 
-    private Problem invalidProblem(String id, String displayName, String contextualLabel) {
+    private Problem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
         id(id, displayName, new DefaultProblemGroup(
             "problems-api",
             "Problems API")
@@ -249,10 +255,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
-        if (AdditionalDataBuilderFactory.ADDITIONAL_DATA_BUILDER_PROVIDERS.containsKey(specType)) {
-            AdditionalDataBuilder<?> additionalDatabuilder = AdditionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
-            config.execute((U) additionalDatabuilder);
-            additionalData = additionalDatabuilder.build();
+        if (additionalDataBuilderFactory.hasProviderForSpec(specType)) {
+            AdditionalDataBuilder<?> additionalDataBuilder = additionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
+            config.execute((U) additionalDataBuilder);
+            additionalData = additionalDataBuilder.build();
         } else {
             additionalData = new UnsupportedAdditionalDataSpec(specType);
         }
@@ -274,7 +280,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.locations.add(location);
     }
 
-    @SuppressWarnings("rawtypes")
     private static class UnsupportedAdditionalDataSpec implements AdditionalData {
 
         private final Class<?> type;

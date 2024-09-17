@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -317,7 +316,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public List<ComponentState> getDependents() {
-        List<ComponentState> incoming = Lists.newArrayListWithCapacity(nodes.size());
+        List<ComponentState> incoming = new ArrayList<>(nodes.size());
         for (NodeState node : nodes) {
             for (EdgeState dependencyEdge : node.getIncomingEdges()) {
                 incoming.add(dependencyEdge.getFrom().getComponent());
@@ -329,7 +328,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public Collection<? extends ModuleVersionIdentifier> getAllVersions() {
         Collection<ComponentState> moduleVersions = module.getAllVersions();
-        List<ModuleVersionIdentifier> out = Lists.newArrayListWithCapacity(moduleVersions.size());
+        List<ModuleVersionIdentifier> out = new ArrayList<>(moduleVersions.size());
         for (ComponentState moduleVersion : moduleVersions) {
             out.add(moduleVersion.id);
         }

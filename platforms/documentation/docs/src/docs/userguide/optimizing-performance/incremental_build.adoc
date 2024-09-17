@@ -265,49 +265,6 @@ Annotations on a property declared in a type override similar annotations declar
 
 The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
 
-[[sec:task_input_using_dependency_resolution_results]]
-=== Using dependency resolution results
-
-Dependency resolution results can be consumed as task inputs in two ways.
-First by consuming the graph of the resolved metadata using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult].
-Second by consuming the flat set of the resolved artifacts using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult].
-
-A resolved graph can be obtained lazily from the incoming resolution result of a `Configuration` and wired to an `@Input` property:
-
-.Resolved graph as task input
-====
-.Task declaration
-[source,java]
-----
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/GraphResolvedComponents.java[tag=inputs]
-----
-.Task configuration
-[source,java]
-----
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=graphResolvedComponents]
-----
-====
-
-The resolved set of artifacts can be obtained lazily from the incoming artifacts of a `Configuration`.
-Given the `ResolvedArtifactResult` type contains both metadata and file information, instances need to be transformed to metadata only before being wired to an `@Input` property:
-
-.Resolved artifacts as task input
-====
-.Task declaration
-[source,java]
-----
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/ListResolvedArtifacts.java[tag=inputs]
-----
-.Task configuration
-[source,java]
-----
-include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=listResolvedArtifacts]
-----
-====
-
-Both graph and flat results can be combined and augmented with resolved file information.
-This is all demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
-
 [[sec:task_input_using_classpath_annotations]]
 === Using the classpath annotations
 

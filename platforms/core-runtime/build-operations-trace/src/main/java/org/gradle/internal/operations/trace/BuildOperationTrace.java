@@ -90,7 +90,6 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * The «path-base» param is optional.
  * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of "operations" will be used.
  * <p>
- * <p>
  * The generation of trees can be very memory hungry and thus can be disabled with
  * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
  * </p>
@@ -511,6 +510,14 @@ public class BuildOperationTrace implements Stoppable {
         return new JsonGenerator.Options()
             .addConverter(new JsonClassConverter())
             .addConverter(new JsonThrowableConverter())
+            /*
+              From ResolutionFailureData, we want to exclude the actual failure field
+              from JSON serialization in the trace, because it can contain arbitrary
+              data including circular references that aren't serializable.  See the
+              note on AmbiguousArtifactTransformsFailure for more.  Once that class
+              is refactored, we should explore removing this exclusion.
+            */
+            .excludeFieldsByName("resolutionFailure")
             .build();
     }
 

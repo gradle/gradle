@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
@@ -42,8 +41,8 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
@@ -499,7 +498,7 @@ public class NodeState implements DependencyGraphNode {
         if (from.isEmpty()) {
             return from;
         }
-        List<DependencyState> tmp = Lists.newArrayListWithCapacity(from.size());
+        List<DependencyState> tmp = new ArrayList<>(from.size());
         for (DependencyState dependencyState : from) {
             if (isExcluded(spec, dependencyState)) {
                 continue;
@@ -517,7 +516,7 @@ public class NodeState implements DependencyGraphNode {
         if (dependencies.isEmpty()) {
             return Collections.emptyList();
         }
-        List<DependencyState> tmp = Lists.newArrayListWithCapacity(dependencies.size());
+        List<DependencyState> tmp = new ArrayList<>(dependencies.size());
         for (DependencyMetadata dependency : dependencies) {
             tmp.add(cachedDependencyStateFor(dependency));
         }
@@ -1097,7 +1096,7 @@ public class NodeState implements DependencyGraphNode {
                 from.reselect();
             }
         } else {
-            for (EdgeState incoming : Lists.newArrayList(incomingEdges)) {
+            for (EdgeState incoming : new ArrayList<>(incomingEdges)) {
                 if (incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
                     // pass my own component because we are already in the process of re-selecting it
                     incoming.getFrom().reselect();

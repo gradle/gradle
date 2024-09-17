@@ -18,10 +18,14 @@
 This chapter covers the way dependency resolution works _inside_ Gradle.
 After covering how you can declare <<declaring_repositories.adoc#declaring-basic-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-basic-dependencies,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
 
-Dependency resolution is a process that consists of two phases, which are repeated until the dependency graph is complete:
+Before Gradle can download the artifacts for any declared dependencies, it must first resolve the dependency graph.
+Each node in a dependency graph is a variant of a component, where a component is a specific version of a module.
+An example of a node is the `runtime` variant of version `33.2.1-jre` of the `com.google.guava:guava` module.
+
+To resolve a dependency graph, Gradle repeats the following two steps until the dependency graph is complete:
 
 * When a new dependency is added to the graph, perform conflict resolution to determine which version should be added to the graph.
-* When a specific dependency, that is a module with a version, is identified as part of the graph, retrieve its metadata so that its dependencies can be added in turn.
+* When a specific component, that is a version of a module, is identified as part of the graph, retrieve its metadata so that its dependencies can be added in turn.
 
 The following section will describe what Gradle identifies as conflicts and how it can resolve them automatically.
 After that, the retrieval of metadata will be covered, explaining how Gradle can <<#sec:how-gradle-downloads-deps,follow dependency links>>.
@@ -32,10 +36,10 @@ After that, the retrieval of metadata will be covered, explaining how Gradle can
 When doing dependency resolution, Gradle handles two types of conflicts:
 
 Version conflicts::
-That is when two or more dependencies require a given dependency but with different versions.
+That is when two or more dependencies require a given module but with different versions.
 
 Implementation conflicts::
-That is when the dependency graph contains multiple modules that provide the same implementation, or capability in Gradle terminology.
+That is when the dependency graph contains multiple nodes that provide the same implementation, or capability in Gradle terminology.
 
 The following sections will explain in detail how Gradle attempts to resolve these conflicts.
 
@@ -152,14 +156,10 @@ When resolving the conflict between competing versions, the following logic appl
 [[sec:implementation-conflict]]
 == Implementation conflict resolution
 
-Gradle uses variants and capabilities to identify what a module _provides_.
+Gradle uses variants and capabilities to identify what a component _provides_.
 
 This is a unique feature that deserves its <<variant_model.adoc#understanding-variant-selection,own chapter>> to understand what it means and enables.
-
-A conflict occurs the moment two modules either:
-
-* Attempt to select incompatible variants,
-* Declare the same capability
+A conflict occurs the moment two nodes (variants of a component) declare the same capability.
 
 Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
 
@@ -373,21 +373,3 @@ $GRADLE_HOME
 In a CI environment, it's a good idea to have one build which "seeds" a Gradle dependency cache, which is then _copied_ to a different directory.
 This directory can then be used as the read-only cache for other builds.
 You shouldn't use an existing Gradle installation cache as the read-only cache, because this directory may contain locks and may be modified by the seeding build.
-
-[[sec:programmatic_api]]
-== Accessing the resolution result programmatically
-
-While most users only need access to a "flat list" of files, there are cases where it can be interesting to reason on a _graph_ and get more information about the resolution result:
-
-- for tooling integration, where a model of the dependency graph is required
-- for tasks generating a visual representation (image, `.dot` file, ...) of a dependency graph
-- for tasks providing diagnostics (similar to the `dependencyInsight` task)
-- for tasks which need to perform dependency resolution at execution time (e.g, download files on demand)
-
-For those use cases, Gradle provides lazy, thread-safe APIs, accessible by calling the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getIncoming--[Configuration.getIncoming()] method:
-
-- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getResolutionResult--[ResolutionResult API] gives access to a resolved dependency graph, whether the resolution was successful or not.
-- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts--[artifacts API] provides a simple access to the resolved artifacts, untransformed, but with lazy download of artifacts (they would only be downloaded on demand).
-- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#artifactView-org.gradle.api.Action-[artifact view API] provides an advanced, filtered view of artifacts, possibly <<artifact_transforms.adoc#sec:abm_artifact_transforms,transformed>>.
-
-NOTE: See the documentation on <<incremental_build.adoc#sec:task_input_using_dependency_resolution_results, using dependency resolution results>> for more details on how to consume the results in a task.
