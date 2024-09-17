@@ -15,7 +15,7 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDsl)
 
-    implementation(project(":java-api-extractor"))
+    implementation(project(":gradle-java-api-extractor"))
 
     implementation(kotlin("gradle-plugin"))
 

@@ -79,6 +79,6 @@ include("profiling")
 
 // Components used both at build time and GBT runtime, shipped in the distribution
 include("kotlin-dsl-shared-runtime")
-include("java-api-extractor")
+include("gradle-java-api-extractor")
 
 rootProject.name = "build-logic"

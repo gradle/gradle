@@ -20,7 +20,7 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.guava)
-    api("org.gradle:java-api-extractor")
+    api("org.gradle:gradle-java-api-extractor")
 
     implementation(projects.functional)
 
@@ -34,3 +34,4 @@ dependencies {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
