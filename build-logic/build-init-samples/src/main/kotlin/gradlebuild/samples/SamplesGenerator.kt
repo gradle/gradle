@@ -92,6 +92,7 @@ object SamplesGenerator {
         generateReadmeFragment(templateFolder, "multi-common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
     }
 
+    @Suppress("detekt:LongMethod")
     private
     fun generateReadmeFragment(templateFolder: Directory, templateFragment: String, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
 
@@ -139,10 +140,12 @@ Select test framework:
 Enter selection (default: JUnit Jupiter) [1..4]
 """ else ""
         val packageNameChoice = if (descriptor.supportsPackage()) "\nEnter target Java version (min: 7, default: 21):\n" else ""
-        val applicationStructureChoice = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) "" else "\nSelect application structure:\n" +
-            "  1: Single application project\n" +
-            "  2: Application and library project\n" +
-            "Enter selection (default: Single application project) [1..2] 1\n"
+        val applicationStructureChoice = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) "" else """
+Select application structure:
+  1: Single application project
+  2: Application and library project
+Enter selection (default: Single application project) [1..2] 1
+"""
         val toolChain = when {
             descriptor.language === Language.SWIFT -> {
                 "* An installed Swift compiler. See which link:{userManualPath}/building_swift_projects.html#sec:swift_supported_tool_chain[Swift tool chains] are supported by Gradle."
