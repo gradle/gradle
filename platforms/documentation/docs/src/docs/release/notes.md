@@ -28,27 +28,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
@@ -60,45 +39,62 @@ Gradle's [dependency management](userguide/core_dependency_management.html) infr
 
 #### Root variant exposed by `ResolutionResult`
 
-The `ResolutionResult` API now exposes the root variant of the resolved graph in addition to its owning component. 
+The [`ResolutionResult` API](javadoc/org/gradle/api/artifacts/result/ResolutionResult.html), which contains the results of dependency resolution, now exposes the root variant of the resolved graph in addition to its owning component. 
+
+Previously, the API only exposed the root component, which exposed the first-level dependencies as well dependencies from other selected variants in the root component:
+
+```groovy
+def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+```
+
+In this release, the root variant is also exposed.
 The root variant is a synthetic variant representing the `Configuration` being resolved, and exposes the first-level dependencies of a resolution.
-Previously, the API only exposed the root component, which exposed the first-level dependencies as well dependencies from other selected variants in the root component. 
 
-This API allows dependency graphs to be traversed more precisely, at the variant-level instead of at the component level.
-When traversing at the variant level, it is possible to differentiate between the production code of a component and its test fixtures.
+```groovy
+def rootVariant = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+```
 
-For more details on how to perform a graph traversal, see the new [programmatic dependency resolution](userguide/programmatic_dependency_resolution.html) chapter of the user guide.
+The updated API allows for more precise traversal of dependency graphs by operating at the variant level instead of just the component level. 
+By traversing dependencies at the variant level, it is possible to differentiate between the production code of a component and its test fixtures.
+
+For more details on how to perform a graph traversal, see [Programmatic Dependency Resolution](userguide/programmatic_dependency_resolution.html).
 
 <a name="config-cache"></a>
 ### Configuration cache improvements
 
-The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+Gradle's [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
 
 #### Parallel caching for faster loading times
 
 Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
-To enable the feature in `gradle.properties`:
+
+To enable the feature, add the following flag in `gradle.properties`:
 
 ```text
-// gradle.properties
 org.gradle.configuration-cache.parallel=true
 ```
 
-Note that this is an incubating feature and may expose concurrency issues in some builds. 
+This is an incubating feature and may expose concurrency issues in some builds. 
 
-See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
+For more details on configuring parallel caching, see [Configuration Cache](userguide/configuration_cache.html#config_cache:usage:parallel).
 
-<a name="java-compiler-error-rendering"></a>
-### Java compiler errors in the failure report
+<a name="error-warning"></a>
+### Error and warning reporting improvements
 
-In previous Gradle versions, finding the reason of a failed compilation was a suboptimal experience: the only pointer we could give to the user was to scroll back, and look for the failed task's output, containing the compiler failure.
+Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
+
+#### Java compiler errors in the failure report
+
+In previous Gradle versions, finding the reason of a failed compilation was a suboptimal experience.
+The only guidance provided to users was to scroll back through the build output and manually locate the failed task's output, where the compiler error details could be found.
 
 Build logs can be extremely long, and support for multiple failures when using the `--continue` flag further complicates discovery, making the identification of the exact failure challenging.
 
-Gradle now gained the ability to collect, and report per-task failures in the bottom "What went wrong" segment.
+In this release, Gradle has the ability to collect and report per-task failures in the bottom "What went wrong" segment.
 This report supplements the usual task output, and aims to give a new way to identify problems quicker and easier.
 
 A simple failure at the bottom of the log will show up as:
+
 ```
 * What went wrong:
 Execution failed for task ':project1:compileJava'.
@@ -111,6 +107,7 @@ Java compilation error (compilation:java:java-compilation-error)
 ```
 
 If any warning happens during the compilation, it will also be included in the report:
+
 ```
 * What went wrong:
 Execution failed for task ':project1:compileJava'.
@@ -126,20 +123,26 @@ Java compilation error (compilation:java:java-compilation-error)
                      ^
 ```
 
-Note that the current solution reports upon _failures_. If only warnings happen (and no `-Werror` is set), this report will not be visible.
+Note that the current solution reports upon _failures_. 
+If only warnings happen (and no `-Werror` is set), this report will not be visible.
 
-The feature also works with the [`--continue`](userguide/command_line_interface.html#sec:continue_build_on_failure) flag, and the bottom report will contain a per-task report of all the compilation failures.
+This feature also works with the [`--continue`](userguide/command_line_interface.html#sec:continue_build_on_failure) flag, and the bottom report will contain a per-task report of all the compilation failures.
 
-<a name="native-plugin-improvements"></a>
-### Core plugin improvements
+<a name="native-toolchains"></a>
+### Native toolchains support
 
-Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
+Gradle's [native toolchain support](userguide/native_software.html#native_binaries:tool_chain) enables building C/C++ projects with compilers like GCC, Clang, and Visual C++.
 
 #### Linux arm64 as a build target
 
-TODO
+This release adds Clang and GCC support to Gradle on Linux platforms that use the ARM or AArch64 architecture.
 
-Thanks to [Matthew Von-Maszewski](https://github.com/matthewvon) for the contribution.
+Thank you to [Matthew Von-Maszewski](https://github.com/matthewvon) for the contribution.
+
+<a name="core-plugin-improvements"></a>
+### Core plugin improvements
+
+Gradle provides [core plugins](userguide/plugin_reference.html) for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
 
 #### Configuration cache compatibility for Swift and C++ plugins
 
@@ -170,7 +173,7 @@ The following are the features that have been promoted in this Gradle release.
 ### Stable Build Features API
 
 The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
-It allows checking the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
+It allows users to check the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
 and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
 
 ## Fixed issues

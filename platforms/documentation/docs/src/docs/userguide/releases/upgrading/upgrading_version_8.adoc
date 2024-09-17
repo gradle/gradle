@@ -65,23 +65,22 @@ There is no impact when using the CLI options to configure which JVM version to 
 
 ==== Name matching changes
 
-Name matching logic has been updated to have numbers as word boundaries for camelCase names.
-Previously, given two tasks, `uniqueA` and `unique1`, the request `unique` would match `unique1`.
-Now, the same request will fail as ambiguous.
+The name matching logic has been updated to treat numbers as word boundaries for camelCase names.
+Previously, a request like `unique` would match both `uniqueA` and `unique1`.
+Now, such a request will fail due to ambiguity. To avoid issues, use the exact name instead of a shortened version.
 
-If you experience issues with name matching, please using the exact name instead of a short form.
+This change impacts:
 
-This change affects:
-
-* task selection;
-* project selection;
-* configuration selection in dependency reports tasks.
+- Task selection
+- Project selection
+- Configuration selection in dependency report tasks
 
 === Deprecations
 
 [[deprecated_fork_options_java_home]]
 ==== Deprecated JavaHome property of ForkOptions
-The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[javaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.
+
+The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[JavaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.
 
 Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
 
@@ -111,7 +110,7 @@ val files = buildscript.configurations["myConfig"].files
 
 This pattern is sometimes used to resolve dependencies in Settings, where there is no other way to obtain a Configuration.
 Resolving dependencies in this context is not recommended.
-Using a detached configuration is a possible yet discouraged alternative.
+Using a detached configuration is a possible but discouraged alternative.
 
 The above example can be modified to use a detached configuration:
 
@@ -188,6 +187,7 @@ It can be replaced by directly setting the properties specified in the map.
 Additionally, `CompileOptions#fork(Map)`, `CompileOptions#debug(Map)`, and `GroovyCompileOptions#fork(Map)`, which depend on `define`, are also deprecated for removal in Gradle 9.0.
 
 Consider the following example of the deprecated behavior and its replacement:
+
 [source,groovy]
 ----
 tasks.withType(JavaCompile) {
