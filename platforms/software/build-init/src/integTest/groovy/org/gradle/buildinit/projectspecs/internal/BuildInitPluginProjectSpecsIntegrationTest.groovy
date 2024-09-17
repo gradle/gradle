@@ -247,7 +247,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
     }
 
     @LeaksFileHandles
-    @Requires(UnitTestPreconditions.Jdk17OrLater) // D-G produces a project that requires Java 21
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "can generate declarative project type using argument to init"() {
         when:
         executer.withJvm(AvailableJavaHomes.getJdk21())
@@ -327,6 +327,7 @@ defaults {
         canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
     }
 
+    @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "gives decent error message when triggered with unknown init-type after loading project specs"() {
         when:
         targetDir = file("new-project").with { createDir() }
