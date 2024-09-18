@@ -26,7 +26,7 @@ import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
-import org.gradle.internal.classpath.intercept.InvocationImpl;
+import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;

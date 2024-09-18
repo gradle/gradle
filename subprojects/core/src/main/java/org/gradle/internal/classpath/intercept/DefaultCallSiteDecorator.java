@@ -26,8 +26,10 @@ import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.CompositeCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
+import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;

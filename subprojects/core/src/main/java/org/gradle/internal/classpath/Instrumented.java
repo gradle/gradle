@@ -24,7 +24,7 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
-import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.ClassBoundCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;

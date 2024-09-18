@@ -24,7 +24,7 @@ public class InvocationUtils {
     private InvocationUtils() {}
 
     @Nullable
-    public static Object unwrap(Object obj) {
+    static Object unwrap(Object obj) {
         if (obj instanceof Wrapper) {
             return ((Wrapper) obj).unwrap();
         }

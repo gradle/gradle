@@ -35,7 +35,7 @@ import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
-import org.gradle.internal.classpath.intercept.InvocationImpl;
+import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
 import org.gradle.internal.metaobject.InstrumentedMetaClass;

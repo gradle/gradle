@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
-
-import com.google.common.collect.Sets;
-import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
-import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
-import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
-import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
-import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
-import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
+package org.gradle.internal.instrumentation.api.groovybytecode;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class CompositeCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
@@ -68,7 +62,10 @@ public class CompositeCallInterceptor extends AbstractCallInterceptor implements
 
     @Override
     public Set<InterceptScope> getInterceptScopes() {
-        return Sets.union(first.getInterceptScopes(), second.getInterceptScopes());
+        Set<InterceptScope> union = new LinkedHashSet<>();
+        union.addAll(first.getInterceptScopes());
+        union.addAll(second.getInterceptScopes());
+        return Collections.unmodifiableSet(union);
     }
 
     @Nullable
