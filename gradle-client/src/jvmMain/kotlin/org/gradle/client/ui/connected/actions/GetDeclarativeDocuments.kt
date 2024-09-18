@@ -376,17 +376,18 @@ class ModelTreeRendering(
         element: DeclarativeDocument.DocumentNode.ElementNode,
         indentLevel: Int
     ) {
-        val arguments = when (val valueNode = element.elementValues.singleOrNull()) {
-            null -> ""
-            is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value
-            is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
-                val args = valueNode.values.map {
-                    (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."
+        val arguments = element.elementValues.joinToString { valueNode -> 
+            when (valueNode) {
+                is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value.toString()
+                is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
+                    val args = valueNode.values.map {
+                        (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."
+                    }
+                    val argsString = args.joinToString(",", "(", ")") ?: "()"
+                    "${valueNode.factoryName}$argsString"
                 }
-                val argsString = args.joinToString(",", "(", ")") ?: "()"
-                "${valueNode.factoryName}$argsString"
             }
-        }
+        } 
         val elementType =
             (resolutionContainer.data(element) as? ContainerElementResolved)?.elementType as? DataClass
 
