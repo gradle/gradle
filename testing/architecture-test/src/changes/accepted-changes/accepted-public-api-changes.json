@@ -23,6 +23,20 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration",
+            "member": "Class org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration",
+            "acceptation": "Kotlin DSL public script compilation configuration",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration(kotlin.jvm.functions.Function1)",
+            "acceptation": "Kotlin DSL public script compilation configuration",
+            "changes": []
         }
     ]
 }
