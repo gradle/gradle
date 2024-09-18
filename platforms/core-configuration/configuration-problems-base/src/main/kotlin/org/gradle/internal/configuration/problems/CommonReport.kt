@@ -40,6 +40,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
@@ -228,17 +229,33 @@ class CommonReport(
 
             private
             fun moveSpoolFileTo(outputDirectory: File): File {
-                val reportDir = if (distinctReports) outputDirectory.resolve(reportHash()) else outputDirectory
+                val reportDir = getReportDirectory(outputDirectory)
+
                 val reportFile = reportDir.resolve("$reportFileName.html")
-                if (!reportFile.exists()) {
-                    if (!reportDir.exists()) {
-                        require(reportDir.mkdirs()) {
-                            "Could not create $reportFileName directory '$reportDir'"
-                        }
+                if (distinctReports) {
+                    if (!reportFile.exists()) {
+                        moveFileToOutput(reportDir, reportFile)
                     }
-                    Files.move(spoolFile.toPath(), reportFile.toPath())
+                } else {
+                    moveFileToOutput(reportDir, reportFile)
                 }
                 return reportFile
+            }
+
+            private fun getReportDirectory(outputDirectory: File) =
+                if (distinctReports)
+                    outputDirectory.resolve(reportHash())
+                else
+                    outputDirectory
+
+            private
+            fun moveFileToOutput(reportDir: File, reportFile: File) {
+                if (!reportDir.exists()) {
+                    require(reportDir.mkdirs()) {
+                        "Could not create $reportFileName directory '$reportDir'"
+                    }
+                }
+                Files.move(spoolFile.toPath(), reportFile.toPath(), REPLACE_EXISTING)
             }
 
             private
