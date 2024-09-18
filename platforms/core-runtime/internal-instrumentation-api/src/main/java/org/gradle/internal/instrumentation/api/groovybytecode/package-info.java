@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
-
-import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
-
 /**
- * CallInterceptor that can be filtered by a {@link BytecodeInterceptorType} type.
+ * Classes used for Groovy generated classes.
  */
-public interface FilterableCallInterceptor extends CallInterceptor, FilterableBytecodeInterceptor {
-}
+@NonNullApi
+package org.gradle.internal.instrumentation.api.groovybytecode;
+
+import org.gradle.api.NonNullApi;

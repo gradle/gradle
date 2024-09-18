@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.instrumentation.api.groovybytecode;
 
 import org.codehaus.groovy.runtime.callsite.CallSite;
 

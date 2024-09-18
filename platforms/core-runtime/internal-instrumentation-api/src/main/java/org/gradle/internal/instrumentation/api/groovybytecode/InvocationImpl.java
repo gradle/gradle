@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.instrumentation.api.groovybytecode;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
+import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
 
 /**
  * A simple implementation of the Invocation that accepts a lambda for {@link #callNext()} implementation.
