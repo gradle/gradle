@@ -217,6 +217,13 @@ The existing method does not behave as specified by its javadoc, and we do not p
 
 Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
 
+[[detached_configurations_cannot_extend]]
+==== Detached Configurations should not use `extendFrom`
+
+link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...)[Detached configurations] should not ever extend other configurations using link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom(org.gradle.api.artifacts.Configuration...)[extendsFrom].
+
+This behavior has been deprecated and will become an error in Gradle 9.0.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
