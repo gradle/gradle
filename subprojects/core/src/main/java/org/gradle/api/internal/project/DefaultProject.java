@@ -512,13 +512,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object getStatus() {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getInternalStatus()
         return getInternalStatus().get();
     }
 
     @Override
     public void setStatus(Object s) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getInternalStatus()
         getInternalStatus().set(s);
     }
 
@@ -822,7 +822,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public DefaultProject evaluate() {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getProjectEvaluator()
         getProjectEvaluator().evaluate(this, state);
         return this;
     }
@@ -835,7 +835,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal bindAllModelRules() {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getModelRegistry
         try {
             getModelRegistry().bindAllReferences();
         } catch (Exception e) {
@@ -873,14 +873,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public File getBuildDir() {
-        onMutableStateAccess();
+        // onMutableStateAccess(); triggered by #getLayout()
         return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override
     @Deprecated
     public void setBuildDir(File path) {
-        onMutableStateAccess();
+        // onMutableStateAccess(); triggered by #getLayout() in #setBuildDir(Object) below
         setBuildDir((Object) path);
     }
 
@@ -901,20 +901,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Project evaluationDependsOn(String path) {
-        onMutableStateAccess();
         if (isNullOrEmpty(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
+        // onMutableStateAccess(); triggered by `evaluationDependsOn(ProjectInternal)`
         ProjectInternal projectToEvaluate = project(path);
         return evaluationDependsOn(projectToEvaluate);
     }
 
     private Project evaluationDependsOn(ProjectInternal projectToEvaluate) {
-        onMutableStateAccess();
         if (projectToEvaluate.getState().isConfiguring()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }
+        onMutableStateAccess();
         projectToEvaluate.getOwner().ensureConfigured();
         return projectToEvaluate;
     }
@@ -1303,13 +1303,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public AntBuilder ant(Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getAnt
         return ConfigureUtil.configure(configureClosure, getAnt());
     }
 
     @Override
     public AntBuilder ant(Action<? super AntBuilder> configureAction) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getAnt
         AntBuilder ant = getAnt();
         configureAction.execute(ant);
         return ant;
@@ -1347,37 +1347,37 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void configurations(Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getConfigurations()
         ((Configurable<?>) getConfigurations()).configure(configureClosure);
     }
 
     @Override
     public void repositories(Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getRepositories()
         ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
     @Override
     public void dependencies(Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getDependencies()
         ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
     @Override
     public void artifacts(Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getArtifacts()
         ConfigureUtil.configure(configureClosure, getArtifacts());
     }
 
     @Override
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getArtifacts()
         configureAction.execute(getArtifacts());
     }
 
     @Override
     public void buildscript(Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getBuildscript()
         ConfigureUtil.configure(configureClosure, getBuildscript());
     }
 
@@ -1405,7 +1405,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     public Task task(Object task, Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #task(String, Closure)
         return task(task.toString(), configureClosure);
     }
 
@@ -1416,7 +1416,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     public Task task(Map options, Object task) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #task(Map, String)
         return task(options, task.toString());
     }
 
@@ -1427,7 +1427,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #task(Map, String, Closure)
         return task(options, task.toString(), configureClosure);
     }
 
@@ -1518,13 +1518,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void addDeferredConfiguration(Runnable configuration) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getDeferredProjectConfiguration()
         getDeferredProjectConfiguration().add(configuration);
     }
 
     @Override
     public void fireDeferredConfiguration() {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getDeferredProjectConfiguration()
         getDeferredProjectConfiguration().fire();
     }
 
@@ -1570,22 +1570,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {
-        onMutableStateAccess();
+        //onMutableStateAccess(); triggered by #getNormalization()
         configuration.execute(getNormalization());
     }
 
-    @Override
-    public DependencyLockingHandler getDependencyLocking() {
-        onMutableStateAccess();
-        return getDependencyLockingHandlerService();
-    }
-
     @Inject
-    protected abstract DependencyLockingHandler getDependencyLockingHandlerService();
+    @Override
+    // onMutableStateAccess() triggered by #getServices()
+    public abstract DependencyLockingHandler getDependencyLocking();
 
     @Override
     public void dependencyLocking(Action<? super DependencyLockingHandler> configuration) {
-        onMutableStateAccess();
+        // onMutableStateAccess() triggered by #getDependencyLocking()
         configuration.execute(getDependencyLocking());
     }
 
