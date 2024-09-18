@@ -24,7 +24,7 @@ import static org.gradle.internal.util.NumberUtil.formatBytes;
 public class ResourceOperation {
     public enum Type {
         download,
-        upload;
+        upload
     }
 
     private final BuildOperationContext context;
