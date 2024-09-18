@@ -852,10 +852,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void defaultTasks(String... defaultTasks) {
-        onMutableStateAccess();
         if (defaultTasks == null) {
             throw new InvalidUserDataException("Default tasks must not be null!");
         }
+        onMutableStateAccess();
         this.defaultTasks = new ArrayList<String>();
         for (String defaultTask : defaultTasks) {
             if (defaultTask == null) {
@@ -962,10 +962,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Set<Task> getTasksByName(final String name, boolean recursive) {
-        onMutableStateAccess();
         if (isNullOrEmpty(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
+        onMutableStateAccess();
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
             @Override
