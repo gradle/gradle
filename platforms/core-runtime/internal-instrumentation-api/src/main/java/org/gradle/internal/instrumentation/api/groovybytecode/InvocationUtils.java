@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.codehaus.groovy.runtime.wrappers.Wrapper;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
-public interface CallSiteInterceptorSet {
-    List<CallInterceptor> getCallInterceptors(BytecodeInterceptorFilter filter);
+public class InvocationUtils {
+    private InvocationUtils() {}
+
+    @Nullable
+    static Object unwrap(Object obj) {
+        if (obj instanceof Wrapper) {
+            return ((Wrapper) obj).unwrap();
+        }
+        return obj;
+    }
 }

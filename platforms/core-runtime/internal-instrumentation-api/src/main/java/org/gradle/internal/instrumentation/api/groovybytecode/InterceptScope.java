@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.instrumentation.api.groovybytecode;
 
 import java.util.Objects;
 
@@ -87,7 +87,7 @@ public abstract class InterceptScope {
         return new NamedMemberScope(CallType.SET_PROPERTY, propertyName);
     }
 
-    abstract String getCallSiteName();
+    public abstract String getCallSiteName();
     abstract String getTargetDescription();
 
     @Override
@@ -121,7 +121,7 @@ public abstract class InterceptScope {
         }
 
         @Override
-        String getCallSiteName() {
+        public String getCallSiteName() {
             return memberName;
         }
 
@@ -157,7 +157,7 @@ public abstract class InterceptScope {
         }
 
         @Override
-        String getCallSiteName() {
+        public String getCallSiteName() {
             return "<$constructor$>";
         }
 
