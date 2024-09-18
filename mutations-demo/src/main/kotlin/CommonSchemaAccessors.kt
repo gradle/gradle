@@ -2,6 +2,7 @@ package org.gradle.client.demo.mutations
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.mutation.*
 import org.gradle.internal.declarativedsl.schemaUtils.propertyNamed
 
@@ -30,11 +31,12 @@ class AddDependencyMutation(
     val isCompatible: AnalysisSchema.() -> Boolean,
     private val dependenciesOwnerScope: AnalysisSchema.() -> ScopeLocation,
     private val dependenciesConfiguringFunction: AnalysisSchema.() -> TypedMember.TypedFunction,
+    private val element: (Lazy<String>) -> DeclarativeDocument.DocumentNode.ElementNode? = { elementFromString("implementation(\"${it.value}\")") },
 ) : CommonPrototypeMutationDefinition {
     override val name: String = "Add a dependency"
     override val description: String = "Add a dependency to the dependencies block"
 
-    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = 
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean =
         isCompatible(projectAnalysisSchema)
 
     val dependencyCoordinatesParam =
@@ -60,7 +62,7 @@ class AddDependencyMutation(
                 scopeForDependenciesBlock.inObjectsConfiguredBy(dependenciesFunction),
                 ModelMutation.AddNewElement(
                     NewElementNodeProvider.ArgumentBased { args ->
-                        elementFromString("implementation(\"" + args[dependencyCoordinatesParam] + "\")")!!
+                        element(lazy { args[dependencyCoordinatesParam] })!!
                     }
                 )
             )

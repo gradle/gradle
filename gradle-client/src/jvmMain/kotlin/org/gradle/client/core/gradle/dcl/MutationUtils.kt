@@ -21,7 +21,14 @@ object MutationUtils {
         registerMutationDefinition(SetNamespaceMutation)
         registerMutationDefinition(addLibraryDependencyMutation)
         registerMutationDefinition(addApplicationDependencyMutation)
-        registerMutationDefinition(addTestingDependencyMutation)
+        
+        // AGP
+        registerMutationDefinition(agpAddDependency)
+        registerMutationDefinition(agpAddTestDependency)
+        registerMutationDefinition(agpAddAndroidTestDependency)
+        registerMutationDefinition(enableCompose)
+        registerMutationDefinition(addBuildConfigField)
+        registerMutationDefinition(setAgpNamespaceMutation)
         
         // Common
         registerMutationDefinition(addCommonLibraryDependencyMutation)
