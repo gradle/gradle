@@ -476,6 +476,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void setDescription(@Nullable String description) {
+        onMutableStateAccess();
         this.description = description;
     }
 
