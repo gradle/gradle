@@ -99,7 +99,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
+            getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
                 it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")'}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
@@ -135,7 +135,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
+            getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
                 it.id("id", "shortProblemMessage")
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
