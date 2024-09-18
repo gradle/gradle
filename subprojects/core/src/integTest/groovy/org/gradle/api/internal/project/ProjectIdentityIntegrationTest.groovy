@@ -47,7 +47,6 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-
     @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "IP enables parallel configuration")
     def 'project lifetime is same as build'() {
         given:
@@ -79,7 +78,7 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(IntegTestPreconditions.NotConfigCached)
-    def 'projects doesnt survive build finish'() {
+    def 'project identity doesnt survive build finish'() {
         given:
         executer.requireIsolatedDaemons()
         settingsFile """
