@@ -41,6 +41,7 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
 
         when:
+        executer.withArgument("--no-problems-report")
         run(*tasks)
 
         then:
@@ -83,6 +84,7 @@ BUILD SUCCESSFUL"""
         def sub = file("sub").createDir()
 
         when:
+        executer.withArgument("--no-problems-report")
         executer.inDirectory(sub)
         run "help"
 
@@ -196,6 +198,7 @@ To run a build, run gradle <task> ...
         settingsFile << "include 'a', 'b', 'c'"
 
         when:
+        executer.withArgument("--no-problems-report")
         run "help"
 
         then:
@@ -222,6 +225,7 @@ BUILD SUCCESSFUL"""
 
     def "can print help for implicit tasks"() {
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "dependencies"
         then:
         output.contains """Detailed task information for dependencies
@@ -248,6 +252,7 @@ BUILD SUCCESSFUL"""
 
     def "can print help for placeholder added tasks"() {
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "help"
         then:
         output.contains """Detailed task information for help
@@ -289,6 +294,7 @@ include ":someproj"
         }
 """
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "hello"
         then:
         output.contains """Detailed task information for hello
@@ -336,6 +342,7 @@ include ":someproj2"
         }
 """
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "hello"
         then:
         output.contains """Detailed task information for hello
@@ -368,6 +375,7 @@ BUILD SUCCESSFUL"""
         settingsFile << "include ':subproj1'"
         buildFile << "allprojects{ apply plugin:'java'}"
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", ":jar"
         then:
         output.contains """Detailed task information for :jar
@@ -390,6 +398,7 @@ Group
 BUILD SUCCESSFUL"""
 
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "jar"
         then:
         output.contains """Detailed task information for jar
@@ -429,6 +438,7 @@ BUILD SUCCESSFUL"""
         }"""
 
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "someTask"
         then:
         output.contains """Detailed task information for someTask
@@ -504,6 +514,7 @@ BUILD SUCCESSFUL"""
             description = "a description"
         }"""
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "sCC"
         then:
         output.contains """Detailed task information for sCC
@@ -546,6 +557,7 @@ BUILD SUCCESSFUL"""
     def "listsEnumAndBooleanCmdOptionValues"() {
         createDirs("proj1", "proj2")
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "hello"
         then:
         output.contains """Detailed task information for hello
@@ -583,6 +595,7 @@ BUILD SUCCESSFUL"""
     def "listsCommonDynamicAvailableValues"() {
         createDirs("sub1", "sub2")
         when:
+        executer.withArgument("--no-problems-report")
         run "help", "--task", "hello"
         then:
         output.contains """Detailed task information for hello

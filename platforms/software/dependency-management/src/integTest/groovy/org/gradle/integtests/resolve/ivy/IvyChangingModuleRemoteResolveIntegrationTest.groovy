@@ -50,6 +50,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
+        executer.withArgument("--no-problems-report")
         run 'retrieve'
 
         then: "Version 1.1 jar is downloaded"
@@ -73,6 +74,7 @@ task retrieve(type: Copy) {
         moduleB.jar.expectGet()
 
         and: "We request 1.1 again"
+        executer.withArgument("--no-problems-report")
         run 'retrieve'
 
         then: "We get all artifacts, including the new ones"

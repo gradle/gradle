@@ -40,14 +40,15 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
                     logger.quiet '$byeWorldMessage'
                 }
             }
-            
+
             task silence {}
-            
+
             task all {
                 dependsOn helloWorld, byeWorld, silence
             }
         """
         when:
+        args "--no-problems-report"
         succeeds('all')
 
         then:

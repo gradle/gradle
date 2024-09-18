@@ -54,7 +54,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.groupedOutput.task(':failing').output == 'hello'
+        result.groupedOutput.task(':failing').output.startsWith('hello')
         result.formattedOutput.contains(failingTask.output)
     }
 
@@ -153,7 +153,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         then:
         result.groupedOutput.task(':a:longRunning').outputs.size() == 1
-        result.groupedOutput.task(':a:longRunning').output == "longRunning has started...\nlongRunning has finished..."
+        result.groupedOutput.task(':a:longRunning').output.startsWith("longRunning has started...\nlongRunning has finished...")
 
         cleanup:
         gradle?.waitForFinish()

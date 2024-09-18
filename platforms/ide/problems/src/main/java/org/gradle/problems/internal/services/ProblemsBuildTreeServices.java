@@ -66,9 +66,9 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         FailureFactory failureFactory,
         BuildNameProvider buildNameProvider
     ) {
-        if (startParameter.isProblemReportGenerationDisabled()) {
-            return new NoOpProblemReportCreator();
+        if (startParameter.isProblemReportGenerationEnabled()) {
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
         }
-        return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
+        return new NoOpProblemReportCreator();
     }
 }

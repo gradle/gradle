@@ -93,7 +93,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         """
 
         when:
-        executer.withConsole(consoleType)
+        executer.withConsole(consoleType).withArgument("--no-problems-report")
         succeeds("run")
 
         then:
@@ -109,7 +109,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         """
 
         when:
-        executer.withConsole(consoleType)
+        executer.withConsole(consoleType).withArgument("--no-problems-report")
         succeeds("run")
 
         then:

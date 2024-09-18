@@ -269,6 +269,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
             """
 
         expect:
+        args "--no-problems-report"
         fails "block"
 
         and:

@@ -385,7 +385,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        testDirectory.file("build/reports/problems", "problem-report.html").exists()
+        testDirectory.file("build/reports/problems", "problems-report.html").exists()
+        output.contains("Problem report (Experimental) is available at: ")
+
         10.times { num ->
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"
@@ -410,7 +412,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.withArguments("--disable-problem-report")
+        executer.withArguments("--no-problems-report")
 
         when:
         run("reportProblem")

@@ -41,7 +41,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
         then:
         result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
         result.groupedOutput.task(":${testDirectory.name}:important").output == IMPORTANT_MESSAGE
-        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
+        result.groupedOutput.task(':byeWorld').output.startsWith(BYE_WORLD_MESSAGE)
     }
 
     def "can group task output from external build invoked executed by GradleBuild in different directory"() {
@@ -57,7 +57,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
         then:
         result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
         result.groupedOutput.task(":external:important").output == IMPORTANT_MESSAGE
-        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
+        result.groupedOutput.task(':byeWorld').output.startsWith(BYE_WORLD_MESSAGE)
     }
 
     static String mainBuildScript(String externalBuildConfig) {

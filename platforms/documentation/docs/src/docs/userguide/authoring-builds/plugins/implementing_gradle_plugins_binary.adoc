@@ -669,7 +669,7 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files
 [[reporting_problems]]
 == Reporting problems
 
-Plugins can report problems through Gradle's problem-reporting APIs.
+Plugins can report problems through Gradle's problems-reporting APIs.
 The APIs report rich, structured information about problems happening during the build.
 This information can be used by different user interfaces such as Gradle's console output, Build Scans, or IDEs to communicate problems to the user in the most appropriate way.
 

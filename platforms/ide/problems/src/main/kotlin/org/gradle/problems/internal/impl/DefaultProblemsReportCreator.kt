@@ -55,7 +55,7 @@ class DefaultProblemsReportCreator(
     private val buildNameProvider: BuildNameProvider
 ) : ProblemReportCreator {
 
-    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report", "problem-report", false)
+    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problems report", "problems-report", false)
     private val taskNames: List<String> = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
 
@@ -74,7 +74,7 @@ class DefaultProblemsReportCreator(
                             property("totalProblemCount", problemCount.get())
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
-                            property("documentationLink", DocumentationRegistry().getDocumentationFor("problem-report"))
+                            property("documentationLink", DocumentationRegistry().getDocumentationFor("problems-report"))
                             property("documentationLinkCaption", "Problem report")
                         }
                     }
@@ -82,7 +82,7 @@ class DefaultProblemsReportCreator(
             }
         })?.let {
             val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("Problems report is available at: $url")
+            logger.warn("Problem report (Experimental) is available at: $url")
         }
     }
 

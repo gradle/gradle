@@ -519,6 +519,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
         and:
+        executer.withArgument("--no-problems-report")
         run 'syncIt'
         file('build').assertHasDescendants(
             'file.txt',
@@ -533,6 +534,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         new File(uppercaseNestedDir, 'nestedDirFile2.txt').renameTo(new File(uppercaseNestedDir, 'NESTEDDIRFILE2.TXT'))
 
         when:
+        executer.withArgument("--no-problems-report")
         succeeds('syncIt', '-Dcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
