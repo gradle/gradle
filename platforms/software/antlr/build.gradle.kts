@@ -23,6 +23,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServices)
+    implementation(projects.loggingApi)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
