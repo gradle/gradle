@@ -995,12 +995,12 @@ def scriptMethod(Closure closure) {
         Project wrapped = LifecycleAwareProject.from(project, child1, gradleLifecycleActionExecutor, instantiatorMock)
         Project overwrapped = LifecycleAwareProject.from(wrapped, child1, gradleLifecycleActionExecutor, instantiatorMock)
         then:
-        project.equals(wrapped)
-        wrapped.equals(project)
-        project.equals(overwrapped)
-        overwrapped.equals(project)
-        wrapped.equals(overwrapped)
-        overwrapped.equals(wrapped)
+        project == wrapped
+        wrapped == project
+        project == overwrapped
+        overwrapped == project
+        wrapped == overwrapped
+        overwrapped == wrapped
     }
 
     def mapUsageForWrappers() {
@@ -1016,6 +1016,20 @@ def scriptMethod(Closure closure) {
         map[wrapped] = "bar"
         then:
         map[project] == "bar"
+    }
+
+    def wrappersAreIdenticalToDelegates() {
+        when:
+        Project wrapped = LifecycleAwareProject.from(project, child1, gradleLifecycleActionExecutor, instantiatorMock)
+        Project overwrapped = LifecycleAwareProject.from(wrapped, child1, gradleLifecycleActionExecutor, instantiatorMock)
+        then:
+        project.getIdentity() === wrapped.getIdentity()
+        project.getIdentity() === overwrapped.getIdentity()
+    }
+
+    def identityOfProject() {
+        expect:
+        project.getIdentity() === project
     }
 
     static boolean assertLifecycleAwareWithReferrer(Project referrer, @DelegatesTo(Project.class) Closure navigate) {
