@@ -74,6 +74,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
          */
         private
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
+
+        private
+        val isolatedProjectsTasksConfigureOnDemand =
+            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
@@ -141,7 +145,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
-            val configureOnDemand = startParameter.isConfigureOnDemand && (!isolatedProjects || (isolatedProjects && !startParameter.isolatedProjectsParallelConfiguration.get()))
+            val configureOnDemand = (!isolatedProjects || isolatedProjects && options.getOption(isolatedProjectsTasksConfigureOnDemand).get()) && startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)

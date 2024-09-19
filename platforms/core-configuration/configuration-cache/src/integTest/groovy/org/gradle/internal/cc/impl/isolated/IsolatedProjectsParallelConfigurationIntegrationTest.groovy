@@ -71,7 +71,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.expect("configure-a")
 
         when:
-        isolatedProjectsRun(":a:build", "-Dorg.gradle.unsafe.isolated-projects.parallel-configuration=false")
+        isolatedProjectsRun(":a:build", "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true", "--configure-on-demand")
 
         then:
         result.assertTaskExecuted(":a:build")
