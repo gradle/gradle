@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -43,6 +42,7 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
     private final RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
+    @SuppressWarnings("this-escape")
     public MavenLocalPublisher(Factory<File> temporaryDirFactory, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(temporaryDirFactory);
         this.repositoryTransportFactory = repositoryTransportFactory;
@@ -74,7 +74,7 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
         versioning.updateTimestamp();
         versioning.setSnapshot(snapshot);
 
-        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+        for (NormalizedMavenArtifact artifact : publication.getAllArtifacts()) {
             SnapshotVersion sv = new SnapshotVersion();
             sv.setClassifier(artifact.getClassifier());
             sv.setExtension(artifact.getExtension());

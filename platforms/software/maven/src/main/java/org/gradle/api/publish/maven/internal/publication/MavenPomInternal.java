@@ -40,9 +40,6 @@ import java.util.List;
 
 public interface MavenPomInternal extends MavenPom {
 
-    @Internal
-    Property<String> getPackagingProperty();
-
     @Nested
     List<MavenPomLicense> getLicenses();
 
