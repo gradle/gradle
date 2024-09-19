@@ -36,8 +36,6 @@ import java.util.List;
 
 public interface MavenPomInternal extends MavenPom {
 
-    Property<String> getPackagingProperty();
-
     List<MavenPomLicense> getLicenses();
 
     @Nullable
