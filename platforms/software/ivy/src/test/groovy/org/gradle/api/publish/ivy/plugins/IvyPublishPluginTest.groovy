@@ -104,10 +104,10 @@ class IvyPublishPluginTest extends Specification {
 
         then:
         with(publishing.publications.test) {
-            module == project.name
-            organisation == "foo"
-            revision == "1.0"
-            descriptor.status == "integration"
+            module.get() == project.name
+            organisation.get() == "foo"
+            revision.get() == "1.0"
+            descriptor.status.get() == "integration"
         }
 
         when:
@@ -116,8 +116,8 @@ class IvyPublishPluginTest extends Specification {
 
         then:
         with(publishing.publications.test) {
-            organisation == "changed-group"
-            revision == "changed-version"
+            organisation.get() == "changed-group"
+            revision.get() == "changed-version"
         }
     }
 

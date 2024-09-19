@@ -149,8 +149,8 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
 
     private void createPublishToRepositoryTask(TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, final IvyArtifactRepository repository, final String repositoryName, final String publishTaskName) {
         tasks.register(publishTaskName, PublishToIvyRepository.class, publishTask -> {
-            publishTask.setPublication(publication);
-            publishTask.setRepository(repository);
+            publishTask.getPublication().set(publication);
+            publishTask.getRepository().set(repository);
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
@@ -172,7 +172,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, descriptorTask -> {
             descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
             descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            descriptorTask.setDescriptor(publication.getDescriptor());
+            descriptorTask.getDescriptor().set(publication.getDescriptor());
             descriptorTask.getDestinationFile().convention(
                 buildDir.file("publications/" + publicationName + "/ivy.xml")
             );
@@ -257,7 +257,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             publicationIdentity.getModule().set(providerFactory.provider(module::getName));
             publicationIdentity.getRevision().set(providerFactory.provider(module::getVersion));
 
-            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity, taskDependencyFactory, publishArtifactNotationParser).create();
+            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity, taskDependencyFactory, publishArtifactNotationParser, providerFactory, objectFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
 
             return objectFactory.newInstance(DefaultIvyPublication.class, name, publicationIdentity, notationParser, versionMappingStrategy);
