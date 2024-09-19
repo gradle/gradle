@@ -83,7 +83,7 @@ public final class MavenPomFileGenerator {
         model.setArtifactId(coordinates.getArtifactId().get());
         model.setVersion(coordinates.getVersion().get());
 
-        model.setPackaging(pom.getPackagingProperty().getOrNull());
+        model.setPackaging(pom.getPackaging().getOrNull());
         model.setName(pom.getName().getOrNull());
         model.setDescription(pom.getDescription().getOrNull());
         model.setUrl(pom.getUrl().getOrNull());

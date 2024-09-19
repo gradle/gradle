@@ -18,6 +18,9 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.internal.PublicationInternal;
 
 import java.io.File;
@@ -28,8 +31,14 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractMavenArtifact original;
     private final PublicationInternal.DerivedArtifact derivedFile;
 
-    public DerivedMavenArtifact(AbstractMavenArtifact original, PublicationInternal.DerivedArtifact derivedFile, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public DerivedMavenArtifact(
+        AbstractMavenArtifact original,
+        PublicationInternal.DerivedArtifact derivedFile,
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
+    ) {
+        super(taskDependencyFactory, objectFactory, providerFactory);
         this.original = original;
         this.derivedFile = derivedFile;
     }
@@ -40,12 +49,12 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return original.getExtension() + "." + getFileExtension(getFile().getName());
+    protected Provider<String> getDefaultExtension() {
+        return original.getExtension().map(old -> old + "." + getFileExtension(getFile().getName()));
     }
 
     @Override
-    protected String getDefaultClassifier() {
+    protected Provider<String> getDefaultClassifier() {
         return original.getClassifier();
     }
 
