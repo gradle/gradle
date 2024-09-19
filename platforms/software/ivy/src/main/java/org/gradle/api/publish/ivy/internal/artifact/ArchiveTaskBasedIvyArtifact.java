@@ -17,8 +17,12 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -30,36 +34,42 @@ public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
     private final IvyPublicationCoordinates coordinates;
     private final TaskDependencyInternal buildDependencies;
 
-    public ArchiveTaskBasedIvyArtifact(AbstractArchiveTask archiveTask, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public ArchiveTaskBasedIvyArtifact(
+        AbstractArchiveTask archiveTask,
+        IvyPublicationCoordinates coordinates,
+        TaskDependencyFactory taskDependencyFactory,
+        ProviderFactory providerFactory,
+        ObjectFactory objectFactory
+    ) {
+        super(taskDependencyFactory, providerFactory, objectFactory);
         this.archiveTask = archiveTask;
         this.coordinates = coordinates;
         this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(archiveTask));
     }
 
     @Override
-    protected String getDefaultName() {
-        return coordinates.getModule().get();
+    protected Provider<String> getDefaultName() {
+        return coordinates.getModule();
     }
 
     @Override
-    protected String getDefaultType() {
-        return archiveTask.getArchiveExtension().getOrNull();
+    protected Provider<String> getDefaultType() {
+        return archiveTask.getArchiveExtension();
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return archiveTask.getArchiveExtension().getOrNull();
+    protected Provider<String> getDefaultExtension() {
+        return archiveTask.getArchiveExtension();
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return archiveTask.getArchiveClassifier().getOrNull();
+    protected Provider<String> getDefaultClassifier() {
+        return archiveTask.getArchiveClassifier();
     }
 
     @Override
-    protected String getDefaultConf() {
-        return null;
+    protected Provider<String> getDefaultConf() {
+        return Providers.notDefined();
     }
 
     @Override
