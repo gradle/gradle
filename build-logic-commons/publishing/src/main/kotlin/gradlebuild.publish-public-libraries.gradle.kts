@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import java.time.Year
 
 plugins {
