@@ -207,10 +207,10 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, generatePomTask -> {
             generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
             generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            generatePomTask.setPom(publication.getPom());
-            if (generatePomTask.getDestination() == null) {
-                generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
-            }
+            generatePomTask.getPom().convention(publication.getPom());
+            generatePomTask.getDestination().convention(
+                buildDir.file("publications/" + publication.getName() + "/pom-default.xml")
+            );
         });
         publication.setPomGenerator(generatorTask);
     }

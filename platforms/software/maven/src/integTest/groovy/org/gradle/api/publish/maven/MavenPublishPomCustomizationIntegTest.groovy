@@ -256,7 +256,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             model {
                 tasks.generatePomFileForEmptyMavenPublication {
-                    destination = 'build/generated-pom.xml'
+                    destination = file('build/generated-pom.xml')
                 }
             }
         """
