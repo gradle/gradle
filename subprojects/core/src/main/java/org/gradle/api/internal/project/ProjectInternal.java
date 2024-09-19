@@ -79,6 +79,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     Project evaluate();
 
+    /***
+     * This method should be used by internal Gradle code to trigger project evaluation.
+     */
+    ProjectInternal evaluateUnchecked();
+
     ProjectInternal bindAllModelRules();
 
     @Override
@@ -247,6 +252,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     @Override
     RoleBasedConfigurationContainerInternal getConfigurations();
+
+    void setLifecycleActionsState(@Nullable Object state);
+
+    /**
+     * The state of the execution of {@link org.gradle.api.invocation.GradleLifecycle} actions of this project.
+     * Its mutation NOT considered a mutable state access.
+     * */
+    @Nullable
+    Object getLifecycleActionsState();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

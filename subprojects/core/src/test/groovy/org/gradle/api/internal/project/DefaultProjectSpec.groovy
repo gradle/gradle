@@ -51,6 +51,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -260,6 +261,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
         serviceRegistry.add(FileResolver, Stub(FileResolver))
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
+        serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.addProvider(new ServiceRegistrationProvider() {
