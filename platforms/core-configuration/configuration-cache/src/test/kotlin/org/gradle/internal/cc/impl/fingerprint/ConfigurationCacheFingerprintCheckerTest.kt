@@ -347,6 +347,10 @@ class ConfigurationCacheFingerprintCheckerTest {
             values.add(value)
         }
 
+        override suspend fun <T : Any> writeGlobalValue(value: T, encode: suspend WriteContext.(T) -> Unit) {
+            values.add(value)
+        }
+
         override val tracer: Tracer?
             get() = null
 
@@ -454,6 +458,8 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun readSmallInt(): Int = next()
 
         override suspend fun read(): Any? = next()
+
+        override suspend fun <T : Any> readGlobalValue(decode: suspend ReadContext.() -> T): T = next()
 
         @Suppress("unchecked_cast")
         private
