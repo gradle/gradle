@@ -510,7 +510,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             publishing {
                 repositories { maven { url 'repo' } }
                 publications.main {
-                    artifactId = "\${artifactId}-adjusted"
+                    artifactId = "\${artifactId.get()}-adjusted"
                 }
             }
 """
