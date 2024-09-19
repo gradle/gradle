@@ -145,7 +145,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
-            val configureOnDemand = (!isolatedProjects || isolatedProjects && options.getOption(isolatedProjectsTasksConfigureOnDemand).get()) && startParameter.isConfigureOnDemand
+            val configureOnDemand = (!isolatedProjects || options.getOption(isolatedProjectsTasksConfigureOnDemand).get()) && startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
