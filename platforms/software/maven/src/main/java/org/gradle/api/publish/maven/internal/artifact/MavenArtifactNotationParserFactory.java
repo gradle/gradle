@@ -21,7 +21,9 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Cast;
@@ -44,17 +46,23 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private final PublishArtifactNotationParser publishArtifactNotationParser;
+    private final ObjectFactory objectFactory;
+    private final ProviderFactory providerFactory;
 
     public MavenArtifactNotationParserFactory(
         Instantiator instantiator,
         FileResolver fileResolver,
         TaskDependencyFactory taskDependencyFactory,
-        PublishArtifactNotationParser publishArtifactNotationParser
+        PublishArtifactNotationParser publishArtifactNotationParser,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
     ) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.publishArtifactNotationParser = publishArtifactNotationParser;
+        this.objectFactory = objectFactory;
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -87,7 +95,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     private class ArchiveTaskNotationConverter implements NotationConverter<AbstractArchiveTask, MavenArtifact> {
         @Override
         public void convert(AbstractArchiveTask archiveTask, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
-            MavenArtifact artifact = instantiator.newInstance(ArchiveTaskBasedMavenArtifact.class, archiveTask, taskDependencyFactory);
+            MavenArtifact artifact = instantiator.newInstance(ArchiveTaskBasedMavenArtifact.class, archiveTask, taskDependencyFactory, objectFactory, providerFactory);
             result.converted(artifact);
         }
 
@@ -100,7 +108,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
     private class PublishArtifactNotationConverter implements NotationConverter<PublishArtifact, MavenArtifact> {
         @Override
         public void convert(PublishArtifact publishArtifact, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
-            MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, publishArtifact, taskDependencyFactory);
+            MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, publishArtifact, taskDependencyFactory, objectFactory, providerFactory);
             result.converted(artifact);
         }
 
@@ -114,7 +122,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         @Override
         public void convert(Provider<?> artifactTaskProvider, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             PublishArtifact delegate = publishArtifactNotationParser.parseNotation(artifactTaskProvider);
-            MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, delegate, taskDependencyFactory);
+            MavenArtifact artifact = instantiator.newInstance(PublishArtifactBasedMavenArtifact.class, delegate, taskDependencyFactory, objectFactory, providerFactory);
             result.converted(artifact);
         }
 
@@ -134,7 +142,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         @Override
         public void convert(Object notation, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            MavenArtifact mavenArtifact = instantiator.newInstance(FileBasedMavenArtifact.class, file, taskDependencyFactory);
+            MavenArtifact mavenArtifact = instantiator.newInstance(FileBasedMavenArtifact.class, file, taskDependencyFactory, objectFactory, providerFactory);
             if (notation instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependencyContainer;
                 if (notation instanceof Provider) {
