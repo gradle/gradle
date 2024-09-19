@@ -19,6 +19,8 @@ package org.gradle.plugin.devel.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -77,18 +79,23 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
         publication.getArtifactId().set(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.getGroupId().set(pluginId);
 
-        publication.getPom().withXml(xmlProvider -> {
+        // required for configuration cache to lose the dependency on the MavenPublication and make the lambda below serializable
+        Provider<String> groupProvider = coordinates.getGroupId();
+        Provider<String> artifactIdProvider = coordinates.getArtifactId();
+        Provider<String> versionProvider = coordinates.getVersion();
+
+        publication.getPom().withXml(SerializableLambdas.action(xmlProvider -> {
             Element root = xmlProvider.asElement();
             Document document = root.getOwnerDocument();
             Node dependencies = root.appendChild(document.createElement("dependencies"));
             Node dependency = dependencies.appendChild(document.createElement("dependency"));
             Node groupId = dependency.appendChild(document.createElement("groupId"));
-            groupId.setTextContent(coordinates.getGroupId().get());
+            groupId.setTextContent(groupProvider.get());
             Node artifactId = dependency.appendChild(document.createElement("artifactId"));
-            artifactId.setTextContent(coordinates.getArtifactId().get());
+            artifactId.setTextContent(artifactIdProvider.get());
             Node version = dependency.appendChild(document.createElement("version"));
-            version.setTextContent(coordinates.getVersion().get());
-        });
+            version.setTextContent(versionProvider.get());
+        }));
 
         publication.getPom().getName().convention(declaration.getDisplayName());
         publication.getPom().getDescription().convention(declaration.getDescription());
