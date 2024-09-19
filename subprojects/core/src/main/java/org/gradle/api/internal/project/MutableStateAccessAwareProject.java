@@ -319,6 +319,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    public ProjectInternal evaluateUnchecked() {
+        return delegate.evaluateUnchecked();
+    }
+
+    @Override
     public ProjectInternal bindAllModelRules() {
         onMutableStateAccess("bindAllModelRules");
         return delegate.bindAllModelRules();
@@ -1168,5 +1173,16 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
+    }
+
+    @Override
+    public void setLifecycleActionsState(@Nullable Object state) {
+        delegate.setLifecycleActionsState(state);
+    }
+
+    @Nullable
+    @Override
+    public Object getLifecycleActionsState() {
+        return delegate.getLifecycleActionsState();
     }
 }
