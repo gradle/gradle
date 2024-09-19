@@ -55,11 +55,11 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec) {
+    public RuntimeException throwing(Action<ProblemSpec> spec)  {
         DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
-        RuntimeException exception = problem.getException();
+        Throwable exception = problem.getException();
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");
         } else {
@@ -67,10 +67,14 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         }
     }
 
-    private RuntimeException throwError(RuntimeException exception, Problem problem) {
+    private RuntimeException throwError(Throwable exception, Problem problem) {
         report(problem);
         problems.put(exception, problem);
-        throw exception;
+        if (exception instanceof RuntimeException) {
+            return (RuntimeException) exception;
+        } else {
+            throw new RuntimeException(exception);
+        }
     }
 
     @Override
@@ -98,7 +102,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem) {
-        RuntimeException exception = problem.getException();
+        Throwable exception = problem.getException();
         if(exception != null) {
             problems.put(exception, problem);
         }

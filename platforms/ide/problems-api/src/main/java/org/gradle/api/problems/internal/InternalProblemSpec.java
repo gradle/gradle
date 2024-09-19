@@ -94,7 +94,7 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec solution(String solution);
 
     @Override
-    InternalProblemSpec withException(RuntimeException e);
+    InternalProblemSpec withException(Throwable t);
 
     @Override
     InternalProblemSpec severity(Severity severity);
