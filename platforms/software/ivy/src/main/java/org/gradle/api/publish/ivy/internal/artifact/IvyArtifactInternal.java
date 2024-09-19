@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.internal.publisher.NormalizedIvyArtifact;
 
 public interface IvyArtifactInternal extends IvyArtifact, PublicationArtifactInternal {
     default NormalizedIvyArtifact asNormalisedArtifact() {
