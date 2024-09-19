@@ -1,0 +1,28 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getDuplicatePublicationTracker()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenPublishers()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
+            "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getListenerManager()",
+            "acceptation": "The method is unused",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}
