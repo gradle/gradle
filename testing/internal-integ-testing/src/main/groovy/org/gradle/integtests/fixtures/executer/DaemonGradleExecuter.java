@@ -19,6 +19,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
 
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
+
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     private boolean daemonExplicitlyRequired;
@@ -31,6 +33,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         super.requireDaemon();
+    }
+
+    @Override
+    protected boolean isSingleUseDaemonRequested() {
+        return resolveCliDaemonArgument() == NO_DAEMON && requireDaemon;
     }
 
     @Override

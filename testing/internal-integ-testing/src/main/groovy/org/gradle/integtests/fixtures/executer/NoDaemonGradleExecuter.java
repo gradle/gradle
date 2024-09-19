@@ -57,6 +57,15 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
+    protected boolean isSingleUseDaemonRequested() {
+        if (!requireDaemon) {
+            return false;
+        }
+        CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
+        return cliDaemonArgument == CliDaemonArgument.NOT_DEFINED || cliDaemonArgument == CliDaemonArgument.NO_DAEMON;
+    }
+
+    @Override
     public void assertCanExecute() throws AssertionError {
         if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             Map<String, String> environmentVars = buildInvocation().environmentVars;
@@ -76,6 +85,12 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected void transformInvocation(GradleInvocation invocation) {
+        if (!invocation.buildJvmArgs.isEmpty() && !isUseDaemon() && !isSingleUseDaemonRequested()) {
+            // Ensure the arguments match between the launcher and the expected daemon args
+            String quotedArgs = joinAndQuoteJvmArgs(invocation.buildJvmArgs);
+            invocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+        }
+
         if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             // Mix the implicit launcher JVM args in with the requested JVM args
             super.transformInvocation(invocation);
@@ -144,7 +159,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
-        if (!isUseDaemon() && getJavaVersionFromJavaHome().isJava9Compatible()) {
+        if (!isUseDaemon() && !isSingleUseDaemonRequested() && getJavaVersionFromJavaHome().isJava9Compatible()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;
