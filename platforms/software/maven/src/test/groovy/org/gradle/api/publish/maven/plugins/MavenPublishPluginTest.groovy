@@ -173,7 +173,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         project.buildDir = newBuildDir
 
         then:
-        project.tasks["generatePomFileForTestPublication"].destination == new File(newBuildDir, "publications/test/pom-default.xml")
+        project.tasks["generatePomFileForTestPublication"].destination.getAsFile().get() == new File(newBuildDir, "publications/test/pom-default.xml")
     }
 
     def "creates publish tasks for all publications in a repository"() {
