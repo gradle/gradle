@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
-import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -38,13 +37,13 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         IvyResolver publisher = ((DefaultIvyArtifactRepository) repository).createPublisher();
         ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(publication.getCoordinates());
 
-        for (IvyArtifact artifact : publication.getAllArtifacts()) {
+        for (NormalizedIvyArtifact artifact : publication.getAllArtifacts()) {
             ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(moduleVersionIdentifier, createIvyArtifact(artifact));
             publish(publisher, artifact, artifactMetadata);
         }
     }
 
-    private void publish(IvyResolver publisher, IvyArtifact artifact, ModuleComponentArtifactMetadata artifactMetadata) {
+    private void publish(IvyResolver publisher, NormalizedIvyArtifact artifact, ModuleComponentArtifactMetadata artifactMetadata) {
         networkOperationBackOffAndRetry.withBackoffAndRetry(new Callable<Void>() {
             @Override
             public Void call() {
@@ -60,7 +59,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         });
     }
 
-    private IvyArtifactName createIvyArtifact(IvyArtifact artifact) {
+    private IvyArtifactName createIvyArtifact(NormalizedIvyArtifact artifact) {
         return new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
     }
 }
