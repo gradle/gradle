@@ -21,7 +21,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * The POM for a Maven publication.
@@ -42,13 +42,8 @@ public interface MavenPom {
     /**
      * Returns the packaging (for example: jar, war) for the publication represented by this POM.
      */
-    @ToBeReplacedByLazyProperty
-    String getPackaging();
-
-    /**
-     * Sets the packaging for the publication represented by this POM.
-     */
-    void setPackaging(String packaging);
+    @ReplacesEagerProperty
+    Property<String> getPackaging();
 
     /**
      * The name for the publication represented by this POM.
