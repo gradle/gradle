@@ -18,8 +18,6 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * Represents a contextual label.
  *
@@ -34,6 +32,5 @@ public interface ContextualLabel {
      * @return the contextual label
      * @since 8.9
      */
-    @Nullable
     String getContextualLabel();
 }
