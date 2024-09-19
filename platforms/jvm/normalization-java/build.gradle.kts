@@ -1,3 +1,5 @@
+import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInternal
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
@@ -31,6 +33,17 @@ dependencies {
     testImplementation(projects.internalTesting)
     testImplementation(testFixtures(projects.snapshots))
 }
+
+// TODO Put a comment here about what this does
+listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach {
+    (components["java"] as AdhocComponentWithVariants).withVariantsFromConfiguration(it) {
+        this as ConfigurationVariantDetailsInternal
+        this.dependencyMapping {
+            publishResolvedCoordinates = true
+        }
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInternal
 import java.time.Year
 
 plugins {
@@ -25,15 +24,6 @@ plugins {
 }
 
 configureJavadocVariant()
-
-listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach {
-    (components["java"] as AdhocComponentWithVariants).withVariantsFromConfiguration(it) {
-        this as ConfigurationVariantDetailsInternal
-        this.dependencyMapping {
-            publishResolvedCoordinates = true
-        }
-    }
-}
 
 publishing {
     publications {
