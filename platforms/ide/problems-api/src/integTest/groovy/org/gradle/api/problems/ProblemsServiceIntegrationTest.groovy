@@ -358,21 +358,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem.exception.message == 'test'
     }
 
-    def "can rethrow an exception"() {
-        given:
-        withReportProblemTask """
-            problems.getReporter().rethrowing(new RuntimeException("test")) {
-                it.id('type', 'label')
-            }
-        """
-
-        when:
-        fails('reportProblem')
-
-        then:
-        receivedProblem.exception.message == 'test'
-    }
-
     def "can rethrow a caught exception"() {
         given:
         withReportProblemTask """
@@ -382,8 +367,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     .withException(new RuntimeException("test"))
                 }
             } catch (RuntimeException ex) {
-                problems.getReporter().rethrowing(ex) {
-                    it.id('type12', 'outer')
+                problems.getReporter().throwing {
+                    it.id('type12', 'outer').withException(ex)
                 }
             }
         """
