@@ -18,7 +18,11 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -28,35 +32,41 @@ public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
     private final PublishArtifact artifact;
     private final IvyPublicationCoordinates coordinates;
 
-    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public PublishArtifactBasedIvyArtifact(
+        PublishArtifact artifact,
+        IvyPublicationCoordinates coordinates,
+        TaskDependencyFactory taskDependencyFactory,
+        ProviderFactory providerFactory,
+        ObjectFactory objectFactory
+    ) {
+        super(taskDependencyFactory, providerFactory, objectFactory);
         this.artifact = artifact;
         this.coordinates = coordinates;
     }
 
     @Override
-    protected String getDefaultName() {
-        return coordinates.getModule().get();
+    protected Provider<String> getDefaultName() {
+        return coordinates.getModule();
     }
 
     @Override
-    protected String getDefaultType() {
-        return artifact.getType();
+    protected Provider<String> getDefaultType() {
+        return Providers.of(artifact.getType());
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return artifact.getExtension();
+    protected Provider<String> getDefaultExtension() {
+        return Providers.of(artifact.getExtension());
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return artifact.getClassifier();
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.ofNullable(artifact.getClassifier());
     }
 
     @Override
-    protected String getDefaultConf() {
-        return null;
+    protected Provider<String> getDefaultConf() {
+        return Providers.notDefined();
     }
 
     @Override
