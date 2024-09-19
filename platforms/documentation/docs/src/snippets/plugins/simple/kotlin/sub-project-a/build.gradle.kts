@@ -1,23 +1,42 @@
-plugins {                                                               // <1>
+// tag::plugins[]
+plugins {   // <1>
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
     id("application")
 }
+// end::plugins[]
 
-repositories {                                                          // <2>
+// tag::repo[]
+repositories {  // <2>
     mavenCentral()
 }
+// end::repo[]
 
-dependencies {                                                          // <3>
+// tag::dep[]
+dependencies {  // <3>
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("com.google.guava:guava:32.1.1-jre")
 }
+// end::dep[]
 
-application {                                                           // <4>
+// tag::app[]
+application {   // <4>
     mainClass = "com.example.Main"
 }
+// end::app[]
 
-tasks.named<Test>("test") {                                             // <5>
+// tag::test[]
+tasks.named<Test>("test") { // <5>
     useJUnitPlatform()
 }
+// end::test[]
+
+// tag::task[]
+tasks.register<Zip>("zip-reports") {
+    from("Reports/")
+    include("*")
+    archiveFileName.set("Reports.zip")
+    destinationDirectory.set(file("/dir"))
+}
+// end::task[]

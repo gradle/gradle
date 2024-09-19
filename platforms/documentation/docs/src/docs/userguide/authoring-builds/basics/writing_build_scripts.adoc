@@ -169,13 +169,10 @@ Plugins can be applied using the `PluginDependenciesSpec` plugins script block.
 
 The plugins block is preferred:
 
-[source,text]
-----
-plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("application")
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=plugins]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=plugins]"]
+====
 
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
@@ -190,13 +187,10 @@ Dependencies include plugins, libraries, or components that Gradle must download
 The build script lets Gradle know where to look for the binaries of the dependencies.
 More than one location can be provided:
 
-[source,kotlin]
-----
-repositories {
-    mavenCentral()
-    google()
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=repo]"]
+====
 
 In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
 
@@ -210,12 +204,10 @@ Dependencies are managed via <<glossary.adoc#sub:terminology_configuration,confi
 Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
 Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
 
-[source,kotlin]
-----
-dependencies {
-    implementation("com.google.guava:guava:32.1.1-jre")
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=dep]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=dep]"]
+====
 
 In the example, the application code uses Google's `guava` libraries.
 Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
@@ -228,12 +220,10 @@ The link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] object has an as
 
 In the example, the `application` plugin added an `application` property, which is used to detail the main class of our Java application:
 
-[source,kotlin]
-----
-application {
-    mainClass = "com.example.Main"
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=app]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=app]"]
+====
 
 === 5. Register and configure tasks
 
@@ -245,49 +235,33 @@ While tasks are typically defined in plugins, you may need to register or config
 
 You can register tasks in a project using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register(java.lang.String)`] method:
 
-[source,kotlin]
-----
-tasks.register<Zip>("zip-reports") {
-    from 'Reports/'
-    include '*'
-    archiveName 'Reports.zip'
-    destinationDir(file('/dir'))
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=task]"]
+====
 
-You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*:
+You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*.
 
 [source,kotlin]
 ----
-tasks.create<Zip>("zip-reports") {
-    from 'Reports/'
-    include '*'
-    archiveName 'Reports.zip'
-    destinationDir(file('/dir'))
-}
+tasks.create<Zip>("zip-reports") { }
 ----
 
 TIP: `register()`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create()`.
 
 You can locate a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
-[source,kotlin]
-----
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=test]"]
+====
 
 The example below configures the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] task to automatically generate HTML documentation from Java code:
 
-[source,kotlin]
-----
-tasks.named("javadoc").configure {
-    exclude 'app/Internal*.java'
-    exclude 'app/internal/*'
-    exclude 'app/internal/*'
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=doc]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=doc]"]
+====
 
 == Build Scripting
 
