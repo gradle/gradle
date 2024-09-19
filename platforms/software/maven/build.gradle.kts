@@ -20,10 +20,10 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.logging)
-    api(projects.messaging)
     api(projects.modelCore)
     api(projects.publish)
     api(projects.resources)
+    api(projects.messaging)
 
     api(libs.guava)
     api(libs.inject)
