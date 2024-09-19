@@ -85,9 +85,6 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec pluginLocation(String pluginId);
 
     @Override
-    InternalProblemSpec stackLocation();
-
-    @Override
     InternalProblemSpec details(String details);
 
     @Override

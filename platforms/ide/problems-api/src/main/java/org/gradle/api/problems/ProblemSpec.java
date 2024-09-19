@@ -134,14 +134,6 @@ public interface ProblemSpec {
     ProblemSpec pluginLocation(String pluginId);
 
     /**
-     * Declares that this problem should automatically collect the location information based on the current stack trace.
-     *
-     * @return this
-     * @since 8.6
-     */
-    ProblemSpec stackLocation();
-
-    /**
      * The long description of this problem.
      *
      * @param details the details

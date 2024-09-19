@@ -63,9 +63,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder pluginLocation(String pluginId);
 
     @Override
-    InternalProblemBuilder stackLocation();
-
-    @Override
     InternalProblemBuilder details(String details);
 
     @Override

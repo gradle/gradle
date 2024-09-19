@@ -97,11 +97,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder stackLocation() {
-        return validateDelegate(delegate.stackLocation());
-    }
-
-    @Override
     public InternalProblemBuilder details(String details) {
         return validateDelegate(delegate.details(details));
     }

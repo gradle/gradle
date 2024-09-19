@@ -80,7 +80,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     // This needs to be Java 6 compatible, as we are in a worker
                      getProblems().getReporter().reporting(problem -> problem
                             .id("type", "label")
-                            .stackLocation()
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );
 

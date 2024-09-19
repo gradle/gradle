@@ -99,7 +99,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             problems.getReporter().reporting {
                 it.id('type', 'label')
-                .stackLocation()
             }
         """
 
