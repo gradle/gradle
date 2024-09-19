@@ -70,11 +70,16 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.expect("configure-root")
         server.expect("configure-a")
 
+        buildFile("b/build.gradle","""
+            println "Configure :b"
+        """)
+
         when:
-        isolatedProjectsRun(":a:build", "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true", "--configure-on-demand")
+        isolatedProjectsRun(":a:build", "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
 
         then:
         result.assertTaskExecuted(":a:build")
+        outputDoesNotContain("Configure :b")
     }
 
     // TODO Test -x behavior
