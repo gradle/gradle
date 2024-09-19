@@ -245,7 +245,7 @@ class DefaultConfigurationCacheIO internal constructor(
                     action(it)
                 }
             }.also {
-                collector.printStats("Load")
+                collector.printStats("Load", sortByLength = false)
             }
         } else {
             readConfigurationCacheStateWithStringDecoder(InlineStringDecoder, stateFile, action)
@@ -272,7 +272,7 @@ class DefaultConfigurationCacheIO internal constructor(
                     action(it)
                 }
             }.also {
-                collector.printStats("Write")
+                collector.printStats("Write", sortByLength = true)
             }
         } else {
             writeConfigurationCacheStateWithStringEncoder(InlineStringEncoder, stateFile, action)
@@ -282,13 +282,13 @@ class DefaultConfigurationCacheIO internal constructor(
 
     interface Collector {
         fun collect(context: IsolateContext, obj: Any?, length: Long?)
-        fun printStats(context: String)
+        fun printStats(description: String, sortByLength: Boolean)
 
         companion object {
             val NULL_COLLECTOR = object : Collector {
                 override fun collect(context: IsolateContext, obj: Any?, length: Long?) {
                 }
-                override fun printStats(context: String) {
+                override fun printStats(description: String, sortByLength: Boolean) {
                 }
             }
         }
@@ -307,20 +307,24 @@ class DefaultConfigurationCacheIO internal constructor(
         private
         class Stats {
             val totalLength: Long get() = operations.sumOf(Operation::length)
-            val count: Int get() = operations.size
+            val count: Long get() = operations.size.toLong()
             var operations = mutableListOf<Operation>()
-            override fun toString(): String {
+
+            val hasDetails: Boolean get() = totalLength > 0
+
+            fun contextInfo(): String {
+                val contexts = operations.map { it.context }.toSet().size
+                return contexts.takeIf { it > 1 }?.let { "in $it contexts " } ?: ""
+            }
+
+            fun details(): String? {
+                if (!hasDetails) return null
                 val lengths = operations.map(Operation::length)
                 val maxLength = lengths.max()
                 val minLength = lengths.min()
                 val meanLength = lengths.average()
                 val stdDeviation = Math.sqrt(lengths.map { (it - meanLength).pow(2) }.average())
-                val contexts = operations.map { it.context }.toSet().size
-                val contextString = contexts.takeIf { it > 1 }?.let { " in $it contexts" }
-                return if (totalLength > 0) {
-                    "$count (total: $totalLength, max: $maxLength, min: $minLength, avg: ${meanLength.toBigDecimal()}, stdDev: ${stdDeviation.toBigDecimal().toEngineeringString()}${contextString ?: ""})"
-                } else
-                    "$count " + (contextString ?: "")
+                return "(total: $totalLength, max: $maxLength, min: $minLength, avg: ${meanLength.toBigDecimal()}, stdDev: ${stdDeviation.toBigDecimal().toEngineeringString()})"
             }
 
             fun addStat(context: IsolateContext, length: Long?): Stats {
@@ -350,28 +354,41 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
 
-        override fun printStats(context: String) {
-            println("[stats] Stats for $context: ${stats.size}")
-            stats.asSequence()
+        override fun printStats(description: String, sortByLength: Boolean) {
+            val count = stats.size
+            val cut = minOf(200, count)
+            val sorter = if (sortByLength) Stats::totalLength else Stats::count
+            val sorted = stats.asSequence()
                 .filter { it.value.get().count > 1 }
-                .sortedByDescending { it.value.get().totalLength }
-                .take(100)
-                .forEach {
-                    val simpleString = "${it.key.javaClass.simpleName}@${System.identityHashCode(it.key).let(Integer::toHexString)}"
-                    val fullString = it.key.toString()
-                    println("[stats] ${it.value.get()} - ${simpleString} - (${fullString})")
+                .sortedByDescending {
+                    sorter.invoke(it.value.get())
                 }
-            println("[stats] End of stats for $context")
+            val topObjects = sorted.take(cut)
+            val totalLength = stats.values.sumOf { it.get().totalLength }
+            val totalCount = stats.values.sumOf { it.get().count }
+            print("[stats] Stats for $description: $count objects, $totalCount locations, $totalLength total length")
+            if (count > cut) {
+                val topTotalLength = topObjects.sumOf { it.value.get().totalLength }
+                val topTotalCount = topObjects.sumOf { it.value.get().count }
+                print(" - top $cut objects: $topTotalCount locations, $topTotalLength total length")
+            }
+            println()
+            topObjects
+                .forEach {
+                    val instance = it.key
+                    val stats = it.value.get()
+                    val simpleString = instance.toSimpleString()
+                    val fullString = instance.toString()
+                    println("[stats] ${stats.count} - $simpleString - ${stats.contextInfo()}($fullString)")
+                    if (stats.hasDetails) {
+                        println("[stats] ${stats.details()}")
+                    }
+                }
+            println("[stats] End of stats for $description")
         }
 
         private
-        fun Any.toString(limit: Int): String =
-            toString().let {
-                if (it.length <= limit)
-                    it
-                else
-                    it.substring(0, limit) + "..."
-            }
+        fun Any.toSimpleString() = "${javaClass.simpleName}@${System.identityHashCode(this).let(Integer::toHexString)}"
     }
 
     private
