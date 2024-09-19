@@ -24,7 +24,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
-import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
@@ -107,7 +106,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
         }
         artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
-        for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
+        for (NormalizedMavenArtifact artifact : publication.getAdditionalArtifacts()) {
             artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile());
         }
     }

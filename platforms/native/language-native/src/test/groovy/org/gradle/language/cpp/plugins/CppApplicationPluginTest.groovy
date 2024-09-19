@@ -166,21 +166,21 @@ class CppApplicationPluginTest extends Specification {
         publishing.publications.size() == 3
 
         def main = publishing.publications.main
-        main.groupId == 'my.group'
-        main.artifactId == 'test_app'
-        main.version == '1.2'
+        main.groupId.get() == 'my.group'
+        main.artifactId.get() == 'test_app'
+        main.version.get() == '1.2'
         main.artifacts.empty
 
         def debug = publishing.publications.mainDebug
-        debug.groupId == 'my.group'
-        debug.artifactId == 'test_app_debug'
-        debug.version == '1.2'
+        debug.groupId.get() == 'my.group'
+        debug.artifactId.get() == 'test_app_debug'
+        debug.version.get() == '1.2'
         debug.artifacts.size() == 1
 
         def release = publishing.publications.mainRelease
-        release.groupId == 'my.group'
-        release.artifactId == 'test_app_release'
-        release.version == '1.2'
+        release.groupId.get() == 'my.group'
+        release.artifactId.get() == 'test_app_release'
+        release.version.get() == '1.2'
         release.artifacts.size() == 1
     }
 }

@@ -73,16 +73,19 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
+    private final ProviderFactory providerFactory;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
                               FileResolver fileResolver,
+                              ProviderFactory providerFactory,
                               TaskDependencyFactory taskDependencyFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
+        this.providerFactory = providerFactory;
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
@@ -137,8 +140,8 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             final String repositoryName = repository.getName();
             final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
             tasks.register(publishTaskName, PublishToMavenRepository.class, publishTask -> {
-                publishTask.setPublication(publication);
-                publishTask.setRepository(repository);
+                publishTask.getPublication().set(publication);
+                publishTask.getRepository().set(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
                 project.getGradle().getTaskGraph().whenReady(graph -> {
@@ -154,7 +157,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private static void validateCredentialsSetup(Project project, PublishToMavenRepository publishToMavenRepository) {
-        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository();
+        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository().get();
         Credentials creds;
         try {
             creds = repository.getConfiguredCredentials().getOrNull();
@@ -191,7 +194,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
         tasks.register(installTaskName, PublishToMavenLocal.class, publishLocalTask -> {
-            publishLocalTask.setPublication(publication);
+            publishLocalTask.getPublication().set(publication);
             publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishLocalTask.setDescription("Publishes Maven publication '" + publicationName + "' to the local Maven repository.");
         });
@@ -240,7 +243,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         @Override
         public MavenPublication create(final String name) {
-            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
+            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory, objectFactory, providerFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             return objectFactory.newInstance(
                     DefaultMavenPublication.class,
