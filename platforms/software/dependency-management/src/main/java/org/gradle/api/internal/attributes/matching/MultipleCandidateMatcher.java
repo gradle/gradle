@@ -373,7 +373,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
      *
      * @return A new set containing all compatible values for some attribute.
      */
-    private static <E>  Set<E> getCandidateValues(BitSet compatible, IntFunction<E> candidateValueFetcher) {
+    private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<E> candidateValueFetcher) {
         // It's often the case that all the candidate values are the same. In this case, we avoid
         // the creation of a set, and just iterate until we find a different value. Then, only in
         // this case, we lazily initialize a set and collect all the candidate values.

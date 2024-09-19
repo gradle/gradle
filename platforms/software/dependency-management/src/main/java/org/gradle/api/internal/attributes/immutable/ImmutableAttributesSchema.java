@@ -80,7 +80,7 @@ public class ImmutableAttributesSchema {
     }
 
     private static int computeHashCode(
-        ImmutableMap<Attribute<?>, ?> strategies,
+        ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies,
         ImmutableList<Attribute<?>> precedence
     ) {
         int result = strategies.hashCode();
@@ -158,8 +158,8 @@ public class ImmutableAttributesSchema {
     }
 
     public static class ImmutableAttributeMatchingStrategy<T> {
-        private final ChainedCompatibilityRule<T> compatibilityRules;
-        private final ChainedDisambiguationRule<T> disambiguationRules;
+        final ChainedCompatibilityRule<T> compatibilityRules;
+        final ChainedDisambiguationRule<T> disambiguationRules;
 
         public ImmutableAttributeMatchingStrategy(
             ImmutableList<Action<? super CompatibilityCheckDetails<T>>> compatibilityRules,
@@ -175,23 +175,6 @@ public class ImmutableAttributesSchema {
 
         public DisambiguationRule<T> getDisambiguationRules() {
             return disambiguationRules;
-        }
-
-        /**
-         * Merge this consumer strategy with another producer strategy, giving priority to rules
-         * configured in this consumer strategy.
-         */
-        public ImmutableAttributeMatchingStrategy<T> mergeWith(ImmutableAttributeMatchingStrategy<T> producer) {
-            return new ImmutableAttributeMatchingStrategy<>(
-                ImmutableList.<Action<? super CompatibilityCheckDetails<T>>>builder()
-                    .addAll(compatibilityRules.rules)
-                    .addAll(producer.compatibilityRules.rules)
-                    .build(),
-                ImmutableList.<Action<? super MultipleCandidatesDetails<T>>>builder()
-                    .addAll(disambiguationRules.rules)
-                    .addAll(producer.disambiguationRules.rules)
-                    .build()
-            );
         }
 
         @Override
@@ -213,9 +196,9 @@ public class ImmutableAttributesSchema {
             return Objects.hash(compatibilityRules, disambiguationRules);
         }
 
-        private static class ChainedCompatibilityRule<T> implements CompatibilityRule<T> {
+        static class ChainedCompatibilityRule<T> implements CompatibilityRule<T> {
 
-            private final ImmutableList<Action<? super CompatibilityCheckDetails<T>>> rules;
+            final ImmutableList<Action<? super CompatibilityCheckDetails<T>>> rules;
 
             public ChainedCompatibilityRule(ImmutableList<Action<? super CompatibilityCheckDetails<T>>> rules) {
                 this.rules = rules;
@@ -256,9 +239,9 @@ public class ImmutableAttributesSchema {
             }
         }
 
-        private static class ChainedDisambiguationRule<T> implements DisambiguationRule<T> {
+        static class ChainedDisambiguationRule<T> implements DisambiguationRule<T> {
 
-            private final ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules;
+            final ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules;
 
             public ChainedDisambiguationRule(ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules) {
                 this.rules = rules;

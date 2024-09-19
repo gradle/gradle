@@ -33,7 +33,7 @@ public interface AttributesSchemaInternal extends AttributesSchema {
     Map<Attribute<?>, DefaultAttributeMatchingStrategy<?>> getStrategies();
 
     /**
-     * Get all configured attribute matching strategies. The returned collection
+     * Get the configured attribute matching precedence. The returned collection
      * reflects a live view of the configured attribute precedence, but is unmodifiable.
      * <p>
      * Used to finalize this schema to its immutable counterpart.

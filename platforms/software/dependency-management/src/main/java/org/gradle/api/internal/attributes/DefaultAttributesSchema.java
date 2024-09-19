@@ -19,7 +19,6 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -49,12 +48,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     // region public API
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
-        AttributeMatchingStrategy<?> strategy = strategies.get(attribute);
+        AttributeMatchingStrategy<T> strategy = (DefaultAttributeMatchingStrategy<T>) strategies.get(attribute);
         if (strategy == null) {
             throw new IllegalArgumentException("Unable to find matching strategy for " + attribute);
         }
-        return Cast.uncheckedCast(strategy);
+        return strategy;
     }
 
     @Override
@@ -64,11 +64,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     @Override
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, @Nullable Action<? super AttributeMatchingStrategy<T>> configureAction) {
-        DefaultAttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
-        if (strategy == null) {
-            strategy = newStrategy();
-            strategies.put(attribute, strategy);
-        }
+        AttributeMatchingStrategy<T> strategy = getStrategy(attribute);
         if (configureAction != null) {
             configureAction.execute(strategy);
         }
@@ -76,8 +72,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> DefaultAttributeMatchingStrategy<T> newStrategy() {
-        return instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory);
+    private <T> AttributeMatchingStrategy<T> getStrategy(Attribute<T> attribute) {
+        DefaultAttributeMatchingStrategy<T> strategy = (DefaultAttributeMatchingStrategy<T>) strategies.get(attribute);
+        if (strategy == null) {
+            strategy = instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory);
+            strategies.put(attribute, strategy);
+        }
+        return strategy;
     }
 
     @Override

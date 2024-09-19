@@ -22,7 +22,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy;
 import org.gradle.internal.service.scopes.Scope;
@@ -180,8 +183,28 @@ public class ImmutableAttributesSchemaFactory {
         } else if (producerStrategy == null) {
             return consumerStrategy;
         } else {
-            return consumerStrategy.mergeWith(producerStrategy);
+            return doMergeStrategies(consumerStrategy, producerStrategy);
         }
+    }
+
+    /**
+     * Merge the consumer strategy with another producer strategy, giving priority to rules
+     * configured in this consumer strategy.
+     */
+    public static <T> ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> doMergeStrategies(
+        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> consumer,
+        ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> producer
+    ) {
+        return new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
+            ImmutableList.<Action<? super CompatibilityCheckDetails<T>>>builder()
+                .addAll(consumer.compatibilityRules.rules)
+                .addAll(producer.compatibilityRules.rules)
+                .build(),
+            ImmutableList.<Action<? super MultipleCandidatesDetails<T>>>builder()
+                .addAll(consumer.disambiguationRules.rules)
+                .addAll(producer.disambiguationRules.rules)
+                .build()
+        );
     }
 
     /**
