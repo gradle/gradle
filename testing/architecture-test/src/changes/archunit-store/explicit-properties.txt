@@ -19,6 +19,7 @@ Method <org.gradle.api.plugins.quality.Pmd.getSource()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getThreads()> is not abstract
 Method <org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getCredentials()> is not abstract
 Method <org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getPublication()> is not abstract
+Method <org.gradle.api.publish.maven.tasks.GenerateMavenPom.getPom()> is not abstract
 Method <org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getRepository()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getArtifacts()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getOutputFile()> is not abstract
