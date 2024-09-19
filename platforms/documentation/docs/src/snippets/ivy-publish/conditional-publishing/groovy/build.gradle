@@ -39,10 +39,12 @@ publishing {
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
     def publishIf = provider {
-        if (repository == publishing.repositories.external)
-            return publication == publishing.publications.binary
-        if (repository == publishing.repositories.internal)
-            return publication == publishing.publications.binaryAndSources
+        if (repository.get() == publishing.repositories.external) {
+            return publication.get() == publishing.publications.binary
+        }
+        if (repository.get() == publishing.repositories.internal) {
+            return publication.get() == publishing.publications.binaryAndSources
+        }
         return false
     }
     onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
@@ -56,14 +58,14 @@ tasks.register('publishToExternalRepository') {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'external'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
-        it.repository == publishing.repositories.external
+        it.repository.get() == publishing.repositories.external
     }
 }
 tasks.register('publishToInternalRepository') {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'internal'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
-        it.repository == publishing.repositories.internal
+        it.repository.get() == publishing.repositories.internal
     }
 }
 // end::shorthand-tasks[]
