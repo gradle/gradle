@@ -108,7 +108,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                 }
             }
             publications.maven.artifacts.each {
-                if (it.extension == 'jar') {
+                if (it.getExtension().get() == 'jar') {
                     it.classifier = 'classified'
                 }
             }
@@ -260,7 +260,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
 Cannot publish module metadata because an artifact from the 'java' component has been removed. The available artifacts had these problems:
 - customFile-foobar.jar:
 \t- file differs (relative to root project 'projectText'): (expected) ${pathLiteral("build/libs/projectText-1.0.jar")} != (actual) customFile-foobar.jar
-\t- classifier differs: (expected)  != (actual) foobar
+\t- classifier differs: (expected) null != (actual) foobar
         """.trim())
     }
 
@@ -377,7 +377,12 @@ Cannot publish module metadata because an artifact from the 'java' component has
                     artifact source: "customFile.txt", classifier: "output"
                     artifact source: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
                     artifact source: regularFileTask.outputFile, extension: "txt", classifier: "regular"
-                    artifact source: customJar, extension: "war", classifier: null
+                    // can't use null to unset convention of classifier = "customjar"
+                    // artifact source: customJar, extension: "war", classifier: null
+                    artifact customJar {
+                        archiveClassifier = null
+                        archiveExtension = "war"
+                    }
                 }
             }
 """)
@@ -439,7 +444,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
             }
 """, """
             publishing.publications.mavenCustom.artifacts.each {
-                if (it.extension == "html") {
+                if (it.getExtension().get() == "html") {
                     it.classifier = "docs"
                     it.builtBy customFileTask
                 }

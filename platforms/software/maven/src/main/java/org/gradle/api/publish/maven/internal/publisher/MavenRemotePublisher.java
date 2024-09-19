@@ -24,7 +24,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
@@ -85,7 +84,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         versioning.setLastUpdated(snapshot.getTimestamp().replace(".", ""));
 
         String timestampVersion = version.replace("SNAPSHOT", snapshot.getTimestamp() + "-" + snapshot.getBuildNumber());
-        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+        for (NormalizedMavenArtifact artifact : publication.getAllArtifacts()) {
             SnapshotVersion sv = new SnapshotVersion();
             sv.setClassifier(artifact.getClassifier());
             sv.setExtension(artifact.getExtension());

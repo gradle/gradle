@@ -116,65 +116,71 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.coordinates.version.get() == "version2"
 
         and:
-        publication.groupId == "group2"
-        publication.artifactId == "name2"
-        publication.version == "version2"
+        publication.getGroupId().get() == "group2"
+        publication.getArtifactId().get() == "name2"
+        publication.getVersion().get() == "version2"
     }
 
     def "packaging is taken from first added artifact without extension"() {
         when:
-        def mavenArtifact = Mock(MavenArtifact)
+        def mavenArtifact = Mock(MavenTestArtifact) {
+            extension >> createStringProperty("ext")
+            classifier >> createStringProperty(null)
+        }
         notationParser.parseNotation("artifact") >> mavenArtifact
-        mavenArtifact.extension >> "ext"
 
         and:
         def publication = createPublication()
         publication.artifact "artifact"
 
         then:
-        publication.pom.packaging == "ext"
+        publication.pom.getPackaging().get() == "ext"
     }
 
     def "packaging determines main artifact"() {
         when:
         def mavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
+            extension >> createStringProperty("ext")
+            classifier >> createStringProperty(null)
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
-        mavenArtifact.extension >> "ext"
+
         def attachedMavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
+            extension >> createStringProperty("jar")
+            classifier >> createStringProperty(null)
         }
         notationParser.parseNotation("attached") >> attachedMavenArtifact
-        attachedMavenArtifact.extension >> "jar"
 
         and:
         def publication = createPublication()
         publication.artifact("artifact")
         publication.artifact("attached")
-        publication.pom.packaging = "ext"
+        publication.pom.packaging.set("ext")
 
         then:
-        publication.asNormalisedPublication().mainArtifact.extension == "ext"
-        publication.pom.packaging == "ext"
+        publication.asNormalisedPublication().mainArtifact.getExtension() == "ext"
+        publication.pom.getPackaging().get() == "ext"
     }
 
     def 'if there is only one artifact it is the main artifact even if packaging is different'() {
         when:
         def mavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
+            extension >> createStringProperty("ext")
+            classifier >> createStringProperty(null)
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
-        mavenArtifact.extension >> "ext"
 
         and:
         def publication = createPublication()
         publication.artifact("artifact")
-        publication.pom.packaging = "otherext"
+        publication.pom.packaging.set("otherext")
 
         then:
-        publication.asNormalisedPublication().mainArtifact.extension == "ext"
-        publication.pom.packaging == "otherext"
+        publication.asNormalisedPublication().mainArtifact.getExtension() == "ext"
+        publication.pom.getPackaging().get() == "otherext"
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
@@ -507,19 +513,19 @@ class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         Object notation = new Object();
         def mavenArtifact = Mock(MavenArtifact)
+        def extension = createStringProperty("changed")
 
         when:
         notationParser.parseNotation(notation) >> mavenArtifact
         mavenArtifact.file >> artifactFile
         mavenArtifact.classifier >> null
-        1 * mavenArtifact.setExtension('changed')
-        _ * mavenArtifact.getExtension() >> 'changed'
+        _ * mavenArtifact.getExtension() >> extension
         0 * mavenArtifact._
 
         and:
         publication.artifact(notation, new Action<MavenArtifact>() {
             void execute(MavenArtifact t) {
-                t.extension = 'changed'
+                t.getExtension().set("changed")
             }
         })
 
@@ -673,5 +679,9 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     interface MavenTestArtifact extends MavenArtifact, PublicationArtifactInternal {
+    }
+
+    private def createStringProperty(String value) {
+        return TestUtil.propertyFactory().property(String).value(value)
     }
 }
