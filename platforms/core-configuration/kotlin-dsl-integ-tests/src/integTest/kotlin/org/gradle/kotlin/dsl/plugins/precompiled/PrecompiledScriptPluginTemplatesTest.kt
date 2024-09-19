@@ -126,7 +126,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             "my-gradle-script.init.gradle.kts",
             """
 
-            useLogger("my-logger")
+            addListener("my-logger")
 
             """
         )
@@ -140,7 +140,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             )
         )
 
-        verify(gradle).useLogger("my-logger")
+        verify(gradle).addListener("my-logger")
     }
 
     @Test
