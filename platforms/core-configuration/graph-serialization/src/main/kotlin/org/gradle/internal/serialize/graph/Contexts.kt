@@ -60,7 +60,9 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder,
 
-    val stringEncoder: StringEncoder = InlineStringEncoder
+    val stringEncoder: StringEncoder = InlineStringEncoder,
+
+    val globalValueEncoder: GlobalValueEncoder = InlineGlobalValueEncoder
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
 
@@ -90,6 +92,12 @@ class DefaultWriteContext(
     override suspend fun write(value: Any?) {
         getCodec().run {
             encode(value)
+        }
+    }
+
+    override suspend fun <T : Any> writeGlobalValue(value: T, encode: suspend WriteContext.(T) -> Unit) {
+        globalValueEncoder.run {
+            write(value, encode)
         }
     }
 
@@ -166,6 +174,33 @@ object InlineStringDecoder : StringDecoder {
 }
 
 
+interface GlobalValueEncoder {
+    suspend fun <T: Any> WriteContext.write(value: T, encode: suspend WriteContext.(T) -> Unit)
+}
+
+
+interface GlobalValueDecoder {
+    suspend fun <T: Any> ReadContext.read(decode: suspend ReadContext.() -> T): T
+}
+
+
+object InlineGlobalValueDecoder : GlobalValueDecoder {
+    override suspend fun <T: Any> ReadContext.read(decode: suspend ReadContext.() -> T): T =
+        decodePreservingSharedIdentity {
+            decode()
+        }
+}
+
+
+object InlineGlobalValueEncoder : GlobalValueEncoder {
+    override suspend fun <T: Any> WriteContext.write(value: T, encode: suspend WriteContext.(T) -> Unit) {
+        encodePreservingSharedIdentityOf(value) {
+            encode(value)
+        }
+    }
+}
+
+
 class DefaultReadContext(
     codec: Codec<Any?>,
 
@@ -182,7 +217,9 @@ class DefaultReadContext(
     private
     val classDecoder: ClassDecoder,
 
-    val stringDecoder: StringDecoder = InlineStringDecoder
+    val stringDecoder: StringDecoder = InlineStringDecoder,
+
+    val globalValueDecoder: GlobalValueDecoder = InlineGlobalValueDecoder
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
@@ -220,6 +257,11 @@ class DefaultReadContext(
     override suspend fun read(): Any? = getCodec().run {
         decode()
     }
+
+    override suspend fun <T : Any> readGlobalValue(decode: suspend ReadContext.() -> T): T =
+        globalValueDecoder.run {
+            read(decode)
+        }
 
     override fun readClass(): Class<*> = classDecoder.run {
         decodeClass()

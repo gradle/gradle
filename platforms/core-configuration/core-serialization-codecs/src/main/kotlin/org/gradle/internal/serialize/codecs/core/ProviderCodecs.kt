@@ -228,7 +228,7 @@ class BuildServiceProviderCodec(
 ) : Codec<BuildServiceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        encodePreservingSharedIdentityOf(value) {
+        writeGlobalValue(value) {
             val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
             write(serviceDetails.buildIdentifier)
             writeString(serviceDetails.name)
@@ -242,7 +242,7 @@ class BuildServiceProviderCodec(
     }
 
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
-        decodePreservingSharedIdentity {
+        readGlobalValue {
             val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()

@@ -57,6 +57,8 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
+    suspend fun <T: Any> writeGlobalValue(value: T, encode: suspend WriteContext.(T) -> Unit)
+
     fun writeClass(type: Class<*>)
 
     /**
@@ -103,6 +105,8 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     var immediateMode: Boolean // TODO:configuration-cache prevent StackOverflowErrors when crossing protocols
 
     suspend fun read(): Any?
+
+    suspend fun <T: Any> readGlobalValue(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 
