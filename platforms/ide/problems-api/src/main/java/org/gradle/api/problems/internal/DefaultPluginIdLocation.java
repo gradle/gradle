@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  */
 public class DefaultPluginIdLocation implements PluginIdLocation {
 
-    private final String pluginId;
+    private final String pluginId;  
 
     public DefaultPluginIdLocation(@Nullable String pluginId) {
         this.pluginId = pluginId;

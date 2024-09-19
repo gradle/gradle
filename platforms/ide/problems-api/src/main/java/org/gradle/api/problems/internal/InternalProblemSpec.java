@@ -82,9 +82,6 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemSpec pluginLocation(String pluginId);
-
-    @Override
     InternalProblemSpec stackLocation();
 
     @Override

@@ -92,11 +92,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder pluginLocation(String pluginId) {
-        return validateDelegate(delegate.pluginLocation(pluginId));
-    }
-
-    @Override
     public InternalProblemBuilder stackLocation() {
         return validateDelegate(delegate.stackLocation());
     }
