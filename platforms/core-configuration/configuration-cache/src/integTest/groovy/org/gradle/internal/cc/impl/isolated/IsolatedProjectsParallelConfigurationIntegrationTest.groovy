@@ -26,10 +26,6 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def setup() {
         server.start()
-    }
-
-    def 'all projects are configured in parallel for #invocation'() {
-        given:
         settingsFile """
             include(":a")
             include(":b")
@@ -46,7 +42,10 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         buildFile "b/build.gradle", """
             ${server.callFromBuildUsingExpression("'configure-' + project.name")}
         """
+    }
 
+    def 'all projects are configured in parallel for #invocation'() {
+        given:
         server.expect("configure-root")
         server.expectConcurrent("configure-a", "configure-b")
 
@@ -64,6 +63,18 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         [":build"]                             | [":build"]
         [":build", "--configure-on-demand"]    | [":build"]
         [":build", "--no-configure-on-demand"] | [":build"]
+    }
+
+    def 'parallel configuration can be disabled in favor of configure-on-demand'() {
+        given:
+        server.expect("configure-root")
+        server.expect("configure-a")
+
+        when:
+        isolatedProjectsRun(":a:build", "-Dorg.gradle.unsafe.isolated-projects.parallel-configuration=false")
+
+        then:
+        result.assertTaskExecuted(":a:build")
     }
 
     // TODO Test -x behavior

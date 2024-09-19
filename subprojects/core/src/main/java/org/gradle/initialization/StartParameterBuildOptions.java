@@ -83,6 +83,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         options.add(new IsolatedProjectsOption());
+        options.add(new IsolatedProjectsParallelConfiguration());
         options.add(new PropertyUpgradeReportOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
@@ -499,6 +500,19 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setIsolatedProjects(Value.value(value));
+        }
+    }
+
+    public static class IsolatedProjectsParallelConfiguration extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.parallel-configuration";
+
+        public IsolatedProjectsParallelConfiguration() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjectsParallelConfiguration(Value.value(value));
         }
     }
 
