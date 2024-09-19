@@ -18,11 +18,12 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
@@ -277,43 +278,25 @@ public interface MavenPublication extends Publication {
     MavenArtifactSet getArtifacts();
 
     /**
-     * Returns the groupId for this publication.
+     * GroupId for this publication.
      * @since 1.7
      */
-    @ToBeReplacedByLazyProperty
-    String getGroupId();
+    @ReplacesEagerProperty
+    Property<String> getGroupId();
 
     /**
-     * Sets the groupId for this publication.
+     * ArtifactId for this publication.
      * @since 1.7
      */
-    void setGroupId(String groupId);
+    @ReplacesEagerProperty
+    Property<String> getArtifactId();
 
     /**
-     * Returns the artifactId for this publication.
+     * Version for this publication.
      * @since 1.7
      */
-    @ToBeReplacedByLazyProperty
-    String getArtifactId();
-
-    /**
-     * Sets the artifactId for this publication.
-     * @since 1.7
-     */
-    void setArtifactId(String artifactId);
-
-    /**
-     * Returns the version for this publication.
-     * @since 1.7
-     */
-    @ToBeReplacedByLazyProperty
-    String getVersion();
-
-    /**
-     * Sets the version for this publication.
-     * @since 1.7
-     */
-    void setVersion(String version);
+    @ReplacesEagerProperty
+    Property<String> getVersion();
 
     /**
      * Configures the version mapping strategy.

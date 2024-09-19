@@ -70,7 +70,9 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
                 AnonymousModule::new,
                 TestFiles.resolver(getTemporaryFolder().getTestDirectory()),
                 TestFiles.taskDependencyFactory()
-            ).create()
+            ).create(),
+            TestUtil.objectFactory(),
+            TestUtil.providerFactory()
         ).create()
     }
 
@@ -88,8 +90,8 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         def mavenArtifact = parser.parseNotation(publishArtifact)
 
         then:
-        mavenArtifact.extension == publishArtifact.extension
-        mavenArtifact.classifier == publishArtifact.classifier
+        mavenArtifact.getExtension().get() == publishArtifact.extension
+        mavenArtifact.getClassifier().get() == publishArtifact.classifier
         mavenArtifact.file == publishArtifact.file
 
         and:
@@ -101,8 +103,8 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         MavenArtifact mavenArtifact = parser.parseNotation(source: publishArtifact)
 
         then:
-        mavenArtifact.extension == publishArtifact.extension
-        mavenArtifact.classifier == publishArtifact.classifier
+        mavenArtifact.getExtension().get() == publishArtifact.extension
+        mavenArtifact.getClassifier().get() == publishArtifact.classifier
         mavenArtifact.file == publishArtifact.file
 
         and:
@@ -115,8 +117,8 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         then:
         mavenArtifact.file == publishArtifact.file
-        mavenArtifact.extension == "ext"
-        mavenArtifact.classifier == "classy"
+        mavenArtifact.getExtension().get() == "ext"
+        mavenArtifact.getClassifier().get() == "classy"
 
         and:
         mavenArtifact.buildDependencies.getDependencies(task) == dependencies
@@ -133,9 +135,9 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         fileNotationParser.parseNotation('some-file') >> file
 
         and:
-        mavenArtifact.extension == "zip"
+        mavenArtifact.getExtension().get() == "zip"
         mavenArtifact.file == file
-        mavenArtifact.classifier == null
+        !mavenArtifact.getClassifier().isPresent()
     }
 
     def "creates MavenArtifact for ArchivePublishArtifact"() {
@@ -150,8 +152,8 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         MavenArtifact mavenArtifact = parser.parseNotation(archive)
 
         then:
-        mavenArtifact.extension == artifactExtension
-        mavenArtifact.classifier == artifactClassifier
+        mavenArtifact.extension.getOrNull() == artifactExtension
+        mavenArtifact.classifier.getOrNull() == artifactClassifier
         mavenArtifact.file == archive.archiveFile.get().asFile
         mavenArtifact.buildDependencies.getDependencies(null) == [archive] as Set
 
@@ -159,7 +161,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         archiveClassifier | artifactClassifier | archiveExtension | artifactExtension
         "classifier"      | "classifier"       | "extension"      | "extension"
         null              | null               | null             | null
-        ""                | null               | ""               | ""
+        "" | "" | "" | ""
     }
 
     def "creates MavenArtifact for file notation"() {
@@ -171,9 +173,9 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         MavenArtifact mavenArtifact = parser.parseNotation('some-file')
 
         then:
-        mavenArtifact.extension == extension
+        mavenArtifact.extension.get() == extension
         mavenArtifact.file == file
-        mavenArtifact.classifier == null
+        !mavenArtifact.classifier.isPresent()
 
         where:
         fileName                       | extension
