@@ -252,12 +252,6 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
-    private fun getCollector(): Collector =
-        if (startParameter.collectStats)
-            DefaultCollector()
-        else
-            Collector.NULL_COLLECTOR
-
     private
     fun <T> writeConfigurationCacheState(
         stateFile: ConfigurationCacheStateFile,
@@ -279,6 +273,11 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
+    private fun getCollector(): Collector =
+        if (startParameter.collectStats)
+            DefaultCollector()
+        else
+            Collector.NULL_COLLECTOR
 
     interface Collector {
         fun collect(context: IsolateContext, obj: Any?, length: Long?)
@@ -294,7 +293,6 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
-
     private
     class DefaultCollector: Collector {
 
@@ -308,7 +306,7 @@ class DefaultConfigurationCacheIO internal constructor(
         class Stats {
             val totalLength: Long get() = operations.sumOf(Operation::length)
             val count: Long get() = operations.size.toLong()
-            var operations = mutableListOf<Operation>()
+            val operations = Collections.synchronizedList(mutableListOf<Operation>())
 
             val hasDetails: Boolean get() = totalLength > 0
 
@@ -328,6 +326,7 @@ class DefaultConfigurationCacheIO internal constructor(
             }
 
             fun addStat(context: IsolateContext, length: Long?): Stats {
+                require(length != 0L)
                 operations.add(Operation(context, length ?: 0))
                 return this
             }
@@ -344,11 +343,9 @@ class DefaultConfigurationCacheIO internal constructor(
 
         override fun collect(context: IsolateContext, obj: Any?, length: Long?) {
             obj?.takeUnless {
-                Primitives.isWrapperType(it.javaClass) || it.javaClass.isEnum || it is String || it is File || it is Class<*>
+                0L == length || Primitives.isWrapperType(it.javaClass) || it.javaClass.isEnum || it is String || it is File || it is Class<*>
             }?.let {
-                synchronized(stats) {
-                    stats.computeIfAbsent(it) { AtomicReference(Stats()) }
-                }.updateAndGet {
+                stats.computeIfAbsent(it) { AtomicReference(Stats()) }.updateAndGet {
                     it.addStat(context, length)
                 }
             }

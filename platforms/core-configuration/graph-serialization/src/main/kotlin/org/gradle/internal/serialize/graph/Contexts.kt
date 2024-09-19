@@ -64,7 +64,7 @@ class DefaultWriteContext(
 
     val stringEncoder: StringEncoder = InlineStringEncoder,
 
-    var onWrite: WriteListener =  { _: Any?, _: Long -> }
+    var onWrite: WriteListener = { _: Any?, _: Long? -> }
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
 
@@ -193,7 +193,7 @@ class DefaultReadContext(
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
-    var onRead: IsolateContext.(Any?, Long) -> Unit = { _: Any?, _: Long -> }
+    var onRead: IsolateContext.(Any?, Long?) -> Unit = { _, _ -> }
 
     override val sharedIdentities = ReadIdentities()
 
@@ -230,7 +230,7 @@ class DefaultReadContext(
         decode()
     }.also {
         //TODO-RC include decoder offset
-        onRead(it, -1)
+        onRead(it, null)
     }
 
     override fun readClass(): Class<*> = classDecoder.run {
