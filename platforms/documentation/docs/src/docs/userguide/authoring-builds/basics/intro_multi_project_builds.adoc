@@ -166,7 +166,7 @@ NOTE: The fact that `build-logic` is located in a subdirectory of the root proje
 The root settings file includes the entire `build-logic` *build*:
 
 .settings.gradle.kts
-[source]
+[source,kotlin]
 ----
 pluginManagement {
     includeBuild("build-logic")

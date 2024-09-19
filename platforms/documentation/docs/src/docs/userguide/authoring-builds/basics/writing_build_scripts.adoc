@@ -153,78 +153,14 @@ Gradle executes the script line by line, top to bottom.
 Let's take a look at an example and break it down:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {                                                               // <1>
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("application")
-}
-
-repositories {                                                          // <2>
-    mavenCentral()
-}
-
-dependencies {                                                          // <3>
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("com.google.guava:guava:32.1.1-jre")
-}
-
-application {                                                           // <4>
-    mainClass = "com.example.Main"
-}
-
-tasks.named<Test>("test") {                                             // <5>
-    useJUnitPlatform()
-}
-----
-<1> Apply plugins to the build.
-<2> Define the locations where dependencies can be found.
-<3> Add dependencies.
-<4> Set properties.
-<5> Register and configure tasks.
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {                                                               // <1>
-    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
-    id 'application'
-}
-
-repositories {                                                          // <2>
-    mavenCentral()
-}
-
-dependencies {                                                          // <3>
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.google.guava:guava:32.1.1-jre'
-}
-
-application {                                                           // <4>
-    mainClass = 'com.example.Main'
-}
-
-tasks.named('test') {                                                   // <5>
-    useJUnitPlatform()
-}
-----
-<1> Apply plugins to the build.
-<2> Define the locations where dependencies can be found.
-<3> Add dependencies.
-<4> Set properties.
-<5> Register and configure tasks.
-=====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[]"]
 ====
+<1> Apply plugins to the build.
+<2> Define the locations where dependencies can be found.
+<3> Add dependencies.
+<4> Set properties.
+<5> Register and configure tasks.
 
 === 1. Apply plugins to the build
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configurations.
