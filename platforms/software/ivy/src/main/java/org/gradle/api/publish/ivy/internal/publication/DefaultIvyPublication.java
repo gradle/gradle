@@ -49,10 +49,10 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactInternal;
-import org.gradle.api.publish.ivy.internal.artifact.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.api.publish.ivy.internal.publisher.NormalizedIvyArtifact;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -69,6 +69,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class DefaultIvyPublication implements IvyPublicationInternal {
@@ -90,6 +91,8 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     private final SetProperty<IvyArtifact> componentArtifacts;
     private final SetProperty<IvyConfiguration> componentConfigurations;
     private final Set<String> silencedVariants = new HashSet<>();
+    private final ObjectFactory objectFactory;
+    private final ProviderFactory providerFactory;
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
@@ -137,7 +140,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
 
         this.descriptor = objectFactory.newInstance(DefaultIvyModuleDescriptorSpec.class, objectFactory, publicationCoordinates);
-        this.descriptor.setStatus(DEFAULT_STATUS);
+        this.descriptor.getStatus().convention(DEFAULT_STATUS);
         this.descriptor.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.descriptor.getGlobalExcludes().set(getComponent().map(ivyComponentParser::parseGlobalExcludes));
         this.descriptor.getConfigurations().set(this.configurations);
@@ -152,6 +155,9 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
                     return parsed.getDependencies();
                 })
         );
+
+        this.providerFactory = providerFactory;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -198,8 +204,8 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         if (ivyDescriptorArtifact != null) {
             metadataArtifacts.remove(ivyDescriptorArtifact);
         }
-        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(descriptorGenerator, publicationCoordinates, "xml", "ivy", null, taskDependencyFactory);
-        ivyDescriptorArtifact.setName("ivy");
+        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(descriptorGenerator, publicationCoordinates, "xml", "ivy", null, taskDependencyFactory, providerFactory, objectFactory);
+        ivyDescriptorArtifact.getName().set("ivy");
         metadataArtifacts.add(ivyDescriptorArtifact);
     }
 
@@ -220,7 +226,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(moduleDescriptorGenerator, publicationCoordinates, "module", "json", null, taskDependencyFactory);
+        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(moduleDescriptorGenerator, publicationCoordinates, "module", "json", null, taskDependencyFactory, providerFactory, objectFactory);
         metadataArtifacts.add(gradleModuleDescriptorArtifact);
         moduleDescriptorGenerator = null;
     }
@@ -305,33 +311,18 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public String getOrganisation() {
-        return descriptor.getCoordinates().getOrganisation().get();
+    public Property<String> getOrganisation() {
+        return descriptor.getCoordinates().getOrganisation();
     }
 
     @Override
-    public void setOrganisation(String organisation) {
-        descriptor.getCoordinates().getOrganisation().set(organisation);
+    public Property<String> getModule() {
+        return descriptor.getCoordinates().getModule();
     }
 
     @Override
-    public String getModule() {
-        return descriptor.getCoordinates().getModule().get();
-    }
-
-    @Override
-    public void setModule(String module) {
-        descriptor.getCoordinates().getModule().set(module);
-    }
-
-    @Override
-    public String getRevision() {
-        return descriptor.getCoordinates().getRevision().get();
-    }
-
-    @Override
-    public void setRevision(String revision) {
-        descriptor.getCoordinates().getRevision().set(revision);
+    public Property<String> getRevision() {
+        return descriptor.getCoordinates().getRevision();
     }
 
     @Override
@@ -356,7 +347,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             ? new GradleModuleDescriptorDerivedArtifact(fileProvider, gradleModuleDescriptorArtifact)
             : fileProvider;
 
-        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, effectiveFileProvider, taskDependencyFactory);
+        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, effectiveFileProvider, taskDependencyFactory, providerFactory, objectFactory);
         derivedArtifacts.add(artifact);
         return artifact;
     }
@@ -370,30 +361,23 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     public IvyNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
 
-        // Preserve identity of artifacts
-        Set<IvyArtifact> main = linkedHashSetOf(
+        LinkedHashSet<NormalizedIvyArtifact> all = Streams.concat(
             normalized(
                 mainArtifacts.stream(),
                 this::isValidArtifact
+            ),
+            normalized(
+                Streams.concat(metadataArtifacts.stream(), derivedArtifacts.stream()),
+                this::isPublishableArtifact
             )
-        );
-        LinkedHashSet<IvyArtifact> all = new LinkedHashSet<>(main);
-        normalized(
-            Streams.concat(metadataArtifacts.stream(), derivedArtifacts.stream()),
-            this::isPublishableArtifact
-        ).forEach(all::add);
+        ).collect(Collectors.toCollection(LinkedHashSet::new));
+
         return new IvyNormalizedPublication(
             name,
             getCoordinates(),
             getIvyDescriptorFile(),
             all
         );
-    }
-
-    private static <T> Set<T> linkedHashSetOf(Stream<T> stream) {
-        LinkedHashSet<T> set = new LinkedHashSet<>();
-        stream.forEach(set::add);
-        return set;
     }
 
     private boolean isValidArtifact(IvyArtifact artifact) {
@@ -404,7 +388,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         }
         if (!((IvyArtifactInternal) artifact).shouldBePublished()) {
             // Fail if it's the main artifact, otherwise simply disable publication
-            if (artifact.getClassifier() == null) {
+            if (!artifact.getClassifier().isPresent()) {
                 throw new IllegalStateException("Artifact " + artifact.getFile().getName() + " wasn't produced by this build.");
             }
             return false;
@@ -412,10 +396,10 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         return true;
     }
 
-    private static Stream<IvyArtifact> normalized(Stream<IvyArtifact> artifacts, Predicate<IvyArtifact> predicate) {
+    private static Stream<NormalizedIvyArtifact> normalized(Stream<IvyArtifact> artifacts, Predicate<IvyArtifact> predicate) {
         return artifacts
             .filter(predicate)
-            .map(DefaultIvyPublication::normalizedArtifactFor);
+            .map(artifact -> ((IvyArtifactInternal) artifact).asNormalisedArtifact());
     }
 
     private boolean isPublishableArtifact(IvyArtifact element) {
@@ -427,10 +411,6 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             return gradleModuleDescriptorArtifact.isEnabled();
         }
         return true;
-    }
-
-    private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
-        return ((IvyArtifactInternal) artifact).asNormalisedArtifact();
     }
 
     @Override
@@ -454,7 +434,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public ModuleVersionIdentifier getCoordinates() {
-        return DefaultModuleVersionIdentifier.newId(getOrganisation(), getModule(), getRevision());
+        return DefaultModuleVersionIdentifier.newId(getOrganisation().get(), getModule().get(), getRevision().get());
     }
 
     @Nullable
@@ -468,7 +448,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return attributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, getDescriptor().getStatus());
+        return attributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, getDescriptor().getStatus().get());
     }
 
     private String getPublishedUrl(PublishArtifact source) {
