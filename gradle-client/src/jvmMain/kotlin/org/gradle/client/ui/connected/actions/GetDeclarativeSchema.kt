@@ -12,10 +12,7 @@ import org.gradle.client.ui.build.BuildTextField
 import org.gradle.client.ui.composables.CodeBlock
 import org.gradle.client.ui.composables.TitleLarge
 import org.gradle.client.ui.theme.spacing
-import org.gradle.declarative.dsl.schema.AnalysisSchema
-import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.declarative.dsl.schema.FunctionSemantics
-import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.*
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 
 class GetDeclarativeSchema : GetModelAction<DeclarativeSchemaModel> {
@@ -42,19 +39,46 @@ class GetDeclarativeSchema : GetModelAction<DeclarativeSchemaModel> {
     private fun SoftwareTypeSchema(model: DeclarativeSchemaModel, softwareType: String) {
         val softwareTypeSchema = model.projectSchema.softwareTypes.single { it.simpleName == softwareType }
         val description = buildString {
-            appendDescription(model.projectSchema, softwareTypeSchema)
+            appendDescription(hashSetOf(), model.projectSchema, softwareTypeSchema)
         }
         CodeBlock(Modifier.fillMaxWidth(), buildAnnotatedString { append(description) })
     }
 
     private val indentChars = "    "
-
+    
     @Suppress("NestedBlockDepth")
     private fun StringBuilder.appendDescription(
+        visitedFunctions: MutableSet<SchemaMemberFunction>,
         schema: AnalysisSchema,
         function: SchemaMemberFunction,
         indentLevel: Int = 0
     ) {
+        if (!visitedFunctions.add(function)) {
+            appendLine(" ".repeat(indentLevel) + "...")
+            return
+        }
+
+        fun appendTypeContent(typeRef: DataTypeRef) {
+            val type = when (typeRef) {
+                is DataTypeRef.Type -> typeRef.dataType
+                is DataTypeRef.Name -> schema.dataClassFor(typeRef)
+            }
+            if (type is DataClass) {
+                type.properties.forEach { property ->
+                    val propTypeName = when (val propType = property.valueType) {
+                        is DataTypeRef.Type -> propType.dataType.toString()
+                        is DataTypeRef.Name -> propType.toHumanReadable()
+                    }
+                    append(indentChars.repeat(indentLevel + 1))
+                    append("${property.name}: $propTypeName")
+                    appendLine()
+                }
+                type.memberFunctions.forEach { subBlock ->
+                    appendDescription(visitedFunctions, schema, subBlock, indentLevel + 1)
+                    appendLine()
+                }
+            } else appendLine(type.toString())
+        }
         when (val functionSemantics = function.semantics) {
 
             // Configuring blocks
@@ -63,26 +87,7 @@ class GetDeclarativeSchema : GetModelAction<DeclarativeSchemaModel> {
                 append(function.simpleName)
                 append(" {")
                 appendLine()
-                when (val blockType = functionSemantics.configuredType) {
-                    is DataTypeRef.Name -> {
-                        val blockDataClass = schema.dataClassFor(blockType)
-                        blockDataClass.properties.forEach { property ->
-                            val propTypeName = when (val propType = property.valueType) {
-                                is DataTypeRef.Type -> propType.dataType.toString()
-                                is DataTypeRef.Name -> propType.toHumanReadable()
-                            }
-                            append(indentChars.repeat(indentLevel + 1))
-                            append("${property.name}: $propTypeName")
-                            appendLine()
-                        }
-                        blockDataClass.memberFunctions.forEach { subBlock ->
-                            appendDescription(schema, subBlock, indentLevel + 1)
-                            appendLine()
-                        }
-                    }
-
-                    is DataTypeRef.Type -> TODO("Block '${function.simpleName}' type is not a type ref")
-                }
+                appendTypeContent(functionSemantics.configuredType)
                 append(indentChars.repeat(indentLevel))
                 append("}")
             }
@@ -104,6 +109,13 @@ class GetDeclarativeSchema : GetModelAction<DeclarativeSchemaModel> {
                 append("(")
                 append(function.parameters.joinToString { dp -> dp.toHumanReadable() })
                 append(")")
+                if (functionSemantics.configureBlockRequirement.allows) {
+                    append(" {")
+                    appendLine()
+                    appendTypeContent(functionSemantics.configuredType)
+                    append(indentChars.repeat(indentLevel))
+                    append("}")
+                }
             }
 
             is FunctionSemantics.Builder -> {
