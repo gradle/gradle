@@ -17,8 +17,13 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
@@ -28,14 +33,12 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
 import java.io.File;
-
-import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * Generates a Maven module descriptor (POM) file.
@@ -45,16 +48,11 @@ import static org.gradle.internal.serialization.Transient.varOf;
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public abstract class GenerateMavenPom extends DefaultTask {
 
-    private final Transient.Var<MavenPom> pom = varOf();
-    private Object destination;
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
-        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
-    );
+    private final Transient<Property<MavenPom>> pom = Transient.of(getObjectFactory().property(MavenPom.class));
 
-    @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    private final Provider<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = getPom().map(pom ->
+        MavenPomFileGenerator.generateSpec((MavenPomInternal) pom)
+    );
 
     /**
      * Get the version range mapper.
@@ -103,54 +101,49 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     /**
      * The Maven POM.
-     *
-     * @return The Maven POM.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public MavenPom getPom() {
+    @ReplacesEagerProperty
+    public Property<MavenPom> getPom() {
         return pom.get();
-    }
-
-    public void setPom(MavenPom pom) {
-        this.pom.set(pom);
     }
 
     /**
      * The file the POM will be written to.
-     *
-     * @return The file the POM will be written to
      */
     @OutputFile
-    @ToBeReplacedByLazyProperty
-    public File getDestination() {
-        return destination == null ? null : getFileResolver().resolve(destination);
-    }
-
-    /**
-     * Sets the destination the descriptor will be written to.
-     *
-     * @param destination The file the descriptor will be written to.
-     * @since 4.0
-     */
-    public void setDestination(File destination) {
-        this.destination = destination;
-    }
-
-    /**
-     * Sets the destination the descriptor will be written to.
-     *
-     * The value is resolved with {@link org.gradle.api.Project#file(Object)}
-     *
-     * @param destination The file the descriptor will be written to.
-     */
-    public void setDestination(Object destination) {
-        this.destination = destination;
-    }
+    @ReplacesEagerProperty(adapter = GenerateMavenPomAdapter.class)
+    public abstract RegularFileProperty getDestination();
 
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec.get().writeTo(getDestination());
+        mavenPomSpec.get().writeTo(getDestination().getAsFile().get());
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+
+    @Inject
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    protected abstract FileResolver getFileResolver();
+
+    static class GenerateMavenPomAdapter {
+        @BytecodeUpgrade
+        static File getDestination(GenerateMavenPom self) {
+            return self.getDestination().getAsFile().getOrNull();
+        }
+
+        @BytecodeUpgrade
+        static void setDestination(GenerateMavenPom self, File destination) {
+            self.getDestination().fileValue(destination);
+        }
+
+        @BytecodeUpgrade
+        static void setDestination(GenerateMavenPom self, Object destination) {
+            ProviderApiDeprecationLogger.logDeprecation(GenerateMavenPom.class, "setDestination(Object)", "getDestination()");
+            self.getDestination().fileValue(self.getFileResolver().resolve(destination));
+        }
+    }
 }
