@@ -16,81 +16,49 @@
 
 package org.gradle.api.publish.ivy;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import javax.annotation.Nullable;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * An artifact published as part of a {@link IvyPublication}.
  */
 public interface IvyArtifact extends PublicationArtifact {
     /**
-     * The name used to publish the artifact file, never <code>null</code>.
+     * The name used to publish the artifact file.
      * Defaults to the name of the module that this artifact belongs to.
      */
-    @ToBeReplacedByLazyProperty
-    String getName();
+    @ReplacesEagerProperty
+    Property<String> getName();
 
     /**
-     * Sets the name used to publish the artifact file.
-     * @param name The name.
+     * The type used to publish the artifact file.
      */
-    void setName(String name);
+    @ReplacesEagerProperty
+    Property<String> getType();
 
     /**
-     * The type used to publish the artifact file, never <code>null</code>.
-     */
-    @ToBeReplacedByLazyProperty
-    String getType();
-
-    /**
-     * Sets the type used to publish the artifact file.
-     * @param type The type.
-     */
-    void setType(String type);
-
-    /**
-     * The extension used to publish the artifact file, never <code>null</code>.
+     * The extension used to publish the artifact file.
      * For an artifact without an extension, this value will be an empty String.
      */
-    @ToBeReplacedByLazyProperty
-    String getExtension();
-
-    /**
-     * Sets the extension used to publish the artifact file.
-     * @param extension The extension.
-     */
-    void setExtension(String extension);
+    @ReplacesEagerProperty
+    Property<String> getExtension();
 
     /**
      * The classifier used to publish the artifact file.
-     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
+     * An absent value (the default) indicates that this artifact will be published without a classifier.
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    String getClassifier();
-
-    /**
-     * Sets the classifier used to publish the artifact file.
-     * @param classifier The classifier.
-     */
-    void setClassifier(@Nullable String classifier);
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getClassifier();
 
     /**
      * A comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
-     * A <code>null</code> value (the default) indicates that this artifact will be published without a conf attribute.
-     * @return The value of 'conf' for this artifact.
+     * An optional value (the default) indicates that this artifact will be published without a conf attribute.
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    String getConf();
-
-    /**
-     * Sets a comma separated list of public configurations in which this artifact is published.
-     * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
-     * @param conf The value of 'conf' for this artifact.
-     */
-    void setConf(@Nullable String conf);
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getConf();
 }
