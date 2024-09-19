@@ -216,15 +216,15 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         coordinates1.organisation.set("org")
         coordinates1.module.set("module")
         coordinates1.revision.set("rev")
-        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), coordinates1, DefaultTaskDependencyFactory.withNoAssociatedProject())
-        artifact1.classifier = "classy"
+        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), coordinates1, DefaultTaskDependencyFactory.withNoAssociatedProject(), TestUtil.providerFactory(), TestUtil.objectFactory())
+        artifact1.classifier.set("classy")
 
         def coordinates2 = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
         coordinates2.organisation.set("")
         coordinates2.module.set("")
         coordinates2.revision.set("")
-        def artifact2 = new FileBasedIvyArtifact(new File("foo"), coordinates2, DefaultTaskDependencyFactory.withNoAssociatedProject())
-        artifact2.setConf("runtime")
+        def artifact2 = new FileBasedIvyArtifact(new File("foo"), coordinates2, DefaultTaskDependencyFactory.withNoAssociatedProject(), TestUtil.providerFactory(), TestUtil.objectFactory())
+        artifact2.conf.set("runtime")
         descriptor.getArtifacts().set([artifact1, artifact2])
 
         then:
