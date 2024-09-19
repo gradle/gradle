@@ -16,17 +16,14 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
@@ -53,26 +50,18 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(final Project project) {
-                configurePublishing(project);
-            }
-        });
+        project.afterEvaluate(this::configurePublishing);
     }
 
     private void configurePublishing(final Project project) {
-        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-            @Override
-            public void execute(PublishingExtension publishing) {
-                final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
-                if (!pluginDevelopment.isAutomatedPublishing()) {
-                    return;
-                }
-                SoftwareComponent mainComponent = project.getComponents().getByName("java");
-                IvyPublication mainPublication = addMainPublication(publishing, mainComponent);
-                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+        project.getExtensions().configure(PublishingExtension.class, publishing -> {
+            final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+            if (!pluginDevelopment.isAutomatedPublishing()) {
+                return;
             }
+            SoftwareComponent mainComponent = project.getComponents().getByName("java");
+            IvyPublication mainPublication = addMainPublication(publishing, mainComponent);
+            addMarkerPublications(mainPublication, publishing, pluginDevelopment);
         });
     }
 
@@ -92,41 +81,31 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
         String pluginId = declaration.getId();
         IvyPublicationInternal publication = (IvyPublicationInternal) publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
         publication.setAlias(true);
-        publication.setOrganisation(pluginId);
-        publication.setModule(pluginId + PLUGIN_MARKER_SUFFIX);
+        publication.getOrganisation().set(pluginId);
+        publication.getModule().set(pluginId + PLUGIN_MARKER_SUFFIX);
 
-        Provider<String> organisation = getProviderFactory().provider(mainPublication::getOrganisation);
-        Provider<String> module = getProviderFactory().provider(mainPublication::getModule);
-        Provider<String> revision = getProviderFactory().provider(mainPublication::getRevision);
+        // required for configuration cache to lose the dependency on the IvyPublication and make the lambda below serializable
+        Provider<String> organisation = mainPublication.getOrganisation();
+        Provider<String> module = mainPublication.getModule();
+        Provider<String> revision = mainPublication.getRevision();
 
-        publication.descriptor(new Action<IvyModuleDescriptorSpec>() {
-            @Override
-            public void execute(IvyModuleDescriptorSpec descriptor) {
-                descriptor.description(new Action<IvyModuleDescriptorDescription>() {
-                    @Override
-                    public void execute(IvyModuleDescriptorDescription description) {
-                        description.getText().set(declaration.getDescription());
-                    }
-                });
-                descriptor.withXml(new Action<XmlProvider>() {
-                    @Override
-                    public void execute(XmlProvider xmlProvider) {
-                        Element root = xmlProvider.asElement();
-                        Document document = root.getOwnerDocument();
-                        Node dependencies = root.getElementsByTagName("dependencies").item(0);
-                        Node dependency = dependencies.appendChild(document.createElement("dependency"));
-                        Attr org = document.createAttribute("org");
-                        org.setValue(organisation.get());
-                        dependency.getAttributes().setNamedItem(org);
-                        Attr name = document.createAttribute("name");
-                        name.setValue(module.get());
-                        dependency.getAttributes().setNamedItem(name);
-                        Attr rev = document.createAttribute("rev");
-                        rev.setValue(revision.get());
-                        dependency.getAttributes().setNamedItem(rev);
-                    }
-                });
-            }
-        });
+        publication.descriptor(SerializableLambdas.action(descriptor -> {
+            descriptor.description(SerializableLambdas.action(description -> description.getText().set(declaration.getDescription())));
+            descriptor.withXml(SerializableLambdas.action(xmlProvider -> {
+                Element root = xmlProvider.asElement();
+                Document document = root.getOwnerDocument();
+                Node dependencies = root.getElementsByTagName("dependencies").item(0);
+                Node dependency = dependencies.appendChild(document.createElement("dependency"));
+                Attr org = document.createAttribute("org");
+                org.setValue(organisation.get());
+                dependency.getAttributes().setNamedItem(org);
+                Attr name = document.createAttribute("name");
+                name.setValue(module.get());
+                dependency.getAttributes().setNamedItem(name);
+                Attr rev = document.createAttribute("rev");
+                rev.setValue(revision.get());
+                dependency.getAttributes().setNamedItem(rev);
+            }));
+        }));
     }
 }
