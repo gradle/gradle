@@ -18,7 +18,11 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -26,8 +30,13 @@ import java.io.File;
 public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     private final PublishArtifact publishArtifact;
 
-    public PublishArtifactBasedMavenArtifact(PublishArtifact publishArtifact, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public PublishArtifactBasedMavenArtifact(
+        PublishArtifact publishArtifact,
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
+    ) {
+        super(taskDependencyFactory, objectFactory, providerFactory);
         this.publishArtifact = publishArtifact;
     }
 
@@ -37,13 +46,13 @@ public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return publishArtifact.getExtension();
+    protected Provider<String> getDefaultExtension() {
+        return Providers.of(publishArtifact.getExtension());
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return publishArtifact.getClassifier();
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.ofNullable(publishArtifact.getClassifier());
     }
 
     @Override

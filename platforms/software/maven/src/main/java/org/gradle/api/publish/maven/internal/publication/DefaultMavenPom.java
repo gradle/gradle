@@ -68,14 +68,19 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     }
 
     @Override
-    public String getPackaging() {
-        return getPackagingProperty().get();
-    }
+    public abstract Property<String> getPackaging();
 
     @Override
-    public void setPackaging(String packaging) {
-        getPackagingProperty().set(packaging);
-    }
+    public abstract Property<String> getName();
+
+    @Override
+    public abstract Property<String> getDescription();
+
+    @Override
+    public abstract Property<String> getUrl();
+
+    @Override
+    public abstract Property<String> getInceptionYear();
 
     @Override
     public void licenses(Action<? super MavenPomLicenseSpec> action) {
