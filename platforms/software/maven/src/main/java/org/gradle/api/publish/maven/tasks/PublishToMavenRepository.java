@@ -37,7 +37,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -47,8 +47,7 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
-
-import static org.gradle.internal.serialization.Transient.varOf;
+import java.util.Objects;
 
 /**
  * Publishes a {@link MavenPublication} to a {@link MavenArtifactRepository}.
@@ -58,19 +57,29 @@ import static org.gradle.internal.serialization.Transient.varOf;
 @SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
-    private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
+    private final Transient<Property<MavenArtifactRepository>> repository = Transient.of(getObjectFactory().property(MavenArtifactRepository.class));
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
+
+    public PublishToMavenRepository() {
+        getCredentials().convention(
+            getRepositoryProvider().flatMap(DefaultMavenArtifactRepository::getConfiguredCredentials)
+        );
+    }
 
     /**
      * The repository to publish to.
      *
-     * @return The repository to publish to
+     * For now, only instances of {@link DefaultMavenArtifactRepository} are supported.
      * @since 1.4
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public MavenArtifactRepository getRepository() {
+    @ReplacesEagerProperty
+    public Property<MavenArtifactRepository> getRepository() {
         return repository.get();
+    }
+
+    private Provider<DefaultMavenArtifactRepository> getRepositoryProvider() {
+        return Objects.requireNonNull(repository.get()).map(repository -> (DefaultMavenArtifactRepository) repository);
     }
 
     @Nested
@@ -79,17 +88,6 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
     @Inject
     protected abstract ListenerManager getListenerManager();
-
-    /**
-     * Sets the repository to publish to.
-     *
-     * @param repository The repository to publish to
-     * @since 1.4
-     */
-    public void setRepository(MavenArtifactRepository repository) {
-        this.repository.set((DefaultMavenArtifactRepository) repository);
-        this.getCredentials().set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
-    }
 
     /**
      * Publish.
@@ -111,7 +109,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        DefaultMavenArtifactRepository repository = this.repository.get();
+        DefaultMavenArtifactRepository repository = getRepositoryProvider().getOrNull();
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
