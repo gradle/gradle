@@ -298,7 +298,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
         MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
-        Optional<? extends ResolveException> failure = resolutionHost.mapFailure("dependencies", nonFatalFailures);
+        Optional<? extends ResolveException> failure = resolutionHost.consolidateFailures("dependencies", nonFatalFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure.orElse(null));
 
         // Only write dependency locks if resolution completed without failure.

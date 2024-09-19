@@ -63,7 +63,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
         List<Throwable> failures = new ArrayList<>();
         graphResults.visitFailures(failures::add);
-        resolutionHost.rethrowFailure("dependencies", failures);
+        resolutionHost.rethrowFailuresAndReportProblems("dependencies", failures);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.getFiles();
     }
 
@@ -97,7 +97,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         configuration.select(dependencySpec).visitArtifacts(visitor, false);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.getFiles();
     }
 
@@ -126,7 +126,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }
 }

@@ -44,7 +44,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -72,6 +71,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
@@ -94,6 +94,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -238,6 +239,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private final InternalProblems problemsService;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -267,6 +269,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
+        InternalProblems problemsService,
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
@@ -314,6 +317,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.problemsService = problemsService;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -1855,6 +1859,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
+    public InternalProblems getProblems() {
+        return problemsService;
+    }
+
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override
@@ -1950,11 +1958,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private static class DefaultResolutionHost implements ResolutionHost {
-
         private final DefaultConfiguration configuration;
 
         public DefaultResolutionHost(DefaultConfiguration configuration) {
             this.configuration = configuration;
+        }
+
+        @Override
+        public InternalProblems getProblems() {
+            return configuration.getProblems();
         }
 
         @Override
@@ -1963,8 +1975,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
-            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, type, configuration.getDisplayName()));
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, resolutionType, configuration.getDisplayName()));
         }
 
         @Override

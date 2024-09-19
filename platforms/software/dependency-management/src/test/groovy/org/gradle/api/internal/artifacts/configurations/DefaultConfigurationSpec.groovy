@@ -65,6 +65,8 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factories
@@ -1855,7 +1857,8 @@ All Artifacts:
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory()
+            TestFiles.taskDependencyFactory(),
+            new DefaultProblems([new NoOpProblemEmitter()])
         )
     }
 

@@ -45,10 +45,8 @@ import org.gradle.util.GradleVersion
  * run as part of a typical test run.  It is useful for viewing and comparing the behavior of
  * different types of failures.
  * <p>
- * These tests are ordered according to the different categories of
- * {@link org.gradle.internal.component.resolution.failure.interfaces Resolution failure}.
+ * These tests are ordered according to the different categories of {@link ResolutionFailure}.
  */
-@SuppressWarnings('GroovyDocCheck')
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     // region Variant Selection failures
@@ -362,12 +360,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
             additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
         }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'dependency-variant-resolution:no-compatible-artifact'
-            additionalData.asMap['requestTarget'] == "root project :"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
-            additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
-        }
     }
 
     def "demonstrate ambiguous artifact transforms exception"() {
@@ -409,12 +401,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
             additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
         }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
-            additionalData.asMap['requestTarget'] == "root project :"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
-        }
     }
 
     def "demonstrate ambiguous artifact variants exception"() {
@@ -436,12 +422,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:ambiguous-artifacts'
-            additionalData.asMap['requestTarget'] == "root project :"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
-            additionalData.asMap['problemDisplayName'] == "Multiple artifacts exist that would match the request"
-        }
-        verifyAll(receivedProblem(1)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
             additionalData.asMap['requestTarget'] == "root project :"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
@@ -476,15 +456,94 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         outputContains(basicOutput)
         outputContains(fullOutput)
 
-        and: "Problems are reported"
-        verifyAll(receivedProblem(0)) {
-            fqid == 'dependency-variant-resolution:no-variants-with-matching-capabilities'
-            additionalData.asMap['requestTarget'] == "com.google.code.gson:gson:2.8.5"
-            additionalData.asMap['problemId'] == ResolutionFailureProblemId. NO_VARIANTS_WITH_MATCHING_CAPABILITIES.name()
-            additionalData.asMap['problemDisplayName'] == "No variants exist with capabilities that would match the request"
-        }
+        and: "No problems are reported when running a report, even if a variant selection failure occurs"
+        getCollectedProblems().size() == 0
     }
     // endregion dependencyInsight failures
+
+    // region other tests
+    def "artifact view resolution problems are not reported when lenient artifactView is used"() {
+        given:
+        ignoreCleanupAssertions = true // We just care that there are problems in this test, we don't need to verify their contents
+
+        buildKotlinFile <<  """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
+            val matter = Attribute.of("state", String::class.java)
+
+            configurations {
+                consumable("roundBlueLiquidElements") {
+                    attributes.attribute(shape, "round")
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(matter, "liquid")
+                }
+
+                dependencyScope("myDependencies")
+
+                resolvable("resolveMe") {
+                    extendsFrom(configurations.getByName("myDependencies"))
+                    // Initially request only round
+                    attributes.attribute(shape, "round")
+                }
+            }
+
+            abstract class BrokenTransform : TransformAction<TransformParameters.None> {
+                override fun transform(outputs: TransformOutputs) {
+                    throw AssertionError("Should not actually be selected to run")
+                }
+            }
+
+            dependencies {
+                add("myDependencies", project(":"))
+
+                // Register 2 transforms that both will move blue -> red, but also do
+                // something else to another irrelevant attribute in order to make them
+                // unique from each other
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "solid")
+                }
+                registerTransform(BrokenTransform::class.java) {
+                    from.attribute(color, "blue")
+                    to.attribute(color, "red")
+                    from.attribute(matter, "liquid")
+                    to.attribute(matter, "gas")
+                }
+            }
+
+            val forceResolution by tasks.registering {
+                inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
+                    lenient($lenient)
+                    attributes.attribute(color, "red")
+                }.artifacts.artifactFiles)
+
+                doLast {
+                    inputs.files.files.forEach { println(it) }
+                }
+            }
+        """
+
+        when:
+        if (shouldSucceed) {
+            succeeds "forceResolution", "--stacktrace"
+        } else {
+            fails "forceResolution", "--stacktrace"
+        }
+
+        then:
+        if (!shouldSucceed) {
+            failure.assertHasErrorOutput("Caused by: " + ArtifactSelectionException.class.getName())
+        }
+        shouldReportProblems == !getCollectedProblems().isEmpty()
+
+        where:
+        lenient || shouldSucceed | shouldReportProblems
+        true    || true          | false
+        false   || false         | true
+    }
+    // end region other tests
 
     // region error showcase
     @SuppressWarnings('UnnecessaryQualifiedReference')
