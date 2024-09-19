@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
-import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
@@ -123,7 +122,7 @@ class ValidatingMavenPublisherTest extends Specification {
     def "validates artifact attributes"() {
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)
-        def mavenArtifact = Stub(MavenArtifact) {
+        def mavenArtifact = Stub(NormalizedMavenArtifact) {
             getExtension() >> extension
             getClassifier() >> classifier
         }
@@ -149,7 +148,7 @@ class ValidatingMavenPublisherTest extends Specification {
     def "cannot publish with file that #message"() {
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)
-        def mavenArtifact = Mock(MavenArtifact)
+        def mavenArtifact = Mock(NormalizedMavenArtifact)
         def publication = new MavenNormalizedPublication("pub-name", projectIdentity, "pom", pomFile, null, toSet([mavenArtifact]))
 
         File theFile = new TestFile(testDir.testDirectory, "testFile")
@@ -176,12 +175,12 @@ class ValidatingMavenPublisherTest extends Specification {
 
     def "cannot publish with duplicate artifacts"() {
         given:
-        MavenArtifact artifact1 = Stub() {
+        NormalizedMavenArtifact artifact1 = Stub() {
             getExtension() >> "ext1"
             getClassifier() >> "classified"
             getFile() >> testDir.createFile('artifact1')
         }
-        MavenArtifact artifact2 = Stub() {
+        NormalizedMavenArtifact artifact2 = Stub() {
             getExtension() >> "ext1"
             getClassifier() >> "classified"
             getFile() >> testDir.createFile('artifact2')
@@ -200,7 +199,7 @@ class ValidatingMavenPublisherTest extends Specification {
 
     def "cannot publish extra artifact with same attributes as POM"() {
         given:
-        MavenArtifact artifact1 = Stub() {
+        NormalizedMavenArtifact artifact1 = Stub() {
             getExtension() >> "pom"
             getClassifier() >> null
             getFile() >> testDir.createFile('artifact1')
@@ -265,7 +264,7 @@ class ValidatingMavenPublisherTest extends Specification {
     }
 
     private def createArtifact(File file, String extension) {
-        return Mock(MavenArtifact) {
+        return Mock(NormalizedMavenArtifact) {
             getFile() >> file
             getExtension() >> extension
         }
