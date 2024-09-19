@@ -17,15 +17,13 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.api.publish.internal.PublicationFieldValidator;
-import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.publish.internal.PublicationFieldValidator;
+import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 
 import java.io.File;
 import java.io.FileReader;
@@ -92,7 +90,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void validateArtifacts(MavenNormalizedPublication publication) {
-        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+        for (NormalizedMavenArtifact artifact : publication.getAllArtifacts()) {
             field(publication, "artifact extension", artifact.getExtension())
                     .notNull()
                     .validInFileName();
@@ -105,15 +103,15 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void checkNoDuplicateArtifacts(MavenNormalizedPublication publication) {
-        Set<MavenArtifact> verified = new HashSet<>();
-        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+        Set<NormalizedMavenArtifact> verified = new HashSet<>();
+        for (NormalizedMavenArtifact artifact : publication.getAllArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getExtension(), artifact.getClassifier());
             verified.add(artifact);
         }
     }
 
-    private void checkNotDuplicate(MavenNormalizedPublication publication, Set<MavenArtifact> artifacts, String extension, String classifier) {
-        for (MavenArtifact artifact : artifacts) {
+    private void checkNotDuplicate(MavenNormalizedPublication publication, Set<NormalizedMavenArtifact> artifacts, String extension, String classifier) {
+        for (NormalizedMavenArtifact artifact : artifacts) {
             if (ObjectUtils.equals(artifact.getExtension(), extension) && ObjectUtils.equals(artifact.getClassifier(), classifier)) {
                 String message = String.format(
                         "multiple artifacts with the identical extension and classifier ('%s', '%s').", extension, classifier
@@ -123,7 +121,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         }
     }
 
-    private void checkCanPublish(String publicationName, PublicationArtifact artifact) {
+    private void checkCanPublish(String publicationName, NormalizedMavenArtifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile == null || !artifactFile.exists()) {
             throw new InvalidMavenPublicationException(publicationName, String.format("artifact file does not exist: '%s'", artifactFile));
