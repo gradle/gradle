@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
+import org.gradle.buildinit.plugins.internal.GradlePropertiesGenerator;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
@@ -113,6 +114,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
                         params.getMavenSettings().set(settings);
                         params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
                     });
+            GradlePropertiesGenerator.generate(initSettings);
         } catch (SettingsBuildingException exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", initSettings.getTarget().file("pom.xml").getAsFile()), exception);
         }

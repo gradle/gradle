@@ -91,11 +91,16 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected void gradlePropertiesGenerated(@DelegatesTo(GradlePropertiesAsserts) Closure<?> assertions) {
-        targetDir.file("gradle.properties").assertIsFile()
+        gradlePropertiesGeneratedIn(targetDir, assertions)
+    }
+
+    protected void gradlePropertiesGeneratedIn(TestFile settingsDir, @DelegatesTo(GradlePropertiesAsserts) Closure<?> assertions) {
+        def propsFile = settingsDir.file("gradle.properties")
+        propsFile.assertIsFile()
 
         def props = new Properties()
-        try (def propsFile = targetDir.file("gradle.properties").newInputStream()) {
-            props.load(propsFile)
+        try (def propsData = propsFile.newInputStream()) {
+            props.load(propsData)
         }
 
         assertions.setDelegate(new GradlePropertiesAsserts(props))

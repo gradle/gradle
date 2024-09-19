@@ -27,6 +27,10 @@ public class GradlePropertiesGenerator implements BuildContentGenerator {
 
     @Override
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        generate(settings);
+    }
+
+    public static void generate(InitSettings settings) {
         File file = settings.getTarget().file("gradle.properties").getAsFile();
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
             if (settings.isWithComments()) {
