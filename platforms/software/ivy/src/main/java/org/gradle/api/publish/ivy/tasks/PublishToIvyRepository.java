@@ -20,11 +20,11 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -40,7 +40,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -51,9 +52,6 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.Callable;
-
-import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * Publishes an IvyPublication to an IvyArtifactRepository.
@@ -62,20 +60,22 @@ import static org.gradle.internal.serialization.Transient.varOf;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToIvyRepository extends DefaultTask {
-    private final Transient.Var<IvyPublicationInternal> publication = varOf();
-    private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
+    private final Transient<Property<IvyPublication>> publication = Transient.of(getObjectFactory().property(IvyPublication.class));
+    private final Transient<Property<IvyArtifactRepository>> repository = Transient.of(getObjectFactory().property(IvyArtifactRepository.class));
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
-    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
-        getInputs().files((Callable<FileCollection>) () -> {
-            IvyPublicationInternal publicationInternal = getPublicationInternal();
-            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-        })
-            .withPropertyName("publication.publishableFiles")
+        getInputs()
+            .files(
+                getPublicationInternal().map(publication -> publication.getPublishableArtifacts().getFiles())
+            ).withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
+
+        getCredentials().convention(
+            getRepository().flatMap(repository -> ((DefaultIvyArtifactRepository) repository).getConfiguredCredentials())
+        );
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files
@@ -87,31 +87,20 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     /**
      * The publication to be published.
      *
-     * @return The publication to be published
+     * Currently only instances of IvyPublication are supported.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public IvyPublication getPublication() {
+    @ReplacesEagerProperty
+    public Property<IvyPublication> getPublication() {
         return publication.get();
     }
 
-    /**
-     * Sets the publication to be published.
-     *
-     * @param publication The publication to be published
-     */
-    public void setPublication(IvyPublication publication) {
-        this.publication.set(toPublicationInternal(publication));
-    }
-
-    private IvyPublicationInternal getPublicationInternal() {
-        return toPublicationInternal(getPublication());
+    private Provider<IvyPublicationInternal> getPublicationInternal() {
+        return getPublication().map(PublishToIvyRepository::toPublicationInternal);
     }
 
     private static IvyPublicationInternal toPublicationInternal(IvyPublication publication) {
-        if (publication == null) {
-            return null;
-        } else if (publication instanceof IvyPublicationInternal) {
+        if (publication instanceof IvyPublicationInternal) {
             return (IvyPublicationInternal) publication;
         } else {
             throw new InvalidUserDataException(
@@ -127,29 +116,17 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     /**
      * The repository to publish to.
      *
-     * @return The repository to publish to
+     * Only instances of DefaultIvyArtifactRepository are supported
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public IvyArtifactRepository getRepository() {
+    @ReplacesEagerProperty
+    public Property<IvyArtifactRepository> getRepository() {
         return repository.get();
     }
 
     @Nested
     @Optional
-    Property<Credentials> getCredentials() {
-        return credentials;
-    }
-
-    /**
-     * Sets the repository to publish to.
-     *
-     * @param repository The repository to publish to
-     */
-    public void setRepository(IvyArtifactRepository repository) {
-        this.repository.set((DefaultIvyArtifactRepository) repository);
-        this.credentials.set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
-    }
+    abstract Property<Credentials> getCredentials();
 
     @TaskAction
     public void publish() {
@@ -161,15 +138,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     }
 
     private PublishSpec computeSpec() {
-        IvyPublicationInternal publicationInternal = getPublicationInternal();
-        if (publicationInternal == null) {
-            throw new InvalidUserDataException("The 'publication' property is required");
-        }
-
-        DefaultIvyArtifactRepository repository = this.repository.get();
-        if (repository == null) {
-            throw new InvalidUserDataException("The 'repository' property is required");
-        }
+        IvyPublicationInternal publicationInternal = getPublicationInternal().get();
+        DefaultIvyArtifactRepository repository = Cast.cast(DefaultIvyArtifactRepository.class, getRepository().get());
         IvyNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
             RepositorySpec.of(repository),
@@ -178,9 +148,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     }
 
     @Inject
-    protected IvyPublisher getIvyPublisher() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IvyPublisher getIvyPublisher();
 
     private void doPublish(final IvyNormalizedPublication normalizedPublication, final IvyArtifactRepository repository) {
         new PublishOperation(normalizedPublication.getName(), repository.getName()) {
@@ -310,8 +278,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     }
 
     @Inject
-    protected IvyDuplicatePublicationTracker getDuplicatePublicationTracker() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 }
