@@ -64,7 +64,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         model != null
 
         def schema = model.getProjectSchema()
-        !schema.dataClassesByFqName.isEmpty()
+        !schema.dataClassTypesByFqName.isEmpty()
     }
 
     def 'model is obtained without configuring the project'() {

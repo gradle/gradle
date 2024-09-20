@@ -4,6 +4,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
@@ -94,6 +95,8 @@ fun reflect(
             objectOrigin.literal.value
         )
 
+        is ObjectOrigin.EnumConstantOrigin -> TODO()
+
         is ObjectOrigin.External -> ObjectReflection.External(type, objectOrigin)
 
         is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null(objectOrigin)
@@ -151,6 +154,7 @@ fun reflectDefaultValue(
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
         is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataClass -> reflectData(OperationId(-1L, DefaultOperationGenerationId.preExisting), type, objectOrigin, context)
+        is EnumClass -> TODO()
         is DataType.NullType -> error("Null type can't appear in property types")
         is DataType.UnitType -> error("Unit can't appear in property types")
     }

@@ -25,6 +25,7 @@ import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.dom.mutation.singleType
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.reflect.KClass
@@ -47,15 +48,17 @@ class GeneralGradleDslSchemaTest {
     fun `general dsl schema has properties imported from gradle property api`() {
         val schema = schemaFrom(NestedReceiver::class)
         assertHasNestedReceiverType(schema.analysisSchema)
-        assertTrue(schema.analysisSchema.dataClassesByFqName.values.single { it.name.simpleName == NestedReceiver::class.simpleName }.properties.any { it.name == "property" })
+        val singleType = schema.analysisSchema.singleType { it.name.simpleName == NestedReceiver::class.simpleName }
+        assertTrue(singleType.properties.any { it.name == "intProperty" })
+        assertTrue(singleType.properties.any { it.name == "enumProperty" })
     }
 
     private
     fun assertHasNestedReceiverType(analysisSchema: AnalysisSchema) {
-        assertTrue(analysisSchema.dataClassesByFqName.keys.any { it.simpleName == NestedReceiver::class.simpleName })
+        assertTrue(analysisSchema.dataClassTypesByFqName.keys.any { it.simpleName == NestedReceiver::class.simpleName })
         // It should also include the supertype of the specified type.
         // Having it in the schema is useful for locating and mutating definitions based on the supertype.
-        assertTrue(analysisSchema.dataClassesByFqName.keys.any { it.simpleName == NestedReceiverSupertype::class.simpleName })
+        assertTrue(analysisSchema.dataClassTypesByFqName.keys.any { it.simpleName == NestedReceiverSupertype::class.simpleName })
     }
 
     private
@@ -80,7 +83,11 @@ class GeneralGradleDslSchemaTest {
     abstract class NestedReceiver : NestedReceiverSupertype {
         @get:Restricted
         @Suppress("unused")
-        abstract val property: Property<Int>
+        abstract val intProperty: Property<Int>
+
+        @get:Restricted
+        @Suppress("unused")
+        abstract val enumProperty: Property<Enum>
     }
 
     private
@@ -88,5 +95,10 @@ class GeneralGradleDslSchemaTest {
         @Restricted
         @Suppress("unused")
         abstract fun nestedReceiver(): NestedReceiver
+    }
+
+    private
+    enum class Enum {
+        A, B, C
     }
 }

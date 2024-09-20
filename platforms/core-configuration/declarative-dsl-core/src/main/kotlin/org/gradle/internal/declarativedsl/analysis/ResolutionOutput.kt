@@ -8,6 +8,7 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
@@ -90,6 +91,13 @@ sealed interface ObjectOrigin {
             get() = literal
 
         override fun toString(): String = "${literal.value.let { if (it is String) "\"$it\"" else it }}"
+    }
+
+    data class EnumConstantOrigin(val type: EnumClass, val propertyAccess: PropertyAccess) : ObjectOrigin { // TODO: weird parameters ...
+        override val originElement: LanguageTreeElement
+            get() = propertyAccess
+
+        override fun toString(): String = "(enum ${type.name.qualifiedName}.${propertyAccess.name})"
     }
 
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin

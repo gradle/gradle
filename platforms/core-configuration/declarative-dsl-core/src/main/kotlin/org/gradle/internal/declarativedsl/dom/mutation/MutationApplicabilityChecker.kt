@@ -62,6 +62,7 @@ class MutationApplicabilityChecker(
             when (value) {
                 is DeclarativeDocument.ValueNode.ValueFactoryNode -> value.values.forEach { visitValue(it, owner) }
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> Unit
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
             }
         }
 

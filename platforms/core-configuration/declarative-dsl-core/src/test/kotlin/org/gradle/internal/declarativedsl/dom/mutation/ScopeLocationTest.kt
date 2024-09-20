@@ -28,7 +28,6 @@ import org.gradle.internal.declarativedsl.dom.mutation.ScopeLocationTest.TestApi
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
 

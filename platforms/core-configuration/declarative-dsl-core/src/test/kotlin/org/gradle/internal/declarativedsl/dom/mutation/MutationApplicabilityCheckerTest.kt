@@ -26,7 +26,6 @@ import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
-import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.fail

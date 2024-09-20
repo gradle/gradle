@@ -37,6 +37,8 @@ fun DeclarativeDocument.structurallyEqualsAsData(other: DeclarativeDocument): Bo
         is LiteralValueNode -> other is LiteralValueNode &&
             value == other.value
 
+        is ValueNode.NamedReferenceNode -> TODO()
+
         is ValueFactoryNode -> other is ValueFactoryNode &&
             factoryName == other.factoryName &&
             values.matchesPairwise(other.values, ValueNode::structurallyEquals)

@@ -19,16 +19,20 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
+import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.fqName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.typeOf
 
 
 class DataSchemaBuilder(
@@ -53,7 +57,7 @@ class DataSchemaBuilder(
         val topLevelReceiverName = topLevelReceiver.fqName
 
         return DefaultAnalysisSchema(
-            dataTypes.single { it.name == topLevelReceiverName },
+            dataTypes.filterIsInstance<DataClass>().single { it.name == topLevelReceiverName },
             dataTypes.associateBy { it.name } + preIndex.syntheticTypes.associateBy { it.name },
             extFunctions,
             extObjects,
@@ -127,7 +131,7 @@ class DataSchemaBuilder(
                 addType(type)
                 val properties = propertyExtractor.extractProperties(type)
                 properties.forEach {
-                    it.claimedFunctions.forEach { claimFunction(type, it) }
+                    it.claimedFunctions.forEach { f -> claimFunction(type, f) }
                     addProperty(
                         type,
                         DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
@@ -138,17 +142,31 @@ class DataSchemaBuilder(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private
     fun createDataType(
         kClass: KClass<*>,
         preIndex: PreIndex,
-    ): DataClass {
-        val properties = preIndex.getAllProperties(kClass)
-
-        val functions = functionExtractor.memberFunctions(kClass, preIndex)
-        val constructors = functionExtractor.constructors(kClass, preIndex)
+    ): DataType.ClassDataType {
         val name = kClass.fqName
-        return DefaultDataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+        return when {
+            isEnum(kClass) -> {
+                val entryNames = (kClass as KClass<Enum<*>>).java.enumConstants.map { it.name }
+                DefaultEnumClass(name, entryNames)
+            }
+            else -> {
+                val properties = preIndex.getAllProperties(kClass)
+                val functions = functionExtractor.memberFunctions(kClass, preIndex).toList()
+                val constructors = functionExtractor.constructors(kClass, preIndex).toList()
+                DefaultDataClass(name, supertypesOf(kClass), properties, functions, constructors)
+            }
+        }
+    }
+
+    private
+    fun isEnum(kClass: KClass<*>): Boolean {
+        // TODO: this doesn't catch kotlin.Enum instances; should it?
+        return kClass.supertypes.any { it.isSubtypeOf(typeOf<Enum<*>>()) }
     }
 
     private

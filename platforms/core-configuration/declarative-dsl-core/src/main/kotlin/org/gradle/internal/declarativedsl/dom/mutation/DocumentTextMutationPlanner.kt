@@ -144,6 +144,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
 
                     is LiteralValueNode,
                     is ErrorNode -> Unit
+
+                    is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
                 }
             }
         }
@@ -306,6 +308,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                                 nameMapper.newNamesForValueFactories[valueNode] ?: valueNode.factoryName,
                                 valueNode.sourceData,
                                 valueNode.values.map { applyValueMutations(it, nameMapper, valueMapper) })
+                            is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
                         }
             }
         }

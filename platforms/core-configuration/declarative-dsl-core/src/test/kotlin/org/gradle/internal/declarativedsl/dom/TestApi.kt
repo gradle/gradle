@@ -52,6 +52,9 @@ class TestApi {
 
         @get:Restricted
         val utils: Utils
+
+        @get:Restricted
+        var enum: Enum
     }
 
     class ComplexValueOne
@@ -83,6 +86,10 @@ class TestApi {
     }
 
     interface MyNestedElement
+
+    enum class Enum {
+        A, B, C
+    }
 }
 
 

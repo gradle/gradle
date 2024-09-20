@@ -43,6 +43,7 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResoluti
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ErrorResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.LiteralValueResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.NamedReferenceResolved
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.dom.ElementNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.NotAssignable
@@ -93,11 +94,18 @@ class DefaultDocumentResolutionContainer(
     private val propertyResolution: Map<PropertyNode, PropertyResolution>,
     private val valueFactoryResolution: Map<ValueFactoryNode, ValueFactoryResolution>
 ) : DocumentResolutionContainer {
-    override fun data(node: ElementNode): ElementResolution = elementResolution.getValue(node)
-    override fun data(node: PropertyNode): PropertyResolution = propertyResolution.getValue(node)
-    override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): ErrorResolution = ErrorResolution
-    override fun data(value: ValueFactoryNode): ValueFactoryResolution = valueFactoryResolution.getValue(value)
-    override fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): LiteralValueResolved = LiteralValueResolved(value.value)
+    override fun data(node: ElementNode): ElementResolution =
+        elementResolution.getValue(node)
+    override fun data(node: PropertyNode): PropertyResolution =
+        propertyResolution.getValue(node)
+    override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): ErrorResolution =
+        ErrorResolution
+    override fun data(value: ValueFactoryNode): ValueFactoryResolution =
+        valueFactoryResolution.getValue(value)
+    override fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): LiteralValueResolved =
+        LiteralValueResolved(value.value)
+    override fun data(value: DeclarativeDocument.ValueNode.NamedReferenceNode): NamedReferenceResolved =
+        NamedReferenceResolved(value.referenceName) // TODO: probably it shouldn't just be the name... or should it?
 }
 
 
@@ -114,7 +122,8 @@ class DocumentResolver(
 
         fun resolveValueFactory(valueFactoryNode: ValueFactoryNode): ValueFactoryResolution {
             val expr = document.languageTreeMappingContainer.data(valueFactoryNode)
-            return when (val exprResolution = trace.expressionResolution(expr)) {
+            val exprResolution = trace.expressionResolution(expr)
+            return when (exprResolution) {
                 is ResolutionTrace.ResolutionOrErrors.Resolution -> ValueFactoryResolution.ValueFactoryResolved((exprResolution.result as ObjectOrigin.FunctionOrigin).function)
                 is ResolutionTrace.ResolutionOrErrors.Errors -> ValueFactoryResolution.ValueFactoryNotResolved(mapValueFactoryErrors(exprResolution.errors))
                 ResolutionTrace.ResolutionOrErrors.NoResolution -> ValueFactoryResolution.ValueFactoryNotResolved(listOf(UnresolvedBase))
@@ -128,6 +137,7 @@ class DocumentResolver(
                     value.values.forEach(::visitValue)
                 }
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> Unit
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> Unit // TODO: is this right?
             }
         }
 
@@ -140,7 +150,8 @@ class DocumentResolver(
                 }
 
                 is PropertyNode -> {
-                    propertyResolution[node] = propertyResolution(document.languageTreeMappingContainer.data(node) as Assignment)
+                    val resolution = propertyResolution(document.languageTreeMappingContainer.data(node) as Assignment)
+                    propertyResolution[node] = resolution
                     visitValue(node.value)
                 }
 

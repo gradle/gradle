@@ -47,6 +47,7 @@ class DomResolutionTest {
                 number = 456
                 add()
             }
+            enum = A
             """.trimIndent()
         )
 
@@ -56,7 +57,6 @@ class DomResolutionTest {
         val resolved = resolutionContainer(schema, resolver.trace, document)
         val resolutions = resolved.collectToMap(document).values
         assertEquals(
-            resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> test
@@ -77,7 +77,10 @@ class DomResolutionTest {
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
-            """.trimIndent()
+            PropertyAssignmentResolved -> TopLevelReceiver.enum: Enum
+            NamedReferenceResolved -> A
+            """.trimIndent(),
+            resolutions.map { resolutionPrettyString(it) }.joinToString("\n")
         )
     }
 
@@ -157,6 +160,7 @@ class DomResolutionTest {
 
             is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> " -> ${resolution.value}"
             is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
+            is DocumentResolution.ValueNodeResolution.NamedReferenceResolved -> " -> ${resolution.referenceName}"
         }
 
     private

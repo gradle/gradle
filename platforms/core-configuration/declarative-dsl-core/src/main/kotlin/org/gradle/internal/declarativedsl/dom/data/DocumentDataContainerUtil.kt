@@ -53,6 +53,7 @@ fun <D, C> C.collectToMap(document: DeclarativeDocument): Map<DeclarativeDocumen
 
                 is DeclarativeDocument.DocumentNode.ErrorNode,
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> Unit
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> Unit
             }
         }
         document.content.forEach(::visit)

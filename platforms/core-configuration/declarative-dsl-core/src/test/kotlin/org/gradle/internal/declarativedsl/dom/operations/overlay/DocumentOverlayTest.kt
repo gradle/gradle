@@ -441,5 +441,6 @@ class DocumentOverlayTest {
         is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> "literal"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved -> "valueFactory"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryNotResolved -> "valueFactoryNotResolved"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolved -> "named reference"
     }
 }

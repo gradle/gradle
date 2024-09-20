@@ -29,6 +29,6 @@ import org.gradle.internal.declarativedsl.dom.data.ValueDataContainer
 
 interface DocumentResolutionContainer :
     NodeDataContainer<DocumentNodeResolution, ElementResolution, PropertyResolution, ErrorResolution>,
-    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved>
+    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved, ValueNodeResolution.NamedReferenceResolved>
 
 

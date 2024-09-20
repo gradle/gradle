@@ -79,6 +79,7 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value
+            is ObjectOrigin.EnumConstantOrigin -> TODO()
             is ObjectOrigin.External -> externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(/*objectOrigin*/) }

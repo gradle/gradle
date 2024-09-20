@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr
@@ -56,8 +57,8 @@ class ResolverServicesContainer : StatementResolver, PropertyAccessResolver, Exp
     lateinit var codeAnalyzer: CodeAnalyzer
     lateinit var errorCollector: ErrorCollector
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? =
-        expressionResolver.doResolveExpression(context, expr)
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? =
+        expressionResolver.doResolveExpression(context, expr, expectedType)
 
     override fun analyzeStatementsInProgramOrder(context: AnalysisContext, elements: List<DataStatement>) {
         codeAnalyzer.analyzeStatementsInProgramOrder(context, elements)
@@ -65,9 +66,10 @@ class ResolverServicesContainer : StatementResolver, PropertyAccessResolver, Exp
 
     override fun doResolvePropertyAccessToObjectOrigin(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
+        propertyAccess: PropertyAccess,
+        expectedType: DataTypeRef?
     ): ObjectOrigin? =
-        propertyAccessResolver.doResolvePropertyAccessToObjectOrigin(analysisContext, propertyAccess)
+        propertyAccessResolver.doResolvePropertyAccessToObjectOrigin(analysisContext, propertyAccess, expectedType)
 
     override fun doResolvePropertyAccessToAssignable(
         analysisContext: AnalysisContext,

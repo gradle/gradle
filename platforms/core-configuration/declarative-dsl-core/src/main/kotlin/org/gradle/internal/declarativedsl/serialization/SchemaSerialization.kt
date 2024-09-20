@@ -28,6 +28,7 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
@@ -43,6 +44,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
@@ -66,7 +68,13 @@ object SchemaSerialization {
                 subclass(DataTypeInternal.DefaultBooleanDataType::class)
                 subclass(DataTypeInternal.DefaultNullType::class)
                 subclass(DataTypeInternal.DefaultUnitType::class)
+            }
+            polymorphic(DataType.ClassDataType::class) {
                 subclass(DefaultDataClass::class)
+                subclass(DefaultEnumClass::class)
+            }
+            polymorphic(EnumClass::class) {
+                subclass(DefaultEnumClass::class)
             }
             polymorphic(DataClass::class) {
                 subclass(DefaultDataClass::class)

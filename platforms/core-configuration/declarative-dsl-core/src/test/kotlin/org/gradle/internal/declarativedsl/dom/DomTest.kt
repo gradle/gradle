@@ -126,6 +126,8 @@ class DomTest {
                     maybeSourceData(valueNode)
 
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> "literal(${valueNode.value})" + maybeSourceData(valueNode)
+
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
             }
 
             fun visit(node: DeclarativeDocument.DocumentNode, depth: Int = 0) {

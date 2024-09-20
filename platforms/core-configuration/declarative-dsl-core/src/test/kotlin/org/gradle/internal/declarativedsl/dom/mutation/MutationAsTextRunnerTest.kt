@@ -32,7 +32,6 @@ import org.gradle.internal.declarativedsl.schemaUtils.findPropertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
-import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test

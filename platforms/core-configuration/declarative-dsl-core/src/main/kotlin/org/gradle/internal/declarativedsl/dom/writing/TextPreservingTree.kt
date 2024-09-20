@@ -122,6 +122,8 @@ class TextPreservingTreeBuilder {
             ) + node.values.mapIndexed { index, it -> SubTreeData(ChildTag.CallArgument(index, it), nodeForValueNode(it)) }
 
             is DeclarativeDocument.ValueNode.LiteralValueNode -> listOf(SubTreeData(ChildTag.UnstructuredText, TextTreeNode(node.range, node.lines, emptyList())))
+
+            is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
         }
 
         return TextTreeNode(node.range, node.sourceData.lineRange, completeIntervalsWithTextRanges(node.range, node.lines, meaningfulSubtrees))

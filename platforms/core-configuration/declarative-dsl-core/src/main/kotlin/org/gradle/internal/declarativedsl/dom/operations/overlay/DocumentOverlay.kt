@@ -125,6 +125,7 @@ class DocumentOverlayContext(
         override fun data(node: ErrorNode): OverlayNodeOrigin.OverlayErrorOrigin = overlayErrorOrigin.getValue(node)
         override fun data(value: ValueNode.ValueFactoryNode): OverlayValueOrigin = overlayValueOrigin.getValue(value)
         override fun data(value: ValueNode.LiteralValueNode): OverlayValueOrigin = overlayValueOrigin.getValue(value)
+        override fun data(value: ValueNode.NamedReferenceNode): OverlayValueOrigin = overlayValueOrigin.getValue(value)
     }
 
     fun mergeRecursively(
@@ -234,6 +235,7 @@ class DocumentOverlayContext(
         when (value) {
             is ValueNode.ValueFactoryNode -> value.values.forEach { recordValueOriginRecursively(it, origin) }
             is ValueNode.LiteralValueNode -> Unit
+            is ValueNode.NamedReferenceNode -> TODO()
         }
     }
 
@@ -313,5 +315,5 @@ class OverlayResolutionContainer(
 ) : DocumentResolutionContainer,
     NodeDataContainer<DocumentNodeResolution, ElementResolution, PropertyResolution, ErrorResolution> by
     OverlayRoutedNodeDataContainer(overlayOriginContainer, underlay, overlay),
-    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved> by
+    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved, ValueNodeResolution.NamedReferenceResolved> by
     OverlayRoutedValueDataContainer(overlayOriginContainer, underlay, overlay)

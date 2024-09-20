@@ -5,6 +5,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
@@ -20,7 +21,8 @@ import org.gradle.internal.declarativedsl.language.asChainOrNull
 interface FunctionCallResolver {
     fun doResolveFunctionCall(
         context: AnalysisContext,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        expectedType: DataTypeRef?
     ): ObjectOrigin.FunctionOrigin?
 
     data class FunctionResolutionAndBinding(
@@ -45,13 +47,14 @@ class FunctionCallResolverImpl(
 
     override fun doResolveFunctionCall(
         context: AnalysisContext,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        expectedType: DataTypeRef?
     ): ObjectOrigin.FunctionOrigin? = with(context) {
         val argResolutions = lazy {
             var hasErrors = false
             val result = buildMap<FunctionArgument.ValueArgument, ObjectOrigin> {
                 functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>().forEach {
-                    val resolution = expressionResolver.doResolveExpression(context, it.expr)
+                    val resolution = expressionResolver.doResolveExpression(context, it.expr, null)
                     if (resolution == null) {
                         hasErrors = true
                     } else {
@@ -114,7 +117,7 @@ class FunctionCallResolverImpl(
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             when (functionCall.receiver) {
                 is Expr -> {
-                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver)
+                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver, null)
                     if (receiver != null) {
                         addAll(findMemberFunction(receiver, functionCall, argResolutions.value))
                     } else {
@@ -377,14 +380,14 @@ class FunctionCallResolverImpl(
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
                 val fqn = DefaultFqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
-                val typeByFqn = schema.dataClassesByFqName[fqn]
+                val typeByFqn = schema.dataClassTypesByFqName[fqn]
                 if (typeByFqn != null) {
                     add(typeByFqn)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
-                    val maybeType = schema.dataClassesByFqName[importedName]
+                    val maybeType = schema.dataClassTypesByFqName[importedName]
                     if (maybeType != null) {
                         add(maybeType)
                     }

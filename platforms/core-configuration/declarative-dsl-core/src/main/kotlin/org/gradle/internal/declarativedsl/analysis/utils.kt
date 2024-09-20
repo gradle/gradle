@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
@@ -38,7 +39,7 @@ fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = 
  */
 internal
 fun sameType(left: DataType, right: DataType) = when (left) {
-    is DataClass -> right is DataClass && left.name.qualifiedName == right.name.qualifiedName
+    is DataType.ClassDataType -> right is DataType.ClassDataType && left.name.qualifiedName == right.name.qualifiedName
     is DataType.BooleanDataType -> right is DataType.BooleanDataType
     is DataType.IntDataType -> right is DataType.IntDataType
     is DataType.LongDataType -> right is DataType.LongDataType
@@ -52,6 +53,7 @@ internal
 fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.DelegatingObjectOrigin -> getDataType(objectOrigin.delegate)
     is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.type
+    is ObjectOrigin.EnumConstantOrigin -> objectOrigin.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.objectType)
     is ObjectOrigin.NewObjectFromMemberFunction -> resolveRef(objectOrigin.function.returnValueType)
     is ObjectOrigin.NewObjectFromTopLevelFunction -> resolveRef(objectOrigin.function.returnValueType)

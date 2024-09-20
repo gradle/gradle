@@ -20,6 +20,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultErrorNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
+import org.gradle.internal.declarativedsl.dom.DefaultNamedReferenceNode
 import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
 import org.gradle.internal.declarativedsl.dom.DefaultValueFactoryNode
 import org.gradle.internal.declarativedsl.dom.DocumentError
@@ -76,16 +77,17 @@ class LanguageTreeToDomContext {
         override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): BlockElement = nodeMapping.getValue(node)
         override fun data(value: DeclarativeDocument.ValueNode.ValueFactoryNode): Expr = valueMapping.getValue(value)
         override fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): Expr = valueMapping.getValue(value)
+        override fun data(value: DeclarativeDocument.ValueNode.NamedReferenceNode): Expr = valueMapping.getValue(value)
     }
 
     fun blockElementToNode(blockElement: BlockElement): DeclarativeDocument.DocumentNode = when (blockElement) {
         is Assignment -> {
             if ((blockElement.lhs.receiver != null))
-                errorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.AssignmentWithExplicitReceiver)))
+                errorDocumentNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.AssignmentWithExplicitReceiver)))
             else {
                 when (val rhs = exprToValue(blockElement.rhs)) {
-                    is ExprConversion.Failed -> errorNode(blockElement, rhs.errors)
-                    is ExprConversion.Converted -> propertyNode(blockElement, rhs.valueNode)
+                    is ExprConversion.Failed -> errorDocumentNode(blockElement, rhs.errors)
+                    is ExprConversion.Converted -> propertyDocumentNode(blockElement, rhs.valueNode)
                 }
             }
         }
@@ -113,17 +115,17 @@ class LanguageTreeToDomContext {
             errors += values.filterIsInstance<ExprConversion.Failed>().flatMap { it.errors }
 
             if (errors.isNotEmpty()) {
-                errorNode(blockElement, errors) // TODO: reason
+                errorDocumentNode(blockElement, errors) // TODO: reason
             } else {
                 val arguments = values.map { (it as ExprConversion.Converted).valueNode }
-                elementNode(blockElement, arguments, content)
+                elementDocumentNode(blockElement, arguments, content)
             }
         }
 
-        is LocalValue -> errorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.LocalVal)))
-        is Expr -> errorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.DanglingExpr)))
+        is LocalValue -> errorDocumentNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.LocalVal)))
+        is Expr -> errorDocumentNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.DanglingExpr)))
 
-        is ErroneousStatement -> errorNode(blockElement, mapBlockElementErrors(blockElement.failingResult))
+        is ErroneousStatement -> errorDocumentNode(blockElement, mapBlockElementErrors(blockElement.failingResult))
     }.also { nodeMapping[it] = blockElement }
 
 
@@ -183,7 +185,8 @@ class LanguageTreeToDomContext {
             }
         }
 
-        is PropertyAccess -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedPropertyAccess)))
+        // is PropertyAccess -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedPropertyAccess))) //TODO: this error needs to be thrown at resolution
+        is PropertyAccess -> ExprConversion.Converted(namedReferenceNode(expr))
         is Null -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedNullValue)))
         is This -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedThisValue)))
     }.also { (it as? ExprConversion.Converted)?.let { converted -> valueMapping[converted.valueNode] = expr } }
@@ -217,16 +220,17 @@ class LanguageTreeBackedDocument internal constructor(
 
 
 private
-fun propertyNode(blockElement: Assignment, valueNode: DeclarativeDocument.ValueNode) = DefaultPropertyNode(blockElement.lhs.name, blockElement.sourceData, valueNode)
+fun propertyDocumentNode(blockElement: Assignment, valueNode: DeclarativeDocument.ValueNode) =
+    DefaultPropertyNode(blockElement.lhs.name, blockElement.sourceData, valueNode)
 
 
 private
-fun elementNode(blockElement: FunctionCall, arguments: List<DeclarativeDocument.ValueNode>, content: List<DeclarativeDocument.DocumentNode>) =
+fun elementDocumentNode(blockElement: FunctionCall, arguments: List<DeclarativeDocument.ValueNode>, content: List<DeclarativeDocument.DocumentNode>) =
     DefaultElementNode(blockElement.name, blockElement.sourceData, arguments, content)
 
 
 private
-fun errorNode(blockElement: BlockElement, errors: Collection<DocumentError>): DefaultErrorNode {
+fun errorDocumentNode(blockElement: BlockElement, errors: Collection<DocumentError>): DefaultErrorNode {
     /** Workaround: we do not have the source data in [ErroneousStatement]s yet, so we have to get it from the [FailingResult]s inside those. */
     val sourceData = if (blockElement is ErroneousStatement) {
         fun source(failingResult: FailingResult): SourceData = when (failingResult) {
@@ -242,4 +246,10 @@ fun errorNode(blockElement: BlockElement, errors: Collection<DocumentError>): De
 
 
 private
-fun literalNode(literal: Literal<*>) = DefaultLiteralNode(literal.value, literal.sourceData)
+fun literalNode(literal: Literal<*>) =
+    DefaultLiteralNode(literal.value, literal.sourceData)
+
+
+private
+fun namedReferenceNode(propertyAccess: PropertyAccess) =
+    DefaultNamedReferenceNode(propertyAccess.name, propertyAccess.sourceData)

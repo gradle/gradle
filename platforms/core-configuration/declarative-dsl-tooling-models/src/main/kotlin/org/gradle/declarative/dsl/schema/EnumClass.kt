@@ -16,10 +16,6 @@
 
 package org.gradle.declarative.dsl.schema
 
-
-interface DataClass : DataType.ClassDataType {
-    val supertypes: Set<FqName>
-    val properties: List<DataProperty>
-    val memberFunctions: List<SchemaMemberFunction>
-    val constructors: List<DataConstructor>
+interface EnumClass : DataType.ClassDataType {
+    val entryNames: List<String>
 }

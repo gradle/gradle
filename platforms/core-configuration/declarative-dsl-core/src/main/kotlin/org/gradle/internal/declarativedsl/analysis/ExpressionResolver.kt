@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.Literal
@@ -9,7 +10,7 @@ import org.gradle.internal.declarativedsl.language.This
 
 
 interface ExpressionResolver {
-    fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin?
+    fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? // TODO: expected type can be non-nullable (i.e. always available) in the end
 }
 
 
@@ -17,10 +18,10 @@ class ExpressionResolverImpl(
     private val propertyAccessResolver: PropertyAccessResolver,
     private val functionCallResolver: FunctionCallResolver,
 ) : ExpressionResolver {
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? = with(context) {
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? = with(context) {
         when (expr) {
-            is PropertyAccess -> propertyAccessResolver.doResolvePropertyAccessToObjectOrigin(context, expr)
-            is FunctionCall -> functionCallResolver.doResolveFunctionCall(context, expr)
+            is PropertyAccess -> propertyAccessResolver.doResolvePropertyAccessToObjectOrigin(context, expr, expectedType)
+            is FunctionCall -> functionCallResolver.doResolveFunctionCall(context, expr, expectedType)
             is Literal<*> -> literalObjectOrigin(expr)
             is Null -> ObjectOrigin.NullObjectOrigin(expr)
             is This -> currentScopes.last().receiver

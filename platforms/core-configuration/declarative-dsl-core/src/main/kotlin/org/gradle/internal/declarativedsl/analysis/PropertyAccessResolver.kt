@@ -3,18 +3,22 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.asChainOrNull
+import org.gradle.internal.declarativedsl.schemaUtils.findTypeWithName
 
 
 interface PropertyAccessResolver {
     fun doResolvePropertyAccessToObjectOrigin(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
+        propertyAccess: PropertyAccess,
+        expectedType: DataTypeRef?
     ): ObjectOrigin?
 
     fun doResolvePropertyAccessToAssignable(
@@ -29,9 +33,10 @@ class PropertyAccessResolverImpl(
 ) : PropertyAccessResolver {
     override fun doResolvePropertyAccessToObjectOrigin(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
+        propertyAccess: PropertyAccess,
+        expectedType: DataTypeRef?
     ): ObjectOrigin? =
-        analysisContext.doResolvePropertyAccessToObject(propertyAccess)
+        analysisContext.doResolvePropertyAccessToObject(propertyAccess, expectedType)
 
     override fun doResolvePropertyAccessToAssignable(
         analysisContext: AnalysisContext,
@@ -73,8 +78,19 @@ class PropertyAccessResolverImpl(
     @Suppress("NestedBlockDepth")
     private
     fun AnalysisContext.doResolvePropertyAccessToObject(
-        propertyAccess: PropertyAccess
+        propertyAccess: PropertyAccess,
+        expectedType: DataTypeRef?
     ): ObjectOrigin? {
+        if (propertyAccess.receiver == null && expectedType != null && expectedType is DataTypeRef.Name) {
+            val dataType = schema.findTypeWithName(expectedType.fqName)
+            if (dataType is EnumClass) {
+                return dataType.entryNames.firstOrNull { it ==  propertyAccess.name}
+                    ?.let { ObjectOrigin.EnumConstantOrigin(dataType, propertyAccess) }
+            } else {
+                error("Unexpected expected type: $expectedType")
+            }
+        } // TODO: weave this better together with what's below
+
         val candidates: Sequence<ObjectOrigin> = sequence {
             runPropertyAccessResolution(
                 propertyAccess = propertyAccess,
@@ -150,7 +166,7 @@ class PropertyAccessResolverImpl(
 
         val propertyName = propertyAccess.name
 
-        expressionResolver.doResolveExpression(this, propertyAccess.receiver)?.let { receiverOrigin ->
+        expressionResolver.doResolveExpression(this, propertyAccess.receiver, null)?.let { receiverOrigin ->
             findDataProperty(getDataType(receiverOrigin), propertyName)?.let { property ->
                 onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, propertyAccess))
             }
@@ -188,10 +204,12 @@ class PropertyAccessResolverImpl(
         onProperty: (ObjectOrigin.PropertyReference) -> Unit
     ) {
         currentScopes.asReversed().forEach { scope ->
-            scope.findLocalAsObjectOrigin(propertyAccess.name)
-                ?.let(onLocalValue)
+            val x = scope.findLocalAsObjectOrigin(propertyAccess.name)
+            x?.let(onLocalValue)
 
-            findDataProperty(getDataType(scope.receiver), propertyAccess.name)?.let { property ->
+            val receiverType = getDataType(scope.receiver)
+            val y = findDataProperty(receiverType, propertyAccess.name)
+            y?.let { property ->
                 val receiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
                 onProperty(ObjectOrigin.PropertyReference(receiver, property, propertyAccess))
             }
@@ -210,7 +228,11 @@ class PropertyAccessResolverImpl(
         receiverType: DataType,
         name: String
     ): DataProperty? =
-        if (receiverType is DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
+        if (receiverType is DataClass) {
+            receiverType.properties.find { !it.isHiddenInDsl && it.name == name }
+        } else {
+            null
+        }
 
     sealed interface AssignmentResolution {
         data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution
