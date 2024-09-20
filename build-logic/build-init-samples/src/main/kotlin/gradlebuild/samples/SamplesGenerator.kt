@@ -92,6 +92,7 @@ object SamplesGenerator {
         generateReadmeFragment(templateFolder, "multi-common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
     }
 
+    @Suppress("detekt:LongMethod")
     private
     fun generateReadmeFragment(templateFolder: Directory, templateFragment: String, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
 
@@ -136,9 +137,15 @@ Select test framework:
   2: TestNG
   3: Spock
   4: JUnit Jupiter
-Enter selection (default: JUnit 4) [1..4]
+Enter selection (default: JUnit Jupiter) [1..4]
 """ else ""
-        val packageNameChoice = if (descriptor.supportsPackage()) "Source package (default: demo):\n" else ""
+        val packageNameChoice = if (descriptor.supportsPackage()) "\nEnter target Java version (min: 7, default: 21):\n" else ""
+        val applicationStructureChoice = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) "" else """
+Select application structure:
+  1: Single application project
+  2: Application and library project
+Enter selection (default: Single application project) [1..2] 1
+"""
         val toolChain = when {
             descriptor.language === Language.SWIFT -> {
                 "* An installed Swift compiler. See which link:{userManualPath}/building_swift_projects.html#sec:swift_supported_tool_chain[Swift tool chains] are supported by Gradle."
@@ -179,6 +186,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("componentType", descriptor.componentType.name.toLowerCase())
             .withBinding("componentTypeIndex", "" + (descriptor.componentType.ordinal + 1))
             .withBinding("packageNameChoice", packageNameChoice)
+            .withBinding("applicationStructureChoice", applicationStructureChoice)
             .withBinding("subprojectName", settings.subprojects.first())
             .withBinding("toolChain", toolChain)
             .withBinding("exampleClass", exampleClass)

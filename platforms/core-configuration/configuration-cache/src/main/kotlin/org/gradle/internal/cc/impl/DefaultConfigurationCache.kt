@@ -240,7 +240,11 @@ class DefaultConfigurationCache internal constructor(
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
-        scopeRegistryListener.dispose()
+        try {
+            cacheFingerprintController.stop()
+        } finally {
+            scopeRegistryListener.dispose()
+        }
     }
 
     private

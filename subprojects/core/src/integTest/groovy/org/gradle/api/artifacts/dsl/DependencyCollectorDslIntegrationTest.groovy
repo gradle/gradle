@@ -21,6 +21,8 @@ import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ConfigureUtil
 
 abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegrationSpec {
@@ -238,6 +240,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         ]
     }
 
+    @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "IP mode implies different projects equality contract")
     def "ProjectDependency declared using #expression shows up in related configuration"() {
         given:
         file(dsl.fileNameFor("build")).text = """
