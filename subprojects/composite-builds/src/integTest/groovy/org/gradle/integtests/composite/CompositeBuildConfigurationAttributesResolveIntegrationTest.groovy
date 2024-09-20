@@ -691,7 +691,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         fails ':a:checkFree'
 
         then:
-        failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
+        failure.assertHasCause("Could not resolve project :includedBuild.")
         failure.assertHasCause("""No matching variant of project :includedBuild was found. The consumer was configured to find attribute 'flavor' with value 'free' but:
   - Variant 'bar':
       - Incompatible because this component declares attribute 'flavor' with value 'blue' and the consumer needed attribute 'flavor' with value 'free'
@@ -702,7 +702,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         fails ':a:checkPaid'
 
         then:
-        failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
+        failure.assertHasCause("Could not resolve project :includedBuild.")
         failure.assertHasCause("""The consumer was configured to find attribute 'flavor' with value 'paid'. However we cannot choose between the following variants of project :includedBuild:
   - bar
   - foo

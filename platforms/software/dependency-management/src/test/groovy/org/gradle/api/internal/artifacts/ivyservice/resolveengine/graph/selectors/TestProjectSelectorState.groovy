@@ -44,7 +44,7 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    ComponentSelector getSelector() {
+    ComponentSelector getComponentSelector() {
         return new DefaultProjectComponentSelector(projectId, ImmutableAttributes.EMPTY, Collections.emptyList())
     }
 

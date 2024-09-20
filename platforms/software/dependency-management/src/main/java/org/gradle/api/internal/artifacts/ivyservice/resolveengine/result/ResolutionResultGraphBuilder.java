@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -130,29 +131,30 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
 
     public void visitOutgoingEdges(long fromComponentId, Collection<? extends ResolvedGraphDependency> dependencies) {
         DefaultResolvedComponentResult fromComponent = components.get(fromComponentId);
-        for (ResolvedGraphDependency d : dependencies) {
+        for (ResolvedGraphDependency edge : dependencies) {
             DependencyResult dependencyResult;
-            ResolvedVariantResult fromVariant = fromComponent.getVariant(d.getFromVariant());
+            ResolvedVariantResult fromVariant = fromComponent.getVariant(edge.getFromVariant());
+            ComponentSelector requested = edge.getRequested();
             if (fromVariant == null) {
-                throw new IllegalStateException("Corrupt serialized resolution result. Cannot find variant (" + d.getFromVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromComponent + " -> " + d.getRequested().getDisplayName());
+                throw new IllegalStateException("Corrupt serialized resolution result. Cannot find variant (" + edge.getFromVariant() + ") for " + (edge.isConstraint() ? "constraint " : "") + fromComponent + " -> " + requested.getDisplayName());
             }
-            if (d.getFailure() != null) {
-                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
+            if (edge.getFailure() != null) {
+                dependencyResult = dependencyResultFactory.createUnresolvedDependency(requested, fromComponent, edge.isConstraint(), edge.getReason(), edge.getFailure());
             } else {
-                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected().longValue());
+                DefaultResolvedComponentResult selectedComponent = components.get(edge.getSelected().longValue());
                 if (selectedComponent == null) {
-                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + edge.getSelected() + ") for " + (edge.isConstraint() ? "constraint " : "") + fromVariant + " -> " + requested.getDisplayName());
                 }
                 ResolvedVariantResult selectedVariant;
-                if (d.getSelectedVariant() != null) {
-                    selectedVariant = selectedComponent.getVariant(d.getSelectedVariant());
+                if (edge.getSelectedVariant() != null) {
+                    selectedVariant = selectedComponent.getVariant(edge.getSelectedVariant());
                     if (selectedVariant == null) {
-                        throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + d.getSelectedVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                        throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + edge.getSelectedVariant() + ") for " + (edge.isConstraint() ? "constraint " : "") + fromVariant + " -> " + requested.getDisplayName());
                     }
                 } else {
                     selectedVariant = null;
                 }
-                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
+                dependencyResult = dependencyResultFactory.createResolvedDependency(requested, fromComponent, selectedComponent, selectedVariant, edge.isConstraint());
                 selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }
             fromComponent.addDependency(dependencyResult);

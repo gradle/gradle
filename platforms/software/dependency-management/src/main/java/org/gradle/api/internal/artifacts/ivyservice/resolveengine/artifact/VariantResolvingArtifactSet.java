@@ -68,7 +68,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         VariantArtifactResolver variantResolver,
         ComponentGraphResolveState component,
         VariantGraphResolveState variant,
-        DependencyGraphEdge dependency,
+        DependencyGraphEdge edge,
         GraphVariantSelector graphVariantSelector,
         AttributesSchemaInternal consumerSchema,
         CalculatedValueContainerFactory calculatedValueContainerFactory
@@ -78,10 +78,10 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.variant = variant;
         this.componentId = component.getId();
         this.producerSchema = component.getMetadata().getAttributesSchema();
-        this.overriddenAttributes = dependency.getAttributes();
-        this.artifacts = dependency.getDependencyMetadata().getArtifacts();
-        this.exclusions = dependency.getExclusions();
-        this.capabilities = dependency.getSelector().getRequested().getRequestedCapabilities();
+        this.overriddenAttributes = edge.getAttributes();
+        this.artifacts = edge.getDependencyMetadata().getArtifacts();
+        this.exclusions = edge.getExclusions();
+        this.capabilities = edge.getSelector().getComponentSelector().getRequestedCapabilities();
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;
         this.ownArtifacts = calculatedValueContainerFactory.create(

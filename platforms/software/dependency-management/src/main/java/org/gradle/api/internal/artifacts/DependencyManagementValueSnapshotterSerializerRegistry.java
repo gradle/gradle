@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DeduplicatingAttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DeduplicatingComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
@@ -105,12 +107,20 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
         ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         register(ComponentSelectionReason.class, componentSelectionReasonSerializer);
-        registerWithFactory(ComponentSelector.class, () -> new ComponentSelectorSerializer(attributeContainerSerializer));
+        registerWithFactory(ComponentSelector.class, () -> newDeduplicatingComponentSelectorSerializer(attributeContainerSerializer));
         registerWithFactory(ResolvedComponentResult.class, () -> {
             ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
-            ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
+            Serializer<ComponentSelector> componentSelectorSerializer = newDeduplicatingComponentSelectorSerializer(attributeContainerSerializer);
             return new ResolvedComponentResultSerializer(moduleVersionIdentifierSerializer, componentIdentifierSerializer, componentSelectorSerializer, resolvedVariantResultSerializer, componentSelectionReasonSerializer);
         });
+    }
+
+    private static Serializer<ComponentSelector> newDeduplicatingComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer) {
+        return new DeduplicatingComponentSelectorSerializer(
+            new ComponentSelectorSerializer(
+                new DeduplicatingAttributeContainerSerializer(attributeContainerSerializer)
+            )
+        );
     }
 
     @Override

@@ -516,6 +516,7 @@ project(':tool') {
                 project(":api", "test:api:") {
                     edge("org:foo:1.4.4", "org:foo:1.4.9") {
                         forced()
+                        notRequested() // Forcing substitutes the original requested dependency
                         byReason("didn't match version 1.6.0")
                     }
                 }

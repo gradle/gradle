@@ -62,7 +62,7 @@ class VariantResolvingArtifactSetTest extends Specification {
             getExclusions() >> Mock(ExcludeSpec)
             getAttributes() >> ImmutableAttributes.EMPTY
             getSelector() >> Mock(DependencyGraphSelector) {
-                getRequested() >> Mock(ComponentSelector) {
+                getComponentSelector() >> Mock(ComponentSelector) {
                     getRequestedCapabilities() >> []
                 }
             }

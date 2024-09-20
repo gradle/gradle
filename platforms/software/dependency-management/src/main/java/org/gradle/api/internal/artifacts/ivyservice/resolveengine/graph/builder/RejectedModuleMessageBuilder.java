@@ -63,7 +63,7 @@ class RejectedModuleMessageBuilder {
     }
 
     private static void renderSelector(StringBuilder sb, SelectorState selectorState) {
-        sb.append('\'').append(selectorState.getRequested()).append('\'');
+        sb.append('\'').append(selectorState.getComponentSelector()).append('\'');
     }
 
     private static void renderReason(StringBuilder sb, SelectorState selector) {

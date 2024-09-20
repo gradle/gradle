@@ -31,15 +31,24 @@ public class DependencyResultSerializer {
     private final static byte SUCCESSFUL = 0;
     private final static byte SUCCESSFUL_NOTHING_SELECTED = 1;
     private final static byte FAILED = 2;
-    private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer;
 
-    public DependencyResultSerializer(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+    private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer;
+    private final DeduplicatingComponentSelectorSerializer componentSelectorSerializer;
+
+    public DependencyResultSerializer(
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        DeduplicatingComponentSelectorSerializer componentSelectorSerializer
+    ) {
         this.componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
+        this.componentSelectorSerializer = componentSelectorSerializer;
     }
 
-    public ResolvedGraphDependency read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
-        long selectorId = decoder.readSmallLong();
-        ComponentSelector requested = selectors.get(selectorId);
+    void reset() {
+        componentSelectorSerializer.reset();
+    }
+
+    public ResolvedGraphDependency read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
+        ComponentSelector requested = componentSelectorSerializer.read(decoder);
         boolean constraint = decoder.readBoolean();
         long fromVariant = decoder.readSmallLong();
         byte resultByte = decoder.readByte();
@@ -60,7 +69,7 @@ public class DependencyResultSerializer {
     }
 
     public void write(Encoder encoder, DependencyGraphEdge value) throws IOException {
-        encoder.writeSmallLong(value.getSelector().getResultId());
+        componentSelectorSerializer.write(encoder, value.getRequested());
         encoder.writeBoolean(value.isConstraint());
         encoder.writeSmallLong(value.getFromVariant());
         if (value.getFailure() == null) {

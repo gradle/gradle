@@ -178,9 +178,8 @@ class EdgeState implements DependencyGraphEdge {
      * end fail resolution.
      */
     void failWith(Throwable err) {
-        targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
+        targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getComponentSelector(), err);
     }
-
 
     public void restart() {
         if (from.isSelected()) {
@@ -262,7 +261,7 @@ class EdgeState implements DependencyGraphEdge {
             attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
             targetVariants = dependencyMetadata.selectVariants(resolveState.getVariantSelector(), attributes, targetComponentState, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
         } catch (AttributeMergingException mergeError) {
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getComponentSelector(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
                 Object constraintValue = mergeError.getLeftValue();
                 Object dependencyValue = mergeError.getRightValue();
@@ -271,7 +270,7 @@ class EdgeState implements DependencyGraphEdge {
             return;
         } catch (Exception t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
+            targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getComponentSelector(), t);
             return;
         }
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
@@ -281,7 +280,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     private boolean isVirtualDependency() {
-        return selector.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata;
+        return dependencyMetadata instanceof LenientPlatformDependencyMetadata;
     }
 
     @Override
@@ -326,6 +325,8 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ComponentSelector getRequested() {
+        // TODO: Desugaring should happen on the consuming side by the visitors
+        //  when we are producing the user-facing results.
         return resolveState.desugarSelector(dependencyState.getRequested());
     }
 
