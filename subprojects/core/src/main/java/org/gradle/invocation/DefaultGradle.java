@@ -61,6 +61,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -642,12 +643,14 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
         @Override
         public void beforeProject(IsolatedAction<? super Project> action) {
+            nagUser();
             assertBeforeProjectsLoaded("beforeProject");
             gradle.isolatedProjectEvaluationListenerProvider.beforeProject(action);
         }
 
         @Override
         public void afterProject(IsolatedAction<? super Project> action) {
+            nagUser();
             assertBeforeProjectsLoaded("afterProject");
             gradle.isolatedProjectEvaluationListenerProvider.afterProject(action);
         }
@@ -656,6 +659,14 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             if (gradle.projectsLoaded) {
                 throw new IllegalStateException("GradleLifecycle#" + methodName + " cannot be called after settings have been evaluated.");
             }
+        }
+
+        private static void nagUser() {
+            DeprecationLogger.deprecate("Usage of GradleLifecycle")
+                .withAdvice("Use SomeBuildLifecycle instead")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "TODO_UPGRADE_GUIDE_SECTION") // TODO: upgrade guide section
+                .nagUser();
         }
     }
 }
