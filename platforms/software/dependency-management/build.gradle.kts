@@ -127,6 +127,7 @@ dependencies {
     integTestImplementation(libs.socksProxy) {
         because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
     }
+    integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.security))
     integTestImplementation(testFixtures(projects.modelCore))
 
