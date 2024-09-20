@@ -170,7 +170,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         first(a.dependents).from.is(c)
     }
 
-    def "accumulates and avoids duplicate dependencies"() {
+    def "accumulates dependencies"() {
         given:
         node("root")
         node("mid1")
@@ -179,9 +179,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
 
         resolvedConf("root", [dep("root", "mid1")])
 
-        resolvedConf("mid1", [dep("mid1", "leaf1")])
-        resolvedConf("mid1", [dep("mid1", "leaf1")]) //dupe
-        resolvedConf("mid1", [dep("mid1", "leaf2")])
+        resolvedConf("mid1", [dep("mid1", "leaf1"), dep("mid1", "leaf2")])
 
         resolvedConf("leaf1", [])
         resolvedConf("leaf2", [])
@@ -205,9 +203,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         node("leaf2")
         resolvedConf("root", [dep("root", "mid1")])
 
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("foo!"))])
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("bar!"))]) //dupe
-        resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
+        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("foo!")), dep("mid1", "leaf2", new RuntimeException("baz!"))])
 
         when:
         def result = builder.getRoot(id("root"))
@@ -253,7 +249,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
     }
 
     private void resolvedConf(String module, List<ResolvedGraphDependency> deps) {
-        builder.visitOutgoingEdges(id(module), deps)
+        builder.visitOutgoingEdges(id(module), id(module), deps)
     }
 
     private ResolvedGraphDependency dep(String from, String requested, Exception failure = null, String selected = requested) {

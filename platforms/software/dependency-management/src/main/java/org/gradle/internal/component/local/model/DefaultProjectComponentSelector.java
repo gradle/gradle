@@ -27,13 +27,14 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.Objects;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
 
     private final ProjectIdentity projectIdentity;
     private final ImmutableAttributes attributes;
     private final List<Capability> requestedCapabilities;
+
+    private final int hashCode;
 
     public DefaultProjectComponentSelector(
         ProjectIdentity projectIdentity,
@@ -43,6 +44,19 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         this.projectIdentity = projectIdentity;
         this.attributes = attributes;
         this.requestedCapabilities = requestedCapabilities;
+
+        this.hashCode = computeHashCode(projectIdentity, attributes, requestedCapabilities);
+    }
+
+    private static int computeHashCode(
+        ProjectIdentity projectIdentity,
+        ImmutableAttributes attributes,
+        List<Capability> requestedCapabilities
+    ) {
+        int result = projectIdentity.hashCode();
+        result = 31 * result + attributes.hashCode();
+        result = 31 * result + requestedCapabilities.hashCode();
+        return result;
     }
 
     @Override
@@ -123,7 +137,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectIdentity, attributes, requestedCapabilities);
+        return hashCode;
     }
 
     @Override

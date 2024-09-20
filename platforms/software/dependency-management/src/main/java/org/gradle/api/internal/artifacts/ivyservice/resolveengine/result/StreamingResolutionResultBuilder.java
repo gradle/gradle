@@ -129,16 +129,19 @@ public class StreamingResolutionResultBuilder implements ResolutionResultGraphVi
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
-        final Long fromComponent = node.getOwner().getResultId();
+        long fromComponentId = node.getOwner().getResultId();
+        long fromNodeId = node.getNodeId();
+
         final Collection<? extends DependencyGraphEdge> dependencies = mayHaveVirtualPlatforms
             ? node.getOutgoingEdges().stream()
-            .filter(dep -> !dep.isTargetVirtualPlatform())
-            .collect(Collectors.toList())
+                .filter(dep -> !dep.isTargetVirtualPlatform())
+                .collect(Collectors.toList())
             : node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(encoder -> {
                 encoder.writeByte(DEPENDENCY);
-                encoder.writeSmallLong(fromComponent);
+                encoder.writeSmallLong(fromComponentId);
+                encoder.writeSmallLong(fromNodeId);
                 encoder.writeSmallInt(dependencies.size());
                 for (DependencyGraphEdge dependency : dependencies) {
                     dependencyResultSerializer.write(encoder, dependency);
@@ -220,14 +223,15 @@ public class StreamingResolutionResultBuilder implements ResolutionResultGraphVi
                             selectors.put(id, selector);
                             break;
                         case DEPENDENCY:
-                            Long fromId = decoder.readSmallLong();
+                            long fromComponentId = decoder.readSmallLong();
+                            long fromNodeId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
                             if (size > 0) {
                                 List<ResolvedGraphDependency> deps = new ArrayList<>(size);
                                 for (int i = 0; i < size; i++) {
                                     deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
                                 }
-                                builder.visitOutgoingEdges(fromId, deps);
+                                builder.visitOutgoingEdges(fromComponentId, fromNodeId, deps);
                             }
                             break;
                         default:

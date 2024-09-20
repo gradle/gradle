@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -31,6 +30,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final List<ResolvedVariantResult> allVariants;
     private final String repositoryName;
-    private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = LinkedHashMultimap.create();
+    private final Map<ResolvedVariantResult, ImmutableSet<DependencyResult>> variantDependencies = new HashMap<>();
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId,
@@ -149,8 +149,12 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return selectedVariantsById.get(id);
     }
 
-    public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
-        variantDependencies.put(fromVariant, dependencyResult);
+    public void setVariantDependencies(ResolvedVariantResult fromVariant, ImmutableSet<DependencyResult> deps) {
+        ImmutableSet<DependencyResult> previous = this.variantDependencies.put(fromVariant, deps);
+        assert previous == null : "cannot set dependencies for variant more than once";
+
+        // Also add these dependencies to the component's dependencies
+        this.dependencies.addAll(deps);
     }
 
     /**

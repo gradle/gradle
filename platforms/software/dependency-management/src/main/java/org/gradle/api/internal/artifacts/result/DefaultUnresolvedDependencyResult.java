@@ -22,15 +22,45 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
+public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyResult {
+
+    private final ComponentSelector requested;
+    private final ResolvedComponentResult from;
+    private final boolean constraint;
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
 
-    public DefaultUnresolvedDependencyResult(ComponentSelector requested, boolean constraint, ComponentSelectionReason reason,
-                                             ResolvedComponentResult from, ModuleVersionResolveException failure) {
-        super(requested, from, constraint);
+    private final int hashCode;
+
+    public DefaultUnresolvedDependencyResult(
+        ComponentSelector requested,
+        boolean constraint,
+        ComponentSelectionReason reason,
+        ResolvedComponentResult from,
+        ModuleVersionResolveException failure
+    ) {
+        this.from = from;
+        this.requested = requested;
+        this.constraint = constraint;
         this.reason = reason;
         this.failure = failure;
+
+        this.hashCode = computeHashCode(from, requested, constraint, reason, failure);
+    }
+
+    @Override
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
+    @Override
+    public ResolvedComponentResult getFrom() {
+        return from;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 
     @Override
@@ -51,5 +81,43 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
     @Override
     public String toString() {
         return getRequested() + " -> " + getAttempted() + " - " + failure.getMessage();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultUnresolvedDependencyResult that = (DefaultUnresolvedDependencyResult) o;
+
+        return constraint == that.constraint &&
+            requested.equals(that.requested) &&
+            from.equals(that.from) &&
+            reason.equals(that.reason) &&
+            failure.equals(that.failure);
+    }
+
+    private static int computeHashCode(
+        ResolvedComponentResult from,
+        ComponentSelector requested,
+        boolean constraint,
+        ComponentSelectionReason reason,
+        ModuleVersionResolveException failure
+    ) {
+        int result = requested.hashCode();
+        result = 31 * result + from.hashCode();
+        result = 31 * result + Boolean.hashCode(constraint);
+        result = 31 * result + reason.hashCode();
+        result = 31 * result + failure.hashCode();
+        return result;
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 }

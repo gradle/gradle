@@ -95,7 +95,7 @@ public class InMemoryResolutionResultBuilder implements ResolutionResultGraphVis
                 .filter(dep -> !dep.isTargetVirtualPlatform())
                 .collect(Collectors.toList())
             : node.getOutgoingEdges();
-        resolutionResultBuilder.visitOutgoingEdges(node.getOwner().getResultId(), dependencies);
+        resolutionResultBuilder.visitOutgoingEdges(node.getOwner().getResultId(), node.getNodeId(), dependencies);
     }
 
     @Override
