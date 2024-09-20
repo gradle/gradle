@@ -91,7 +91,8 @@ class PrintAccessorsTest {
                         ConfigurationEntry("dots.not.allowed"),
                     ),
                     containerElements = listOf(),
-                    modelDefaults = listOf()
+                    modelDefaults = listOf(),
+                    containerElementFactories = listOf()
                 )
             )
         }.withoutTrailingWhitespace()
