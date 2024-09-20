@@ -197,12 +197,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder pluginLocation(String pluginId) {
-        this.addLocation(new DefaultPluginIdLocation(pluginId));
-        return this;
-    }
-
-    @Override
     public InternalProblemBuilder stackLocation() {
         this.collectLocation = true;
         return this;

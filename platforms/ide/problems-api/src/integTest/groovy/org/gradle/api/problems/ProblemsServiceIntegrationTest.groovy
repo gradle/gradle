@@ -18,7 +18,6 @@ package org.gradle.api.problems
 
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
-import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -186,33 +185,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 column == 2
                 line == 1
                 path == 'test-location'
-            }
-            with(get(1) as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 11
-                path == "build file '$buildFile.absolutePath'"
-            }
-        }
-    }
-
-    def "can emit a problem with plugin location specified"() {
-        given:
-        withReportProblemTask """
-            problems.getReporter().reporting {
-                it.id('type', 'label')
-                .pluginLocation("org.example.pluginid")
-            }
-        """
-
-        when:
-        run('reportProblem')
-
-        then:
-        verifyAll(receivedProblem.locations) {
-            size() == 2
-            with(get(0) as PluginIdLocation) {
-                pluginId == 'org.example.pluginid'
             }
             with(get(1) as LineInFileLocation) {
                 length == -1

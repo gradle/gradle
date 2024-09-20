@@ -60,9 +60,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemBuilder pluginLocation(String pluginId);
-
-    @Override
     InternalProblemBuilder stackLocation();
 
     @Override
