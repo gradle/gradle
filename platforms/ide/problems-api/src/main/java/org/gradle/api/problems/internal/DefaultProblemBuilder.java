@@ -41,7 +41,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private String details;
     private DocLink docLink;
     private List<String> solutions;
-    private RuntimeException exception;
+    private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
@@ -88,7 +88,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
                 "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
         }
 
-        RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
+        Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
         if (problemStream != null) {
             addLocationsFromProblemStream(this.locations, exceptionForProblemInstantiation);
         }
@@ -97,7 +97,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations.build(), details, exceptionForProblemInstantiation, additionalData);
     }
 
-    private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, RuntimeException exceptionForProblemInstantiation) {
+    private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, Throwable exceptionForProblemInstantiation) {
         assert problemStream != null;
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
         Location loc = problemDiagnostics.getLocation();
@@ -126,7 +126,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             "Problems API")
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.id, Severity.WARNING, null);
-        RuntimeException exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
+        Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
         ImmutableList.Builder<ProblemLocation> problemLocations = ImmutableList.builder();
         addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
         return new DefaultProblem(problemDefinition, contextualLabel,
@@ -137,7 +137,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             null);
     }
 
-    public RuntimeException getExceptionForProblemInstantiation() {
+    public Throwable getExceptionForProblemInstantiation() {
         return getException() == null && collectLocation ? new RuntimeException() : getException();
     }
 
@@ -260,13 +260,13 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder withException(RuntimeException e) {
-        this.exception = e;
+    public InternalProblemBuilder withException(Throwable t) {
+        this.exception = t;
         return this;
     }
 
     @Nullable
-    RuntimeException getException() {
+    Throwable getException() {
         return exception;
     }
 

@@ -60,7 +60,7 @@ public interface Problem {
      * The exception that caused the problem.
      */
     @Nullable
-    RuntimeException getException();
+    Throwable getException();
 
     /**
      * Additional data attached to the problem.

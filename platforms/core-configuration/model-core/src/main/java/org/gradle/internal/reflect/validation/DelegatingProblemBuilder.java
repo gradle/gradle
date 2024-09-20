@@ -117,8 +117,8 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder withException(RuntimeException e) {
-        return validateDelegate(delegate.withException(e));
+    public InternalProblemBuilder withException(Throwable t) {
+        return validateDelegate(delegate.withException(t));
     }
 
     @Override
