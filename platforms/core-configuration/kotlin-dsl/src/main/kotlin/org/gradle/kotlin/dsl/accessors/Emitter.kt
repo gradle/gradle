@@ -224,7 +224,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
 
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
-            yieldAll(uniqueContainerElementFactories(containerElementFactories.map(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
+            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
         }
     }
 }
@@ -238,8 +238,12 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
-private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) =
-    TypedContainerElementFactoryEntry(AccessorNameSpec(containerElementFactoryEntry.factoryName), containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) : TypedContainerElementFactoryEntry? {
+    val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
+    return name?.let {
+        TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
+    }
+}
 
 private
 inline fun <reified T> accessibleType() =
