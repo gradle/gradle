@@ -119,7 +119,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
         def variants = [variant1, variant2]
-        def transformedVariants = variants.collect { transformedVariant(it, requested)}
+        def transformedVariants = variants.collect { transformedVariant(it, it.attributes, requested)}
 
         given:
         set.schema >> producerSchema
@@ -244,10 +244,17 @@ Found the following transforms:
         attributeContainer.asImmutable()
     }
 
-    TransformedVariant transformedVariant(ResolvedVariant root, AttributeContainerInternal attributes) {
-        ImmutableAttributes attrs = attributes.asImmutable()
+    TransformedVariant transformedVariant(ResolvedVariant root, AttributeContainerInternal fromAttributes, AttributeContainerInternal toAttributes) {
+        ImmutableAttributes attrs = toAttributes.asImmutable()
+        Transform transform = Mock(Transform) {
+            getDisplayName() >> ""
+            getFromAttributes() >> fromAttributes
+            getToAttributes() >> toAttributes
+        }
         TransformStep step = Mock(TransformStep) {
             getDisplayName() >> ""
+            getTransform() >> transform
+            getFromAttributes() >> fromAttributes
         }
         VariantDefinition definition = Mock(VariantDefinition) {
             getTransformChain() >> new TransformChain(null, step)
