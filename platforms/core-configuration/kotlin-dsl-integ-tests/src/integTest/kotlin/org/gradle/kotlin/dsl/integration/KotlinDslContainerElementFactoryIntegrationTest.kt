@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
 
@@ -104,5 +104,5 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
     }
 
     private val enableDclCliFlag =
-        "-D${StartParameterBuildOptions.KotlinDslDslEnabledOption.PROPERTY_NAME}=true"
+        "-D${DCL_ENABLED_PROPERTY_NAME}=true"
 }

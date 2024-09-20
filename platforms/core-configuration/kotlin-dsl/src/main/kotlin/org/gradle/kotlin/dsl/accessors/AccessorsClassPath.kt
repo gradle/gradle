@@ -20,11 +20,11 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -56,6 +56,7 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
@@ -124,12 +125,16 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     }
 }
 
-fun isDclEnabledForScriptTarget(target: Any): Boolean =
-    when (target) {
-        is Project -> target.serviceOf<StartParameterInternal>().isKotlinDslDclEnabled
-        is Settings -> target.serviceOf<StartParameterInternal>().isKotlinDslDclEnabled
-        else -> false
+fun isDclEnabledForScriptTarget(target: Any): Boolean {
+    val gradleProperties = when (target) {
+        is Project -> target.serviceOf<GradlePropertiesController>()
+        is Settings -> target.serviceOf<GradlePropertiesController>()
+        else -> null
     }
+    return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
+}
+
+const val DCL_ENABLED_PROPERTY_NAME = "org.gradle.kotlin.dsl.dcl"
 
 internal
 class GenerateProjectAccessors(
