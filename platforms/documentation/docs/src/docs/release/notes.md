@@ -1,11 +1,14 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This is the first patch release for Gradle 8.10.
+This is the second patch release for Gradle 8.10.
 
 It fixes the following issues:
 * [#30239](https://github.com/gradle/gradle/issues/30239) Gradle 8.10 Significantly Slower Due to Dependency Resolution
 * [#30272](https://github.com/gradle/gradle/issues/30272) Broken equals() contract for LifecycleAwareProject
 * [#30385](https://github.com/gradle/gradle/issues/30385) Gradle should not validate isolated projects when isolated projects is disabled
+* [#30497](https://github.com/gradle/gradle/issues/30497) DefaultTaskCollection#configureEach(Action) on task set cannot be executed in the current context
+* [#30477](https://github.com/gradle/gradle/issues/30477) Kotlin Mutliplatform build with reused daemon fails with "Cannot query the value of task ':compileKotlinWindows' property 'kotlinNativeBundleBuildService' because it has no value available."
+* [#30498](https://github.com/gradle/gradle/issues/30498) ClassNotFoundException: com.gradle.develocity.agent.a.a.a
 
 We recommend users upgrade to @version@ instead of 8.10.
 
