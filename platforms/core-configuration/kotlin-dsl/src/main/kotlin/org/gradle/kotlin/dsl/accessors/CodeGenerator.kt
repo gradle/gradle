@@ -283,8 +283,7 @@ val thisConvention =
 
 internal
 class AccessorNameSpec private constructor(val original: String) {
-
-    val kotlinIdentifier
+    val kotlinIdentifier: String
         get() = original
 
     val stringLiteral by unsafeLazy {
