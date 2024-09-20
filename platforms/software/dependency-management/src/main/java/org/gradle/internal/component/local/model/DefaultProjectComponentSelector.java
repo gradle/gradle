@@ -18,7 +18,7 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.artifacts.capability.SpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;

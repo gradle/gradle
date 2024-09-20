@@ -18,8 +18,8 @@ package org.gradle.internal.component.resolution.failure;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
-import org.gradle.api.artifacts.capability.SpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;

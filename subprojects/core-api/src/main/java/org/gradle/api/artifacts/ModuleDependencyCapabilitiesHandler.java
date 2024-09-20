@@ -32,8 +32,6 @@ import org.gradle.internal.HasInternalProtocol;
 public interface ModuleDependencyCapabilitiesHandler {
     /**
      * Requires a single capability.
-     * <p>
-     * Contributes a {@link org.gradle.api.artifacts.capability.SpecificCapabilitySelector} to this dependency.
      *
      * @param capabilityNotation the capability {@linkplain ConfigurationPublications#capability(Object) notation} (e.g. group:name:version), {@linkplain Provider Providers} of any notation are also accepted
      */
@@ -42,8 +40,6 @@ public interface ModuleDependencyCapabilitiesHandler {
     /**
      * Requires multiple capabilities. The selected variants MUST provide ALL of them
      * to be selected.
-     * <p>
-     * Contributes {@link org.gradle.api.artifacts.capability.SpecificCapabilitySelector}s to this dependency.
      *
      * @param capabilityNotations the capability {@linkplain ConfigurationPublications#capability(Object) notations} (e.g. group:name:version), {@linkplain Provider Providers} of any notation are also accepted
      */
@@ -55,8 +51,6 @@ public interface ModuleDependencyCapabilitiesHandler {
      * A capability is derived from a feature based on the module identity of the component that a dependency
      * resolves to. For example, variant of a component with module identity 'group:name:version' that provides
      * a feature named 'test-fixtures' would have a capability 'group:name-test-fixtures:version'.
-     * <p>
-     * Contributes a {@link org.gradle.api.artifacts.capability.FeatureCapabilitySelector} to this dependency.
      *
      * @param featureName The name of the feature to require
      *

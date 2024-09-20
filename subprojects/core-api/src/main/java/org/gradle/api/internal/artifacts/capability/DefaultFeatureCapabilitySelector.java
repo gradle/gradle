@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.capability;
 
-import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 /**

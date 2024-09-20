@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.capability;
+package org.gradle.api.internal.artifacts.capability;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 
 /**
  * A {@link CapabilitySelector} that selects a specific capability by group and name.
  *
- * @since 8.11
+ * TODO: Make this public eventually. This was made private while we are
+ *       still determining the best way to model these selectors.
  */
-@Incubating
 public interface SpecificCapabilitySelector extends CapabilitySelector {
 
     /**
      * The group of the capability to select.
-     *
-     * @since 8.11
      */
     String getGroup();
 
     /**
      * The name of the capability to select.
-     *
-     * @since 8.11
      */
     String getName();
 

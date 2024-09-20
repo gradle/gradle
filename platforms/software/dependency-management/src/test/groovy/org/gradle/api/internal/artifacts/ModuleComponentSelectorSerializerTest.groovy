@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.artifacts.capability.SpecificCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint

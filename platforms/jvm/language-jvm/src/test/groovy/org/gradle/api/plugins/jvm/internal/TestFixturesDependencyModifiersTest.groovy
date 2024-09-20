@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.artifacts.capability.FeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory

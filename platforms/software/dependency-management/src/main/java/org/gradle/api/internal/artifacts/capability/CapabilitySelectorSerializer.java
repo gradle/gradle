@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.capability;
 
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -28,20 +26,20 @@ import java.io.IOException;
 
 public class CapabilitySelectorSerializer implements Serializer<CapabilitySelector> {
 
-    private static final int EXACT_CAPABILITY_SELECTOR = 1;
+    private static final int SPECIFIC_CAPABILITY_SELECTOR = 1;
     private static final int FEATURE_CAPABILITY_SELECTOR = 2;
 
     @Override
     public CapabilitySelector read(Decoder decoder) throws IOException {
         int type = decoder.readSmallInt();
         switch (type) {
-            case EXACT_CAPABILITY_SELECTOR: return readExactCapabilitySelector(decoder);
+            case SPECIFIC_CAPABILITY_SELECTOR: return readSpecificCapabilitySelector(decoder);
             case FEATURE_CAPABILITY_SELECTOR: return readFeatureCapabilitySelector(decoder);
             default: throw new IllegalArgumentException("Unknown capability selector type: " + type);
         }
     }
 
-    private static CapabilitySelector readExactCapabilitySelector(Decoder decoder) throws IOException {
+    private static CapabilitySelector readSpecificCapabilitySelector(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
         String version = decoder.readNullableString();
@@ -56,8 +54,8 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     @Override
     public void write(Encoder encoder, CapabilitySelector value) throws IOException {
         if (value instanceof SpecificCapabilitySelector) {
-            encoder.writeSmallInt(EXACT_CAPABILITY_SELECTOR);
-            writeExactCapabilitySelector(encoder, (DefaultSpecificCapabilitySelector) value);
+            encoder.writeSmallInt(SPECIFIC_CAPABILITY_SELECTOR);
+            writeSpecificCapabilitySelector(encoder, (DefaultSpecificCapabilitySelector) value);
         } else if (value instanceof FeatureCapabilitySelector) {
             encoder.writeSmallInt(FEATURE_CAPABILITY_SELECTOR);
             writeFeatureCapabilitySelector(encoder, (FeatureCapabilitySelector) value);
@@ -67,7 +65,7 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     }
 
     @SuppressWarnings("deprecation")
-    private static void writeExactCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value) throws IOException {
+    private static void writeSpecificCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
         encoder.writeNullableString(value.getBackingCapability().getVersion());

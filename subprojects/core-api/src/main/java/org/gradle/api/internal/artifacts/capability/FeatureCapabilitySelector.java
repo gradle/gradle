@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.capability;
+package org.gradle.api.internal.artifacts.capability;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 
 /**
  * A capability selector that dynamically derives the capability
@@ -27,17 +27,15 @@ import org.gradle.api.Incubating;
  * is attached to a component selector that resolves to a component with module coordinates
  * 'group:name:version', the resolved capability will be 'group:name-test-fixtures:version'.
  *
- * @since 8.11
+ * TODO: Make this public eventually. This was made private while we are
+ *       still determining the best way to model these selectors.
  */
-@Incubating
 public interface FeatureCapabilitySelector extends CapabilitySelector {
 
     /**
      * The name of the feature to select.
      *
      * @return The feature name
-     *
-     * @since 8.11
      */
     String getFeatureName();
 
