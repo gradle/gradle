@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -70,16 +69,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public String getPath() {
         return delegate.getPath();
-    }
-
-    @Override
-    public String getBuildTreePath() {
-        return delegate.getBuildTreePath();
-    }
-
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return delegate.getBuildIdentifier();
     }
 
     @Override

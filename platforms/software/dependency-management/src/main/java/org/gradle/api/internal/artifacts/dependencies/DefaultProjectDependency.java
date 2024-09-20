@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
@@ -72,16 +71,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public String getPath() {
         return dependencyProject.getPath();
-    }
-
-    @Override
-    public String getBuildTreePath() {
-        return dependencyProject.getBuildTreePath();
-    }
-
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return dependencyProject.getOwner().getOwner().getBuildIdentifier();
     }
 
     @Override

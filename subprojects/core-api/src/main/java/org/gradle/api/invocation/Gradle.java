@@ -25,7 +25,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.flow.FlowProviders;
 import org.gradle.api.initialization.IncludedBuild;
@@ -46,14 +45,6 @@ import java.util.Collection;
  */
 @HasInternalProtocol
 public interface Gradle extends PluginAware, ExtensionAware {
-
-    /**
-     * Get the identifier of the build that this Gradle instance represents.
-     *
-     * @since 8.11
-     */
-    BuildIdentifier getBuildIdentifier();
-
     /**
      * Returns the current Gradle version.
      *

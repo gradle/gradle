@@ -36,9 +36,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
 
         buildFile << """
-            assert project(":one").buildTreePath == projects.one.buildTreePath
-            assert project(":one:other").buildTreePath == projects.one.other.buildTreePath
-            assert project(":two:other").buildTreePath == projects.two.other.buildTreePath
+            assert project(":one").path == projects.one.path
+            assert project(":one:other").path == projects.one.other.path
+            assert project(":two:other").path == projects.two.other.path
         """
 
         when:
@@ -99,9 +99,9 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
 
         buildFile << """
-            assert project(":one").buildTreePath == ts.one.buildTreePath
-            assert project(":one:other").buildTreePath == ts.one.other.buildTreePath
-            assert project(":two:other").buildTreePath == ts.two.other.buildTreePath
+            assert project(":one").path == ts.one.path
+            assert project(":one:other").path == ts.one.other.path
+            assert project(":two:other").path == ts.two.other.path
         """
 
         when:
@@ -114,7 +114,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     def "can refer to the root project via its name"() {
         given:
         buildFile << """
-            assert project(":").buildTreePath == projects.typesafeProjectAccessors.buildTreePath
+            assert project(":").path == projects.typesafeProjectAccessors.path
         """
 
         when:
@@ -153,8 +153,8 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     def "buildSrc project accessors are independent from the main build accessors"() {
         given:
         file("buildSrc/build.gradle") << """
-            assert project(":one").buildTreePath == projects.one.buildTreePath
-            assert project(":two").buildTreePath == projects.two.buildTreePath
+            assert project(":one").path == projects.one.path
+            assert project(":two").path == projects.two.path
         """
         createDirs("buildSrc/one", "buildSrc/two")
         file("buildSrc/settings.gradle") << """
@@ -169,8 +169,8 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
 
         buildFile << """
-            assert project(":one").buildTreePath == projects.one.buildTreePath
-            assert project(":two").buildTreePath == projects.two.buildTreePath
+            assert project(":one").path == projects.one.path
+            assert project(":two").path == projects.two.path
         """
 
         when:
@@ -190,7 +190,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
             include 'one'
         """
         file("project/build.gradle") << """
-            assert project(":one").buildTreePath == projects.one.buildTreePath
+            assert project(":one").path == projects.one.path
         """
         FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("project/settings.gradle"))
 
@@ -221,7 +221,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         """
 
         buildFile << """
-            assert project(":one").buildTreePath == projects.one.buildTreePath
+            assert project(":one").path == projects.one.path
         """
 
         //run once

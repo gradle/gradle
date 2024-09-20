@@ -28,7 +28,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
@@ -41,7 +40,6 @@ import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.SettingsState
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -67,9 +65,6 @@ class DefaultGradleSpec extends Specification {
     ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
     ListenerManager listenerManager = Spy(TestListenerManager)
 
-    BuildState owner = Mock(BuildState) {
-        getBuildIdentifier() >> DefaultBuildIdentifier.ROOT
-    }
     StartParameterInternal parameter = new StartParameterInternal()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
@@ -102,7 +97,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
         _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
         _ * serviceRegistry.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
-        _ * serviceRegistry.get(BuildState) >> owner
         _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
             newInstance(LifecycleAwareProject, _, _, _) >> { args ->
                 def params = args[1]
@@ -111,11 +105,6 @@ class DefaultGradleSpec extends Specification {
         }
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
-    }
-
-    def "exposes identifier"() {
-        expect:
-        gradle.buildIdentifier == owner.buildIdentifier
     }
 
     def "uses gradle version"() {

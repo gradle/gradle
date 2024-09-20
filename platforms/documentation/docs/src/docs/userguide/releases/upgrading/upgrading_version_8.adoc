@@ -163,11 +163,7 @@ The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDepend
 
 Accessing the mutable project instance of other projects should be avoided.
 
-Instead, use the new Isolated Projects safe project identity accessor methods available on `ProjectDependency`:
-
-- link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`]
-- link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getBuildTreePath()[`ProjectDependency#getBuildTreePath()`]
-- link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getBuildIdentifier()[`ProjectDependency#getBuildIdentifier()`]
+Instead, use the new Isolated Projects safe project path method: link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`]
 
 If accessing the target project is absolutely necessary, consider this direct replacement:
 Note, this approach will not fetch project instances from a different build.
