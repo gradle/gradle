@@ -24,12 +24,12 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -54,10 +54,11 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
             Stub(ComponentIdGenerator),
             configurationMetadataBuilder,
             TestUtil.calculatedValueContainerFactory()
-        )
+        ),
+        AttributeTestUtil.services().getSchemaFactory()
     )
 
-    def builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, EmptySchema.INSTANCE)
+    def builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, AttributeTestUtil.mutableSchema())
 
     def "caches root component resolve state and metadata"() {
         configurationsProvider.findByName('conf') >> resolvable()

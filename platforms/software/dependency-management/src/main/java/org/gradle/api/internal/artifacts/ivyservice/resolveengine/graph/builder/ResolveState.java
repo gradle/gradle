@@ -39,8 +39,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -77,12 +78,13 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
     private final ConflictResolution conflictResolution;
-    private final AttributesSchemaInternal attributesSchema;
+    private final ImmutableAttributesSchema consumerSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
@@ -100,10 +102,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         DependencyToComponentIdResolver idResolver,
         ComponentMetaDataResolver metaDataResolver,
         Spec<? super DependencyMetadata> edgeFilter,
-        AttributesSchemaInternal attributesSchema,
         ModuleExclusions moduleExclusions,
         ComponentSelectorConverter componentSelectorConverter,
         ImmutableAttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         AttributeDesugaring attributeDesugaring,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         VersionSelectorScheme versionSelectorScheme,
@@ -118,10 +120,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
         this.edgeFilter = edgeFilter;
-        this.attributesSchema = attributesSchema;
         this.moduleExclusions = moduleExclusions;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator.asVersionComparator();
@@ -137,6 +139,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         VariantGraphResolveState rootVariant = root.getRootVariant();
         ModuleVersionIdentifier rootModuleVersionId = root.getModuleVersionIdentifier();
         ComponentIdentifier rootComponentId = root.getComponentIdentifier();
+        this.consumerSchema = rootComponentState.getMetadata().getAttributesSchema();
 
         int graphSize = estimateGraphSize(rootVariant);
         this.modules = new LinkedHashMap<>(graphSize);
@@ -261,8 +264,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         }
     }
 
-    public AttributesSchemaInternal getAttributesSchema() {
-        return attributesSchema;
+    public ImmutableAttributesSchema getConsumerSchema() {
+        return consumerSchema;
     }
 
     public ModuleExclusions getModuleExclusions() {
@@ -283,6 +286,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
+    }
+
+    public AttributeSchemaServices getAttributeSchemaServices() {
+        return attributeSchemaServices;
     }
 
     public DependencySubstitutionApplicator getDependencySubstitutionApplicator() {

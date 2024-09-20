@@ -133,14 +133,16 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return Collections.emptyList();
         }
 
+        CoercingAttributeValuePredicate matches = schema::matchValue;
+
         ImmutableSet<Attribute<?>> attributes = requested.keySet();
         List<AttributeMatcher.MatchingDescription<?>> result = new ArrayList<>(attributes.size());
         for (Attribute<?> attribute : attributes) {
             AttributeValue<?> requestedValue = requested.findEntry(attribute);
             AttributeValue<?> candidateValue = candidate.findEntry(attribute.getName());
             if (candidateValue.isPresent()) {
-                Object coercedValue = candidateValue.coerce(attribute);
-                boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
+                Attribute<?> typedAttribute = schema.tryRehydrate(attribute);
+                boolean match = matches.test(typedAttribute, requestedValue, candidateValue);
                 result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, match));
             } else {
                 result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, false));

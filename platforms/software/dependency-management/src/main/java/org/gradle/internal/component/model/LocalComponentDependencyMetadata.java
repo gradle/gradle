@@ -20,8 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -96,7 +96,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema,
+        ImmutableAttributesSchema consumerSchema,
         Collection<? extends Capability> explicitRequestedCapabilities
     ) {
         // If a specific variant is requested by name, select it.

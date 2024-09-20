@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -54,13 +54,13 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final ComponentGraphResolveState component;
     private final VariantGraphResolveState variant;
     private final ComponentIdentifier componentId;
-    private final AttributesSchemaInternal producerSchema;
+    private final ImmutableAttributesSchema producerSchema;
     private final ImmutableAttributes overriddenAttributes;
     private final List<IvyArtifactName> artifacts;
     private final ExcludeSpec exclusions;
     private final List<Capability> capabilities;
     private final GraphVariantSelector graphVariantSelector;
-    private final AttributesSchemaInternal consumerSchema;
+    private final ImmutableAttributesSchema consumerSchema;
 
     private final CalculatedValue<ImmutableList<ResolvedVariant>> ownArtifacts;
 
@@ -70,7 +70,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         VariantGraphResolveState variant,
         DependencyGraphEdge dependency,
         GraphVariantSelector graphVariantSelector,
-        AttributesSchemaInternal consumerSchema,
+        ImmutableAttributesSchema consumerSchema,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.variantResolver = variantResolver;

@@ -19,15 +19,11 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
-import org.gradle.api.internal.attributes.matching.AttributeMatcher;
-import org.gradle.api.internal.attributes.matching.CachingAttributeSelectionSchema;
-import org.gradle.api.internal.attributes.matching.DefaultAttributeMatcher;
-import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema;
-import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,30 +31,30 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
 
-    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = new HashMap<>();
-    private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
+    private final Map<Attribute<?>, DefaultAttributeMatchingStrategy<?>> strategies = new HashMap<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
 
-    private final Map<AttributesSchemaInternal, AttributeMatcher> matcherCache = new ConcurrentHashMap<>();
-
+    @Inject
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
     }
 
+    // region public API
+
     @Override
+    @SuppressWarnings("unchecked")
     public <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) {
-        AttributeMatchingStrategy<?> strategy = strategies.get(attribute);
+        AttributeMatchingStrategy<T> strategy = (DefaultAttributeMatchingStrategy<T>) strategies.get(attribute);
         if (strategy == null) {
             throw new IllegalArgumentException("Unable to find matching strategy for " + attribute);
         }
-        return Cast.uncheckedCast(strategy);
+        return strategy;
     }
 
     @Override
@@ -68,14 +64,19 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
 
     @Override
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, @Nullable Action<? super AttributeMatchingStrategy<T>> configureAction) {
-        AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
-        if (strategy == null) {
-            strategy = Cast.uncheckedCast(instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
-            strategies.put(attribute, strategy);
-            attributesByName.put(attribute.getName(), attribute);
-        }
+        AttributeMatchingStrategy<T> strategy = getStrategy(attribute);
         if (configureAction != null) {
             configureAction.execute(strategy);
+        }
+        return strategy;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> AttributeMatchingStrategy<T> getStrategy(Attribute<T> attribute) {
+        DefaultAttributeMatchingStrategy<T> strategy = (DefaultAttributeMatchingStrategy<T>) strategies.get(attribute);
+        if (strategy == null) {
+            strategy = instantiatorFactory.decorateLenient().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory);
+            strategies.put(attribute, strategy);
         }
         return strategy;
     }
@@ -88,40 +89,6 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     @Override
     public boolean hasAttribute(Attribute<?> key) {
         return strategies.containsKey(key);
-    }
-
-    @Override
-    public AttributeMatcher withProducer(AttributesSchemaInternal producerSchema) {
-        return matcherCache.computeIfAbsent(producerSchema, key ->
-            new DefaultAttributeMatcher(
-                new CachingAttributeSelectionSchema(
-                    new DefaultAttributeSelectionSchema(this, producerSchema)
-                )
-            )
-        );
-    }
-
-    @Override
-    public AttributeMatcher matcher() {
-        return withProducer(EmptySchema.INSTANCE);
-    }
-
-    @Override
-    public CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute) {
-        AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
-        if (matchingStrategy != null) {
-            return Cast.uncheckedCast(matchingStrategy.getCompatibilityRules());
-        }
-        return EmptySchema.INSTANCE.compatibilityRules(attribute);
-    }
-
-    @Override
-    public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
-        AttributeMatchingStrategy<?> matchingStrategy = strategies.get(attribute);
-        if (matchingStrategy != null) {
-            return Cast.uncheckedCast(matchingStrategy.getDisambiguationRules());
-        }
-        return EmptySchema.INSTANCE.disambiguationRules(attribute);
     }
 
     @Override
@@ -144,10 +111,17 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
         return Collections.unmodifiableList(new ArrayList<>(precedence));
     }
 
-    @Nullable
+    // endregion
+
     @Override
-    public Attribute<?> getAttributeByName(String name) {
-        return attributesByName.get(name);
+    public Map<Attribute<?>, DefaultAttributeMatchingStrategy<?>> getStrategies() {
+        return Collections.unmodifiableMap(strategies);
+    }
+
+
+    @Override
+    public Set<Attribute<?>> getAttributePrecedence() {
+        return Collections.unmodifiableSet(precedence);
     }
 
 }

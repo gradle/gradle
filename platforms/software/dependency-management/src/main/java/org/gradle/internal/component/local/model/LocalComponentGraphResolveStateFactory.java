@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenes
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
@@ -61,7 +61,7 @@ public class LocalComponentGraphResolveStateFactory {
         ComponentIdentifier componentIdentifier,
         ModuleVersionIdentifier moduleVersionId,
         String status,
-        AttributesSchemaInternal schema,
+        ImmutableAttributesSchema schema,
         List<? extends LocalVariantGraphResolveMetadata> variants
     ) {
         VariantMetadataFactory configurationFactory = new VariantsListMetadataFactory(variants);
@@ -79,7 +79,7 @@ public class LocalComponentGraphResolveStateFactory {
         ModuleVersionIdentifier moduleVersionId,
         ConfigurationsProvider configurations,
         String status,
-        AttributesSchemaInternal schema
+        ImmutableAttributesSchema schema
     ) {
         return lazyStateFor(model, componentIdentifier, configurations, moduleVersionId, status, schema, false);
     }
@@ -93,7 +93,7 @@ public class LocalComponentGraphResolveStateFactory {
         ModuleVersionIdentifier moduleVersionId,
         ConfigurationsProvider configurations,
         String status,
-        AttributesSchemaInternal schema
+        ImmutableAttributesSchema schema
     ) {
         return lazyStateFor(model, componentIdentifier, configurations, moduleVersionId, status, schema, true);
     }
@@ -104,7 +104,7 @@ public class LocalComponentGraphResolveStateFactory {
         ConfigurationsProvider configurations,
         ModuleVersionIdentifier moduleVersionId,
         String status,
-        AttributesSchemaInternal schema,
+        ImmutableAttributesSchema schema,
         boolean adHoc
     ) {
         VariantMetadataFactory variantsFactory = new ConfigurationsProviderMetadataFactory(
@@ -122,7 +122,7 @@ public class LocalComponentGraphResolveStateFactory {
         ComponentIdentifier componentIdentifier,
         ModuleVersionIdentifier moduleVersionId,
         String status,
-        AttributesSchemaInternal schema,
+        ImmutableAttributesSchema schema,
         boolean adHoc,
         VariantMetadataFactory variantsFactory
     ) {
