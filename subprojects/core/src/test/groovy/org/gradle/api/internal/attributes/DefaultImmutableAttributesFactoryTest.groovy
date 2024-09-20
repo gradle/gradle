@@ -16,44 +16,15 @@
 
 package org.gradle.api.internal.attributes
 
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
-import org.gradle.util.SnapshotTestUtil
-import org.gradle.util.TestUtil
+
+import org.gradle.api.internal.attributes.immutable.TestsImmutableAttributes
 import spock.lang.Specification
-
-class DefaultImmutableAttributesFactoryTest extends Specification {
-    private static final Attribute<String> FOO = Attribute.of("foo", String)
-    private static final Attribute<String> BAR = Attribute.of("bar", String)
-    private static final Attribute<Object> OTHER_BAR = Attribute.of(BAR.name, Object.class)
-    private static final Attribute<String> BAZ = Attribute.of("baz", String)
-
-    def isolatableFactory = SnapshotTestUtil.isolatableFactory()
-    def instantiator = TestUtil.objectInstantiator()
-
-    def factory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
-
-    def "can create empty set"() {
-        when:
-        def attributes = factory.root
-
-        then:
-        attributes.empty
-        attributes.keySet() == [] as Set
-    }
-
-    def "can lookup entries in empty set"() {
-        when:
-        def attributes = factory.root
-
-        then:
-        attributes.getAttribute(FOO) == null
-        !attributes.findEntry(FOO).isPresent()
-        !attributes.findEntry("foo").isPresent()
-    }
-
+/**
+ * Unit tests for {@link DefaultImmutableAttributesFactory}.
+ * <p>
+ * Not responsible for testing {@link ImmutableAttributes} directly.
+ */
+class DefaultImmutableAttributesFactoryTest extends Specification implements TestsImmutableAttributes {
     def "can create a single entry immutable set"() {
         when:
         def attributes = factory.of(FOO, "foo")
@@ -63,20 +34,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
         and:
         attributes.getAttribute(FOO) == 'foo'
-    }
-
-    def "can lookup entries in a singleton set"() {
-        when:
-        def attributes = factory.of(FOO, "foo")
-
-        then:
-        attributes.getAttribute(FOO) == 'foo'
-        attributes.findEntry(FOO).get() == "foo"
-        attributes.findEntry("foo").get() == "foo"
-
-        attributes.getAttribute(BAR) == null
-        !attributes.findEntry(BAR).isPresent()
-        !attributes.findEntry("bar").isPresent()
     }
 
     def "caches singleton sets"() {
@@ -103,7 +60,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can concatenate attribute to an empty set"() {
         when:
-        def set = factory.concat(factory.root, FOO, "foo")
+        def set = factory.concat(ImmutableAttributes.EMPTY, FOO, "foo")
 
         then:
         set.keySet() == [FOO] as Set
@@ -140,24 +97,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         set.getAttribute(BAZ) == 'baz'
     }
 
-    def "can lookup entries in a multiple value set"() {
-        when:
-        def attributes = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
-
-        then:
-        attributes.getAttribute(FOO) == "foo"
-        attributes.findEntry(FOO).get() == "foo"
-        attributes.findEntry("foo").get() == "foo"
-
-        attributes.getAttribute(BAR) == "bar"
-        attributes.findEntry(BAR).get() == "bar"
-        attributes.findEntry("bar").get() == "bar"
-
-        attributes.getAttribute(BAZ) == null
-        !attributes.findEntry(BAZ).isPresent()
-        !attributes.findEntry("baz").isPresent()
-    }
-
     def "caches instances of multiple value sets"() {
         given:
         def attributes = factory.concat(factory.of(FOO, 'foo'), BAR, 'bar')
@@ -168,15 +107,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
         def a3 = factory.concat(factory.of(FOO, 'foo'), BAR, 'other')
         a3 != attributes
-    }
-
-    def "order of entries is not significant in equality"() {
-        when:
-        def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
-        def set2 = factory.concat(factory.of(BAR, "bar"), FOO, "foo")
-
-        then:
-        set1 == set2
     }
 
     def "can compare attribute sets created by two different factories"() {
@@ -203,18 +133,6 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         set.keySet() == [FOO, BAR] as Set
         set.getAttribute(FOO) == 'foo'
         set.getAttribute(BAR) == 'bar'
-    }
-
-    def "immutable attribute sets throw a default error when attempting modification"() {
-        given:
-        def attributes = factory.root
-
-        when:
-        attributes.attribute(FOO, "foo")
-
-        then:
-        UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
     }
 
     def "can override values"() {
@@ -273,46 +191,5 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         e.attribute == OTHER_BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"
-    }
-
-    def "translates deprecated usage values"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
-    }
-
-    def "translates deprecated usage values as Isolatable"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS, instantiator))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"
-    }
-
-    def "can join 2 attribute containers with disjoint attributes"() {
-        def attributes1 = factory.of(FOO, "foo")
-        def attributes2 = factory.concat(factory.of(BAR, "bar"), factory.of(BAZ, "baz"))
-
-        when:
-        def result = factory.join(attributes1, attributes2).asImmutable()
-
-        then:
-        result.asMap().size() == 3
-        result.findEntry(FOO).get().toString() == "foo"
-        result.findEntry(BAR).get().toString() == "bar"
-        result.findEntry(BAZ).get().toString() == "baz"
-    }
-
-    def "can join 2 attribute containers with attribute overrides"() {
-        def attributes1 = factory.of(FOO, "foo")
-        def attributes2 = factory.concat(factory.of(BAR, "bar"), factory.of(FOO, "foo2"))
-
-        when:
-        def result = factory.join(attributes1, attributes2).asImmutable()
-
-        then:
-        result.asMap().size() == 2
-        result.findEntry(FOO).get().toString() == "foo2"
-        result.findEntry(BAR).get().toString() == "bar"
     }
 }
