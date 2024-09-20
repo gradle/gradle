@@ -282,7 +282,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             problems.getReporter().reporting {
                 it.id('type', 'label')
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                .additionalData(org.gradle.api.problems.GeneralDataSpec) {
                     it.put('key','value')
                 }
             }
@@ -300,7 +300,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             problems.getReporter().reporting {
                 it.id('type', 'label')
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                .additionalData(org.gradle.api.problems.GeneralDataSpec) {
                     it.put('key','value')
                 }
                 .additionalData(org.gradle.api.problems.internal.DeprecationDataSpec) {

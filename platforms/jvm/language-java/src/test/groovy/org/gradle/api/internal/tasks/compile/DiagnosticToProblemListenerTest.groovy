@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.problems.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblemSpec
 import spock.lang.Specification
@@ -29,7 +30,7 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def spec = Mock(InternalProblemSpec) {
         // We report the formatted message in all cases
-        1 * additionalData(org.gradle.api.problems.internal.GeneralDataSpec, _)
+        1 * additionalData(GeneralDataSpec, _)
     }
 
     def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null)

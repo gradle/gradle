@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.problems.internal.Problem;
 
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
+ *
+ * @since 8.11
  */
+@Incubating
 public interface AdditionalDataSpec {
 }

@@ -17,14 +17,12 @@
 package org.gradle.api.problems.internal;
 
 
-import java.io.Serializable;
-
 /**
  * A link to a documentation page.
  * <p>
  * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
  */
-public interface DocLink extends Serializable {
+public interface DocLink {
 
     /**
      * The URL to the documentation page.

@@ -16,7 +16,9 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.internal.AdditionalData;
 
 /**
  * Provides options to configure problems.
@@ -176,4 +178,19 @@ public interface ProblemSpec {
      * @since 8.6
      */
     ProblemSpec severity(Severity severity);
+
+
+    /**
+     * Attaches additional data describing the problem.
+     * <p>
+     * Only the types listed for {@link AdditionalData} can be used as arguments, otherwise an invalid problem report will be created.
+     * <p>
+     * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
+     *
+     * @param specType the type of the additional data configurer (see the AdditionalDataSpec interface for the list of supported types)
+     * @param config  The action configuring the additional data
+     * @return this
+     * @param <U> The type of the configurator object that will be applied to the additional data
+     */
+    <U extends AdditionalDataSpec> ProblemSpec additionalData(Class<? extends U> specType, Action<? super U> config);
 }
