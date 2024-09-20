@@ -31,7 +31,6 @@ dependencies {
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJvmTestSuite)
-    implementation(projects.processServices)
     implementation(projects.serviceLookup)
     implementation(projects.testSuitesBase)
     implementation(projects.testingJvm)

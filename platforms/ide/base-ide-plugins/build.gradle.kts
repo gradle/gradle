@@ -30,7 +30,6 @@ dependencies {
     implementation(projects.core)
     implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.processServices)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)

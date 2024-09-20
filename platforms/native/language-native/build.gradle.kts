@@ -42,7 +42,6 @@ dependencies {
 
     implementation(projects.loggingApi)
     implementation(projects.maven)
-    implementation(projects.processServices)
     implementation(projects.publish)
     implementation(projects.versionControl)
 

@@ -45,7 +45,6 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.files)
     implementation(projects.modelCore)
-    implementation(projects.processServices)
     implementation(projects.serialization)
 
     implementation(libs.ant) {
