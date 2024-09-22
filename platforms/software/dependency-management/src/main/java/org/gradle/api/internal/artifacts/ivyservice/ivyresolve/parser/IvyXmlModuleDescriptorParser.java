@@ -1345,18 +1345,19 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
         private static SAXParser newSAXParser(URL schema, InputStream schemaStream)
                 throws ParserConfigurationException, SAXException {
+            SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
+            parserFactory.setNamespaceAware(true);
+            parserFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            parserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            parserFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+
             if (schema == null) {
-                SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
                 parserFactory.setValidating(false);
-                parserFactory.setNamespaceAware(true);
                 SAXParser parser = parserFactory.newSAXParser();
                 parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
                 return parser;
             } else {
-                SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
                 parserFactory.setValidating(true);
-                parserFactory.setNamespaceAware(true);
-
                 SAXParser parser = parserFactory.newSAXParser();
                 parser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
                 parser.setProperty(JAXP_SCHEMA_SOURCE, schemaStream);
