@@ -1,8 +1,9 @@
 Gradle @version@ is the second patch release for Gradle 8.10.
 
 It fixes the following issues:
-* [#30497](https://github.com/gradle/gradle/issues/30497) DefaultTaskCollection#configureEach(Action) on task set cannot be executed in the current context
+* [#30472](https://github.com/gradle/gradle/issues/30472) Investigate possibly broken 8.10.1
 * [#30477](https://github.com/gradle/gradle/issues/30477) Kotlin Mutliplatform build with reused daemon fails with "Cannot query the value of task ':compileKotlinWindows' property 'kotlinNativeBundleBuildService' because it has no value available."
+* [#30497](https://github.com/gradle/gradle/issues/30497) DefaultTaskCollection#configureEach(Action) on task set cannot be executed in the current context
 * [#30498](https://github.com/gradle/gradle/issues/30498) ClassNotFoundException: com.gradle.develocity.agent.a.a.a
 
 Issues fixed in the first patch release:
