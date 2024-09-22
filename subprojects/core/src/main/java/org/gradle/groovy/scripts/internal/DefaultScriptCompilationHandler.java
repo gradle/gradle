@@ -17,6 +17,8 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.GroovyClassLoader;
+import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
+import java.util.Arrays;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
@@ -147,6 +149,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
                 compilationUnit.addPhaseOperation(packageDetector, Phases.CANONICALIZATION);
                 compilationUnit.addPhaseOperation(emptyScriptDetector, Phases.CANONICALIZATION);
+                
+                // Add SecureASTCustomizer to restrict script capabilities
+                SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
+                secureASTCustomizer.setClosuresAllowed(false);
+                secureASTCustomizer.setMethodDefinitionAllowed(false);
+                secureASTCustomizer.setImportsWhitelist(Arrays.asList("java.lang.*", "java.util.*"));
+                compilationUnit.addPhaseOperation(secureASTCustomizer, Phases.SEMANTIC_ANALYSIS);
+                
                 return compilationUnit;
             }
         };
