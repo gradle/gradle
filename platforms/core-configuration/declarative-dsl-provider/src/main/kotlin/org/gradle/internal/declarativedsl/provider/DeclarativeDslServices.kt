@@ -29,6 +29,7 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import java.io.File
 
@@ -36,6 +37,10 @@ import java.io.File
 class DeclarativeDslServices : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
+    }
+
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.addProvider(ProjectServices)
     }
 }
 
@@ -53,14 +58,18 @@ object BuildServices : ServiceRegistrationProvider {
         return defaultDeclarativeScriptEvaluator(schemaBuilder, softwareTypeRegistry)
     }
 
-    @Provides
-    fun createSoftwareTypeConventionHandler(
-        softwareTypeRegistry: SoftwareTypeRegistry
-    ): ModelDefaultsHandler {
-        return DeclarativeModelDefaultsHandler(softwareTypeRegistry)
-    }
-
     private
     fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
         getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
+}
+
+internal
+object ProjectServices : ServiceRegistrationProvider {
+    @Provides
+    fun createDeclarativeModelDefaultsHandler(
+        softwareTypeRegistry: SoftwareTypeRegistry,
+        softwareFeatureApplicator: SoftwareFeatureApplicator
+    ): ModelDefaultsHandler {
+        return DeclarativeModelDefaultsHandler(softwareTypeRegistry, softwareFeatureApplicator)
+    }
 }

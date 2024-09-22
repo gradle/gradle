@@ -38,15 +38,16 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 /**
  * A {@link ConventionHandler} for applying declarative conventions.
  */
-class DeclarativeModelDefaultsHandler(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
+class DeclarativeModelDefaultsHandler(softwareTypeRegistry: SoftwareTypeRegistry, softwareFeatureApplicator: SoftwareFeatureApplicator) : ModelDefaultsHandler {
     private
-    val step = projectInterpretationSequenceStep(softwareTypeRegistry)
+    val step = projectInterpretationSequenceStep(softwareTypeRegistry, softwareFeatureApplicator)
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 

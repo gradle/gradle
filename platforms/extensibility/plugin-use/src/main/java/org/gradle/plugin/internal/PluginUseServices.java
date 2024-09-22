@@ -18,6 +18,7 @@ package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -52,10 +54,12 @@ import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPlugi
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
+import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
@@ -87,6 +91,11 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @Override
     public void registerSettingsServices(ServiceRegistration registration) {
         registration.addProvider(new SettingsScopeServices());
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeServices());
     }
 
     @NonNullApi
@@ -131,11 +140,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         SoftwareTypeRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme) {
             return new DefaultSoftwareTypeRegistry(pluginScheme.getInspectionScheme());
-        }
-
-        @Provides
-        ModelDefaultsApplicator createSoftwareTypeConventionApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<ModelDefaultsHandler> modelDefaultsHandlers) {
-            return new DefaultModelDefaultsApplicator(softwareTypeRegistry, modelDefaultsHandlers);
         }
 
         @Provides
@@ -196,5 +200,18 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             );
         }
 
+    }
+
+    @NonNullApi
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
+        @Provides
+        SoftwareFeatureApplicator createSoftwareFeatureApplicator(Project project, PluginScheme pluginScheme, InternalProblems problems) {
+            return new DefaultSoftwareFeatureApplicator(project, pluginScheme.getInspectionScheme(), problems);
+        }
+
+        @Provides
+        ModelDefaultsApplicator createModelDefaultsApplicator(List<ModelDefaultsHandler> modelDefaultsHandlers) {
+            return new DefaultModelDefaultsApplicator(modelDefaultsHandlers);
+        }
     }
 }

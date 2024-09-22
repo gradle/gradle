@@ -285,6 +285,57 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("Class SoftwareTypeImplPlugin.AnotherSoftwareTypeExtension is private.")
     }
 
+    def 'can declare a software type plugin that registers its own extension'() {
+        given:
+        withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
+    }
+
+    def 'sensible error when software type plugin declares that it registers its own extension but does not'() {
+        given:
+        withSoftwareTypePluginThatFailsToRegistersItsOwnExtension().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
+        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableExtensionRegistration' set to true, but no extension with name 'testSoftwareType' was registered.")
+    }
+
+    def 'sensible error when software type plugin declares that it registers its own extension but registers the wrong object'() {
+        given:
+        withSoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
+        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableExtensionRegistration' set to true, but the extension with name 'testSoftwareType' does not match the value of the property.")
+    }
+
     static String getPluginsFromIncludedBuild() {
         return """
             pluginManagement {
