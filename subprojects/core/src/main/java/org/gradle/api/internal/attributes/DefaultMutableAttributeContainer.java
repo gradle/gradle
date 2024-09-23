@@ -23,11 +23,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -36,13 +36,13 @@ import java.util.Set;
 import java.util.TreeMap;
 
 class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
-    private final Map<Attribute<?>, Object> attributes = new HashMap<>();
+    private final Map<Attribute<?>, Isolatable<?>> attributes = new LinkedHashMap<>(); // Need to maintain insertion order here, this is indirectly tested
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
 
-    private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final DefaultImmutableAttributesFactory immutableAttributesFactory;
 
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
+    public DefaultMutableAttributeContainer(DefaultImmutableAttributesFactory immutableAttributesFactory) {
         this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
@@ -57,7 +57,7 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     @Override
     public Set<Attribute<?>> keySet() {
         // Need to copy the result since if the user calls getAttribute() while iterating over the returned set,
-        // realizing a lazy attribute will add to `state` and remove from `lazyAttributes`.
+        // realizing a lazy attribute will add to the eager `attributes` map and remove from the `lazyAttributes`.
         // This avoids a ConcurrentModificationException.
         return ImmutableSet.copyOf(Sets.union(attributes.keySet(), lazyAttributes.keySet()));
     }
@@ -72,7 +72,7 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     private <T> void doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
-        attributes.put(key, value);
+        attributes.put(key, immutableAttributesFactory.isolate(value));
         removeLazyAttributeIfPresent(key);
     }
 
@@ -131,11 +131,16 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        T attribute = Cast.uncheckedCast(attributes.get(key));
-        if (attribute == null && lazyAttributes.containsKey(key)) {
-            attribute = realizeLazyAttribute(key);
+        Isolatable<?> value = attributes.get(key);
+        if (value == null) {
+            if (lazyAttributes.containsKey(key)) {
+                return realizeLazyAttribute(key);
+            } else {
+                return null;
+            }
+        } else {
+            return Cast.uncheckedCast(value.isolate());
         }
-        return attribute;
     }
 
     @Override

@@ -77,7 +77,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         return concat(node, key, isolate(value));
     }
 
-    private <T> Isolatable<T> isolate(@Nullable T value) {
+    public <T> Isolatable<T> isolate(@Nullable T value) {
         if (value instanceof String) {
             return Cast.uncheckedNonnullCast(new CoercingStringValueSnapshot((String) value, instantiator));
         } else {
@@ -121,10 +121,6 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         });
 
         return result.get();
-    }
-
-    public ImmutableAttributes getRoot() {
-        return root;
     }
 
     @Override
