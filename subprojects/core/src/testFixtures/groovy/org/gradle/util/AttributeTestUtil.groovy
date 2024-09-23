@@ -30,7 +30,7 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
 
 class AttributeTestUtil {
-    static ImmutableAttributesFactory attributesFactory() {
+    static DefaultImmutableAttributesFactory attributesFactory() {
         return new DefaultImmutableAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
     }
 

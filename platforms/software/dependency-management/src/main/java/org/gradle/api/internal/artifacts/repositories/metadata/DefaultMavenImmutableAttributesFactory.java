@@ -30,6 +30,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

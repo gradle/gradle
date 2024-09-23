@@ -224,8 +224,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         container.attributeProvider(testLazy, testProvider)
 
         then: "they are located in proper internal collections"
-        container.@state.contains(testEager)
-        !container.@state.contains(testLazy)
+        container.@attributes.containsKey(testEager)
+        !container.@attributes.containsKey(testLazy)
         container.@lazyAttributes.containsKey(testLazy)
         !container.@lazyAttributes.containsKey(testEager)
 
@@ -234,8 +234,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         then: "the result should not change the internals of the class"
         result == "{eager=eager value, lazy=property(java.lang.String, fixed(class java.lang.String, lazy value))}"
-        container.@state.contains(testEager)
-        !container.@state.contains(testLazy)
+        container.@attributes.containsKey(testEager)
+        !container.@attributes.containsKey(testLazy)
         container.@lazyAttributes.containsKey(testLazy)
         !container.@lazyAttributes.containsKey(testEager)
     }
