@@ -20,7 +20,7 @@ import org.gradle.internal.isolation.Isolatable;
 
 import java.util.Map;
 
-public interface ImmutableAttributesFactory {
+public interface AttributesFactory {
     /**
      * Returns an empty mutable attribute container.
      */

@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -67,7 +67,7 @@ public class ModuleResolveState implements CandidateModule {
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
     final ResolveOptimizations resolveOptimizations;
@@ -89,7 +89,7 @@ public class ModuleResolveState implements CandidateModule {
         ComponentIdGenerator idGenerator,
         ModuleIdentifier id,
         ComponentMetaDataResolver metaDataResolver,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         Comparator<Version> versionComparator,
         VersionParser versionParser,
         SelectorStateResolver<ComponentState> selectorStateResolver,

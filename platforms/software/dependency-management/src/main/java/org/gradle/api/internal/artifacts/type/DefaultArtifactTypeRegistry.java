@@ -24,8 +24,8 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -38,13 +38,13 @@ import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE
 
 public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     private final Instantiator instantiator;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final CollectionCallbackActionDecorator callbackActionDecorator;
     private final VariantTransformRegistry transformRegistry;
     private final AttributeContainerInternal defaultArtifactAttributes;
     private ArtifactTypeContainer artifactTypeDefinitions;
 
-    public DefaultArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator, VariantTransformRegistry transformRegistry) {
+    public DefaultArtifactTypeRegistry(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator, VariantTransformRegistry transformRegistry) {
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.callbackActionDecorator = callbackActionDecorator;

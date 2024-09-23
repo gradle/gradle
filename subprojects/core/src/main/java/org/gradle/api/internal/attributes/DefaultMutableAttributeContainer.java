@@ -35,15 +35,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
+final class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
     private final Map<Attribute<?>, Isolatable<?>> attributes = new LinkedHashMap<>(); // Need to maintain insertion order here, this is indirectly tested
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
 
-    private final DefaultImmutableAttributesFactory immutableAttributesFactory;
+    private final DefaultAttributesFactory attributesFactory;
 
-    public DefaultMutableAttributeContainer(DefaultImmutableAttributesFactory immutableAttributesFactory) {
-        this.immutableAttributesFactory = immutableAttributesFactory;
+    public DefaultMutableAttributeContainer(DefaultAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -72,7 +72,7 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     private <T> void doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
-        attributes.put(key, immutableAttributesFactory.isolate(value));
+        attributes.put(key, attributesFactory.isolate(value));
         removeLazyAttributeIfPresent(key);
     }
 
@@ -146,7 +146,7 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     @Override
     public ImmutableAttributes asImmutable() {
         realizeAllLazyAttributes();
-        return immutableAttributesFactory.fromMap(attributes);
+        return attributesFactory.fromMap(attributes);
     }
 
 

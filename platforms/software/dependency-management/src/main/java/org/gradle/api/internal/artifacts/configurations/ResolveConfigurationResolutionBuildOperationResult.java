@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
@@ -49,7 +49,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     public ResolveConfigurationResolutionBuildOperationResult(
         Supplier<? extends ResolvedComponentResult> rootSource,
         ImmutableAttributes requestedAttributes,
-        ImmutableAttributesFactory attributesFactory
+        AttributesFactory attributesFactory
     ) {
         this.rootSource = rootSource;
         this.requestedAttributes = new LazyDesugaringAttributeContainer(requestedAttributes, attributesFactory);
@@ -96,10 +96,10 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     private static final class LazyDesugaringAttributeContainer implements ImmutableAttributes {
 
         private final AttributeContainer source;
-        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributesFactory attributesFactory;
         private ImmutableAttributes desugared;
 
-        private LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
+        private LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, AttributesFactory attributesFactory) {
             this.source = source;
             this.attributesFactory = attributesFactory;
         }

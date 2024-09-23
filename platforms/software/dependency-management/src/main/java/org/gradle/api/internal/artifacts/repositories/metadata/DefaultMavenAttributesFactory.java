@@ -25,8 +25,8 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AbstractAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
@@ -35,12 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultMavenImmutableAttributesFactory extends AbstractAttributesFactory implements MavenImmutableAttributesFactory {
-    private final ImmutableAttributesFactory delegate;
+public class DefaultMavenAttributesFactory extends AbstractAttributesFactory implements MavenAttributesFactory {
+    private final AttributesFactory delegate;
     private final NamedObjectInstantiator objectInstantiator;
     private final Map<List<Object>, ImmutableAttributes> concatCache = new ConcurrentHashMap<>();
 
-    public DefaultMavenImmutableAttributesFactory(ImmutableAttributesFactory delegate, NamedObjectInstantiator objectInstantiator) {
+    public DefaultMavenAttributesFactory(AttributesFactory delegate, NamedObjectInstantiator objectInstantiator) {
         this.delegate = delegate;
         this.objectInstantiator = objectInstantiator;
     }
