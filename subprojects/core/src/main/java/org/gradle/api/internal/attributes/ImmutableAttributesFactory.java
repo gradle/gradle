@@ -18,6 +18,8 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.isolation.Isolatable;
 
+import java.util.Map;
+
 public interface ImmutableAttributesFactory {
     /**
      * Returns an empty mutable attribute container.
@@ -46,6 +48,17 @@ public interface ImmutableAttributesFactory {
      * Returns an attribute container that contains the given value.
      */
     <T> ImmutableAttributes of(Attribute<T> key, T value);
+
+    /**
+     * Returns an attribute container that contains the values in the given map
+     * of attribute -> attribute value.
+     * <p>
+     * This method is meant to be the inverse of {@link AttributeContainerInternal#asMap()}.
+     *
+     * @param attributes the attribute values the result should contain
+     * @return immutable instance containing only the specified attributes
+     */
+    ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes);
 
     /**
      * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
