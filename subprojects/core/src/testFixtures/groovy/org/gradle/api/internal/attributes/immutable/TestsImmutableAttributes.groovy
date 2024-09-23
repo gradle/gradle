@@ -31,7 +31,7 @@ import org.gradle.util.TestUtil
 trait TestsImmutableAttributes {
     static final Attribute<String> FOO = Attribute.of("foo", String)
     static final Attribute<String> BAR = Attribute.of("bar", String)
-    static final Attribute<Object> OTHER_BAR = Attribute.of(BAR.name, Object.class)
+    static final Attribute<Object> OTHER_BAR = Attribute.of("bar", Object)
     static final Attribute<String> BAZ = Attribute.of("baz", String)
 
     IsolatableFactory isolatableFactory = SnapshotTestUtil.isolatableFactory()
