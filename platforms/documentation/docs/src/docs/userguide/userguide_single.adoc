@@ -136,7 +136,7 @@ include::scala_plugin.adoc[leveloffset=+2]
 [[part:dependency_management]]
 == **WORKING WITH DEPENDENCIES**
 
-include::dependency_management_terminology.adoc[leveloffset=+2]
+include::glossary.adoc[leveloffset=+2]
 
 == THE BASICS
 
