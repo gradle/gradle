@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.flow.FlowScope;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -43,11 +44,10 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.ActionBasedModelDefaultsHandler;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
-import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
-import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -170,6 +170,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildWorkPreparer;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkPreparer;
+import org.gradle.internal.build.DefaultProjectToolingModelBuilderLookupPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -220,8 +221,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
-import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
+import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -265,6 +266,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(DefaultScriptClassPathResolver.class);
         registration.add(DefaultScriptHandlerFactory.class);
         registration.add(DefaultBuildOutputCleanupRegistry.class);
+        registration.add(DefaultProjectToolingModelBuilderLookupPreparer.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 
