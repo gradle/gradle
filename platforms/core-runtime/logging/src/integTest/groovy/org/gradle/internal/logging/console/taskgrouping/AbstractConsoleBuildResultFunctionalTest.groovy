@@ -89,7 +89,6 @@ BUILD SUCCESSFUL in [ \\dms]+
         """
 
         when:
-        args "--no-problems-report"
         succeeds 'success'
 
         then:

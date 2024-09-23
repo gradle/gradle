@@ -32,11 +32,6 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         """
     }
 
-    def "run retrieve"() {
-        args "--no-problems-report"
-        run 'retrieve'
-    }
-
     def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()
@@ -47,7 +42,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         buildFile << " dependencies { compile 'group:projectA:latest.$status' }"
 
         when:
-        "run retrieve"()
+        run 'retrieve'
 
         then:
         def buildDir = file('build')
@@ -81,7 +76,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        "run retrieve"()
+        run "retrieve"
 
         then:
         file("build").assertHasDescendants(latest)
@@ -110,7 +105,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
             }"""
 
         when:
-        "run retrieve"()
+        run 'retrieve'
 
         then:
         file('build').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar', "projectC-${resolvedVersion}.jar")

@@ -82,7 +82,7 @@ class DefaultProblemsReportCreator(
             }
         })?.let {
             val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("Problem report (Experimental) is available at: $url")
+            logger.warn("[Incubating] Problem report is available at: $url")
         }
     }
 

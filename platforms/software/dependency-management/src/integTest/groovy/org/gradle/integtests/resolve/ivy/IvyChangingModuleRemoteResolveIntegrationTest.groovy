@@ -50,7 +50,6 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
-        executer.withArgument("--no-problems-report")
         run 'retrieve'
 
         then: "Version 1.1 jar is downloaded"
@@ -122,7 +121,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and:
-        executer.withArguments('-PisChanging')
+        executer.withArgument('-PisChanging')
         run 'retrieve'
 
         then:

@@ -112,7 +112,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         if (deprecated(alternatives)) {
             executer.expectDeprecationWarning()
         }
-        args "--no-problems-report"
         if (forbidden(alternatives) || doesNotExist(alternatives)) {
             fails 'resolve'
         } else {
@@ -168,7 +167,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         if (deprecated(alternatives)) {
             executer.expectDeprecationWarning()
         }
-        args "--no-problems-report"
         if (forbidden(alternatives) || doesNotExist(alternatives)) {
             fails 'resolve'
         } else {

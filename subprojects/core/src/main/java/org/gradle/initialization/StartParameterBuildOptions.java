@@ -83,51 +83,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new PropertyUpgradeReportOption()
     );
 
-//    private static List<BuildOption<StartParameterInternal>> options;
-//
-//    static {
-//        List<BuildOption<StartParameterInternal>> options = new ArrayList<>();
-//        options.add(new ProjectCacheDirOption());
-//        options.add(new RerunTasksOption());
-//        options.add(new ProfileOption());
-//        options.add(new ContinueOption());
-//        options.add(new OfflineOption());
-//        options.add(new RefreshDependenciesOption());
-//        options.add(new DryRunOption());
-//        options.add(new ContinuousOption());
-//        options.add(new ContinuousBuildQuietPeriodOption());
-//        options.add(new NoProjectDependenciesRebuildOption());
-//        options.add(new InitScriptOption());
-//        options.add(new ExcludeTaskOption());
-//        options.add(new IncludeBuildOption());
-//        options.add(new ConfigureOnDemandOption());
-//        options.add(new BuildCacheOption());
-//        options.add(new BuildCacheDebugLoggingOption());
-//        options.add(new WatchFileSystemOption());
-//        options.add(new WatchFileSystemDebugLoggingOption());
-//        options.add(new VfsVerboseLoggingOption());
-//        options.add(new BuildScanOption());
-//        options.add(new DependencyLockingWriteOption());
-//        options.add(new DependencyVerificationWriteOption());
-//        options.add(new DependencyVerificationModeOption());
-//        options.add(new DependencyLockingUpdateOption());
-//        options.add(new RefreshKeysOption());
-//        options.add(new ExportKeysOption());
-//        options.add(new ConfigurationCacheProblemsOption());
-//        options.add(new ConfigurationCacheOption());
-//        options.add(new ConfigurationCacheIgnoreInputsInTaskGraphSerialization());
-//        options.add(new ConfigurationCacheMaxProblemsOption());
-//        options.add(new ConfigurationCacheIgnoredFileSystemCheckInputs());
-//        options.add(new ConfigurationCacheDebugOption());
-//        options.add(new ConfigurationCacheParallelOption());
-//        options.add(new ConfigurationCacheRecreateOption());
-//        options.add(new ConfigurationCacheQuietOption());
-//        options.add(new IsolatedProjectsOption());
-//        options.add(new ProblemReportGenerationOption());
-//        options.add(new PropertyUpgradeReportOption());
-//        StartParameterBuildOptions.options = Collections.unmodifiableList(options);
-//    }
-
     @Override
     public List<? extends BuildOption<? super StartParameterInternal>> getAllOptions() {
         return options;

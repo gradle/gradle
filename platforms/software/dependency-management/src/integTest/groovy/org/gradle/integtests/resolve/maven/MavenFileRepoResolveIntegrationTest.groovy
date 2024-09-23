@@ -37,7 +37,6 @@ task retrieve(type: Sync) {
 """
 
         when:
-        executer.withArgument("--no-problems-report")
         run 'retrieve'
 
         then:
@@ -76,7 +75,6 @@ task retrieve(type: Sync) {
 """
 
         when:
-        executer.withArgument("--no-problems-report")
         run 'retrieve'
 
         then:
@@ -129,7 +127,6 @@ task retrieve(type: Sync) {
 """
 
         when:
-        executer.withArgument("--no-problems-report")
         run 'retrieve'
 
         then:

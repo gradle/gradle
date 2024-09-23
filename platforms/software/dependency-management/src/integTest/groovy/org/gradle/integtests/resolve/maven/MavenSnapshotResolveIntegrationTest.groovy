@@ -469,7 +469,6 @@ task retrieve(type: Sync) {
         expectModuleServed(module)
 
         and:
-        args "--no-problems-report"
         run 'retrieve'
 
         then:
@@ -530,7 +529,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         expectModuleServed(module)
 
         then:
-        args "--no-problems-report"
         run 'retrieve'
 
         and:

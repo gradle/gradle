@@ -44,7 +44,6 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArgument("--no-problems-report")
         succeeds "clean"
 
         then:
@@ -147,7 +146,6 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             assert(file("build.gradle.kts").exists())
         """
         when: "clean is executed"
-        executer.withArgument("--no-problems-report")
         succeeds "clean"
         then: "clean is marked as UP-TO-DATE"
         result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
@@ -167,7 +165,6 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when: "the kotlin script compiler is invoked due to a script change"
         buildKotlinFile << "\n"
-        executer.withArgument("--no-problems-report")
         succeeds "clean"
         then: "clean is still marked as UP-TO-DATE"
         result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"

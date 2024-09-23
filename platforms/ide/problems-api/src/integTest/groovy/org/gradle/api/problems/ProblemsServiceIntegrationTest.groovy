@@ -382,11 +382,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.withArgument("--problems-report")
         run("reportProblem")
 
         then:
         testDirectory.file("build/reports/problems", "problems-report.html").exists()
-        output.contains("Problem report (Experimental) is available at: ")
+        output.contains("[Incubating] Problem report is available at: ")
 
         10.times { num ->
             verifyAll(receivedProblem(num)) {
@@ -411,8 +412,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        executer.withArguments("--no-problems-report")
 
         when:
         run("reportProblem")

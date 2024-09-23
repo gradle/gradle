@@ -118,6 +118,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         m2.assertNoLeftoverState()
 
         m2.isolateMavenLocalRepo(executer)
+        executer.withArgument("--no-problems-report")
         executer.beforeExecute {
             withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
             if (maxUploadAttempts != null) {
@@ -418,7 +419,8 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     AbstractIntegrationSpec withBuildCache() {
-        executer.withArgument("--no-problems-report").withBuildCacheEnabled()
+        executer.withArgument("--no-problems-report")
+        executer.withBuildCacheEnabled()
         this
     }
 

@@ -519,7 +519,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
         and:
-        executer.withArgument("--no-problems-report")
         run 'syncIt'
         file('build').assertHasDescendants(
             'file.txt',

@@ -25,7 +25,6 @@ class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentR
     @ToBeFixedForConfigurationCache(because = ":components")
     def "informs the user when project has no components defined"() {
         when:
-        args "--no-problems-report"
         succeeds "components"
 
         then:
@@ -54,7 +53,6 @@ model {
 }
 """
         when:
-        args "--no-problems-report"
         succeeds "components"
 
         then:

@@ -93,7 +93,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         when:
         def runner = gradleVersion >= GradleVersion.version("4.5")
-            ? this.runner('helloWorld', '--warning-mode=none')
+            ? this.runner('helloWorld', '--warning-mode=none', "--no-problems-report")
             : this.runner('helloWorld')
         runner.buildAndFail()
 
@@ -106,7 +106,7 @@ $t.buildResult.output"""
 
         def buildOutput = OutputScrapingExecutionResult.from(t.buildResult.output, "")
         buildOutput.assertTasksExecuted(":helloWorld")
-        buildOutput.groupedOutput.task(":helloWorld").output.startsWith("Hello world!")
+        buildOutput.groupedOutput.task(":helloWorld").output == "Hello world!"
 
         normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']

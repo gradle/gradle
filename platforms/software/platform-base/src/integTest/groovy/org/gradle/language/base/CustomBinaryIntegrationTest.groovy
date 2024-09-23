@@ -313,7 +313,6 @@ model {
         given:
         buildWithCustomBinaryPlugin()
         when:
-        executer.withArgument("--no-problems-report")
         succeeds "components"
         then:
         output.contains """> Task :components

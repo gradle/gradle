@@ -73,7 +73,6 @@ model {
 }
 """
         when:
-        executer.withArgument("--no-problems-report")
         succeeds "components"
 
         then:

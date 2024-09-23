@@ -31,7 +31,6 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     task test
 """
         then:
-        executer.withArgument("--no-problems-report")
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
                 .assertHasCause("beforeTask failure")
@@ -72,8 +71,7 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         then:
-        args "--no-problems-report"
-        fails 'test'
+        fails('test')
         result.groupedOutput.task(":test").output == """beforeTask action
 task action
 afterTask action"""

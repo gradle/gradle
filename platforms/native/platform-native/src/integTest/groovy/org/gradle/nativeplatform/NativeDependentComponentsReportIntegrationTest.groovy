@@ -32,7 +32,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleCppBuild()
 
         when:
-        executer.withArgument("--no-problems-report")
         run "dependentComponents"
 
         then:
@@ -85,7 +84,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleCppBuild()
 
         when:
-        executer.withArgument("--no-problems-report")
         run 'dependentComponents', '--component', 'lib', '--component', 'main'
 
         then:
@@ -202,7 +200,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile multiProjectBuild()
 
         when:
-        executer.withArgument("--no-problems-report")
         run 'libraries:dependentComponents', '--component', 'foo'
 
         then:
@@ -228,7 +225,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile multiProjectBuild()
 
         when: 'two reports in parallel'
-        executer.withArgument("--no-problems-report")
         succeeds('-q', '--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
 
         then: 'reports are not mixed'
@@ -283,7 +279,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleBuildWithTestSuites()
 
         when:
-        executer.withArgument("--no-problems-report")
         run 'dependentComponents'
 
         then:
@@ -458,7 +453,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         """.stripIndent()
 
         when:
-        executer.withArgument("--no-problems-report")
         succeeds("dependentComponents")
 
         then:
