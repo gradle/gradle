@@ -20,8 +20,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
@@ -36,10 +36,10 @@ public class GradleModuleMetadataCompatibilityConverter {
     private static final Attribute<String> USAGE_STRING_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
     private static final Attribute<String> LIBRARY_ELEMENTS_STRING_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
 
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
 
-    public GradleModuleMetadataCompatibilityConverter(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public GradleModuleMetadataCompatibilityConverter(AttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
     }
@@ -76,7 +76,7 @@ public class GradleModuleMetadataCompatibilityConverter {
 
 
     private void handleAttributeCompatibility(MutableModuleComponentResolveMetadata metaDataFromResource) {
-        // This code path will always be a no-op following the changes in DefaultImmutableAttributesFactory
+        // This code path will always be a no-op following the changes in DefaultAttributesFactory
         // However this code will have to remain forever while the other one should be removed at some point (Gradle 7.0?)
         for (MutableComponentVariant variant : metaDataFromResource.getMutableVariants()) {
             ImmutableAttributes attributes = variant.getAttributes();

@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.model.ObjectFactory;
@@ -47,7 +47,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     private final ObjectFactory objectFactory;
     private final ConfigurationContainer configurations;
     private final AttributesSchemaInternal schema;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
 
     private final List<Action<? super VariantVersionMappingStrategy>> mappingsForAllVariants = new ArrayList<>(2);
@@ -61,7 +61,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         ObjectFactory objectFactory,
         ConfigurationContainer configurations,
         AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices
     ) {
         this.objectFactory = objectFactory;

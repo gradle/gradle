@@ -72,7 +72,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
                 configurations { implementation }
             }
 
-            def testAttributes = project.services.get(ImmutableAttributesFactory)
+            def testAttributes = project.services.get(AttributesFactory)
                  .mutable()
                  .attribute(Attribute.of('foo', String), 'value')
         """

@@ -41,7 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
@@ -84,7 +84,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ComponentSelectorConverter componentSelectorConverter;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final VersionSelectorScheme versionSelectorScheme;
@@ -106,7 +106,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         Spec<? super DependencyMetadata> edgeFilter,
         ModuleExclusions moduleExclusions,
         ComponentSelectorConverter componentSelectorConverter,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         AttributeDesugaring attributeDesugaring,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
@@ -291,7 +291,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return componentSelectorConverter;
     }
 
-    public ImmutableAttributesFactory getAttributesFactory() {
+    public AttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
 

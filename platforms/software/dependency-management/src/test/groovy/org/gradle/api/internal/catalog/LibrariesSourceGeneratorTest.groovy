@@ -24,7 +24,7 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
@@ -66,7 +66,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
 
     private GeneratedSource sources
     final ObjectFactory objects = TestUtil.objectFactory()
-    final ImmutableAttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
+    final AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
     final CapabilityNotationParser capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(

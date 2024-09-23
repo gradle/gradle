@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
@@ -36,7 +36,7 @@ import javax.inject.Inject;
 public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
 
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
@@ -47,7 +47,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     @Inject
     public DefaultVariantSelectorFactory(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
         ResolutionFailureHandler failureProcessor,

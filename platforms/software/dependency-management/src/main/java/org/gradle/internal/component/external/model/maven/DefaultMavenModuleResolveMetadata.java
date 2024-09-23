@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
@@ -55,7 +55,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     static final Set<String> JAR_PACKAGINGS = ImmutableSet.of("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
 
     private final NamedObjectInstantiator objectInstantiator;
-    private final MavenImmutableAttributesFactory mavenImmutableAttributesFactory;
+    private final MavenAttributesFactory mavenAttributesFactory;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final String packaging;
@@ -70,7 +70,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
         this.objectInstantiator = metadata.getObjectInstantiator();
-        this.mavenImmutableAttributesFactory = (MavenImmutableAttributesFactory) metadata.getAttributesFactory();
+        this.mavenAttributesFactory = (MavenAttributesFactory) metadata.getAttributesFactory();
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
@@ -80,7 +80,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);
         this.objectInstantiator = metadata.objectInstantiator;
-        this.mavenImmutableAttributesFactory = metadata.mavenImmutableAttributesFactory;
+        this.mavenAttributesFactory = metadata.mavenAttributesFactory;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;

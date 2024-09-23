@@ -54,7 +54,7 @@ class TestCapability implements Capability {
         configurations { implementation }
     }
 
-    def testAttributes = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
+    def testAttributes = project.services.get(org.gradle.api.internal.attributes.AttributesFactory)
          .mutable()
          .attribute(Attribute.of('foo', String), 'value')
 """

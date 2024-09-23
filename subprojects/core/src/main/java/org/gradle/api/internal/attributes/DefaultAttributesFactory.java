@@ -33,14 +33,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 @ServiceScope(Scope.BuildSession.class)
-public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
+public class DefaultAttributesFactory implements AttributesFactory {
     private final ImmutableAttributes root;
-    private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
+    private final Map<ImmutableAttributes, List<DefaultImmutableAttributesContainer>> children;
     private final IsolatableFactory isolatableFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
     private final NamedObjectInstantiator instantiator;
 
-    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
+    public DefaultAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
         this.isolatableFactory = isolatableFactory;
         this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
@@ -58,13 +58,13 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public HierarchicalAttributeContainer mutable(AttributeContainerInternal fallback) {
+    public HierarchicalMutableAttributeContainer mutable(AttributeContainerInternal fallback) {
         return join(fallback, new DefaultMutableAttributeContainer(this));
     }
 
     @Override
-    public HierarchicalAttributeContainer join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
-        return new HierarchicalAttributeContainer(this, fallback, primary);
+    public HierarchicalMutableAttributeContainer join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+        return new HierarchicalMutableAttributeContainer(this, fallback, primary);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         children.compute(node, (k, nodeChildren) -> {
             if (nodeChildren != null) {
                 // Find if someone already tried to concat this value to this node
-                for (DefaultImmutableAttributes child : nodeChildren) {
+                for (DefaultImmutableAttributesContainer child : nodeChildren) {
                     if (child.attribute.equals(key) && child.value.equals(value)) {
                         result.set(child);
                         return nodeChildren;
@@ -114,7 +114,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
             }
 
             // Nobody has tried to concat this value yet
-            DefaultImmutableAttributes child = new DefaultImmutableAttributes((DefaultImmutableAttributes) node, key, value);
+            DefaultImmutableAttributesContainer child = new DefaultImmutableAttributesContainer((DefaultImmutableAttributesContainer) node, key, value);
             nodeChildren.add(child);
             result.set(child);
             return nodeChildren;
@@ -134,8 +134,8 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         ImmutableAttributes current = primary;
         for (Attribute<?> attribute : fallback.keySet()) {
             if (!current.findEntry(attribute.getName()).isPresent()) {
-                if (fallback instanceof DefaultImmutableAttributes) {
-                    current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) fallback).getIsolatableAttribute(attribute));
+                if (fallback instanceof DefaultImmutableAttributesContainer) {
+                    current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributesContainer) fallback).getIsolatableAttribute(attribute));
                 } else {
                     current = concat(current, Cast.uncheckedNonnullCast(attribute), fallback.getAttribute(attribute));
                 }
@@ -162,8 +162,8 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
                     throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
                 }
             }
-            if (attributes1 instanceof DefaultImmutableAttributes) {
-                current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+            if (attributes1 instanceof DefaultImmutableAttributesContainer) {
+                current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributesContainer) attributes1).getIsolatableAttribute(attribute));
             } else {
                 current = concat(current, Cast.uncheckedNonnullCast(attribute), attributes1.getAttribute(attribute));
             }

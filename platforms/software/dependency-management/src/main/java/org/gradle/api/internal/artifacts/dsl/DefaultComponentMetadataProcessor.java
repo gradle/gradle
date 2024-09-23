@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadata
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.action.ConfigurableRule;
@@ -124,7 +124,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ComponentMetadataRuleExecutor ruleExecutor;
     private final MetadataResolutionContext metadataResolutionContext;
     private final ComponentMetadataRuleContainer metadataRuleContainer;
@@ -135,7 +135,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                                              NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
                                              NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
                                              NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
-                                             ImmutableAttributesFactory attributesFactory,
+                                             AttributesFactory attributesFactory,
                                              ComponentMetadataRuleExecutor ruleExecutor,
                                              PlatformSupport platformSupport,
                                              MetadataResolutionContext resolutionContext) {
@@ -321,7 +321,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         private List<String> statusScheme;
         private final AttributeContainerInternal attributes;
 
-        public ShallowComponentMetadataAdapter(NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser, ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
+        public ShallowComponentMetadataAdapter(NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser, ComponentMetadata source, AttributesFactory attributesFactory) {
             this.componentIdentifierNotationParser = componentIdentifierNotationParser;
             id = source.getId();
             changing = source.isChanging();

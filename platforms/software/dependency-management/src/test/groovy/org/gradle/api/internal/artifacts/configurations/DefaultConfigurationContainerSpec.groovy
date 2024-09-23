@@ -63,7 +63,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         decorateSpec(_) >> { Spec spec -> spec }
         decorate(_ as Action) >> { it[0] }
     }
-    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
     }
@@ -79,7 +79,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         fileCollectionFactory,
         buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
-        immutableAttributesFactory,
+        attributesFactory,
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
