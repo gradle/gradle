@@ -73,15 +73,6 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
-        ImmutableAttributes result = ImmutableAttributes.EMPTY;
-        for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-            result = concat(result, of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())));
-        }
-        return result;
-    }
-
-    @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, @Nullable T value) {
         return concat(node, key, isolate(value));
     }
