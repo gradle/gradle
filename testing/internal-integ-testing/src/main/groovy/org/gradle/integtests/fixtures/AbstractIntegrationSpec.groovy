@@ -119,10 +119,10 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         m2.assertNoLeftoverState()
 
         m2.isolateMavenLocalRepo(executer)
+        if (executer.distribution.version > GradleVersion.version("8.11-20240922220000+0000")) {
+            executer.withArgument("--no-problems-report")
+        }
         executer.beforeExecute {
-            if (executer.distribution.version > GradleVersion.version("8.11-20240922220000+0000")) {
-                executer.withArgument("--no-problems-report")
-            }
             withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
             if (maxUploadAttempts != null) {
                 withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
