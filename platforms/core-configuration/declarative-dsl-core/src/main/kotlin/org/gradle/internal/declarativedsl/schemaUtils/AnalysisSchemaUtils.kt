@@ -20,7 +20,6 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.dom.mutation.TypedMember
 import kotlin.reflect.KClass
@@ -39,11 +38,6 @@ fun AnalysisSchema.findTypeFor(javaClass: Class<*>): DataClass? =
     dataClassTypesByFqName.values
         .filterIsInstance<DataClass>()
         .find { it.name.qualifiedName == javaClass.kotlin.qualifiedName }
-
-
-fun AnalysisSchema.findTypeWithName(name: FqName): DataType.ClassDataType? =
-    dataClassTypesByFqName.values
-        .find { it.name.qualifiedName == name.qualifiedName }
 
 
 fun DataClass.findPropertyNamed(name: String): TypedMember.TypedProperty? =

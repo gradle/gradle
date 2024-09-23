@@ -75,9 +75,9 @@ class LanguageTreeToDomContext {
         override fun data(node: DeclarativeDocument.DocumentNode.ElementNode): BlockElement = nodeMapping.getValue(node)
         override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): BlockElement = nodeMapping.getValue(node)
         override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): BlockElement = nodeMapping.getValue(node)
-        override fun data(value: DeclarativeDocument.ValueNode.ValueFactoryNode): Expr = valueMapping.getValue(value)
-        override fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): Expr = valueMapping.getValue(value)
-        override fun data(value: DeclarativeDocument.ValueNode.NamedReferenceNode): Expr = valueMapping.getValue(value)
+        override fun data(node: DeclarativeDocument.ValueNode.ValueFactoryNode): Expr = valueMapping.getValue(node)
+        override fun data(node: DeclarativeDocument.ValueNode.LiteralValueNode): Expr = valueMapping.getValue(node)
+        override fun data(node: DeclarativeDocument.ValueNode.NamedReferenceNode): Expr = valueMapping.getValue(node)
     }
 
     fun blockElementToNode(blockElement: BlockElement): DeclarativeDocument.DocumentNode = when (blockElement) {
@@ -173,6 +173,10 @@ class LanguageTreeToDomContext {
             }
             if (expr.args.any { it is FunctionArgument.Named || it is FunctionArgument.Lambda }) {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryArgumentFormat)
+            }
+
+            if (expr.args.any { it is FunctionArgument.Positional && it.expr is PropertyAccess}) {
+                errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithPropertyAccess)
             }
 
             val values = expr.args.filterIsInstance<FunctionArgument.Positional>().map { exprToValue(it.expr) }

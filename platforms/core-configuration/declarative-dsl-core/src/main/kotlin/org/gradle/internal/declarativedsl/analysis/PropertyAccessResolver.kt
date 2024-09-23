@@ -11,7 +11,6 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.asChainOrNull
-import org.gradle.internal.declarativedsl.schemaUtils.findTypeWithName
 
 
 interface PropertyAccessResolver {
@@ -81,15 +80,15 @@ class PropertyAccessResolverImpl(
         propertyAccess: PropertyAccess,
         expectedType: DataTypeRef?
     ): ObjectOrigin? {
-        if (propertyAccess.receiver == null && expectedType != null && expectedType is DataTypeRef.Name) {
-            val dataType = schema.findTypeWithName(expectedType.fqName)
+        if (propertyAccess.receiver == null && expectedType != null) {
+            val dataType = resolveRef(expectedType)
             if (dataType is EnumClass) {
-                return dataType.entryNames.firstOrNull { it ==  propertyAccess.name}
-                    ?.let { ObjectOrigin.EnumConstantOrigin(dataType, propertyAccess) }
-            } else {
-                error("Unexpected expected type: $expectedType")
+                val matchingPropertyAccess = dataType.entryNames.firstOrNull { it ==  propertyAccess.name}
+                if (matchingPropertyAccess != null) {
+                    return ObjectOrigin.EnumConstantOrigin(dataType, propertyAccess)
+                }
             }
-        } // TODO: weave this better together with what's below
+        }
 
         val candidates: Sequence<ObjectOrigin> = sequence {
             runPropertyAccessResolution(

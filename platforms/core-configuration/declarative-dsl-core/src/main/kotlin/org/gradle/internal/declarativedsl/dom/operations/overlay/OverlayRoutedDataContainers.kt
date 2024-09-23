@@ -56,18 +56,18 @@ class OverlayRoutedValueDataContainer<DValue, DValueFactory : DValue, DLiteral :
     private val underlay: ValueDataContainer<DValue, DValueFactory, DLiteral, DNamedReference>,
     private val overlay: ValueDataContainer<DValue, DValueFactory, DLiteral, DNamedReference>
 ) : ValueDataContainer<DValue, DValueFactory, DLiteral, DNamedReference> {
-    override fun data(value: ValueNode.ValueFactoryNode): DValueFactory = when (overlayOriginContainer.data(value)) {
-        is FromOverlay -> overlay.data(value)
-        is FromUnderlay -> underlay.data(value)
+    override fun data(node: ValueNode.ValueFactoryNode): DValueFactory = when (overlayOriginContainer.data(node)) {
+        is FromOverlay -> overlay.data(node)
+        is FromUnderlay -> underlay.data(node)
     }
 
-    override fun data(value: ValueNode.LiteralValueNode): DLiteral = when (overlayOriginContainer.data(value)) {
-        is FromOverlay -> overlay.data(value)
-        is FromUnderlay -> underlay.data(value)
+    override fun data(node: ValueNode.LiteralValueNode): DLiteral = when (overlayOriginContainer.data(node)) {
+        is FromOverlay -> overlay.data(node)
+        is FromUnderlay -> underlay.data(node)
     }
 
-    override fun data(value: ValueNode.NamedReferenceNode): DNamedReference = when (overlayOriginContainer.data(value)) {
-        is FromOverlay -> overlay.data(value)
-        is FromUnderlay -> underlay.data(value)
+    override fun data(node: ValueNode.NamedReferenceNode): DNamedReference = when (overlayOriginContainer.data(node)) {
+        is FromOverlay -> overlay.data(node)
+        is FromUnderlay -> underlay.data(node)
     }
 }

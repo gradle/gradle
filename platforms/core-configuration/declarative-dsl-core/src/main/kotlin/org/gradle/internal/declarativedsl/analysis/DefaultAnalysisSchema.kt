@@ -13,7 +13,6 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataType.*
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
@@ -35,7 +34,7 @@ import java.util.Collections
 @SerialName("analysisSchema")
 data class DefaultAnalysisSchema(
     override val topLevelReceiverType: DataClass,
-    override val dataClassTypesByFqName: Map<FqName, ClassDataType>,
+    override val dataClassTypesByFqName: Map<FqName, DataType.ClassDataType>,
     override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
     override val defaultImports: Set<FqName>

@@ -35,15 +35,15 @@ typealias NodeData<DNode> = NodeDataContainer<DNode, DNode, DNode, DNode>
 
 
 interface ValueDataContainer<out DValue, out DValueFactory : DValue, out DLiteral : DValue, out DNamedReference : DValue> {
-    fun data(value: DeclarativeDocument.ValueNode): DValue = when (value) {
-        is DeclarativeDocument.ValueNode.ValueFactoryNode -> data(value)
-        is DeclarativeDocument.ValueNode.LiteralValueNode -> data(value)
-        is DeclarativeDocument.ValueNode.NamedReferenceNode -> data(value)
+    fun data(node: DeclarativeDocument.ValueNode): DValue = when (node) {
+        is DeclarativeDocument.ValueNode.ValueFactoryNode -> data(node)
+        is DeclarativeDocument.ValueNode.LiteralValueNode -> data(node)
+        is DeclarativeDocument.ValueNode.NamedReferenceNode -> data(node)
     }
 
-    fun data(value: DeclarativeDocument.ValueNode.ValueFactoryNode): DValueFactory
-    fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): DLiteral
-    fun data(value: DeclarativeDocument.ValueNode.NamedReferenceNode): DNamedReference
+    fun data(node: DeclarativeDocument.ValueNode.ValueFactoryNode): DValueFactory
+    fun data(node: DeclarativeDocument.ValueNode.LiteralValueNode): DLiteral
+    fun data(node: DeclarativeDocument.ValueNode.NamedReferenceNode): DNamedReference
 }
 
 

@@ -70,7 +70,8 @@ class ResolutionTracer(
             Resolution(resolution)
         } ?: elementErrors[expr]?.let { errors ->
             Errors(errors)
-        } ?: NoResolution
+        } ?:
+        NoResolution
 
     override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? {
         val result = expressionResolver.doResolveExpression(context, expr, expectedType)

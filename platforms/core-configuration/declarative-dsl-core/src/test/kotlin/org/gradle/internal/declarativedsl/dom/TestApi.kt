@@ -52,9 +52,6 @@ class TestApi {
 
         @get:Restricted
         val utils: Utils
-
-        @get:Restricted
-        var enum: Enum
     }
 
     class ComplexValueOne
@@ -72,6 +69,9 @@ class TestApi {
     interface NestedReceiver {
         @get:Restricted
         var number: Int
+
+        @get:Restricted
+        var enum: Enum
 
         @Adding
         fun add(): MyNestedElement

@@ -68,6 +68,8 @@ object SchemaSerialization {
                 subclass(DataTypeInternal.DefaultBooleanDataType::class)
                 subclass(DataTypeInternal.DefaultNullType::class)
                 subclass(DataTypeInternal.DefaultUnitType::class)
+                subclass(DefaultDataClass::class)
+                subclass(DefaultEnumClass::class)
             }
             polymorphic(DataType.ClassDataType::class) {
                 subclass(DefaultDataClass::class)

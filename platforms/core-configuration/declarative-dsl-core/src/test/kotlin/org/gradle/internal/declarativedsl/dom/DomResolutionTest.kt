@@ -46,8 +46,8 @@ class DomResolutionTest {
             nested {
                 number = 456
                 add()
+                enum = A
             }
-            enum = A
             """.trimIndent()
         )
 
@@ -77,7 +77,7 @@ class DomResolutionTest {
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
-            PropertyAssignmentResolved -> TopLevelReceiver.enum: Enum
+            PropertyAssignmentResolved -> NestedReceiver.enum: Enum
             NamedReferenceResolved -> A
             """.trimIndent(),
             resolutions.map { resolutionPrettyString(it) }.joinToString("\n")
@@ -102,6 +102,7 @@ class DomResolutionTest {
             nested {
                 addAndConfigure("cross-scope") { }
                 add("incorrect signature")
+                enum = X
             }
             """.trimIndent()
         )
@@ -112,7 +113,6 @@ class DomResolutionTest {
         val resolved = resolutionContainer(schema, resolver.trace, document, strictReceiverChecks = true)
         val resolutions = resolved.collectToMap(document).values
         assertEquals(
-            resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> correct
@@ -136,7 +136,10 @@ class DomResolutionTest {
             LiteralValueResolved -> cross-scope
             ElementNotResolved(UnresolvedSignature)
             LiteralValueResolved -> incorrect signature
-            """.trimIndent()
+            PropertyNotAssigned(UnresolvedValueUsed)
+            NamedReferenceNotResolved(UnresolvedName)
+            """.trimIndent(),
+            resolutions.joinToString("\n") { resolutionPrettyString(it) }
         )
     }
 
@@ -160,7 +163,7 @@ class DomResolutionTest {
 
             is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> " -> ${resolution.value}"
             is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
-            is DocumentResolution.ValueNodeResolution.NamedReferenceResolved -> " -> ${resolution.referenceName}"
+            is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceResolved -> " -> ${resolution.referenceName}"
         }
 
     private
