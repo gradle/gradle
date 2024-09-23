@@ -22,6 +22,9 @@ import org.gradle.api.reflect.ObjectInstantiationException;
  * Creates instance of objects in preparation for deserialization of their state.
  */
 public interface DeserializationInstantiator {
+
+    <T> Class<? extends T> getDeserializedType(Class<T> implType);
+
     /**
      * Creates an instance of the given type without invoking its constructor. Invokes the constructor of the given base class.
      *

@@ -16,9 +16,11 @@
 
 package org.gradle.internal.cc.impl.serialize
 
-import com.esotericsoftware.kryo.io.Output
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.StringEncoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,16 +30,19 @@ import java.util.concurrent.atomic.AtomicInteger
  * Deduplicates and encodes strings to a separate stream in a thread-safe manner.
  */
 internal
-class ParallelStringEncoder(stream: OutputStream) : StringEncoder, AutoCloseable {
+class ParallelStringEncoder(
+    stream: OutputStream,
+    private val classEncoder: ClassEncoder
+) : StringEncoder, ClassEncoder, AutoCloseable {
 
     private
-    val strings = ConcurrentHashMap<String, Int>()
+    val strings = ConcurrentHashMap<Any, Int>()
 
     private
     var nextId = AtomicInteger(1)
 
     private
-    val output = Output(stream)
+    val output = KryoBackedEncoder(stream)
 
     override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
         if (string == null) {
@@ -48,29 +53,60 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder, AutoCloseable
     }
 
     override fun writeString(encoder: Encoder, string: CharSequence) {
-        val id = strings.computeIfAbsent(string.toString()) { key ->
+        writeValue(encoder, string.toString(), ::doWriteString)
+    }
+
+    override fun close() {
+        output.writeSmallInt(0) // EOF
+        output.close()
+    }
+
+    override fun Encoder.encodeClass(type: Class<*>) {
+        writeValue(this, type, ::doWriteClass)
+    }
+
+    override fun Encoder.encodeClassLoader(classLoader: ClassLoader?) {
+        if (classLoader == null) {
+            writeSmallInt(0)
+        } else {
+            writeValue(this, classLoader, ::doWriteClassLoader)
+        }
+    }
+
+    private
+    fun <T : Any> writeValue(encoder: Encoder, value: T, write: (T) -> Unit) {
+        val id = strings.computeIfAbsent(value) { key ->
             val id = nextId.getAndIncrement()
-            doWriteString(id, key)
+            synchronized(output) {
+                output.apply {
+                    output.writeSmallInt(id)
+                    write(key.uncheckedCast())
+                }
+            }
             id
         }
         encoder.writeSmallInt(id)
     }
 
-    override fun close() {
-        output.writeStringId(0) // EOF
-        output.close()
+    private
+    fun doWriteString(key: String) {
+        output.writeByte(1)
+        output.writeString(key)
     }
 
     private
-    fun doWriteString(id: Int, key: String) {
-        synchronized(output) {
-            output.writeStringId(id)
-            output.writeString(key)
+    fun doWriteClass(key: Class<*>) {
+        output.writeByte(2)
+        classEncoder.run {
+            output.encodeClass(key)
         }
     }
 
     private
-    fun Output.writeStringId(id: Int) {
-        writeVarInt(id, true)
+    fun doWriteClassLoader(key: ClassLoader) {
+        output.writeByte(3)
+        classEncoder.run {
+            output.encodeClassLoader(key)
+        }
     }
 }

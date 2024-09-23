@@ -20,6 +20,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
 import org.gradle.internal.serialize.graph.ReadIdentities
@@ -27,7 +28,8 @@ import org.gradle.internal.serialize.graph.ReadIdentities
 
 internal
 class DefaultClassDecoder(
-    private val defaultClassLoaderScope: ClassLoaderScope
+    private val defaultClassLoaderScope: ClassLoaderScope,
+    private val instantiator: DeserializationInstantiator
 ) : ClassDecoder {
 
     private
@@ -42,11 +44,18 @@ class DefaultClassDecoder(
         if (type != null) {
             return type as Class<*>
         }
+        val isGenerated = readBoolean()
         val name = readString()
-        val classLoader = decodeClassLoader() ?: javaClass.classLoader
-        val newType = Class.forName(name, false, classLoader)
-        classes.putInstance(id, newType)
-        return newType
+        val classLoader = decodeClassLoader()
+            ?: defaultClassLoaderScope.exportClassLoader
+        val newType = try {
+            Class.forName(name, false, classLoader)
+        } catch (e: ClassNotFoundException) {
+            throw ClassNotFoundException("Class '$name' is not found in $classLoader", e)
+        }
+        val actualType = if (isGenerated) instantiator.getDeserializedType(newType) else newType
+        classes.putInstance(id, actualType)
+        return actualType
     }
 
     override fun Decoder.decodeClassLoader(): ClassLoader? =

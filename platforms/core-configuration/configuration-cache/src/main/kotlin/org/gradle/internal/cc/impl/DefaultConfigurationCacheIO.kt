@@ -38,6 +38,7 @@ import org.gradle.internal.cc.impl.serialize.ParallelStringDecoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -45,6 +46,8 @@ import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
+import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
@@ -92,7 +95,8 @@ class DefaultConfigurationCacheIO internal constructor(
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry
+    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
+    private val instantiatorFactory: InstantiatorFactory
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
@@ -246,7 +250,7 @@ class DefaultConfigurationCacheIO internal constructor(
     fun <T> withParallelStringEncoderFor(stateFile: ConfigurationCacheStateFile, action: (StringEncoder) -> T): T =
         stringsFileFor(stateFile).let { stringsFile ->
             outputStreamFor(stringsFile.stateType, stringsFile::outputStream).use { stringStream ->
-                ParallelStringEncoder(stringStream).use { stringEncoder ->
+                ParallelStringEncoder(stringStream, classEncoder()).use { stringEncoder ->
                     action(stringEncoder)
                 }
             }
@@ -256,7 +260,7 @@ class DefaultConfigurationCacheIO internal constructor(
     fun <T> withParallelStringDecoderFor(stateFile: ConfigurationCacheStateFile, action: (StringDecoder) -> T): T =
         stringsFileFor(stateFile).let { stringsFile ->
             inputStreamFor(stringsFile.stateType, stringsFile::inputStream).use { stringStream ->
-                ParallelStringDecoder(stringStream).use { stringDecoder ->
+                ParallelStringDecoder(stringStream, classDecoder()).use { stringDecoder ->
                     action(stringDecoder)
                 }
             }
@@ -462,7 +466,8 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         tracer,
         problems,
-        classEncoder(),
+        stringEncoder as? ClassEncoder
+            ?: classEncoder(),
         stringEncoder = stringEncoder
     )
 
@@ -477,7 +482,8 @@ class DefaultConfigurationCacheIO internal constructor(
         beanStateReaderLookup,
         logger,
         problems,
-        classDecoder(),
+        stringDecoder as? ClassDecoder
+            ?: classDecoder(),
         stringDecoder,
     )
 
@@ -487,7 +493,10 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun classDecoder() =
-        DefaultClassDecoder(classLoaderScopeRegistry.coreAndPluginsScope)
+        DefaultClassDecoder(
+            classLoaderScopeRegistry.coreAndPluginsScope,
+            instantiatorFactory.decorateScheme().deserializationInstantiator()
+        )
 
     /**
      * Provides R/W isolate contexts based on some other context.
