@@ -16,6 +16,7 @@
 
 package org.gradle.work;
 
+import javax.annotation.Nonnull;
 import org.gradle.api.file.FileType;
 
 import java.io.File;
@@ -35,6 +36,7 @@ public interface FileChange {
     /**
      * The type of change to the file.
      */
+    @Nonnull
     ChangeType getChangeType();
 
     /**
