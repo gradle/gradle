@@ -16,8 +16,11 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
@@ -64,6 +67,104 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         [":build"]                             | [":build"]
         [":build", "--configure-on-demand"]    | [":build"]
         [":build", "--no-configure-on-demand"] | [":build"]
+    }
+
+    @Ignore
+    def "deadlock"() {
+        given:
+        settingsFile("build-library/settings.gradle.kts", """
+            pluginManagement {
+                includeBuild("../build-plugins")
+            }
+            include(":a")
+        """)
+        buildFile("build-library/a/build.gradle.kts", """
+            plugins {
+                id("shared")
+            }
+        """)
+        buildFile("build-plugins/build.gradle.kts", """
+            plugins {
+                `groovy-gradle-plugin`
+            }
+            gradlePlugin {
+                plugins {
+                    create("shared") {
+                        id = "shared"
+                        implementationClass = "SharedPlugin"
+                    }
+                }
+            }
+        """)
+        file("build-plugins/src/main/groovy/SharedPlugin.groovy") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            public abstract class SharedPlugin implements Plugin<Project> {
+
+                @Override
+                void apply(Project project) {}
+            }
+        """
+
+        settingsFile """
+            includeBuild("build-library")
+        """
+
+        expect:
+        isolatedProjectsRun "help"
+    }
+
+    @Ignore
+    def "plugin not found"() {
+        given:
+        settingsFile("build-library/settings.gradle.kts", """
+            pluginManagement {
+                includeBuild("../build-plugins")
+            }
+            include(":a")
+            include(":b")
+        """)
+        buildFile("build-library/a/build.gradle.kts", """
+            plugins {
+                id("shared")
+            }
+        """)
+        buildFile("build-library/b/build.gradle.kts", """
+            plugins {
+                id("shared")
+            }
+        """)
+        buildFile("build-plugins/build.gradle.kts", """
+            plugins {
+                `groovy-gradle-plugin`
+            }
+            gradlePlugin {
+                plugins {
+                    create("shared") {
+                        id = "shared"
+                        implementationClass = "SharedPlugin"
+                    }
+                }
+            }
+        """)
+        file("build-plugins/src/main/groovy/SharedPlugin.groovy") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            public abstract class SharedPlugin implements Plugin<Project> {
+
+                @Override
+                void apply(Project project) {}
+            }
+        """
+
+        settingsFile """
+            includeBuild("build-library")
+        """
+
+        expect:
+        isolatedProjectsRun "help"
     }
 
     // TODO Test -x behavior

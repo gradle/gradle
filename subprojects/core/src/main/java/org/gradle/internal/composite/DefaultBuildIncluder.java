@@ -74,7 +74,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
     public Collection<IncludedBuildState> getRegisteredPluginBuilds() {
         return pluginBuildDefinitions.stream().map(buildDefinition -> {
             IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition);
-            coordinator.prepareForInclusion(build, true);
+//            coordinator.prepareForInclusion(build, true);
             return build;
         }).collect(Collectors.toList());
     }

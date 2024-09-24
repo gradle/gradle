@@ -24,11 +24,9 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -41,7 +39,7 @@ public class BuildInclusionCoordinator {
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();
     private final GlobalDependencySubstitutionRegistry substitutionRegistry;
     private boolean registerRootSubstitutions;
-    private final Set<BuildState> registering = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<BuildState> registering = new HashSet<>();
 
     public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry) {
         this.substitutionRegistry = substitutionRegistry;
@@ -84,44 +82,52 @@ public class BuildInclusionCoordinator {
     }
 
     public void prepareForPluginResolution(IncludedBuildState build) {
-        if (!registering.add(build)) {
-            return;
-        }
-        try {
-            build.ensureProjectsConfigured();
-            makeSubstitutionsAvailableFor(build, new HashSet<>());
-        } finally {
-            registering.remove(build);
-        }
-    }
-
-    private void makeSubstitutionsAvailableFor(BuildState build, Set<BuildState> seen) {
-        // A build can see all the builds that it includes
-        if (!seen.add(build)) {
-            return;
-        }
-        boolean added = registering.add(build);
-        try {
-            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
-                BuildState target = reference.getTarget();
-                if (!registering.contains(target) && target instanceof IncludedBuildState) {
-                    doRegisterSubstitutions((IncludedBuildState) target);
-                    makeSubstitutionsAvailableFor(target, seen);
-                }
+        System.out.println("Preparing for plugin resolution " + build.getName());
+        synchronized (registering) {
+            if (!registering.add(build)) {
+                return;
             }
-        } finally {
-            if (added) {
+            try {
+                build.ensureProjectsConfigured();
+                makeSubstitutionsAvailableFor(build, new HashSet<>());
+            } finally {
                 registering.remove(build);
             }
         }
     }
 
+    private void makeSubstitutionsAvailableFor(BuildState build, Set<BuildState> seen) {
+        // A build can see all the builds that it includes
+        System.out.println("Making substitutions available for " + build.getBuildIdentifier());
+        if (!seen.add(build)) {
+            return;
+        }
+        synchronized (registering) {
+            boolean added = registering.add(build);
+            try {
+                for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+                    BuildState target = reference.getTarget();
+                    if (!registering.contains(target) && target instanceof IncludedBuildState) {
+                        doRegisterSubstitutions((IncludedBuildState) target);
+                        makeSubstitutionsAvailableFor(target, seen);
+                    }
+                }
+            } finally {
+                if (added) {
+                    registering.remove(build);
+                }
+            }
+        }
+    }
+
     private void doRegisterSubstitutions(CompositeBuildParticipantBuildState build) {
-        registering.add(build);
-        try {
-            substitutionRegistry.registerSubstitutionsFor(build);
-        } finally {
-            registering.remove(build);
+        synchronized (registering) {
+            registering.add(build);
+            try {
+                substitutionRegistry.registerSubstitutionsFor(build);
+            } finally {
+                registering.remove(build);
+            }
         }
     }
 }
