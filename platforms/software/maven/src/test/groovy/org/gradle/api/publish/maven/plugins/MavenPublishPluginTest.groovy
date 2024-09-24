@@ -109,7 +109,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         publishTasks.size() == 1
-        publishTasks.first().repository.get().is(mavenLocal)
+        publishTasks.first().repository.is(mavenLocal)
 
         publishLocalTasks.size() == 1
     }
@@ -125,9 +125,9 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         publishTasks.size() == 2
-        publishTasks.first().repository.get().is(repo1)
+        publishTasks.first().repository.is(repo1)
         publishTasks.first().name == "publishTestPublicationToMavenRepository"
-        publishTasks.last().repository.get().is(repo2)
+        publishTasks.last().repository.is(repo2)
         publishTasks.last().name == "publishTestPublicationToOtherRepository"
     }
 

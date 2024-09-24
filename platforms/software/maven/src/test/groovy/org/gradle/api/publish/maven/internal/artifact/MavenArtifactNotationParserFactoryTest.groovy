@@ -17,6 +17,7 @@
 
 package org.gradle.api.publish.maven.internal.artifact
 
+import com.google.common.base.Strings
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
@@ -78,7 +79,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         then:
         mavenArtifact.getExtension().get() == publishArtifact.extension
         mavenArtifact.getClassifier().get() == publishArtifact.classifier
-        mavenArtifact.file == publishArtifact.file
+        mavenArtifact.file.get().asFile == publishArtifact.file
 
         and:
         mavenArtifact.buildDependencies.getDependencies(task) == dependencies
@@ -91,7 +92,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         then:
         mavenArtifact.getExtension().get() == publishArtifact.extension
         mavenArtifact.getClassifier().get() == publishArtifact.classifier
-        mavenArtifact.file == publishArtifact.file
+        mavenArtifact.file.get().asFile == publishArtifact.file
 
         and:
         mavenArtifact.buildDependencies.getDependencies(task) == dependencies
@@ -102,7 +103,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         MavenArtifact mavenArtifact = parser.parseNotation(source: publishArtifact, extension: "ext", classifier: "classy")
 
         then:
-        mavenArtifact.file == publishArtifact.file
+        mavenArtifact.file.get().asFile == publishArtifact.file
         mavenArtifact.getExtension().get() == "ext"
         mavenArtifact.getClassifier().get() == "classy"
 
@@ -122,7 +123,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         and:
         mavenArtifact.getExtension().get() == "zip"
-        mavenArtifact.file == file
+        mavenArtifact.file.get().asFile == file
         !mavenArtifact.getClassifier().isPresent()
     }
 
@@ -139,8 +140,8 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         then:
         mavenArtifact.extension.getOrNull() == artifactExtension
-        mavenArtifact.classifier.getOrNull() == artifactClassifier
-        mavenArtifact.file == archive.archiveFile.get().asFile
+        mavenArtifact.classifier.getOrNull() == Strings.emptyToNull(artifactClassifier)
+        mavenArtifact.file.get().asFile == archive.archiveFile.get().asFile
         mavenArtifact.buildDependencies.getDependencies(null) == [archive] as Set
 
         where:
@@ -160,7 +161,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         then:
         mavenArtifact.extension.get() == extension
-        mavenArtifact.file == file
+        mavenArtifact.file.get().asFile == file
         !mavenArtifact.classifier.isPresent()
 
         where:
@@ -183,7 +184,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         0 * taskProvider._
 
         when:
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         1 * taskProvider.get() >> task
@@ -206,7 +207,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         0 * taskProvider._
 
         when:
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         1 * taskProvider.get() >> task
@@ -235,7 +236,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         1 * fileCollection.getSingleFile() >> {
             throw new RuntimeException("more than one file")
         }
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         RuntimeException e = thrown()
@@ -258,7 +259,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         when:
         1 * provider.get() >> regularFile
         1 * regularFile.getAsFile() >> file
-        artifact.file == file
+        artifact.file.get().asFile == file
 
         then:
         0 * _
@@ -279,7 +280,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
         when:
         1 * provider.get() >> regularFile
         1 * regularFile.getAsFile() >> file.toFile()
-        artifact.file == file.toFile()
+        artifact.file.get().asFile == file.toFile()
 
         then:
         0 * _

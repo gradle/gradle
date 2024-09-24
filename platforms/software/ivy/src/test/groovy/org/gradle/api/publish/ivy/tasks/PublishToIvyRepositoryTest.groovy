@@ -41,7 +41,7 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
     def "publication must implement the internal interface"() {
         when:
-        publish.getPublication().set(Mock(IvyPublication))
+        publish.setPublication(Mock(IvyPublication))
         publish.publish()
 
         then:

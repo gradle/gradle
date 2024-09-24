@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -24,8 +25,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskDependency;
-
-import java.io.File;
 
 public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     private final PublishArtifact publishArtifact;
@@ -41,8 +40,8 @@ public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return publishArtifact.getFile();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(publishArtifact::getFile);
     }
 
     @Override
