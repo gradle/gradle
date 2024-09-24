@@ -20,20 +20,20 @@ import org.gradle.internal.buildtree.BuildModelParameters
 
 internal
 data class DefaultBuildModelParameters(
+    private val requiresToolingModels: Boolean,
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCache: Boolean,
     private val isolatedProjects: Boolean,
-    private val requiresBuildModel: Boolean,
     private val intermediateModelCache: Boolean,
     private val parallelToolingApiActions: Boolean,
     private val invalidateCoupledProjects: Boolean,
     private val modelAsProjectDependency: Boolean
 ) : BuildModelParameters {
 
-    override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
+    override fun isRequiresToolingModels(): Boolean = requiresToolingModels
 
-    override fun isRequiresBuildModel(): Boolean = requiresBuildModel
+    override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
     override fun isConfigureOnDemand(): Boolean = configureOnDemand
 

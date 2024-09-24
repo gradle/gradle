@@ -40,7 +40,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = fetchModel()
 
         then:
@@ -54,7 +54,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = fetchModel()
 
         then:
@@ -69,7 +69,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
             myExtension.message = 'this is the root project'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = fetchModel()
 
         then:
@@ -85,7 +85,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = fetchModel()
 
         then:
@@ -115,7 +115,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -129,7 +129,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("Execution of dummyTask")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -149,7 +149,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(SomeToolingModel, "help")
 
         then:
@@ -160,7 +160,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
@@ -186,7 +186,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model = fetchModel()
 
         then:
@@ -198,7 +198,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model2 = fetchModel()
 
         then:
@@ -218,7 +218,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = fetchModel(GradleBuild)
 
         then:
@@ -235,7 +235,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("configuring build")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = fetchModel(GradleBuild)
 
         then:
@@ -259,7 +259,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = fetchModel()
 
         then:
@@ -274,7 +274,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = fetchModel()
 
         then:
@@ -286,7 +286,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputDoesNotContain("creating model")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = fetchModel(GradleProject)
 
         then:
@@ -301,7 +301,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputDoesNotContain("creating model")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = fetchModel(GradleProject)
 
         then:
@@ -313,7 +313,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputDoesNotContain("creating model")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model5 = fetchModel()
 
         then:
@@ -356,7 +356,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -372,7 +372,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         and:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -384,7 +384,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         }
 
         and:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
