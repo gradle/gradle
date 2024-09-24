@@ -16,11 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.intellij.lang.annotations.Language
 
 abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
@@ -45,14 +45,17 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
     }
 
     void configurationCacheRun(String... tasks) {
+        executer.withArgument("--no-problems-report")
         run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, *tasks)
     }
 
     void configurationCacheRunLenient(String... tasks) {
+        executer.withArgument("--no-problems-report")
         run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
     void configurationCacheFails(String... tasks) {
+        executer.withArgument("--no-problems-report")
         fails(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, *tasks)
     }
 

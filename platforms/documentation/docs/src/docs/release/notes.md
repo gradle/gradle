@@ -128,6 +128,23 @@ If only warnings happen (and no `-Werror` is set), this report will not be visib
 
 This feature also works with the [`--continue`](userguide/command_line_interface.html#sec:continue_build_on_failure) flag, and the bottom report will contain a per-task report of all the compilation failures.
 
+#### HTML problems report
+
+All problems reported via the [Problems API](userguide/implementing_gradle_plugins_binary.html#reporting_problems), internally in Gradle or from a plugin, will be rendered into an HTML problems report
+by default.
+
+Example output:
+
+```
+> Task :reportProblem
+[Incubating] Problem report is available at: <project-dir>/build/tmp/te%C5%9Dt%20files/ProblemsSer.Test/h79pc/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+```
+
+The generation can be disabled by using `--no-probems-report`
+
 <a name="native-toolchains"></a>
 ### Native toolchains support
 

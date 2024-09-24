@@ -20,7 +20,6 @@ import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
@@ -42,8 +41,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        enableProblemsReport()
-
         when:
         run('reportProblem')
 
@@ -58,14 +55,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 11
                 path == "build file '$buildFile.absolutePath'"
             }
-        }
-    }
-
-    def void enableProblemsReport() {
-        if (GradleContextualExecuter.embedded) {
-            System.setProperty("org.gradle.internal.problems.report.enabled", "true")
-        } else {
-            executer.withBuildJvmOpts("-Dorg.gradle.internal.problems.report.enabled=true")
         }
     }
 
@@ -379,6 +368,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def problemsReportHtmlName = "problems-report.html"
+    def problemsReportOutputPrefix = "[Incubating] Problems report is available at: "
+    def problemsReportOutputDirectory = "build/reports/problems"
+
     def "problem progress events in report"() {
         given:
         withReportProblemTask """
@@ -392,12 +385,48 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        enableProblemsReport()
+        when:
+        executer.withArgument("--problems-report")
+        run("reportProblem")
+
+
+        then:
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+
+        output.contains(problemsReportOutputPrefix)
+
+        10.times { num ->
+            verifyAll(receivedProblem(num)) {
+                definition.id.displayName == "This is the heading problem text$num"
+                definition.id.name == "type$num"
+                definition.severity == Severity.WARNING
+                details == "This is a huge amount of extremely and very relevant details for this problem$num"
+                solutions == ["solution"]
+            }
+        }
+    }
+
+    def "problem report can be disabled"() {
+        given:
+        withReportProblemTask """
+            for (int i = 0; i < 10; i++) {
+                problems.getReporter().reporting {
+                        it.id("type\$i", "This is the heading problem text\$i")
+                        .severity(Severity.WARNING)
+                        .details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                        .solution("solution")
+                }
+            }
+        """
 
         when:
+        executer.withArgument("--no-problems-report")
         run("reportProblem")
 
         then:
+        !testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+
         10.times { num ->
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"

@@ -89,7 +89,7 @@ BUILD SUCCESSFUL in [ \\dms]+
         """
 
         when:
-        succeeds('success')
+        succeeds 'success'
 
         then:
         result.plainTextOutput.matches """(?s).*build finished.*BUILD SUCCESSFUL in [ \\dms]+

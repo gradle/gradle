@@ -61,7 +61,7 @@ class CommonReport(
     internalOptions: InternalOptions,
     reportContext: String,
     reportFileName: String,
-    val distinctReports: Boolean = true // true if every build should have its separate report, false if the previous report should be overwritten
+    private val distinctReports: Boolean = true // true if every build should have its separate report, false if the previous report should be overwritten
 ) : Closeable {
 
     companion object {
