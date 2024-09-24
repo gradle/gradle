@@ -27,7 +27,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def runRetrieve() {
+    def runRetrieveTask() {
         executer.withArgument("--no-problems-report")
         run 'retrieve'
     }
@@ -58,7 +58,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = m2.mavenRepo().module('group', 'projectA', '1.2').publish()
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -71,7 +71,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -84,7 +84,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         def moduleA = sysPropRepo.module('group', 'projectA', '1.2').publish()
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -97,7 +97,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
         when:
         executer.withArgument("-Dmaven.repo.local=${artifactRepo.rootDir.getAbsolutePath()}")
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -112,7 +112,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         globalRepo.module('group', 'projectA', '1.2').publishWithChangedContent()
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -128,7 +128,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
 
         when:
         executer.withArgument("-Dmaven.repo.local=${sysPropRepo.rootDir.getAbsolutePath()}")
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -158,7 +158,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleA)
@@ -216,7 +216,7 @@ Required by:
         """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleARemote)
@@ -232,7 +232,7 @@ Required by:
         pomModule.publish()
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -248,7 +248,7 @@ Required by:
         pomModule.publishPom()
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -334,7 +334,7 @@ Required by:
         """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleARemote)
@@ -365,7 +365,7 @@ Required by:
         """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(moduleARemote)
@@ -394,7 +394,7 @@ Required by:
         """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         hasArtifact(module)

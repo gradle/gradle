@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    def runRetrieve() {
+    def runRetrieveTask() {
         executer.withArgument("--no-problems-report")
         run 'retrieve'
     }
@@ -55,7 +55,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
-        runRetrieve()
+        runRetrieveTask()
 
         then: "Version 1.1 jar is downloaded"
         file('build').assertHasDescendants('projectA-1.1.jar')
@@ -79,7 +79,7 @@ task retrieve(type: Copy) {
 
         and: "We request 1.1 again"
         executer.withArgument("--no-problems-report")
-        runRetrieve()
+        runRetrieveTask()
 
         then: "We get all artifacts, including the new ones"
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
@@ -110,7 +110,7 @@ task retrieve(type: Copy) {
         module.allowAll()
 
         when: 'original retrieve'
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def jarSnapshot = file('build/projectA-1.1.jar').snapshot()
@@ -127,7 +127,7 @@ task retrieve(type: Copy) {
 
         and:
         executer.withArgument('-PisChanging')
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         file('build/projectA-1.1.jar').assertHasChangedSince(jarSnapshot)
@@ -163,7 +163,7 @@ task retrieve(type: Copy) {
         module.ivy.expectGet()
         module.jar.expectGet()
 
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def jarFile = file('build/projectA-1.1.jar')
@@ -182,7 +182,7 @@ task retrieve(type: Copy) {
         module.jar.sha1.expectGet()
         module.jar.expectGet()
 
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def changedJarFile = file('build/projectA-1.1.jar')
@@ -224,7 +224,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
-        runRetrieve()
+        runRetrieveTask()
 
         then: "Version 1.1 jar is downloaded"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
@@ -239,7 +239,7 @@ task retrieve(type: Copy) {
         module.publishWithChangedContent()
 
         and: "We request 1.1 (changing), with module meta-data cached. No server requests."
-        runRetrieve()
+        runRetrieveTask()
 
         then: "Original module meta-data and artifacts are used"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
@@ -259,7 +259,7 @@ task retrieve(type: Copy) {
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
         executer.withArguments("-PdoNotCacheChangingModules")
-        runRetrieve()
+        runRetrieveTask()
 
         then: "We get new artifacts based on the new meta-data"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
@@ -299,7 +299,7 @@ task retrieve(type: Copy) {
         module.jar.expectGet()
 
         and:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def downloadedJar = file('build/projectA-1.1.jar')
@@ -312,7 +312,7 @@ task retrieve(type: Copy) {
         module.jar.expectHead()
 
         and:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         downloadedJar.assertHasNotChangedSince(snapshot)
@@ -329,7 +329,7 @@ task retrieve(type: Copy) {
         module.jar.sha1.expectGetMissing()
         module.jar.expectGet()
 
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         downloadedJar.assertHasChangedSince(snapshot)

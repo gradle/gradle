@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def runRetrieve() {
+    def runRetrieveTask() {
         executer.withArgument("--no-problems-report")
         run 'retrieve'
     }
@@ -42,7 +42,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -53,7 +53,7 @@ task retrieve(type: Sync) {
         moduleA.dependsOn('group', 'projectB', '9.1')
         moduleA.publishWithChangedContent()
         executer.withArgument("--no-problems-report")
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         buildDir.assertHasDescendants(moduleA.artifactFile.name, 'projectB-9.1.jar')
@@ -80,7 +80,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -91,7 +91,7 @@ task retrieve(type: Sync) {
         moduleA.dependsOn('group', 'projectB', '9.1')
         moduleA.publishWithChangedContent()
         executer.withArgument("--no-problems-report")
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
@@ -132,7 +132,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')

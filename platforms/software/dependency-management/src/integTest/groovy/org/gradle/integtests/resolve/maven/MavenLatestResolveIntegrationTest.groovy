@@ -32,7 +32,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         """
     }
 
-    def runRetrieve() {
+    def runRetrieveTask() {
         executer.withArgument("--no-problems-report")
         run 'retrieve'
     }
@@ -46,7 +46,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         buildFile << " dependencies { compile 'group:projectA:latest.$status' }"
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -81,7 +81,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         """
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         file("build").assertHasDescendants(latest)
@@ -110,7 +110,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
             }"""
 
         when:
-        runRetrieve()
+        runRetrieveTask()
 
         then:
         file('build').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar', "projectC-${resolvedVersion}.jar")

@@ -368,6 +368,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def problemsReportHtmlName = "problems-report.html"
+    def problemsReportOutputPrefix = "[Incubating] Problems report is available at: "
+    def problemsReportOutputDirectory = "build/reports/problems"
+
     def "problem progress events in report"() {
         given:
         withReportProblemTask """
@@ -385,9 +389,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--problems-report")
         run("reportProblem")
 
+
         then:
-        testDirectory.file("build/reports/problems", "problems-report.html").exists()
-        output.contains("[Incubating] Problem report is available at: ")
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+
+        output.contains(problemsReportOutputPrefix)
 
         10.times { num ->
             verifyAll(receivedProblem(num)) {
@@ -414,10 +420,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.withArgument("--no-problems-report")
         run("reportProblem")
 
         then:
-        !testDirectory.file("build/reports/problems", "problem-report.html").exists()
+        !testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+
         10.times { num ->
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"

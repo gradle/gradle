@@ -241,7 +241,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         // Check it can be executed
 
         def directory = executer.inDirectory(contentsDir)
-//        if(directory.distribution.version
         directory.usingExecutable('bin/gradle').withTasks("help").run()
 
         // Scripts
