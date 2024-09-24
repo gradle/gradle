@@ -46,6 +46,7 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
             }
         """
         when:
+        executer.withArgument("--no-problems-report")
         succeeds('all')
 
         then:

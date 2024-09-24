@@ -56,6 +56,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         when:
         server.expectConcurrent("log1", "log2", "log3")
         executer.withArgument("--parallel")
+            .withArgument("--no-problems-report")
         // run build in another process to avoid interference from logging from test fixtures
         result = executer.withTasks("log").start().waitForFinish()
 
@@ -88,6 +89,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         """
 
         when:
+        executer.withArgument("--no-problems-report")
         succeeds('log')
 
         then:
@@ -212,7 +214,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         """
 
         def handle = server.expectAndBlock(server.get('running'))
-        def gradle = executer.withTasks('log').start()
+        def gradle = executer.withArgument("--no-problems-report").withTasks('log').start()
 
         when:
         handle.waitForAllPendingCalls()
