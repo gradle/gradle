@@ -59,10 +59,6 @@ By traversing dependencies at the variant level, it is possible to differentiate
 
 For more details on how to perform a graph traversal, see [Programmatic Dependency Resolution](userguide/programmatic_dependency_resolution.html).
 
-#### Introduced Isolated Projects safe project path accessor on `ProjectDependency`
-
-This release introduces `ProjectDependency#getPath()` for accessing the identity of the target project.
-
 <a name="config-cache"></a>
 ### Configuration cache improvements
 

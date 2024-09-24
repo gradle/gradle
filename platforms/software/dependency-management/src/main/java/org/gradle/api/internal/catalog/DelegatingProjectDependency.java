@@ -67,11 +67,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    public String getPath() {
-        return delegate.getPath();
-    }
-
-    @Override
     @Deprecated
     public Project getDependencyProject() {
         return delegate.getDependencyProject();

@@ -163,17 +163,6 @@ The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDepend
 
 Accessing the mutable project instance of other projects should be avoided.
 
-Instead, use the new Isolated Projects safe project path method: link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`]
-
-If accessing the target project is absolutely necessary, consider this direct replacement:
-Note, this approach will not fetch project instances from a different build.
-[source,kotlin]
-----
-val projectDependency: ProjectDependency = getSomeProjectDependency()
-val deprecated = projectDependency.dependencyProject
-val replacement = project.project(projectDependency.path)
-----
-
 [[deprecate_legacy_configuration_get_files]]
 ==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
 
