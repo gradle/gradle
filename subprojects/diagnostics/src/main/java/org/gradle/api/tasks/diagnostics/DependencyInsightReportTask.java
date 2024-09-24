@@ -333,6 +333,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      *
      * @since 8.12
      */
+    @Internal
     @Incubating
     protected AttributesFactory getAttributesFactory() {
         return getImmutableAttributesFactory();
