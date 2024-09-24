@@ -77,7 +77,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name.get() == 'pub-name'
         ivyArtifact.extension.get() == publishArtifact.extension
         ivyArtifact.type.get() == publishArtifact.type
-        ivyArtifact.file == publishArtifact.file
+        ivyArtifact.file.get().asFile == publishArtifact.file
         ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
@@ -89,7 +89,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name.get() == 'pub-name'
         ivyArtifact.extension.get() == publishArtifact.extension
         ivyArtifact.type.get() == publishArtifact.type
-        ivyArtifact.file == publishArtifact.file
+        ivyArtifact.file.get().asFile == publishArtifact.file
         ivyArtifact.buildDependencies.getDependencies(task) == dependencies
     }
 
@@ -107,7 +107,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name.get() == 'pub-name'
         ivyArtifact.extension.get() == "zip"
         ivyArtifact.type.get() == "zip"
-        ivyArtifact.file == file
+        ivyArtifact.file.get().asFile == file
     }
 
 
@@ -116,7 +116,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         IvyArtifact ivyArtifact = parser.parseNotation(source: publishArtifact, name: 'the-name', extension: "the-ext", type: "the-type")
 
         then:
-        ivyArtifact.file == publishArtifact.file
+        ivyArtifact.file.get().asFile == publishArtifact.file
         ivyArtifact.name.get() == "the-name"
         ivyArtifact.extension.get() == "the-ext"
         ivyArtifact.type.get() == "the-type"
@@ -137,7 +137,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.name.get() == 'pub-name'
         ivyArtifact.extension.get() == "extension"
         !ivyArtifact.classifier.isPresent()
-        ivyArtifact.file == archive.archiveFile.get().asFile
+        ivyArtifact.file.get().asFile == archive.archiveFile.get().asFile
         ivyArtifact.buildDependencies.getDependencies(null) == [archive] as Set
     }
 
@@ -156,7 +156,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         ivyArtifact.extension.get() == extension
         ivyArtifact.type.get() == type
         !ivyArtifact.classifier.isPresent()
-        ivyArtifact.file == file
+        ivyArtifact.file.get().asFile == file
 
         where:
         fileName                       | extension | type
@@ -179,7 +179,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         0 * taskProvider._
 
         when:
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         1 * taskProvider.get() >> task
@@ -202,7 +202,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         0 * taskProvider._
 
         when:
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         1 * taskProvider.get() >> task
@@ -231,7 +231,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         1 * fileCollection.getSingleFile() >> {
             throw new RuntimeException("more than one file")
         }
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         RuntimeException e = thrown()
@@ -254,7 +254,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         when:
         1 * provider.get() >> regularFile
         1 * regularFile.getAsFile() >> file
-        artifact.file
+        artifact.file.get().asFile
 
         then:
         0 * _
