@@ -67,6 +67,7 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public Project getDependencyProject() {
         return delegate.getDependencyProject();
     }

@@ -16,13 +16,10 @@
 
 package org.gradle.api.artifacts.dsl
 
-
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ConfigureUtil
 
 abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegrationSpec {
@@ -99,7 +96,15 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     }
 
     def setup() {
-        createDirs("subproject")
+        file("subproject/build.gradle") << """
+            configurations {
+                consumable("default") {
+                    outgoing {
+                        artifact(file("subproject.jar"))
+                    }
+                }
+            }
+        """
         settingsFile("""
             include "subproject"
 
@@ -240,7 +245,6 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         ]
     }
 
-    @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "IP mode implies different projects equality contract")
     def "ProjectDependency declared using #expression shows up in related configuration"() {
         given:
         file(dsl.fileNameFor("build")).text = """
@@ -252,17 +256,32 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         var dep = testingCollectorConf.dependencies.iterator().next()
         assert(dep ${instanceOf(dsl)} ProjectDependency)
-        assert(${cast("dep", "ProjectDependency", dsl)}.dependencyProject == ${expectedProjectExpression})
+
+        configurations.consumable("default") {
+            outgoing {
+                artifact(file("${PROJECT_NAME}.jar"))
+            }
+        }
+
+        configurations.resolvable("res")
+        configurations["res"].fromDependencyCollector(dependencies.testingCollector)
+
+        tasks.register("resolve") {
+            var files = configurations["res"].incoming.files
+            doLast {
+                assert(files.singleFile.name == "${expectedProjectFile}")
+            }
+        }
         """
 
         expect:
-        succeeds("help")
+        succeeds("resolve")
 
         where:
-        expression              | expectedProjectExpression
-        project()               | "project"
-        project(":subproject")  | "project.project(\":subproject\")"
-        testFixtures(project()) | "project"
+        expression              | expectedProjectFile
+        project()               | "${PROJECT_NAME}.jar"
+        project(":subproject")  | "subproject.jar"
+        testFixtures(project()) | "${PROJECT_NAME}.jar"
     }
 
     def "bundles add dependencies that show up in related configuration"() {

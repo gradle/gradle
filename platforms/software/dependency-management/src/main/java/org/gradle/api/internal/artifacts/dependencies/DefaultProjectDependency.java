@@ -24,10 +24,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -69,7 +69,13 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    @Deprecated
     public Project getDependencyProject() {
+        DeprecationLogger.deprecateMethod(ProjectDependency.class, "getDependencyProject()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_get_dependency_project")
+            .nagUser();
+
         return dependencyProject;
     }
 
@@ -99,7 +105,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private Configuration findProjectConfiguration() {
-        ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
+        ConfigurationContainer dependencyConfigurations = DeprecationLogger.whileDisabled(() -> getDependencyProject().getConfigurations());
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.isTrue(declaredConfiguration) ? declaredConfiguration : Dependency.DEFAULT_CONFIGURATION);
         if (!selectedConfiguration.isCanBeConsumed()) {
