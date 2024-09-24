@@ -23,7 +23,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
@@ -39,6 +38,8 @@ import org.gradle.internal.serialization.Transient;
 import javax.inject.Inject;
 import java.io.File;
 
+import static org.gradle.internal.serialization.Transient.varOf;
+
 /**
  * Generates a Maven module descriptor (POM) file.
  *
@@ -48,7 +49,7 @@ import java.io.File;
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
 public abstract class GenerateMavenPom extends DefaultTask {
 
-    private final Transient<Property<MavenPom>> pom = Transient.of(getObjectFactory().property(MavenPom.class));
+    private final Transient.Var<MavenPom> pom = varOf();
     private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
         MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
     );
@@ -63,9 +64,13 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The Maven POM.
      */
     @Internal
-    @ReplacesEagerProperty
-    public Property<MavenPom> getPom() {
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
+    public MavenPom getPom() {
         return pom.get();
+    }
+
+    public void setPom(MavenPom pom) {
+        this.pom.set(pom);
     }
 
     /**

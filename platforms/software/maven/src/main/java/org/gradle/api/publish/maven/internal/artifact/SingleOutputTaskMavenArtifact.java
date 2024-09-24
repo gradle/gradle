@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -25,14 +26,13 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskProvider;
 
-import java.io.File;
-
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final TaskProvider<? extends Task> generator;
     private final String extension;
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
+    @SuppressWarnings("this-escape")
     public SingleOutputTaskMavenArtifact(
         TaskProvider<? extends Task> generator,
         String extension,
@@ -49,8 +49,8 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return getGenerator().getOutputs().getFiles().getSingleFile();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(() -> getGenerator().getOutputs().getFiles().getSingleFile());
     }
 
     private Task getGenerator() {
