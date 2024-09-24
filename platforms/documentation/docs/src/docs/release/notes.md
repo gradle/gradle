@@ -132,7 +132,16 @@ This feature also works with the [`--continue`](userguide/command_line_interface
 
 All problems reported via the [Problems API](userguide/implementing_gradle_plugins_binary.html#reporting_problems), internally in Gradle or from a plugin, will be rendered into an HTML problems report
 by default.
-If there are no problems no report is generated.
+
+Example output:
+
+```
+> Task :reportProblem
+[Incubating] Problem report is available at: <project-dir>/build/tmp/te%C5%9Dt%20files/ProblemsSer.Test/h79pc/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+```
 
 The generation can be disabled by using `--no-probems-report`
 

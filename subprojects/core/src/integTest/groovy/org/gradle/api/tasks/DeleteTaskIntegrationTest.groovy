@@ -146,6 +146,7 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             assert(file("build.gradle.kts").exists())
         """
         when: "clean is executed"
+        executer.withArgument("--no-problems-report")
         succeeds "clean"
         then: "clean is marked as UP-TO-DATE"
         result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
