@@ -3,6 +3,7 @@ package configurations
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.annotation.JSONField
 import common.functionalTestExtraParameters
+import common.getBuildScanCustomValueParam
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import model.CIBuildModel
@@ -50,7 +51,6 @@ class FunctionalTest(
     parallelizationMethod: ParallelizationMethod = ParallelizationMethod.None,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
-    maxParallelForks: String = "%maxParallelForks%",
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
@@ -60,7 +60,8 @@ class FunctionalTest(
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
     val assembledExtraParameters = mutableListOf(
-        functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name),
+        stage.getBuildScanCustomValueParam(testCoverage),
+        functionalTestExtraParameters(listOf(functionalTestTag), testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name),
         "-PflakyTests=${determineFlakyTestStrategy(stage)}",
         extraParameters,
         parallelizationMethod.extraBuildParameters

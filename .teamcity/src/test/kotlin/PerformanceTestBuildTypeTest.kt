@@ -91,7 +91,8 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "\"-Dscan.tag.PerformanceTest\""
+            "-Dscan.value.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-Dscan.tag.PerformanceTest"
         )
 
         assertEquals(
@@ -156,7 +157,8 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "\"-Dscan.tag.PerformanceTest\""
+            "-Dscan.value.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-Dscan.tag.PerformanceTest"
         )
 
         assertEquals(

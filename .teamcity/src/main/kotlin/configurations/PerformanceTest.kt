@@ -20,8 +20,10 @@ import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyPerformanceTestSettings
+import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
+import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killProcessStep
@@ -104,7 +106,8 @@ class PerformanceTest(
                                 arch
                             ) + "-DenableTestDistribution=%enableTestDistribution%" +
                                 buildToolGradleParameters() +
-                                buildScanTag("PerformanceTest")
+                                stage.getBuildScanCustomValueParam() +
+                                buildScanTagParam("PerformanceTest")
                             ).joinToString(separator = " ")
                     }
                 }

@@ -3,6 +3,7 @@ package configurations
 import common.JvmCategory
 import common.Os
 import common.applyDefaultSettings
+import common.buildScanTagParam
 import common.toCapitalized
 import configurations.TestSplitType.EXCLUDE
 import configurations.TestSplitType.INCLUDE
@@ -133,7 +134,7 @@ class DocsTest(
         os = os,
         arch = os.defaultArch,
         timeout = 60,
-        extraParameters = buildScanTag(docsTestType.docsTestName) +
+        extraParameters = buildScanTagParam(docsTestType.docsTestName) +
             " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
             " -PtestJavaVersion=${testJava.version.major}" +
             " -PtestJavaVendor=${testJava.vendor.name}" +

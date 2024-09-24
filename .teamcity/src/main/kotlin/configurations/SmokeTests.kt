@@ -2,6 +2,8 @@ package configurations
 
 import common.JvmCategory
 import common.Os
+import common.buildScanTagParam
+import common.getBuildScanCustomValueParam
 import common.requiresNotEc2Agent
 import common.toCapitalized
 import model.CIBuildModel
@@ -28,8 +30,11 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, id: S
         this,
         ":smoke-test:$task",
         timeout = 120,
-        extraParameters = buildScanTag("SmokeTests") +
-            " -PtestJavaVersion=${testJava.version.major}" +
-            " -PtestJavaVendor=${testJava.vendor.name}"
+        extraParameters = listOf(
+            stage.getBuildScanCustomValueParam(),
+            buildScanTagParam("SmokeTests"),
+            "-PtestJavaVersion=${testJava.version.major}",
+            "-PtestJavaVendor=${testJava.vendor.name}"
+        ).joinToString(" ")
     )
 })
