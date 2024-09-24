@@ -52,11 +52,11 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         this.confProperty = objectFactory.property(String.class);
 
         // those should be lazy because the fields are not yet initialized in child classes
-        getName().convention(providerFactory.provider(() -> getDefaultName().getOrNull()));
-        getType().convention(providerFactory.provider(() -> getDefaultType().getOrNull()));
-        getExtension().convention(providerFactory.provider(() -> getDefaultExtension().getOrNull()));
-        getClassifier().convention(providerFactory.provider(() -> getDefaultClassifier().getOrNull()));
-        getConf().convention(providerFactory.provider(() -> getDefaultConf().getOrNull()));
+        getName().set(providerFactory.provider(() -> getDefaultName().getOrNull()));
+        getType().set(providerFactory.provider(() -> getDefaultType().getOrNull()));
+        getExtension().set(providerFactory.provider(() -> getDefaultExtension().getOrNull()));
+        getClassifier().set(providerFactory.provider(() -> getDefaultClassifier().getOrNull()));
+        getConf().set(providerFactory.provider(() -> getDefaultConf().getOrNull()));
     }
 
     @Override
