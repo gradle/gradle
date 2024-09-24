@@ -51,7 +51,7 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
                 public Set<File> getFiles() {
                     Set<File> result = new LinkedHashSet<File>();
                     for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
-                        result.add(artifact.getFile());
+                        result.add(artifact.getFile().get().getAsFile());
                     }
                     return result;
                 }

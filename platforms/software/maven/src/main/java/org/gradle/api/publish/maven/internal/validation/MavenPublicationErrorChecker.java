@@ -67,7 +67,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
         Map<MavenArtifact, Set<ArtifactDifference>> differences = new HashMap<>();
         for (MavenArtifact mavenArtifact : mainArtifacts) {
             EnumSet<ArtifactDifference> differenceSet = EnumSet.noneOf(ArtifactDifference.class);
-            if (!source.getFile().equals(mavenArtifact.getFile())) {
+            if (!source.getFile().equals(mavenArtifact.getFile().get().getAsFile())) {
                 differenceSet.add(ArtifactDifference.FILE);
             }
             if (!Objects.equals(source.getClassifier(), mavenArtifact.getClassifier().getOrNull())) {
@@ -98,7 +98,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
     private static final Comparator<Map.Entry<MavenArtifact, Set<ArtifactDifference>>> DIFFERENCE_ENTRY_COMPARATOR =
         Map.Entry.<MavenArtifact, Set<ArtifactDifference>>comparingByValue(DIFFERENCE_SET_COMPARATOR)
             // Last ditch effort to make the order deterministic
-            .thenComparing(entry -> entry.getKey().getFile().toPath());
+            .thenComparing(entry -> entry.getKey().getFile().get().getAsFile().toPath());
 
     private static String formatDifferences(String projectDisplayName, Path buildDir, PublishArtifact source, Map<MavenArtifact, Set<ArtifactDifference>> differencesByArtifact) {
         Stream<String> differencesFormatted = differencesByArtifact.entrySet().stream()
@@ -106,7 +106,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             .limit(3).map(entry -> {
                 MavenArtifact artifact = entry.getKey();
                 Set<ArtifactDifference> differenceSet = entry.getValue();
-                Path artifactPath = buildDir.relativize(artifact.getFile().toPath());
+                Path artifactPath = buildDir.relativize(artifact.getFile().get().getAsFile().toPath());
                 return "- " + artifactPath + ":\n" + formatDifferenceSet(projectDisplayName, buildDir, source, artifact, differenceSet);
             });
         Stream<String> warningForNonPrintedArtifacts = differencesByArtifact.size() > 3
@@ -121,7 +121,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             switch (diff) {
                 case FILE: {
                     Path expectedFile = buildDir.relativize(expected.getFile().toPath());
-                    Path actualFile = buildDir.relativize(actual.getFile().toPath());
+                    Path actualFile = buildDir.relativize(actual.getFile().get().getAsFile().toPath());
                     return "\t- file differs (relative to " + projectDisplayName + "): (expected) " + expectedFile + " != (actual) " + actualFile;
                 }
                 case CLASSIFIER:
