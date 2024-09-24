@@ -27,8 +27,6 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     private final Provider<RegularFile> file;
@@ -39,6 +37,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
+    @SuppressWarnings("this-escape")
     public SingleOutputTaskIvyArtifact(
         Provider<RegularFile> file,
         Provider<Boolean> enabled,
@@ -93,8 +92,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
-        return file.get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return file;
     }
 
     public boolean isEnabled() {

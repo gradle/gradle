@@ -38,6 +38,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultMavenArtifactSet(
         String publicationName,
         NotationParser<Object, MavenArtifact> mavenArtifactParser,
@@ -85,7 +86,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         public Set<File> getFiles() {
             Set<File> files = new LinkedHashSet<File>();
             for (MavenArtifact artifact : DefaultMavenArtifactSet.this) {
-                files.add(artifact.getFile());
+                files.add(artifact.getFile().get().getAsFile());
             }
             return files;
         }
