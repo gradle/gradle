@@ -17,6 +17,8 @@
 package configurations
 
 import common.Os
+import common.buildScanTagParam
+import common.getBuildScanCustomValueParam
 import common.requiresNotEc2Agent
 import model.CIBuildModel
 import model.Stage
@@ -39,7 +41,10 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildT
         model = model,
         buildType = this,
         gradleTasks = ":smoke-ide-test:smokeIdeTest",
-        extraParameters = buildScanTag("SmokeIdeTests"),
+        extraParameters = listOf(
+            stage.getBuildScanCustomValueParam(),
+            buildScanTagParam("SmokeIdeTests")
+        ).joinToString(" "),
     )
 }) {
     companion object {
