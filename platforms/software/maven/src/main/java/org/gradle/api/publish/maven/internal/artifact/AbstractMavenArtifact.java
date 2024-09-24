@@ -26,8 +26,6 @@ import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
-
 public abstract class AbstractMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
@@ -47,12 +45,9 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         this.extensionProperty = objectFactory.property(String.class);
         this.classifierProperty = objectFactory.property(String.class);
         // those should be lazy because the fields are not yet initialized in child classes
-        getExtension().convention(providerFactory.provider(() -> getDefaultExtension().getOrNull()));
-        getClassifier().convention(providerFactory.provider(() -> getDefaultClassifier().getOrNull()));
+        getExtension().set(providerFactory.provider(() -> getDefaultExtension().getOrNull()));
+        getClassifier().set(providerFactory.provider(() -> getDefaultClassifier().getOrNull()));
     }
-
-    @Override
-    public abstract File getFile();
 
     @Override
     public Property<String> getExtension() {

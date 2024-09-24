@@ -17,12 +17,6 @@ Method <org.gradle.api.plugins.quality.Pmd.getMaxFailures()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getRulesMinimumPriority()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getSource()> is not abstract
 Method <org.gradle.api.plugins.quality.Pmd.getThreads()> is not abstract
-Method <org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.getDescriptor()> is not abstract
-Method <org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getPublication()> is not abstract
-Method <org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getRepository()> is not abstract
-Method <org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getPublication()> is not abstract
-Method <org.gradle.api.publish.maven.tasks.GenerateMavenPom.getPom()> is not abstract
-Method <org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getRepository()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getArtifacts()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getOutputFile()> is not abstract
 Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getPublication()> is not abstract
