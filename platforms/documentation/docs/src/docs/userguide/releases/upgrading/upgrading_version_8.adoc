@@ -217,6 +217,19 @@ The existing method does not behave as specified by its javadoc, and we do not p
 
 Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
 
+[[deprecated_project_exec]]
+==== Deprecated `Project#exec` and `Project#javaexec`
+
+The methods link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
+link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] has been deprecated and will be removed in Gradle 9.0.
+
+These methods cannot be used with the configuration cache and should be replaced with compatible alternatives.
+At execution time, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service or standard Java/Groovy/Kotlin APIs, like `java.lang.ProcessBuilder` to run processes.
+Running external processes at configuration time isn't recommended, but methods of <<configuration_cache.adoc#config_cache:requirements:external_processes, `ProviderFactory`>> or a custom
+link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if absolutely necessary, at a cost of making the process output an input to the build configuration.
+
 [[detached_configurations_cannot_extend]]
 ==== Detached Configurations should not use `extendFrom`
 

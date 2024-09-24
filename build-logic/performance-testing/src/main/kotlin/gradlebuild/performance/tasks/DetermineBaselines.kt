@@ -56,6 +56,9 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     @get:Internal
     abstract val logicalBranch: Property<String>
 
+    @get:Inject
+    protected abstract val execOperations: ExecOperations
+
     @TaskAction
     fun determineForkPointCommitBaseline() {
         if (configuredBaselines.getOrElse("") == FLAKINESS_DETECTION_COMMIT_BASELINE) {
@@ -98,7 +101,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
         val masterForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
         val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
         val forkPointCommit =
-            if (project.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
+            if (execOperations.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
                 releaseForkPointCommit
             else
                 masterForkPointCommit

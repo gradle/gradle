@@ -68,7 +68,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
             }
-            if(version.startsWith("3")) {
+            if (version.startsWith("3")) {
                 base + [
                     "org.asciidoctor.decktape",
                     "org.asciidoctor.jvm.leanpub",
@@ -112,6 +112,14 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     " Property was automatically upgraded to the lazy version." +
                     " Please use the mainClass property instead." +
                     " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
+            )
+
+            runner.expectLegacyDeprecationWarningIf(
+                versionNumber.major < 4,
+                "The Project.javaexec(Closure) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_project_exec"
             )
         }
     }

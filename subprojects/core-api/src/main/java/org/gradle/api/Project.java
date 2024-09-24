@@ -392,9 +392,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns the direct children of this project.</p>
      *
      * @return A map from child project name to child project. Returns an empty map if this project does not have
-     *         any children.
+     * any children.
      */
-    @ForExternalUse // See ProjectInternal#getChildProjects
+    @ForExternalUse
+    // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
@@ -608,7 +609,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Declares that this project has an evaluation dependency on each of its child projects.</p>
-     *
      */
     void evaluationDependsOnChildren();
 
@@ -649,7 +649,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureAction The action to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
-     *
      * @since 3.4
      */
     Project project(String path, Action<? super Project> configureAction);
@@ -1062,7 +1061,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
      */
+    @Deprecated
     ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
 
     /**
@@ -1073,7 +1074,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
      */
+    @Deprecated
     ExecResult javaexec(Action<? super JavaExecSpec> action);
 
     /**
@@ -1081,7 +1084,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
      */
+    @Deprecated
     ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
 
     /**
@@ -1092,7 +1097,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
+     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
      */
+    @Deprecated
     ExecResult exec(Action<? super ExecSpec> action);
 
     /**
@@ -1282,8 +1289,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
      * @return The <code>Convention</code>. Never returns null.
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
      * @see ExtensionAware#getExtensions()
+     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
      */
     @Deprecated
     org.gradle.api.plugins.Convention getConvention();
@@ -1293,7 +1300,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param otherProject The project to compare the nesting level with.
      * @return a negative integer, zero, or a positive integer as this project has a nesting level less than, equal to,
-     *         or greater than the specified object.
+     * or greater than the specified object.
      * @see #getDepth()
      */
     int depthCompare(Project otherProject);
@@ -1379,18 +1386,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Adds a closure to call immediately before this project is evaluated.</p>
      *
-     * @see Project#beforeEvaluate(Action)
-     *
      * @param closure The closure to call.
+     * @see Project#beforeEvaluate(Action)
      */
     void beforeEvaluate(Closure closure);
 
     /**
      * <p>Adds a closure to call immediately after this project is evaluated.</p>
      *
-     * @see Project#afterEvaluate(Action)
-     *
      * @param closure The closure to call.
+     * @see Project#afterEvaluate(Action)
      */
     void afterEvaluate(@DelegatesTo(Project.class) Closure closure);
 
@@ -1467,9 +1472,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </ol>
      *
      * @param propertyName The name of the property.
-     * @since 2.13
      * @return The value of the property, possibly null or null if not found.
      * @see Project#property(String)
+     * @since 2.13
      */
     @Nullable
     Object findProperty(String propertyName);
@@ -1644,9 +1649,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
      * copy the files.
-     * @see #copy(Closure)
+     *
      * @param action Action to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
+     * @see #copy(Closure)
      */
     WorkResult copy(Action<? super CopySpec> action);
 
@@ -1675,9 +1681,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
      * to configure the {@link CopySpec} before it is returned by this method.
      *
-     * @see #copySpec(Closure)
      * @param action Action to configure the CopySpec
      * @return The CopySpec
+     * @see #copySpec(Closure)
      */
     CopySpec copySpec(Action<? super CopySpec> action);
 
@@ -1719,8 +1725,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * </pre>
      *
      * @param action Action to configure the SyncSpec.
-     * @since 4.0
      * @return {@link WorkResult} that can be used to check if the sync did any work.
+     * @since 4.0
      */
     WorkResult sync(Action<? super SyncSpec> action);
 
@@ -1794,7 +1800,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Configures software components.
      *
      * @param configuration Action to configure the software components.
-     *
      * @since 8.1
      */
     @Incubating

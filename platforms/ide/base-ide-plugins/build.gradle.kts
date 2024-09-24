@@ -25,6 +25,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.ide)
+    api(libs.inject)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)
