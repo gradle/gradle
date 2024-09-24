@@ -47,7 +47,6 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
-import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -144,6 +143,7 @@ class DefaultMavenPublicationTest extends Specification {
             shouldBePublished() >> true
             extension >> createStringProperty("ext")
             classifier >> createStringProperty(null)
+            file >> Providers.of((RegularFile) () -> artifactFile)
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
 
@@ -151,6 +151,7 @@ class DefaultMavenPublicationTest extends Specification {
             shouldBePublished() >> true
             extension >> createStringProperty("jar")
             classifier >> createStringProperty(null)
+            file >> Providers.of((RegularFile) () -> artifactFile)
         }
         notationParser.parseNotation("attached") >> attachedMavenArtifact
 
@@ -171,6 +172,7 @@ class DefaultMavenPublicationTest extends Specification {
             shouldBePublished() >> true
             extension >> createStringProperty("ext")
             classifier >> createStringProperty(null)
+            file >> Providers.of((RegularFile) () -> artifactFile)
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
 
@@ -207,7 +209,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(artifact) >> mavenArtifact
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
 
         and:
         publication.from(componentWithArtifact(artifact))
@@ -242,7 +244,7 @@ class DefaultMavenPublicationTest extends Specification {
         def component = Stub(SoftwareComponentInternal)
         component.usages >> [variant1, variant2]
         def mavenArtifact = Mock(MavenArtifact)
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
         notationParser.parseNotation(artifact1) >> mavenArtifact
 
         when:
@@ -500,7 +502,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
 
         and:
         publication.artifact notation
@@ -519,7 +521,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
         mavenArtifact.classifier >> null
         _ * mavenArtifact.getExtension() >> extension
         0 * mavenArtifact._
@@ -666,13 +668,6 @@ class DefaultMavenPublicationTest extends Specification {
         new DefaultSoftwareComponentVariant(
             scope, ImmutableAttributes.EMPTY, artifacts as Set, dependencies as Set, [] as Set, [] as Set, [] as Set
         )
-    }
-
-    def otherPublication(String name, String group, String artifactId, String version) {
-        def pub = Mock(PublicationInternal)
-        pub.name >> name
-        pub.coordinates >> new DefaultModuleVersionIdentifier(group, artifactId, version)
-        return pub
     }
 
     def platformAttribute() {
