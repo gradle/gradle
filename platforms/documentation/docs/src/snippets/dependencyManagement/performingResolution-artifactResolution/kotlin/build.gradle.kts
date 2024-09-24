@@ -30,6 +30,9 @@ tasks.register<ResolveFiles>("resolveConfiguration") {
     files.from(configurations.runtimeClasspath)
 }
 tasks.register<ResolveFiles>("resolveIncomingFiles") {
+// end::implicit-file-resolution[]
+    dependsOn(tasks.named("resolveConfiguration")) // To preserve output ordering
+// tag::implicit-file-resolution[]
     files.from(configurations.runtimeClasspath.map { it.incoming.files })
 }
 // end::implicit-file-resolution[]
