@@ -114,7 +114,7 @@ class StatementResolverImpl(
             is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
             is ObjectOrigin.DelegatingObjectOrigin -> isPotentiallyPersistentReceiver(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> false
-            is ObjectOrigin.EnumConstantOrigin -> TODO()
+            is ObjectOrigin.EnumConstantOrigin -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.FunctionOrigin -> {
                 val semantics = objectOrigin.function.semantics

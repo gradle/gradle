@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.E
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.LiteralValueNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.NamedReferenceNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
 
 
@@ -37,7 +38,8 @@ fun DeclarativeDocument.structurallyEqualsAsData(other: DeclarativeDocument): Bo
         is LiteralValueNode -> other is LiteralValueNode &&
             value == other.value
 
-        is ValueNode.NamedReferenceNode -> TODO()
+        is NamedReferenceNode -> other is NamedReferenceNode &&
+            referenceName == other.referenceName
 
         is ValueFactoryNode -> other is ValueFactoryNode &&
             factoryName == other.factoryName &&

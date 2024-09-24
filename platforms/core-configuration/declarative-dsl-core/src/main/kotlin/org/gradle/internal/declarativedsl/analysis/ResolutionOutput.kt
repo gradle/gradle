@@ -93,7 +93,7 @@ sealed interface ObjectOrigin {
         override fun toString(): String = "${literal.value.let { if (it is String) "\"$it\"" else it }}"
     }
 
-    data class EnumConstantOrigin(val type: EnumClass, val propertyAccess: PropertyAccess) : ObjectOrigin { // TODO: weird parameters ...
+    data class EnumConstantOrigin(val type: EnumClass, val propertyAccess: PropertyAccess) : ObjectOrigin {
         override val originElement: LanguageTreeElement
             get() = propertyAccess
 

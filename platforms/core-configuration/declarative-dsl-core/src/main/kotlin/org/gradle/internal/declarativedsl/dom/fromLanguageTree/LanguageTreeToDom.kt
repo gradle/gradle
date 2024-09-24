@@ -189,7 +189,6 @@ class LanguageTreeToDomContext {
             }
         }
 
-        // is PropertyAccess -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedPropertyAccess))) //TODO: this error needs to be thrown at resolution
         is PropertyAccess -> ExprConversion.Converted(namedReferenceNode(expr))
         is Null -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedNullValue)))
         is This -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedThisValue)))

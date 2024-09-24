@@ -39,7 +39,7 @@ class CanonicalCodeGenerator {
 
         is ValueNode.ValueFactoryNode -> "${node.factoryName}(${node.values.joinToString { valueNodeString(it) }})"
 
-        is ValueNode.NamedReferenceNode -> TODO()
+        is ValueNode.NamedReferenceNode -> "${node.referenceName}"
     }
 
     fun generateCode(

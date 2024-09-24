@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.E
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ErrorNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.LiteralValueNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.NamedReferenceNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultValueFactoryNode
@@ -143,9 +144,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                     }
 
                     is LiteralValueNode,
+                    is NamedReferenceNode,
                     is ErrorNode -> Unit
-
-                    is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
                 }
             }
         }
@@ -308,7 +308,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                                 nameMapper.newNamesForValueFactories[valueNode] ?: valueNode.factoryName,
                                 valueNode.sourceData,
                                 valueNode.values.map { applyValueMutations(it, nameMapper, valueMapper) })
-                            is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
+                            is NamedReferenceNode -> TODO()
                         }
             }
         }

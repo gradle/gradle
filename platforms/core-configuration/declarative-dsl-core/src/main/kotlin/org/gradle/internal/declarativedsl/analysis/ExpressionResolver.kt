@@ -10,7 +10,7 @@ import org.gradle.internal.declarativedsl.language.This
 
 
 interface ExpressionResolver {
-    fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? // TODO: expected type can be non-nullable (i.e. always available) in the end
+    fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin?
 }
 
 
