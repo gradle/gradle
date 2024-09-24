@@ -28,6 +28,7 @@ import java.io.Serializable
     DataType.LongDataType::class,
     DataType.StringDataType::class,
     DataType.BooleanDataType::class,
+    DataType.ClassDataType::class,
     DataClass::class,
     EnumClass::class
 ])
@@ -53,6 +54,10 @@ sealed interface DataType : Serializable {
 
     interface UnitType : DataType
 
+    @ToolingModelContract(subTypes = [
+        DataClass::class,
+        EnumClass::class
+    ])
     sealed interface ClassDataType : DataType {
         val name: FqName
     }

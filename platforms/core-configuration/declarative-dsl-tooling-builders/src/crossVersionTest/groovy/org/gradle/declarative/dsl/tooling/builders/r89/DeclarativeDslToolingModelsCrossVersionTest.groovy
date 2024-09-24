@@ -37,8 +37,8 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
-@TargetGradleVersion(">=8.9")
-@ToolingApiVersion('>=8.9')
+@TargetGradleVersion(">=8.11")
+@ToolingApiVersion('>=8.11')
 class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 
     def setup() {
