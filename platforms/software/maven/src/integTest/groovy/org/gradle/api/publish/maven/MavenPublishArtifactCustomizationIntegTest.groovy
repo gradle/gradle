@@ -377,12 +377,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
                     artifact source: "customFile.txt", classifier: "output"
                     artifact source: customFileTask.outputFile, extension: "htm", classifier: "documentation", builtBy: customFileTask
                     artifact source: regularFileTask.outputFile, extension: "txt", classifier: "regular"
-                    // can't use null to unset convention of classifier = "customjar"
-                    // artifact source: customJar, extension: "war", classifier: null
-                    artifact customJar {
-                        archiveClassifier = null
-                        archiveExtension = "war"
-                    }
+                    artifact source: customJar, extension: "war", classifier: null
                 }
             }
 """)

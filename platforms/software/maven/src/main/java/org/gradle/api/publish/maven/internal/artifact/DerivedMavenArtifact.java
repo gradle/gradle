@@ -16,14 +16,14 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.internal.PublicationInternal;
-
-import java.io.File;
 
 import static com.google.common.io.Files.getFileExtension;
 
@@ -44,13 +44,13 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return derivedFile.create();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(derivedFile::create);
     }
 
     @Override
     protected Provider<String> getDefaultExtension() {
-        return original.getExtension().map(old -> old + "." + getFileExtension(getFile().getName()));
+        return original.getExtension().map(old -> old + "." + getFileExtension(getFile().get().getAsFile().getName()));
     }
 
     @Override
