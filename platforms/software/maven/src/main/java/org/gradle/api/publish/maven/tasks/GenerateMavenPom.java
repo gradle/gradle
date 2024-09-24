@@ -23,7 +23,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
@@ -31,7 +30,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -46,10 +44,12 @@ import java.io.File;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class GenerateMavenPom extends DefaultTask {
 
+    private MavenPom pom;
+
     public GenerateMavenPom() {
         this.doNotTrackStateIf(
             "withXml actions cannot be snapshotted",
-            task -> !((MavenPomInternal) ((GenerateMavenPom) task).getPom().get()).getXmlAction().isEmpty()
+            task -> !((MavenPomInternal) ((GenerateMavenPom) task).getPom()).getXmlAction().isEmpty()
         );
     }
 
@@ -66,8 +66,18 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * @since 1.5
      */
     @Nested
-    @ReplacesEagerProperty
-    public abstract Property<MavenPom> getPom();
+    public MavenPom getPom() {
+        return pom;
+    }
+
+    /**
+     * Sets the pom.
+     *
+     * @since 1.5
+     */
+    public void setPom(MavenPom pom) {
+        this.pom = pom;
+    }
 
     /**
      * The file the POM will be written to.
@@ -123,7 +133,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      */
     @TaskAction
     public void doGenerate() {
-        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom().get()).writeTo(getDestinationFile().get().getAsFile());
+        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom()).writeTo(getDestinationFile().get().getAsFile());
     }
 
 }

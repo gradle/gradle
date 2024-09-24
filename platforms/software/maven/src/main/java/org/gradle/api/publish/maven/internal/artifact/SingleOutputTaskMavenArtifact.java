@@ -24,8 +24,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
-import java.io.File;
-
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final Provider<RegularFile> file;
     private final Provider<Boolean> enabled;
@@ -33,6 +31,7 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
+    @SuppressWarnings("this-escape")
     public SingleOutputTaskMavenArtifact(
         Provider<RegularFile> file,
         Provider<Boolean> enabled,
@@ -51,8 +50,8 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return file.get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return file;
     }
 
     @Override

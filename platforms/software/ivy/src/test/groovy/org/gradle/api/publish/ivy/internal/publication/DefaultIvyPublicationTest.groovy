@@ -398,7 +398,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createArtifact(File file) {
         return Mock(IvyArtifact) {
-            getFile() >> file
+            getFile() >> Providers.of((RegularFile) () -> file)
             getExtension() >> TestUtil.objectFactory().property(String)
             getConf() >> TestUtil.objectFactory().property(String)
         }
