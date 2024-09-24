@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -47,7 +48,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.component.external.model.ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
@@ -318,7 +318,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, Set<CapabilitySelector> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
             dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact));
         }
 
@@ -435,30 +435,28 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final ImmutableList<ExcludeMetadata> excludes;
         private final String reason;
         private final ImmutableAttributes attributes;
-        private final ImmutableList<Capability> requestedCapabilities;
+        private final Set<CapabilitySelector> requestedCapabilities;
         private final boolean endorsing;
         private final IvyArtifactName dependencyArtifact;
 
-        DependencyImpl(String group,
-                       String module,
-                       VersionConstraint versionConstraint,
-                       List<ExcludeMetadata> excludes,
-                       String reason,
-                       ImmutableAttributes attributes,
-                       List<? extends Capability> requestedCapabilities,
-                       boolean endorsing,
-                       @Nullable IvyArtifactName dependencyArtifact) {
+        DependencyImpl(
+            String group,
+            String module,
+            VersionConstraint versionConstraint,
+            List<ExcludeMetadata> excludes,
+            String reason,
+            ImmutableAttributes attributes,
+            Set<CapabilitySelector> capabilitySelectors,
+            boolean endorsing,
+            @Nullable IvyArtifactName dependencyArtifact
+        ) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = ImmutableList.copyOf(excludes);
             this.reason = reason;
             this.attributes = attributes;
-            this.requestedCapabilities = ImmutableList.copyOf(
-                requestedCapabilities.stream()
-                    .map(c -> new DefaultImmutableCapability(c.getGroup(), c.getName(), c.getVersion()))
-                    .collect(Collectors.toList())
-            );
+            this.requestedCapabilities = capabilitySelectors;
             this.endorsing = endorsing;
             this.dependencyArtifact = dependencyArtifact;
         }
@@ -494,7 +492,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public List<Capability> getRequestedCapabilities() {
+        public Set<CapabilitySelector> getCapabilitySelectors() {
             return requestedCapabilities;
         }
 

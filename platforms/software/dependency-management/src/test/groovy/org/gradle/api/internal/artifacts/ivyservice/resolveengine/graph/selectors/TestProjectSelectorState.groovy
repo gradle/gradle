@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -45,7 +46,7 @@ class TestProjectSelectorState implements ResolvableSelectorState {
 
     @Override
     ComponentSelector getSelector() {
-        return new DefaultProjectComponentSelector(projectId, ImmutableAttributes.EMPTY, Collections.emptyList())
+        return new DefaultProjectComponentSelector(projectId, ImmutableAttributes.EMPTY, ImmutableSet.of())
     }
 
     @Override

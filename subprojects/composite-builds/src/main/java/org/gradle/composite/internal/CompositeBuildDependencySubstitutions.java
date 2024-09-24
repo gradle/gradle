@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
@@ -70,7 +71,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
                 ProjectComponentSelector targetProject = new DefaultProjectComponentSelector(
                     replacement.getProjectIdentity(),
                     ((AttributeContainerInternal)requested.getAttributes()).asImmutable(),
-                    requested.getRequestedCapabilities()
+                    ImmutableSet.copyOf(requested.getCapabilitySelectors())
                 );
                 dependencySubstitution.useTarget(
                     targetProject,

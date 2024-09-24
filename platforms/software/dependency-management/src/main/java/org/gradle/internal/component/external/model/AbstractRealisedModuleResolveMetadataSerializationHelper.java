@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
@@ -58,9 +59,13 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
     private final ExcludeRuleConverter excludeRuleConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public AbstractRealisedModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public AbstractRealisedModuleResolveMetadataSerializationHelper(
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
         this.attributeContainerSerializer = attributeContainerSerializer;
-        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer);
+        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
         this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }

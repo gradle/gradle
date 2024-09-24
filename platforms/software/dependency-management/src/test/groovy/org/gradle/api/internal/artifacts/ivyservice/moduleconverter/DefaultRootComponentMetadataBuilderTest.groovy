@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.gradle.api.internal.artifacts.AnonymousModule
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
@@ -38,7 +39,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider) {
         getModule() >> new AnonymousModule()
     }
-    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
         create(_, _, _, _, _, _) >> { args ->
             Mock(LocalVariantGraphResolveMetadata)

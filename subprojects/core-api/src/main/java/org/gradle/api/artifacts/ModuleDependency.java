@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
@@ -221,12 +223,25 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
 
     /**
-     * Returns the set of requested capabilities for this dependency.
-     * @return An immutable view of requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
+     * Returns the explicitly requested capabilities for this dependency.
+     * <p>
+     * Prefer {@link #getCapabilitySelectors()}. This method is not Isolated Projects compatible.
+     *
+     * @return An immutable view of all explicitly requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
      *
      * @since 5.3
      */
     List<Capability> getRequestedCapabilities();
+
+    /**
+     * Returns the set of capabilities that are requested for this dependency
+     *
+     * @return A view of all requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
+     *
+     * @since 8.11
+     */
+    @Incubating
+    Set<CapabilitySelector> getCapabilitySelectors();
 
     /**
      * Endorse version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.

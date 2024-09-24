@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -73,6 +74,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         BinaryStore store,
         Store<ResolvedComponentResultInternal> cache,
         AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
         AdhocHandlingComponentResultSerializer componentResultSerializer,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
         boolean includeAllSelectableVariantResults
@@ -81,7 +83,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.componentResultSerializer = componentResultSerializer;
         this.store = store;
         this.cache = cache;
-        this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
+        this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
         this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
     }
 

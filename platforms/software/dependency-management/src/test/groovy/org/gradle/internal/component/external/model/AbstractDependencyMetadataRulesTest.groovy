@@ -60,7 +60,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared
         ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     @Shared
-        defaultVariant
+        MutableComponentVariant defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
         new VariantMetadataRules.VariantAction<T>(variantName, action)
@@ -102,7 +102,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             if (addAllDependenciesAsConstraints()) {
                 defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"), null, ImmutableAttributes.EMPTY)
             } else {
-                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [], false, null)
+                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [] as Set, false, null)
             }
         }
         metadata

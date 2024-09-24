@@ -45,7 +45,8 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
             DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
             ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
             dependency.getAttributes(),
-            dependency.getRequestedCapabilities());
+            dependency.getCapabilitySelectors()
+        );
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

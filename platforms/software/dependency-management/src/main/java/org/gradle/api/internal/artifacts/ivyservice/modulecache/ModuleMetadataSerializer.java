@@ -26,6 +26,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
@@ -83,11 +84,17 @@ public class ModuleMetadataSerializer {
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final ModuleSourcesSerializer moduleSourcesSerializer;
 
-    public ModuleMetadataSerializer(AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ModuleSourcesSerializer moduleSourcesSerializer) {
+    public ModuleMetadataSerializer(
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
+        MavenMutableModuleMetadataFactory mavenMetadataFactory,
+        IvyMutableModuleMetadataFactory ivyMetadataFactory,
+        ModuleSourcesSerializer moduleSourcesSerializer
+    ) {
         this.mavenMetadataFactory = mavenMetadataFactory;
         this.ivyMetadataFactory = ivyMetadataFactory;
         this.attributeContainerSerializer = attributeContainerSerializer;
-        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer);
+        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
         this.moduleSourcesSerializer = moduleSourcesSerializer;
     }
 
@@ -150,7 +157,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantConstraints(ImmutableList<? extends ComponentVariant.DependencyConstraint> constraints) throws IOException {
             encoder.writeSmallInt(constraints.size());
             for (ComponentVariant.DependencyConstraint constraint : constraints) {
-                componentSelectorSerializer.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint(), constraint.getAttributes(), Collections.emptyList());
+                componentSelectorSerializer.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint(), constraint.getAttributes(), Collections.emptySet());
                 encoder.writeNullableString(constraint.getReason());
             }
         }
@@ -158,7 +165,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantDependencies(List<? extends ComponentVariant.Dependency> dependencies) throws IOException {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
-                componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
+                componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getCapabilitySelectors());
                 encoder.writeNullableString(dependency.getReason());
                 writeVariantDependencyExcludes(dependency.getExcludes());
                 encoder.writeBoolean(dependency.isEndorsingStrictVersions());
@@ -482,7 +489,7 @@ public class ModuleMetadataSerializer {
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
                 boolean endorsing = decoder.readBoolean();
                 IvyArtifactName dependencyArtifact = IvyArtifactNameSerializer.INSTANCE.readNullable(decoder);
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getRequestedCapabilities(), endorsing, dependencyArtifact);
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getCapabilitySelectors(), endorsing, dependencyArtifact);
             }
         }
 

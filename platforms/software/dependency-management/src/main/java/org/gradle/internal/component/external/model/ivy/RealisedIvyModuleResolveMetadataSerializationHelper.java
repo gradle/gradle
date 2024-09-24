@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -59,8 +60,12 @@ import java.util.Set;
 
 public class RealisedIvyModuleResolveMetadataSerializationHelper extends AbstractRealisedModuleResolveMetadataSerializationHelper {
 
-    public RealisedIvyModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        super(attributeContainerSerializer, moduleIdentifierFactory);
+    public RealisedIvyModuleResolveMetadataSerializationHelper(
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
+        super(attributeContainerSerializer, capabilitySelectorSerializer, moduleIdentifierFactory);
     }
 
     public ModuleComponentResolveMetadata readMetadata(Decoder decoder, DefaultIvyModuleResolveMetadata resolveMetadata) throws IOException {

@@ -16,7 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
@@ -25,11 +30,13 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.DefaultResolutionFailureData;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ResolutionFailureData;
 import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -54,6 +61,7 @@ import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSele
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -130,12 +138,13 @@ public class ResolutionFailureHandler {
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
-        ImmutableCapabilities requestedCapabilities,
+        Set<CapabilitySelector> requestedCapabilities,
         List<? extends VariantGraphResolveState> matchingVariants
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants, targetComponent.getDefaultCapability());
-        AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        ImmutableCapabilities realizedCapabilities = realizeCapabilitySelectors(targetComponent, requestedCapabilities);
+        AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(targetComponent.getId(), requestedAttributes, realizedCapabilities, assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -143,11 +152,10 @@ public class ResolutionFailureHandler {
     // separate describers, with separate failures, for these different types.
     public AbstractResolutionFailureException noVariantsFailure(
         ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes,
-        ImmutableCapabilities requestedCapabilities
+        AttributeContainerInternal requestedAttributes
     ) {
         List<AssessedCandidate> assessedCandidates = Collections.emptyList();
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableCapabilities.EMPTY, assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -155,12 +163,13 @@ public class ResolutionFailureHandler {
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
-        ImmutableCapabilities requestedCapabilities,
+        Set<CapabilitySelector> requestedCapabilities,
         GraphSelectionCandidates candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        ImmutableCapabilities realizedCapabilities = realizeCapabilitySelectors(targetComponent, requestedCapabilities);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, realizedCapabilities, assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -168,12 +177,13 @@ public class ResolutionFailureHandler {
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         ImmutableAttributes requestedAttributes,
-        ImmutableCapabilities requestedCapabilities,
+        Set<CapabilitySelector> requestedCapabilities,
         List<? extends VariantGraphResolveState> candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates, targetComponent.getDefaultCapability());
-        NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        ImmutableCapabilities realizedCapabilities = realizeCapabilitySelectors(targetComponent, requestedCapabilities);
+        NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent.getId(), requestedAttributes, realizedCapabilities, assessedCandidates);
         return describeFailure(failure);
     }
     // endregion Variant Selection failures
@@ -238,6 +248,25 @@ public class ResolutionFailureHandler {
         return resolvedVariantSet.getComponentIdentifier() != null ? resolvedVariantSet.getComponentIdentifier() : () -> resolvedVariantSet.asDescribable().getDisplayName();
     }
     // endregion Artifact Selection failures
+
+    private static ImmutableCapabilities realizeCapabilitySelectors(ComponentGraphResolveState targetComponent, Set<CapabilitySelector> requestedCapabilities) {
+        Set<ImmutableCapability> realized = new LinkedHashSet<>();
+        for (CapabilitySelector selector : requestedCapabilities) {
+            if (selector instanceof SpecificCapabilitySelector) {
+                DefaultSpecificCapabilitySelector specificSelector = (DefaultSpecificCapabilitySelector) selector;
+                realized.add(new DefaultImmutableCapability(specificSelector.getGroup(), specificSelector.getName(), null));
+            } else if (selector instanceof FeatureCapabilitySelector) {
+                FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) selector;
+                ModuleVersionIdentifier moduleId = targetComponent.getMetadata().getModuleVersionId();
+                realized.add(new DefaultImmutableCapability(
+                    moduleId.getGroup(),
+                    moduleId.getName() + "-" + featureSelector.getFeatureName(),
+                    null
+                ));
+            }
+        }
+        return ImmutableCapabilities.of(realized);
+    }
 
     /**
      * Adds a {@link ResolutionFailureDescriber} for the given failure type to the custom describers
