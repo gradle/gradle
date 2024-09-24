@@ -23,7 +23,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.AntUtil
 import org.gradle.util.internal.ToBeImplemented
 
@@ -63,9 +62,6 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             // we add implicit Xmx1024m in AbstractGradleExecuter.getImplicitBuildJvmArgs()
             // that's too small for this build
             useOnlyRequestedJvmOpts()
-            if (executer.distribution.version > GradleVersion.version("8.11-20240922220000+0000")) {
-                executer.withArgument("--no-problems-report")
-            }
             withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")

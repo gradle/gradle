@@ -46,7 +46,6 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
-import org.gradle.util.GradleVersion
 import org.gradle.util.Matchers
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
@@ -119,9 +118,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         m2.assertNoLeftoverState()
 
         m2.isolateMavenLocalRepo(executer)
-        if (executer.distribution.version > GradleVersion.version("8.11-20240922220000+0000")) {
-            executer.withArgument("--no-problems-report")
-        }
         executer.beforeExecute {
             withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
             if (maxUploadAttempts != null) {

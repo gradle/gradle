@@ -181,7 +181,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         when:
         def waiting = server.expectConcurrentAndBlock("a-waiting", "b-waiting")
         def done = server.expectAndBlock("b-done")
-        def build = executer.withArgument("--parallel").withTasks("run").start()
+        def build = executer.withArgument("--parallel").withArgument("--no-problems-report").withTasks("run").start()
 
         waiting.waitForAllPendingCalls()
         waiting.release("b-waiting")
