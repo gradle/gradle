@@ -62,7 +62,13 @@ public interface ImmutableAttributesFactory {
     default ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
         ImmutableAttributes result = ImmutableAttributes.EMPTY;
         for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-            result = concat(result, of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())));
+            /*
+                The order of the concatenation arguments here is important, as we have tests like
+                ConfigurationCacheDependencyResolutionIntegrationTest and ConfigurationCacheDependencyResolutionIntegrationTest
+                that rely on a particular order of failures when there are multiple invalid attribute type
+                conversions.  So even if it looks unnatural to list result second, this should remain.
+             */
+            result = concat(of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())), result);
         }
         return result;
     }
