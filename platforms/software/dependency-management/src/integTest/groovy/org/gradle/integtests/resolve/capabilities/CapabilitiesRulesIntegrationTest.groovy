@@ -513,10 +513,10 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('jakarta:xml', 'jakarta:xml:1.0') {
-                    byConflictResolution("Explicit selection of jakarta:xml:1.0 variant ${this.runtimeVariant}")
+                    byConflictResolution()
                     selectedByRule()
                     module('jakarta:activation:1.0') {
-                        byConflictResolution("Explicit selection of jakarta:activation:1.0 variant ${this.runtimeVariant}")
+                        byConflictResolution()
                     }
                 }
                 module('hadoop:yarn:1.0') {

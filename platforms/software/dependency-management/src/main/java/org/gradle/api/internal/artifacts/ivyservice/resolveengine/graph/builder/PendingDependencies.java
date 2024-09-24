@@ -20,11 +20,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * Tracks hard (non-constraint) dependencies targeting a given module. A module should end up in a graph if it has
- * hard dependencies. Also tracks all constraints that have been observed for a module. These constraints should be
- * activated when the hard edge count becomes positive.
- */
 public class PendingDependencies {
     private final ModuleIdentifier moduleIdentifier;
     private final Set<NodeState> constraintProvidingNodes;
@@ -63,9 +58,6 @@ public class PendingDependencies {
         reportActivePending = true;
     }
 
-    /**
-     * Return true iff all nodes in this module have no non-constraint edges
-     */
     public boolean isPending() {
         return hardEdges == 0;
     }
@@ -87,7 +79,4 @@ public class PendingDependencies {
         return reportActivePending;
     }
 
-    public void retarget(PendingDependencies pendingDependencies) {
-        hardEdges += pendingDependencies.hardEdges;
-    }
 }
