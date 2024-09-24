@@ -38,7 +38,7 @@ public class NormalizedIvyArtifact implements Serializable {
         this.name = artifact.getName().get();
         this.type = artifact.getType().get();
         this.conf = artifact.getConf().getOrNull();
-        this.file = artifact.getFile();
+        this.file = artifact.getFile().get().getAsFile();
         this.extension = artifact.getExtension().get();
         this.classifier = artifact.getClassifier().getOrNull();
     }

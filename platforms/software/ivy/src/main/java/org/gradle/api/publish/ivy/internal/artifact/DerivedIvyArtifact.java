@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -24,8 +25,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
-
-import java.io.File;
 
 import static com.google.common.io.Files.getFileExtension;
 
@@ -52,7 +51,7 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected Provider<String> getDefaultType() {
-        return Providers.of(getFileExtension(getFile().getName()));
+        return getFile().map(f -> getFileExtension(f.getAsFile().getName()));
     }
 
     @Override
@@ -76,8 +75,8 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
-        return derived.create();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(derived::create);
     }
 
     @Override
