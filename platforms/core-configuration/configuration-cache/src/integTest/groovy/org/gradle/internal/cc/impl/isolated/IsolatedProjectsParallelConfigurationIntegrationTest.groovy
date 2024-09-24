@@ -167,6 +167,84 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         isolatedProjectsRun "help"
     }
 
+    @Ignore
+    def "nested plugin builds"() {
+        given:
+        settingsFile("build-library/settings.gradle.kts", """
+            pluginManagement {
+                includeBuild("../build-plugins")
+            }
+            include(":a")
+        """)
+        buildFile("build-library/a/build.gradle.kts", """
+            plugins {
+                id("shared")
+            }
+        """)
+        settingsFile("build-plugins/settings.gradle.kts", """
+            pluginManagement {
+                includeBuild("../build-nested-plugins")
+            }
+            include(":a")
+        """)
+        buildFile("build-plugins/a/build.gradle.kts", """
+            plugins {
+                id("nested")
+            }
+        """)
+        buildFile("build-plugins/build.gradle.kts", """
+            plugins {
+                `groovy-gradle-plugin`
+            }
+            gradlePlugin {
+                plugins {
+                    create("shared") {
+                        id = "shared"
+                        implementationClass = "SharedPlugin"
+                    }
+                }
+            }
+        """)
+        file("build-plugins/src/main/groovy/SharedPlugin.groovy") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            public abstract class SharedPlugin implements Plugin<Project> {
+
+                @Override
+                void apply(Project project) {}
+            }
+        """
+        file("build-nested-plugins/src/main/groovy/NestedPlugin.groovy") << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            public abstract class NestedPlugin implements Plugin<Project> {
+                @Override
+                void apply(Project project) {}
+            }
+        """
+        buildFile("build-nested-plugins/build.gradle.kts", """
+            plugins {
+                `groovy-gradle-plugin`
+            }
+            gradlePlugin {
+                plugins {
+                    create("nested") {
+                        id = "nested"
+                        implementationClass = "NestedPlugin"
+                    }
+                }
+
+            }
+        """)
+        settingsFile """
+            includeBuild("build-library")
+        """
+
+        expect:
+        isolatedProjectsRun "help"
+    }
+
     // TODO Test -x behavior
-    // TODO Test included builds behavior
 }
