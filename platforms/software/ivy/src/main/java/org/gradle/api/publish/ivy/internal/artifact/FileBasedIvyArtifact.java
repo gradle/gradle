@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -29,8 +30,7 @@ import org.gradle.api.tasks.TaskDependency;
 import java.io.File;
 
 public class FileBasedIvyArtifact extends AbstractIvyArtifact {
-    private final File file;
-    private final Provider<String> defaultExtension;
+    private final Provider<RegularFile> file;
     private final IvyPublicationCoordinates coordinates;
 
     public FileBasedIvyArtifact(
@@ -41,8 +41,7 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
         ObjectFactory objectFactory
     ) {
         super(taskDependencyFactory, providerFactory, objectFactory);
-        this.file = file;
-        this.defaultExtension = Providers.of(Files.getFileExtension(file.getName()));
+        this.file = Providers.of(() -> file);
         this.coordinates = coordinates;
     }
 
@@ -53,12 +52,12 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected Provider<String> getDefaultType() {
-        return defaultExtension;
+        return getDefaultExtension();
     }
 
     @Override
     protected Provider<String> getDefaultExtension() {
-        return defaultExtension;
+        return file.map(f -> Files.getFileExtension(f.getAsFile().getName()));
     }
 
     @Override
@@ -77,7 +76,7 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
+    public Provider<RegularFile> getFile() {
         return file;
     }
 
