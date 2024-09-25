@@ -381,7 +381,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ModelDefaultsHandler createActionDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme, InternalProblems problems) {
+    protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme, InternalProblems problems) {
         return new ActionBasedModelDefaultsHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
     }
 }
