@@ -155,14 +155,17 @@ class ProjectMetadataController(
             )
         })
 
-        val artifactMetadata = factory.create(Describables.of(variantName, "artifacts"), ValueCalculator {
-            ImmutableList.of<LocalComponentArtifactMetadata>()
-        })
-
         return DefaultLocalVariantGraphResolveMetadata(
-            variantName, variantName, componentId, true, attributes,
-            ImmutableCapabilities.EMPTY, false, dependencyMetadata,
-            variants, factory, artifactMetadata
+            variantName,
+            variantName,
+            componentId,
+            true,
+            attributes,
+            ImmutableCapabilities.EMPTY,
+            false,
+            dependencyMetadata,
+            variants,
+            factory
         )
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -58,7 +59,9 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrap
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
+import org.gradle.internal.component.local.model.LocalVariantMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentConfigurationIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -1091,10 +1094,21 @@ class DependencyGraphBuilderTest extends Specification {
                 ImmutableList.copyOf(artifacts)
             )
 
+        def artifactSets = ImmutableSet.of(
+            new LocalVariantMetadata(
+                name,
+                new ComponentConfigurationIdentifier(componentId, name),
+                Describables.of(name),
+                attributes,
+                ImmutableCapabilities.EMPTY,
+                artifactMetadata
+            )
+        )
+
         return new DefaultLocalVariantGraphResolveMetadata(
             name, name, componentId, true, attributes, ImmutableCapabilities.EMPTY,
             false, dependencyMetadata,
-            [] as Set, TestUtil.calculatedValueContainerFactory(), artifactMetadata
+            artifactSets, TestUtil.calculatedValueContainerFactory()
         )
     }
 

@@ -38,7 +38,6 @@ import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -303,30 +302,19 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         @Override
-        public VariantArtifactGraphResolveMetadata resolveArtifacts() {
-            artifactResolveState.finalizeIfNotAlready();
-            return artifactResolveState.get();
-        }
-
-        @Override
         public VariantArtifactResolveState prepareForArtifactResolution() {
             artifactResolveState.finalizeIfNotAlready();
             return artifactResolveState.get();
         }
     }
 
-    private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
+    private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState {
         private final ComponentArtifactResolveMetadata component;
         private final LocalVariantArtifactGraphResolveMetadata variant;
 
         public DefaultLocalVariantArtifactResolveState(ComponentArtifactResolveMetadata component, LocalVariantArtifactGraphResolveMetadata variant) {
             this.component = component;
             this.variant = variant;
-        }
-
-        @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return variant.getArtifacts();
         }
 
         @Override
@@ -339,9 +327,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         private ComponentArtifactMetadata getArtifactWithName(IvyArtifactName ivyArtifactName) {
-            for (ComponentArtifactMetadata candidate : getArtifacts()) {
-                if (candidate.getName().equals(ivyArtifactName)) {
-                    return candidate;
+            for (VariantResolveMetadata artifactSet : variant.getArtifactVariants()) {
+                for (ComponentArtifactMetadata candidate : artifactSet.getArtifacts()) {
+                    if (candidate.getName().equals(ivyArtifactName)) {
+                        return candidate;
+                    }
                 }
             }
 
@@ -349,7 +339,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         @Override
-        public Set<? extends VariantResolveMetadata> getArtifactVariants() {
+        public Set<LocalVariantMetadata> getArtifactVariants() {
             return variant.getArtifactVariants();
         }
     }

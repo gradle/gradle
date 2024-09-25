@@ -157,11 +157,6 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         }
 
         @Override
-        public VariantArtifactGraphResolveMetadata resolveArtifacts() {
-            return configuration;
-        }
-
-        @Override
         public VariantArtifactResolveState prepareForArtifactResolution() {
             return artifactResolveState.get();
         }
