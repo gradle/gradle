@@ -105,7 +105,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         !topLevelFunctions.find { it.contains("simpleName=testSoftwareType") }
     }
 
-    @TargetGradleVersion(">=8.10")
     def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
