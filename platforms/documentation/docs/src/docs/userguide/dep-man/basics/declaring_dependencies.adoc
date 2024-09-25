@@ -17,7 +17,7 @@
 
 Declaring dependencies in Gradle involves specifying libraries or files that your project depends on.
 
-[[sub:producers-vs-consumers]]
+[[sub:producers-vs-consumers-basics]]
 == Understanding producers and consumers
 
 In dependency management, it is essential to understand the distinction between _producers_ and _consumers_.
@@ -134,7 +134,7 @@ Where:
 
 Take a quick look at the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava page in Maven Central] as a reference.
 
-[[sec:listing_dependencies]]
+[[sec:listing_dependencies_basics]]
 == Listing project dependencies
 
 The `dependencies` task provides an overview of the dependencies of your project.
