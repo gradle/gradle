@@ -45,7 +45,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final Project project;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
-    private final Set<ApplicationKey> applied = new HashSet<>();
+    private final Set<AppliedFeature> applied = new HashSet<>();
 
     public DefaultSoftwareFeatureApplicator(Project project, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.project = project;
@@ -55,10 +55,10 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
 
     @Override
     public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
-        ApplicationKey key = new ApplicationKey(target, softwareFeature);
-        if (!applied.contains(key)) {
+        AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
+        if (!applied.contains(appliedFeature)) {
             applyAndMaybeRegisterExtension(target, softwareFeature);
-            applied.add(key);
+            applied.add(appliedFeature);
         }
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getSoftwareType()));
     }
@@ -144,11 +144,11 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         }
     }
 
-    private static class ApplicationKey {
+    private static class AppliedFeature {
         private final Object target;
         private final SoftwareTypeImplementation<?> softwareFeature;
 
-        public ApplicationKey(Object target, SoftwareTypeImplementation<?> softwareFeature) {
+        public AppliedFeature(Object target, SoftwareTypeImplementation<?> softwareFeature) {
             this.target = target;
             this.softwareFeature = softwareFeature;
         }
@@ -161,7 +161,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            ApplicationKey that = (ApplicationKey) o;
+            AppliedFeature that = (AppliedFeature) o;
             return Objects.equals(target, that.target) && Objects.equals(softwareFeature, that.softwareFeature);
         }
 
