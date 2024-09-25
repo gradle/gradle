@@ -17,6 +17,7 @@
 
 package org.gradle.api.publish.maven.internal.artifact
 
+import com.google.common.base.Strings
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
@@ -139,7 +140,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         then:
         mavenArtifact.extension.getOrNull() == artifactExtension
-        mavenArtifact.classifier.getOrNull() == artifactClassifier
+        mavenArtifact.classifier.getOrNull() == Strings.emptyToNull(artifactClassifier)
         mavenArtifact.file == archive.archiveFile.get().asFile
         mavenArtifact.buildDependencies.getDependencies(null) == [archive] as Set
 
