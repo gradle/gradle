@@ -29,10 +29,6 @@ class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: Functional
 
         applyDefaultSettings()
 
-        features {
-            publishBuildStatusToGithub(model)
-        }
-
         dependencies {
             snapshotDependencies(functionalTestProject.functionalTests)
         }

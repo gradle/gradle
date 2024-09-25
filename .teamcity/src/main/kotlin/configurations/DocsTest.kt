@@ -96,9 +96,6 @@ class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : O
 
     applyDefaultSettings()
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
     dependencies {
         snapshotDependencies(docsTestProject.docsTests)
     }
@@ -122,10 +119,6 @@ class DocsTest(
 
     id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
     name = "${docsTestType.docsTestDesc} - ${testJava.version.name.toCapitalized()} ${os.asName()} ($index)"
-
-    features {
-        publishBuildStatusToGithub(model)
-    }
 
     applyTestDefaults(
         model,

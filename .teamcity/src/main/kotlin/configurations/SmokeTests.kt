@@ -14,10 +14,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, id: S
     name = "Smoke Tests with 3rd Party Plugins ($task) - ${testJava.version.name.toCapitalized()} Linux"
     description = "Smoke tests against third party plugins to see if they still work with the current Gradle version"
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
-
     tcParallelTests(splitNumber)
 
     requirements {
