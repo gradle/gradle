@@ -33,6 +33,7 @@ sealed class ParallelizationMethod {
             val methodJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
             return when (methodJsonObject.getString("name")) {
                 null -> None
+                None::class.simpleName -> None
                 TestDistribution::class.simpleName -> TestDistribution
                 TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonObject.getIntValue("numberOfBatches"))
                 else -> throw IllegalArgumentException("Unknown parallelization method")
