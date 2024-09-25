@@ -83,6 +83,7 @@ data class DefaultDataClass(
 @SerialName("enum")
 data class DefaultEnumClass(
     override val name: FqName,
+    override val javaTypeName: String,
     override val entryNames: List<String>
 ) : EnumClass {
 
@@ -90,6 +91,7 @@ data class DefaultEnumClass(
 
     companion object Empty : EnumClass {
         override val name: FqName = FqName.Empty
+        override val javaTypeName: String = ""
         override val entryNames: List<String> = emptyList()
 
         @Suppress("unused")

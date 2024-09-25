@@ -100,7 +100,10 @@ sealed interface ObjectOrigin {
         val entryName: String
             get() = propertyAccess.name
 
-        override fun toString(): String = "(enum ${type.name.qualifiedName}.${propertyAccess.name})"
+        val javaTypeName: String
+            get() = type.javaTypeName
+
+        override fun toString(): String = "(enum $javaTypeName.$entryName)"
     }
 
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin

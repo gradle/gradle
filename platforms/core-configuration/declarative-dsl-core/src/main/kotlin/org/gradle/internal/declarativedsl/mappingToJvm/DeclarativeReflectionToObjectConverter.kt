@@ -79,7 +79,7 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value
-            is ObjectOrigin.EnumConstantOrigin -> TODO()
+            is ObjectOrigin.EnumConstantOrigin -> getEnumConstant(objectOrigin)
             is ObjectOrigin.External -> externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(/*objectOrigin*/) }
@@ -179,6 +179,23 @@ class DeclarativeReflectionToObjectConverter(
         return when (val property = propertyResolver.resolvePropertyRead(receiverKClass, dataProperty.name)) {
             is RuntimePropertyResolver.ReadResolution.ResolvedRead -> property.getter.getValue(receiverInstance)
             RuntimePropertyResolver.ReadResolution.UnresolvedRead -> error("cannot get property ${dataProperty.name} from the receiver class $receiverKClass")
+        }
+    }
+
+    private
+    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): Enum<*>? {
+        val typeName = objectOrigin.javaTypeName
+        val classLoader = topLevelObject.javaClass.classLoader
+        try {
+            val enumClass = classLoader.loadClass(typeName) as Class<*>
+            if (enumClass.isEnum) {
+                @Suppress("UNCHECKED_CAST")
+                return (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
+            } else {
+                error("$typeName is not an enum class")
+            }
+        } catch (e: ClassNotFoundException) {
+            error("failed loading class $typeName: ${e.message}")
         }
     }
 

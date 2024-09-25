@@ -165,10 +165,9 @@ class AssignmentResolver {
             is ObjectOrigin.CustomConfigureAccessor -> withResolvedReceiver(objectOrigin) { objectOrigin.copy(receiver = it) }
             is ObjectOrigin.ConfiguringLambdaReceiver -> withResolvedReceiver(objectOrigin) { objectOrigin.copy(receiver = it) }
 
-            is ObjectOrigin.EnumConstantOrigin -> TODO()
-
             is ObjectOrigin.NewObjectFromTopLevelFunction,
             is ObjectOrigin.ConstantOrigin,
+            is ObjectOrigin.EnumConstantOrigin,
             is ObjectOrigin.External,
             is ObjectOrigin.NullObjectOrigin,
             is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?

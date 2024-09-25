@@ -148,24 +148,22 @@ class DataSchemaBuilder(
         kClass: KClass<*>,
         preIndex: PreIndex,
     ): DataType.ClassDataType {
-        val name = kClass.fqName
         return when {
             isEnum(kClass) -> {
                 val entryNames = (kClass as KClass<Enum<*>>).java.enumConstants.map { it.name }
-                DefaultEnumClass(name, entryNames)
+                DefaultEnumClass(kClass.fqName, kClass.java.name, entryNames)
             }
             else -> {
                 val properties = preIndex.getAllProperties(kClass)
                 val functions = functionExtractor.memberFunctions(kClass, preIndex).toList()
                 val constructors = functionExtractor.constructors(kClass, preIndex).toList()
-                DefaultDataClass(name, supertypesOf(kClass), properties, functions, constructors)
+                DefaultDataClass(kClass.fqName, supertypesOf(kClass), properties, functions, constructors)
             }
         }
     }
 
     private
     fun isEnum(kClass: KClass<*>): Boolean {
-        // TODO: this doesn't catch kotlin.Enum instances; should it?
         return kClass.supertypes.any { it.isSubtypeOf(typeOf<Enum<*>>()) }
     }
 

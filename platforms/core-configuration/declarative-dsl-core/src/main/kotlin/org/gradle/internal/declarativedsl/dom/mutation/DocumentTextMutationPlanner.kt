@@ -310,7 +310,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                                 nameMapper.newNamesForValueFactories[valueNode] ?: valueNode.factoryName,
                                 valueNode.sourceData,
                                 valueNode.values.map { applyValueMutations(it, nameMapper, valueMapper) })
-                            is NamedReferenceNode -> TODO()
+
+                            is NamedReferenceNode -> error("named references not allowed as function arguments")
                         }
             }
         }
