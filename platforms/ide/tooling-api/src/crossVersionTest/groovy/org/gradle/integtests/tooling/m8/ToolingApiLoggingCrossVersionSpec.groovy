@@ -150,6 +150,7 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         def executer = targetDist.executer(temporaryFolder, getBuildContext())
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
+            .noExtraLogging() // use default logging level, NoDaemonGradleExecuter sets --info otherwise
 
         if (targetDist.toolingApiMergesStderrIntoStdout) {
             // The TAPI provider merges the streams, so need to merge the streams for command-line execution too
@@ -172,6 +173,7 @@ project.logger.debug("debug logging");
             .replaceFirst(/Support for .* was deprecated.*\n/, '')
             .replaceFirst(/ in [ \dms]+/, " in 0ms")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
+            .replaceFirst(/(?s)To honour the JVM settings for this build a (new JVM|single-use Daemon process) will be forked.+will be stopped at the end of the build (stopping after processing)?\n/, "")
     }
 
     void shouldNotContainProviderLogging(String output) {
