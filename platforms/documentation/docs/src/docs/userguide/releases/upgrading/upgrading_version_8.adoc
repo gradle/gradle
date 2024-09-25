@@ -548,10 +548,10 @@ Groovy 4 more closely follows the Java Bean specification and link:https://issue
 Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
 In Gradle 9.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date when a `Boolean` property is an input.
 
-To fix this deprecation requires one of two things:
+Fixing this deprecation requires one of two things:
 
 * Introduce a new method that starts with `get` instead of `is` which has the same behavior. The old method may be removed, but be aware that doing so may break backward compatibility.
-* Or change the return type of the method to `boolean`.
+* Or change the type of the property (both get and set) to `boolean`.
 
 For task input properties using the first option, you should also annotate the old `is-` method with `@Deprecated` and `@ReplacedBy` to ensure it is not used by Gradle.
 For example, given this old code:
