@@ -67,7 +67,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveAppendix = objectFactory.property(String.class);
         archiveVersion = objectFactory.property(String.class);
         archiveExtension = objectFactory.property(String.class);
-        archiveClassifier = objectFactory.property(String.class);
+        archiveClassifier = objectFactory.property(String.class).convention("");
 
         archiveName = objectFactory.property(String.class);
         archiveName.convention(getProject().provider(() -> {
