@@ -82,7 +82,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDocumentedDeprecationWarning("Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. " +
             "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
-            "Add a method named 'getProperty' with the same behavior, or replace the return type of 'MyExtension.isProperty' with 'boolean'. " +
+            "Add a method named 'getProperty' with the same behavior and mark the old one with @Deprecated, or change the type of 'MyExtension.isProperty' (and the setter) to 'boolean'. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
         succeeds("assertProperty")
     }
@@ -125,7 +125,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDocumentedDeprecationWarning("Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. " +
             "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
-            "Add a method named 'getProperty' with the same behavior, or replace the return type of 'MyValue.isProperty' with 'boolean'. " +
+            "Add a method named 'getProperty' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or change the type of 'MyValue.isProperty' (and the setter) to 'boolean'. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
         succeeds("assertProperty")
     }

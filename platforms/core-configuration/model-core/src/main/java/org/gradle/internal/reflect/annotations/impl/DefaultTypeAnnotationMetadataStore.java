@@ -548,7 +548,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (accessorType == PropertyAccessorType.IS_GETTER && method.getReturnType() == Boolean.class && ignoredMethodAnnotations.stream().noneMatch(metadataBuilder::hasAnnotation)) {
             DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
                 .withAdvice(String.format(
-                    "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or replace the return type of '%s.%s' with 'boolean'.",
+                    "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or change the type of '%s.%s' (and the setter) to 'boolean'.",
                     method.getName().replace("is", "get"),
                     method.getDeclaringClass().getCanonicalName(), method.getName()
                 ))

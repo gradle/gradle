@@ -1599,7 +1599,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
                     DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
                         .withAdvice(String.format(
-                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or replace the return type of '%s.%s' with 'boolean'.",
+                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",
                             method.getName().replace("is", "get"),
                             method.getDeclaringClass().getCanonicalName(), method.getName()
                         ))
