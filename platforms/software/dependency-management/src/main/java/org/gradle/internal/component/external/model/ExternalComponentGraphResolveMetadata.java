@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -37,7 +36,7 @@ public interface ExternalComponentGraphResolveMetadata extends ComponentGraphRes
      * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
      * May be empty, in which case selection falls back to an ecosystem-specific selection strategy.
      */
-    List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal();
+    List<? extends ExternalVariantGraphResolveMetadata> getVariantsForGraphTraversal();
 
     /**
      * Returns the names of all legacy configurations for this component.

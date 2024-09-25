@@ -20,11 +20,11 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 /**
- * Constructs {@link LocalVariantGraphResolveMetadata} instances advertised by a
+ * Constructs {@link LocalVariantGraphResolveState} instances advertised by a
  * {@link DefaultLocalComponentGraphResolveState} instance. This allows the component state to
  * source variant data from multiple sources, both lazy and eager.
  */
-public interface VariantMetadataFactory {
+public interface LocalVariantGraphResolveStateFactory {
 
     /**
      * Visit all variants in this component that can be selected in a dependency graph.
@@ -32,18 +32,19 @@ public interface VariantMetadataFactory {
      * <p>This includes all variants with and without attributes. Variants visited
      * by this method may not be suitable for selection via attribute matching.</p>
      */
-    void visitConsumableVariants(Consumer<LocalVariantGraphResolveMetadata> visitor);
+    void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor);
 
     /**
-     * Invalidates any caching used for producing variant metadata.
+     * Invalidates any caching used for producing variant state.
      */
     void invalidate();
 
     /**
-     * Produces a variant metadata instance from the configuration with the given {@code name}.
+     * Produces a variant state instance from the configuration with the given {@code name}.
      *
      * @return Null if the variant with the given configuration name does not exist.
      */
     @Nullable
-    LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
+    LocalVariantGraphResolveState getVariantByConfigurationName(String name);
+
 }

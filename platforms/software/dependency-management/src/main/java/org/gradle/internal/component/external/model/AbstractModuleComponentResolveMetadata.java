@@ -29,7 +29,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -182,7 +181,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.
      * If it can not provide variants, absent must be returned to fall back to traditional configuration selection.
      */
-    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.empty();
     }
 
