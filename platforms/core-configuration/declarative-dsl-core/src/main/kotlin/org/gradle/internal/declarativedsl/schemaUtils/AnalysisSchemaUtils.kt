@@ -40,6 +40,21 @@ fun AnalysisSchema.findTypeFor(javaClass: Class<*>): DataClass? =
         .find { it.name.qualifiedName == javaClass.kotlin.qualifiedName }
 
 
+inline fun <reified T> AnalysisSchema.typeFor(): DataClass =
+    typeFor(T::class.java)
+
+
+fun AnalysisSchema.typeFor(javaClass: Class<*>): DataClass =
+    findTypeFor(javaClass)
+        ?: throw NoSuchElementException("no type found in the schema for '${javaClass.name}'")
+
+
+fun AnalysisSchema.findType(predicate: (DataClass) -> Boolean): DataClass? =
+    dataClassTypesByFqName.values
+        .filterIsInstance<DataClass>()
+        .find(predicate)
+
+
 fun DataClass.findPropertyNamed(name: String): TypedMember.TypedProperty? =
     properties.find { it.name == name }?.let { TypedMember.TypedProperty(this, it) }
 

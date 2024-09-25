@@ -21,11 +21,12 @@ import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.dom.mutation.singleType
+import org.gradle.internal.declarativedsl.schemaUtils.findType
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.reflect.KClass
@@ -48,7 +49,7 @@ class GeneralGradleDslSchemaTest {
     fun `general dsl schema has properties imported from gradle property api`() {
         val schema = schemaFrom(NestedReceiver::class)
         assertHasNestedReceiverType(schema.analysisSchema)
-        val singleType = schema.analysisSchema.singleType { it.name.simpleName == NestedReceiver::class.simpleName }
+        val singleType = schema.analysisSchema.findType { it: DataClass -> it.name.simpleName == NestedReceiver::class.simpleName }!!
         assertTrue(singleType.properties.any { it.name == "intProperty" })
         assertTrue(singleType.properties.any { it.name == "enumProperty" })
     }
