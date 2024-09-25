@@ -22,7 +22,6 @@ errorprone {
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
-    api(projects.processServices)
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
     api(projects.loggingApi)

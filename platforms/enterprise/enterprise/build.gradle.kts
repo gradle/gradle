@@ -38,7 +38,6 @@ dependencies {
     implementation(projects.files)
     implementation(projects.hashing)
     implementation(projects.logging)
-    implementation(projects.processServices)
     implementation(projects.serialization)
     implementation(projects.testingBase)
 

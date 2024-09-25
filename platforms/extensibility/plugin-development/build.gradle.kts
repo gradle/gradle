@@ -52,7 +52,6 @@ dependencies {
     implementation(projects.pluginsJavaLibrary)
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.pluginUse)
-    implementation(projects.processServices)
     implementation(projects.publish)
     implementation(projects.testingJvm)
     implementation(projects.toolchainsJvm)
