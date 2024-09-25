@@ -86,8 +86,8 @@ trait TestsInitProjectSpecsViaPlugin {
                 @Override
                 public List<InitProjectSpec> getProjectSpecs() {
                     return Arrays.asList(
-                        new MyProjectSpec("First Project Type"),
-                        new MyProjectSpec("Second Project Type")
+                        new MyProjectSpec("first-project-type"),
+                        new MyProjectSpec("second-project-type")
                     );
                 }
 
@@ -109,15 +109,15 @@ trait TestsInitProjectSpecsViaPlugin {
             import org.gradle.buildinit.projectspecs.InitProjectSpec;
 
             public class MyProjectSpec implements InitProjectSpec {
-                private final String displayName;
+                private final String type;
 
-                public MyProjectSpec(String displayName) {
-                    this.displayName = displayName;
+                public MyProjectSpec(String type) {
+                    this.type = type;
                 }
 
                 @Override
-                public String getDisplayName() {
-                    return displayName;
+                public String getType() {
+                    return type;
                 }
 
                 @Override

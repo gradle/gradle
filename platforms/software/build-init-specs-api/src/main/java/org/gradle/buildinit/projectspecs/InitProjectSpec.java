@@ -16,17 +16,17 @@
 
 package org.gradle.buildinit.projectspecs;
 
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
-import org.gradle.util.internal.GUtil;
-import org.gradle.util.internal.TextUtil;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Represents a specification for a new type of project that the {@code init} task can generate.
  *
- * @implSpec Meant to be implemented by plugins that want to provide additional project types, with implemtations
+ * @implSpec Meant to be implemented by plugins that want to provide additional project types, with implementations
  * being discoverable by a {@link java.util.ServiceLoader}.
  * @since 8.11
  */
@@ -35,13 +35,17 @@ public interface InitProjectSpec extends Describable {
     /**
      * The name of the type of project this spec will generate.
      * <p>
-     * This will be used to allow the user to select a project type when running the {@code init} task.
+     * This will be used to allow the user to select a project type when running the {@code init} task.  By
+     * default, this is the proper-cased version of {@link #getType()}.
      *
      * @return a name providing a brief description of this type of project
      * @since 8.11
      */
     @Override
-    String getDisplayName();
+    default String getDisplayName() {
+        String spaced = getType().replace("-", " ");
+        return WordUtils.capitalizeFully(spaced);
+    }
 
     /**
      * An identifier for the type of project this spec will generate.
@@ -49,15 +53,13 @@ public interface InitProjectSpec extends Describable {
      * This will be used to allow the user to select a project type when running the {@code init} task
      * non-interactively by supplying the {@code --type} parameter to the init task.
      * <p>
-     * Defaults to the lower-hyphen-case version of {@link #getDisplayName()}.
+     * Each project type can be registered to only a single {@link InitProjectGenerator}.
      *
      * @return type id for this type of project
      * @implSpec Must be unique amongst all project types contributed by a plugin.
      * @since 8.11
      */
-    default String getType() {
-        return TextUtil.camelToKebabCase(GUtil.toCamelCase(getDisplayName()));
-    }
+    String getType();
 
     /**
      * Returns the parameters that can be provided to configure this project during generation.
@@ -65,5 +67,7 @@ public interface InitProjectSpec extends Describable {
      * @return the parameters for this type of project specification
      * @since 8.11
      */
-    List<InitProjectParameter<?>> getParameters();
+    default List<InitProjectParameter<?>> getParameters() {
+        return Collections.emptyList();
+    }
 }

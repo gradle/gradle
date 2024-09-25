@@ -14,37 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.builtinit.projectspecs.internal.internal
+package org.gradle.builtinit.projectspecs.internal
 
 import org.gradle.buildinit.projectspecs.InitProjectParameter
 import org.gradle.buildinit.projectspecs.InitProjectSpec
-import org.gradle.util.internal.GUtil
-import org.gradle.util.internal.TextUtil
+
+import org.apache.commons.lang.WordUtils;
 
 /**
  * A sample {@link InitProjectSpec} implementation for testing purposes.
  */
 class TestInitProjectSpec implements InitProjectSpec {
-    private final String name
     private final String type
+    private final String name
 
-    TestInitProjectSpec(String name, String type = null) {
-        this.name = name
+    TestInitProjectSpec(String type, String name = null) {
         this.type = type
+        this.name = name
     }
 
     @Override
     String getDisplayName() {
-        return name
+        if (name) {
+            return name
+        } else {
+            String spaced = getType().replace("-", " ");
+            return WordUtils.capitalizeFully(spaced);
+        }
     }
 
     @Override
     String getType() {
-        if (type) {
-            return type
-        } else {
-            return TextUtil.camelToKebabCase(GUtil.toCamelCase(getDisplayName()))
-        }
+        return type
     }
 
     @Override

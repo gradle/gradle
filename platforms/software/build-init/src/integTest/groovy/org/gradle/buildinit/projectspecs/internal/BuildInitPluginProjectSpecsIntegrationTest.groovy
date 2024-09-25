@@ -26,6 +26,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem"
@@ -246,6 +247,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         assertWrapperGenerated()
     }
 
+    @Ignore // TODO: Restore after new declarative-prototype is available where StaticProjectSpec implements getType
     @LeaksFileHandles
     @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "can generate declarative project type using argument to init"() {
@@ -327,6 +329,7 @@ defaults {
         canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
     }
 
+    @Ignore // TODO: Restore after new declarative-prototype is available where StaticProjectSpec implements getType
     @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "gives decent error message when triggered with unknown init-type after loading project specs"() {
         when:

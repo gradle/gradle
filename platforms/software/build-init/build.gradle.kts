@@ -26,7 +26,6 @@ dependencies {
     api(libs.maven3Settings)
 
     api(projects.baseServices)
-    api(projects.buildInitSpecs)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServices)
@@ -39,6 +38,7 @@ dependencies {
     api(projects.jvmServices)
     api(projects.workers)
 
+    implementation(projects.buildInitSpecs)
     implementation(projects.buildInitSpecsApi)
     implementation(projects.fileOperations)
     implementation(projects.loggingApi)

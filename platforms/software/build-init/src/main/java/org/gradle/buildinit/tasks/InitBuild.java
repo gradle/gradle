@@ -53,8 +53,7 @@ import org.gradle.buildinit.projectspecs.InitProjectConfig;
 import org.gradle.buildinit.projectspecs.InitProjectGenerator;
 import org.gradle.buildinit.projectspecs.InitProjectParameter;
 import org.gradle.buildinit.projectspecs.InitProjectSpec;
-import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
-import org.gradle.buildinit.projectspecs.internal.InitProjectRegistry;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -100,13 +99,6 @@ public abstract class InitBuild extends DefaultTask {
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
-    @Internal
-    private final Property<InitProjectRegistry> initProjectRegistry = getProject().getObjects().property(InitProjectRegistry.class);
-
-    public InitBuild() {
-        InitProjectSpecLoader loader = getServices().get(InitProjectSpecLoader.class);
-        initProjectRegistry.convention(loader.loadProjectSpecs());
-    }
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
@@ -292,18 +284,6 @@ public abstract class InitBuild extends DefaultTask {
         return projectLayoutRegistry;
     }
 
-    /**
-     * This property returns the registry instance containing the available init project specifications
-     * that have been loaded and can be used for project generation.
-     *
-     * @return the available {@link InitProjectRegistry} instance
-     * @since 8.11
-     */
-    @Incubating
-    protected Property<InitProjectRegistry> getInitProjectRegistry() {
-        return initProjectRegistry;
-    }
-
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
@@ -315,7 +295,8 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
-        boolean templatesAvailable = initProjectRegistry.get().areProjectSpecsAvailable();
+        InitProjectSpecRegistry registry = getServices().get(InitProjectSpecRegistry.class);
+        boolean templatesAvailable = !registry.isEmpty();
         return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
     }
 
@@ -327,13 +308,15 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private InitProjectConfig selectAndConfigureSpec(UserQuestions userQuestions) {
+        InitProjectSpecRegistry registry = getServices().get(InitProjectSpecRegistry.class);
+
         InitProjectSpec spec;
         if (type == null) {
-            spec = userQuestions.choice("Select project type", initProjectRegistry.get().getProjectSpecs())
+            spec = userQuestions.choice("Select project type", registry.getAllSpecs())
                 .renderUsing(InitProjectSpec::getDisplayName)
                 .ask();
         }  else {
-            spec = initProjectRegistry.get().getProjectSpec(type);
+            spec = registry.getSpecByType(type);
         }
 
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
@@ -353,8 +336,9 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private InitProjectGenerator createGenerator(InitProjectConfig config) {
-        Class<? extends InitProjectGenerator> generatorType = initProjectRegistry.get().getProjectGeneratorClass(config.getProjectSpec());
-        return getInstantiator().newInstance(generatorType);
+        InitProjectSpecRegistry registry = getServices().get(InitProjectSpecRegistry.class);
+        Class<? extends InitProjectGenerator> generator = registry.getGeneratorForSpec(config.getProjectSpec());
+        return getInstantiator().newInstance(generator);
     }
 
     private void doStandardProjectGeneration(UserInputHandler inputHandler) {

@@ -18,8 +18,11 @@ package org.gradle.buildinit.plugins.internal.services;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -41,6 +44,18 @@ public class BuildInitServices extends AbstractGradleModuleServices {
             @Provides
             ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor workerExecutor) {
                 return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, workerExecutor).createProjectLayoutSetupRegistry();
+            }
+
+            @Provides
+            InitProjectSpecLoader createInitProjectSpecLoader(ProjectInternal project) {
+                return new InitProjectSpecLoader(project.getClassLoaderScope().getLocalClassLoader(), project.getLogger());
+            }
+
+            @Provides
+            InitProjectSpecRegistry createInitProjectRegistry(InitProjectSpecLoader initProjectSpecLoader) {
+                InitProjectSpecRegistry registry = new InitProjectSpecRegistry();
+                registry.register(initProjectSpecLoader);
+                return registry;
             }
         });
     }

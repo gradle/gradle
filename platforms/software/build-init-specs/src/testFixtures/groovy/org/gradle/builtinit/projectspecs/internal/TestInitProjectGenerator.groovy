@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.builtinit.projectspecs.internal.internal
+package org.gradle.builtinit.projectspecs.internal
 
 import org.gradle.api.file.Directory
 import org.gradle.buildinit.projectspecs.InitProjectConfig

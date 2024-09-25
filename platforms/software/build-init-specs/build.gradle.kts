@@ -24,7 +24,14 @@ dependencies {
     api(projects.buildInitSpecsApi)
     api(projects.loggingApi)
 
-    implementation(projects.stdlibJavaExtensions)
+    api(projects.stdlibJavaExtensions)
+
+    implementation(libs.guava)
+
+    testImplementation(testFixtures(project))
+    testImplementation(testFixtures(projects.logging))
+
+    testFixturesImplementation(libs.commonsLang)
 }
 
 testing {

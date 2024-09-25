@@ -24,4 +24,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.stdlibJavaExtensions)
+
+    implementation(libs.commonsLang)
 }
