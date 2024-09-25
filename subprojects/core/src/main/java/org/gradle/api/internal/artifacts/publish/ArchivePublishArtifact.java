@@ -73,7 +73,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public String getClassifier() {
-        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
+        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().filter(x -> !x.isEmpty()).getOrNull());
     }
 
     @Override
