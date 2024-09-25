@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
@@ -217,14 +216,14 @@ public class MavenComponentParser {
         );
 
         for (ModuleDependency dependency : variant.getDependencies()) {
-            if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
-                // We skip all self referencing dependency declarations, unless they have custom artifact information
-                continue;
-            }
             if (platformSupport.isTargetingPlatform(dependency)) {
                 dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
             } else {
-                dependencyFactory.convertDependency(dependency, dependencies::add);
+                dependencyFactory.convertDependency(dependency, d -> {
+                    if (!isDependencyWithDefaultArtifact(d) || !dependencyMatchesProject(d, coordinates)) {
+                        dependencies.add(d);
+                    }
+                });
             }
         }
 
@@ -254,15 +253,12 @@ public class MavenComponentParser {
             || !coordinates.getVersion().equals(capability.getVersion());
     }
 
-    private static boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
-        if (dependency.getArtifacts().isEmpty()) {
-            return true;
-        }
-        return dependency.getArtifacts().stream().allMatch(artifact -> Strings.nullToEmpty(artifact.getClassifier()).isEmpty());
+    private static boolean isDependencyWithDefaultArtifact(MavenDependency dependency) {
+        return dependency.getType() == null && dependency.getClassifier() == null;
     }
 
-    private static boolean dependencyMatchesProject(ModuleDependency dependency, ModuleVersionIdentifier coordinates) {
-        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getName()));
+    private static boolean dependencyMatchesProject(MavenDependency dependency, ModuleVersionIdentifier coordinates) {
+        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroupId(), dependency.getArtifactId()));
     }
 
     private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
@@ -311,10 +307,10 @@ public class MavenComponentParser {
             // when dependency mapping is disabled.
             // At the very least, we do not want these warnings when dependency mapping is enabled.
             if (!dependency.getAttributes().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle attributes", dependency));
             }
             if (!dependency.getCapabilitySelectors().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle capabilities", dependency));
             }
 
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);

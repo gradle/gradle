@@ -57,7 +57,7 @@ class DependencyCollectorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating dependency DefaultExternalModuleDependency{group='com', name='foo', version='1.0', configuration='default'} after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
+        executer.expectDocumentedDeprecationWarning("Mutating dependency com:foo:1.0 after it has been finalized has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#dependency_mutate_dependency_collector_after_finalize")
         succeeds("help")
     }
 
