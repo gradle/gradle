@@ -241,7 +241,7 @@ tasks.register('myCustomTask', MyCustomTask)
 ----
 =====
 
-[[sec:convention_plugins]]
+[[sec:sharing_logic_via_convention_plugins]]
 == Share logic using convention plugins
 
 Gradle's recommended way of organizing build logic is to use its plugin system.

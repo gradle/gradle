@@ -205,7 +205,7 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 
 | `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
-| Specifies one or more files that represent the <<custom_tasks.adoc#sec:storing_incremental_task_state,local state of the task>>. These files are removed when the task is loaded from cache.
+| Specifies one or more files that represent the local state of the task. These files are removed when the task is loaded from cache.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`
 | Any custom type
@@ -788,7 +788,7 @@ include::sample[dir="snippets/tasks/inputNormalization/groovy",files="build.grad
 ====
 
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers,
-you should consider configuring such normalization in a <<sharing_build_logic_between_subprojects#sec:convention_plugins,convention plugin>> to share it between subprojects.
+you should consider configuring such normalization in a <<sharing_build_logic_between_subprojects#sec:sharing_logic_via_convention_plugins,convention plugin>> to share it between subprojects.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.

@@ -241,7 +241,7 @@ The following example demonstrates the use of `Action` in an extension definitio
 include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
 ----
 
-[[sec:mapping_extension_properties_to_task_properties]]
+[[sec:mapping_extension_properties_to_task_properties_in_binary_plugins]]
 == Mapping extension properties to task properties
 
 Plugins commonly use an extension to capture user input from the build script and map it to a custom task's input/output properties.
@@ -258,7 +258,7 @@ The `MyCustomTask` task then uses this input parameter in its logic.
 
 You can learn more about types you can use in task implementations and extensions in <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>.
 
-[[sec:plugin_conventions]]
+[[sec:plugin_conventions_in_binary_plugins]]
 == Adding default configuration with conventions
 
 Plugins should provide sensible defaults and standards in a specific context, reducing the number of decisions users need to make.
