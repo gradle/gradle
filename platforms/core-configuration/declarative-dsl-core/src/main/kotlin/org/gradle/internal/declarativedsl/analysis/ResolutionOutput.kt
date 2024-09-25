@@ -97,6 +97,9 @@ sealed interface ObjectOrigin {
         override val originElement: LanguageTreeElement
             get() = propertyAccess
 
+        val entryName: String
+            get() = propertyAccess.name
+
         override fun toString(): String = "(enum ${type.name.qualifiedName}.${propertyAccess.name})"
     }
 

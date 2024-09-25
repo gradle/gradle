@@ -235,7 +235,7 @@ class DocumentOverlayContext(
         overlayValueOrigin[value] = origin
         when (value) {
             is ValueNode.ValueFactoryNode -> value.values.forEach { recordValueOriginRecursively(it, origin) }
-            is ValueNode.LiteralValueNode -> Unit
+            is ValueNode.LiteralValueNode,
             is ValueNode.NamedReferenceNode -> Unit
         }
     }

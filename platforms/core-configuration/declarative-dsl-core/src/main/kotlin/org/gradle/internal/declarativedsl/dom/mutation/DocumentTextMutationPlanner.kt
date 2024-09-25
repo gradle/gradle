@@ -291,7 +291,9 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                                 DefaultElementNode(
                                     nameMapper.newNamesForElements[targetNode] ?: targetNode.name,
                                     targetNode.sourceData,
-                                    targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) },
+                                    targetNode.elementValues.map {
+                                        applyValueMutations(it, nameMapper, valueMapper)
+                                    },
                                     newContent.nodes
                                 )
                             ),

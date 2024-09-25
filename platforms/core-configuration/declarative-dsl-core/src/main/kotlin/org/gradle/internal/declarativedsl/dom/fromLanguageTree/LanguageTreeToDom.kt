@@ -175,7 +175,7 @@ class LanguageTreeToDomContext {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryArgumentFormat)
             }
 
-            if (expr.args.any { it is FunctionArgument.Positional && it.expr is PropertyAccess}) {
+            if (expr.args.any { it is FunctionArgument.ValueArgument && it.expr is PropertyAccess }) {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithPropertyAccess)
             }
 
@@ -189,7 +189,11 @@ class LanguageTreeToDomContext {
             }
         }
 
-        is PropertyAccess -> ExprConversion.Converted(namedReferenceNode(expr))
+        is PropertyAccess -> when {
+            expr.receiver != null -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.NamedReferenceWithExplicitReceiver)))
+            else -> ExprConversion.Converted(namedReferenceNode(expr))
+        }
+
         is Null -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedNullValue)))
         is This -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedThisValue)))
     }.also { (it as? ExprConversion.Converted)?.let { converted -> valueMapping[converted.valueNode] = expr } }

@@ -229,7 +229,7 @@ class DocumentOverlayTest {
                 a = 33
                 b = 6
                 unresolved5()
-                c = something.propertyAccess
+                errorExample = unsupported.propertyAccess
             }
             unresolved6()
             """.trimIndent()
@@ -272,8 +272,7 @@ class DocumentOverlayTest {
                 * property(b, literal(6)) -> FromOverlay(documentNode=property(b, literal(6)))
                     - literal(6) -> FromOverlay(documentNode=property(b, literal(6)))
                 * element(unresolved5, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved5, [], content.size = 0))
-                * property(c, namedReference(propertyAccess)) -> FromOverlay(documentNode=property(c, namedReference(propertyAccess)))
-                    - namedReference(propertyAccess) -> FromOverlay(documentNode=property(c, namedReference(propertyAccess)))
+                * error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)))
             * element(unresolved6, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved6, [], content.size = 0))
 
             """.trimIndent(),

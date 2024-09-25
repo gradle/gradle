@@ -149,7 +149,7 @@ class DocumentResolver(
             return when (exprResolution) {
                 is ResolutionTrace.ResolutionOrErrors.Resolution ->
                     if (exprResolution.result is ObjectOrigin.EnumConstantOrigin) {
-                        NamedReferenceResolution.NamedReferenceResolved(exprResolution.result.propertyAccess.name)
+                        NamedReferenceResolution.NamedReferenceResolved(exprResolution.result.entryName)
                     } else {
                         NamedReferenceResolution.NamedReferenceNotResolved(listOf(NonEnumValueNamedReference))
                     }
@@ -167,9 +167,7 @@ class DocumentResolver(
                     value.values.forEach(::visitValue)
                 }
 
-                is DeclarativeDocument.ValueNode.LiteralValueNode -> {
-                    Unit
-                }
+                is DeclarativeDocument.ValueNode.LiteralValueNode -> {}
 
                 is NamedReferenceNode -> {
                     namedReferenceResolution[value] = resolveNamedReference(value)

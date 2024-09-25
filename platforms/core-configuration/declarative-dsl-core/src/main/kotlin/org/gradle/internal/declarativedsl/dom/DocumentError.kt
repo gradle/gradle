@@ -44,4 +44,5 @@ sealed interface UnsupportedSyntaxCause {
     data object ValueFactoryArgumentFormat : UnsupportedSyntaxCause
     data object UnsupportedThisValue : UnsupportedSyntaxCause
     data object UnsupportedNullValue : UnsupportedSyntaxCause
+    data object NamedReferenceWithExplicitReceiver : UnsupportedSyntaxCause
 }
