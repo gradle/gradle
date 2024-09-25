@@ -53,7 +53,7 @@ public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected Provider<String> getDefaultClassifier() {
-        return archiveTask.getArchiveClassifier();
+        return archiveTask.getArchiveClassifier().filter(it -> !it.isEmpty());
     }
 
     @Override
