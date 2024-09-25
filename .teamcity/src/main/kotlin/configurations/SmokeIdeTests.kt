@@ -28,10 +28,6 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildT
     name = "Smoke Ide Tests"
     description = "Tests against IDE sync process"
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
-
     requirements {
         // These tests are usually heavy and the build time is twice on EC2 agents
         requiresNotEc2Agent()
