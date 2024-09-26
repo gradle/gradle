@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.transform;
 
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
@@ -25,24 +26,40 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  * Immutable data class.  Meant to be easily serialized as part of build operation recording and tracing.
  */
 public final class TransformData {
+    private final Class<? extends TransformAction<?>> transformActionClass;
     private final String transformName;
     private final ImmutableAttributes fromAttributes;
     private final ImmutableAttributes toAttributes;
 
-    public TransformData(String transformName, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes) {
+    public TransformData(Class<? extends TransformAction<?>> transformActionClass, String transformName, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes) {
+        this.transformActionClass = transformActionClass;
         this.transformName = transformName;
         this.fromAttributes = fromAttributes;
         this.toAttributes = toAttributes;
+    }
+
+    public Class<? extends TransformAction<?>> getTransformActionClass() {
+        return transformActionClass;
     }
 
     public String getTransformName() {
         return transformName;
     }
 
+    /**
+     * The set of attributes that will be modified by this Artifact Transform, with their original values.
+     *
+     * @return attributes as described
+     */
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
     }
 
+    /**
+     * The set of attributes that will be modified by this Artifact Transform, with their resulting values.
+     *
+     * @return attributes as described
+     */
     public ImmutableAttributes getToAttributes() {
         return toAttributes;
     }

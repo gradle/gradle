@@ -68,7 +68,7 @@ class DependencyManagementTestUtil {
         return new ResolutionFailureHandler(
             TestUtil.instantiatorFactory().inject(services),
             new DefaultProblems([new NoOpProblemEmitter()]),
-            new TransformedVariantConverter(AttributeTestUtil.attributesFactory())
+            new TransformedVariantConverter()
         )
     }
 }

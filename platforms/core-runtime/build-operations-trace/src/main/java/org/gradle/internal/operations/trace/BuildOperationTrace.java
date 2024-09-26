@@ -28,7 +28,9 @@ import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -65,6 +67,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -553,7 +556,18 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public Object convert(Object value, String key) {
-            return ((AttributeContainer) value).keySet(); // TODO: need to convert to a map manually (since asMap is only available on the internal type)
+            AttributeContainer attributeContainer = (AttributeContainer) value;
+
+            /*
+             * We need to convert to a map manually since asMap is only available on the internal container type,
+             * which even though we know should always be a safe cast, it isn't a type that is available in this project.
+             */
+            ImmutableMap.Builder<Attribute<?>, ?> builder = ImmutableMap.builder();
+            for (Attribute<?> attribute : attributeContainer.keySet()) {
+                builder.put(attribute, Cast.uncheckedCast(Objects.requireNonNull(attributeContainer.getAttribute(attribute))));
+            }
+
+            return builder.build();
         }
     }
 

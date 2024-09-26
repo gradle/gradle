@@ -30,12 +30,19 @@ import java.util.stream.Collectors;
 public final class TransformationChainData {
     private final SourceVariantData startingVariant;
     private final ImmutableList<TransformData> steps;
+    private final ImmutableAttributes finalAttributes;
 
-    public TransformationChainData(SourceVariantData startingVariant, ImmutableList<TransformData> steps) {
+    public TransformationChainData(SourceVariantData startingVariant, ImmutableList<TransformData> steps, ImmutableAttributes finalAttributes) {
         this.startingVariant = startingVariant;
         this.steps = steps;
+        this.finalAttributes = finalAttributes;
     }
 
+    /**
+     * The variant that was used as the starting point for this chain of transformations.
+     *
+     * @return initial variant
+     */
     public SourceVariantData getInitialVariant() {
         return startingVariant;
     }
@@ -46,7 +53,15 @@ public final class TransformationChainData {
             .collect(Collectors.joining(", "));
     }
 
+    /**
+     * The complete resulting set of attributes on the "virtual variant" created by processing the source variant
+     * completely through this transformation chain.
+     * <p>
+     * This explicitly includes attributes of the source variant that were not modified by any transformations.
+     *
+     * @return attributes as described
+     */
     public ImmutableAttributes getFinalAttributes() {
-        return steps.get(steps.size() - 1).getToAttributes();
+        return finalAttributes;
     }
 }

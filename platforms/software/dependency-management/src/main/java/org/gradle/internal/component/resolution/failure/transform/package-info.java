@@ -19,9 +19,12 @@
  * are available to satisfy an artifact selection request.
  * <p>
  * These types are a more lightweight representation of the data in {@link org.gradle.api.internal.artifacts.transform.TransformedVariant TransformedVariant},
- * that will not pose problems to serialization in {@link org.gradle.internal.operations.BuildOperation BuildOperation}s and traces.  They
- * contain all the interesting data about these transformation chains necessary to analyze a failure and describe it
+ * and related types that allow us to package this data for external consumers without exposing internal dependency resolution types.  These
+ * contain all the interesting data about any transformation chains necessary to analyze a failure and describe it
  * using a {@link org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber ResolutionFailureDescriber}.
+ * <p>
+ * One important property of these types is that they do not pose problems to serialization in
+ * {@link org.gradle.internal.operations.BuildOperation BuildOperation}s and traces.
  */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.component.resolution.failure.transform;

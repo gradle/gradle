@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -36,7 +37,7 @@ import java.io.File;
  * This encapsulates the public interface {@link org.gradle.api.artifacts.transform.TransformAction} into an internal type.
  */
 public interface Transform extends Describable, TaskDependencyContainer {
-    Class<?> getImplementationClass();
+    Class<? extends TransformAction<?>> getImplementationClass();
 
     ImmutableAttributes getFromAttributes();
 

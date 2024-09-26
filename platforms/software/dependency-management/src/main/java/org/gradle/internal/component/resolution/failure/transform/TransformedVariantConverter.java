@@ -18,14 +18,10 @@ package org.gradle.internal.component.resolution.failure.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.Transform;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -35,13 +31,6 @@ import java.util.List;
  * See the {@link org.gradle.internal.component.resolution.failure.transform package javadoc} for why.
  */
 public final class TransformedVariantConverter {
-    private final ImmutableAttributesFactory attributesFactory;
-
-    @Inject
-    public TransformedVariantConverter(ImmutableAttributesFactory attributesFactory) {
-        this.attributesFactory = attributesFactory;
-    }
-
     public ImmutableList<TransformationChainData> convert(List<TransformedVariant> transformedVariants) {
         ImmutableList.Builder<TransformationChainData> builder = ImmutableList.builder();
         transformedVariants.forEach(transformedVariant -> builder.add(convert(transformedVariant)));
@@ -49,37 +38,28 @@ public final class TransformedVariantConverter {
     }
 
     private TransformationChainData convert(TransformedVariant transformedVariant) {
-        AttributeChangeRecordingVisitor visitor = new AttributeChangeRecordingVisitor(transformedVariant.getRoot());
+        TransformDataRecordingVisitor visitor = new TransformDataRecordingVisitor();
         transformedVariant.getTransformChain().visitTransformSteps(visitor);
-        return visitor.buildResultData();
+        SourceVariantData source = new SourceVariantData(transformedVariant.getRoot().asDescribable().getDisplayName(), transformedVariant.getRoot().getAttributes());
+        return new TransformationChainData(source, visitor.getSteps(), transformedVariant.getAttributes());
     }
 
-    private final class AttributeChangeRecordingVisitor implements Action<TransformStep> {
+    private static final class TransformDataRecordingVisitor implements Action<TransformStep> {
         private final ImmutableList.Builder<TransformData> stepsBuilder = ImmutableList.builder();
-
-        private final SourceVariantData sourceVariant;
-        private ImmutableAttributes currentAttributes;
-
-        public AttributeChangeRecordingVisitor(ResolvedVariant root) {
-            sourceVariant = new SourceVariantData(root.asDescribable().getDisplayName(), root.getAttributes());
-            currentAttributes = sourceVariant.getAttributes();
-        }
 
         @Override
         public void execute(TransformStep transformStep) {
-            TransformData transformData = convert(currentAttributes, transformStep);
+            TransformData transformData = convert(transformStep);
             stepsBuilder.add(transformData);
-            currentAttributes = transformData.getFromAttributes();
         }
 
-        public TransformationChainData buildResultData() {
-            return new TransformationChainData(sourceVariant, stepsBuilder.build());
+        public ImmutableList<TransformData> getSteps() {
+            return stepsBuilder.build();
         }
 
-        private TransformData convert(ImmutableAttributes currentAttributes, TransformStep step) {
+        private TransformData convert(TransformStep step) {
             Transform transform = step.getTransform();
-            ImmutableAttributes resultingToAttributes = attributesFactory.join(currentAttributes, transform.getToAttributes()).asImmutable();
-            return new TransformData(transform.getDisplayName(), currentAttributes, resultingToAttributes);
+            return new TransformData(transform.getImplementationClass(), transform.getDisplayName(), transform.getFromAttributes(), transform.getToAttributes());
         }
     }
 }
