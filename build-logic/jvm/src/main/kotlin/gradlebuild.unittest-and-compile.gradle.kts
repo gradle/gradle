@@ -79,6 +79,7 @@ fun configureCompile() {
         targetCompatibility = "1.8"
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(8)
+            vendor = JvmVendorSpec.ADOPTIUM
         }
 
         configureCompileTask(options)
