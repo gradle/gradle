@@ -249,6 +249,7 @@ model {
         """
 
         and:
+        executer.withArgument("--no-problems-report")
         succeeds "visualStudio"
 
         when:
