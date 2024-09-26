@@ -21,7 +21,7 @@ import org.gradle.api.plugins.ExtensionAware;
 /**
  * Encapsulates the work of applying a software feature to a target.
  *
- * @since 8.11
+ * @since 8.12
  */
 public interface SoftwareFeatureApplicator {
     /**
@@ -32,7 +32,7 @@ public interface SoftwareFeatureApplicator {
      * @param softwareFeature - the feature to apply
      * @return the public model object for the feature
      * @param <T> the type of the public model object for the feature
-     * @since 8.11
+     * @since 8.12
      */
     <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature);
 

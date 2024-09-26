@@ -52,7 +52,7 @@ public @interface SoftwareType {
      * By default, Gradle will automatically register an extension for the software type on the Project object.  If this is set to true, Gradle
      * will not register the extension and the plugin will need to do so manually.
      *
-     * @since 8.11
+     * @since 8.12
      */
     boolean disableExtensionRegistration() default false;
 }

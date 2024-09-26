@@ -167,13 +167,20 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
+
             AppliedFeature that = (AppliedFeature) o;
-            return Objects.equals(target, that.target) && Objects.equals(softwareFeature, that.softwareFeature);
+            // We use identity comparison here because we want to ensure that the software feature is applied to
+            // each target object, even if two different target objects have equality.
+            return target == that.target && Objects.equals(softwareFeature, that.softwareFeature);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(target, softwareFeature);
+            // We use identity hashes here because we want to ensure that the software feature is applied to
+            // each target object, even if two different target objects hash equally.
+            int result = System.identityHashCode(target);
+            result = 31 * result + softwareFeature.hashCode();
+            return result;
         }
     }
 }
