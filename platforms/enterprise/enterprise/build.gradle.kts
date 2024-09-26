@@ -28,7 +28,6 @@ dependencies {
     api(projects.snapshots)
     api(projects.testingJvm)
     api(projects.time)
-    api(projects.problemsApi)
 
     api(libs.inject)
     api(libs.jsr305)
