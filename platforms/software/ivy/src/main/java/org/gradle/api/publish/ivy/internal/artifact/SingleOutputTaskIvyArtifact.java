@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -29,7 +30,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
@@ -92,8 +92,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
-        return generator.get().getOutputs().getFiles().getSingleFile();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(() -> generator.get().getOutputs().getFiles().getSingleFile());
     }
 
     public boolean isEnabled() {
