@@ -136,8 +136,8 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
 
     private void createPublishToRepositoryTask(TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, final IvyArtifactRepository repository, final String repositoryName, final String publishTaskName) {
         tasks.register(publishTaskName, PublishToIvyRepository.class, publishTask -> {
-            publishTask.getPublication().set(publication);
-            publishTask.getRepository().set(repository);
+            publishTask.setPublication(publication);
+            publishTask.setRepository(repository);
             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
@@ -151,7 +151,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, descriptorTask -> {
             descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
             descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            descriptorTask.getDescriptor().set(publication.getDescriptor());
+            descriptorTask.setDescriptor(publication.getDescriptor());
             descriptorTask.getDestination().convention(
                 buildDir.file("publications/" + publicationName + "/ivy.xml")
             );
