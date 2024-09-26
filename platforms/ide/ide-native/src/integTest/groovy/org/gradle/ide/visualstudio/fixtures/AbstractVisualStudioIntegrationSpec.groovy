@@ -56,6 +56,7 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
                             if (relativeToRoot == "") {
                                 relativeToRoot = "."
                             }
+                            setGradleArgs("--no-problems-report")
                             visualStudioProject.projectFile.withXml { xml ->
                                 redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }, relativeToRoot
                             }
