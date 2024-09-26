@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFa
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
