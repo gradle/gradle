@@ -42,7 +42,7 @@ jdks:
     vendor: "temurin"
     version: "jdk8u422-b05"
     sha256: af98a839ec238106078bd360af9e405dc6665c05ee837178ed13b92193681923
-  - params: [ "env.JAVA_HOME", "linux.java11.openjdk.aarch64" ]
+  - param: "linux.java11.openjdk.aarch64"
     os: linux
     arch: aarch64
     vendor: "temurin"
@@ -54,7 +54,7 @@ jdks:
     vendor: "temurin"
     version: "jdk-17.0.12+7"
     sha256: 8257de06bf37f0c8f19f8d542e2ab5a4e17db3ca5f29d041bd0b02ab265db021
-  - param: "linux.java21.openjdk.aarch64"
+  - params: [ "env.JAVA_HOME", "linux.java21.openjdk.aarch64" ]
     os: linux
     arch: aarch64
     vendor: "temurin"
