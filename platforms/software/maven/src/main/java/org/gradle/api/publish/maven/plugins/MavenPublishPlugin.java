@@ -144,8 +144,8 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             final String repositoryName = repository.getName();
             final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
             tasks.register(publishTaskName, PublishToMavenRepository.class, publishTask -> {
-                publishTask.getPublication().set(publication);
-                publishTask.getRepository().set(repository);
+                publishTask.setPublication(publication);
+                publishTask.setRepository(repository);
                 publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
                 project.getGradle().getTaskGraph().whenReady(graph -> {
@@ -161,7 +161,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     }
 
     private static void validateCredentialsSetup(Project project, PublishToMavenRepository publishToMavenRepository) {
-        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository().get();
+        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository();
         Credentials creds;
         try {
             creds = repository.getConfiguredCredentials().getOrNull();
@@ -198,7 +198,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
         tasks.register(installTaskName, PublishToMavenLocal.class, publishLocalTask -> {
-            publishLocalTask.getPublication().set(publication);
+            publishLocalTask.setPublication(publication);
             publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             publishLocalTask.setDescription("Publishes Maven publication '" + publicationName + "' to the local Maven repository.");
         });
@@ -211,7 +211,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, generatePomTask -> {
             generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
             generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            generatePomTask.getPom().convention(publication.getPom());
+            generatePomTask.setPom(publication.getPom());
             generatePomTask.getDestination().convention(
                 buildDir.file("publications/" + publication.getName() + "/pom-default.xml")
             );
