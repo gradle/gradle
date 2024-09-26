@@ -38,9 +38,9 @@ publishing {
 
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
-    def predicate = repository.zip(publication) { repo, pub ->
-        (repo == publishing.repositories.external && pub == publishing.publications.binary)
-            || (repo == publishing.repositories.internal && pub == publishing.publications.binaryAndSources)
+    def predicate = provider {
+        (repository == publishing.repositories.external && publication == publishing.publications.binary)
+            || (repository == publishing.repositories.internal && publication == publishing.publications.binaryAndSources)
     }
     onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
         predicate.get()
@@ -53,14 +53,14 @@ tasks.register('publishToExternalRepository') {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'external'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
-        it.repository.get() == publishing.repositories.external
+        it.repository == publishing.repositories.external
     }
 }
 tasks.register('publishToInternalRepository') {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'internal'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
-        it.repository.get() == publishing.repositories.internal
+        it.repository == publishing.repositories.internal
     }
 }
 // end::shorthand-tasks[]
