@@ -66,12 +66,21 @@ fun configureCompile() {
 
     tasks.withType<JavaCompile>().configureEach {
         configureCompileTask(options)
+        options.release = 8
         options.compilerArgs.add("-parameters")
     }
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
+
+        // Groovy does not support the release flag. We must compile with the same
+        // JDK we are targeting. We could also set the bootstrap classpath, but
+        // it is easier to just use toolchains.
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(8)
+        }
+
         configureCompileTask(options)
     }
     addCompileAllTask()
@@ -111,7 +120,6 @@ fun configureSourcesVariant() {
 }
 
 fun configureCompileTask(options: CompileOptions) {
-    options.release = 8
     options.encoding = "utf-8"
     options.isIncremental = true
     options.isFork = true
