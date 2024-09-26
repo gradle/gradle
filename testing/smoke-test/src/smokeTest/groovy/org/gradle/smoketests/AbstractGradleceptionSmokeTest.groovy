@@ -37,8 +37,7 @@ import java.text.SimpleDateFormat
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
-    public static final String TEST_JAVA_INSTALLATIONS = "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}"
-    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP, TEST_JAVA_INSTALLATIONS]
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP]
 
     private SmokeTestGradleRunner.SmokeTestBuildResult result
 
@@ -102,7 +101,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         @Override
         boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
-            return jvm.languageVersion == JavaVersion.VERSION_11
+            return jvm.languageVersion == JavaVersion.VERSION_21
         }
     }
 }
