@@ -41,6 +41,12 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
+/**
+ * Applies software features to a target object by registering the software model as an extension of the target object (unless
+ * configured otherwise) and performing validations.  Application returns the public model object of the feature.  Features
+ * are applied only once per target object and always return the same public model object for a given target/feature
+ * combination.
+ */
 public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicator {
     private final Project project;
     private final InspectionScheme inspectionScheme;
