@@ -26,8 +26,6 @@ import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.io.File;
-
 public abstract class AbstractMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
@@ -50,9 +48,6 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         getExtension().set(providerFactory.provider(() -> getDefaultExtension().getOrNull()));
         getClassifier().set(providerFactory.provider(() -> getDefaultClassifier().getOrNull()));
     }
-
-    @Override
-    public abstract File getFile();
 
     @Override
     public Property<String> getExtension() {
