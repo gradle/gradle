@@ -41,7 +41,6 @@ import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -381,15 +380,11 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private boolean isValidArtifact(IvyArtifact artifact) {
-        // Validation is done this way for backwards compatibility
-        File artifactFile = artifact.getFile();
-        if (artifactFile == null) {
-            throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifact));
-        }
+        File artifactFile = artifact.getFile().get().getAsFile();
         if (!((IvyArtifactInternal) artifact).shouldBePublished()) {
             // Fail if it's the main artifact, otherwise simply disable publication
             if (!artifact.getClassifier().isPresent()) {
-                throw new IllegalStateException("Artifact " + artifact.getFile().getName() + " wasn't produced by this build.");
+                throw new IllegalStateException("Artifact " + artifactFile.getName() + " wasn't produced by this build.");
             }
             return false;
         }
@@ -429,7 +424,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         if (ivyDescriptorArtifact == null) {
             throw new IllegalStateException("ivyDescriptorArtifact not set for publication");
         }
-        return ivyDescriptorArtifact.getFile();
+        return ivyDescriptorArtifact.getFile().get().getAsFile();
     }
 
     @Override

@@ -17,14 +17,13 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
-import java.io.File;
 
 public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractArchiveTask archiveTask;
@@ -42,8 +41,8 @@ public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return archiveTask.getArchiveFile().get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return archiveTask.getArchiveFile();
     }
 
     @Override
