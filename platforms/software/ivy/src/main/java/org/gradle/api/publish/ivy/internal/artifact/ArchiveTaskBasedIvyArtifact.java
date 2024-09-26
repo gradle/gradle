@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -26,8 +27,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
-import java.io.File;
 
 public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
     private final AbstractArchiveTask archiveTask;
@@ -78,8 +77,8 @@ public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
-        return archiveTask.getArchiveFile().get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return archiveTask.getArchiveFile();
     }
 
     @Override
