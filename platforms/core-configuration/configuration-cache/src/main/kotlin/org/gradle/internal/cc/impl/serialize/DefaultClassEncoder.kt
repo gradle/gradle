@@ -29,11 +29,17 @@ import org.gradle.internal.serialize.graph.WriteIdentities
 internal
 interface ScopeLookup {
     fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
+    val knownClassLoaders: Set<ClassLoader>
 }
 
 
 internal
-class ClassLoaderScopeSpec(
+fun ScopeLookup.describeKnownClassLoaders() =
+    "These are the known class loaders:\n${knownClassLoaders.joinToString("\n") { "\t- $it" }}\n"
+
+
+internal
+data class ClassLoaderScopeSpec(
     val parent: ClassLoaderScopeSpec?,
     val name: String,
     val origin: ClassLoaderScopeOrigin?
@@ -134,7 +140,9 @@ class DefaultClassEncoder(
         } catch (e: ClassNotFoundException) {
             throw ConfigurationCacheError(
                 "Class '${className}' cannot be encoded because ${describeClassLoader(originalClassLoader)} could not be encoded " +
-                    "and the class is not available through the default class loader.",
+                    "and the class is not available through the default class loader.\n" +
+                    scopeLookup.describeKnownClassLoaders() +
+                    "Please report this error, run './gradlew --stop' and try again.",
                 e
             )
         }
