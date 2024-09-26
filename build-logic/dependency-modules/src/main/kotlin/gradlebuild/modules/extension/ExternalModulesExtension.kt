@@ -105,7 +105,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
     val jgitSsh = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
-    val jnaPlatform = "net.java.dev.jna:jna-platform"
+    val jna = "net.java.dev.jna:jna"
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"

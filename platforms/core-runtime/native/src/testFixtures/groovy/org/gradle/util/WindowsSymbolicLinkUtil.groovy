@@ -16,7 +16,7 @@
 
 package org.gradle.util
 
-import com.sun.jna.platform.win32.Advapi32Util
+import com.sun.security.auth.module.NTSystem
 
 class WindowsSymbolicLinkUtil {
     static void createWindowsSymbolicLink(File link, File target) {
@@ -35,7 +35,9 @@ class WindowsSymbolicLinkUtil {
         assert ["cmd.exe", "/d", "/c", "mklink", "/h", link, target].execute().waitFor() == 0
     }
 
+    // See: https://support.microsoft.com/en-us/help/243330/well-known-security-identifiers-in-windows-operating-systems
+    private static final String WELL_KNOWN_ADMINISTRATORS_GROUP_SID = "S-1-5-32-544"
     private static void assertAdministrator() {
-        assert Advapi32Util.isUserInAdminGroup()
+        assert new NTSystem().getGroupIDs().any { it == WELL_KNOWN_ADMINISTRATORS_GROUP_SID }
     }
 }
