@@ -39,6 +39,8 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 
+    testFixturesImplementation(libs.jnaPlatform)
+
     jmhImplementation(projects.files)
     jmhImplementation(projects.baseServices)
 }
