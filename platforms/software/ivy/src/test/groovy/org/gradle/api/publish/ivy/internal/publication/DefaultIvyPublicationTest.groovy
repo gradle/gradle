@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -40,6 +41,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
@@ -400,7 +402,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createArtifact(File file) {
         return Mock(IvyArtifact) {
-            getFile() >> file
+            getFile() >> Providers.of((RegularFile) () -> file)
             getExtension() >> TestUtil.objectFactory().property(String)
             getConf() >> TestUtil.objectFactory().property(String)
         }
