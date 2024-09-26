@@ -432,7 +432,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
         // when configuration cache is enabled also "Configuration cache entry reused." and "Parallel Configuration Cache is an incubating feature."
-        def expectedEvents = GradleContextualExecuter.configCache ? 16 : 14
+        def expectedEvents = GradleContextualExecuter.configCache ? 17 : 15
 
         assert progressOutputEvents.size() == expectedEvents
     }
