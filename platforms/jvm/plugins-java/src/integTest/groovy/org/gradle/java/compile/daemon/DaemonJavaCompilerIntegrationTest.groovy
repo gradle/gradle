@@ -118,4 +118,30 @@ class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationS
         succeeds("compileJava")
     }
 
+    def "setting forkOptions is deprecated"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) {
+                options.setForkOptions(options.forkOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setForkOptions(ForkOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of forkOptions is unnecessary. Please use the forkOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
+
+        expect:
+        succeeds "compileJava"
+    }
+
+    def "setting debugOptions is deprecated"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) {
+                options.setDebugOptions(options.debugOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setDebugOptions(DebugOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of debugOptions is unnecessary. Please use the debugOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
+
+        expect:
+        succeeds "compileJava"
+    }
+
 }
