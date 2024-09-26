@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
@@ -32,6 +31,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Transient;
 
@@ -46,18 +46,22 @@ import java.io.File;
 @UntrackedTask(because = "Gradle doesn't understand the data structures")
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 
-    private final Transient<Property<IvyModuleDescriptorSpec>> descriptor = Transient.of(getObjectFactory().property(IvyModuleDescriptorSpec.class));
-    private final Provider<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = getDescriptor().map(descriptor ->
-        IvyDescriptorFileGenerator.generateSpec(toIvyModuleDescriptorInternal(descriptor))
+    private final Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
+    private final Provider<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = getProject().provider(() ->
+        IvyDescriptorFileGenerator.generateSpec(toIvyModuleDescriptorInternal(descriptor.get()))
     );
 
     /**
      * The module descriptor metadata.
      */
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     @Internal
-    @ReplacesEagerProperty
-    public Property<IvyModuleDescriptorSpec> getDescriptor() {
+    public IvyModuleDescriptorSpec getDescriptor() {
         return descriptor.get();
+    }
+
+    public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
+        this.descriptor.set(descriptor);
     }
 
     /**

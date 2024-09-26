@@ -20,19 +20,20 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
+
+import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
  * Base class for tasks that publish a {@link org.gradle.api.publish.maven.MavenPublication}.
@@ -42,7 +43,7 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractPublishToMaven extends DefaultTask {
 
-    private final Transient<Property<MavenPublication>> publication = Transient.of(getObjectFactory().property(MavenPublication.class));
+    private final Transient.Var<MavenPublication> publication = varOf();
 
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
@@ -64,14 +65,23 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      * The publication to be published.
      */
     @Internal
-    @ReplacesEagerProperty
-    public Property<MavenPublication> getPublication() {
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
+    public MavenPublication getPublication() {
         return publication.get();
+    }
+
+    /**
+     * Sets the publication to be published.
+     *
+     * @param publication The publication to be published
+     */
+    public void setPublication(MavenPublication publication) {
+        this.publication.set(toPublicationInternal(publication));
     }
 
     @Internal
     protected MavenPublicationInternal getPublicationInternal() {
-        return toPublicationInternal(getPublication().get());
+        return toPublicationInternal(getPublication());
     }
 
     private static MavenPublicationInternal toPublicationInternal(MavenPublication publication) {
