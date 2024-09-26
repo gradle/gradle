@@ -79,7 +79,8 @@ fun configureCompile() {
         targetCompatibility = "1.8"
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(8)
-            vendor = JvmVendorSpec.ADOPTIUM
+            // TODO: Should we use a stable vendor?
+            // CI currently uses different vendors depending on the OS
         }
 
         configureCompileTask(options)
