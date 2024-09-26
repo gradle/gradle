@@ -206,7 +206,7 @@ fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion = jvmVersionForTest()
-        vendor = project.testJavaVendor.orNull
+        vendor = project.testJavaVendor.orElse(JvmVendorSpec.ADOPTIUM)
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {

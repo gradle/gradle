@@ -54,12 +54,15 @@ abstract class UnitTestAndCompileExtension(
     private
     fun enforceCompatibility(majorVersion: Int) {
         tasks.withType<JavaCompile>().configureEach {
+            // TODO: Use `release` instead of source/target compatibility
+            //  so we don't accidentally use a newer APIs in code targeting older versions
             options.release = null
             options.compilerArgs.remove("-parameters")
             sourceCompatibility = "$majorVersion"
             targetCompatibility = "$majorVersion"
 
             if (majorVersion < 8) {
+                // To compile Java 6 and 7 sources, we need an older compiler
                 javaCompiler = project.extensions.getByType<JavaToolchainService>().compilerFor {
                     languageVersion = JavaLanguageVersion.of(11)
                     vendor = JvmVendorSpec.ADOPTIUM
