@@ -20,7 +20,8 @@ What if you want to makes changes to the files contained in one of your dependen
 For example, you might want to unzip a compressed file, adjust the contents of a JAR, or delete unnecessary files from a dependency that contains multiple files prior to using the result in a task.
 
 Gradle has a built-in feature for this called **Artifact Transforms**.
-With Artifact Transforms, you can adjust the files, or artifacts - like JAR files - delivered by a dependency as the last step in resolving it.
+With Artifact Transforms, you can modify, add to, remove from the set files (or artifacts) - like JAR files - contained in a dependency.
+This is done as the last step in resolving a dependency, before tasks or tools like the IDE uses it.
 
 == Artifact Transforms Overview
 
@@ -30,7 +31,7 @@ When Gradle resolves a configuration, it looks at each dependency, resolves it t
 If the component does not have a matching variant, resolution fails *unless* Gradle can construct a sequence of transformations that will modify an existing variant to create a valid match (without changing its transitive dependencies).
 
 **Artifact Transforms** are a mechanism for converting one type of artifact into another during the build process.
-They provide a consumer an efficient and flexible mechanism for transforming the artifacts of a given producer to some required format without needing the producer to expose variants in that format.
+They provide the consumer an efficient and flexible mechanism for transforming the artifacts of a given producer to the required format without needing the producer to expose variants in that format.
 
 image::artifact-transform-2.png[]
 
@@ -51,13 +52,14 @@ image::artifact-transform-3.png[]
 1. **Implement a Transform**: You define an artifact transform by creating a class that implements the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html[`TransformAction`] interface.
 This class specifies how the input artifact should be transformed into the output artifact.
 
-2. **Register a Transform**: You register the transform by using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`registerTransform()`] method of the link:{javadocPath}/org/gradle/api/Project.html#dependencies(groovy.lang.Closure)[`dependencies`] block.
+2. **Declare request Attributes**: Attributes (key-value pairs used to describe different variants of a component) like `org.gradle.usage=java-api` and `org.gradle.usage=java-runtime` are used to specify the desired artifact format or type.
+
+3. **Register a Transform**: You register the transform by using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`registerTransform()`] method of the link:{javadocPath}/org/gradle/api/Project.html#dependencies(groovy.lang.Closure)[`dependencies`] block.
 This method tells Gradle that a transform can be used to modify the artifacts of any variant that possesses the given "from" attributes.
 It also tells Gradle what new set of "to" attributes will describe the format or type of the resulting artifacts.
-Attributes are key-value pairs used to describe variants, like `org.gradle.usage=java-api` and `org.gradle.usage=java-runtime`.
 
-3. **Use the Transform**: When a resolution requires a variant that isn't already present in the selected component (because none of the actual variants possess compatible attributes to the requested attributes), Gradle doesn't just give up!
-Instead, Gradle first automatically searches all registered transforms to see if it can construct a chain of transformations that will ultimately produce a match.
+4. **Use the Transform**: When a resolution requires a variant that isn't already present in the selected component (because none of the actual variants possess compatible attributes to the requested attributes), Gradle doesn't just give up!
+Instead, Gradle first *automatically* searches all registered transforms to see if it can construct a chain of transformations that will ultimately produce a match.
 If Gradle finds such a chain, it then runs each transform in sequence, and delivers the transformed artifacts as a result.
 
 === 1. Implement a Transform
@@ -79,7 +81,18 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kot
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
 ====
 
-=== 2. Register a Transform
+=== 2. Declare request Attributes
+
+Attributes specify the required properties of a dependency.
+
+Here we specify that we need the `transformed-jar` format for the `runtimeClasspath` configuration:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
+====
+
+=== 3. Register a Transform
 
 A transform must be registered using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`dependencies.registerTransform()`] method.
 
@@ -95,13 +108,6 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/gro
 === 3. Use the Transform
 
 During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
-
-Here we specify that we need the `transformed-jar` format for the `runtimeClasspath` configuration:
-
-====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
-====
 
 Since no variants exist supplying the requested format (as none contain the `artifactType` attribute with a value of `"transformed-jar"`), Gradle attempts to construct a chain of transformations that will supply it.
 
@@ -166,7 +172,7 @@ Matches do not have to exact, as some attribute values can be identified to Grad
 Sometimes, a dependency might not have a variant with attributes that match the requested attributes.
 In such cases, Gradle can transform one variant into another "vitual variant" by modifying its artifacts without changing its transitive dependencies.
 
-IMPORTANT: Gradle will not ever run Artifact Transforms when a variant of the dependency matching the requested attributes already exists.
+IMPORTANT: Gradle will not ever attempt to select or run Artifact Transforms when a variant of the dependency matching the requested attributes already exists.
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
