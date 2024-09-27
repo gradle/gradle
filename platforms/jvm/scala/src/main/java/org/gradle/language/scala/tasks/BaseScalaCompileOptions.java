@@ -67,6 +67,7 @@ public abstract class BaseScalaCompileOptions extends org.gradle.api.tasks.compi
     @SuppressWarnings("this-escape")
     private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
+    @SuppressWarnings("this-escape")
     private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
     @SuppressWarnings("this-escape")
