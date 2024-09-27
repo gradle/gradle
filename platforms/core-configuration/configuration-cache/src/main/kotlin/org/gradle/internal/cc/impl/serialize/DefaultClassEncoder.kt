@@ -136,7 +136,7 @@ class DefaultClassEncoder(
     private
     fun ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
         try {
-            classForName(className, null)
+            classForName(className, gradleRuntimeClassLoader)
         } catch (e: ClassNotFoundException) {
             throw ConfigurationCacheError(
                 "Class '${className}' cannot be encoded because ${describeClassLoader(originalClassLoader)} could not be encoded " +

@@ -17,27 +17,29 @@
 package org.gradle.internal.cc.impl.serialize
 
 
-private
+internal
 val gradleRuntimeClassLoader = DefaultClassEncoder::class.java.classLoader
 
 
 internal
-fun classForName(name: String, classLoader: ClassLoader?): Class<*> =
+fun classForName(name: String, classLoader: ClassLoader): Class<*> =
     try {
-        Class.forName(name, false, classLoader ?: gradleRuntimeClassLoader)
+        Class.forName(name, false, classLoader)
     } catch (e: ClassNotFoundException) {
-        throw ClassNotFoundException("Class '$name' not found in ${describeOptionalClassLoader(classLoader)}.").apply {
+        throw ClassNotFoundException("Class '$name' not found in ${describeClassLoader(classLoader)}.").apply {
             addSuppressed(e)
         }
     }
 
 
 internal
-fun describeOptionalClassLoader(classLoader: ClassLoader?): String =
-    classLoader?.let { describeClassLoader(classLoader) }
-        ?: "Gradle runtime ${describeClassLoader(gradleRuntimeClassLoader)}"
+fun describeClassLoader(classLoader: ClassLoader): String =
+    if (classLoader === gradleRuntimeClassLoader)
+        "Gradle runtime ${classLoaderString(gradleRuntimeClassLoader)}"
+    else
+        classLoaderString(classLoader)
 
 
-internal
-fun describeClassLoader(classLoader: ClassLoader) =
+private
+fun classLoaderString(classLoader: ClassLoader) =
     "class loader '$classLoader' of type '${classLoader.javaClass.name}'"

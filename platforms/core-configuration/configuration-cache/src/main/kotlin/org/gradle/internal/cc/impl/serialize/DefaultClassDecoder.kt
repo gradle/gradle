@@ -44,7 +44,7 @@ class DefaultClassDecoder(
         }
         val name = readString()
         val classLoader = decodeClassLoader()
-        val newType = classForName(name, classLoader)
+        val newType = classForName(name, classLoader ?: gradleRuntimeClassLoader)
         classes.putInstance(id, newType)
         return newType
     }
