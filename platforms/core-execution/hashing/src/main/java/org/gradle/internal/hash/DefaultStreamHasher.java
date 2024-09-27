@@ -16,11 +16,11 @@
 package org.gradle.internal.hash;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 

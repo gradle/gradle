@@ -17,8 +17,6 @@
 package org.gradle.internal.operations;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
@@ -137,20 +135,13 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
 
         public <D, R, T extends BuildOperationType<D, R>> List<TypedRecord<D, R>> all(final Class<T> type) {
             final Class<D> detailsType = BuildOperationTypes.detailsType(type);
-            return FluentIterable.from(records)
-                .filter(new Predicate<Record>() {
-                    @Override
-                    public boolean apply(Record input) {
-                        return detailsType.isInstance(input.descriptor.getDetails());
-                    }
-                })
-                .transform(new Function<Record, TypedRecord<D, R>>() {
-                    @Override
-                    public TypedRecord<D, R> apply(Record input) {
-                        return input.asTyped(type);
-                    }
-                })
-                .toList();
+            List<TypedRecord<D, R>> results = new ArrayList<TypedRecord<D, R>>(records.size());
+            for (Record record : records) {
+                if (detailsType.isInstance(record.descriptor.getDetails())) {
+                    results.add(record.asTyped(type));
+                }
+            }
+            return results;
         }
 
         @SuppressWarnings("unused")
