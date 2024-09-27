@@ -66,10 +66,9 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
-            withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String)
             withArgument("-Porg.gradle.java.installations.auto-detect=false")
             withArgument("-Porg.gradle.java.installations.auto-download=false")
-            withArgument("-Porg.gradle.java.installations.paths=${Jvm.current().javaHome.absolutePath}")
+            withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String)
             withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
             withWarningMode(WarningMode.None)
             noDeprecationChecks()
