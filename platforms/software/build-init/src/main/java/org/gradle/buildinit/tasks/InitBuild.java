@@ -107,6 +107,7 @@ public abstract class InitBuild extends DefaultTask {
         // Don't inject this in order to preserve no-args constructor binary compatibility
         projectSpecRegistry = getServices().get(InitProjectSpecRegistry.class);
 
+        // Have to load in the constructor to ensure specs are present with run in CC tests
         InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(((ProjectInternal) getProject()).getClassLoaderScope().getLocalClassLoader(), getLogger());
         projectSpecRegistry.register(projectSpecLoader);
     }
