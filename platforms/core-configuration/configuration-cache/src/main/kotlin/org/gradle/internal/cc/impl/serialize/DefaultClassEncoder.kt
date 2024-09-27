@@ -80,8 +80,8 @@ class DefaultClassEncoder(
             writeString(className)
             val classLoader = type.classLoader
             if (!writeClassLoaderScopeOf(classLoader) && classLoader != null) {
-                // Ensure class can be found in the default classloader since its original classloader could not be encoded.
-                ensureClassCanBeFoundInDefaultClassLoader(className, classLoader)
+                // Ensure class can be found in the Gradle runtime classloader since its original classloader could not be encoded.
+                ensureClassCanBeFoundInGradleRuntimeClassLoader(className, classLoader)
             }
         }
     }
@@ -134,7 +134,7 @@ class DefaultClassEncoder(
     }
 
     private
-    fun ensureClassCanBeFoundInDefaultClassLoader(className: String, originalClassLoader: ClassLoader) {
+    fun ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
         try {
             classForName(className, null)
         } catch (e: ClassNotFoundException) {
