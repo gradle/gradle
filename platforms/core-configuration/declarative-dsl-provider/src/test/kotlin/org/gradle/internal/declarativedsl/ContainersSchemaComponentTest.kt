@@ -30,19 +30,19 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
+import org.gradle.internal.declarativedsl.schemaUtils.findType
 import org.gradle.internal.declarativedsl.schemaUtils.hasFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
-import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -56,13 +56,13 @@ class ContainersSchemaComponentTest {
     @Test
     fun `uses element type names for factory function names`() {
         listOf("one", "two", "customFactoryName").forEach { name ->
-            assertNotNull(schema.analysisSchema.dataClassesByFqName.values.any { type -> type.hasFunctionNamed(name) })
+            assertTrue(schema.analysisSchema.findType { type: DataClass -> type.hasFunctionNamed(name) } != null)
         }
     }
 
     @Test
     fun `discovers types used as container elements`() {
-        assertTrue(schema.analysisSchema.dataClassesByFqName.keys.map { it.qualifiedName }.containsAll(listOf(One::class.qualifiedName, Two::class.qualifiedName, Three::class.qualifiedName)))
+        assertTrue(schema.analysisSchema.dataClassTypesByFqName.keys.map { it.qualifiedName }.containsAll(listOf(One::class.qualifiedName, Two::class.qualifiedName, Three::class.qualifiedName)))
     }
 
     @Test

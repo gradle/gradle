@@ -16,12 +16,13 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.declarative.dsl.schema.DataType.ClassDataType
 import java.io.Serializable
 
 
 interface AnalysisSchema : Serializable {
     val topLevelReceiverType: DataClass
-    val dataClassesByFqName: Map<FqName, DataClass>
+    val dataClassTypesByFqName: Map<FqName, ClassDataType>
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>
     val defaultImports: Set<FqName>

@@ -59,10 +59,10 @@ class SoftwareTypesTest {
         }
 
         listOf(schemaForSettings, schemaForProject).forEach { schema ->
-            assertTrue(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
 
-            assertFalse(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
-            assertFalse(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
+            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
+            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
         }
     }
 

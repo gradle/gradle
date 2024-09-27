@@ -26,6 +26,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.reflect.TypeOf
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.settings.settingsEvaluationSchema
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -57,11 +58,13 @@ class SettingsExtensionsSchemaTest {
 
         val schema = settingsEvaluationSchema(settingsMock)
 
-        val schemaType = schema.analysisSchema.dataClassesByFqName.values.find { it.name.simpleName == MyExtension::class.simpleName }
+        val schemaType = schema.analysisSchema.dataClassTypesByFqName.values
+            .filterIsInstance<DataClass>()
+            .find { it.name.simpleName == MyExtension::class.simpleName }
         assertNotNull(schemaType)
         assertTrue(schemaType!!.properties.any { it.name == "id" })
 
-        assertTrue(schema.analysisSchema.dataClassesByFqName.keys.any { it.simpleName == MyNestedType::class.simpleName })
+        assertTrue(schema.analysisSchema.dataClassTypesByFqName.keys.any { it.simpleName == MyNestedType::class.simpleName })
     }
 
     @Restricted
