@@ -32,7 +32,7 @@ interface StatementResolver {
 
 
 class StatementResolverImpl(
-    private val propertyAccessResolver: PropertyAccessResolver,
+    private val namedReferenceResolver: NamedReferenceResolver,
     private val expressionResolver: ExpressionResolver,
     private val errorCollector: ErrorCollector
 ) : StatementResolver {
@@ -55,7 +55,7 @@ class StatementResolverImpl(
 
     private
     fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment): AssignmentRecord? {
-        val lhsResolution = propertyAccessResolver.doResolvePropertyAccessToAssignable(this, assignment.lhs)
+        val lhsResolution = namedReferenceResolver.doResolveNamedReferenceToAssignable(this, assignment.lhs)
 
         return if (lhsResolution == null) {
             errorCollector.collect(ResolutionError(assignment.lhs, ErrorReason.UnresolvedReference(assignment.lhs)))

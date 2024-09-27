@@ -14,7 +14,7 @@ import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.Function
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.asChainOrNull
 
 
@@ -330,8 +330,8 @@ class FunctionCallResolverImpl(
         val receiver = functionCall.receiver
 
         // TODO: extension functions are not supported now; so it's either an FQN function reference or imported one
-        if (receiver is PropertyAccess && receiver.asChainOrNull() != null || receiver == null) {
-            val packageNameParts = (receiver as? PropertyAccess)?.asChainOrNull()?.nameParts.orEmpty()
+        if (receiver is NamedReference && receiver.asChainOrNull() != null || receiver == null) {
+            val packageNameParts = (receiver as? NamedReference)?.asChainOrNull()?.nameParts.orEmpty()
             val candidates = buildList {
                 val fqn = DefaultFqName(packageNameParts.joinToString("."), functionCall.name)
                 schema.externalFunctionsByFqName[fqn]?.let { add(it) }

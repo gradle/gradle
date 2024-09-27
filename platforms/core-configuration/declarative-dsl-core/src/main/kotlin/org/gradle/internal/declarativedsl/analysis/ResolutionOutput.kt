@@ -18,7 +18,7 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.Null
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 
 
 // TODO: report failures to resolve with potential candidates that could not work
@@ -93,12 +93,12 @@ sealed interface ObjectOrigin {
         override fun toString(): String = "${literal.value.let { if (it is String) "\"$it\"" else it }}"
     }
 
-    data class EnumConstantOrigin(val type: EnumClass, val propertyAccess: PropertyAccess) : ObjectOrigin {
+    data class EnumConstantOrigin(val type: EnumClass, val namedReference: NamedReference) : ObjectOrigin {
         override val originElement: LanguageTreeElement
-            get() = propertyAccess
+            get() = namedReference
 
         val entryName: String
-            get() = propertyAccess.name
+            get() = namedReference.name
 
         val javaTypeName: String
             get() = type.javaTypeName
@@ -244,7 +244,7 @@ sealed interface ObjectOrigin {
         }
     }
 
-    data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
+    data class External(val key: ExternalObjectProviderKey, override val originElement: NamedReference) : ObjectOrigin {
         override fun toString(): String = "${key.objectType}"
     }
 }

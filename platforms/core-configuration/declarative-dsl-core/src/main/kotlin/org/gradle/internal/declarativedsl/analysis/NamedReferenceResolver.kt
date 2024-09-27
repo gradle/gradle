@@ -9,47 +9,47 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.asChainOrNull
 
 
-interface PropertyAccessResolver {
-    fun doResolvePropertyAccessToObjectOrigin(
+interface NamedReferenceResolver {
+    fun doResolveNamedReferenceToObjectOrigin(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess,
+        namedReference: NamedReference,
         expectedType: DataTypeRef?
     ): ObjectOrigin?
 
-    fun doResolvePropertyAccessToAssignable(
+    fun doResolveNamedReferenceToAssignable(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
+        namedReference: NamedReference
     ): PropertyReferenceResolution?
 }
 
 
-class PropertyAccessResolverImpl(
+class NamedReferenceResolverImpl(
     private val expressionResolver: ExpressionResolver
-) : PropertyAccessResolver {
-    override fun doResolvePropertyAccessToObjectOrigin(
+) : NamedReferenceResolver {
+    override fun doResolveNamedReferenceToObjectOrigin(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess,
+        namedReference: NamedReference,
         expectedType: DataTypeRef?
     ): ObjectOrigin? =
-        analysisContext.doResolvePropertyAccessToObject(propertyAccess, expectedType)
+        analysisContext.doResolveNamedReferenceToObject(namedReference, expectedType)
 
-    override fun doResolvePropertyAccessToAssignable(
+    override fun doResolveNamedReferenceToAssignable(
         analysisContext: AnalysisContext,
-        propertyAccess: PropertyAccess
+        namedReference: NamedReference
     ): PropertyReferenceResolution? =
-        analysisContext.doResolvePropertyAccessToAssignableReference(propertyAccess)
+        analysisContext.doResolveNamedReferenceToAssignableReference(namedReference)
 
     private
-    fun AnalysisContext.doResolvePropertyAccessToAssignableReference(
-        propertyAccess: PropertyAccess
+    fun AnalysisContext.doResolveNamedReferenceToAssignableReference(
+        namedReference: NamedReference
     ): PropertyReferenceResolution? {
         val candidates = sequence {
             runPropertyAccessResolution(
-                propertyAccess,
+                namedReference,
                 onLocalValue = { yield(AssignmentResolution.ReassignLocalVal(it.localValue)) },
                 onProperty = { yield(AssignmentResolution.AssignProperty(PropertyReferenceResolution(it.receiver, it.property))) },
                 onExternalObject = { yield(AssignmentResolution.ReassignExternal(it)) }
@@ -59,40 +59,40 @@ class PropertyAccessResolverImpl(
         return when (val firstMatch = candidates.firstOrNull()) {
             null -> return null
             is AssignmentResolution.ReassignLocalVal -> {
-                errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.ValReassignment(firstMatch.localValue)))
+                errorCollector.collect(ResolutionError(namedReference, ErrorReason.ValReassignment(firstMatch.localValue)))
                 null
             }
 
             is AssignmentResolution.ReassignExternal -> {
-                errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.ExternalReassignment(firstMatch.external)))
+                errorCollector.collect(ResolutionError(namedReference, ErrorReason.ExternalReassignment(firstMatch.external)))
                 null
             }
 
             is AssignmentResolution.AssignProperty -> firstMatch.propertyReference
         }?.also {
-            checkPropertyAccessOnCurrentReceiver(it.property, it.receiverObject, propertyAccess)
+            checkPropertyAccessOnCurrentReceiver(it.property, it.receiverObject, namedReference)
         }
     }
 
     @Suppress("NestedBlockDepth")
     private
-    fun AnalysisContext.doResolvePropertyAccessToObject(
-        propertyAccess: PropertyAccess,
+    fun AnalysisContext.doResolveNamedReferenceToObject(
+        namedReference: NamedReference,
         expectedType: DataTypeRef?
     ): ObjectOrigin? {
-        if (propertyAccess.receiver == null && expectedType != null) {
+        if (namedReference.receiver == null && expectedType != null) {
             val dataType = resolveRef(expectedType)
             if (dataType is EnumClass) {
-                val matchingPropertyAccess = dataType.entryNames.firstOrNull { it ==  propertyAccess.name}
-                if (matchingPropertyAccess != null) {
-                    return ObjectOrigin.EnumConstantOrigin(dataType, propertyAccess)
+                val matchingNamedReference = dataType.entryNames.firstOrNull { it ==  namedReference.name}
+                if (matchingNamedReference != null) {
+                    return ObjectOrigin.EnumConstantOrigin(dataType, namedReference)
                 }
             }
         }
 
         val candidates: Sequence<ObjectOrigin> = sequence {
             runPropertyAccessResolution(
-                propertyAccess = propertyAccess,
+                namedReference = namedReference,
                 onLocalValue = { yield(it) },
                 onProperty = { yield(it) },
                 onExternalObject = { yield(it) }
@@ -100,7 +100,7 @@ class PropertyAccessResolverImpl(
         }
         candidates.firstOrNull().let { result ->
             if (result == null) {
-                errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.UnresolvedReference(propertyAccess)))
+                errorCollector.collect(ResolutionError(namedReference, ErrorReason.UnresolvedReference(namedReference)))
                 return null
             } else {
                 if (result is ObjectOrigin.PropertyReference) {
@@ -134,21 +134,21 @@ class PropertyAccessResolverImpl(
 
     private
     inline fun AnalysisContext.runPropertyAccessResolution(
-        propertyAccess: PropertyAccess,
+        namedReference: NamedReference,
         onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
         onExternalObject: (ObjectOrigin.External) -> Unit
     ) {
-        when (propertyAccess.receiver) {
-            null -> resolveUnqualifiedPropertyAccess(
-                propertyAccess = propertyAccess,
+        when (namedReference.receiver) {
+            null -> resolveUnqualifiedNamedReference(
+                namedReference = namedReference,
                 onLocalValue = onLocalValue,
                 onProperty = onProperty,
                 onExternal = onExternalObject
             )
 
-            else -> doResolveQualifiedPropertyAccess(
-                propertyAccess,
+            else -> doResolveQualifiedNamedReference(
+                namedReference,
                 onProperty = onProperty,
                 onExternalObject = onExternalObject,
             )
@@ -156,61 +156,61 @@ class PropertyAccessResolverImpl(
     }
 
     private
-    inline fun AnalysisContext.doResolveQualifiedPropertyAccess(
-        propertyAccess: PropertyAccess,
+    inline fun AnalysisContext.doResolveQualifiedNamedReference(
+        namedReference: NamedReference,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
         onExternalObject: (ObjectOrigin.External) -> Unit
     ) {
-        require(propertyAccess.receiver != null) { "property access with explicit receiver expected" }
+        require(namedReference.receiver != null) { "property access with explicit receiver expected" }
 
-        val propertyName = propertyAccess.name
+        val propertyName = namedReference.name
 
-        expressionResolver.doResolveExpression(this, propertyAccess.receiver, null)?.let { receiverOrigin ->
+        expressionResolver.doResolveExpression(this, namedReference.receiver, null)?.let { receiverOrigin ->
             findDataProperty(getDataType(receiverOrigin), propertyName)?.let { property ->
-                onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, propertyAccess))
+                onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, namedReference))
             }
         }
 
-        propertyAccess.asChainOrNull()?.let { chain ->
+        namedReference.asChainOrNull()?.let { chain ->
             schema.externalObjectsByFqName[chain.asFqName()]?.let { externalObject ->
-                onExternalObject(ObjectOrigin.External(externalObject, propertyAccess))
+                onExternalObject(ObjectOrigin.External(externalObject, namedReference))
             }
         }
     }
 
     private
-    inline fun AnalysisContextView.resolveUnqualifiedPropertyAccess(
-        propertyAccess: PropertyAccess,
+    inline fun AnalysisContextView.resolveUnqualifiedNamedReference(
+        namedReference: NamedReference,
         onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
         onExternal: (ObjectOrigin.External) -> Unit
     ) {
-        require(propertyAccess.receiver == null) { "name-only property access is expected" }
+        require(namedReference.receiver == null) { "name-only property access is expected" }
 
-        lookupNamedValueInScopes(propertyAccess, onLocalValue, onProperty)
+        lookupNamedValueInScopes(namedReference, onLocalValue, onProperty)
 
-        if (propertyAccess.name in imports) {
-            schema.externalObjectsByFqName[imports[propertyAccess.name]]?.let { external ->
-                onExternal(ObjectOrigin.External(external, propertyAccess))
+        if (namedReference.name in imports) {
+            schema.externalObjectsByFqName[imports[namedReference.name]]?.let { external ->
+                onExternal(ObjectOrigin.External(external, namedReference))
             }
         }
     }
 
     private
     inline fun AnalysisContextView.lookupNamedValueInScopes(
-        propertyAccess: PropertyAccess,
+        namedReference: NamedReference,
         onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit
     ) {
         currentScopes.asReversed().forEach { scope ->
-            val x = scope.findLocalAsObjectOrigin(propertyAccess.name)
+            val x = scope.findLocalAsObjectOrigin(namedReference.name)
             x?.let(onLocalValue)
 
             val receiverType = getDataType(scope.receiver)
-            val y = findDataProperty(receiverType, propertyAccess.name)
+            val y = findDataProperty(receiverType, namedReference.name)
             y?.let { property ->
                 val receiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
-                onProperty(ObjectOrigin.PropertyReference(receiver, property, propertyAccess))
+                onProperty(ObjectOrigin.PropertyReference(receiver, property, namedReference))
             }
         }
     }

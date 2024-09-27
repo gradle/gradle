@@ -44,7 +44,7 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
@@ -160,7 +160,7 @@ class LanguageTreeToDomContext {
             // Check for receiver: if it is a complex expression, it cannot be expressed in a DOM; but we can handle access chains as chained names
             val name = when (expr.receiver) {
                 null -> expr.name
-                is PropertyAccess ->
+                is NamedReference ->
                     expr.receiver.asChainedNameOrNull()?.plus(".${expr.name}") ?: run {
                         errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithComplexReceiver)
                         null
@@ -175,8 +175,8 @@ class LanguageTreeToDomContext {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryArgumentFormat)
             }
 
-            if (expr.args.any { it is FunctionArgument.ValueArgument && it.expr is PropertyAccess }) {
-                errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithPropertyAccess)
+            if (expr.args.any { it is FunctionArgument.ValueArgument && it.expr is NamedReference }) {
+                errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithNamedReference)
             }
 
             val values = expr.args.filterIsInstance<FunctionArgument.Positional>().map { exprToValue(it.expr) }
@@ -189,7 +189,7 @@ class LanguageTreeToDomContext {
             }
         }
 
-        is PropertyAccess -> when {
+        is NamedReference -> when {
             expr.receiver != null -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.NamedReferenceWithExplicitReceiver)))
             else -> ExprConversion.Converted(namedReferenceNode(expr))
         }
@@ -201,7 +201,7 @@ class LanguageTreeToDomContext {
     private
     fun Expr.asChainedNameOrNull(): String? {
         fun recurse(e: Expr): StringBuilder? = when (e) {
-            is PropertyAccess -> {
+            is NamedReference -> {
                 when (e.receiver) {
                     null -> StringBuilder(e.name)
                     else -> recurse(e.receiver)?.apply { append(".${e.name}") }
@@ -258,5 +258,5 @@ fun literalNode(literal: Literal<*>) =
 
 
 private
-fun namedReferenceNode(propertyAccess: PropertyAccess) =
-    DefaultNamedReferenceNode(propertyAccess.name, propertyAccess.sourceData)
+fun namedReferenceNode(namedReference: NamedReference) =
+    DefaultNamedReferenceNode(namedReference.name, namedReference.sourceData)
