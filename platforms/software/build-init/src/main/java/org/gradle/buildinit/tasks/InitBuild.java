@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
@@ -53,6 +54,7 @@ import org.gradle.buildinit.projectspecs.InitProjectConfig;
 import org.gradle.buildinit.projectspecs.InitProjectGenerator;
 import org.gradle.buildinit.projectspecs.InitProjectParameter;
 import org.gradle.buildinit.projectspecs.InitProjectSpec;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
 import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -97,8 +99,17 @@ public abstract class InitBuild extends DefaultTask {
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+    private final InitProjectSpecRegistry projectSpecRegistry;
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
+
+    public InitBuild() {
+        // Don't inject this in order to preserve no-args constructor binary compatibility
+        projectSpecRegistry = getServices().get(InitProjectSpecRegistry.class);
+
+        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(((ProjectInternal) getProject()).getClassLoaderScope().getLocalClassLoader(), getLogger());
+        projectSpecRegistry.register(projectSpecLoader);
+    }
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
@@ -295,8 +306,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
-        InitProjectSpecRegistry registry = getServices().get(InitProjectSpecRegistry.class);
-        boolean templatesAvailable = !registry.isEmpty();
+        boolean templatesAvailable = !projectSpecRegistry.isEmpty();
         return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
     }
 
@@ -308,15 +318,13 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private InitProjectConfig selectAndConfigureSpec(UserQuestions userQuestions) {
-        InitProjectSpecRegistry registry = getServices().get(InitProjectSpecRegistry.class);
-
         InitProjectSpec spec;
         if (type == null) {
-            spec = userQuestions.choice("Select project type", registry.getAllSpecs())
+            spec = userQuestions.choice("Select project type", projectSpecRegistry.getAllSpecs())
                 .renderUsing(InitProjectSpec::getDisplayName)
                 .ask();
         }  else {
-            spec = registry.getSpecByType(type);
+            spec = projectSpecRegistry.getSpecByType(type);
         }
 
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
@@ -336,8 +344,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private InitProjectGenerator createGenerator(InitProjectConfig config) {
-        InitProjectSpecRegistry registry = getServices().get(InitProjectSpecRegistry.class);
-        Class<? extends InitProjectGenerator> generator = registry.getGeneratorForSpec(config.getProjectSpec());
+        Class<? extends InitProjectGenerator> generator = projectSpecRegistry.getGeneratorForSpec(config.getProjectSpec());
         return getInstantiator().newInstance(generator);
     }
 

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 /**
  * A registry of the available {@link InitProjectSpec}s that can be used to generate new projects via the {@code init} task.
  */
-@ServiceScope(Scope.Project.class)
+@ServiceScope(Scope.BuildSession.class)
 public final class InitProjectSpecRegistry {
     private final Map<Class<? extends InitProjectGenerator>, List<InitProjectSpec>> specsByGeneratorType = new HashMap<>();
 
