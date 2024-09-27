@@ -106,10 +106,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
-        if (!isAutoDownloadEnabled()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
-        }
+        assert isAutoDownloadEnabled();
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {

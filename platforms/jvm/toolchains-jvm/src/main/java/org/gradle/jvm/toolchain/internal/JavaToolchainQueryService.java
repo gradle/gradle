@@ -32,6 +32,7 @@ import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -42,12 +43,14 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Project.class) //TODO #24353: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
 public class JavaToolchainQueryService {
@@ -189,14 +192,26 @@ public class JavaToolchainQueryService {
             return asToolchainOrThrow(InstallationLocation.userDefined(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, requiredCapabilities, false);
         }
 
-        return findInstalledToolchain(spec, requiredCapabilities).orElseGet(() -> downloadToolchain(spec, requiredCapabilities));
+        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec, requiredCapabilities);
+        List<JvmToolchainMetadata> candidates = registry.toolchains().stream()
+            .filter(result -> result.metadata.isValidInstallation())
+            .collect(Collectors.toList());
+
+        return getMatchingToolchain(spec, candidates, matcher).orElseGet(() -> {
+            // We could not find a matching toolchain, so we try to install one
+            if (!installService.isAutoDownloadEnabled()) {
+                List<JvmToolchainMetadata> sortedCandidates = candidates.stream()
+                    .sorted(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJavaHome)))
+                    .collect(Collectors.toList());
+
+                throw NoToolchainAvailableException.create(spec, buildPlatform, sortedCandidates);
+            }
+            return downloadToolchain(spec, requiredCapabilities);
+        });
     }
 
-    private Optional<JavaToolchain> findInstalledToolchain(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
-        Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec, requiredCapabilities);
-
-        return registry.toolchains().stream()
-            .filter(result -> result.metadata.isValidInstallation())
+    private Optional<JavaToolchain> getMatchingToolchain(JavaToolchainSpec spec, List<JvmToolchainMetadata> candidates, Predicate<JvmInstallationMetadata> matcher) {
+        return candidates.stream()
             .filter(result -> matcher.test(result.metadata))
             .min(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJavaHome)))
             .map(result -> {
@@ -219,14 +234,8 @@ public class JavaToolchainQueryService {
     }
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
-        File installation;
-        try {
-            // TODO: inform installation process of required capabilities, needs public API change
-            installation = installService.tryInstall(spec);
-        } catch (ToolchainDownloadFailedException e) {
-            throw new NoToolchainAvailableException(spec, buildPlatform, e);
-        }
-
+        // TODO: inform installation process of required capabilities, needs public API change
+        File installation = installService.tryInstall(spec);
         InstallationLocation downloadedInstallation = InstallationLocation.autoProvisioned(installation, "provisioned toolchain");
         JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, requiredCapabilities, false);
         registry.addInstallation(downloadedInstallation);

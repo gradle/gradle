@@ -17,28 +17,51 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.ResolutionProvider;
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.platform.BuildPlatform;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Contextual
-public class NoToolchainAvailableException extends GradleException {
+public class NoToolchainAvailableException extends GradleException implements ResolutionProvider  {
 
-    public NoToolchainAvailableException(
+    public NoToolchainAvailableException(String message) {
+        super(message);
+    }
+
+    public static NoToolchainAvailableException create(
         JavaToolchainSpec specification,
         BuildPlatform buildPlatform,
-        ToolchainDownloadFailedException cause
+        List<JvmToolchainMetadata> candidates
     ) {
-        super(
-            String.format(
-                "Cannot find a Java installation on your machine matching this tasks requirements: %s for %s on %s.",
-                specification.getDisplayName(),
-                buildPlatform.getOperatingSystem(),
-                buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT)
-            ),
-            cause
+        String formattedSpec = String.format(
+            "%s for %s on %s",
+            specification.getDisplayName(),
+            buildPlatform.getOperatingSystem(),
+            buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT)
         );
+
+        String formattedCandidates = candidates.stream().map(candidate ->
+            "  - " + candidate.metadata.getDisplayName() + " - majorVersion: " + candidate.metadata.getJavaMajorVersion() + " vendor: " + candidate.metadata.getVendor().getDisplayName()
+        ).collect(Collectors.joining("\n"));
+
+        String message = "Gradle could not find a Java installation on your machine matching the specified requirements: " + formattedSpec + ".\n" +
+            "A suitable toolchain could not be downloaded since auto-provisioning is not enabled.\n" +
+            "Gradle discovered the following candidate toolchains on your machine, but none matched the requested specification:\n" +
+            formattedCandidates;
+
+        return new NoToolchainAvailableException(message);
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return Collections.singletonList("Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
     }
 }
