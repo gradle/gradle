@@ -40,23 +40,22 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
 
     static final String ENABLE_PARALLEL_CACHE = "-D${ConfigurationCacheParallelOption.PROPERTY_NAME}=true"
 
+    private static final String[] CLI_OPTIONS = [ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, "--no-problems-report"]
+
     void buildKotlinFile(@Language(value = "kotlin") String script) {
         buildKotlinFile << script
     }
 
     void configurationCacheRun(String... tasks) {
-        executer.withArgument("--no-problems-report")
-        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, *tasks)
+        run(*CLI_OPTIONS, *tasks)
     }
 
     void configurationCacheRunLenient(String... tasks) {
-        executer.withArgument("--no-problems-report")
-        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, WARN_PROBLEMS_CLI_OPT, *tasks)
+        run(WARN_PROBLEMS_CLI_OPT, *CLI_OPTIONS, *tasks)
     }
 
     void configurationCacheFails(String... tasks) {
-        executer.withArgument("--no-problems-report")
-        fails(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, *tasks)
+        fails(*CLI_OPTIONS, *tasks)
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {
