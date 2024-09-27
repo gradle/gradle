@@ -312,66 +312,6 @@ class BasicParsingTest {
     }
 
     @Test
-    fun `parses infix call chain`() {
-        val results = ParseTestUtil.parse(
-            """
-            f(1) g "string" h true i 2L j 3.apply(4)
-            """.trimIndent()
-        )
-
-        val expected = """
-            FunctionCall [indexes: 0..40, line/column: 1/1..1/41, file: test] (
-                name = j
-                receiver = FunctionCall [indexes: 0..27, line/column: 1/1..1/28, file: test] (
-                    name = i
-                    receiver = FunctionCall [indexes: 0..22, line/column: 1/1..1/23, file: test] (
-                        name = h
-                        receiver = FunctionCall [indexes: 0..15, line/column: 1/1..1/16, file: test] (
-                            name = g
-                            receiver = FunctionCall [indexes: 0..4, line/column: 1/1..1/5, file: test] (
-                                name = f
-                                args = [
-                                    FunctionArgument.Positional [indexes: 2..3, line/column: 1/3..1/4, file: test] (
-                                        expr = IntLiteral [indexes: 2..3, line/column: 1/3..1/4, file: test] (1)
-                                    )
-                                ]
-                            )
-                            args = [
-                                FunctionArgument.Positional [indexes: 7..15, line/column: 1/8..1/16, file: test] (
-                                    expr = StringLiteral [indexes: 7..15, line/column: 1/8..1/16, file: test] (string)
-                                )
-                            ]
-                        )
-                        args = [
-                            FunctionArgument.Positional [indexes: 18..22, line/column: 1/19..1/23, file: test] (
-                                expr = BooleanLiteral [indexes: 18..22, line/column: 1/19..1/23, file: test] (true)
-                            )
-                        ]
-                    )
-                    args = [
-                        FunctionArgument.Positional [indexes: 25..27, line/column: 1/26..1/28, file: test] (
-                            expr = LongLiteral [indexes: 25..27, line/column: 1/26..1/28, file: test] (2)
-                        )
-                    ]
-                )
-                args = [
-                    FunctionArgument.Positional [indexes: 30..40, line/column: 1/31..1/41, file: test] (
-                        expr = FunctionCall [indexes: 32..40, line/column: 1/33..1/41, file: test] (
-                            name = apply
-                            receiver = IntLiteral [indexes: 30..31, line/column: 1/31..1/32, file: test] (3)
-                            args = [
-                                FunctionArgument.Positional [indexes: 38..39, line/column: 1/39..1/40, file: test] (
-                                    expr = IntLiteral [indexes: 38..39, line/column: 1/39..1/40, file: test] (4)
-                                )
-                            ]
-                        )
-                    )
-                ]
-            )""".trimIndent()
-        results.assert(expected)
-    }
-
-    @Test
     fun `keeps empty lines in line number counting`() {
         val results = ParseTestUtil.parse(
             """
@@ -408,34 +348,6 @@ class BasicParsingTest {
             )
         """.trimIndent()
 
-        results.assert(expected)
-    }
-
-    @Test
-    fun `parse infix function call with regular arguments`() {
-        val results = ParseTestUtil.parse(
-            """
-            f("a") g("b")
-            """.trimIndent()
-        )
-
-        val expected = """
-            FunctionCall [indexes: 0..13, line/column: 1/1..1/14, file: test] (
-                name = g
-                receiver = FunctionCall [indexes: 0..6, line/column: 1/1..1/7, file: test] (
-                    name = f
-                    args = [
-                        FunctionArgument.Positional [indexes: 2..5, line/column: 1/3..1/6, file: test] (
-                            expr = StringLiteral [indexes: 2..5, line/column: 1/3..1/6, file: test] (a)
-                        )
-                    ]
-                )
-                args = [
-                    FunctionArgument.Positional [indexes: 9..12, line/column: 1/10..1/13, file: test] (
-                        expr = StringLiteral [indexes: 9..12, line/column: 1/10..1/13, file: test] (b)
-                    )
-                ]
-            )""".trimIndent()
         results.assert(expected)
     }
 

@@ -169,6 +169,47 @@ class ErrorParsingTest {
     }
 
     @Test
+    fun `infix function calls`() {
+        val code = """
+            id("plugin") version "7.0"
+            id("plugin") version("8.0")
+            f(1) g "string" h true i 2L j 3.apply(4)
+            f("a") g("b")
+        """.trimIndent()
+
+        val expected = """
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 0..26, line/column: 1/1..1/27, file: test,
+                    erroneousSource = indexes: 0..26, line/column: 1/1..1/27, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 27..54, line/column: 2/1..2/28, file: test,
+                    erroneousSource = indexes: 27..54, line/column: 2/1..2/28, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 55..95, line/column: 3/1..3/41, file: test,
+                    erroneousSource = indexes: 55..95, line/column: 3/1..3/41, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 96..109, line/column: 4/1..4/14, file: test,
+                    erroneousSource = indexes: 96..109, line/column: 4/1..4/14, file: test
+                )
+            )""".trimIndent()
+        ParseTestUtil.parse(code).assert(expected)
+    }
+
+    @Test
     fun `missing parenthesis in one of a series of assignments`() {
         val code = """
             a = 1

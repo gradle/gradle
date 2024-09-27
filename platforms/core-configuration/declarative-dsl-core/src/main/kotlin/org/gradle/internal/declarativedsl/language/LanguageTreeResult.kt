@@ -117,4 +117,5 @@ sealed interface UnsupportedLanguageFeature {
     data object Reflection : UnsupportedLanguageFeature
     data object TodoNotCoveredYet : UnsupportedLanguageFeature
     data object UnsupportedSimpleIdentifier : UnsupportedLanguageFeature
+    data object InfixFunctionCall : UnsupportedLanguageFeature
 }

@@ -677,13 +677,7 @@ class GrammarToTree(
                                 }
                             }
 
-                            IDENTIFIER -> {
-                                val receiver = checkForFailure(expression(tree, leftArg!!))
-                                val argument = checkForFailure(valueArgument(tree, rightArg!!))
-                                elementIfNoFailures {
-                                    Element(FunctionCall(checked(receiver), operationTokenName!!, listOf(checked(argument)), tree.sourceData(node)))
-                                }
-                            }
+                            IDENTIFIER -> tree.unsupported(node, UnsupportedLanguageFeature.InfixFunctionCall)
 
                             else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
                         }
