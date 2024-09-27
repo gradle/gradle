@@ -238,11 +238,13 @@ Running external processes at configuration time isn't recommended, but methods 
 link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if absolutely necessary, at a cost of making the process output an input to the build configuration.
 
 [[detached_configurations_cannot_extend]]
-==== Detached Configurations should not use `extendFrom`
+==== Detached Configurations should not use `extendsFrom`
 
-link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...)[Detached configurations] should not extend other configurations using link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom(org.gradle.api.artifacts.Configuration...)[extendsFrom].
+link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...)[Detached configurations] should not extend other configurations using `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom(org.gradle.api.artifacts.Configuration...)[extendsFrom]`.
 
 This behavior has been deprecated and will become an error in Gradle 9.0.
+
+To create extension relationships between configurations, you should change to using non-detached configurations created via the other factory methods present in the project's `link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html)[ConfigurationContainer]`.
 
 [[deprecated_use_logger]]
 ==== Deprecated customized Gradle logging
