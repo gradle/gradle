@@ -24,6 +24,8 @@ dependencies {
     compileOnly(projects.kotlinDsl)
     compileOnly(projects.serviceLookup)
     compileOnly(projects.stdlibJavaExtensions)
+    compileOnly(projects.dependencyManagement)
+    compileOnly(projects.problemsApi)
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)

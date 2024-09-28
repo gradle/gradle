@@ -56,6 +56,10 @@ public class VersionCatalogView implements VersionCatalog {
         this.bundleFactory = new BundleFactory(objects, providerFactory, config, attributesFactory, capabilityNotationParser);
     }
 
+    public DefaultVersionCatalog getConfig() {
+        return config;
+    }
+
     @Override
     public final Optional<Provider<MinimalExternalModuleDependency>> findLibrary(String alias) {
         String normalizedAlias = normalize(alias);

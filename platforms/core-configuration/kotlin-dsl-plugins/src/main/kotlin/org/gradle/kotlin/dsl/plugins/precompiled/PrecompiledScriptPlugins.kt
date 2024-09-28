@@ -40,9 +40,28 @@ import org.gradle.kotlin.dsl.support.serviceOf
 abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+        val target = Target(project)
+        if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(target)) {
+            val precompiledScripts = extensions.create<PrecompiledScriptExtension>("precompiledScripts", project)
+            val generateAccessors = tasks.register<GeneratePrecompiledScriptVersionCatalogAccessorsTask>("generatePrecompiledScriptVersionCatalogAccessors") {
+                group = "build setup"
+                description = "Generates version catalog accessors for precompiled script plugins"
+                versionCatalogs.set(precompiledScripts.accessors.catalogs)
+                targetPackage.set(precompiledScripts.accessors.targetPackage)
+                outputJavaSrcDirectory.set(layout.buildDirectory.dir("generated-precompiled-scripts/java"))
+                outputKotlinSrcDirectory.set(layout.buildDirectory.dir("generated-precompiled-scripts/kotlin"))
 
-        if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(Target(project))) {
-
+                project.sourceSets["main"].java.srcDir(outputJavaSrcDirectory)
+                println(project.sourceSets["main"].java.srcDirs)
+                target.kotlinSourceDirectorySet.srcDirs(outputKotlinSrcDirectory)
+            }
+            generateAccessors.get()
+            tasks.named("compileJava").configure {
+                it.dependsOn(generateAccessors)
+            }
+            tasks.named("compileKotlin").configure {
+                it.dependsOn(generateAccessors)
+            }
             dependencies {
                 "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
                 "kotlinCompilerPluginClasspath"(gradleApi())
