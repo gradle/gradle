@@ -41,6 +41,7 @@ import org.gradle.util.internal.VersionNumber;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,6 +63,11 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
     private String gradleExe;
     private String gradleArgs;
+
+    @Inject
+    public GenerateProjectFileTask(DefaultVisualStudioProject visualStudioProject) {
+        setVisualStudioProject(visualStudioProject);
+    }
 
     @Override
     protected boolean getIncremental() {

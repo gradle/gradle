@@ -34,6 +34,7 @@ import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +49,10 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> solution.getSolutionFile().getLocation()));
     private final Cached<SolutionSpec> spec = Cached.of(this::calculateSpec);
 
-    public GenerateSolutionFileTask() {
+    @Inject
+    public GenerateSolutionFileTask(DefaultVisualStudioSolution solution) {
         generator = new ConfigurationObjectGenerator();
+        setVisualStudioSolution(solution);
     }
 
     @Override
