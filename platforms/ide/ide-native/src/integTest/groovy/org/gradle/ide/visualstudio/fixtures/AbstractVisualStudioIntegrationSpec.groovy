@@ -51,13 +51,12 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
             allprojects { p ->
                 p.plugins.withType(VisualStudioPlugin.class) {
                     p.tasks.withType(GenerateProjectFileTask) {
-                        def relativeToRoot = org.gradle.util.internal.RelativePathUtil.relativePath(visualStudioProject.projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
-                        if (relativeToRoot == "") {
-                            relativeToRoot = "."
-                        }
+                        def relativeToRoot = provider {
+                            org.gradle.util.internal.RelativePathUtil.relativePath(visualStudioProject.projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
+                        }.map { (it == "") ? "." : it }
                         setGradleArgs("--no-problems-report")
                         visualStudioProject.projectFile.withXml { xml ->
-                            Helpers.redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }, relativeToRoot
+                            Helpers.redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }, relativeToRoot.get()
                         }
                     }
                 }
