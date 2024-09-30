@@ -175,6 +175,10 @@ For example, by traversing dependencies at the variant level, it is possible to 
 
 For more details on how to perform a graph traversal, see [Programmatic Dependency Resolution](userguide/programmatic_dependency_resolution.html).
 
+#### Provider support for configuration extensions in the Configuration API
+
+TO DO: Placeholder for https://github.com/gradle/gradle/pull/29868/files
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
