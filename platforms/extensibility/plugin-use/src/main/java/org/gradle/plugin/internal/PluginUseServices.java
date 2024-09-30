@@ -49,7 +49,7 @@ import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
-import org.gradle.plugin.management.internal.autoapply.DefaultPluginHandler;
+import org.gradle.plugin.management.internal.DefaultPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;

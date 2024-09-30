@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal.argumentloaded
+package org.gradle.plugin.management.internal
 
-import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
-class ArgumentLoadedPluginHandlerTest extends Specification {
+class DefaultPluginHandlerTest extends Specification {
+    private AutoAppliedPluginRegistry autoAppliedPluginRegistry = Mock(AutoAppliedPluginRegistry)
+    private DefaultPluginHandler pluginHandler = new DefaultPluginHandler(autoAppliedPluginRegistry)
+
     def "requests single plugin from system prop"() {
         given:
-        System.setProperty(ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, "org.example.plugin:2.2.0")
+        System.setProperty(pluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, "org.example.plugin:2.2.0")
 
         when:
-        PluginRequests requests = ArgumentLoadedPluginHandler.getArgumentLoadedPlugins()
+        PluginRequests requests = pluginHandler.getArgumentLoadedPlugins()
 
         then:
         requests.size() == 1
@@ -37,10 +40,10 @@ class ArgumentLoadedPluginHandlerTest extends Specification {
 
     def "requests multiple plugins from system prop"() {
         given:
-        System.setProperty(ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, "org.example.plugin:2.2.0,com.other.plugin:1.0")
+        System.setProperty(pluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, "org.example.plugin:2.2.0,com.other.plugin:1.0")
 
         when:
-        PluginRequests requests = ArgumentLoadedPluginHandler.getArgumentLoadedPlugins()
+        PluginRequests requests = pluginHandler.getArgumentLoadedPlugins()
 
         then:
         requests.size() == 2
@@ -52,7 +55,7 @@ class ArgumentLoadedPluginHandlerTest extends Specification {
 
     def "requests nothing if no arg provided"() {
         when:
-        PluginRequests requests = ArgumentLoadedPluginHandler.getArgumentLoadedPlugins()
+        PluginRequests requests = pluginHandler.getArgumentLoadedPlugins()
 
         then:
         requests.size() == 0
@@ -61,11 +64,11 @@ class ArgumentLoadedPluginHandlerTest extends Specification {
     def "reports error if invalid arg provided: #prop"() {
         given:
         if (prop != null) {
-            System.setProperty(ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, prop)
+            System.setProperty(pluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, prop)
         }
 
         when:
-        ArgumentLoadedPluginHandler.getArgumentLoadedPlugins()
+        pluginHandler.getArgumentLoadedPlugins()
 
         then:
         def exception = thrown(IllegalArgumentException)
@@ -77,10 +80,10 @@ class ArgumentLoadedPluginHandlerTest extends Specification {
 
     def "reports error with one valid and one invalid arg provided"() {
         given:
-        System.setProperty(ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, "org.example.plugin:2.2.0,invalid")
+        System.setProperty(pluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP, "org.example.plugin:2.2.0,invalid")
 
         when:
-        PluginRequests requests = ArgumentLoadedPluginHandler.getArgumentLoadedPlugins()
+        PluginRequests requests = pluginHandler.getArgumentLoadedPlugins()
 
         then:
         def exception = thrown(IllegalArgumentException)
