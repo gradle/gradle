@@ -114,7 +114,7 @@ Since no variants exist supplying the requested format (as none contain the `art
 Gradle's search finds `MyTransform`, which is registered as producing the requested format, so it will automatically be run.
 Running this transform action modifies the artifacts of an existing source variant to produce new artifacts that are delivered to the consumer, in the requested format.
 
-You can think of the chain of transforms as producing a "virtual variant" that doesn't exist in a component itself, but is instead created on-demand by Gradle as part of a resolution.
+Gradle produces a "virtual variant" of the component as part of this process.
 
 [[sec:abm_artifact_transforms]]
 == Understanding Artifact Transforms
