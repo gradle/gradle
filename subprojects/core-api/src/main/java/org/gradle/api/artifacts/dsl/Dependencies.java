@@ -38,7 +38,7 @@ import javax.inject.Inject;
  * @implNote Changes to this interface may require changes to the
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
- * <p>
+ *
  * @see <a href="https://docs.gradle.org/current/userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks">Creating custom dependencies blocks.</a>
  *
  * @since 7.6

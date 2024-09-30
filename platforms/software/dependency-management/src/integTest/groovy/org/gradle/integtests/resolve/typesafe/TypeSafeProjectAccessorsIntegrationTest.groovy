@@ -18,8 +18,11 @@ package org.gradle.integtests.resolve.typesafe
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
+    def resolve = new ResolveTestFixture(buildFile)
+
     def setup() {
         settingsFile << """
             rootProject.name = 'typesafe-project-accessors'
@@ -28,24 +31,33 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
 
     def "generates type-safe project accessors for multi-project build"() {
         given:
-        createDirs("one", "one/other", "two", "two/other")
-        settingsFile << """
-            include 'one'
-            include 'one:other'
-            include 'two:other'
-        """
+        includeProjects("one", "one:other", "two", "two:other")
 
         buildFile << """
-            assert project(":one") == projects.one.dependencyProject
-            assert project(":one:other") == projects.one.other.dependencyProject
-            assert project(":two:other") == projects.two.other.dependencyProject
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(projects.one)
+                implementation(projects.one.other)
+                implementation(projects.two.other)
+            }
         """
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run 'help'
+        succeeds(":checkDeps")
 
         then:
         outputContains 'Type-safe project accessors is an incubating feature.'
+        resolve.expectGraph {
+            root(":", ":typesafe-project-accessors:unspecified") {
+                project(":one", "typesafe-project-accessors:one:1.0")
+                project(":one:other", "typesafe-project-accessors.one:other:1.0")
+                project(":two:other", "typesafe-project-accessors.two:other:1.0")
+            }
+        }
     }
 
     def "fails if a project doesn't follow convention"() {
@@ -87,64 +99,119 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
 
     def "can configure the project extension name"() {
         given:
-        createDirs("one", "one/other", "two", "two/other")
+        includeProjects("one", "one:other", "two", "two:other")
         settingsFile << """
-            include 'one'
-            include 'one:other'
-            include 'two:other'
-
             dependencyResolutionManagement {
                 defaultProjectsExtensionName.set("ts")
             }
         """
 
         buildFile << """
-            assert project(":one") == ts.one.dependencyProject
-            assert project(":one:other") == ts.one.other.dependencyProject
-            assert project(":two:other") == ts.two.other.dependencyProject
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(ts.one)
+                implementation(ts.one.other)
+                implementation(ts.two.other)
+            }
         """
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run 'help'
+        succeeds(":checkDeps")
 
         then:
         outputContains 'Type-safe project accessors is an incubating feature.'
+        resolve.expectGraph {
+            root(":", ":typesafe-project-accessors:unspecified") {
+                project(":one", "typesafe-project-accessors:one:1.0")
+                project(":one:other", "typesafe-project-accessors.one:other:1.0")
+                project(":two:other", "typesafe-project-accessors.two:other:1.0")
+            }
+        }
     }
 
     def "can refer to the root project via its name"() {
         given:
         buildFile << """
-            assert project(":") == projects.typesafeProjectAccessors.dependencyProject
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                foo
+            }
+
+            java {
+                registerFeature('foo') {
+                    usingSourceSet(sourceSets.foo)
+                }
+            }
+
+            dependencies {
+                implementation(projects.typesafeProjectAccessors) {
+                    capabilities {
+                        it.requireFeature("foo")
+                    }
+                }
+            }
         """
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run 'help'
+        succeeds(':checkDeps')
 
         then:
         outputContains 'Type-safe project accessors is an incubating feature.'
+        resolve.expectGraph {
+            root(":", ":typesafe-project-accessors:unspecified") {
+                project(":", ":typesafe-project-accessors:unspecified") {
+                    artifact(name: 'typesafe-project-accessors-foo', fileName: 'typesafe-project-accessors-foo.jar')
+                }
+            }
+        }
     }
 
     def "can use the #notation notation on type-safe accessor"() {
         given:
-        createDirs("other")
         settingsFile << """
             include 'other'
         """
+        file("other/build.gradle") << """
+            plugins {
+                id("java-platform")
+                id("java-test-fixtures")
+            }
+        """
 
         buildFile << """
-            configurations {
-                implementation
+            plugins {
+                id("java-library")
             }
             dependencies {
                 implementation($notation(projects.other))
             }
         """
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run 'help'
+        succeeds(':checkDeps')
 
         then:
         outputDoesNotContain('it was probably created by a plugin using internal APIs')
+        resolve.expectGraph {
+            root(":", ":typesafe-project-accessors:unspecified") {
+                project(":other", "typesafe-project-accessors:other:unspecified") {
+                    if (notation == "platform") {
+                        noArtifacts()
+                    } else {
+                        artifact(name: 'other-test-fixtures', fileName: 'other-test-fixtures.jar')
+                    }
+                }
+            }
+        }
 
         where:
         notation << [ 'platform', 'testFixtures']
@@ -153,31 +220,59 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
     def "buildSrc project accessors are independent from the main build accessors"() {
         given:
         file("buildSrc/build.gradle") << """
-            assert project(":one") == projects.one.dependencyProject
-            assert project(":two") == projects.two.dependencyProject
-        """
-        createDirs("buildSrc/one", "buildSrc/two")
-        file("buildSrc/settings.gradle") << """
-            include 'one'
-            include 'two'
-        """
-        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("buildSrc/settings.gradle"))
-        createDirs("one", "two")
-        settingsFile << """
-            include 'one'
-            include 'two'
-        """
+            plugins {
+                id("java-library")
+            }
 
-        buildFile << """
-            assert project(":one") == projects.one.dependencyProject
-            assert project(":two") == projects.two.dependencyProject
+            dependencies {
+                implementation(projects.one)
+                implementation(projects.two)
+            }
         """
+        ["one", "two"].each {
+            file("buildSrc/settings.gradle") << """
+                include '$it'
+            """
+            file("buildSrc/$it/build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+                version = "1.0"
+            """
+        }
+        FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("buildSrc/settings.gradle"))
+        def resolveBuildSrc = new ResolveTestFixture(file("buildSrc/build.gradle"))
+        resolveBuildSrc.prepare("runtimeClasspath")
+
+        includeProjects("three", "four")
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(projects.three)
+                implementation(projects.four)
+            }
+        """
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run 'help'
+        succeeds(":buildSrc:checkDeps")
+        succeeds(":checkDeps")
 
         then:
         outputContains 'Type-safe project accessors is an incubating feature.'
+
+        // We cannot verify resolveBuildSrc since it has a ton of extra things on the
+        // classpath by default
+
+        resolve.expectGraph {
+            root(":", ":typesafe-project-accessors:unspecified") {
+                project(":three", "typesafe-project-accessors:three:1.0")
+                project(":four", "typesafe-project-accessors:four:1.0")
+            }
+        }
     }
 
     def "warns if root project name not explicitly set"() {
@@ -190,7 +285,13 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
             include 'one'
         """
         file("project/build.gradle") << """
-            assert project(":one") == projects.one.dependencyProject
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(projects.one)
+            }
         """
         FeaturePreviewsFixture.enableTypeSafeProjectAccessors(file("project/settings.gradle"))
 
@@ -215,13 +316,16 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
 
     def "does not warn if root project name explicitly set"() {
         given:
-        createDirs("one")
-        settingsFile << """
-            include 'one'
-        """
+        includeProjects("one")
 
         buildFile << """
-            assert project(":one") == projects.one.dependencyProject
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(projects.one)
+            }
         """
 
         //run once
@@ -236,4 +340,23 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         then:
         outputDoesNotContain 'Project accessors enabled, but root project name not explicitly set'
     }
+
+    def includeProjects(String... names) {
+        names.each {
+            includeProject(it)
+        }
+    }
+
+    def includeProject(String name) {
+        settingsFile << """
+            include '$name'
+        """
+        file("${name.replace(':', '/')}/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            version = "1.0"
+        """
+    }
+
 }

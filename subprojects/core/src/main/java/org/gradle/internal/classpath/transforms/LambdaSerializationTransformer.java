@@ -20,7 +20,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;

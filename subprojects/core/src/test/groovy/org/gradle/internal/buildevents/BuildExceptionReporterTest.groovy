@@ -24,6 +24,8 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemAwareFailure
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
@@ -417,8 +419,8 @@ org.gradle.api.GradleException: $MESSAGE
         def exception = new TestException() {
             @Override
             void appendResolutions(FailureResolutionAware.Context context) {
-                context.appendResolution { output -> output.append("resolution 1.")}
-                context.appendResolution { output -> output.append("resolution 2.")}
+                context.appendResolution { output -> output.append("resolution 1.") }
+                context.appendResolution { output -> output.append("resolution 2.") }
             }
         }
 
@@ -445,7 +447,7 @@ $GET_HELP
             @Override
             void appendResolutions(FailureResolutionAware.Context context) {
                 context.doNotSuggestResolutionsThatRequireBuildDefinition()
-                context.appendResolution { output -> output.append("resolution 1.")}
+                context.appendResolution { output -> output.append("resolution 1.") }
             }
         }
 
@@ -595,7 +597,6 @@ $GET_HELP
 """
     }
     // endregion Duplicate Exception Branch Filtering
-
     def result(Throwable failure) {
         BuildResult result = Mock()
         result.failure >> failure
@@ -607,4 +608,19 @@ $GET_HELP
             super(MESSAGE)
         }
     }
+
+    class TestProblemAwareFailure extends Throwable implements ProblemAwareFailure {
+        List<Problem> problems
+
+        TestProblemAwareFailure(Problem... problems) {
+            super("<problem-bearing exception message>")
+            this.problems = Arrays.asList(problems)
+        }
+
+        @Override
+        Collection<Problem> getProblems() {
+            return problems
+        }
+    }
+
 }

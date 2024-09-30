@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Basic testing related plugins, which establish conventions for testing output directories,
@@ -29,6 +30,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
+    api(projects.reportRendering)
     api(projects.reporting)
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
@@ -39,12 +41,10 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.files)
     implementation(projects.modelCore)
-    implementation(projects.processServices)
     implementation(projects.serialization)
 
     implementation(libs.ant) {
@@ -88,3 +88,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

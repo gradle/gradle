@@ -17,11 +17,8 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
-
-    @ToBeFixedForConfigurationCache
     def "creates workspace with Xcode project for each project in build"() {
         given:
         settingsFile << """

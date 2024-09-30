@@ -24,11 +24,11 @@ import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDoc
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-object DomResolutionTest {
+class DomResolutionTest {
 
     @Test
     fun `resolves declarative document`() {
@@ -46,6 +46,7 @@ object DomResolutionTest {
             nested {
                 number = 456
                 add()
+                enum = A
             }
             """.trimIndent()
         )
@@ -56,7 +57,6 @@ object DomResolutionTest {
         val resolved = resolutionContainer(schema, resolver.trace, document)
         val resolutions = resolved.collectToMap(document).values
         assertEquals(
-            resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> test
@@ -77,7 +77,10 @@ object DomResolutionTest {
             PropertyAssignmentResolved -> NestedReceiver.number: Int
             LiteralValueResolved -> 456
             ContainerElementResolved -> element add(): MyNestedElement
-            """.trimIndent()
+            PropertyAssignmentResolved -> NestedReceiver.enum: Enum
+            NamedReferenceResolved -> A
+            """.trimIndent(),
+            resolutions.map { resolutionPrettyString(it) }.joinToString("\n")
         )
     }
 
@@ -99,6 +102,7 @@ object DomResolutionTest {
             nested {
                 addAndConfigure("cross-scope") { }
                 add("incorrect signature")
+                enum = X
             }
             """.trimIndent()
         )
@@ -109,7 +113,6 @@ object DomResolutionTest {
         val resolved = resolutionContainer(schema, resolver.trace, document, strictReceiverChecks = true)
         val resolutions = resolved.collectToMap(document).values
         assertEquals(
-            resolutions.map { resolutionPrettyString(it) }.joinToString("\n"),
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> correct
@@ -133,7 +136,10 @@ object DomResolutionTest {
             LiteralValueResolved -> cross-scope
             ElementNotResolved(UnresolvedSignature)
             LiteralValueResolved -> incorrect signature
-            """.trimIndent()
+            PropertyNotAssigned(UnresolvedValueUsed)
+            NamedReferenceNotResolved(UnresolvedName)
+            """.trimIndent(),
+            resolutions.joinToString("\n") { resolutionPrettyString(it) }
         )
     }
 
@@ -157,6 +163,7 @@ object DomResolutionTest {
 
             is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> " -> ${resolution.value}"
             is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
+            is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceResolved -> " -> ${resolution.referenceName}"
         }
 
     private

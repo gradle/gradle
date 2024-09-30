@@ -101,7 +101,11 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")

@@ -17,19 +17,19 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.VersionConstraint
+import org.gradle.api.artifacts.capability.CapabilitySelector
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.Capability
 
@@ -102,11 +102,15 @@ abstract class ClientModuleDelegate : org.gradle.api.artifacts.ClientModule {
     override fun setTransitive(transitive: Boolean): ModuleDependency =
         delegate.setTransitive(transitive)
 
+    @Deprecated("Deprecated in Java", ReplaceWith("this.equals(dependency)"))
     override fun contentEquals(dependency: Dependency): Boolean =
         delegate.contentEquals(dependency)
 
     override fun getRequestedCapabilities(): MutableList<Capability> =
         delegate.requestedCapabilities
+
+    override fun getCapabilitySelectors(): MutableSet<CapabilitySelector> =
+        delegate.capabilitySelectors
 
     override fun getVersionConstraint(): VersionConstraint =
         delegate.versionConstraint

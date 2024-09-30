@@ -99,7 +99,7 @@ trait VersionCatalogErrorMessages {
         buildMessage(TooManyFromInvokation, VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec)
     }
 
-    private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, Closure<?> spec) {
+    private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def desc = clazz.newInstance()
         desc.section = id.name().toLowerCase()
         spec.delegate = desc

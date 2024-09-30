@@ -32,9 +32,8 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.util.internal.TextUtil;
-
 import java.io.IOException;
+import java.util.Locale;
 
 /**
  * @param <T> The type which this option represents.
@@ -47,7 +46,8 @@ public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOpt
     @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null) {
-            writerContext.writeOption(TextUtil.toLowerCaseLocaleSafe(value.toString()));
+            String s = value.toString();
+            writerContext.writeOption(s.toLowerCase(Locale.ROOT));
         }
     }
 

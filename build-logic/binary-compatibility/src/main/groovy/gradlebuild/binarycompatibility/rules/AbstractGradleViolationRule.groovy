@@ -39,7 +39,7 @@ import org.gradle.api.Incubating
 
 import javax.inject.Inject
 
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey
 
 @CompileStatic
@@ -136,7 +136,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
-        Set<AccessorKey> seenOldAccessorsOfUpgradedProperties = (Set<AccessorKey>) context.userData[SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES]
+        Set<AccessorKey> seenOldAccessorsOfUpgradedProperties = (Set<AccessorKey>) context.userData[SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES]
         UpgradedProperties.maybeGetKeyOfOldAccessorOfUpgradedProperty(member, context).ifPresent { seenOldAccessorsOfUpgradedProperties.add(it) }
 
         def change = new ApiChange(
@@ -182,7 +182,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                   <div class="well">
                       Sometimes, the change was made on the `release` branch but hasn't yet been published to the baseline version.
                       In that case, you can publish a new snapshot from the release branch. This will update `released-versions.json` on `master`.
-                      See <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">the documentation</a> for more details.
+                      See <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">the documentation</a> for more details.
                   </div>
                 </div>
                 </p>

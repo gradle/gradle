@@ -59,7 +59,6 @@ class IntegTestPreconditions {
         }
     }
 
-
     static final class IsDaemonOrNoDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {

@@ -46,7 +46,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     @Shared attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     @Shared mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     @Shared ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    @Shared defaultVariant
+    @Shared MutableComponentVariant defaultVariant
 
     private ivyComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
@@ -73,7 +73,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         defaultVariant = metadata.addVariant("runtime", attributes)
         deps.each { name ->
-            defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [], false, null)
+            defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [] as Set, false, null)
         }
         defaultVariant.addFile("producer-1.0.jar", "producer-1.0.jar")
         metadata

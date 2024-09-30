@@ -70,6 +70,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         targetDir.mkdirs()
 
         when:
+        executer.withArgument("--no-problems-report")
         succeeds("clean")
 
         then:

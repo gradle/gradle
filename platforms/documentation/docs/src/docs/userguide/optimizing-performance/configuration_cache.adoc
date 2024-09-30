@@ -197,6 +197,29 @@ or in a `gradle.properties` file:
 org.gradle.configuration-cache.max-problems=5
 ----
 
+[[config_cache:usage:parallel]]
+=== Enabling parallel configuration caching
+
+Configuration cache storing and loading are done sequentially by default. Parallel storing and loading provide
+better performance, however not all builds are compatible with it.
+
+To enable parallel configuration caching on the command line:
+
+----
+❯ gradle -Dorg.gradle.configuration-cache.parallel=true
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.configuration-cache.parallel=true
+----
+
+The parallel configuration caching feature is _incubating_, as not all builds are guaranteed to work correctly.
+Common symptoms are `ConcurrentModificationException` exceptions during the <<build_lifecycle#sec:configuration,configuration phase>>.
+The feature should work well for <<multi_project_configuration_and_execution#sec:decoupled_projects,decoupled>> multi-project builds.
+
 [[config_cache:usage:invalidate]]
 === Invalidating the cache
 
@@ -322,12 +345,12 @@ link:{gradle-issues}13462[[.green]#✓#]:: <<antlr_plugin.adoc#antlr_plugin,ANTL
 
 a|
 [horizontal]
-link:{gradle-issues}13484[[.red]#✖#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
-link:{gradle-issues}13485[[.red]#✖#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
-link:{gradle-issues}13514[[.red]#✖#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
-link:{gradle-issues}13515[[.red]#✖#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
-link:{gradle-issues}13487[[.red]#✖#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
-link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+link:{gradle-issues}13484[[.green]#✓#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+link:{gradle-issues}13485[[.green]#✓#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+link:{gradle-issues}13514[[.green]#✓#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
+link:{gradle-issues}13515[[.green]#✓#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+link:{gradle-issues}13487[[.green]#✓#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+link:{gradle-issues}13488[[.green]#✓#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 
 a|
 [horizontal]
@@ -356,8 +379,8 @@ a|
 [horizontal]
 link:{gradle-issues}13479[[.red]#✖#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
 link:{gradle-issues}13480[[.red]#✖#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
-link:{gradle-issues}13482[[.red]#✖#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
-link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+link:{gradle-issues}13482[[.green]#✓#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+link:{gradle-issues}13483[[.green]#✓#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
 
 a|
 [horizontal]

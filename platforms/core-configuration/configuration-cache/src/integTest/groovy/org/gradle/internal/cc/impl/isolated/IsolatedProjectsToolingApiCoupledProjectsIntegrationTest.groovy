@@ -45,7 +45,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -65,7 +65,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -85,7 +85,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
                 }
             }
         """
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -124,7 +124,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -144,7 +144,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -158,7 +158,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             // Some change
         """
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -195,7 +195,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -213,7 +213,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -228,7 +228,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("b/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -247,7 +247,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -261,7 +261,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             myExtension.message = "new message"
         """
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -300,7 +300,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT)
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -318,7 +318,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -333,7 +333,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("b/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
+        withIsolatedProjects(WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
         def model3 = runBuildAction (new FetchCustomModelForEachProject())
 
         then:

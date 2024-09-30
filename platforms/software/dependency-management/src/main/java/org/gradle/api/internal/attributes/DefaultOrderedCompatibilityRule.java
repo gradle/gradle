@@ -44,4 +44,23 @@ public class DefaultOrderedCompatibilityRule<T> implements Action<CompatibilityC
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultOrderedCompatibilityRule<?> that = (DefaultOrderedCompatibilityRule<?>) o;
+        return reverse == that.reverse && comparator.equals(that.comparator);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = comparator.hashCode();
+        result = 31 * result + Boolean.hashCode(reverse);
+        return result;
+    }
 }

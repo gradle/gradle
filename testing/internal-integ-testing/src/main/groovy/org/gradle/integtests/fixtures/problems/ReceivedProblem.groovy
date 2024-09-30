@@ -21,6 +21,7 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalData
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.InternalProblemBuilder
@@ -136,7 +137,7 @@ class ReceivedProblem implements Problem {
     }
 
     @Override
-    InternalProblemBuilder toBuilder() {
+    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
         throw new UnsupportedOperationException("Not implemented")
     }
 

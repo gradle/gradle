@@ -24,50 +24,49 @@
     RP=')'
     LB='{'
     RB='}'
-    USC='_'
 
     space='regexp:\s+'
     comment='regexp://.*|/\*[^/*]*\*/'
-    number='regexp:\d+(\.\d*)?'
-    id='regexp:\p{Alpha}\w*'
-    string="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
+    id='regexp:\p{Alpha}\w*'                                    // TODO: doesn't work with all unicode characters, no idea how to fix it ...
+    string='regexp:("""[^\"]*"""|"[^"\\]*")'                    // TODO: still simplistic ...
+
+    integerLiteral='regexp:[1-9]([0-9_]*[0-9])?|[0-9]'
+    binaryLiteral='regexp:0[bB][01]([01_]*[01])?'
+    hexLiteral='regexp:0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?'
+    longLiteral='regexp:[1-9]([0-9_]*[0-9])?[lL]|[0-9][lL]|0[bB][01]([01_]*[01])?[lL]|0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?[lL]'
+
+    backtickIdentifier='regexp:`[^`\r\n]*`'
   ]
 }
+
+// For a description of how these rules relate to the full Kotlin grammar please see:
+// https://docs.google.com/document/d/11GBpWfLV-BwYjGEayUl5OCoLzRlcDkI7m_b5FoaFD9Q/edit
 
 root ::= statements
 
 statement ::= (assignment | expression)
 statements ::= (statement semis?)*
 
-assignment ::= directlyAssignableExpression EQ expression {pin=2}
-expression ::= postfixUnaryExpression
+assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
+expression ::= simpleIdentifier postfixUnarySuffixes
 
 semis ::= SEMI+
 
-directlyAssignableExpression ::=
-    (postfixUnaryExpression navigationSuffix*) |          // navigationSuffix changed to optional due to greedy matching
-    simpleIdentifier |
-    parenthesizedDirectlyAssignableExpression
+directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 
-parenthesizedDirectlyAssignableExpression ::= LP directlyAssignableExpression RP
-
-postfixUnaryExpression ::= primaryExpression postfixUnarySuffix*
-
-postfixUnarySuffix ::= callSuffix | navigationSuffix
-
-callSuffix ::= (valueArguments? annotatedLambda) | valueArguments
+postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
 
 annotatedLambda ::= LB statements RB {pin=1}
 
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? expression
-
-parenthesizedExpression ::= LP expression RP
+valueArgument ::= (simpleIdentifier EQ)? primaryExpression postfixUnarySuffixes?
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-primaryExpression ::= parenthesizedExpression | literalConstant | simpleIdentifier | stringLiteral
-simpleIdentifier ::= id                                      // TODO: needs refining
-stringLiteral ::= string                                     // TODO: needs refining
-literalConstant ::= "null" | booleanLiteral | number         // TODO: needs refining
-booleanLiteral ::= "true" | "false"
+primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
+literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
+booleanLiteral ::= "true" | "false" {pin=1}
+
+stringLiteral ::= string
+
+simpleIdentifier ::= id | backtickIdentifier

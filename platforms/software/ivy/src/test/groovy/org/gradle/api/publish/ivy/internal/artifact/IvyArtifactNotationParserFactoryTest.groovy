@@ -260,6 +260,6 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         0 * _
     }
 
-    interface TestTaskProvider<T extends Task> extends TaskProvider<T>, ProviderInternal {}
+    interface TestTaskProvider<T extends Task> extends TaskProvider<T>, ProviderInternal<T> {}
 
 }

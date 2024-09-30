@@ -3,10 +3,10 @@ package org.gradle.internal.declarativedsl.parsing
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
-import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
-import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
+import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
+import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
 import org.gradle.internal.declarativedsl.language.AccessChain
@@ -15,9 +15,9 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 
 
 class ImportTest {

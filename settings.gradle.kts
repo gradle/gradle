@@ -28,7 +28,7 @@ pluginManagement {
 
 plugins {
     id("gradlebuild.build-environment")
-    id("com.gradle.develocity").version("3.17.6") // Run `build-logic-settings/update-develocity-plugin-version.sh <new-version>` to update
+    id("com.gradle.develocity").version("3.18.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version ("0.8.0")
 }
@@ -75,6 +75,7 @@ val core = platform("core") {
         subproject("base-services")
         subproject("build-configuration")
         subproject("build-operations")
+        subproject("build-operations-trace")
         subproject("build-option")
         subproject("build-process-services")
         subproject("build-profile")
@@ -97,6 +98,7 @@ val core = platform("core") {
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
         subproject("instrumentation-declarations")
+        subproject("instrumentation-reporting")
         subproject("internal-instrumentation-api")
         subproject("internal-instrumentation-processor")
         subproject("io")
@@ -106,7 +108,9 @@ val core = platform("core") {
         subproject("logging-api")
         subproject("messaging")
         subproject("native")
+        subproject("process-memory-services")
         subproject("process-services")
+        subproject("report-rendering")
         subproject("serialization")
         subproject("service-lookup")
         subproject("service-provider")
@@ -134,9 +138,11 @@ val core = platform("core") {
         subproject("declarative-dsl-provider")
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
+        subproject("declarative-dsl-internal-utils")
         subproject("dependency-management-serialization-codecs")
         subproject("encryption-services")
         subproject("file-collections")
+        subproject("file-operations")
         subproject("flow-services")
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")
@@ -189,6 +195,7 @@ module("ide") {
     subproject("ide-plugins")
     subproject("problems")
     subproject("problems-api")
+    subproject("problems-rendering")
     subproject("tooling-api")
     subproject("tooling-api-builders")
 }

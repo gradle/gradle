@@ -44,10 +44,12 @@ public class JpmsConfiguration {
         List<String> gradleDaemonJvmArgs = new ArrayList<String>(GROOVY_JPMS_ARGS);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
+            "--add-opens=java.base/java.util=ALL-UNNAMED", // for overriding environment variables
             "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
             "--add-opens=java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
             "--add-opens=java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
-            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED" // serialized from org.gradle.internal.file.StatStatistics$Collector
+            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED", // serialized from org.gradle.internal.file.StatStatistics$Collector
+            "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED" // serialized from IvyDescriptorFileGenerator.Model
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 

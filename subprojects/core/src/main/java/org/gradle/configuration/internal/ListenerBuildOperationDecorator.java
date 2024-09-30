@@ -74,7 +74,7 @@ public interface ListenerBuildOperationDecorator {
 
     /**
      * Decorates a listener of unknown type.
-     * <p>
+     *
      * @param registrationPoint the place that the listener was registered - used in the operation description / details
      * @param listener the listener object to decorate
      * @see #decorate(String, Class, Object)

@@ -20,10 +20,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -37,6 +40,9 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
         registration.add(DesugaredAttributeContainerSerializer.class);
         registration.add(MavenMutableModuleMetadataFactory.class);
         registration.add(IvyMutableModuleMetadataFactory.class);
+        registration.add(PreferJavaRuntimeVariant.class);
+        registration.add(ImmutableAttributesSchemaFactory.class);
+        registration.add(AttributeSchemaServices.class);
     }
 
     @Provides

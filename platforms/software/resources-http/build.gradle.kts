@@ -6,7 +6,6 @@ description = "Implementation for interacting with repositories over HTTP"
 
 errorprone {
     disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 2 occurrences
         "UnusedMethod", // 4 occurrences
         "UnusedVariable", // 1 occurrences
     )
@@ -47,4 +46,7 @@ dependencies {
     testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

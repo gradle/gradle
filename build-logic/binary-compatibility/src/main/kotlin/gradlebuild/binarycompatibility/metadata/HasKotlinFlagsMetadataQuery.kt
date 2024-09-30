@@ -16,34 +16,28 @@
 
 package gradlebuild.binarycompatibility.metadata
 
-import kotlinx.metadata.Flag
-import kotlinx.metadata.Flags
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmConstructor
 import kotlinx.metadata.KmFunction
 import kotlinx.metadata.KmPackage
 import kotlinx.metadata.KmProperty
+import kotlinx.metadata.KmPropertyAccessorAttributes
+import kotlinx.metadata.Visibility
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.fieldSignature
 import kotlinx.metadata.jvm.getterSignature
 import kotlinx.metadata.jvm.setterSignature
 import kotlinx.metadata.jvm.signature
+import kotlinx.metadata.visibility
 import java.util.function.Supplier
 
 
 internal
-fun KotlinClassMetadata.hasKotlinFlag(memberType: MemberType, jvmSignature: String, flag: Flag): Boolean =
-    hasKotlinFlags(memberType, jvmSignature) { flags ->
-        flag(flags)
-    }
-
-
-private
-fun KotlinClassMetadata.hasKotlinFlags(memberType: MemberType, jvmSignature: String, predicate: (Flags) -> Boolean): Boolean =
+fun KotlinClassMetadata.hasAttribute(memberType: MemberType, jvmSignature: String, predicate: AttributePredicate): Boolean =
     when (this) {
-        is KotlinClassMetadata.Class -> hasClassFlags(this::toKmClass, memberType, jvmSignature, predicate)
-        is KotlinClassMetadata.FileFacade -> hasPackageFlags(this::toKmPackage, memberType, jvmSignature, predicate)
-        is KotlinClassMetadata.MultiFileClassPart -> hasPackageFlags(this::toKmPackage, memberType, jvmSignature, predicate)
+        is KotlinClassMetadata.Class -> hasClassAttribute(this::kmClass, memberType, jvmSignature, predicate)
+        is KotlinClassMetadata.FileFacade -> hasPackageAttribute(this::kmPackage, memberType, jvmSignature, predicate)
+        is KotlinClassMetadata.MultiFileClassPart -> hasPackageAttribute(this::kmPackage, memberType, jvmSignature, predicate)
         is KotlinClassMetadata.MultiFileClassFacade -> false
         is KotlinClassMetadata.SyntheticClass -> false
         is KotlinClassMetadata.Unknown -> false
@@ -52,63 +46,85 @@ fun KotlinClassMetadata.hasKotlinFlags(memberType: MemberType, jvmSignature: Str
 
 
 private
-typealias FlagsPredicate = (Flags) -> Boolean
-
-
-private
-fun hasClassFlags(kmClassSupplier: Supplier<KmClass>, memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): Boolean {
+fun hasClassAttribute(kmClassSupplier: Supplier<KmClass>, memberType: MemberType, jvmSignature: String, predicate: AttributePredicate): Boolean {
     val kmClass = kmClassSupplier.get()
     return when (memberType) {
-        MemberType.TYPE -> hasTypeFlags(kmClass, jvmSignature, predicate)
-        MemberType.FIELD -> hasPropertyFlags(kmClass::properties, jvmSignature, predicate)
-        MemberType.CONSTRUCTOR -> hasConstructorFlags(kmClass::constructors, jvmSignature, predicate)
-        MemberType.METHOD -> hasFunctionFlags(kmClass::functions, jvmSignature, predicate) ||
-            hasPropertyFlags(kmClass::properties, jvmSignature, predicate)
+        MemberType.TYPE -> hasTypeAttribute(kmClass, jvmSignature, predicate)
+        MemberType.FIELD -> hasPropertyAttribute(kmClass::properties, jvmSignature, predicate)
+        MemberType.CONSTRUCTOR -> hasConstructorAttribute(kmClass::constructors, jvmSignature, predicate)
+        MemberType.METHOD -> hasFunctionAttribute(kmClass::functions, jvmSignature, predicate) ||
+            hasPropertyAttribute(kmClass::properties, jvmSignature, predicate)
     }
 }
 
 
 private
-fun hasPackageFlags(kmPackageSupplier: Supplier<KmPackage>, memberType: MemberType, jvmSignature: String, predicate: FlagsPredicate): Boolean {
+fun hasPackageAttribute(kmPackageSupplier: Supplier<KmPackage>, memberType: MemberType, jvmSignature: String, predicate: AttributePredicate): Boolean {
     val kmPackage = kmPackageSupplier.get()
     return when (memberType) {
-        MemberType.FIELD -> hasPropertyFlags(kmPackage::properties, jvmSignature, predicate)
-        MemberType.METHOD -> hasFunctionFlags(kmPackage::functions, jvmSignature, predicate) ||
-            hasPropertyFlags(kmPackage::properties, jvmSignature, predicate)
+        MemberType.FIELD -> hasPropertyAttribute(kmPackage::properties, jvmSignature, predicate)
+        MemberType.METHOD -> hasFunctionAttribute(kmPackage::functions, jvmSignature, predicate) ||
+            hasPropertyAttribute(kmPackage::properties, jvmSignature, predicate)
         else -> false
     }
 }
 
 
 private
-fun hasTypeFlags(kmClass: KmClass, jvmSignature: String, predicate: FlagsPredicate): Boolean =
+fun hasTypeAttribute(kmClass: KmClass, jvmSignature: String, predicate: AttributePredicate): Boolean =
     when (jvmSignature) {
-        kmClass.name.replace("/", ".") -> predicate(kmClass.flags)
+        kmClass.name.replace("/", ".") -> predicate.match(kmClass)
         else -> false
     }
 
 
 private
-fun hasConstructorFlags(constructorsSupplier: Supplier<MutableList<KmConstructor>>, jvmSignature: String, predicate: FlagsPredicate) =
-    constructorsSupplier.get().firstOrNull { c -> jvmSignature == c.signature?.asString() }?.flags?.let { predicate(it) } ?: false
+fun hasConstructorAttribute(constructorsSupplier: Supplier<MutableList<KmConstructor>>, jvmSignature: String, predicate: AttributePredicate) =
+    constructorsSupplier.get().firstOrNull { c -> jvmSignature == c.signature?.toString() }?.let { predicate.match(it) } ?: false
 
 
 private
-fun hasFunctionFlags(functionsSupplier: Supplier<MutableList<KmFunction>>, jvmSignature: String, predicate: FlagsPredicate) =
+fun hasFunctionAttribute(functionsSupplier: Supplier<MutableList<KmFunction>>, jvmSignature: String, predicate: AttributePredicate) =
     functionsSupplier.get().firstOrNull {
-        jvmSignature == it.signature?.asString()
-    }?.flags?.let { predicate(it) } ?: false
+        jvmSignature == it.signature?.toString()
+    }?.let { predicate.match(it) } ?: false
 
 
 private
-fun hasPropertyFlags(propertiesSupplier: Supplier<MutableList<KmProperty>>, jvmSignature: String, predicate: FlagsPredicate): Boolean {
+fun hasPropertyAttribute(propertiesSupplier: Supplier<MutableList<KmProperty>>, jvmSignature: String, predicate: AttributePredicate): Boolean {
     val properties = propertiesSupplier.get()
     for (p in properties) {
         when (jvmSignature) {
-            p.fieldSignature?.asString() -> return predicate(p.flags)
-            p.getterSignature?.asString() -> return predicate(p.getterFlags)
-            p.setterSignature?.asString() -> return predicate(p.setterFlags)
+            p.fieldSignature?.toString() -> return predicate.match(p)
+            p.getterSignature?.toString() -> return predicate.match(p.getter)
+            p.setterSignature?.toString() -> return p.setter?.let { predicate.match(it) } ?: false
         }
     }
     return false
+}
+
+interface AttributePredicate {
+    fun match(kmClass: KmClass): Boolean
+    fun match(kmConstructor: KmConstructor): Boolean
+    fun match(kmProperty: KmProperty): Boolean
+    fun match(kmFunction: KmFunction): Boolean
+    fun match(kmPropertyAccessorAttributes: KmPropertyAccessorAttributes): Boolean
+
+    companion object Factory {
+        fun visibility(visibility: Visibility): AttributePredicate = object: AttributePredicate {
+            override fun match(kmClass: KmClass) = kmClass.visibility == visibility
+            override fun match(kmConstructor: KmConstructor) = kmConstructor.visibility == visibility
+            override fun match(kmProperty: KmProperty) = kmProperty.visibility == visibility
+            override fun match(kmFunction: KmFunction) = kmFunction.visibility == visibility
+            override fun match(kmPropertyAccessorAttributes: KmPropertyAccessorAttributes) = kmPropertyAccessorAttributes.visibility == visibility
+        }
+
+        fun functionAttribute(test: (KmFunction) -> Boolean): AttributePredicate = object: AttributePredicate {
+            override fun match(kmClass: KmClass) = false
+            override fun match(kmConstructor: KmConstructor) = false
+            override fun match(kmProperty: KmProperty) = false
+            override fun match(kmFunction: KmFunction) = test(kmFunction)
+            override fun match(kmPropertyAccessorAttributes: KmPropertyAccessorAttributes) = false
+        }
+    }
 }

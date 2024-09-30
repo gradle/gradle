@@ -16,15 +16,10 @@
 
 package org.gradle.internal.component.external.model
 
-import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import spock.lang.Specification
-
-import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractLazyModuleComponentResolveMetadataTest extends Specification {
 
@@ -54,9 +49,5 @@ abstract class AbstractLazyModuleComponentResolveMetadataTest extends Specificat
 
     def configuration(String name, List<String> extendsFrom = []) {
         configurations.add(new Configuration(name, true, true, extendsFrom))
-    }
-
-    def dependency(String org, String module, String version) {
-        dependencies.add(new IvyDependencyDescriptor(newSelector(org, module, new DefaultMutableVersionConstraint(version)), ImmutableListMultimap.of()))
     }
 }

@@ -218,6 +218,32 @@ Extended Configurations
 """)
     }
 
+    def "extending a configuration from the buildscript is deprecated"() {
+        settingsFile """
+            rootProject.name = 'foo'
+        """
+        buildFile """
+            configurations {
+                resolvable('conf1') {
+                    extendsFrom(buildscript.configurations.classpath)
+                }
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning("Configuration 'conf1' in root project 'foo' extends configuration 'classpath' in buildscript of root project 'foo'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Configurations can only extend from configurations in the same project. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#extending_configurations_in_same_project")
+        succeeds ':resolvableConfigurations', '--configuration', 'conf1'
+        outputContains("""
+--------------------------------------------------
+Configuration conf1
+--------------------------------------------------
+
+Extended Configurations
+    - classpath
+""")
+
+    }
+
     def "extending a configuration in same project is fine"() {
         given:
         buildFile """

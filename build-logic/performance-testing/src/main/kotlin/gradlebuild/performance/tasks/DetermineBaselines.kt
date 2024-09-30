@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 // Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
+import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
@@ -30,8 +31,18 @@ import javax.inject.Inject
 const val FLAKINESS_DETECTION_COMMIT_BASELINE = "flakiness-detection-commit"
 
 
+interface CommandExecutor {
+    fun execAndGetStdout(vararg args: String): String
+}
+
+
+open class DefaultCommandExecutor @Inject constructor(private val exec: ExecOperations) : CommandExecutor {
+    override fun execAndGetStdout(vararg args: String): String = exec.execAndGetStdout(*args)
+}
+
+
 @DisableCachingByDefault(because = "Not worth caching")
-abstract class DetermineBaselines @Inject constructor(@get:Internal val distributed: Boolean) : DefaultTask() {
+abstract class DetermineBaselines @Inject constructor(@get:Internal val distributed: Boolean, @get:Internal val commandExecutor: CommandExecutor) : DefaultTask() {
 
     @get:Internal
     abstract val configuredBaselines: Property<String>
@@ -44,6 +55,9 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
 
     @get:Internal
     abstract val logicalBranch: Property<String>
+
+    @get:Inject
+    protected abstract val execOperations: ExecOperations
 
     @TaskAction
     fun determineForkPointCommitBaseline() {
@@ -73,21 +87,21 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun currentBranchIsMasterOrRelease() = logicalBranch.get() in listOf("master", "release")
 
     private
-    fun currentCommitBaseline() = commitBaseline(project.execAndGetStdout("git", "rev-parse", "HEAD"))
+    fun currentCommitBaseline() = commitBaseline(commandExecutor.execAndGetStdout("git", "rev-parse", "HEAD"))
 
     private
-    fun isSecurityAdvisoryFork(): Boolean = project.execAndGetStdout("git", "remote", "-v")
+    fun isSecurityAdvisoryFork(): Boolean = commandExecutor.execAndGetStdout("git", "remote", "-v")
         .lines()
         .any { it.contains("gradle/gradle-ghsa") } // ghsa = github-security-advisory
 
     private
     fun forkPointCommitBaseline(): String {
         val source = tryGetUpstream() ?: "origin"
-        project.execAndGetStdout("git", "fetch", source, "master", "release")
-        val masterForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
-        val releaseForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
+        commandExecutor.execAndGetStdout("git", "fetch", source, "master", "release")
+        val masterForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
+        val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
         val forkPointCommit =
-            if (project.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
+            if (execOperations.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
                 releaseForkPointCommit
             else
                 masterForkPointCommit
@@ -95,7 +109,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     }
 
     private
-    fun tryGetUpstream(): String? = project.execAndGetStdout("git", "remote", "-v")
+    fun tryGetUpstream(): String? = commandExecutor.execAndGetStdout("git", "remote", "-v")
         .lines()
         .find { it.contains("git@github.com:gradle/gradle.git") || it.contains("https://github.com/gradle/gradle.git") }
         .let {
@@ -106,8 +120,8 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
 
     private
     fun commitBaseline(commit: String): String {
-        val baseVersionOnForkPoint = project.execAndGetStdout("git", "show", "$commit:version.txt")
-        val shortCommitId = project.execAndGetStdout("git", "rev-parse", "--short", commit)
+        val baseVersionOnForkPoint = commandExecutor.execAndGetStdout("git", "show", "$commit:version.txt")
+        val shortCommitId = commandExecutor.execAndGetStdout("git", "rev-parse", "--short", commit)
         return "$baseVersionOnForkPoint-commit-$shortCommitId"
     }
 }

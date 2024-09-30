@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -106,7 +105,7 @@ public class DynamicVersionResolver {
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<>();
 
-        List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
+        List<RepositoryResolveState> resolveStates = new ArrayList<>(repositories.size());
         for (ModuleComponentRepository<ModuleComponentGraphResolveState> repository : repositories) {
             resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy));
         }

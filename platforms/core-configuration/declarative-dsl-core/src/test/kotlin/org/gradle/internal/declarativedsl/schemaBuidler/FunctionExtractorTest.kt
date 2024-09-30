@@ -17,19 +17,21 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.Test
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
+import org.gradle.internal.declarativedsl.assertIs
 
 
-object FunctionExtractorTest {
+class FunctionExtractorTest {
     @Test
     fun `adding function may have a configuring lambda if it returns the added value`() {
         val schema = schemaFromTypes(ReceiverOne::class, listOf(ReceiverOne::class))
-        val function = schema.dataClassesByFqName.values.single().memberFunctions.single()
+        val dataClass = schema.dataClassTypesByFqName.values.single() as DataClass
+        val function = dataClass.memberFunctions.single()
         assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }
 
@@ -44,7 +46,8 @@ object FunctionExtractorTest {
     @Test
     fun `adding function with no lambda is accepted if it returns Unit`() {
         val schema = schemaFromTypes(ReceiverThree::class, listOf(ReceiverThree::class))
-        val function = schema.dataClassesByFqName.values.single().memberFunctions.single()
+        val dataClass = schema.dataClassTypesByFqName.values.single() as DataClass
+        val function = dataClass.memberFunctions.single()
         assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }
 

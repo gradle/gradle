@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.initialization.ClassLoaderScopeId
@@ -25,6 +26,9 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
 import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
 import org.gradle.internal.cc.impl.serialize.ScopeLookup
+import org.gradle.internal.cc.impl.serialize.describeClassLoader
+import org.gradle.internal.cc.impl.serialize.describeKnownClassLoaders
+import org.gradle.internal.classloader.DelegatingClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.graph.ClassLoaderRole
@@ -90,6 +94,11 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
         }
     }
 
+    override val knownClassLoaders: Set<ClassLoader>
+        get() = synchronized(lock) {
+            ImmutableSet.copyOf(loaders.keys)
+        }
+
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
             assertNotDisposed("childScopeCreated")
@@ -115,10 +124,18 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
+        require(classLoader !is DelegatingClassLoader) {
+            "Unexpected delegating ${describeClassLoader(classLoader)} with id '$classLoaderId' " +
+                "for scope '$scopeId' with classpath '$classPath'.\n" +
+                describeKnownClassLoaders() +
+                "Please report this error, run './gradlew --stop' and try again."
+        }
         synchronized(lock) {
             assertNotDisposed("classloaderCreated")
             val spec = scopeSpecs[scopeId]
-            require(spec != null)
+            check(spec != null) {
+                "Spec for ClassLoaderScope '$scopeId' not found!"
+            }
             // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
             //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
             val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId

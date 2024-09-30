@@ -17,13 +17,9 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(UnitTestPreconditions.NotMacOs)
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIB_CLASS = "hello.cpp"
@@ -32,7 +28,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @ToBeFixedForConfigurationCache(because = "cpp-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-library', '--dsl', scriptDsl.id)
@@ -62,7 +57,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "cpp-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-library', '--project-name', 'greeting', '--dsl', scriptDsl.id)
@@ -93,7 +87,6 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
 
-    @ToBeFixedForConfigurationCache(because = "cpp-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/cpp/hola.cpp") << """

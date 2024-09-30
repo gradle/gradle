@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
@@ -41,18 +42,21 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     private final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
 
-    public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
-                                         ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-                                         ArtifactCacheMetadata artifactCacheMetadata,
-                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                         AttributeContainerSerializer attributeContainerSerializer,
-                                         MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                         IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                                         Interner<String> stringInterner,
-                                         ModuleSourcesSerializer moduleSourcesSerializer,
-                                         ChecksumService checksumService) {
+    public PersistentModuleMetadataCache(
+        BuildCommencedTimeProvider timeProvider,
+        ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+        ArtifactCacheMetadata artifactCacheMetadata,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
+        MavenMutableModuleMetadataFactory mavenMetadataFactory,
+        IvyMutableModuleMetadataFactory ivyMetadataFactory,
+        Interner<String> stringInterner,
+        ModuleSourcesSerializer moduleSourcesSerializer,
+        ChecksumService checksumService
+    ) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
         this.artifactCacheLockingManager = cacheAccessCoordinator;
     }
 

@@ -2,20 +2,18 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
-
 import org.gradle.internal.classpath.ClassPath
-
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.support.useToRun
-
 import org.hamcrest.CoreMatchers.equalTo
-
-import org.junit.Assert.assertFalse
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertNull
 import org.junit.Test
-
+import org.junit.jupiter.api.assertAll
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 
 @Suppress("unused")
@@ -32,26 +30,43 @@ class PrivateComponentType
 class ProjectSchemaTest : TestWithClassPath() {
 
     @Test
-    fun `#isLegalAccessorName rejects illegal Kotlin extension names`() {
+    fun `AccessorNameSpec#createOrNull creates instance when name is valid`() {
 
-        assert(isLegalAccessorName("foo_bar"))
-        assert(isLegalAccessorName("foo-bar"))
-        assert(isLegalAccessorName("foo bar"))
-        assert(isLegalAccessorName("'foo'bar'"))
-        assert(isLegalAccessorName("foo${'$'}${'$'}bar"))
+        assertAll(
+            listOf(
+                "foo_bar",
+                "foo-bar",
+                "foo bar",
+                "'foo'bar'",
+                "foo${'$'}${'$'}bar",
+            ).map { name ->
+                { assertEquals(name, AccessorNameSpec.createOrNull(name)?.original) }
+            }
+        )
+    }
 
-        assertFalse(isLegalAccessorName("foo`bar"))
-        assertFalse(isLegalAccessorName("foo.bar"))
-        assertFalse(isLegalAccessorName("foo/bar"))
-        assertFalse(isLegalAccessorName("foo\\bar"))
+    @Test
+    fun `AccessorNameSpec#createOrNull returns null for illegal Kotlin extension names`() {
+
+        assertAll(
+            listOf(
+                "foo`bar",
+                "foo.bar",
+                "foo/bar",
+                "foo\\bar",
+            ).map { name ->
+                { assertNull(AccessorNameSpec.createOrNull(name)) }
+            }
+        )
     }
 
     @Test
     fun `accessor name spec escapes string template dollar signs`() {
 
         val original = "foo${'$'}${'$'}bar"
-        val spec = AccessorNameSpec(original)
+        val spec = AccessorNameSpec.createOrNull(original)
 
+        assertNotNull(spec)
         assertThat(spec.original, equalTo(original))
         assertThat(spec.kotlinIdentifier, equalTo(original))
         assertThat(spec.stringLiteral, equalTo("foo${'$'}{'${'$'}'}${'$'}{'${'$'}'}bar"))

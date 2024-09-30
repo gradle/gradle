@@ -17,6 +17,8 @@
 package org.gradle.api.problems.internal;
 
 
+import javax.annotation.Nullable;
+
 /**
  * Plugin ID location.
  */
@@ -27,5 +29,6 @@ public interface PluginIdLocation extends ProblemLocation {
      *
      * @return the plugin ID
      */
+    @Nullable
     String getPluginId();
 }

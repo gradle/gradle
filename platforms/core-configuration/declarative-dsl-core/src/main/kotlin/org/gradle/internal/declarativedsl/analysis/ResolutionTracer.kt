@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.Errors
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.NoResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.Resolution
@@ -69,10 +70,11 @@ class ResolutionTracer(
             Resolution(resolution)
         } ?: elementErrors[expr]?.let { errors ->
             Errors(errors)
-        } ?: NoResolution
+        } ?:
+        NoResolution
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin? {
-        val result = expressionResolver.doResolveExpression(context, expr)
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? {
+        val result = expressionResolver.doResolveExpression(context, expr, expectedType)
         if (result != null) {
             expressionResolution[expr] = result
         }

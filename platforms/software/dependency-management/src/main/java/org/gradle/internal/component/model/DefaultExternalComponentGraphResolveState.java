@@ -17,19 +17,21 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
@@ -113,13 +115,12 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), this, configuration);
     }
 
-    private static class DefaultConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private static class DefaultConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
         public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ModuleConfigurationMetadata configuration) {
-            super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
             this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(componentState.prepareForArtifactResolution().getArtifactMetadata(), configuration));
@@ -218,7 +219,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         }
 
         @Override
-        public AttributesSchemaInternal getAttributesSchema() {
+        public ImmutableAttributesSchema getAttributesSchema() {
             return metadata.getAttributesSchema();
         }
     }
@@ -239,8 +240,24 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
 
         @Nullable
         @Override
+        public VariantGraphResolveState getLegacyVariant() {
+            return doGetVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
+        }
+
+        @Nullable
+        @Override
         public VariantGraphResolveState getVariantByConfigurationName(String name) {
-            // TODO: Deprecate this method for non-ivy components.
+
+            DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-Ivy external component.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "selecting_variant_by_configuration_name")
+                .nagUser();
+
+            return doGetVariantByConfigurationName(name);
+        }
+
+        @Nullable
+        private VariantGraphResolveState doGetVariantByConfigurationName(String name) {
             ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) component.getMetadata().getConfiguration(name);
             if (configuration == null) {
                 return null;

@@ -18,21 +18,19 @@ package org.gradle.internal.cc.impl.problems
 
 class JsonModelWriter(val modelWriter: JsonWriter) {
     fun beginModel() {
-        with(modelWriter) {
+        modelWriter.run {
             beginObject()
-
             propertyName("diagnostics")
             beginArray()
         }
     }
 
     fun endModel(details: JsonSource) {
-        with(modelWriter) {
+        modelWriter.run {
             endArray()
-
             details.writeToJson(this)
-
             endObject()
         }
+        modelWriter.flush()
     }
 }

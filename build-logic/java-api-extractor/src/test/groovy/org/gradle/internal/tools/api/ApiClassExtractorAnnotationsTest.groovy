@@ -16,6 +16,9 @@
 
 package org.gradle.internal.tools.api
 
+import java.lang.annotation.ElementType
+import java.lang.reflect.Method
+
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
     void "annotations on class are retained"() {
@@ -310,6 +313,75 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         annotation.annotationType() == extractedAnn
         def stringValues = annotation.names()
         stringValues == ['foo', 'bar']
+    }
 
+    void "default values for annotations are retained"() {
+        given:
+        def api = toApi([
+            A  : '@Ann public class A {}',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE})
+                @interface Ann {
+                    int[] arr() default {};
+                    Deprecated child() default @Deprecated(since = "1.5");
+                    ElementType enum0() default ElementType.TYPE;
+                    String name() default "name";
+                    Class<?> type() default Integer.class;
+                    int value() default 42;
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.annotations
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def annClazz = api.classes.Ann
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.annotations
+
+        then:
+        annotations.size() == 1
+        def annotation = annotations[0]
+        annotation.annotationType().name == 'Ann'
+        def methods = mapMethods(annotation.annotationType().methods)
+        methods["arr"].defaultValue == []
+        annotation.arr() == []
+        methods["child"].defaultValue.annotationType() == Deprecated
+        methods["child"].defaultValue.since() == "1.5"
+        annotation.child().annotationType() == Deprecated
+        annotation.child().since() == "1.5"
+        methods["child"].defaultValue
+        methods["enum0"].defaultValue == ElementType.TYPE
+        annotation.enum0() == ElementType.TYPE
+        methods["type"].defaultValue == Integer
+        annotation.type() == Integer
+        methods["value"].defaultValue == 42
+        annotation.value() == 42
+
+        extractedAnnotations.size() == 1
+        def extractedAnnotation = extractedAnnotations[0]
+        extractedAnnotation.annotationType() == extractedAnn
+        def extractedMethods = mapMethods(extractedAnnotation.annotationType().methods)
+        extractedMethods["arr"].defaultValue == []
+        extractedAnnotation.arr() == []
+        extractedMethods["child"].defaultValue.annotationType() == Deprecated
+        extractedMethods["child"].defaultValue.since() == "1.5"
+        extractedMethods["enum0"].defaultValue == ElementType.TYPE
+        extractedAnnotation.enum0() == ElementType.TYPE
+        extractedMethods["type"].defaultValue == Integer
+        extractedAnnotation.type() == Integer
+        extractedMethods["value"].defaultValue == 42
+        extractedAnnotation.value() == 42
+    }
+
+    private static Map<String, Method> mapMethods(Method[] methods) {
+        methods.collectEntries { [it.name, it] }
     }
 }

@@ -23,6 +23,8 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.scopeids.id.UserScopeId
 import org.gradle.internal.scopeids.id.WorkspaceScopeId
 import org.gradle.internal.time.Clock
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DevelocityPluginBuildStateIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,6 +35,7 @@ class DevelocityPluginBuildStateIntegrationTest extends AbstractIntegrationSpec 
         plugin.publishDummyPlugin(executer)
     }
 
+    @Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "No daemon executor usually starts a single-use daemon, but not consistently and cannot be tested")
     def "provided build state is correct"() {
         given:
         buildFile << """

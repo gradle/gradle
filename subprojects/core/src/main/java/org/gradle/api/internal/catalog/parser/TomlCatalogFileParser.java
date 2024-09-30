@@ -49,6 +49,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -158,7 +159,7 @@ public class TomlCatalogFileParser {
         InternalProblemSpec definingLocation = builder
             .id(screamingSnakeToKebabCase(catalogProblemId.name()), "Dependency version catalog problem", GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(label)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
         InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
         return definingCategory
             .severity(ERROR);
@@ -195,7 +196,7 @@ public class TomlCatalogFileParser {
             getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".",
             getErrorText(errors),
             ImmutableList.of("Fix the TOML file according to the syntax described at https://toml.io"),
-            userManual(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase()));
+            userManual(VERSION_CATALOG_PROBLEMS, TOML_SYNTAX_ERROR.name().toLowerCase(Locale.ROOT)));
     }
 
     private String getErrorText(List<TomlParseError> errors) {

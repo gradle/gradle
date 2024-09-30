@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -78,7 +78,8 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         "subprojects" | "subprojects"
     }
 
-    def "reports cross-project model access in Gradle.#invocation"() {
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
+    def "reports cross-project model access in project-level Gradle.#invocation"() {
         createDirs("a", "b")
         settingsFile << """
             include("a")
@@ -89,12 +90,18 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        // TODO:isolated expected behavior for incremental configuration
+//        isolatedProjectsFails(":a:help")
+        isolatedProjectsRun(":a:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        // TODO:isolated expected behavior for incremental configuration
+//        fixture.assertStateStoredAndDiscarded {
+//            projectsConfigured(":", ":a")
+//            problem("Build file 'a/build.gradle.kts': Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
+//        }
+        fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle.kts': Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
         }
 
         where:

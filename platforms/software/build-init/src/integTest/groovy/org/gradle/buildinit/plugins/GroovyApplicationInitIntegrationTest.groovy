@@ -149,7 +149,11 @@ class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run('init', '--type', 'groovy-application', '--package', 'my.app', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")

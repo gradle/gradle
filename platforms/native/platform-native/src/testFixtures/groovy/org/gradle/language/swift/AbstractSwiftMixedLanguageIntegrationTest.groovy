@@ -25,11 +25,13 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.StaticLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.util.internal.VersionNumber
 
 import static org.junit.Assume.assumeTrue
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec {
     public static final String SHARED = "SHARED"
     public static final String STATIC = "STATIC"

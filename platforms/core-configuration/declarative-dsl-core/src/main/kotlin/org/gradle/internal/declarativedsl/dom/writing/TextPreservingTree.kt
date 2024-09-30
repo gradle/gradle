@@ -121,6 +121,7 @@ class TextPreservingTreeBuilder {
                 SubTreeData(ChildTag.Name, TextTreeNode(node.sourceData.nameRange(node.factoryName), node.sourceData.nameLines(node.factoryName), emptyList())),
             ) + node.values.mapIndexed { index, it -> SubTreeData(ChildTag.CallArgument(index, it), nodeForValueNode(it)) }
 
+            is DeclarativeDocument.ValueNode.NamedReferenceNode,
             is DeclarativeDocument.ValueNode.LiteralValueNode -> listOf(SubTreeData(ChildTag.UnstructuredText, TextTreeNode(node.range, node.lines, emptyList())))
         }
 

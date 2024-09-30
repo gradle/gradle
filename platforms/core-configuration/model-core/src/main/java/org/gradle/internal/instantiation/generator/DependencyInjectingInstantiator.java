@@ -22,10 +22,10 @@ import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -132,7 +132,7 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
                 if (currentParameter == null) {
                     nullPrimitiveType(i, targetType);
                 }
-                targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
+                targetType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(targetType);
             } else if (currentParameter == null) {
                 // Null is ok if the ConstructorSelector says it's ok
                 continue;
@@ -172,7 +172,7 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
                     if (parameter == null) {
                         nullPrimitiveType(i, targetType);
                     }
-                    targetType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(targetType);
+                    targetType = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(targetType);
                 }
                 if (parameter == null || targetType.isInstance(parameter)) {
                     resolvedParameters[i] = parameter;

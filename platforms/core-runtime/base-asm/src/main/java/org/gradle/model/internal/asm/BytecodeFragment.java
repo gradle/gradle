@@ -20,7 +20,10 @@ import org.objectweb.asm.MethodVisitor;
 
 public interface BytecodeFragment {
 
-    BytecodeFragment NO_OP = visitor -> {};
+    BytecodeFragment NO_OP = new BytecodeFragment() {
+        @Override
+        public void emit(MethodVisitor visitor) {}
+    };
 
     void emit(MethodVisitor visitor);
 }

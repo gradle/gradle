@@ -268,7 +268,7 @@ public class LocalTaskNode extends TaskNode {
      * Used to determine whether a {@link Node} consumes the <b>outcome</b> of a successor task vs. its output(s).
      *
      * @param dependency a non-successful successor node in the execution plan
-     * @return true if the successor node dependency was declared with an explicit dependsOn relationship, false otherwise (implying task output -> task input relationship)
+     * @return true if the successor node dependency was declared with an explicit dependsOn relationship, false otherwise (implying task output to task input relationship)
      */
     @Override
     protected boolean dependsOnOutcome(Node dependency) {

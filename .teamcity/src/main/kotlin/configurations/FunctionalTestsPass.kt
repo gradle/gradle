@@ -29,13 +29,12 @@ class FunctionalTestsPass(model: CIBuildModel, functionalTestProject: Functional
 
         applyDefaultSettings()
 
-        features {
-            publishBuildStatusToGithub(model)
-        }
-
         dependencies {
             snapshotDependencies(functionalTestProject.functionalTests)
         }
     }) {
     val testCoverage: TestCoverage = functionalTestProject.testCoverage
+
+    override val failStage: Boolean
+        get() = testCoverage.failStage
 }

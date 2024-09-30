@@ -17,18 +17,18 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
-import org.gradle.internal.component.resolution.failure.formatting.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
+import org.gradle.internal.component.resolution.failure.formatting.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 import static org.gradle.internal.exceptions.StyledException.style;
@@ -40,15 +40,24 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
+    private final AttributeDescriberRegistry attributeDescribers;
+
+    @Inject
+    public AmbiguousVariantsFailureDescriber(
+        AttributeDescriberRegistry attributeDescribers
+    ) {
+        this.attributeDescribers = attributeDescribers;
+    }
+
     @Override
-    public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
-        String message = buildFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
+    public VariantSelectionByAttributesException describeFailure(AmbiguousVariantsFailure failure) {
+        String message = buildFailureMsg(failure, attributeDescribers.getDescribers());
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 
-    protected String buildFailureMsg(AmbiguousVariantsFailure failure, AttributesSchemaInternal schema) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
+    protected String buildFailureMsg(AmbiguousVariantsFailure failure, List<AttributeDescriber> attributeDescribers) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), attributeDescribers);
         TreeFormatter formatter = new TreeFormatter();
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = summarizeAmbiguousVariants(failure, describer, formatter, true);
 

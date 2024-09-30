@@ -26,8 +26,8 @@ import org.gradle.api.specs.Spec;
 /**
  * Immutable representation of the state of dependency resolution. Can represent the result of resolving build
  * dependencies or the result of a full dependency graph resolution.
- *
- * <p> In case of failures, both fatal and partial, exceptions are attached to the {@link VisitedGraphResults}. <p>
+ * <p>
+ * In case of failures, both fatal and partial, exceptions are attached to the {@link VisitedGraphResults}.
  */
 public interface ResolverResults {
     /**
@@ -58,7 +58,7 @@ public interface ResolverResults {
      * <ul>
      *     <li>{@link ResolvedConfiguration}</li>
      *     <li>{@link org.gradle.api.artifacts.LenientConfiguration}</li>
-     *     <li>{@link org.gradle.api.artifacts.Configuration#fileCollection(Spec)}</li> and related methods
+     *     <li>{@link org.gradle.api.artifacts.Configuration#fileCollection(Spec)} and related methods</li>
      * </ul>
      */
     interface LegacyResolverResults {

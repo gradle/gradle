@@ -16,7 +16,6 @@
 package org.gradle.internal.resolve.caching;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -50,6 +49,7 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +150,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
      * @return a snapshot of the inputs
      */
     private HashCode computeExplicitInputsSnapshot(KEY key, ConfigurableRules<DETAILS> rules) {
-        List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(2 + 2 * rules.getConfigurableRules().size());
+        List<Object> toBeSnapshotted = new ArrayList<>(2 + 2 * rules.getConfigurableRules().size());
         toBeSnapshotted.add(keyToSnapshottable.transform(key));
         for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
             Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
@@ -259,7 +259,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
 
         List<ImplicitInputRecord<?, ?>> readImplicitList(Decoder decoder) throws Exception {
             int cpt = decoder.readSmallInt();
-            List<ImplicitInputRecord<?, ?>> implicits = Lists.newArrayListWithCapacity(cpt);
+            List<ImplicitInputRecord<?, ?>> implicits = new ArrayList<>(cpt);
             for (int i = 0; i < cpt; i++) {
                 final Object in = readAny(decoder);
                 final Object out = readAny(decoder);

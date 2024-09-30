@@ -25,6 +25,7 @@ import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
@@ -68,7 +69,9 @@ class DefaultGradleSpec extends Specification {
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
-    CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator)
+    CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator) {
+        getLazyBehaviorGuard() >> Mock(MutationGuard)
+    }
     GradleLifecycleActionExecutor gradleLifecycleActionExecutor = Mock(GradleLifecycleActionExecutor)
 
     GradleInternal gradle
