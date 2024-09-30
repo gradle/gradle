@@ -32,6 +32,7 @@
 
 # Kotlin embedded compiler dependencies
 -dontwarn kotlin.annotations.jvm.**
+-dontwarn org.jetbrains.concurrency.**
 -dontwarn org.jetbrains.kotlin.com.google.common.**
 -dontwarn org.jetbrains.kotlin.com.google.gson.**
 -dontwarn org.jetbrains.kotlin.com.google.errorprone.**
