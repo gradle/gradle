@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * with custom information about this particular project to be generated.
  *
  * @param <T> The type of this parameter
- * @since 8.11
+ * @since 8.12
  */
 @Incubating
 public interface InitProjectParameter<T> {
@@ -31,7 +31,7 @@ public interface InitProjectParameter<T> {
      * Returns the name of the parameter.
      *
      * @return the name of the parameter
-     * @since 8.11
+     * @since 8.12
      */
     String getName();
 
@@ -39,7 +39,7 @@ public interface InitProjectParameter<T> {
      * Returns the type of the parameter.
      *
      * @return the type of the parameter
-     * @since 8.11
+     * @since 8.12
      */
     T getParameterType();
 }

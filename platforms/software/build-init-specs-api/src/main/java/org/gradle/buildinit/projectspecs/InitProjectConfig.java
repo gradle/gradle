@@ -25,7 +25,7 @@ import java.util.Map;
  * for all of its {@link InitProjectParameter}s.
  *
  * @implSpec Implementations must be immutable.
- * @since 8.11
+ * @since 8.12
  */
 @Incubating
 public interface InitProjectConfig {
@@ -33,7 +33,7 @@ public interface InitProjectConfig {
      * Returns the project specification this configuration is meant to generate.
      *
      * @return the project specification
-     * @since 8.11
+     * @since 8.12
      */
     InitProjectSpec getProjectSpec();
 
@@ -41,7 +41,7 @@ public interface InitProjectConfig {
      * Returns the configured parameters for the project specification this instance configures.
      *
      * @return the parameters that have been configured for the spec
-     * @since 8.11
+     * @since 8.12
      */
     Map<InitProjectParameter<?>, Object> getArguments();
 }

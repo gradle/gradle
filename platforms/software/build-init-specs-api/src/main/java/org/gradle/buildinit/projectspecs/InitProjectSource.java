@@ -28,7 +28,7 @@ import java.util.List;
  * for generating projects.
  *
  * @implSpec Implementations should be {@code public}, and provide an (implicit or explicit) 0-argument constructor.
- * @since 8.11
+ * @since 8.12
  */
 @Incubating
 public interface InitProjectSource {
@@ -36,7 +36,7 @@ public interface InitProjectSource {
      * Returns specifications of the project types this source can generate.
      *
      * @return the project specifications
-     * @since 8.11
+     * @since 8.12
      */
     List<InitProjectSpec> getProjectSpecs();
 
@@ -47,7 +47,7 @@ public interface InitProjectSource {
      * and will be used to generate the projects.
      *
      * @return project generator for this source's specs
-     * @since 8.11
+     * @since 8.12
      */
     Class<? extends InitProjectGenerator> getProjectGenerator();
 }

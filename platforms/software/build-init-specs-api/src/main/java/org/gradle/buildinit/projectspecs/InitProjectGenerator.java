@@ -25,7 +25,7 @@ import org.gradle.api.file.Directory;
  * @implSpec Implementations should be {@code public}, {@code abstract} and provide an (implicit or explicit)
  * 0-argument constructor, as Gradle will instantiate them and inject any specified services.  Generators are
  * <strong>NOT</strong> expected to generate Gradle wrapper files.
- * @since 8.11
+ * @since 8.12
  */
 @Incubating
 public interface InitProjectGenerator {
@@ -34,7 +34,7 @@ public interface InitProjectGenerator {
      *
      * @param config the configuration for the project to generate
      * @param projectDir the directory that will contain the new project
-     * @since 8.11
+     * @since 8.12
      */
     void generate(InitProjectConfig config, Directory projectDir);
 }

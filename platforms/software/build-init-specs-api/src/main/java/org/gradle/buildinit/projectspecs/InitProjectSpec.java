@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @implSpec Meant to be implemented by plugins that want to provide additional project types, with implementations
  * being discoverable by a {@link java.util.ServiceLoader}.
- * @since 8.11
+ * @since 8.12
  */
 @Incubating
 public interface InitProjectSpec extends Describable {
@@ -39,7 +39,7 @@ public interface InitProjectSpec extends Describable {
      * default, this is the proper-cased version of {@link #getType()}.
      *
      * @return a name providing a brief description of this type of project
-     * @since 8.11
+     * @since 8.12
      */
     @Override
     default String getDisplayName() {
@@ -57,7 +57,7 @@ public interface InitProjectSpec extends Describable {
      *
      * @return type id for this type of project
      * @implSpec Must be unique amongst all project types contributed by a plugin.
-     * @since 8.11
+     * @since 8.12
      */
     String getType();
 
@@ -65,7 +65,7 @@ public interface InitProjectSpec extends Describable {
      * Returns the parameters that can be provided to configure this project during generation.
      *
      * @return the parameters for this type of project specification
-     * @since 8.11
+     * @since 8.12
      */
     default List<InitProjectParameter<?>> getParameters() {
         return Collections.emptyList();
