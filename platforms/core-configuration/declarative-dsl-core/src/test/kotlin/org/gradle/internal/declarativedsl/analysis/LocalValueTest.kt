@@ -2,7 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -68,7 +68,7 @@ class LocalValueTest {
             errorReasons.any {
                 with(it) {
                     this is ErrorReason.UnresolvedReference && reference.run {
-                        this is PropertyAccess && name == "m"
+                        this is NamedReference && name == "m"
                     }
                 }
             }

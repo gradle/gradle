@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -55,6 +56,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
 
     @Requires(IntegTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4488")
     def "build generated visual studio solution"() {
         useMsbuildTool()
 

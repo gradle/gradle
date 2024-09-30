@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema
+package org.gradle.internal.classloader;
 
-
-interface DataClass : DataType.ClassDataType {
-    val supertypes: Set<FqName>
-    val properties: List<DataProperty>
-    val memberFunctions: List<SchemaMemberFunction>
-    val constructors: List<DataConstructor>
+/**
+ * Marker interface for {@link ClassLoader} types that always delegate
+ * classloading thus are never visible via {@link Class#getClassLoader()}.
+ */
+public interface DelegatingClassLoader {
 }

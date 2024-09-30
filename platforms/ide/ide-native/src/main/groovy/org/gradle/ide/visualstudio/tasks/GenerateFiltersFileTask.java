@@ -34,6 +34,7 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,11 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
     private transient DefaultVisualStudioProject visualStudioProject;
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getFiltersFile().getLocation()));
     private final Cached<FiltersSpec> spec = Cached.of(this::calculateSpec);
+
+    @Inject
+    public GenerateFiltersFileTask(DefaultVisualStudioProject visualStudioProject) {
+        setVisualStudioProject(visualStudioProject);
+    }
 
     @Override
     protected boolean getIncremental() {

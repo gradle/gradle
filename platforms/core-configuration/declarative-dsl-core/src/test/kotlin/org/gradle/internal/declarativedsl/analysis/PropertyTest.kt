@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -61,7 +62,7 @@ class PropertyTest {
             propertyExtractor = testPropertyContributor(expectedName, typeOf<Int>()) + testPropertyContributor(expectedName, typeOf<String>())
         )
 
-        val property = schema.dataClassesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
+        val property = (schema.dataClassTypesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!! as DataClass).properties.single()
         assertEquals(expectedName, property.name)
         assertEquals(DataTypeInternal.DefaultIntDataType.ref, property.valueType)
     }

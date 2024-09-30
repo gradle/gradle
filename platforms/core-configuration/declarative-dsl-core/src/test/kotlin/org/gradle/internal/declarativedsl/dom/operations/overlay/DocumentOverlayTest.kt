@@ -272,7 +272,7 @@ class DocumentOverlayTest {
                 * property(b, literal(6)) -> FromOverlay(documentNode=property(b, literal(6)))
                     - literal(6) -> FromOverlay(documentNode=property(b, literal(6)))
                 * element(unresolved5, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved5, [], content.size = 0))
-                * error(UnsupportedSyntax(cause=UnsupportedPropertyAccess)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=UnsupportedPropertyAccess)))
+                * error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)))
             * element(unresolved6, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved6, [], content.size = 0))
 
             """.trimIndent(),
@@ -441,5 +441,7 @@ class DocumentOverlayTest {
         is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> "literal"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved -> "valueFactory"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryNotResolved -> "valueFactoryNotResolved"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceResolved -> "namedReference"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceNotResolved -> "namedReferenceNotResolved"
     }
 }

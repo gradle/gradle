@@ -23,7 +23,6 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.functional)
     implementation(projects.loggingApi)
-    implementation(projects.processServices)
 
     implementation(libs.bouncycastleProvider)
     implementation(libs.guava)

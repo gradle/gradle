@@ -19,10 +19,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
@@ -36,6 +33,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         super.requireDaemon();
+    }
+
+    @Override
+    protected boolean isSingleUseDaemonRequested() {
+        return resolveCliDaemonArgument() == NO_DAEMON && requireDaemon;
     }
 
     @Override
@@ -53,32 +55,6 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     protected boolean isDaemonExplicitlyRequired() {
         return daemonExplicitlyRequired || resolveCliDaemonArgument() == CliDaemonArgument.DAEMON;
-    }
-
-    @Override
-    protected List<String> getAllArgs() {
-        List<String> args = new ArrayList<String>(super.getAllArgs());
-        if(!isQuiet() && isAllowExtraLogging()) {
-            if (!containsLoggingArgument(args)) {
-                args.add(0, "-i");
-            }
-        }
-
-        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
-        if (getUserHomeDir() != null) {
-            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
-        }
-
-        return args;
-    }
-
-    private boolean containsLoggingArgument(List<String> args) {
-        for (String logArg : asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet")) {
-            if (args.contains(logArg)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

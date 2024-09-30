@@ -27,7 +27,6 @@ dependencies {
     api(projects.fileOperations)
     api(projects.logging)
     api(projects.messaging)
-    api(projects.processServices)
     api(projects.reporting)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)

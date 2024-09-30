@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.fail;
 
@@ -53,6 +54,15 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
+    }
+
+    @Override
+    protected boolean isSingleUseDaemonRequested() {
+        if (!requireDaemon) {
+            return false;
+        }
+        CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
+        return cliDaemonArgument == CliDaemonArgument.NOT_DEFINED || cliDaemonArgument == CliDaemonArgument.NO_DAEMON;
     }
 
     @Override
@@ -75,6 +85,12 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected void transformInvocation(GradleInvocation invocation) {
+        if (!invocation.buildJvmArgs.isEmpty() && !isUseDaemon() && !isSingleUseDaemonRequested()) {
+            // Ensure the arguments match between the launcher and the expected daemon args
+            String quotedArgs = joinAndQuoteJvmArgs(invocation.buildJvmArgs);
+            invocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+        }
+
         if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             // Mix the implicit launcher JVM args in with the requested JVM args
             super.transformInvocation(invocation);
@@ -117,13 +133,33 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<>(super.getAllArgs());
         addPropagatedSystemProperties(args);
+        if(!isQuiet() && isAllowExtraLogging()) {
+            if (!containsLoggingArgument(args)) {
+                args.add(0, "-i");
+            }
+        }
+
+        // Workaround for https://issues.gradle.org/browse/GRADLE-2625
+        if (getUserHomeDir() != null) {
+            args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
+        }
+
         return args;
+    }
+
+    private boolean containsLoggingArgument(List<String> args) {
+        for (String logArg : asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet")) {
+            if (args.contains(logArg)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
-        if (!isUseDaemon() && getJavaVersionFromJavaHome().isJava9Compatible()) {
+        if (!isUseDaemon() && !isSingleUseDaemonRequested() && getJavaVersionFromJavaHome().isJava9Compatible()) {
             buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
         }
         return buildJvmOptions;

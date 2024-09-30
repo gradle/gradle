@@ -12,7 +12,6 @@ dependencies {
     api(projects.coreApi)
     api(projects.problemsApi)
     api(projects.hashing)
-    api(projects.processServices)
     api(projects.baseServices)
     api(projects.files)
     api(projects.functional)
