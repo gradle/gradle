@@ -103,7 +103,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kot
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
-"To" attributes are supply describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
+"To" attributes are used to supply describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
 
 === 4. Use the Transform
 
