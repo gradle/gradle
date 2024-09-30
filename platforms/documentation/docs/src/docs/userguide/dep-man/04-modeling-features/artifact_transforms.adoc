@@ -172,7 +172,7 @@ Matches do not have to exact, as some attribute values can be identified to Grad
 Sometimes, a dependency might not have a variant with attributes that match the requested attributes.
 In such cases, Gradle can transform one variant into another "vitual variant" by modifying its artifacts without changing its transitive dependencies.
 
-IMPORTANT: Gradle will not ever attempt to select or run Artifact Transforms when a variant of the dependency matching the requested attributes already exists.
+IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a variant of the dependency matching the requested attributes already exists.
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
