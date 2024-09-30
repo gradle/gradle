@@ -105,7 +105,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/gro
 
 "To" attributes are supply describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
 
-=== 3. Use the Transform
+=== 4. Use the Transform
 
 During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
 
