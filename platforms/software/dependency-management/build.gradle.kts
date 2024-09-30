@@ -172,6 +172,7 @@ dependencies {
     }
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
     crossVersionTestImplementation(libs.jettyWebApp)
+    crossVersionTestImplementation(libs.groovy)
 }
 
 packageCycles {

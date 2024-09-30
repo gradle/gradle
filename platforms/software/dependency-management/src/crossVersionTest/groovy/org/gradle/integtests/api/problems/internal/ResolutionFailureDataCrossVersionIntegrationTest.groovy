@@ -25,7 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
-import spock.lang.Ignore
+import org.gradle.tooling.events.problems.SingleProblemEvent
 
 /**
  * Tests that the tooling API can receive and process a problem containing additional {@link ResolutionFailureData}
@@ -33,7 +33,6 @@ import spock.lang.Ignore
  */
 @TargetGradleVersion(">=8.11")
 @ToolingApiVersion(">=8.11")
-@Ignore("https://github.com/gradle/gradle-private/issues/4490")
 class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecification {
     def "can supply ResolutionFailureData"() {
         given:
@@ -47,8 +46,9 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems().collect { ProblemEvent problem ->
-            problem.additionalData as GeneralData
+        def problemEvents = runAndGetProblems()
+        List<GeneralData> failureData = problemEvents.collect { ProblemEvent problemEvent ->
+            ((SingleProblemEvent) problemEvent).additionalData as GeneralData
         }
 
         then:
