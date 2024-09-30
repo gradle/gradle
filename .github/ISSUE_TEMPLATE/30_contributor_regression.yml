@@ -34,7 +34,7 @@ body:
   - type: textarea
     id: steps-to-reproduce
     attributes:
-      label: Steps to Reproduce
+      label: Self-contained Reproducer Project
       description: |
         Provide a [minimal, self-contained example](https://en.wikipedia.org/wiki/Minimal_reproducible_example) project demonstrating the problem as a GitHub repository or an attached archive.
         You can use [the template](https://github.com/gradle/gradle-issue-reproducer) with a Gradle GitHub action set up to showcase your problem.

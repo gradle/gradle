@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -68,7 +67,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final DependencyState dependencyState;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
-    private final List<ComponentSelectionDescriptorInternal> dependencyReasons = Lists.newArrayListWithExpectedSize(4);
+    private final List<ComponentSelectionDescriptorInternal> dependencyReasons = new ArrayList<>(4);
     private final boolean isProjectSelector;
     private final AttributeDesugaring attributeDesugaring;
 
@@ -124,16 +123,16 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    public void release(ResolutionConflictTracker conflictTracker) {
+    public void release() {
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
-            removeAndMarkSelectorForReuse(conflictTracker);
+            removeAndMarkSelectorForReuse();
         }
     }
 
-    private void removeAndMarkSelectorForReuse(ResolutionConflictTracker conflictTracker) {
-        targetModule.removeSelector(this, conflictTracker);
+    private void removeAndMarkSelectorForReuse() {
+        targetModule.removeSelector(this);
         resolved = false;
     }
 
@@ -249,6 +248,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
         this.reusable = true;
         if (markedReusableAlready) {
+            // TODO: We have hit an unstable graph. This selector has already added, removed, added again,
+            // and we are removing it once again. We should fail the resolution here and ask the user
+            // to fix the graph -- likely by adding a version constraint.
             return true;
         } else {
             markedReusableAlready = true;
@@ -257,11 +259,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     /**
-     * Checks if the selector can be used for resolution.
+     * Checks if the selector affects selection at the moment it is added to a module
      *
      * @return {@code true} if the selector can resolve, {@code false} otherwise
      */
-    boolean canResolve() {
+    boolean canAffectSelection() {
         if (reusable) {
             return true;
         }
@@ -276,7 +278,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.resolved = true;
         this.reusable = false;
 
-        // Target module can change, if this is called as the result of a module replacement conflict.
+        // Target module can change, if this is called as the result of a module or capability replacement conflict.
         this.targetModule = selected.getModule();
     }
 

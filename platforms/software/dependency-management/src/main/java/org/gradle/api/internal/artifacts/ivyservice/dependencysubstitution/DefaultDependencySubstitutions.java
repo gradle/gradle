@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -62,7 +62,6 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -314,7 +313,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void convert(String notation, NotationConvertResult<? super ProjectComponentSelector> result) throws TypeConversionException {
             ProjectIdentity id = build.getProjects().getProject(Path.path(notation)).getIdentity();
-            result.converted(new DefaultProjectComponentSelector(id, ImmutableAttributes.EMPTY, Collections.emptyList()));
+            result.converted(new DefaultProjectComponentSelector(id, ImmutableAttributes.EMPTY, ImmutableSet.of()));
         }
     }
 
@@ -363,7 +362,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                         return DefaultProjectComponentSelector.withAttributesAndCapabilities(
                             projectSelector,
                             ((AttributeContainerInternal) requested.getAttributes()).asImmutable(),
-                            requested.getRequestedCapabilities()
+                            ImmutableSet.copyOf(requested.getCapabilitySelectors())
                         );
                     }
                     return notation;
@@ -569,9 +568,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             );
             configurationAction.execute(handler);
             if (selector instanceof ProjectComponentSelector) {
-                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, ImmutableList.copyOf(handler.getRequestedCapabilities().get()));
+                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, ImmutableSet.copyOf(handler.getCapabilitySelectors().get()));
             } else if (selector instanceof ModuleComponentSelector) {
-                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, ImmutableList.copyOf(handler.getRequestedCapabilities().get()));
+                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, ImmutableSet.copyOf(handler.getCapabilitySelectors().get()));
             }
         }
     }

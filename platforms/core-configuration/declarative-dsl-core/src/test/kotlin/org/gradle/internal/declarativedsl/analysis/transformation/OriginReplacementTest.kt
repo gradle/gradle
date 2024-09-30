@@ -21,16 +21,17 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-object OriginReplacementTest {
+class OriginReplacementTest {
     @Test
     fun `replaces configured object access and function call receiver`() {
         with(resolution("configuring { property = value() }")) {
@@ -95,7 +96,7 @@ object OriginReplacementTest {
     //endregion
 
     private
-    fun resolution(code: String) = schema.resolve(code).also { assertEquals(emptyList(), it.errors) }
+    fun resolution(code: String) = schema.resolve(code).also { assertEquals(emptyList<ResolutionError>(), it.errors) }
 
     private
     fun ResolutionResult.replaceInnerReceiverWithTopLevel(origin: ObjectOrigin) =

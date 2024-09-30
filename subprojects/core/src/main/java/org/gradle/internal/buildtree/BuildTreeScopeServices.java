@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -32,7 +33,6 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.util.PatternSet;
@@ -60,9 +60,15 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
+import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -161,5 +167,21 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
+    }
+
+    @Provides
+    @PrivateService
+    protected MethodInterceptionReportCollector createMethodInterceptionReportCollector(StartParameterInternal startParameter) {
+        return startParameter.isPropertyUpgradeReportEnabled()
+            ? new DefaultMethodInterceptionReportCollector()
+            : new ErrorReportingMethodInterceptionReportCollector();
+    }
+
+    @Provides
+    protected PropertyUpgradeReportConfig createPropertyUpgradeReportConfig(MethodInterceptionReportCollector reportCollector, StartParameterInternal startParameter) {
+        return new PropertyUpgradeReportConfig(
+            reportCollector,
+            startParameter.isPropertyUpgradeReportEnabled()
+        );
     }
 }

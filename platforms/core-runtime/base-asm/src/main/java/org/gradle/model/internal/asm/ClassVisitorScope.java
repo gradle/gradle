@@ -22,7 +22,7 @@ import org.objectweb.asm.Type;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -106,10 +106,15 @@ public class ClassVisitorScope extends ClassVisitor {
     /**
      * Adds a getter that returns the value that the given code leaves on the top of the stack.
      */
-    protected void addGetter(String methodName, Type returnType, String methodDescriptor, @Nullable String signature, BytecodeFragment body) {
-        publicMethod(methodName, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-            emit(body);
-            _IRETURN_OF(returnType);
-        }});
+    protected void addGetter(final String methodName, final Type returnType, final String methodDescriptor, @Nullable final String signature, final BytecodeFragment body) {
+        publicMethod(methodName, methodDescriptor, signature, new BytecodeFragment() {
+            @Override
+            public void emit(MethodVisitor methodVisitor) {
+                new MethodVisitorScope(methodVisitor) {{
+                    emit(body);
+                    _IRETURN_OF(returnType);
+                }};
+            }
+        });
     }
 }

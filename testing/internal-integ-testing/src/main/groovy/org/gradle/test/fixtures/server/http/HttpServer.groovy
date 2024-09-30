@@ -20,6 +20,12 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import groovy.transform.CompileStatic
 import groovy.xml.MarkupBuilder
+import org.eclipse.jetty.http.HttpHeader
+import org.eclipse.jetty.http.HttpStatus
+import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.AbstractHandler
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.hash.Hashing
@@ -31,12 +37,6 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.internal.GFileUtils
 import org.hamcrest.Matcher
-import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.http.HttpHeader
-import org.eclipse.jetty.http.HttpStatus
-import org.eclipse.jetty.http.MimeTypes
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.handler.AbstractHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -252,6 +252,28 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         }
     }
 
+    class CloseConnectionAction extends ActionSupport {
+        CloseConnectionAction() {
+            super("unexpectedly close connection")
+        }
+
+        void handle(HttpServletRequest request, HttpServletResponse response) {
+            if (beforeHandle) {
+                beforeHandle.execute(request)
+            }
+            try {
+                response.setContentLength(2)
+                response.getWriter().write("A")
+                response.getWriter().flush()
+                response.getWriter().close()
+            } finally {
+                if (afterHandle) {
+                    afterHandle.execute(request)
+                }
+            }
+        }
+    }
+
     /**
      * Adds a broken resource at the given URL.
      */
@@ -392,6 +414,10 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      */
     HttpResourceInteraction expectGetEmptyOk(String path) {
         return expect(path, false, ['GET'], ok())
+    }
+
+    HttpResourceInteraction expectGetEarlyClose(String path) {
+        return expect(path, false, ['GET'], new CloseConnectionAction())
     }
 
     /**

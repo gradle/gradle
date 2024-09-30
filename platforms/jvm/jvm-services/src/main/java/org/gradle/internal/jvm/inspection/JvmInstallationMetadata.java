@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 public interface JvmInstallationMetadata {
@@ -67,7 +68,7 @@ public interface JvmInstallationMetadata {
 
     /**
      * A wrapper around the raw value of the toolchain vendor.
-     * <p>
+     *
      * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VENDOR
      */
     JvmVendor getVendor();
@@ -231,7 +232,7 @@ public interface JvmInstallationMetadata {
 
         private String determineInstallationType(String vendor) {
             if (getCapabilities().contains(JavaInstallationCapability.JAVA_COMPILER)) {
-                if (!vendor.toLowerCase().contains("jdk")) {
+                if (!vendor.toLowerCase(Locale.ROOT).contains("jdk")) {
                     return " JDK";
                 }
                 return "";

@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -50,8 +50,8 @@ import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.runBlocking
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackageName
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
@@ -222,7 +222,7 @@ fun IO.buildAccessorsFor(
     classPath: ClassPath,
     srcDir: File,
     binDir: File?,
-    packageName: String = kotlinDslPackageName,
+    packageName: String = KOTLIN_DSL_PACKAGE_NAME,
     format: AccessorFormat = AccessorFormats.default
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
@@ -606,7 +606,7 @@ fun IO.writeAccessorsTo(
     outputFile: File,
     accessors: Iterable<String>,
     imports: List<String> = emptyList(),
-    packageName: String = kotlinDslPackageName
+    packageName: String = KOTLIN_DSL_PACKAGE_NAME
 ) = io {
     outputFile.bufferedWriter().useToRun {
         appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
@@ -625,7 +625,7 @@ fun IO.writeAccessorsTo(
 
 
 internal
-fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
+fun fileHeaderWithImportsFor(accessorsPackage: String = KOTLIN_DSL_PACKAGE_NAME) = """
 ${fileHeaderFor(accessorsPackage)}
 
 import org.gradle.api.Action

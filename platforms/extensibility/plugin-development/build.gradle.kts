@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Gradle plugin development plugins"
@@ -30,13 +31,13 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.buildOption)
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
+    implementation(projects.fileOperations)
     implementation(projects.hashing)
     implementation(projects.ivy)
     implementation(projects.languageJava)
@@ -51,7 +52,6 @@ dependencies {
     implementation(projects.pluginsJavaLibrary)
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.pluginUse)
-    implementation(projects.processServices)
     implementation(projects.publish)
     implementation(projects.testingJvm)
     implementation(projects.toolchainsJvm)
@@ -93,4 +93,7 @@ integTest.usesJavadocCodeSnippets = true
 
 strictCompile {
     ignoreDeprecations()
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

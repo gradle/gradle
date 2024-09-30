@@ -32,12 +32,12 @@ public @interface ReplacesEagerProperty {
     /**
      * Overrides original type that will be used for generated code.
      * By default, the original type is determined from the lazy property type, e.g.:
-     * Property[T] -> original type becomes T (also Property[Integer] -> Integer and not int)
-     * RegularFileProperty -> original type becomes File
-     * DirectoryProperty -> original type becomes File
-     * MapProperty[K, V] -> original type becomes Map[K, V]
-     * ListProperty[T] -> original type becomes List[T]
-     * ConfigurableFileCollection -> original type becomes FileCollection
+     * Property[T] - original type becomes T (also Property[Integer] becomes Integer and not int)
+     * RegularFileProperty - original type becomes File
+     * DirectoryProperty - original type becomes File
+     * MapProperty[K, V] - original type becomes Map[K, V]
+     * ListProperty[T] - original type becomes List[T]
+     * ConfigurableFileCollection - original type becomes FileCollection
      */
     Class<?> originalType() default DefaultValue.class;
 

@@ -34,6 +34,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
     def setup() {
         executer.disableDaemonJavaVersionDeprecationFiltering()
+        executer.requireDaemon() // For non-daemon executors, tests single-use daemon mode
         executer.requireIsolatedDaemons() // Because we check which JVM the daemon uses, and we don't want to pick a compatible JVM from another test but with different java home.
     }
 

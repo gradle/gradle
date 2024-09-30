@@ -16,10 +16,9 @@
 
 package gradlebuild.buildutils.tasks
 
+import gradlebuild.basics.toLowerCase
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.internal.TextUtil
 import org.gradle.work.DisableCachingByDefault
-
 
 @DisableCachingByDefault(because = "Depends on GitHub API")
 abstract class UpdateContributorsInReleaseNotes : AbstractCheckOrUpdateContributorsInReleaseNotes() {
@@ -31,7 +30,7 @@ abstract class UpdateContributorsInReleaseNotes : AbstractCheckOrUpdateContribut
         val unrecognizedContributors = contributorsFromPullRequests.keys - contributorsInReleaseNotes.keys
         if (unrecognizedContributors.isNotEmpty()) {
             val contributorsToUpdate = contributorsInReleaseNotes + unrecognizedContributors.map { it to contributorsFromPullRequests[it]!! }
-            val sortedContributors = contributorsToUpdate.entries.sortedBy { TextUtil.toLowerCaseLocaleSafe(it.value.name ?: it.key) }
+            val sortedContributors = contributorsToUpdate.entries.sortedBy { (it.value.name ?: it.key).toLowerCase() }
             val (linesBeforeContributors, _, linesAfterContributors) = parseReleaseNotes()
             releaseNotes.asFile.get().writeText(
                 "${linesBeforeContributors.joinToString("\n")}\n${sortedContributors.joinToString(",\n") { "[${it.value.name ?: it.key}](https://github.com/${it.key})" }}\n\n${linesAfterContributors.joinToString("\n")}\n"

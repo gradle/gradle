@@ -35,7 +35,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
-    private final ExecutableElement bridgedMethod;
+    private final BridgedMethodInfo bridgedMethodInfo;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
@@ -48,7 +48,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         TypeName newPropertyType,
         DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility,
-        ExecutableElement bridgedMethod
+        BridgedMethodInfo bridgedMethodInfo
     ) {
         this.propertyName = propertyName;
         this.methodName = methodName;
@@ -60,7 +60,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.deprecationSpec = deprecationSpec;
         this.binaryCompatibility = binaryCompatibility;
-        this.bridgedMethod = bridgedMethod;
+        this.bridgedMethodInfo = bridgedMethodInfo;
     }
 
     public String getPropertyName() {
@@ -104,7 +104,30 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return binaryCompatibility;
     }
 
-    public ExecutableElement getBridgedMethod() {
-        return bridgedMethod;
+    public BridgedMethodInfo getBridgedMethodInfo() {
+        return bridgedMethodInfo;
+    }
+
+    public static class BridgedMethodInfo {
+        public enum BridgeType {
+            ADAPTER_METHOD_BRIDGE,
+            INSTANCE_METHOD_BRIDGE
+        }
+
+        private final ExecutableElement bridgedMethod;
+        private final BridgeType bridgeType;
+
+        public BridgedMethodInfo(ExecutableElement bridgedMethod, BridgeType bridgeType) {
+            this.bridgedMethod = bridgedMethod;
+            this.bridgeType = bridgeType;
+        }
+
+        public ExecutableElement getBridgedMethod() {
+            return bridgedMethod;
+        }
+
+        public BridgeType getBridgeType() {
+            return bridgeType;
+        }
     }
 }

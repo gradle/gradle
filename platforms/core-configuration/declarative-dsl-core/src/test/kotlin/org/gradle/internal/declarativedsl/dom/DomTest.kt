@@ -19,11 +19,11 @@ package org.gradle.internal.declarativedsl.dom
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-object DomTest {
+class DomTest {
     @Test
     fun `converts a simple language tree to document`() {
         val tree = parseAsTopLevelBlock(
@@ -96,7 +96,7 @@ object DomTest {
             """
             element(myFun)[0..363]
                 property(a, literal(x)[16..18])[12..18]
-                error(UnsupportedSyntax(UnsupportedPropertyAccess)[24..28]
+                property(a, namedReference(b)[28..28])[24..28]
                 error(UnsupportedSyntax(ValueFactoryArgumentFormat)[34..47]
                 error(UnsupportedSyntax(ValueFactoryArgumentFormat)[53..77]
                 error(UnsupportedKotlinFeature(FunctionDeclaration)[92..94]
@@ -126,6 +126,8 @@ object DomTest {
                     maybeSourceData(valueNode)
 
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> "literal(${valueNode.value})" + maybeSourceData(valueNode)
+
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> "namedReference(${valueNode.referenceName})" + maybeSourceData(valueNode)
             }
 
             fun visit(node: DeclarativeDocument.DocumentNode, depth: Int = 0) {

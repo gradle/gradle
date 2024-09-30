@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.E
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ErrorNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.LiteralValueNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.NamedReferenceNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultValueFactoryNode
@@ -143,6 +144,7 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                     }
 
                     is LiteralValueNode,
+                    is NamedReferenceNode,
                     is ErrorNode -> Unit
                 }
             }
@@ -289,7 +291,9 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                                 DefaultElementNode(
                                     nameMapper.newNamesForElements[targetNode] ?: targetNode.name,
                                     targetNode.sourceData,
-                                    targetNode.elementValues.map { applyValueMutations(it, nameMapper, valueMapper) },
+                                    targetNode.elementValues.map {
+                                        applyValueMutations(it, nameMapper, valueMapper)
+                                    },
                                     newContent.nodes
                                 )
                             ),
@@ -306,6 +310,8 @@ class DocumentTextMutationPlanner : DocumentMutationPlanner<DocumentTextMutation
                                 nameMapper.newNamesForValueFactories[valueNode] ?: valueNode.factoryName,
                                 valueNode.sourceData,
                                 valueNode.values.map { applyValueMutations(it, nameMapper, valueMapper) })
+
+                            is NamedReferenceNode -> error("named references not allowed as function arguments")
                         }
             }
         }

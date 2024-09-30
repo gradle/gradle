@@ -46,7 +46,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
             )
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             param("performance.db.username", "tcagent")
-            param("performance.channel", performanceTestSpec.channel())
+            param("env.PERFORMANCE_CHANNEL", performanceTestSpec.channel())
         }
 
         features {
@@ -73,7 +73,7 @@ testing/$performanceProjectName/build/performance-test-results.zip
 
             gradleRunnerStep(
                 model,
-                ":$performanceProjectName:$taskName --channel %performance.channel%",
+                ":$performanceProjectName:$taskName",
                 extraParameters = listOf(
                     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                     "-Porg.gradle.performance.db.url" to "%performance.db.url%",

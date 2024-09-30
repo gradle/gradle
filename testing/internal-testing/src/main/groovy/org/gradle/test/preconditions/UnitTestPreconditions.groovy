@@ -548,10 +548,33 @@ class UnitTestPreconditions {
     }
 
     static final class HasXCode implements TestPrecondition {
+        private static Boolean installed = null
+
+        private static boolean isInstalled() {
+            if (OperatingSystem.current().isMacOsX()) {
+                // XCTest is bundled with XCode, so the test cannot be run if XCode is not installed
+                def result = ["xcrun", "--show-sdk-platform-path"].execute().waitFor()
+                // If it fails, assume XCode is not installed
+                return result == 0
+            } else {
+                return false
+            }
+        }
+
         @Override
         boolean isSatisfied() {
-            // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
-            return satisfied(MacOs)
+            if (installed == null) {
+                installed = isInstalled()
+            }
+            return installed
+        }
+    }
+
+    static final class HasXCTest implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            // Bundled with XCode on macOS
+            return notSatisfied(MacOs) || satisfied(HasXCode)
         }
     }
 

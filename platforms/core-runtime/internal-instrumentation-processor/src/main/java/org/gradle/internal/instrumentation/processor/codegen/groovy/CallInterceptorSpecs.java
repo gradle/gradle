@@ -21,7 +21,7 @@ import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
-import org.gradle.util.internal.TextUtil;
+import org.gradle.internal.instrumentation.util.NameUtil;
 import org.objectweb.asm.Type;
 
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ class CallInterceptorSpecs {
             }
 
             public static NamedCallableInterceptorSpec of(String implementationName, String name, BytecodeInterceptorType interceptorType) {
-                String className = TextUtil.capitalize(name) + "CallInterceptor";
+                String className = NameUtil.capitalize(name) + "CallInterceptor";
                 String fullClassName = implementationName + "$" + className;
                 return new NamedCallableInterceptorSpec(name, className, fullClassName, new ArrayList<>(), interceptorType);
             }

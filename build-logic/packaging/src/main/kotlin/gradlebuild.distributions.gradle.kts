@@ -29,7 +29,6 @@ import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.C
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinExtensionsForGradleApi
-import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
@@ -207,9 +206,6 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
-
-    @Suppress("DEPRECATION")
-    ownModuleName = "gradle-kotlin-dsl-extensions"
 }
 
 val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {

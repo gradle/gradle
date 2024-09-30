@@ -18,13 +18,11 @@ package org.gradle.ide.visualstudio
 
 import groovy.test.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -40,7 +38,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for build without any C++ components"() {
         when:
         createDirs("one", "two", "three")
@@ -60,7 +57,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         mainSolution.assertHasProjects()
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes a visual studio project for every project with a C++ component"() {
         when:
         createDirs("one", "two", "three")
@@ -101,7 +97,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         mainSolution.assertReferencesProject(twoProject, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for executable that depends on a library in another project"() {
         when:
         app.executable.writeSources(file("exe/src/main"))
@@ -156,7 +151,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         mainSolution.assertReferencesProject(dllProject, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio solution does not reference the components of a project if it does not have visual studio plugin applied"() {
         when:
         app.executable.writeSources(file("exe/src/main"))
@@ -225,7 +219,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         file("other").listFiles().every { !(it.name.endsWith(".vcxproj") || it.name.endsWith(".vcxproj.filters")) }
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for executable that transitively depends on multiple projects"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -288,7 +281,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers")
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for executable with a transitive api dependency"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()

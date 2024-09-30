@@ -21,4 +21,9 @@ import org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture
 
 abstract class AbstractProcessIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ExternalProcessFixture execOperationsFixture = new ExternalProcessFixture(testDirectory)
+
+    @Override
+    def setup() {
+        executer.noDeprecationChecks()
+    }
 }

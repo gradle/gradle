@@ -306,7 +306,7 @@ include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",file
 ==== From a plugin's `apply()` method
 
 Plugin authors may configure a convention on a lazy property from a plugin's `apply()` method, while performing preliminary configuration of the task or extension defining the property.
-This works well for regular plugins (meant to be distributed and used in the wild), and internal <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins,convention plugins>> (which often configure properties defined by third party plugins in a uniform way for the entire build).
+This works well for regular plugins (meant to be distributed and used in the wild), and internal <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,convention plugins>> (which often configure properties defined by third party plugins in a uniform way for the entire build).
 
 ====
 include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-plugin]"]

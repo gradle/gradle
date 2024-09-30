@@ -85,6 +85,7 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
@@ -253,10 +254,10 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getRootDir();
     }
 
-    @Nullable
     @Override
-    public Path getProjectIdentityPath() {
-        return delegate.getProjectIdentityPath();
+    @Nonnull
+    public ProjectIdentity getProjectIdentity() {
+        return delegate.getProjectIdentity();
     }
 
     /**
@@ -315,6 +316,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public Project evaluate() {
         onMutableStateAccess("evaluate");
         return delegate.evaluate();
+    }
+
+    @Override
+    public ProjectInternal evaluateUnchecked() {
+        return delegate.evaluateUnchecked();
     }
 
     @Override
@@ -642,21 +648,25 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Closure closure) {
         return delegate.javaexec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
         return delegate.javaexec(action);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Closure closure) {
         return delegate.exec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Action<? super ExecSpec> action) {
         return delegate.exec(action);
     }
@@ -1167,5 +1177,16 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
+    }
+
+    @Override
+    public void setLifecycleActionsState(@Nullable Object state) {
+        delegate.setLifecycleActionsState(state);
+    }
+
+    @Nullable
+    @Override
+    public Object getLifecycleActionsState() {
+        return delegate.getLifecycleActionsState();
     }
 }

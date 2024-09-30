@@ -5,10 +5,12 @@ import common.BuildToolBuildJvm
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyDefaultSettings
+import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
+import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.BuildStep
@@ -47,7 +49,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
     }
 
     testsWithOs.forEachIndexed { index, testCoverage ->
-        val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
+        val extraParameters = functionalTestExtraParameters(listOf("FlakyTestQuarantine"), os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
                 listOf(
@@ -60,7 +62,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                 ) +
                 listOf(extraParameters) +
                 functionalTestParameters(os, arch) +
-                listOf(buildScanTag(functionalTestTag))
+                listOf(buildScanTagParam(functionalTestTag), stage.getBuildScanCustomValueParam())
             ).joinToString(separator = " ")
         steps {
             gradleWrapper {

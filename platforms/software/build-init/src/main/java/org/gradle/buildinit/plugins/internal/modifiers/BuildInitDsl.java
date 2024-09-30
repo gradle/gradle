@@ -22,6 +22,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Locale;
 
 public enum BuildInitDsl implements WithIdentifier {
 
@@ -72,6 +73,6 @@ public enum BuildInitDsl implements WithIdentifier {
 
     @Override
     public String toString() {
-        return StringUtils.capitalize(name().toLowerCase());
+        return StringUtils.capitalize(name().toLowerCase(Locale.ROOT));
     }
 }

@@ -35,7 +35,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
 
     def "parameterized models are reused in the same build action"() {
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
 
         then:
@@ -59,7 +59,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
 
         then:
@@ -78,7 +78,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
 
         then:
@@ -106,7 +106,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch2", "fetch1"]))
 
         then:
@@ -135,7 +135,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
 
     def "no parameterized models are reused when settings change"() {
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
@@ -157,7 +157,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
             println("configuring changed settings")
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
@@ -188,7 +188,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
@@ -217,7 +217,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
             println("configuring changed \$project")
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:

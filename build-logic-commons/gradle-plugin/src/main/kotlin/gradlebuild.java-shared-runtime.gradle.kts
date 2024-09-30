@@ -9,6 +9,7 @@ plugins {
     id("gradlebuild.module-jar")
     id("gradlebuild.repositories")
     id("gradlebuild.reproducible-archives")
+    id("gradlebuild.private-javadoc")
 }
 
 description = "A plugin that sets up a Java code that is shared between build-logic and runtime"

@@ -15,8 +15,6 @@
 [[cpp_library_plugin]]
 = {cpp} Library
 
-WARNING: The {cpp} Library Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The {cpp} Library Plugin provides the tasks, conventions and conventions for building a {cpp} library.
 In particular, a {cpp} library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>>).
 

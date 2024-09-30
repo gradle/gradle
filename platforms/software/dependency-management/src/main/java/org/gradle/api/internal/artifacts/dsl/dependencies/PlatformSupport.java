@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAtt
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -57,7 +58,12 @@ public class PlatformSupport {
 
     public void configureSchema(AttributesSchemaInternal attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
-        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
+    }
+    public static void configureFailureHandler(ResolutionFailureHandler handler) {
+        // TODO: This should not be here.
+        // This failure handler has nothing to do with platforms.
+        // This should live in JavaEcosystemSupport.
+        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
     }
 
     private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {

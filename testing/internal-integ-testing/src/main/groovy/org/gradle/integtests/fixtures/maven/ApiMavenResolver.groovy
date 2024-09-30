@@ -48,7 +48,7 @@ class ApiMavenResolver {
 
     /**
      * The local repository used for caching resolved artifacts.
-     * This is the the repository usually located at ~/.m2/repository.
+     * This is the repository usually located at ~/.m2/repository.
      */
     private final File localRepoDir
 

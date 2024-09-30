@@ -377,7 +377,7 @@ import org.gradle.api.tasks.InputDirectory
 public abstract class GenerateReportTask : DefaultTask() {
 
     @get:InputDirectory
-    lateinit var sourceDirectory: File
+    abstract var sourceDirectory: DirectoryProperty
 
 }
 ----
@@ -393,7 +393,7 @@ import org.gradle.api.tasks.InputDirectory
 public abstract class GenerateReportTask extends DefaultTask {
 
     @InputDirectory
-    File sourceDirectory
+    DirectoryProperty sourceDirectory
 
 }
 ----
@@ -415,10 +415,10 @@ import org.gradle.api.tasks.OutputFile
 public abstract class GenerateReportTask : DefaultTask() {
 
     @get:InputDirectory
-    lateinit var sourceDirectory: File
+    abstract var sourceDirectory: DirectoryProperty
 
     @get:OutputFile
-    lateinit var reportFile: File
+    abstract var reportFile: File
 
 }
 ----
@@ -435,7 +435,7 @@ import org.gradle.api.tasks.OutputFile
 public abstract class GenerateReportTask extends DefaultTask {
 
     @InputDirectory
-    File sourceDirectory
+    DirectoryProperty sourceDirectory
 
     @OutputFile
     File reportFile
@@ -462,10 +462,10 @@ import org.gradle.api.tasks.TaskAction
 public abstract class GenerateReportTask : DefaultTask() {
 
     @get:InputDirectory
-    lateinit var sourceDirectory: File
+    abstract var sourceDirectory: DirectoryProperty
 
     @get:OutputFile
-    lateinit var reportFile: File
+    abstract var reportFile: File
 
     @TaskAction
     fun generateReport() {
@@ -498,7 +498,7 @@ import org.gradle.api.tasks.TaskAction
 public abstract class GenerateReportTask extends DefaultTask {
 
     @InputDirectory
-    File sourceDirectory
+    DirectoryProperty sourceDirectory
 
     @OutputFile
     File reportFile
@@ -535,8 +535,8 @@ At the same time, we configure the inputs and outputs of the task:
 [source,kotlin]
 ----
 tasks.register<GenerateReportTask>("generateReport") {
-    sourceDirectory = file("src/main")
-    reportFile = file("${layout.buildDirectory}/reports/directoryReport.txt")
+    sourceDirectory.set(layout.projectDirectory.dir("src/main"))
+    reportFile.set(layout.buildDirectory.file("reports/directoryReport.txt"))
 }
 
 tasks.build {
@@ -549,11 +549,9 @@ tasks.build {
 .app/build.gradle
 [source,groovy]
 ----
-import org.gradle.api.tasks.Copy
-
 tasks.register(GenerateReportTask, "generateReport") {
-    sourceDirectory = file("src/main")
-    reportFile = file("${layout.buildDirectory}/reports/directoryReport.txt")
+    sourceDirectory = layout.projectDirectory.dir("src/main").asFile
+    reportFile = layout.buildDirectory.file("reports/directoryReport.txt").asFile
 }
 
 tasks.build.dependsOn("generateReport")
@@ -1172,9 +1170,6 @@ Here are all available annotations in detail:
 
 |`@InputFiles`
 |Property is one or more input files for the task
-
-|`@InputDirectory`
-|Property is an input directory for the task
 
 |`@InputDirectory`
 |Property is an input directory for the task

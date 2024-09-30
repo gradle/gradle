@@ -19,15 +19,13 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
-import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a requested <strong>plugin</strong>
@@ -58,7 +56,7 @@ public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends Abs
     }
 
     @Override
-    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public AbstractResolutionFailureException describeFailure(NoCompatibleVariantsFailure failure) {
         JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         String message = buildNeedsNewerJDKFailureMsg(minJVMVersionSupported);
         List<String> resolutions = buildResolutions(suggestUpdateJVM(minJVMVersionSupported));

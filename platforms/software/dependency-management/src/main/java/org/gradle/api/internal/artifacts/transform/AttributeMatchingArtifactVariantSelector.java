@@ -16,26 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
@@ -47,26 +41,30 @@ import java.util.Set;
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
+
+    private final ImmutableAttributesSchema consumerSchema;
+    private final TransformUpstreamDependenciesResolver dependenciesResolver;
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
-    private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
-    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final ResolutionFailureHandler failureProcessor;
 
     AttributeMatchingArtifactVariantSelector(
+        ImmutableAttributesSchema consumerSchema,
+        TransformUpstreamDependenciesResolver dependenciesResolver,
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         ResolutionFailureHandler failureProcessor
     ) {
+        this.consumerSchema = consumerSchema;
+        this.dependenciesResolver = dependenciesResolver;
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
-        this.schema = schema;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.transformedVariantFactory = transformedVariantFactory;
-        this.dependenciesResolverFactory = dependenciesResolverFactory;
         this.failureProcessor = failureProcessor;
     }
 
@@ -75,23 +73,20 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         try {
             return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, requestAttributes, t));
+            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
-        AttributeMatcher matcher = schema.withProducer(producer.getSchema());
+        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
-        final List<ResolvedVariant> variants = ImmutableList.copyOf(producer.getVariants());
+        final List<ResolvedVariant> variants = producer.getVariants();
 
         List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
-            // Request is ambiguous. Rerun matching again, except capture an explanation this time for reporting.
-            TraceDiscardedVariants newExpBuilder = new TraceDiscardedVariants();
-            matches = matcher.matchMultipleCandidates(variants, componentRequested, newExpBuilder);
-            throw failureProcessor.ambiguousArtifactsFailure(schema, matcher, producer, componentRequested, matches);
+            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -104,18 +99,18 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
+            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory);
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformsFailure(schema, producer, componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noCompatibleArtifactFailure(schema, matcher, producer, componentRequested, variants);
+        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants);
     }
 
     /**
@@ -158,29 +153,5 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         return differentTransforms;
-    }
-
-    private static class TraceDiscardedVariants implements AttributeMatchingExplanationBuilder {
-
-        private final Set<HasAttributes> discarded = new HashSet<>();
-
-        @Override
-        public boolean canSkipExplanation() {
-            return false;
-        }
-
-        @Override
-        public <T extends HasAttributes> void candidateDoesNotMatchAttributes(T candidate, AttributeContainerInternal requested) {
-            recordDiscardedCandidate(candidate);
-        }
-
-        public <T extends HasAttributes> void recordDiscardedCandidate(T candidate) {
-            discarded.add(candidate);
-        }
-
-        @Override
-        public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
-            recordDiscardedCandidate(candidate);
-        }
     }
 }

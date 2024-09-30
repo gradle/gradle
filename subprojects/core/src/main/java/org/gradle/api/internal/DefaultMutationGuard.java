@@ -17,25 +17,46 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.internal.exceptions.Contextual;
 
-public class DefaultMutationGuard extends AbstractMutationGuard {
-    private final ThreadLocal<Boolean> mutationGuardState = new GuardState();
-    private static class GuardState extends ThreadLocal<Boolean> {
-        @Override
-        protected Boolean initialValue() {
-            return Boolean.TRUE;
+public class DefaultMutationGuard implements MutationGuard {
+
+    private final ThreadLocal<Boolean> mutationGuardState = ThreadLocal.withInitial(SerializableLambdas.supplier(() -> true));
+
+    @Override
+    public <T> Action<? super T> wrapLazyAction(Action<? super T> action) {
+        return newActionWithMutation(action, false);
+    }
+
+    @Override
+    public <T> Action<? super T> wrapEagerAction(Action<? super T> action) {
+        return newActionWithMutation(action, true);
+    }
+
+    @Override
+    public boolean isLazyContext() {
+        boolean mutationAllowed = mutationGuardState.get();
+        removeThreadLocalStateIfMutationAllowed(mutationAllowed);
+        return !mutationAllowed;
+    }
+
+    @Override
+    public void assertEagerContext(String methodName, Object target) {
+        if (isLazyContext()) {
+            throw createIllegalStateException(new DslObject(target).getPublicType().getConcreteClass(), methodName, target);
         }
     }
 
     @Override
-    public boolean isMutationAllowed() {
-        boolean mutationAllowed = mutationGuardState.get();
-        removeThreadLocalStateIfMutationAllowed(mutationAllowed);
-        return mutationAllowed;
+    public <T> void assertEagerContext(String methodName, T target, Class<T> targetType) {
+        if (isLazyContext()) {
+            throw createIllegalStateException(targetType, methodName, target);
+        }
     }
 
-    @Override
-    protected <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
+    private <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
         return new Action<T>() {
             @Override
             public void execute(T t) {
@@ -74,6 +95,17 @@ public class DefaultMutationGuard extends AbstractMutationGuard {
     private void removeThreadLocalStateIfMutationAllowed(boolean mutationAllowed) {
         if (mutationAllowed) {
             mutationGuardState.remove();
+        }
+    }
+
+    private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
+        return new IllegalMutationException(String.format("%s#%s on %s cannot be executed in the current context.", targetType.getSimpleName(), methodName, target));
+    }
+
+    @Contextual
+    private static class IllegalMutationException extends IllegalStateException {
+        public IllegalMutationException(String message) {
+            super(message);
         }
     }
 }

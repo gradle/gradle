@@ -30,6 +30,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -68,7 +69,8 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        ConfigurationRole roleAtCreation
+        ConfigurationRole roleAtCreation,
+        InternalProblems problemsService
     ) {
         super(
             domainObjectContext,
@@ -95,6 +97,7 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             defaultConfigurationFactory,
             taskDependencyFactory,
             roleAtCreation,
+            problemsService,
             false
         );
     }

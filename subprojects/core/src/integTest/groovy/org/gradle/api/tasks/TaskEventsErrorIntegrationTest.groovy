@@ -71,6 +71,7 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         then:
+        executer.withArgument("--no-problems-report")
         fails('test')
         result.groupedOutput.task(":test").output == """beforeTask action
 task action

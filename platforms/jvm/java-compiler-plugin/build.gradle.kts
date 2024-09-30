@@ -15,3 +15,6 @@ tasks.withType<Test>().configureEach {
         classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

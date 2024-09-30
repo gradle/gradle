@@ -77,6 +77,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -332,7 +333,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     }
 
     private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
-        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
+        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(Locale.ROOT), length);
         ExternalResourceName checksumDestination = destination.append("." + algorithm.replaceAll("-", ""));
         repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksum));
     }

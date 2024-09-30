@@ -16,12 +16,15 @@
 
 package org.gradle.internal.cc.impl.inputs.process
 
+import org.gradle.test.fixtures.Flaky
+
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.exec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.javaexec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.processBuilder
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.stringArrayExecute
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4440")
 class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"() {
         given:

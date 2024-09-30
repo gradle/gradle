@@ -19,6 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
@@ -147,6 +148,7 @@ Artifacts
         succeeds('testResolve')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "file access on another project")
     def "mainSourceElements can be consumed by another task in a different project via Dependency Management"() {
         def subADir = createDir("subA")
         def buildFileA = subADir.file("build.gradle") << """

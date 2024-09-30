@@ -94,8 +94,9 @@ fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 fun Project.extractCiData() {
     if (isCiServer) {
         buildScan {
+            val execOps = serviceOf<ExecOperations>()
             background {
-                setCompileAllScanSearch(execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
+                setCompileAllScanSearch(execOps.execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
             }
             if (isEc2Agent()) {
                 tag("EC2")
@@ -106,6 +107,11 @@ fun Project.extractCiData() {
             whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
                 value(tcBuildTypeName, buildType)
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
+            }
+            System.getProperty("buildScan.PartOf")?.let {
+                it.toString().split(",").forEach { partOf ->
+                    value("PartOf", partOf)
+                }
             }
         }
     }

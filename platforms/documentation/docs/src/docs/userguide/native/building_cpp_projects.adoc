@@ -15,8 +15,6 @@
 [[building_cpp_projects]]
 = Building {cpp} projects
 
-WARNING: The plugins described in this chapter are not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 Gradle uses a convention-over-configuration approach to building native projects.
 If you are coming from another native build system, these concepts may be unfamiliar at first, but they serve a purpose to simplify build script authoring.
 

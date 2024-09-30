@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstrain
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -149,6 +150,16 @@ public class DependencyConstraintNotationParser {
 
         @Override
         public void requireCapabilities(Object... capabilityNotations) {
+            throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
+        }
+
+        @Override
+        public void requireFeature(String featureName) {
+            throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
+        }
+
+        @Override
+        public void requireFeature(Provider<String> featureName) {
             throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
         }
     }

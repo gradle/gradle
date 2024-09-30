@@ -86,7 +86,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature:1.0'")
+                    assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature'")
                 }
             }
         }
@@ -274,7 +274,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 withoutModuleMetadata {
                     shouldFail {
                         // documents the current behavior
-                        assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature:1.0'")
+                        assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature'")
                     }
                 }
             }
@@ -370,7 +370,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature:1.0'")
+                    assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature'")
                 }
             }
         }
@@ -458,7 +458,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature:1.0'")
+                    assertHasCause("Unable to find a variant providing the requested capability 'org:optional-feature'")
                 }
             }
         }

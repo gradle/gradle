@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.ForkOptions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -32,7 +33,9 @@ public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonF
         super(forkOptions);
         this.executable = forkOptions.getExecutable();
         this.tempDir = forkOptions.getTempDir();
-        this.javaHome = forkOptions.getJavaHome();
+        @SuppressWarnings("deprecation")
+        File customJavaHome = DeprecationLogger.whileDisabled(forkOptions::getJavaHome);
+        this.javaHome = customJavaHome;
         setJvmArgs(forkOptions.getAllJvmArgs());
     }
 

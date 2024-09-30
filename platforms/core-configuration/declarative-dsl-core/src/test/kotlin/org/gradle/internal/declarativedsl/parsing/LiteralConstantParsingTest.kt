@@ -16,8 +16,7 @@
 
 package org.gradle.internal.declarativedsl.parsing
 
-import org.gradle.util.internal.ToBeImplemented
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 class LiteralConstantParsingTest {
 
@@ -58,7 +57,7 @@ class LiteralConstantParsingTest {
         val expected = """
                 // (0 .. 5): a = 1
                 Assignment [indexes: 0..5, line/column: 1/1..1/6, file: test] (
-                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 4..5, line/column: 1/5..1/6, file: test] (1)
@@ -66,7 +65,7 @@ class LiteralConstantParsingTest {
 
                 // (6 .. 13): a = 0x1
                 Assignment [indexes: 6..13, line/column: 2/1..2/8, file: test] (
-                    lhs = PropertyAccess [indexes: 6..7, line/column: 2/1..2/2, file: test] (
+                    lhs = NamedReference [indexes: 6..7, line/column: 2/1..2/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 10..13, line/column: 2/5..2/8, file: test] (1)
@@ -74,7 +73,7 @@ class LiteralConstantParsingTest {
 
                 // (14 .. 21): a = 0X1
                 Assignment [indexes: 14..21, line/column: 3/1..3/8, file: test] (
-                    lhs = PropertyAccess [indexes: 14..15, line/column: 3/1..3/2, file: test] (
+                    lhs = NamedReference [indexes: 14..15, line/column: 3/1..3/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 18..21, line/column: 3/5..3/8, file: test] (1)
@@ -82,7 +81,7 @@ class LiteralConstantParsingTest {
 
                 // (22 .. 29): a = 0b1
                 Assignment [indexes: 22..29, line/column: 4/1..4/8, file: test] (
-                    lhs = PropertyAccess [indexes: 22..23, line/column: 4/1..4/2, file: test] (
+                    lhs = NamedReference [indexes: 22..23, line/column: 4/1..4/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 26..29, line/column: 4/5..4/8, file: test] (1)
@@ -90,7 +89,7 @@ class LiteralConstantParsingTest {
 
                 // (30 .. 37): a = 0B1
                 Assignment [indexes: 30..37, line/column: 5/1..5/8, file: test] (
-                    lhs = PropertyAccess [indexes: 30..31, line/column: 5/1..5/2, file: test] (
+                    lhs = NamedReference [indexes: 30..31, line/column: 5/1..5/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 34..37, line/column: 5/5..5/8, file: test] (1)
@@ -98,7 +97,7 @@ class LiteralConstantParsingTest {
 
                 // (38 .. 44): a = 1L
                 Assignment [indexes: 38..44, line/column: 6/1..6/7, file: test] (
-                    lhs = PropertyAccess [indexes: 38..39, line/column: 6/1..6/2, file: test] (
+                    lhs = NamedReference [indexes: 38..39, line/column: 6/1..6/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 42..44, line/column: 6/5..6/7, file: test] (1)
@@ -106,7 +105,7 @@ class LiteralConstantParsingTest {
 
                 // (45 .. 53): a = 0x1L
                 Assignment [indexes: 45..53, line/column: 7/1..7/9, file: test] (
-                    lhs = PropertyAccess [indexes: 45..46, line/column: 7/1..7/2, file: test] (
+                    lhs = NamedReference [indexes: 45..46, line/column: 7/1..7/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 49..53, line/column: 7/5..7/9, file: test] (1)
@@ -114,7 +113,7 @@ class LiteralConstantParsingTest {
 
                 // (54 .. 62): a = 0X1L
                 Assignment [indexes: 54..62, line/column: 8/1..8/9, file: test] (
-                    lhs = PropertyAccess [indexes: 54..55, line/column: 8/1..8/2, file: test] (
+                    lhs = NamedReference [indexes: 54..55, line/column: 8/1..8/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 58..62, line/column: 8/5..8/9, file: test] (1)
@@ -122,7 +121,7 @@ class LiteralConstantParsingTest {
 
                 // (63 .. 71): a = 0b1L
                 Assignment [indexes: 63..71, line/column: 9/1..9/9, file: test] (
-                    lhs = PropertyAccess [indexes: 63..64, line/column: 9/1..9/2, file: test] (
+                    lhs = NamedReference [indexes: 63..64, line/column: 9/1..9/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 67..71, line/column: 9/5..9/9, file: test] (1)
@@ -130,7 +129,7 @@ class LiteralConstantParsingTest {
 
                 // (72 .. 80): a = 0B1L
                 Assignment [indexes: 72..80, line/column: 10/1..10/9, file: test] (
-                    lhs = PropertyAccess [indexes: 72..73, line/column: 10/1..10/2, file: test] (
+                    lhs = NamedReference [indexes: 72..73, line/column: 10/1..10/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 76..80, line/column: 10/5..10/9, file: test] (1)
@@ -138,7 +137,7 @@ class LiteralConstantParsingTest {
 
                 // (81 .. 87): a = 1l
                 Assignment [indexes: 81..87, line/column: 11/1..11/7, file: test] (
-                    lhs = PropertyAccess [indexes: 81..82, line/column: 11/1..11/2, file: test] (
+                    lhs = NamedReference [indexes: 81..82, line/column: 11/1..11/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 85..87, line/column: 11/5..11/7, file: test] (1)
@@ -146,7 +145,7 @@ class LiteralConstantParsingTest {
 
                 // (88 .. 96): a = 0x1l
                 Assignment [indexes: 88..96, line/column: 12/1..12/9, file: test] (
-                    lhs = PropertyAccess [indexes: 88..89, line/column: 12/1..12/2, file: test] (
+                    lhs = NamedReference [indexes: 88..89, line/column: 12/1..12/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 92..96, line/column: 12/5..12/9, file: test] (1)
@@ -154,7 +153,7 @@ class LiteralConstantParsingTest {
 
                 // (97 .. 105): a = 0X1l
                 Assignment [indexes: 97..105, line/column: 13/1..13/9, file: test] (
-                    lhs = PropertyAccess [indexes: 97..98, line/column: 13/1..13/2, file: test] (
+                    lhs = NamedReference [indexes: 97..98, line/column: 13/1..13/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 101..105, line/column: 13/5..13/9, file: test] (1)
@@ -162,7 +161,7 @@ class LiteralConstantParsingTest {
 
                 // (106 .. 114): a = 0b1l
                 Assignment [indexes: 106..114, line/column: 14/1..14/9, file: test] (
-                    lhs = PropertyAccess [indexes: 106..107, line/column: 14/1..14/2, file: test] (
+                    lhs = NamedReference [indexes: 106..107, line/column: 14/1..14/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 110..114, line/column: 14/5..14/9, file: test] (1)
@@ -170,7 +169,7 @@ class LiteralConstantParsingTest {
 
                 // (115 .. 123): a = 0B1l
                 Assignment [indexes: 115..123, line/column: 15/1..15/9, file: test] (
-                    lhs = PropertyAccess [indexes: 115..116, line/column: 15/1..15/2, file: test] (
+                    lhs = NamedReference [indexes: 115..116, line/column: 15/1..15/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 119..123, line/column: 15/5..15/9, file: test] (1)
@@ -178,7 +177,7 @@ class LiteralConstantParsingTest {
 
                 // (124 .. 129): a = 0
                 Assignment [indexes: 124..129, line/column: 16/1..16/6, file: test] (
-                    lhs = PropertyAccess [indexes: 124..125, line/column: 16/1..16/2, file: test] (
+                    lhs = NamedReference [indexes: 124..125, line/column: 16/1..16/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 128..129, line/column: 16/5..16/6, file: test] (0)
@@ -186,7 +185,7 @@ class LiteralConstantParsingTest {
 
                 // (130 .. 137): a = 1_2
                 Assignment [indexes: 130..137, line/column: 17/1..17/8, file: test] (
-                    lhs = PropertyAccess [indexes: 130..131, line/column: 17/1..17/2, file: test] (
+                    lhs = NamedReference [indexes: 130..131, line/column: 17/1..17/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 134..137, line/column: 17/5..17/8, file: test] (12)
@@ -194,7 +193,7 @@ class LiteralConstantParsingTest {
 
                 // (138 .. 148): a = 12__34
                 Assignment [indexes: 138..148, line/column: 18/1..18/11, file: test] (
-                    lhs = PropertyAccess [indexes: 138..139, line/column: 18/1..18/2, file: test] (
+                    lhs = NamedReference [indexes: 138..139, line/column: 18/1..18/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 142..148, line/column: 18/5..18/11, file: test] (1234)
@@ -202,7 +201,7 @@ class LiteralConstantParsingTest {
 
                 // (149 .. 162): a = 0x1_2_3_4
                 Assignment [indexes: 149..162, line/column: 19/1..19/14, file: test] (
-                    lhs = PropertyAccess [indexes: 149..150, line/column: 19/1..19/2, file: test] (
+                    lhs = NamedReference [indexes: 149..150, line/column: 19/1..19/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 153..162, line/column: 19/5..19/14, file: test] (4660)
@@ -210,7 +209,7 @@ class LiteralConstantParsingTest {
 
                 // (163 .. 170): a = 0B0
                 Assignment [indexes: 163..170, line/column: 20/1..20/8, file: test] (
-                    lhs = PropertyAccess [indexes: 163..164, line/column: 20/1..20/2, file: test] (
+                    lhs = NamedReference [indexes: 163..164, line/column: 20/1..20/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 167..170, line/column: 20/5..20/8, file: test] (0)
@@ -218,7 +217,7 @@ class LiteralConstantParsingTest {
 
                 // (171 .. 196): a = 0b0001_0010_0100_1000
                 Assignment [indexes: 171..196, line/column: 21/1..21/26, file: test] (
-                    lhs = PropertyAccess [indexes: 171..172, line/column: 21/1..21/2, file: test] (
+                    lhs = NamedReference [indexes: 171..172, line/column: 21/1..21/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 175..196, line/column: 21/5..21/26, file: test] (4680)
@@ -226,7 +225,7 @@ class LiteralConstantParsingTest {
 
                 // (197 .. 205): a = 1_2L
                 Assignment [indexes: 197..205, line/column: 22/1..22/9, file: test] (
-                    lhs = PropertyAccess [indexes: 197..198, line/column: 22/1..22/2, file: test] (
+                    lhs = NamedReference [indexes: 197..198, line/column: 22/1..22/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 201..205, line/column: 22/5..22/9, file: test] (12)
@@ -234,7 +233,7 @@ class LiteralConstantParsingTest {
 
                 // (206 .. 218): a = -12__34l
                 Assignment [indexes: 206..218, line/column: 23/1..23/13, file: test] (
-                    lhs = PropertyAccess [indexes: 206..207, line/column: 23/1..23/2, file: test] (
+                    lhs = NamedReference [indexes: 206..207, line/column: 23/1..23/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 210..218, line/column: 23/5..23/13, file: test] (-1234)
@@ -242,7 +241,7 @@ class LiteralConstantParsingTest {
 
                 // (219 .. 233): a = 0x1_2_3_4L
                 Assignment [indexes: 219..233, line/column: 24/1..24/15, file: test] (
-                    lhs = PropertyAccess [indexes: 219..220, line/column: 24/1..24/2, file: test] (
+                    lhs = NamedReference [indexes: 219..220, line/column: 24/1..24/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 223..233, line/column: 24/5..24/15, file: test] (4660)
@@ -250,7 +249,7 @@ class LiteralConstantParsingTest {
 
                 // (234 .. 242): a = 0B0L
                 Assignment [indexes: 234..242, line/column: 25/1..25/9, file: test] (
-                    lhs = PropertyAccess [indexes: 234..235, line/column: 25/1..25/2, file: test] (
+                    lhs = NamedReference [indexes: 234..235, line/column: 25/1..25/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 238..242, line/column: 25/5..25/9, file: test] (0)
@@ -258,7 +257,7 @@ class LiteralConstantParsingTest {
 
                 // (243 .. 270): a = -0b0001_0010_0100_1000l
                 Assignment [indexes: 243..270, line/column: 26/1..26/28, file: test] (
-                    lhs = PropertyAccess [indexes: 243..244, line/column: 26/1..26/2, file: test] (
+                    lhs = NamedReference [indexes: 243..244, line/column: 26/1..26/2, file: test] (
                         name = a
                     )
                     rhs = LongLiteral [indexes: 247..270, line/column: 26/5..26/28, file: test] (-4680)
@@ -266,7 +265,7 @@ class LiteralConstantParsingTest {
 
                 // (271 .. 282): a = 0xa_af1
                 Assignment [indexes: 271..282, line/column: 27/1..27/12, file: test] (
-                    lhs = PropertyAccess [indexes: 271..272, line/column: 27/1..27/2, file: test] (
+                    lhs = NamedReference [indexes: 271..272, line/column: 27/1..27/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 275..282, line/column: 27/5..27/12, file: test] (43761)
@@ -274,7 +273,7 @@ class LiteralConstantParsingTest {
 
                 // (283 .. 296): a = -0xa_af_1
                 Assignment [indexes: 283..296, line/column: 28/1..28/14, file: test] (
-                    lhs = PropertyAccess [indexes: 283..284, line/column: 28/1..28/2, file: test] (
+                    lhs = NamedReference [indexes: 283..284, line/column: 28/1..28/2, file: test] (
                         name = a
                     )
                     rhs = IntLiteral [indexes: 287..296, line/column: 28/5..28/14, file: test] (-43761)
@@ -704,30 +703,30 @@ class LiteralConstantParsingTest {
 
         val expected = """
                 Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
-                    lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                         name = a
                     )
                     rhs = BooleanLiteral [indexes: 4..8, line/column: 1/5..1/9, file: test] (true)
                 )
                 Assignment [indexes: 9..17, line/column: 2/1..2/9, file: test] (
-                    lhs = PropertyAccess [indexes: 9..10, line/column: 2/1..2/2, file: test] (
+                    lhs = NamedReference [indexes: 9..10, line/column: 2/1..2/2, file: test] (
                         name = a
                     )
-                    rhs = PropertyAccess [indexes: 13..17, line/column: 2/5..2/9, file: test] (
+                    rhs = NamedReference [indexes: 13..17, line/column: 2/5..2/9, file: test] (
                         name = TRUE
                     )
                 )
                 Assignment [indexes: 18..27, line/column: 3/1..3/10, file: test] (
-                    lhs = PropertyAccess [indexes: 18..19, line/column: 3/1..3/2, file: test] (
+                    lhs = NamedReference [indexes: 18..19, line/column: 3/1..3/2, file: test] (
                         name = a
                     )
                     rhs = BooleanLiteral [indexes: 22..27, line/column: 3/5..3/10, file: test] (false)
                 )
                 Assignment [indexes: 28..37, line/column: 4/1..4/10, file: test] (
-                    lhs = PropertyAccess [indexes: 28..29, line/column: 4/1..4/2, file: test] (
+                    lhs = NamedReference [indexes: 28..29, line/column: 4/1..4/2, file: test] (
                         name = a
                     )
-                    rhs = PropertyAccess [indexes: 32..37, line/column: 4/5..4/10, file: test] (
+                    rhs = NamedReference [indexes: 32..37, line/column: 4/5..4/10, file: test] (
                         name = FALSE
                     )
                 )""".trimIndent()

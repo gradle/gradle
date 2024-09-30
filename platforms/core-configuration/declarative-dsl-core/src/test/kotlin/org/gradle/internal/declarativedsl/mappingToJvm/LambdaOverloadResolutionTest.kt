@@ -20,11 +20,11 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-object LambdaOverloadResolutionTest {
+class LambdaOverloadResolutionTest {
     @Test
     fun `functions with and without lambda get disambiguated at runtime`() {
         val schema = schemaFromTypes(MyTopLevelReceiver::class, listOf(MyTopLevelReceiver::class, AddedObject::class))

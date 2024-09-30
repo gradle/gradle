@@ -28,7 +28,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     }
     final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, TestUtil.instantiatorFactory().decorateLenient(), toStringNamer, callbackActionDecorator)
 
-    DefaultNamedDomainObjectList<String> container = list
+    DefaultNamedDomainObjectList<CharSequence> container = list
     StringBuffer a = new StringBuffer("a")
     StringBuffer b = new StringBuffer("b")
     StringBuffer c = new StringBuffer("c")

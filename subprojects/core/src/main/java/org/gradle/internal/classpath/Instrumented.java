@@ -23,11 +23,11 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.classpath.intercept.AbstractCallInterceptor;
-import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
-import org.gradle.internal.classpath.intercept.FilterableCallInterceptor;
-import org.gradle.internal.classpath.intercept.InterceptScope;
-import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.ClassBoundCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
 import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
 import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
@@ -113,15 +113,9 @@ public class Instrumented {
      */
     // Called by generated code
     @SuppressWarnings("unused")
-    public static java.lang.invoke.CallSite bootstrapInstrumentationOnly(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return getGroovyCallDecorator(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY).maybeDecorateIndyCallSite(
-            IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
-    }
-
-    // Called by generated code
-    @SuppressWarnings("unused")
-    public static java.lang.invoke.CallSite bootstrapAll(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return getGroovyCallDecorator(BytecodeInterceptorFilter.ALL).maybeDecorateIndyCallSite(
+    public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags, String interceptorFilterName) {
+        BytecodeInterceptorFilter interceptorFilter = BytecodeInterceptorFilter.valueOf(interceptorFilterName);
+        return getGroovyCallDecorator(interceptorFilter).maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 

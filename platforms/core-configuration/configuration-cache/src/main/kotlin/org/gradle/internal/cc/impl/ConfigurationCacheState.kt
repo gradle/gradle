@@ -26,6 +26,7 @@ import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal.EntryRetention
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
@@ -66,6 +67,7 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -140,6 +142,7 @@ interface ConfigurationCacheStateFile {
     // Replace the contents of this state file, by moving the given file to the location of this state file
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
+    fun relatedStateFile(path: Path): ConfigurationCacheStateFile
 }
 
 
@@ -148,6 +151,7 @@ internal
 class ConfigurationCacheState(
     private val codecs: Codecs,
     private val stateFile: ConfigurationCacheStateFile,
+    private val contextSource: IsolateContextSource,
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val host: ConfigurationCacheHost
 ) {
@@ -348,8 +352,8 @@ class ConfigurationCacheState(
             write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
+            writeIncludedBuildStateTo(
                 stateFileFor(state.buildDefinition),
                 buildTreeState
             )
@@ -383,8 +387,8 @@ class ConfigurationCacheState(
             write(state.owner.buildIdentifier)
         }
         // Encode the build state using the contextualized IO service for the nested build
-        state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().writeIncludedBuildStateTo(
+        gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
+            writeIncludedBuildStateTo(
                 stateFileFor(state.buildDefinition),
                 buildTreeState
             )
@@ -401,13 +405,15 @@ class ConfigurationCacheState(
     }
 
     private
-    fun readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
+    fun ReadContext.readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
         build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
-        return build.gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().readIncludedBuildStateFrom(
-            stateFileFor((build.state as NestedBuildState).buildDefinition),
-            build
-        )
+        return build.gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
+            readIncludedBuildStateFrom(
+                stateFileFor((build.state as NestedBuildState).buildDefinition),
+                build
+            )
+        }
     }
 
     private
@@ -491,14 +497,14 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
+    fun WriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledWork: ScheduledWork) {
         workNodeCodec(gradle).run {
             writeWork(scheduledWork)
         }
     }
 
     private
-    suspend fun ReadContext.readWorkGraph(gradle: GradleInternal) =
+    fun ReadContext.readWorkGraph(gradle: GradleInternal) =
         workNodeCodec(gradle).run {
             readWork()
         }
@@ -524,7 +530,7 @@ class ConfigurationCacheState(
 
     private
     fun workNodeCodec(gradle: GradleInternal) =
-        codecs.workNodeCodecFor(gradle)
+        codecs.workNodeCodecFor(gradle, contextSource)
 
     private
     suspend fun WriteContext.writeRequiredBuildServicesOf(build: BuildState, buildTreeState: StoredBuildTreeState) {
@@ -721,11 +727,11 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            write(cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan)
-            write(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
-            write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
-            write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
-            write(cacheConfigurations.buildCache.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.releasedWrappers.entryRetention)
+            write(cacheConfigurations.snapshotWrappers.entryRetention)
+            write(cacheConfigurations.downloadedResources.entryRetention)
+            write(cacheConfigurations.createdResources.entryRetention)
+            write(cacheConfigurations.buildCache.entryRetention)
             write(cacheConfigurations.cleanup)
             write(cacheConfigurations.markingStrategy)
         }
@@ -734,11 +740,11 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
-            cacheConfigurations.buildCache.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.releasedWrappers.entryRetention.value(readNonNull<Provider<EntryRetention>>())
+            cacheConfigurations.snapshotWrappers.entryRetention.value(readNonNull<Provider<EntryRetention>>())
+            cacheConfigurations.downloadedResources.entryRetention.value(readNonNull<Provider<EntryRetention>>())
+            cacheConfigurations.createdResources.entryRetention.value(readNonNull<Provider<EntryRetention>>())
+            cacheConfigurations.buildCache.entryRetention.value(readNonNull<Provider<EntryRetention>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
             cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }

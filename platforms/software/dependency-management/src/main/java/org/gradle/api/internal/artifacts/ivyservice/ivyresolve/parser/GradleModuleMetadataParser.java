@@ -18,16 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
@@ -35,6 +38,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAtt
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -192,7 +196,7 @@ public class GradleModuleMetadataParser {
         List<ModuleFile> files = Collections.emptyList();
         List<ModuleDependency> dependencies = Collections.emptyList();
         List<ModuleDependencyConstraint> dependencyConstraints = Collections.emptyList();
-        List<VariantCapability> capabilities = Collections.emptyList();
+        List<ImmutableCapability> capabilities = Collections.emptyList();
         boolean availableExternally = false;
 
         reader.beginObject();
@@ -242,18 +246,22 @@ public class GradleModuleMetadataParser {
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
     }
 
-    private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<VariantCapability> capabilities, MutableComponentVariant variant) {
+    private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<ImmutableCapability> capabilities, MutableComponentVariant variant) {
         for (ModuleFile file : files) {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, dependency.requestedCapabilities, dependency.endorsing, dependency.artifact);
+            ImmutableSet.Builder<CapabilitySelector> capabilitySelectors = ImmutableSet.builderWithExpectedSize(dependency.requestedCapabilities.size());
+            for (ImmutableCapability requestedCapability : dependency.requestedCapabilities) {
+                capabilitySelectors.add(new DefaultSpecificCapabilitySelector(requestedCapability));
+            }
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, capabilitySelectors.build(), dependency.endorsing, dependency.artifact);
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
             variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason, dependencyConstraint.attributes);
         }
-        for (VariantCapability capability : capabilities) {
-            variant.addCapability(capability.group, capability.name, capability.version);
+        for (ImmutableCapability capability : capabilities) {
+            variant.addCapability(capability.getGroup(), capability.getName(), capability.getVersion());
         }
     }
 
@@ -312,7 +320,7 @@ public class GradleModuleMetadataParser {
             ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
             VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
-            List<VariantCapability> requestedCapabilities = ImmutableList.of();
+            List<ImmutableCapability> requestedCapabilities = ImmutableList.of();
             IvyArtifactName artifactSelector = null;
             boolean endorseStrictVersions = false;
 
@@ -406,8 +414,8 @@ public class GradleModuleMetadataParser {
         return new DefaultIvyArtifactName(artifactName, type, extension, classifier);
     }
 
-    private List<VariantCapability> consumeCapabilities(JsonReader reader, boolean versionRequired) throws IOException {
-        ImmutableList.Builder<VariantCapability> capabilities = ImmutableList.builder();
+    private List<ImmutableCapability> consumeCapabilities(JsonReader reader, boolean versionRequired) throws IOException {
+        ImmutableList.Builder<ImmutableCapability> capabilities = ImmutableList.builder();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
             String group = null;
@@ -440,7 +448,7 @@ public class GradleModuleMetadataParser {
             }
             reader.endObject();
 
-            capabilities.add(new VariantCapability(group, name, version));
+            capabilities.add(new DefaultImmutableCapability(group, name, version));
         }
         reader.endArray();
         return capabilities.build();
@@ -649,11 +657,11 @@ public class GradleModuleMetadataParser {
         final ImmutableList<ExcludeMetadata> excludes;
         final String reason;
         final ImmutableAttributes attributes;
-        final List<? extends Capability> requestedCapabilities;
+        final List<ImmutableCapability> requestedCapabilities;
         final boolean endorsing;
         final IvyArtifactName artifact;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, IvyArtifactName artifact) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<ImmutableCapability> requestedCapabilities, boolean endorsing, IvyArtifactName artifact) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
@@ -727,33 +735,6 @@ public class GradleModuleMetadataParser {
         @Override
         public int hashCode() {
             return Objects.hashCode(group, module, versionConstraint, reason, attributes);
-        }
-    }
-
-    private static class VariantCapability implements Capability {
-        final String group;
-        final String name;
-        final String version;
-
-        private VariantCapability(String group, String name, String version) {
-            this.group = group;
-            this.name = name;
-            this.version = version;
-        }
-
-        @Override
-        public String getGroup() {
-            return group;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public String getVersion() {
-            return version;
         }
     }
 }

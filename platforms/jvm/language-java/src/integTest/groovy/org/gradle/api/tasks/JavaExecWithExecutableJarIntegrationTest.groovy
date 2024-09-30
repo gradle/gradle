@@ -89,6 +89,12 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (method == 'project.javaexec') {
+            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
         succeeds taskName
 
         then:
@@ -106,6 +112,12 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
     def "helpful message when jar is not executable with #method"() {
 
         when:
+        if (method == 'project.javaexec') {
+            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
         fails taskName
 
         then:

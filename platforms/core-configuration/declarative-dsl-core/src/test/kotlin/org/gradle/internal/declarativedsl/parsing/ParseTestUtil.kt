@@ -5,7 +5,8 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.prettyPrintLanguageTreeResult
 import org.intellij.lang.annotations.Language
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+
 
 
 object ParseTestUtil {
