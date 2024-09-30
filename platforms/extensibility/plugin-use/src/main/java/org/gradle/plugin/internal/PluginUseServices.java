@@ -45,11 +45,11 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
+import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
-import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.autoapply.DefaultPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
@@ -124,8 +124,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        AutoAppliedPluginHandler createAutoAppliedPluginHandler(List<AutoAppliedPluginRegistry> registries) {
-            return new DefaultAutoAppliedPluginHandler(new CompositeAutoAppliedPluginRegistry(registries));
+        PluginHandler createPluginHandler(List<AutoAppliedPluginRegistry> registries) {
+            return new DefaultPluginHandler(new CompositeAutoAppliedPluginRegistry(registries));
         }
 
         @Provides

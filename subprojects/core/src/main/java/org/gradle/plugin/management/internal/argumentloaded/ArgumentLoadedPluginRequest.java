@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal;
+package org.gradle.plugin.management.internal.argumentloaded;
 
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.PluginCoordinates;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -30,7 +31,7 @@ import java.util.Optional;
  * A {@link PluginRequest} that represents a plugin request added outside of any build script.
  * <p>
  * These originate from an id + version pair in the form of {@code id:version}.  These are currently
- * parsed from a system property by {@link AutoAppliedPluginHandler#getArgumentLoadedPlugins()}.
+ * parsed from a system property by {@link org.gradle.plugin.management.internal.PluginHandler#getArgumentLoadedPlugins()}.
  */
 public final class ArgumentLoadedPluginRequest implements PluginRequestInternal {
     private static final int PLUGIN_ID_INDEX = 0;

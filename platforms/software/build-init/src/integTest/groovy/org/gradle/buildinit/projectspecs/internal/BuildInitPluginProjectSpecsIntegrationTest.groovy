@@ -22,7 +22,7 @@ import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginHandler
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -336,7 +336,7 @@ defaults {
         targetDir = file("new-project").with { createDir() }
         withInstallations(Jvm.current(), AvailableJavaHomes.getJdk(JavaVersion.VERSION_17))
 
-        def args = ["-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$DECLARATIVE_PLUGIN_SPEC".toString(),
+        def args = ["-D${ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$DECLARATIVE_PLUGIN_SPEC".toString(),
                     "init",
                     "--type", "unknown-project-type",
                     "--overwrite",
@@ -355,7 +355,7 @@ Known types:
 
         def args = ["init"]
         if (pluginsProp) {
-            args << "-D${AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$pluginsProp".toString()
+            args << "-D${ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=$pluginsProp".toString()
         }
         if (type) {
             args << "--type" << type

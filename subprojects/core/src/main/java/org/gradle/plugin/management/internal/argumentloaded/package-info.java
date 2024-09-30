@@ -14,5 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * This package contains types for automatically resolving and loading plugins based on arguments to a build.
+ * <p>
+ * This is currently used by the {@code init} task, but is implemented as a general-purpose plugin loading mechanism.
+ */
 @org.gradle.api.NonNullApi
-package org.gradle.plugin.management.internal.autoapply;
+package org.gradle.plugin.management.internal.argumentloaded;

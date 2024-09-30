@@ -16,11 +16,10 @@
 
 package org.gradle.buildinit.projectspecs.internal
 
-
 import org.gradle.buildinit.plugins.AbstractInteractiveInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginHandler
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.internal.TextUtil
@@ -59,7 +58,7 @@ class BuildInitPluginProjectSpecsInteractiveIntegrationTest extends AbstractInte
         targetDir = file("new-project").with { createDir() }
 
         def args = ["init",
-                    "-D${ AutoAppliedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=org.example.myplugin:1.0",
+                    "-D${ ArgumentLoadedPluginHandler.INIT_PROJECT_SPEC_SUPPLIERS_PROP}=org.example.myplugin:1.0",
                     "--overwrite",
                     "--init-script", "../init.gradle"] as String[]
 

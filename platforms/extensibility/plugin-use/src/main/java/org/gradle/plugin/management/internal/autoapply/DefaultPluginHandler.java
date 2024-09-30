@@ -26,6 +26,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.plugin.management.internal.PluginCoordinates;
+import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -35,11 +36,11 @@ import java.util.stream.StreamSupport;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler {
+public class DefaultPluginHandler implements PluginHandler {
 
     private final AutoAppliedPluginRegistry registry;
 
-    public DefaultAutoAppliedPluginHandler(AutoAppliedPluginRegistry registry) {
+    public DefaultPluginHandler(AutoAppliedPluginRegistry registry) {
         this.registry = registry;
     }
 

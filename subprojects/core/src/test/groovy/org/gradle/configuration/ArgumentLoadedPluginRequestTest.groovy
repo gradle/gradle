@@ -16,7 +16,7 @@
 
 package org.gradle.configuration
 
-import org.gradle.plugin.management.internal.ArgumentLoadedPluginRequest
+import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginRequest
 import spock.lang.Specification
 
 class ArgumentLoadedPluginRequestTest extends Specification {
