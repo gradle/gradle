@@ -25,14 +25,6 @@ val DataProperty.typeName: String
         is DataTypeRef.Name -> propType.toHumanReadable()
     }
 
-val DataProperty.kotlinType: KClass<*>
-    get() = when (typeName) {
-        "String" -> String::class
-        "Int" -> Int::class
-        "Boolean" -> Boolean::class
-        else -> Any::class
-    }
-
 fun DataTypeRef.toHumanReadable(): String =
     when (this) {
         is DataTypeRef.Name -> fqName.simpleName

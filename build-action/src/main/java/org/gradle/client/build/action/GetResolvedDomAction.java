@@ -12,6 +12,7 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisites> {
@@ -37,10 +38,10 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         if (declarativeBuildFiles.isEmpty()) {
             throw new RuntimeException("No declarative project file found");
         }
-        return Pair.of(rootProjectDirectory,  declarativeBuildFiles);
+        return Pair.of(rootProjectDirectory, declarativeBuildFiles);
     }
 
-    
+
     private static final class ResolvedDomPrerequisitesImpl implements ResolvedDomPrerequisites {
 
         private final InterpretationSequence settingsSequence;
@@ -51,7 +52,7 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         public ResolvedDomPrerequisitesImpl(
                 InterpretationSequence settingsSequence,
                 InterpretationSequence projectSequence,
-                File rootDir, 
+                File rootDir,
                 List<File> declarativeBuildFiles
         ) {
             this.settingsSequence = settingsSequence;
@@ -91,8 +92,11 @@ public class GetResolvedDomAction implements BuildAction<ResolvedDomPrerequisite
         }
 
         @Override
-        public List<File> getDeclarativeBuildFiles() {
-            return declarativeBuildFiles;
+        public List<File> getDeclarativeFiles() {
+            return Stream.concat(
+                    declarativeBuildFiles.stream(),
+                    getSettingsFile().canRead() ? Stream.of(getSettingsFile()) : Stream.empty()
+            ).collect(Collectors.toList());
         }
     }
 }

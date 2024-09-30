@@ -19,5 +19,5 @@ public interface ResolvedDomPrerequisites extends Serializable {
     
     File getSettingsFile();
 
-    List<File> getDeclarativeBuildFiles();
+    List<File> getDeclarativeFiles();
 }

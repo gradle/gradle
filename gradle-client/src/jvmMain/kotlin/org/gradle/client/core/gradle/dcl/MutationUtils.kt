@@ -56,9 +56,9 @@ object MutationUtils {
         overlayResult: DocumentOverlayResult,
     ): NodeData<List<ApplicableMutation>> {
         val overlayDocument = overlayResult.inputOverlay
-        val compatibleMutationsCatalog = DefaultMutationDefinitionCatalog().apply { 
-            mutationCatalog.mutationDefinitionsById.values.forEach { 
-                if (it.isCompatibleWithSchema(modelSchema)) { 
+        val compatibleMutationsCatalog = DefaultMutationDefinitionCatalog().apply {
+            mutationCatalog.mutationDefinitionsById.values.forEach {
+                if (it.isCompatibleWithSchema(modelSchema)) {
                     registerMutationDefinition(it)
                 }
             }
@@ -123,4 +123,10 @@ internal class OverlayRoutedNodeDataContainer<DNode, DElement : DNode, DProperty
             is FromUnderlay -> underlay.data(node)
             is FromOverlay -> overlay.data(node)
         }
+}
+
+internal class NoApplicableMutationsNodeData : NodeData<List<ApplicableMutation>> {
+    override fun data(node: DeclarativeDocument.DocumentNode.ElementNode) = emptyList<ApplicableMutation>()
+    override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode) = emptyList<ApplicableMutation>()
+    override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode) = emptyList<ApplicableMutation>()
 }
