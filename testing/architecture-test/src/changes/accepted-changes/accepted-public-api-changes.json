@@ -61,6 +61,12 @@
             "changes": [
                 "Method added to public class"
             ]
+	},
+	{
+            "type": "org.gradle.language.swift.SwiftVersion",
+            "member": "Field SWIFT6",
+            "acceptation": "No need to incubate",
+            "changes": []
         }
     ]
 }
