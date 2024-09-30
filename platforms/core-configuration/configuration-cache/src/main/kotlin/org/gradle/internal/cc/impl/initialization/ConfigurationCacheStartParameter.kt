@@ -76,6 +76,14 @@ class ConfigurationCacheStartParameter internal constructor(
     val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
 
     /**
+     * Whether global values stored to the configuration cache should be deduplicated
+     * in order to save space on disk and to use less memory on a cache hit.
+     *
+     * The default is `true`.
+     */
+    val isDeduplicatingValueObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-values", true)
+
+    /**
      * Whether configuration cache storing/loading should be done in parallel.
      *
      * Same as [StartParameterInternal.configurationCacheParallel].
