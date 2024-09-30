@@ -191,7 +191,7 @@ The following are the features that have been promoted in this Gradle release.
 The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
 It allows users to check the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache()) and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
 
-### Stable methods in Provider Factory API
+### Stable methods in ProviderFactory API
 
 The following methods of the [`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) are now stable:
 * [`exec`](javadoc/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action))
