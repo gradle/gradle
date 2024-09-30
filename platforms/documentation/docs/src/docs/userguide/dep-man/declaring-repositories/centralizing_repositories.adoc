@@ -72,7 +72,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 [[sub:fail_build_on_project_repositories]]
 Gradle will warn you if a project or plugin declares a repository when using this mode.
 
-To enforce that *only* repositories declared in `settings.gradle(.kts)` are used, you can configure Gradle to fail the build:
+To enforce that *only* repositories declared in `settings.gradle(.kts)` are used, you can configure Gradle to fail the build when a project plugin is declared:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]

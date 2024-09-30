@@ -18,9 +18,9 @@
 Gradle exposes an API to declare what a repository may or may not contain.
 There are different use cases for it:
 
-- performance, when you know a dependency will never be found in a specific repository
-- security, by avoiding leaking what dependencies are used in a private project
-- reliability, when some repositories contain corrupted metadata or artifacts
+- **Performance** when you know a dependency will never be found in a specific repository
+- **Security** by avoiding leaking what dependencies are used in a private project
+- **Reliability** when some repositories contain invalid or incorrect metadata or artifacts
 
 It's even more important when considering that the declared order of repositories matter.
 
