@@ -115,8 +115,8 @@ plugins {
 And the location of the plugin must be specified in the settings file:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=simple-repositories]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=simple-repositories]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="settings.gradle.kts[tags=simple-setting-repositories]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="settings.gradle[tags=simple-setting-repositories]"]
 ====
 
 There are additional considerations for resolving and applying plugins:
@@ -126,8 +126,8 @@ There are additional considerations for resolving and applying plugins:
 |# |To |Use |For example:
 
 |<<#sec:plugins_block,1>>
-|Apply a plugin to a specific project.
-|<<#sec:plugins_block,The `plugins` block in the build file of the project>>
+|Apply a plugin to a project.
+|<<#sec:plugins_block,The `plugins` block in the build file>>
 a|
 ----
 plugins {
@@ -153,7 +153,7 @@ allprojects {
 
 |<<#sec:buildsrc_plugins_dsl,3>>
 |Apply a plugin to multiple subprojects.
-|<<#sec:buildsrc_plugins_dsl,A convention plugin in the `buildSrc` directory>> ** Recommended**.
+|<<#sec:buildsrc_plugins_dsl,A convention plugin in the `buildSrc` directory>> **Recommended**.
 a|
 ----
 plugins {
@@ -166,7 +166,7 @@ repositories {
 
 |<<#sec:applying_plugins_buildscript,4>>
 |Apply a plugin needed _for the build script itself_.
-|<<#sec:applying_plugins_buildscript,The `buildscript` block in the build file itself>>
+|<<#sec:applying_plugins_buildscript,The `buildscript` block in the build file itself>>. **Legacy**.
 a|
 ----
 buildscript {
@@ -177,11 +177,12 @@ buildscript {
     classpath("org.barfuin.gradle.taskinfo:gradle-taskinfo:2.1.0")
   }
 }
+apply(plugin = "org.barfuin.gradle.taskinfo")
 ----
 
 |<<sec:script_plugins,5>>
 |Apply a script plugins.
-|<<sec:script_plugins,The legacy `apply()` method in the build file>>. **Not Recommended**
+|<<sec:script_plugins,The legacy `apply()` method in the build file>>. **Not Recommended**. **Legacy**.
 a|
 ----
 apply<MyCustomBarfuinTaskInfoPlugin>()
@@ -308,47 +309,11 @@ include::sample[dir="snippets/plugins/dslWithBuildSrc/groovy", files="build.grad
 [[sec:applying_plugins_buildscript]]
 == 4. Applying plugins using the `buildscript{}` block
 
-The `buildscript` block is used for declaring which plugins are available for use *in the build script* itself.
+To define libraries or plugins used in the build script itself, you can use the `buildscript` block.
+The `buildscript` block is also used for specifying where to find those dependencies.
 
-When you want to use a library in the build script itself, you must add this library on the script classpath using `buildScript`:
-
-[source,groovy]
-.build.gradle
-----
-import org.apache.commons.codec.binary.Base64
-
-buildscript {
-    repositories {  // this is where the plugins are located
-        mavenCentral()
-        google()
-    }
-    dependencies { // these are the plugins that can be used in subprojects or in the build file itself
-        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2' // used in the task below
-        classpath 'com.android.tools.build:gradle:4.1.0' // used in subproject
-    }
-}
-
-tasks.register('encode') {
-    doLast {
-        def byte[] encodedString = new Base64().encode('hello world\n'.getBytes())
-        println new String(encodedString)
-    }
-}
-----
-
-And you can apply the globally declared dependencies in the subproject that needs it:
-
-[source,groovy]
-.subproject/build.gradle
-----
-plugins {
-    id 'com.android.application'
-}
-----
-
-Binary plugins published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin.
-
-External jars can be added to the build script classpath using the `buildscript{}` block as described in <<writing_build_scripts#sec:build_script_external_dependencies,External dependencies for the build script>>:
+This approach is less common with newer versions of Gradle, as the `plugins {}` block simplifies plugin usage.
+However, `buildscript {}` may be necessary when dealing with custom or non-standard plugin repositories as well as libraries dependencies:
 
 ====
 include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.kts[tags=buildscript_block]"]
@@ -362,56 +327,10 @@ A script plugin is an ad-hoc plugin, typically written and applied in the same b
 It is applied using the <<sec:old_plugin_application,legacy application method>>:
 
 [[sec:binary_plugin_example]]
-[source, kotlin]
-.build.gradle.kts
-----
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        println("Plugin ${this.javaClass.simpleName} applied on ${project.name}")
-    }
-}
-
-apply<MyPlugin>()
-----
-
-Let's take a rudimentary example of a plugin written in a file called `other.gradle` located in the same directory as the `build.gradle` file:
-
-[source, groovy]
-.other.gradle
-----
-public class Other implements Plugin<Project> {
-    @Override
-    void apply(Project project) {
-        // Does something
-    }
-}
-----
-
-First, import the external file using:
-
-[source, groovy]
-.build.gradle
-----
-apply from: 'other.gradle'
-----
-
-Then you can apply it:
-
-[source, groovy]
-.build.gradle
-----
-apply plugin: Other
-----
-
-Script plugins are automatically resolved and can be applied from a script on the local filesystem or remotely:
-
 ====
-include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.kts[tags=plugin]"]
+include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[tags=plugin]"]
 ====
-
-Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL.
-Multiple script plugins (of either form) can be applied to a given target.
 
 [[sec:plugin_management]]
 == Plugin Management
@@ -539,37 +458,33 @@ Furthermore, one needs to append the `::class` suffix to identify a class litera
 [.multi-language-text.lang-groovy]
 Furthermore, it is unnecessary to append `.class` to identify a class literal in Groovy as it is in Java.
 
-[[sec:finding_community_plugins]]
+You may also see the `apply` method used to include an entire build file:
 
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=script-plugin]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=script-plugin]"]
+====
+
+[[sec:finding_community_plugins]]
 [[sec:version_catalog_plugin_application]]
 == Using a Version Catalog
 
 When a project uses a version catalog, plugins can be referenced via aliases when applied.
 
-
 Let's take a look at a simple Version Catalog:
 
-[source,toml]
-.gradle/libs.versions.toml
-----
-[versions]
-intellij-plugin = "1.6"
-
-[plugins]
-jetbrains-intellij = { id = "org.jetbrains.intellij", version.ref = "intellij-plugin" }
-----
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/kotlin/gradle",files="libs.versions.toml[]"]
+====
 
 Then a plugin can be applied to any build script using the `alias` method:
 
-[source,kotlin]
-.build.gradle.kts
-----
-plugins {
-    alias(libs.plugins.jetbrains.intellij)
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/kotlin",files="build.gradle.kts[tag=plugin]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/groovy",files="build.gradle[tag=plugin]"]
+====
 
-TIP: `jetbrains-intellij` is available as the Gradle generated safe accessor: `jetbrains.intellij`.
+TIP: Gradle generates type safe accessors for catalog items.
 
 [.text-right]
 **Next Step:** <<writing_plugins.adoc#writing_plugins,Learn how to write Plugins>> >>

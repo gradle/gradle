@@ -1,12 +1,32 @@
 // tag::buildscript_block[]
+import org.yaml.snakeyaml.Yaml
+
 buildscript {
-    repositories {
-        gradlePluginPortal()
+    repositories { // Where to find the plugin or library
+        mavenCentral()
     }
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:3.3.1'
+        classpath 'org.yaml:snakeyaml:1.19' // The librarie's classpath dependency
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:3.3.1' // The plugin's classpath dependency
     }
 }
 
+// Applies the plugin by its ID after the plugin classpath is configured.
 apply plugin: 'org.springframework.boot'
+
+// Uses the library in the build script
+def prop = new Yaml().loadAll(new File("$projectDir/src/main/resources/application.yml")
+    .newInputStream()).first()
+var path = prop.temp.files.path
 // end::buildscript_block[]
+
+// tag::plugin[]
+class MyPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project project) {
+        println("Plugin ${this.getClass().getSimpleName()} applied on ${project.name}")
+    }
+}
+
+apply plugin: MyPlugin
+// end::plugin[]

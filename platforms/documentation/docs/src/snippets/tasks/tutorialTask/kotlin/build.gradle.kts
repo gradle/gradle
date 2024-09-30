@@ -14,7 +14,7 @@ tasks.register<HelloTask>("hello") {
 }
 // end::hello[]
 
-// end::registers[]
+// tag::registers[]
 // tag::file[]
 abstract class CreateFileTask : DefaultTask() {
     @TaskAction
@@ -26,11 +26,11 @@ abstract class CreateFileTask : DefaultTask() {
 }
 // end::file[]
 
-// tag::registers[]
 tasks.register("createFileTask", CreateFileTask) {
     group = "custom"
     description = "Create myfile.txt in the current directory"
 }
+// end::registers[]
 
 /*
 // tag::register[]
