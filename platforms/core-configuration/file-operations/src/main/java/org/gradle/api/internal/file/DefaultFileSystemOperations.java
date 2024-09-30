@@ -55,7 +55,7 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     @Override
-    public WorkResult sync(Action<? super CopySpec> action) {
+    public WorkResult sync(Action<? super SyncSpec> action) {
         return fileOperations.sync(action);
     }
 
