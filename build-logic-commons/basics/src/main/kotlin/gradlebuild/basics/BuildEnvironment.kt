@@ -91,7 +91,6 @@ object BuildEnvironment {
     val architecture = System.getProperty("os.arch").toLowerCase()
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isTravis = "TRAVIS" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
     val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
     val isTeamCityParallelTestsEnabled
