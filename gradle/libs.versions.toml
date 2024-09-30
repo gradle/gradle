@@ -5,7 +5,7 @@ kotlinx-serialization = "1.6.3"
 compose-plugin = "1.6.11"
 decompose = "3.0.0"
 gradle-tooling = "8.10-20240723003427+0000"
-declarative-dsl = "8.10-20240723003427+0000"
+declarative-dsl = "8.11-20240930074649+0000"
 sqldelight = "2.0.2"
 ktor = "2.3.12"
 

@@ -4,7 +4,8 @@ import org.gradle.declarative.dsl.schema.*
 import kotlin.reflect.KClass
 
 fun AnalysisSchema.dataClassFor(typeRef: DataTypeRef.Name): DataClass =
-    dataClassesByFqName.getValue(typeRef.fqName)
+    dataClassTypesByFqName.getValue(typeRef.fqName) as? DataClass 
+        ?: error("unexpected type for $typeRef")
 
 val AnalysisSchema.softwareTypes: List<SchemaMemberFunction>
     get() = topLevelReceiverType.memberFunctions
@@ -43,7 +44,7 @@ fun DataTypeRef.Type.toHumanReadable(): String =
         is DataType.NullType -> "null"
         is DataType.UnitType -> Unit::class.simpleName!!
         is DataType.ConstantType<*> -> type.toString()
-        is DataClass -> type.name.simpleName
+        is DataType.ClassDataType -> type.name.simpleName
     }
 
 fun DataParameter.toHumanReadable(): String =

@@ -6,7 +6,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.TypedMember
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 
 fun AnalysisSchema.hasKotlinPrototype(): Boolean =
-    dataClassesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.kotlin.KotlinJvmLibrary" }
+    dataClassTypesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.kotlin.KotlinJvmLibrary" }
 
 val AnalysisSchema.kotlinJvmLibrary: DataClass
     get() = typeByFqn("org.gradle.api.experimental.kotlin.KotlinJvmLibrary")

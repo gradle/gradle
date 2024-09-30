@@ -379,6 +379,7 @@ class ModelTreeRendering(
         val arguments = element.elementValues.joinToString { valueNode -> 
             when (valueNode) {
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value.toString()
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> valueNode.referenceName
                 is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
                     val args = valueNode.values.map {
                         (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."

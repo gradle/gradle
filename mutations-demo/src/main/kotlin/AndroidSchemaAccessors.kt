@@ -6,7 +6,7 @@ import org.gradle.internal.declarativedsl.dom.mutation.TypedMember
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 
 fun AnalysisSchema.hasAndroidPrototype(): Boolean =
-    dataClassesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.android.AndroidSoftware" }
+    dataClassTypesByFqName.keys.any { it.qualifiedName == "org.gradle.api.experimental.android.AndroidSoftware" }
 
 val AnalysisSchema.androidApplication: DataClass
     get() = typeByFqn("org.gradle.api.experimental.android.application.AndroidApplication")
