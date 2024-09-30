@@ -1,0 +1,208 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.cc.impl.serialize
+
+import org.gradle.internal.Debug
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.serialize.graph.CloseableReadContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.GlobalValueDecoder
+import org.gradle.internal.serialize.graph.GlobalValueEncoder
+import org.gradle.internal.serialize.graph.IsolateContext
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.runReadOperation
+import org.gradle.internal.serialize.graph.runWriteOperation
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
+
+
+private const val EOF = -1
+
+/**
+ * This value encoder stores data into a build-wide context.
+ */
+class DefaultGlobalValueEncoder(
+    private val globalContext: CloseableWriteContext
+) : GlobalValueEncoder {
+
+    private
+    val values = ConcurrentHashMap<Any, Int>()
+
+    private
+    var nextId = AtomicInteger(1)
+
+    override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
+
+        Debug.println(">>>")
+        Debug.println("Writing $value ${globalContext.name}")
+        Debug.println("Client context ${writeContext.name}")
+        Debug.println("Global context ${globalContext.name}")
+        Debug.println("<<<")
+        val id = values.computeIfAbsent(value) { _ ->
+            val id = nextId.getAndIncrement()
+            // write the id and value to the global context
+            Debug.println("Writing $id - $value - ${globalContext.name}")
+            doWriteValue(id, value)
+            id
+        }
+        // write the id to the client context
+        Debug.println("Writing $id to ${writeContext.name} for $value")
+        writeContext.writeSmallInt(id)
+    }
+
+    private
+    fun <T : Any> doWriteValue(id: Int, value: T) {
+        globalContext.synchronized {
+            runWriteOperation {
+                writeSmallInt(id)
+                write(value)
+            }
+        }
+    }
+
+    override fun close() {
+        globalContext.synchronized {
+            writeSmallInt(EOF)
+            close()
+        }
+    }
+}
+
+class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContext) : GlobalValueDecoder, AutoCloseable {
+    enum class ReaderState {
+        READY, STARTED, RUNNING, STOPPING, STOPPED
+    }
+
+    private
+    val state = AtomicReference(ReaderState.READY)
+
+    private
+    val globalContext by lazy(globalContextProvider)
+
+    private
+    inner class FutureValue {
+
+        private
+        val latch = CountDownLatch(1)
+
+        private
+        var value: Any? = null
+
+        fun complete(v: Any) {
+            value = v
+            latch.countDown()
+        }
+
+        fun get(): Any {
+            if (value == null && state.get() < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
+                throw TimeoutException("Timeout while waiting for value")
+            }
+            require(value != null) { "State is: $state"}
+            return value!!
+        }
+    }
+
+    private
+    val values = ConcurrentHashMap<Int, Any>()
+
+    /**
+     * Reads all values available (and their ids) to build the pool of shared objects
+     */
+    //TODO-RC Use a Gradle managed facility instead of an ad-hoc thread
+    private
+    val reader = thread(start = false, isDaemon = true, name = "${this::class.qualifiedName} reader thread") {
+        require(state.compareAndSet(ReaderState.STARTED, ReaderState.RUNNING)) {
+            "Unexpected state: $state"
+        }
+        globalContext.useToRun {
+            while (state.get() == ReaderState.RUNNING) {
+                val id = readSmallInt()
+                if (id == EOF) {
+                    stopReading()
+                    break
+                }
+                Debug.println("Reading id $id from $this")
+                val read = runReadOperation {
+                    read()!!
+                }
+                Debug.println("Read id $id - $read")
+                values.compute(id) { _, value ->
+                    when (value) {
+                        is FutureValue -> value.complete(read)
+                        else -> require(value == null)
+                    }
+                    read
+                }
+            }
+            state.set(ReaderState.STOPPED)
+            Debug.println("Stopped reading ${globalContext.name}")
+        }
+    }
+
+    private
+    fun ReadContext.resolveValue(id: Int): Any {
+        startReadingIfNeeded()
+        Debug.println(">>>")
+        Debug.println("Resolving $id")
+        Debug.println("Client context: ${this.name}")
+        Debug.println("Global context: ${globalContext.name}")
+        Debug.println("<<<")
+        require(id >= 0) {
+            "id: $id - $this"
+        }
+        return when (val it = values.computeIfAbsent(id) { FutureValue() }) {
+            is FutureValue -> it.get().also { value ->
+                Debug.println("Waited and resolved $id - $value")
+            }
+            else -> it.also { value ->
+                Debug.println("Resolved ready $id - $value")
+            }
+        }
+    }
+
+    private fun startReadingIfNeeded() {
+        if (state.compareAndSet(ReaderState.READY, ReaderState.STARTED)) {
+            reader.start()
+            Debug.println("Started reader")
+        }
+    }
+
+    override fun close() {
+        stopReading()
+        reader.join(TimeUnit.MINUTES.toMillis(1))
+    }
+
+    private fun stopReading() {
+        state.compareAndSet(ReaderState.RUNNING, ReaderState.STOPPING)
+    }
+
+    override suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T {
+        val id = readContext.readSmallInt()
+        return readContext.resolveValue(id).uncheckedCast()
+    }
+}
+
+fun <T: Any, C: IsolateContext> C.synchronized(action: C.() -> T?) = synchronized(this) {
+    action()
+}

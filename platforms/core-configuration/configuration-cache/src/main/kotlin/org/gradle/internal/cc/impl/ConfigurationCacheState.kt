@@ -102,6 +102,11 @@ enum class StateType(val encryptable: Boolean = false) {
     Work(true),
 
     /**
+     * Contains work-related state that is meant to be shared for the entire build.
+     */
+    WorkGlobals(true),
+
+    /**
      * Contains the side effects observed during the creation of the [Model].
      */
     ModelSideEffects(true),
@@ -135,6 +140,7 @@ interface ConfigurationCacheStateFile {
     val exists: Boolean
     val stateType: StateType
     val stateFile: ConfigurationCacheStateStore.StateFile
+    val name: String get() = "${stateFile.name} ($stateType)"
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
@@ -143,6 +149,7 @@ interface ConfigurationCacheStateFile {
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
     fun relatedStateFile(path: Path): ConfigurationCacheStateFile
+    fun stateFileForGlobalValues(): ConfigurationCacheStateFile
 }
 
 

@@ -64,7 +64,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def confCacheDir = file("./app/.gradle/configuration-cache")
         confCacheDir.isDirectory()
         def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
-        confCacheFiles.size() == 10 // header, 2 * fingerprint, build strings file, root build state file, included build state file, 2 * project state file, 2 * owner-less node state files
+        confCacheFiles.size() == 12 // header, 2 * fingerprint, build strings file, root build state file, root build globals file, included build state file, included build globals file, 2 * project state file, 2 * owner-less node state files
         if (!OperatingSystem.current().isWindows()) {
             confCacheFiles.forEach {
                 assert confCacheDir.file(it).mode == 384

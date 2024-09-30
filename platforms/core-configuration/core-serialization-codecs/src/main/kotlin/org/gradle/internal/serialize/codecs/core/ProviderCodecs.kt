@@ -41,6 +41,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
+import org.gradle.internal.Debug
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -228,33 +229,42 @@ class BuildServiceProviderCodec(
 ) : Codec<BuildServiceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        writeGlobalValue(value) {
-            val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
-            write(serviceDetails.buildIdentifier)
-            writeString(serviceDetails.name)
-            writeClass(serviceDetails.implementationType)
-            writeBoolean(serviceDetails.isResolved)
-            if (serviceDetails.isResolved) {
-                write(serviceDetails.parameters)
-                writeInt(serviceDetails.maxUsages)
-            }
+        writeGlobalValue(value, ::doEncode)
+    }
+
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *> {
+        return readGlobalValue<BuildServiceProvider<*, *>>(::doDecode)
+    }
+
+    private
+    suspend fun doEncode(context: WriteContext, it: BuildServiceProvider<*, *>) = context.run {
+        val serviceDetails: BuildServiceDetails<*, *> = it.serviceDetails
+        write(serviceDetails.buildIdentifier)
+        writeString(serviceDetails.name)
+        writeClass(serviceDetails.implementationType)
+        writeBoolean(serviceDetails.isResolved)
+        if (serviceDetails.isResolved) {
+            Debug.println("Writing ${serviceDetails.parameters} into $this")
+            write(serviceDetails.parameters)
+            writeInt(serviceDetails.maxUsages)
         }
     }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
-        readGlobalValue {
-            val buildIdentifier = readNonNull<BuildIdentifier>()
-            val name = readString()
-            val implementationType = readClassOf<BuildService<*>>()
-            val isResolved = readBoolean()
-            if (isResolved) {
-                val parameters = read() as BuildServiceParameters?
-                val maxUsages = readInt()
-                buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
-            } else {
-                buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
-            }
+    private
+    suspend fun doDecode(context: ReadContext) = context.run {
+        val buildIdentifier = readNonNull<BuildIdentifier>()
+        val name = readString()
+        val implementationType = readClassOf<BuildService<*>>()
+        val isResolved = readBoolean()
+        if (isResolved) {
+            val parameters = read() as BuildServiceParameters?
+            Debug.println("Read $parameters from $this")
+            val maxUsages = readInt()
+            buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
+        } else {
+            buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
         }
+    }
 
     private
     fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =

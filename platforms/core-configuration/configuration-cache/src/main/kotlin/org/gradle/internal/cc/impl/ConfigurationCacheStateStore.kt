@@ -23,7 +23,9 @@ import java.io.File
 internal
 interface ConfigurationCacheStateStore {
 
-    data class StateFile(val stateType: StateType, val file: File)
+    data class StateFile(val stateType: StateType, val file: File) {
+        val name: String get() = file.name
+    }
 
     data class StateAccessResult<T>(val value: T, val accessedFiles: List<File>)
 
