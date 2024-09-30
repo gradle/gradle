@@ -201,7 +201,7 @@ Gradle selects a chain of transforms using the following process:
 - If there are still multiple chains remaining that are equally suitable but produce different results, the selection fails, and an error is reported.
 - If all the remaining chains produce the same set of resulting attributes, Gradle arbitrarily selects one.
 
-How could multiple chains produce different suitable results?
+How can multiple chains produce different suitable results?
 Transforms can alter multiple attributes at a time.
 A suitable result of a transformation chain is one possessing attributes compatible with the requested attributes.
 But a result may contain other attributes as well, that were not requested, and are irrelevant to the result.
