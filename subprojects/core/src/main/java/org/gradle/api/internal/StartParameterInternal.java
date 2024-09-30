@@ -39,11 +39,14 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheIgnoreInputsInTaskGraphSerialization = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
+    private boolean configurationCacheParallel;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
+    private boolean propertyUpgradeReportEnabled;
+    private boolean enableProblemReportGeneration = true;
 
     public StartParameterInternal() {
     }
@@ -74,10 +77,12 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
         p.configurationCacheDebug = configurationCacheDebug;
+        p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
+        p.enableProblemReportGeneration = enableProblemReportGeneration;
         return p;
     }
 
@@ -188,6 +193,14 @@ public class StartParameterInternal extends StartParameter {
         configurationCacheIgnoreInputsInTaskGraphSerialization = ignoreInputsInTaskGraphSerialization;
     }
 
+    public boolean isConfigurationCacheParallel() {
+        return configurationCacheParallel;
+    }
+
+    public void setConfigurationCacheParallel(boolean parallel) {
+        this.configurationCacheParallel = parallel;
+    }
+
     public int getConfigurationCacheMaxProblems() {
         return configurationCacheMaxProblems;
     }
@@ -227,5 +240,21 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public boolean isPropertyUpgradeReportEnabled() {
+        return propertyUpgradeReportEnabled;
+    }
+
+    public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
+        this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
+    }
+
+    public void enableProblemReportGeneration(boolean enableProblemReportGeneration) {
+        this.enableProblemReportGeneration = enableProblemReportGeneration;
+    }
+
+    public boolean isProblemReportGenerationEnabled() {
+        return this.enableProblemReportGeneration;
     }
 }

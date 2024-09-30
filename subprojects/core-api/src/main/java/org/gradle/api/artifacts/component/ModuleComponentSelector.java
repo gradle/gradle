@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.component;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -25,6 +26,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 1.10
  */
 @UsedByScanPlugin
+@HasInternalProtocol
 public interface ModuleComponentSelector extends ComponentSelector {
     /**
      * The group of the module to select the component from.

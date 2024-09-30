@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.junit.Test
 
 class MultiprojectIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -42,7 +42,7 @@ class MultiprojectIntegrationTest extends AbstractIntegrationTest {
                 }
             }
 '''
-        inTestDirectory().withTasks('test').run()
+        inTestDirectory().withArgument("--no-problems-report").withTasks('test').run()
 
         testFile('build').assertHasDescendants('test.txt', 'whenReady.txt', 'afterEvaluate.txt')
         testFile('a/build').assertHasDescendants('test.txt', 'whenReady.txt', 'afterEvaluate.txt')

@@ -84,10 +84,6 @@ public interface IvyModule extends Module {
 
     /**
      * Responsible for exclusions at configuration level
-     * @param group
-     * @param module
-     * @param configuration
-     * @return
      */
     IvyModule excludeFromConfig(String group, String module, String configuration);
 

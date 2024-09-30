@@ -29,13 +29,13 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
@@ -46,7 +46,7 @@ import java.util.function.Supplier;
  * <p>
  *     Elements stored in collection property values are implemented via various implementations of {@link Collector}.
  * </p>
- * <h3>Collection suppliers</h3>
+ * <h2>Collection suppliers</h2>
  * The value of a collection property is represented at any time as an instance of an implementation of {@link CollectionSupplier}, namely:
  * <ul>
  *     <li>{@link EmptySupplier}, the initial value of a collection (or after {@link #empty()} is invoked)</li>
@@ -57,7 +57,7 @@ import java.util.function.Supplier;
  *     the collecting supplier will wrap a {@link Collector} that lazily represents the yet-to-be realized contents of the collection - see below for details</li>
  * </ul>
  *
- * <h3>Collectors</h3>
+ * <h2>Collectors</h2>
  * <p>
  *     While a collection property's contents are being built up, its value is represented by a {@link CollectingSupplier}.
  *     The collecting supplier will wrap a {@link Collector} instance that represents the various forms that elements can be added to a collection property (before the collection is finalized), namely:
@@ -341,7 +341,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        String typeDisplayName = TextUtil.toLowerCaseLocaleSafe(collectionType.getSimpleName());
+        String typeDisplayName = collectionType.getSimpleName().toLowerCase(Locale.ROOT);
         return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 

@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  */
 public class GroupedOutputFixture {
     /**
-     * All tasks will start with > Task, captures everything starting with : and going until end of line
+     * All tasks will start with {@code > Task}, captures everything starting with : and going until end of line
      */
     private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n";
     private final static String TRANSFORM_HEADER = "> Transform (file )?([^\\n]+) with ([^\\n]+)\\n";

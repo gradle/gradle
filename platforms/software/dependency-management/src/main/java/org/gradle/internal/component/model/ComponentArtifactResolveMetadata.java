@@ -18,8 +18,8 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 
 /**
  * Metadata used to resolve artifacts of a component.
@@ -33,5 +33,5 @@ public interface ComponentArtifactResolveMetadata {
 
     ImmutableAttributes getAttributes();
 
-    AttributesSchemaInternal getAttributesSchema();
+    ImmutableAttributesSchema getAttributesSchema();
 }

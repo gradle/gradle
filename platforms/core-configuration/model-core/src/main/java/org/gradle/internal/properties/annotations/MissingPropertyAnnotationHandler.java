@@ -21,6 +21,8 @@ import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 
+import java.util.Locale;
+
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -39,7 +41,7 @@ public interface MissingPropertyAnnotationHandler {
             .forProperty(annotationMetadata.getPropertyName())
             .id(TextUtil.screamingSnakeToKebabCase(missingAnnotation), "Missing annotation", GradleCoreProblemGroup.validation().property())
             .contextualLabel("is missing " + displayName)
-            .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(missingAnnotation)))
+            .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)))
             .severity(ERROR)
             .details("A property without annotation isn't considered during up-to-date checking")
             .solution("Add " + displayName)

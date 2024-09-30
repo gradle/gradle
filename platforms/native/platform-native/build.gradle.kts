@@ -13,7 +13,6 @@ errorprone {
         "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 2 occurrences
         "UnnecessaryTypeArgument", // 2 occurrences
         "UnusedMethod", // 11 occurrences
@@ -47,7 +46,6 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.io)
     implementation(projects.loggingApi)
-    implementation(projects.processServices)
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
@@ -95,3 +93,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

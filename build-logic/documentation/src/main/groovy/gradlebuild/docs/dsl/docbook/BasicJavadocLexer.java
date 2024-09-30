@@ -16,6 +16,7 @@
 package gradlebuild.docs.dsl.docbook;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -113,7 +114,7 @@ class BasicJavadocLexer implements JavadocLexer {
         scanner.next();
         scanner.mark();
         scanner.find(';');
-        String value = ENTITIES.get(scanner.region().toLowerCase());
+        String value = ENTITIES.get(scanner.region().toLowerCase(Locale.ROOT));
         buffer.append(value);
         scanner.next();
     }
@@ -166,7 +167,7 @@ class BasicJavadocLexer implements JavadocLexer {
         scanner.skip(WHITESPACE_WITH_EOL);
         scanner.mark();
         scanner.find(END_ELEMENT_NAME);
-        String elementName = scanner.region().toLowerCase();
+        String elementName = scanner.region().toLowerCase(Locale.ROOT);
         if (isEnd) {
             visitor.onEndHtmlElement(elementName);
         } else {

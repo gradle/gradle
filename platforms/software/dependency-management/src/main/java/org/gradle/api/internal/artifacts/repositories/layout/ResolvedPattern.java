@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.layout;
 import org.gradle.api.internal.file.FileResolver;
 
 import java.net.URI;
+import java.util.Locale;
 
 public class ResolvedPattern {
     public final String scheme;
@@ -31,14 +32,14 @@ public class ResolvedPattern {
         String basePath = pos < 0 ? rawPattern : rawPattern.substring(0, pos);
         this.baseUri = fileResolver.resolveUri(basePath);
         this.pattern = pos < 0 ? "" : rawPattern.substring(pos);
-        scheme = baseUri.getScheme().toLowerCase();
+        scheme = baseUri.getScheme().toLowerCase(Locale.ROOT);
         absolutePattern = constructAbsolutePattern(baseUri, pattern);
     }
 
     public ResolvedPattern(URI baseUri, String pattern) {
         this.baseUri = baseUri;
         this.pattern = pattern;
-        scheme = baseUri.getScheme().toLowerCase();
+        scheme = baseUri.getScheme().toLowerCase(Locale.ROOT);
         absolutePattern = constructAbsolutePattern(baseUri, pattern);
     }
 

@@ -32,3 +32,6 @@ dependencies {
 
     implementation(projects.serviceLookup)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

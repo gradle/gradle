@@ -610,7 +610,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         expect: "does NOT compile due to a missing dependency"
         fails("test")
-        failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
+        failure.assertHasErrorOutput("Compilation failed; see the compiler output below.")
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
 

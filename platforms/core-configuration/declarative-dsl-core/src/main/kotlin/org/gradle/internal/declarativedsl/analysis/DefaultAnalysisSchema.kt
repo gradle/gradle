@@ -14,6 +14,7 @@ import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -33,14 +34,14 @@ import java.util.Collections
 @SerialName("analysisSchema")
 data class DefaultAnalysisSchema(
     override val topLevelReceiverType: DataClass,
-    override val dataClassesByFqName: Map<FqName, DataClass>,
+    override val dataClassTypesByFqName: Map<FqName, DataType.ClassDataType>,
     override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
     override val defaultImports: Set<FqName>
 ) : AnalysisSchema {
     companion object Empty : AnalysisSchema {
         override val topLevelReceiverType: DataClass = DefaultDataClass.Empty
-        override val dataClassesByFqName: Map<FqName, DataClass> = mapOf()
+        override val dataClassTypesByFqName: Map<FqName, DataClass> = mapOf()
         override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction> = mapOf()
         override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey> = mapOf()
         override val defaultImports: Set<FqName> = setOf()
@@ -70,6 +71,28 @@ data class DefaultDataClass(
         override val properties: List<DataProperty> = Collections.emptyList()
         override val memberFunctions: List<SchemaMemberFunction> = Collections.emptyList()
         override val constructors: List<DataConstructor> = Collections.emptyList()
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = Empty
+    }
+}
+
+
+@Serializable
+@SerialName("enum")
+data class DefaultEnumClass(
+    override val name: FqName,
+    override val javaTypeName: String,
+    override val entryNames: List<String>
+) : EnumClass {
+
+    override fun toString(): String = name.simpleName
+
+    companion object Empty : EnumClass {
+        override val name: FqName = FqName.Empty
+        override val javaTypeName: String = ""
+        override val entryNames: List<String> = emptyList()
 
         @Suppress("unused")
         private

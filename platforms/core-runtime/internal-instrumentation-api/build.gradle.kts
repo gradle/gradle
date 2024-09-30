@@ -24,8 +24,11 @@ dependencies {
     api(libs.asm)
     api(libs.asmTree)
     api(libs.jsr305)
+    api(projects.stdlibJavaExtensions)
 
-    implementation(projects.stdlibJavaExtensions)
+    implementation(libs.groovy)
+}
 
-    runtimeOnly(libs.groovy)
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

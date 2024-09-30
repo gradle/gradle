@@ -23,21 +23,38 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.launcher.daemon.client.DaemonStartupMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.nio.charset.Charset
 
-@Requires(IntegTestPreconditions.NotDaemonExecutor)
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
+    def tmpdir = buildContext.getTmpDir().createDir()
 
     def setup() {
+        // This is doing some strange things to avoid the testing infrastructure from making these tests even more complicated.
+        // We want to start the launcher JVM with a controlled set of JVM args
+        // and we want the daemon to have a reasonable set of JVM args
+        // This sets things up so that they match by default. The tests below then create different scenarios where
+        // the launcher or build JVM args are different.
+        // Ultimately, we want everything to be single use and get rid of the non-forking scenarios below.
+        // This is not really testing real world behavior because it's impossible to get non-forking scenarios to work in most builds
+        // because the wrapper requires a single use daemon.
+
         executer.withArgument("--no-daemon")
         executer.requireIsolatedDaemons()
+        executer.useOnlyRequestedJvmOpts()
+        executer.requireDaemon()
+        executer.withCommandLineGradleOpts(DaemonParameters.DEFAULT_JVM_ARGS)
+        executer.withCommandLineGradleOpts("-Djava.io.tmpdir=${tmpdir}")
+
+        file('gradle.properties').writeProperties('org.gradle.jvmargs': DaemonParameters.DEFAULT_JVM_ARGS.join(" ") + " -Djava.io.tmpdir=${tmpdir} -ea")
     }
 
-    def "forks build when JVM args are requested"() {
-        requireJvmArg('-Xmx64m')
+    def "forks build when incompatible JVM args are requested"() {
+        buildRequestsJvmArgs('-Xmx64m')
 
         file('build.gradle') << "println 'hello world'"
 
@@ -51,23 +68,8 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements 
         daemons.daemon.stops()
     }
 
-    def "forks build when default client VM memory is used and user didn't specify a different limit"() {
-        executer.withCommandLineGradleOpts('-Xmx64m')
-        executer.useOnlyRequestedJvmOpts()
-        executer.requireDaemon()
-
-        when:
-        succeeds()
-
-        then:
-        wasForked()
-
-        and:
-        daemons.daemon.stops()
-    }
-
     def "stops single use daemon when build fails"() {
-        requireJvmArg('-Xmx64m')
+        buildRequestsJvmArgs('-Xmx64m')
 
         file('build.gradle') << "throw new RuntimeException('bad')"
 
@@ -121,7 +123,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
         def differentJdk = AvailableJavaHomes.differentJdk
-        file('gradle.properties').writeProperties("org.gradle.java.home": differentJdk.javaHome.canonicalPath)
+        file('gradle.properties').mergeProperties("org.gradle.java.home": differentJdk.javaHome.canonicalPath)
 
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
@@ -151,8 +153,8 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
     def "forks build to run when immutable jvm args set regardless of the environment"() {
         when:
-        requireJvmArg('-Xmx64m')
-        runWithJvmArg('-Xmx64m')
+        buildRequestsJvmArgs('-Xmx64m')
+        executer.withCommandLineGradleOpts('-Xmx64m', '-Xms64m')
 
         and:
         file('build.gradle') << """
@@ -169,7 +171,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
     def "does not fork build when only mutable system properties requested in gradle properties"() {
         when:
-        requireJvmArg('-Dsome-prop=some-value')
+        file('gradle.properties').writeProperties('org.gradle.jvmargs': DaemonParameters.DEFAULT_JVM_ARGS.join(" ") + " -Djava.io.tmpdir=${tmpdir} -ea -Dsome-prop=some-value")
 
         and:
         file('build.gradle') << """
@@ -204,7 +206,7 @@ assert System.getProperty('some-prop') == 'some-value'
 
     def "does not print daemon startup message for a single use daemon"() {
         given:
-        requireJvmArg('-Xmx64m')
+        buildRequestsJvmArgs('-Xmx64m')
 
         when:
         succeeds()
@@ -215,12 +217,8 @@ assert System.getProperty('some-prop') == 'some-value'
         daemons.daemon.stops()
     }
 
-    private def requireJvmArg(String jvmArg) {
-        file('gradle.properties') << "org.gradle.jvmargs=$jvmArg"
-    }
-
-    private def runWithJvmArg(String jvmArg) {
-        executer.withEnvironmentVars(["JAVA_OPTS": "$jvmArg -ea"])
+    private def buildRequestsJvmArgs(String jvmArg) {
+        file('gradle.properties').mergeProperties("org.gradle.jvmargs": jvmArg)
     }
 
     private void wasForked() {

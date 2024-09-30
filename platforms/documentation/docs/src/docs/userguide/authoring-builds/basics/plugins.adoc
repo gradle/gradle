@@ -313,7 +313,7 @@ include::sample[dir="snippets/plugins/multiproject/kotlin", files="settings.grad
 include::sample[dir="snippets/plugins/multiproject/groovy", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];hello-a/build.gradle[];hello-b/build.gradle[];goodbye-c/build.gradle[]"]
 ====
 
-You can also encapsulate the versions of external plugins by composing the build logic using your own <<sharing_build_logic_between_subprojects#sec:convention_plugins,convention plugins>>.
+You can also encapsulate the versions of external plugins by composing the build logic using your own <<sharing_build_logic_between_subprojects#sec:sharing_logic_via_convention_plugins,convention plugins>>.
 
 [[sec:buildsrc_plugins_dsl]]
 == 2. Applying plugins from the `buildSrc` directory

@@ -172,8 +172,9 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
             return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again
-            throw new NoUsableDaemonFoundException("A new daemon was started but could not be connected to: " +
-                "pid=" + connection.getDaemon() + ", address= " + connection.getDaemon().getAddress() + ".",
+            accumulatedExceptions.add(e);
+            throw new NoUsableDaemonFoundException("A new daemon was started but could not be connected to. This is unexpected.\n" +
+                "diagnostics: " + connection.getDaemon(),
                 accumulatedExceptions);
         } finally {
             connection.stop();

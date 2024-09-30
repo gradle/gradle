@@ -40,7 +40,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -65,7 +65,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -87,7 +87,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             // some change
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -125,7 +125,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             // Empty list means "run tasks defined by build logic or default tasks"
             forTasks([])
@@ -153,7 +153,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks([])
         }
@@ -189,7 +189,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks(["thing"])
         }
@@ -217,7 +217,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
             forTasks(["thing"])
         }
@@ -253,7 +253,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -271,7 +271,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models2 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -289,7 +289,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models3 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -302,7 +302,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models4 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:

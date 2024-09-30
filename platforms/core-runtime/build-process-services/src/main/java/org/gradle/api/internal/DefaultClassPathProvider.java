@@ -78,6 +78,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         classpath = classpath.plus(moduleRegistry.getModule("gradle-language-jvm").getImplementationClasspath());
         classpath = classpath.plus(moduleRegistry.getModule("gradle-platform-base").getImplementationClasspath());
         classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-api").getImplementationClasspath());
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-rendering").getImplementationClasspath());
         return classpath;
     }
 }

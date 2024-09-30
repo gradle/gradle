@@ -21,7 +21,7 @@
  *
  * <p>Properties are providers with configurable values.</p>
  *
- * <h3>Provider</h3>
+ * <h2>Provider</h2>
  *
  * <p>For the public API, see {@link org.gradle.api.provider.Provider Provider}.</p>
  *

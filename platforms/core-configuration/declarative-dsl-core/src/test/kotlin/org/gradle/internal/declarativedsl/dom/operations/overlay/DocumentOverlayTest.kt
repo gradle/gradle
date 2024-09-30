@@ -30,12 +30,11 @@ import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-internal
-object DocumentOverlayTest {
+class DocumentOverlayTest {
     @Test
     fun `properties are combined in the result`() {
         val underlay = resolvedDocument(
@@ -273,7 +272,7 @@ object DocumentOverlayTest {
                 * property(b, literal(6)) -> FromOverlay(documentNode=property(b, literal(6)))
                     - literal(6) -> FromOverlay(documentNode=property(b, literal(6)))
                 * element(unresolved5, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved5, [], content.size = 0))
-                * error(UnsupportedSyntax(cause=UnsupportedPropertyAccess)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=UnsupportedPropertyAccess)))
+                * error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)))
             * element(unresolved6, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved6, [], content.size = 0))
 
             """.trimIndent(),
@@ -442,5 +441,7 @@ object DocumentOverlayTest {
         is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> "literal"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved -> "valueFactory"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryNotResolved -> "valueFactoryNotResolved"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceResolved -> "namedReference"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceNotResolved -> "namedReferenceNotResolved"
     }
 }

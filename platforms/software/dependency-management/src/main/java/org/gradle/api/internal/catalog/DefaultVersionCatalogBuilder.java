@@ -217,7 +217,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return builder.
             id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }
 

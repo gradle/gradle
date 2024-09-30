@@ -16,27 +16,21 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
-import javax.annotation.Nonnull;
-
-public class ClassData implements InstrumentationMetadata {
-    private final InstrumentationTypeRegistry typeRegistry;
+public class ClassData {
     private final Lazy<ClassNode> classNode;
     private final byte[] classContent;
 
-    public ClassData(ClassReader reader, byte[] content, InstrumentationTypeRegistry typeRegistry) {
+    public ClassData(ClassReader reader, byte[] content) {
         this.classNode = Lazy.unsafe().of(() -> {
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);
             return classNode;
         });
         this.classContent = content;
-        this.typeRegistry = typeRegistry;
     }
 
     public byte[] getClassContent() {
@@ -45,10 +39,5 @@ public class ClassData implements InstrumentationMetadata {
 
     public ClassNode readClassAsNode() {
         return classNode.get();
-    }
-
-    @Override
-    public boolean isInstanceOf(@Nonnull String type, @Nonnull String superType) {
-        return typeRegistry.getSuperTypes(type).contains(superType);
     }
 }

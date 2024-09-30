@@ -253,6 +253,7 @@ model {
 """
         buildFile
         when:
+        executer.withArgument("--no-problems-report")
         run "model"
 
         then:

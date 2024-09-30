@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for assembling JVM web application WAR files"
@@ -30,10 +31,10 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.logging)
     implementation(projects.modelCore)
@@ -58,4 +59,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

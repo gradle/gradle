@@ -17,7 +17,6 @@
 package org.gradle.language.cpp
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -26,12 +25,10 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-
 class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
     HelloWorldApp app = new CppHelloWorldApp()
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         def apps = [

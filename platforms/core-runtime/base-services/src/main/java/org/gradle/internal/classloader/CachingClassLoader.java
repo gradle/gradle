@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentMap;
 
-public class CachingClassLoader extends ClassLoader implements ClassLoaderHierarchy, Closeable {
+public class CachingClassLoader extends ClassLoader implements DelegatingClassLoader, ClassLoaderHierarchy, Closeable {
     private static final Object MISSING = new Object();
     private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
     private final ConcurrentMap<String, Object> resources = new MapMaker().makeMap();

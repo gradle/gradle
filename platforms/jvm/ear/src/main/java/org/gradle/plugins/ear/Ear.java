@@ -46,6 +46,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 
 import static java.util.Collections.singleton;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -134,7 +135,7 @@ public abstract class Ear extends Jar {
         // since we might generate the deployment descriptor, record each top-level module
         if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
             EarModule module;
-            if (details.getPath().toLowerCase().endsWith(".war")) {
+            if (details.getPath().toLowerCase(Locale.ROOT).endsWith(".war")) {
                 module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
             } else {
                 module = new DefaultEarModule(details.getPath());

@@ -59,8 +59,8 @@ public class GradleUserHomeCleanupService implements Stoppable {
         boolean wasCleanedUp = execute(
             new VersionSpecificCacheCleanupAction(
                 cacheBaseDir,
-                cacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesOlderThanAsSupplier(),
-                cacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesOlderThanAsSupplier(),
+                cacheConfigurations.getReleasedWrappers().getEntryRetentionTimestampSupplier(),
+                cacheConfigurations.getSnapshotWrappers().getEntryRetentionTimestampSupplier(),
                 deleter,
                 cacheConfigurations.getCleanupFrequency().get()
             )

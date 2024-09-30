@@ -24,7 +24,6 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.util.internal.JarUtil;
 import org.objectweb.asm.ClassReader;
@@ -45,20 +44,17 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
     protected final File source;
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
-    private final InstrumentationTypeRegistry typeRegistry;
     private final ClassTransform transform;
 
     BaseClasspathElementTransform(
         File source,
         ClasspathBuilder classpathBuilder,
         ClasspathWalker classpathWalker,
-        InstrumentationTypeRegistry typeRegistry,
         ClassTransform transform
     ) {
         this.source = source;
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
-        this.typeRegistry = typeRegistry;
         this.transform = transform;
     }
 
@@ -114,7 +110,7 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
         byte[] content = classEntry.getContent();
         ClassReader reader = new ClassReader(content);
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, content, typeRegistry));
+        Pair<RelativePath, ClassVisitor> chain = transform.apply(classEntry, classWriter, new ClassData(reader, content));
         reader.accept(chain.right, 0);
         byte[] bytes = classWriter.toByteArray();
         builder.put(chain.left.getPathString(), bytes, classEntry.getCompressionMethod());

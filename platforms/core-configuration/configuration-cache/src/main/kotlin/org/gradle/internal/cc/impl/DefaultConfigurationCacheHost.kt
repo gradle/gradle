@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.execution.plan.ScheduledWork
@@ -193,7 +194,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 gradle,
                 classLoaderScope,
                 baseClassLoaderScope,
-                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
+                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope, StandaloneDomainObjectContext.forScript(settingsSource)),
                 settingsDir(),
                 settingsSource,
                 gradle.startParameter

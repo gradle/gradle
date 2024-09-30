@@ -27,7 +27,6 @@ import kotlin.script.experimental.api.isStandalone
 /**
  * Common script compilation configuration for Kotlin DSL standalone scripts.
  */
-internal
 abstract class KotlinDslStandaloneScriptCompilationConfiguration protected constructor(
     body: Builder.() -> Unit
 ) : ScriptCompilationConfiguration({

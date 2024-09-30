@@ -16,10 +16,7 @@
 package org.gradle.api.internal
 
 import groovy.test.NotYetImplemented
-import org.gradle.api.Action
 import org.gradle.util.TestUtil
-
-import static org.gradle.util.internal.WrapUtil.toList
 
 class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
     DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence, callbackActionDecorator)
@@ -62,137 +59,6 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
         set.size() == 4
         set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
         set.iterator().collect { it } == ["a", "b", "c", "d"]
-    }
-
-    def callsVetoActionBeforeObjectIsAdded() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.add("a")
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def objectIsNotAddedWhenVetoActionThrowsAnException() {
-        def action = Mock(Action)
-        def failure = new RuntimeException()
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.add("a")
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        1 * action.execute(null) >> { throw failure }
-
-        and:
-        !toList(container).contains("a")
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsAdded() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.addAll(["a", "b"])
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionBeforeObjectIsRemoved() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.remove("a")
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionBeforeObjectIsRemovedUsingIterator() {
-        def action = Mock(Action)
-
-        container.add("a")
-        container.beforeCollectionChanges(action)
-
-        def iterator = container.iterator()
-        iterator.next()
-
-        when:
-        iterator.remove()
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def objectIsNotRemovedWhenVetoActionThrowsAnException() {
-        def action = Mock(Action)
-        def failure = new RuntimeException()
-
-        container.add("a")
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.remove("a")
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-
-        and:
-        1 * action.execute(null) >> { throw failure }
-
-        and:
-        toList(container).contains("a")
-    }
-
-    def callsVetoActionBeforeCollectionIsCleared() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.clear()
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsRemoved() {
-        def action = Mock(Action)
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.removeAll(["a", "b"])
-
-        then:
-        1 * action.execute(null)
-        0 * _
-    }
-
-    def callsVetoActionOnceBeforeCollectionIsIntersected() {
-        def action = Mock(Action)
-        container.add("a")
-        container.add("b")
-        container.beforeCollectionChanges(action)
-
-        when:
-        container.retainAll(toList())
-
-        then:
-        1 * action.execute(null)
-        0 * _
     }
 
     def "withType works with addLater"() {

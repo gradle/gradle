@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -28,6 +29,7 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
+        "-D${ConfigurationCacheParallelOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
     ].collect { it.toString() }
 

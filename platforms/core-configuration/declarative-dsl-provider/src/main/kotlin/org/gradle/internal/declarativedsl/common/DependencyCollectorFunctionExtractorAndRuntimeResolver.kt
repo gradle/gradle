@@ -24,10 +24,10 @@ import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
-import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -144,14 +144,12 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             property !is KMutableProperty // TODO: decide what to do with `var foo: DependencyCollector`
     }
 
-    override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
+    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution {
         // We can't just use find receiverClass directly as a key because at runtime we get a decorated class with a different type
         // that extends the original class we extracted into the managedFunctions map, so we have to check the superClass
         return typeHierarchyViaJavaReflection(receiverClass)
             .firstNotNullOfOrNull(collectorDeclarationsByClass::get)
-            ?.entries?.find { (schemaFunction, _) ->
-                schemaFunction.simpleName == name && schemaFunction.parameters == parameterValueBinding.bindingMap.keys.toList()
-            }
+            ?.entries?.find { (fn, _) -> fn == schemaFunction }
             ?.value?.let(RuntimeFunctionResolver.Resolution::Resolved)
             ?: RuntimeFunctionResolver.Resolution.Unresolved
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.util.internal.ToBeImplemented
@@ -228,7 +227,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     // We don't really care _what_ the detached configuration's IDs are.
                     // These really should be an implementation detail, as they are a synthetic ID and just need
-                    // to be different than than the project that owns the detached component.
+                    // to be different than the project that owns the detached component.
                     assert fooRoot.get().id != detachedRoot.get().id
                     assert fooRoot.get().moduleVersion != detachedRoot.get().moduleVersion
                 }
@@ -284,5 +283,24 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("resolve")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30239")
+    def "detached configuration can not extend configurations"() {
+        disableProblemsApiCheck()
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            def detached = project.configurations.detachedConfiguration()
+            detached.extendsFrom(project.configurations.implementation)
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'implementation'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
+        succeeds "tasks"
     }
 }

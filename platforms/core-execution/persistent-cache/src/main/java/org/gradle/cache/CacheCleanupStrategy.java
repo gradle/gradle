@@ -16,14 +16,16 @@
 
 package org.gradle.cache;
 
+import java.time.Instant;
+
 /**
  * Specifies the details of cache cleanup, including the action to be performed and the frequency at which cache cleanup should occur.
  */
 public interface CacheCleanupStrategy {
     CacheCleanupStrategy NO_CLEANUP = new CacheCleanupStrategy() {
         @Override
-        public CleanupAction getCleanupAction() {
-            return CleanupAction.NO_OP;
+        public void clean(CleanableStore store, Instant lastCleanupTime) {
+            CleanupAction.NO_OP.clean(store, null);
         }
 
         @Override
@@ -33,9 +35,9 @@ public interface CacheCleanupStrategy {
     };
 
     /**
-     * Returns the action to perform on cleanup.
+     * Cleans the given store based on this cleanup strategy.
      */
-    CleanupAction getCleanupAction();
+    void clean(CleanableStore store, Instant lastCleanupTime);
 
     /**
      * Returns the frequency at which cache cleanup can occur.  Possible values are only once a day, every time, or never.

@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.DeprecatedProcessOperations
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
@@ -69,6 +70,10 @@ abstract class InitScriptApi(
 
     protected
     abstract val processOperations: ProcessOperations
+
+    private
+    val deprecatedProcessOperations
+        get() = DeprecatedProcessOperations(processOperations)
 
     /**
      * Configures the classpath of the init script.
@@ -365,8 +370,9 @@ abstract class InitScriptApi(
      * @return The result of the execution.
      */
     @Suppress("unused")
+    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
     fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        processOperations.exec(configuration)
+        deprecatedProcessOperations.exec(configuration)
 
     /**
      * Executes an external Java process.
@@ -377,6 +383,7 @@ abstract class InitScriptApi(
      * @return The result of the execution.
      */
     @Suppress("unused")
+    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        processOperations.javaexec(configuration)
+        deprecatedProcessOperations.javaexec(configuration)
 }

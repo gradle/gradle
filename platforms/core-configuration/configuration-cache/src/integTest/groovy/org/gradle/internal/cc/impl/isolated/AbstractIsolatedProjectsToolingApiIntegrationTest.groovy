@@ -21,6 +21,14 @@ import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec {
+
+    static final String CONFIGURE_ON_DEMAND_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tooling=true"
+
+    @Override
+    void withIsolatedProjects(String... moreExecuterArgs) {
+        executer.withArguments(ENABLE_CLI, CONFIGURE_ON_DEMAND_FOR_TOOLING, *moreExecuterArgs)
+    }
+
     @Override
     GradleExecuter createExecuter() {
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)

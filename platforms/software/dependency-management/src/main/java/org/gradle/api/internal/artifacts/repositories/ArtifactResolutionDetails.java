@@ -23,29 +23,28 @@ import javax.annotation.Nullable;
 /**
  * Details about an artifact resolution query. This is used whenever repository
  * content filtering is in place.
- * <p></p>
+ * <p>
  * This interface gives access to the details of the artifact query. There are two
  * cases when filtering can be called:
- * <p></p>
  * <ul>
  *     <li>when looking for a specific module version, for example org:foo:1.0</li>
  *     <li>when looking for the list of versions for a module, for example org:foo</li>
  * </ul>
- * <p></p>
+ * <p>
  * Listing is called when using dynamic versions (ranges, 1.+, ...).
- * <p></p>
+ * <p>
  * The module identifier will always be non-null. If what you want to express
  * is that a module cannot be found in a repository, independently of its version,
  * then it's enough to just look at the module id using {@link #getModuleId()}.
- * <p></p>
+ * <p>
  * However, if you have to differentiate depending on the version number (for example,
  * some versions of a module are found in one repository, others in a different repository),
  * then you must look at the version thanks to the {@link #getComponentId()} method. But
  * because there can also be version listings, you must also check for {@link #getModuleId()}.
- * <p></p>
+ * <p>
  * A {@link #isVersionListing() convenience method} makes it easier to find out if you
  * are in the version listing case, or module version case.
- * <p></p>
+ * <p>
  * Filtering is done by calling the {@link #notFound()} method: as soon as you know a module
  * cannot be found in a repository, call this method. Otherwise, Gradle will perform a request
  * to find out. It doesn't matter if the module is eventually not found, as Gradle would handle

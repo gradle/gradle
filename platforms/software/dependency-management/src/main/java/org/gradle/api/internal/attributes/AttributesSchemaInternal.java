@@ -17,49 +17,27 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.api.attributes.AttributesSchema;
 
-import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers {
-    /**
-     * Returns a matcher that uses the consumer rules from this schema, and the producer rules from the given schema.
-     */
-    AttributeMatcher withProducer(AttributesSchemaInternal producerSchema);
+public interface AttributesSchemaInternal extends AttributesSchema {
 
     /**
-     * Returns a matcher that uses the rules from this schema, and assumes the producer has the same rules.
+     * Get all configured attribute matching strategies. The returned collection
+     * reflects a live view of the configured strategies, but is unmodifiable.
+     * <p>
+     * Used to finalize this schema to its immutable counterpart.
      */
-    AttributeMatcher matcher();
-
-    CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute);
-
-    DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute);
-
-    @Nullable
-    Attribute<?> getAttributeByName(String name);
+    Map<Attribute<?>, DefaultAttributeMatchingStrategy<?>> getStrategies();
 
     /**
-     * Adds a {@link ResolutionFailureDescriber} for the given failure type to the custom describers
-     * registered on this schema.
-     *
-     * If variant selection failures occur, these describers will be available to describe the failures.
-     *
-     * @param failureType The type of failure to describe
-     * @param describerType A describer that can potentially describe failures of the given type
-     * @param <FAILURE> The type of failure to describe
+     * Get the configured attribute matching precedence. The returned collection
+     * reflects a live view of the configured attribute precedence, but is unmodifiable.
+     * <p>
+     * Used to finalize this schema to its immutable counterpart.
      */
-    <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType);
+    Set<Attribute<?>> getAttributePrecedence();
 
-    /**
-     * Returns the list of custom {@link ResolutionFailureDescriber}s registered on this schema for the given failure type.
-     *
-     * @param failureType The type of failure to describe
-     * @param <FAILURE> The type of failure to describe
-     * @return The list of custom describers registered on this schema for the given failure type
-     */
-    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getFailureDescribers(Class<FAILURE> failureType);
 }

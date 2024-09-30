@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
@@ -93,11 +92,11 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
 
     @Nonnull
     private static AbstractOperationResult createFileDownloadResult(ExternalResourceReadBuildOperationType.Result operationResult, Throwable failure, long startTime, long endTime) {
+        if (operationResult.isMissing()) {
+            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
+        }
         if (failure == null) {
             return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead());
-        }
-        if (failure instanceof MissingResourceException) {
-            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
         }
         return new DefaultFileDownloadFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), operationResult.getBytesRead());
     }

@@ -15,7 +15,13 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
+
+import javax.annotation.Nullable;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Executes a command line process. Example:
@@ -43,5 +49,101 @@ import org.gradle.work.DisableCachingByDefault;
 public abstract class Exec extends AbstractExecTask<Exec> {
     public Exec() {
         super(Exec.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable
+    @ToBeReplacedByLazyProperty
+    public List<String> getArgs() {
+        return super.getArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setArgs(List<String> arguments) {
+        return super.setArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setArgs(@Nullable Iterable<?> arguments) {
+        return super.setArgs(arguments);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ToBeReplacedByLazyProperty
+    public boolean isIgnoreExitValue() {
+        return super.isIgnoreExitValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setIgnoreExitValue(boolean ignoreExitValue) {
+        return super.setIgnoreExitValue(ignoreExitValue);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ToBeReplacedByLazyProperty
+    public InputStream getStandardInput() {
+        return super.getStandardInput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setStandardInput(InputStream inputStream) {
+        return super.setStandardInput(inputStream);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Internal
+    @Override
+    @ToBeReplacedByLazyProperty
+    public OutputStream getStandardOutput() {
+        return super.getStandardOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setStandardOutput(OutputStream outputStream) {
+        return super.setStandardOutput(outputStream);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ToBeReplacedByLazyProperty
+    public OutputStream getErrorOutput() {
+        return super.getErrorOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setErrorOutput(OutputStream outputStream) {
+        return super.setErrorOutput(outputStream);
     }
 }

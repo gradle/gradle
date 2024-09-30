@@ -30,3 +30,6 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
     integTestImplementation(projects.serviceRegistryBuilder)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

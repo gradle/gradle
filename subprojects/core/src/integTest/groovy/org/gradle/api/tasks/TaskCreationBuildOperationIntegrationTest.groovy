@@ -122,7 +122,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Investigate")
     def "emits registration build ops when tasks not realized"() {
         given:
         stopBeforeTaskGraphCalculation()

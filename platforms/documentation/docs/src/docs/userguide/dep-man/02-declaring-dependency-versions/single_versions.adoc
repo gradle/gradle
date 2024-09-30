@@ -49,6 +49,8 @@ When the upper or lower bound is missing, the range has no upper or lower bound.
 
 The symbol `]` can be used instead of `(` for an exclusive lower bound and `[` instead of `)` for an exclusive upper bound. e.g. `]1.0, 2.0[`.
 
+Note: The range `[1.0,[` is not appropriate, as it lacks an upper bound and should be rewritten as `[1.0,)`.
+
 An upper bound exclude acts as a prefix exclude.
 
 |A _prefix_ version range

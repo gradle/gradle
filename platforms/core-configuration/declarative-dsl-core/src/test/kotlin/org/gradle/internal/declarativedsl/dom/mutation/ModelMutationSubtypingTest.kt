@@ -24,12 +24,12 @@ import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 
 
-object ModelMutationSubtypingTest {
+class ModelMutationSubtypingTest {
     private
     val planner = DefaultModelToDocumentMutationPlanner()
 

@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.capabilities.Capability
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -33,14 +35,17 @@ import static org.gradle.util.AttributeTestUtil.attributesFactory
 class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     private final static ModuleIdentifier UTIL = DefaultModuleIdentifier.newId("org", "util")
 
-    private serializer = new ModuleComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(attributesFactory(), TestUtil.objectInstantiator()))
+    private serializer = new ModuleComponentSelectorSerializer(
+        new DesugaredAttributeContainerSerializer(attributesFactory(), TestUtil.objectInstantiator()),
+        new CapabilitySelectorSerializer()
+    )
 
     def "serializes"() {
         when:
-        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")]), serializer)
+        def result = serialize(newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")] as Set), serializer)
 
         then:
-        result == newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")])
+        result == newSelector(UTIL, constraint(version, strict, rejects), attributes(foo: 'bar'), [capability("foo")] as Set)
 
         where:
         version | strict   | rejects
@@ -54,10 +59,10 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
         when:
         def constraint = new DefaultMutableVersionConstraint('')
         constraint.branch = 'custom-branch'
-        def result = serialize(newSelector(UTIL, constraint, ImmutableAttributes.EMPTY, []), serializer)
+        def result = serialize(newSelector(UTIL, constraint, ImmutableAttributes.EMPTY, [] as Set), serializer)
 
         then:
-        result == newSelector(UTIL, constraint, ImmutableAttributes.EMPTY, [])
+        result == newSelector(UTIL, constraint, ImmutableAttributes.EMPTY, [] as Set)
     }
 
     private static MutableVersionConstraint constraint(String version, String strictVersion, List<String> rejectedVersions) {
@@ -71,7 +76,7 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
         return constraint
     }
 
-    private static Capability capability(String name) {
-        return new DefaultImmutableCapability("test", name, "1.16")
+    private static SpecificCapabilitySelector capability(String name) {
+        return new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("test", name, "1"))
     }
 }

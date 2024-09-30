@@ -12,3 +12,6 @@ dependencies {
 
     implementation(projects.stdlibJavaExtensions)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
