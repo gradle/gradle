@@ -5,6 +5,10 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
+gradlebuildJava {
+    usesJdkInternals = true
+}
+
 errorprone {
     disabledChecks.addAll(
         "CheckReturnValue", // 2 occurrences
@@ -107,12 +111,6 @@ tasks.withType<Test>().configureEach {
     if (!javaVersion.isJava9Compatible) {
         classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
     }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release = null
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
 }
 
 strictCompile {
