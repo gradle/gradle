@@ -49,7 +49,6 @@ sealed interface DocumentResolution {
             data class ContainerElementResolved(
                 override val elementType: DataType,
                 override val elementFactoryFunction: SchemaMemberFunction,
-                val isKeyArguments: Boolean
             ) : SuccessfulElementResolution
         }
 

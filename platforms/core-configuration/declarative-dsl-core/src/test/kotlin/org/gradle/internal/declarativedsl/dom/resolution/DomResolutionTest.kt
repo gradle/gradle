@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.dom
+package org.gradle.internal.declarativedsl.dom.resolution
 
-import org.gradle.declarative.dsl.schema.DataTypeRef
-import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
-import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.parseAsTopLevelBlock
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 
 
 class DomResolutionTest {
@@ -146,33 +144,4 @@ class DomResolutionTest {
     private
     val schema = schemaFromTypes(TestApi.TopLevelReceiver::class, TestApi::class.nestedClasses.toList())
 
-    private
-    fun resolutionPrettyString(resolution: DocumentResolution): String =
-        resolution::class.simpleName + when (resolution) {
-            is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
-                " -> element ${functionSignatureString(resolution.elementFactoryFunction)}"
-
-            is DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved ->
-                " -> configure ${resolution.elementType}"
-
-            is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
-                " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
-
-            is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved ->
-                " -> ${functionSignatureString(resolution.function)}"
-
-            is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> " -> ${resolution.value}"
-            is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
-            is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceResolved -> " -> ${resolution.referenceName}"
-        }
-
-    private
-    fun typeString(typeRef: DataTypeRef) = when (typeRef) {
-        is DataTypeRef.Type -> typeRef.dataType.toString()
-        is DataTypeRef.Name -> typeRef.fqName.simpleName
-    }
-
-    private
-    fun functionSignatureString(function: SchemaFunction) =
-        "${function.simpleName}(${function.parameters.joinToString { typeString(it.type) }}): ${typeString(function.returnValueType)}"
 }

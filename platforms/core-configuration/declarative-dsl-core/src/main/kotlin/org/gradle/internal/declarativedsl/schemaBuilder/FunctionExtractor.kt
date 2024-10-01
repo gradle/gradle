@@ -123,8 +123,8 @@ class DefaultFunctionExtractor(
                 param != function.instanceParameter && run {
                     // is value parameter, not a configuring block:
                     val isNotLastParameter = index != fnParams.lastIndex
-                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(param.type)?.let {
-                            typeConfiguredByLambda -> param.parameterTypeToRefOrError(inType, function) { typeConfiguredByLambda } != maybeConfigureTypeRef
+                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(param.type)?.let { typeConfiguredByLambda ->
+                        param.parameterTypeToRefOrError(inType, function) { typeConfiguredByLambda } != maybeConfigureTypeRef
                     } ?: true
                     isNotLastParameter || isNotConfigureLambda
                 }
@@ -218,14 +218,17 @@ class DefaultFunctionExtractor(
             if (functionSemantics is FunctionSemantics.NewObjectFunctionSemantics) fnParam.name?.let(::add)
         }
         propertyNamesToCheck.forEach { propertyName ->
-            val isPropertyLike =
-                preIndex.getAllProperties(returnClass).any { it.name == propertyName }
-            if (isPropertyLike) {
+            val propertyMatchedByName = preIndex.getAllProperties(returnClass).find { it.name == propertyName }
+            if (functionSemantics is FunctionSemantics.AccessAndConfigure) {
+                return ParameterSemanticsInternal.DefaultIdentityKey(propertyMatchedByName)
+            } else if (propertyMatchedByName != null) {
                 val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
                 return ParameterSemanticsInternal.DefaultStoreValueInProperty(storeProperty)
             }
         }
-        return ParameterSemanticsInternal.DefaultUnknown
+        return if (functionSemantics is FunctionSemantics.AccessAndConfigure)
+            ParameterSemanticsInternal.DefaultIdentityKey(null)
+        else ParameterSemanticsInternal.DefaultUnknown
     }
 
     private
@@ -271,22 +274,29 @@ class DefaultFunctionExtractor(
 
                 val propertyType = preIndex.getPropertyType(inType, propertyName)
                 check(propertyType == null || propertyType.isSubtypeOf(configuredType)) {
-                    "configure lambda type ($configuredType) is inconsistent with property type ($propertyType) in function $function" }
+                    "configure lambda type ($configuredType) is inconsistent with property type ($propertyType) in function $function"
+                }
 
                 val property = preIndex.getProperty(inType, propertyName)
                 check(annotationPropertyName.isEmpty() || propertyType != null) {
-                    "a property name ($annotationPropertyName) is specified for @Configuring function $function but no such property was found" }
+                    "a property name ($annotationPropertyName) is specified for @Configuring function $function but no such property was found"
+                }
 
                 val returnType = when (function.returnType) {
                     typeOf<Unit>() -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
                     propertyType, configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
                     else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
                 }
-                check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "configuring function $function may not accept any other parameters" }
                 val accessor =
                     if (property != null) ConfigureAccessorInternal.DefaultProperty(property)
                     else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(lastParam.parameterTypeToRefOrError(inType, function) { configuredType })
-                FunctionSemanticsInternal.DefaultAccessAndConfigure(accessor, returnType, blockRequirement)
+
+                // TODO: when "definitely existing" objects get properly implemented, ensure that functions configuring them do not accept parameters
+                FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                    accessor,
+                    returnType,
+                    blockRequirement
+                )
             }
 
             else -> FunctionSemanticsInternal.DefaultPure(function.returnTypeToRefOrError(inType))
