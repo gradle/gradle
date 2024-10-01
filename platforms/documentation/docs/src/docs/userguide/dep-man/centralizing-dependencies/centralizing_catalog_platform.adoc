@@ -43,7 +43,7 @@ plugins {
 
 dependencies {
     constraints {
-        api("com.example:mylib:2.0.0") // This version will influence resolution
+        api("com.example:mylib:2.0.0")
     }
 }
 ----
@@ -54,11 +54,26 @@ Even if a version catalog defines a version for a dependency, Gradle might pick 
 
 For example, a version catalog may define `mylib` as version `1.0.0`, but if a platform enforces `2.0.0`, Gradle will select version `2.0.0`.
 
-To ensure consistent version alignment, a good approach is to use a version catalog to define dependency versions alongside a platform to enforce them:
+To ensure consistent version alignment, a good approach is to use a version catalog to define dependency versions alongside a platform to enforce them.
+
+Version Catalog:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformUsage/kotlin",files="build.gradle.kts[tags=platform_uses_catalog]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformUsage/groovy",files="build.gradle[tags=platform_uses_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+Platform:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="platform/build.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/groovy",files="platform/build.gradle[]"]
+====
+
+Consumer:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="consumer/build.gradle.kts[tags=usage]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/groovy",files="consumer/build.gradle[tags=usage]"]
 ====
 
 Best Practices for using both a catalog and a platform:
