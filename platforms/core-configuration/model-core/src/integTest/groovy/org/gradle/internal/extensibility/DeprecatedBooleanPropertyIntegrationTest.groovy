@@ -133,6 +133,29 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
     def "does not emit a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter and normal getter"() {
         buildFile << """
             class MyValue {
+                // This type serves as an example of how legacy Groovy code is fine (this has both an is-getter and a normal getter)
+                @Input
+                Boolean property = Boolean.TRUE
+            }
+            class MyTask extends DefaultTask {
+                @Nested
+                MyValue value = new MyValue()
+
+                @TaskAction
+                void doAction() {
+                    assert value.isProperty()
+                    assert value.getProperty()
+                }
+            }
+            tasks.create("assertProperty", MyTask)
+        """
+        expect:
+        succeeds("assertProperty")
+    }
+
+    def "does not emit a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter and normal getter (with proper replacement)"() {
+        buildFile << """
+            class MyValue {
                 // This type serves as an example of how to fix the issue:
 
                 @Deprecated // Deprecate the old property to users
@@ -149,7 +172,8 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void doAction() {
-                    assert value.property
+                    assert value.isProperty()
+                    assert value.getProperty()
                 }
             }
             tasks.create("assertProperty", MyTask)
