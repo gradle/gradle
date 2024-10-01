@@ -46,7 +46,8 @@ class BinaryCompatibilityHelper {
         File mainApiChangesJsonFile,
         Directory projectRootDir,
         File currentUpgradedPropertiesFile,
-        File baselineUpgradedPropertiesFile
+        File baselineUpgradedPropertiesFile,
+        String baselineVersion
     ) {
         japicmpTask.tap {
             addExcludeFilter(AnonymousClassesFilter)
@@ -109,7 +110,10 @@ class BinaryCompatibilityHelper {
                 ])
 
                 addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
-                addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
+                addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [
+                    currentVersion: currentVersion,
+                    baselineVersion: baselineVersion
+                ])
                 addSetupRule(BinaryCompatibilityRepositorySetupRule, [
                     (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
                     (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set

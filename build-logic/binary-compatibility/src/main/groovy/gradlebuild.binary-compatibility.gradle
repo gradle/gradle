@@ -57,9 +57,7 @@ def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonDirectory.asFile
     .collect { providers.fileContents(apiChangesJsonDirectory.file(it.name)).asText.get() }
 )
 
-// Revert once 9.0 is master
-//def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
-def compatibilityBaselineVersion = providers.of(LatestNightlyVersionValueSource) {}.get()
+def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
 def RUNTIME_ATTRIBUTE = objects.named(Usage, Usage.JAVA_RUNTIME)
@@ -182,7 +180,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         mainApiChangesJsonFile.asFile,
         project.isolated.rootProject.projectDirectory,
         currentUpgradedPropertiesFile.get().asFile,
-        baselineUpgradedPropertiesFile.get().asFile
+        baselineUpgradedPropertiesFile.get().asFile,
+        compatibilityBaselineVersion
     )
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
