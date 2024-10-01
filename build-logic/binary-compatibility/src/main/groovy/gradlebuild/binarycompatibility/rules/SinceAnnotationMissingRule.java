@@ -38,7 +38,11 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
 
-        if (shouldSkipViolationCheckFor(member) || getRepository().isSince(getCurrentVersion(), member)) {
+        if (shouldSkipViolationCheckFor(member)
+            || getRepository().isSince(getCurrentVersion(), member)
+            // Some methods could be added to master branch,
+            // so we have to accept such methods if correctly annotated with @since <current-master-version>
+            || getRepository().isSince(getCurrentMasterVersion(), member)) {
             return null;
         }
 
