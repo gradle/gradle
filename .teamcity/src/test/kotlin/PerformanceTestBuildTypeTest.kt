@@ -91,7 +91,7 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "-Dscan.value.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
             "-Dscan.tag.PerformanceTest"
         )
 
@@ -157,7 +157,7 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "-Dscan.value.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
             "-Dscan.tag.PerformanceTest"
         )
 

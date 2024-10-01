@@ -108,6 +108,11 @@ fun Project.extractCiData() {
                 value(tcBuildTypeName, buildType)
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
             }
+            System.getProperty("buildScan.PartOf")?.let {
+                it.toString().split(",").forEach { partOf ->
+                    value("PartOf", partOf)
+                }
+            }
         }
     }
     if (isCodeQl) {
