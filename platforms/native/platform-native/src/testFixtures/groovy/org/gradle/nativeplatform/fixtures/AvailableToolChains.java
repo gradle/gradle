@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -262,10 +263,11 @@ public class AvailableToolChains {
         File rootSwiftInstall = new File("/opt/swift");
         File[] swiftCandidates = GUtil.getOrDefault(rootSwiftInstall.listFiles(swiftInstall -> swiftInstall.isDirectory() && !swiftInstall.getName().equals("latest")), () -> new File[0]);
 
+        Set<Integer> supportedSwiftMajorVersions = Arrays.stream(SwiftVersion.values()).map(SwiftVersion::getVersion).collect(Collectors.toSet());
         for (File swiftInstall : swiftCandidates) {
             File swiftc = new File(swiftInstall, "/usr/bin/swiftc");
             SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(Collections.emptyList(), spec -> spec.executable(swiftc));
-            if (version.isAvailable()) {
+            if (version.isAvailable() && supportedSwiftMajorVersions.contains(version.getComponent().getVersion().getMajor())) {
                 File binDir = swiftc.getParentFile();
                 toolChains.add(new InstalledSwiftc(binDir, version.getComponent().getVersion()).inPath(binDir, new File("/usr/bin")));
             }

@@ -67,7 +67,7 @@ Specifying a custom URL is also helpful if you want to declare a less popular, b
 
 Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
 Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`.
-For a full coverage see the <<#sec:repository-types,section on supported repository types>>.
+For a full coverage see the <<supported_repository_types.adoc#repository-types,section on supported repository types>>.
 
 You can also <<#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
 
@@ -76,7 +76,7 @@ You can also <<#sub:defining_custom_pattern_layout_for_an_ivy_repository,define 
 
 You can define more than one repository for resolving dependencies.
 Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other.
-You can mix any type of repository described in the <<#sec:repository-types,reference section>>.
+You can mix any type of repository described in the <<supported_repository_types.adoc#repository-types,reference section>>.
 
 This example demonstrates how to declare various named and custom URL repositories for a project:
 
@@ -189,7 +189,7 @@ If the JAR can't be found there, the extra `artifactUrls` are used to look for J
 
 You can specify credentials for Maven repositories secured by different type of authentication.
 
-See <<#sec:supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
 
 [[sub:maven_local]]
 === Local Maven repository
@@ -200,7 +200,7 @@ Declaring this repository is beneficial for teams that publish to the local Mave
 NOTE: Gradle stores resolved dependencies in <<dependency_resolution_adv.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 
-WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
+WARNING: Before adding Maven local as a repository, you should <<supported_repository_types.adoc#sec:case-for-maven-local, make sure this is really required>>.
 
 To declare the local Maven cache as a repository add this to your build script:
 
@@ -241,7 +241,7 @@ There are a few cases where you might have to use `mavenLocal()`:
 ** It is preferable to use <<composite_builds.adoc#composite_builds, composite builds>> for this use case
 ** If for some reason neither composite builds nor full featured repository are possible, then `mavenLocal()` is a last resort option
 
-After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<#sec:repository-content-filtering,a repository filter>>.
+After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<filtering_repository_content.adoc#repository-content-filtering,a repository filter>>.
 This will make sure it only provides what is expected and nothing else.
 
 [[sec:ivy_repositories]]
@@ -313,7 +313,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-ivy-repo]"]
 ====
 
-See <<#sec:supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
 
 [[sec:repository-content-filtering]]
 == Repository content filtering
