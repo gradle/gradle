@@ -175,6 +175,49 @@ For example, by traversing dependencies at the variant level, it is possible to 
 
 For more details on how to perform a graph traversal, see [Programmatic Dependency Resolution](userguide/programmatic_dependency_resolution.html).
 
+#### API for selecting variants by feature name
+
+Using the [requireCapability](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability(java.lang.Object)) API, Gradle allows variants of a target component to be selected based on the group and name of the variant's capability.
+This functionality is often useful when selecting "features" of a target component, such as a library's test fixtures. However, this API can be difficult to use when targeting a project dependency, as the group and name of the target project are not known when declaring a project dependency.
+
+Gradle 8.11 introduces a new [requireFeature](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireFeature(java.lang.String)) API that is specifically tailored for selecting variants of a target component using the feature name.
+Selecting a capability by feature name is equivalent to requesting a capability with the following form: `${project.group}:${project.name}-${featureName}`.
+This API is safe to use with Isolated Projects.
+
+For example, if we have a `java-library` project that registers a feature using the `registerFeature` API:
+
+```groovy
+plugins {
+    id("java-library")
+}
+
+sourceSets {
+    foo
+}
+
+java {
+    registerFeature("foo") {
+        usingSourceSet(sourceSets.foo)
+    }
+}
+```
+
+We can depend on that feature using the `requireFeature` API:
+
+```groovy
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    implementation(project(":other")) {
+        capabilities {
+            requireFeature("foo")
+        }
+    }
+}
+```
+
 #### Provider support for configuration extensions in the Configuration API
 
 TO DO: Placeholder for https://github.com/gradle/gradle/pull/29868/files
