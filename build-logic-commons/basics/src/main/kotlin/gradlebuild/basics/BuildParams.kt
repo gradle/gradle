@@ -40,6 +40,7 @@ import gradlebuild.basics.BuildParams.MAX_PARALLEL_FORKS
 import gradlebuild.basics.BuildParams.MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS
 import gradlebuild.basics.BuildParams.MAX_TEST_DISTRIBUTION_REMOTE_EXECUTORS
 import gradlebuild.basics.BuildParams.PERFORMANCE_BASELINES
+import gradlebuild.basics.BuildParams.PERFORMANCE_CHANNEL_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_PASSWORD_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_URL
@@ -112,6 +113,7 @@ object BuildParams {
     const val PERFORMANCE_TEST_VERBOSE = "performanceTest.verbose"
     const val PERFORMANCE_DB_PASSWORD = "org.gradle.performance.db.password"
     const val PERFORMANCE_DB_PASSWORD_ENV = "PERFORMANCE_DB_PASSWORD_TCAGENT"
+    const val PERFORMANCE_CHANNEL_ENV = "PERFORMANCE_CHANNEL"
     const val PERFORMANCE_DB_URL = "org.gradle.performance.db.url"
     const val PERFORMANCE_DB_USERNAME = "org.gradle.performance.db.username"
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
@@ -285,6 +287,8 @@ val Project.performanceDependencyBuildIds: Provider<String>
 val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
 
+val Project.performanceChannel: Provider<String>
+    get() = environmentVariable(PERFORMANCE_CHANNEL_ENV)
 
 val Project.performanceDbPassword: Provider<String>
     get() = environmentVariable(PERFORMANCE_DB_PASSWORD_ENV)

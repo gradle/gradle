@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -66,6 +67,7 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public Project getDependencyProject() {
         return delegate.getDependencyProject();
     }
@@ -148,6 +150,11 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    public Set<CapabilitySelector> getCapabilitySelectors() {
+        return delegate.getCapabilitySelectors();
+    }
+
+    @Override
     public void endorseStrictVersions() {
         delegate.endorseStrictVersions();
     }
@@ -180,6 +187,7 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
         return delegate.contentEquals(dependency);
     }

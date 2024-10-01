@@ -18,6 +18,7 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
@@ -34,13 +35,16 @@ import java.util.function.Supplier;
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final Class<?> rootType;
     private final Supplier<Optional<PluginId>> pluginId;
+    private final InternalProblems problems;
 
     public ProblemRecordingTypeValidationContext(
         @Nullable Class<?> rootType,
-        Supplier<Optional<PluginId>> pluginId
+        Supplier<Optional<PluginId>> pluginId,
+        InternalProblems problems
     ) {
         this.rootType = rootType;
         this.pluginId = pluginId;
+        this.problems = problems;
     }
 
     @Override
@@ -62,8 +66,8 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         recordProblem(problemBuilder.build());
     }
 
-    private static @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null));
+    private @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, problems.getAdditionalDataBuilderFactory()), problems.getAdditionalDataBuilderFactory());
         problemSpec.execute(problemBuilder);
         return problemBuilder;
     }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.catalog;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -84,7 +83,7 @@ class SimpleGeneratedJavaClassCompiler {
     }
 
     private static List<File> outputSourceFilesToSourceDir(File srcDir, List<ClassSource> classes) throws IOException {
-        List<File> filesToCompile = Lists.newArrayListWithCapacity(classes.size());
+        List<File> filesToCompile = new ArrayList<>(classes.size());
         for (ClassSource classSource : classes) {
             String packageName = classSource.getPackageName();
             String className = classSource.getSimpleClassName();

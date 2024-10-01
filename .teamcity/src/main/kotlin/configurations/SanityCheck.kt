@@ -1,6 +1,8 @@
 package configurations
 
 import common.Os
+import common.buildScanTagParam
+import common.getBuildScanCustomValueParam
 import model.CIBuildModel
 import model.Stage
 
@@ -17,7 +19,11 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildTyp
         model,
         this,
         "sanityCheck",
-        extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")} " + "-Porg.gradle.java.installations.auto-download=false"
+        extraParameters = listOf(
+            stage.getBuildScanCustomValueParam(),
+            buildScanTagParam("SanityCheck"),
+            "-Porg.gradle.java.installations.auto-download=false"
+        ).joinToString(" ")
     )
 }) {
     companion object {

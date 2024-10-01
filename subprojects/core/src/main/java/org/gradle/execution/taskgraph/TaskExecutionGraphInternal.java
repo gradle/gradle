@@ -41,7 +41,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void populate(FinalizedExecutionPlan plan);
 
     /**
-     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate)} prior to
+     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(FinalizedExecutionPlan)} prior to
      * calling this method.
      */
     ExecutionResult<Void> execute(FinalizedExecutionPlan plan);

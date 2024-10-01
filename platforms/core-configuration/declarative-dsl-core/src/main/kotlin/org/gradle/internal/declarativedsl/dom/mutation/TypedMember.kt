@@ -18,11 +18,12 @@ package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 
 
 sealed interface TypedMember {
-    val ownerType: DataClass
+    val ownerType: DataType.ClassDataType
 
     data class TypedProperty(override val ownerType: DataClass, val property: DataProperty) : TypedMember {
         init {

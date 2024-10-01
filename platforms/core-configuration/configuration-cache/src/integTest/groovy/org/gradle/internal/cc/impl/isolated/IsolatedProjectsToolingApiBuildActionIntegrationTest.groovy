@@ -41,7 +41,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         // Intentionally don't apply to project b. Should split this case (some projects don't have the model available) out into a separate test
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -60,7 +60,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -77,7 +77,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             myExtension.message = 'this is the root project'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -95,7 +95,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -111,7 +111,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             myExtension.message = 'this is project a'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -145,7 +145,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -162,7 +162,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -178,7 +178,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             println("some new stuff")
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -196,7 +196,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -227,7 +227,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
+        withIsolatedProjects("-Pshared-input=12", "-Da-input=14")
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -244,7 +244,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
+        withIsolatedProjects("-Pshared-input=12", "-Da-input=14")
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -256,7 +256,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        withIsolatedProjects("-Pshared-input=2", "-Da-input=14")
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -275,7 +275,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=14")
+        withIsolatedProjects("-Pshared-input=2", "-Da-input=14")
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -287,7 +287,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        withIsolatedProjects("-Pshared-input=2", "-Da-input=2")
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -305,7 +305,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2")
+        withIsolatedProjects("-Pshared-input=2", "-Da-input=2")
         def model6 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -317,7 +317,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Pshared-input=2", "-Da-input=2", "-Db-input=new")
+        withIsolatedProjects("-Pshared-input=2", "-Da-input=2", "-Db-input=new")
         def model7 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -350,7 +350,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -369,7 +369,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -386,7 +386,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             myExtension.message = 'this is the root project'
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -404,7 +404,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -431,7 +431,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -448,7 +448,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputContains("creating model for project ':a'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -463,7 +463,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             println("changed")
         """
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -479,7 +479,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputContains("creating model for root project 'root'")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -497,7 +497,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -514,7 +514,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -531,7 +531,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -543,7 +543,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
@@ -568,7 +568,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -584,7 +584,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
@@ -600,7 +600,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
@@ -611,7 +611,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:

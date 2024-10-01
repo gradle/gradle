@@ -44,7 +44,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -56,7 +56,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         ideaModel.name == "root"
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(IdeaProject)
 
         then:
@@ -69,7 +69,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(BasicIdeaProject)
 
         then:
@@ -81,7 +81,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         ideaModel.name == "root"
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(BasicIdeaProject)
 
         then:
@@ -104,7 +104,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.modules.every { it.children.isEmpty() } // IdeaModules are always flattened
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -126,7 +126,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildActionFails(new FetchIdeaProjectForTarget(":a"))
 
         then:
@@ -159,7 +159,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.javaLanguageSettings.targetBytecodeVersion == JavaVersion.VERSION_1_9
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -212,7 +212,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.modules[2].javaLanguageSettings == null
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -256,7 +256,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(IdeaProject)
 
         then:
@@ -282,7 +282,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalUpdatedModel.javaLanguageSettings.languageLevel == JavaVersion.VERSION_11
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def updatedModel = fetchModel(IdeaProject)
 
         then:
@@ -334,7 +334,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def ideaModel = fetchModel(BasicIdeaProject)
 
         then:
@@ -421,7 +421,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def result = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -443,7 +443,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
 
 
         when: "fetching again with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def anotherResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -457,7 +457,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         file("buildC/build.gradle") << """
             println("changed root in buildC")
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def afterChangeResult = runBuildAction(new FetchAllIdeaProjects())
 
         then:
@@ -495,7 +495,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         originalIdeaModel.modules.name == ["root", "lib1"]
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails(IdeaProject)
 
         then:

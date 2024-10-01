@@ -34,6 +34,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -43,11 +44,20 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize, WithMutationGuard {
+public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollectionInternal<T> {
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
+
+    /**
+     * Stores all elements of this container, both lazy and eager.
+     */
     private final ElementSource<T> store;
+
+    /**
+     * Actions to notify when this container is mutated.
+     */
+    private ImmutableActionSet<String> beforeContainerChange = ImmutableActionSet.empty();
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
@@ -74,6 +84,20 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public Class<? extends T> getType() {
         return type;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getTypeDisplayName() + " collection";
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    protected String getTypeDisplayName() {
+        return getType().getSimpleName();
     }
 
     protected ElementSource<T> getStore() {
@@ -138,7 +162,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void all(Action<? super T> action) {
-        assertMutable("all(Action)");
+        assertEagerContext("all(Action)");
         Action<? super T> decoratedAction = addEagerAction(action);
 
         if (store.constantTimeIsEmpty()) {
@@ -152,7 +176,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         Collection<T> copied = null;
         for (T t : this) {
             if (copied == null) {
-                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+                copied = new ArrayList<>(estimatedSize());
             }
             copied.add(t);
         }
@@ -165,8 +189,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void configureEach(Action<? super T> action) {
-        assertMutable("configureEach(Action)");
-        Action<? super T> wrappedAction = withMutationDisabled(decorate(action));
+        assertEagerContext("configureEach(Action)");
+        Action<? super T> wrappedAction = wrapLazyAction(decorate(action));
         Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
@@ -175,7 +199,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         while (iterator.hasNext()) {
             // only create an intermediate collection if there's something to copy
             if (copied == null) {
-                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+                copied = new ArrayList<>(estimatedSize());
             }
             copied.add(iterator.next());
         }
@@ -187,8 +211,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    protected <I extends T> Action<? super I> withMutationDisabled(Action<? super I> action) {
-        return getMutationGuard().withMutationDisabled(action);
+    protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
+        return store.getLazyBehaviorGuard().wrapLazyAction(action);
     }
 
     @Override
@@ -198,7 +222,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
-        assertMutable("withType(Class, Action)");
+        assertEagerContext("withType(Class, Action)");
         DomainObjectCollection<S> result = withType(type);
         result.all(configureAction);
         return result;
@@ -211,7 +235,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        assertMutable("whenObjectAdded(Action)");
+        assertEagerContext("whenObjectAdded(Action)");
         return addEagerAction(action);
     }
 
@@ -246,14 +270,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public boolean add(T toAdd) {
-        assertMutable("add(T)");
-        assertMutableCollectionContents();
+        assertCanMutate("add(T)");
         return doAdd(toAdd, eventRegister.getAddActions());
-    }
-
-    protected <I extends T> boolean add(I toAdd, Action<? super I> notification) {
-        assertMutableCollectionContents();
-        return doAdd(toAdd, notification);
     }
 
     protected <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
@@ -268,16 +286,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void addLater(Provider<? extends T> provider) {
-        assertMutable("addLater(Provider)");
-        assertMutableCollectionContents();
+        assertCanMutate("addLater(Provider)");
+        doAddLater(provider);
+    }
+
+    protected void doAddLater(Provider<? extends T> provider) {
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
         store.addPending(providerInternal);
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<T>> provider) {
-        assertMutable("addAllLater(Provider)");
-        assertMutableCollectionContents();
+        assertCanMutate("addAllLater(Provider)");
         final CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal;
         if (provider instanceof CollectionProviderInternal) {
             providerInternal = Cast.uncheckedCast(provider);
@@ -295,8 +315,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        assertMutable("addAll(Collection<T>)");
-        assertMutableCollectionContents();
+        assertCanMutate("addAll(Collection)");
         boolean changed = false;
         for (T o : c) {
             if (doAdd(o, eventRegister.getAddActions())) {
@@ -308,8 +327,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void clear() {
-        assertMutable("clear()");
-        assertMutableCollectionContents();
+        assertCanMutate("clear()");
         if (store.constantTimeIsEmpty()) {
             return;
         }
@@ -337,8 +355,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public boolean remove(Object o) {
-        assertMutable("remove(Object)");
-        assertMutableCollectionContents();
+        assertCanMutate("remove(Object)");
         return doRemove(o);
     }
 
@@ -374,8 +391,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        assertMutable("removeAll(Collection)");
-        assertMutableCollectionContents();
+        assertCanMutate("removeAll(Collection)");
         if (store.constantTimeIsEmpty()) {
             return false;
         }
@@ -390,8 +406,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public boolean retainAll(Collection<?> target) {
-        assertMutable("retainAll(Collection)");
-        assertMutableCollectionContents();
+        assertCanMutate("retainAll(Collection)");
         Object[] existingItems = toArray();
         boolean changed = false;
         for (Object existingItem : existingItems) {
@@ -414,11 +429,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return store.getMutationGuard();
-    }
-
-    @Override
     public Collection<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }
@@ -434,22 +444,39 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     /**
-     * Asserts that the container can be modified in any way by the given method.
+     * Asserts that the method with the given name, which performs mutation on this
+     * container, may proceed.
      */
-    protected final void assertMutable(String methodName) {
-        getMutationGuard().assertMutationAllowed(methodName, this);
+    protected final void assertCanMutate(String methodName) {
+        // beforeContainerChange controls the mutability of this container.
+        // It should throw an exception if mutation is forbidden.
+        beforeContainerChange.execute(methodName);
+
+        // We also restrict mutations to only occur in eager contexts.
+        // Users cannot mutate the container within a lazy callback.
+        assertEagerContext(methodName);
     }
 
     /**
-     * Subclasses may override this method to prevent add/remove methods.
-     *
-     * @see DefaultDomainObjectSet
+     * Assert that the current thread is not running a lazy action.
+     * This method should be called by methods that must not be called in lazy actions.
      */
-    protected void assertMutableCollectionContents() {
-        // no special validation
+    protected final void assertEagerContext(String methodName) {
+        store.getLazyBehaviorGuard().assertEagerContext(methodName, this);
     }
 
-    protected class IteratorImpl implements Iterator<T>, WithEstimatedSize {
+    /**
+     * Register an action to be executed before this collection is mutated.
+     * Registered actions may throw exceptions in order to forbid this container from mutating.
+     *
+     * TODO: Merge this functionality with MutationValidator.
+     */
+    @Override
+    public void beforeCollectionChanges(Action<String> action) {
+        beforeContainerChange = beforeContainerChange.add(action);
+    }
+
+    protected class IteratorImpl implements Iterator<T> {
         private final Iterator<T> iterator;
         private T currentElement;
 
@@ -470,17 +497,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
         @Override
         public void remove() {
-            assertMutable("iterator().remove()");
-            assertMutableCollectionContents();
+            assertCanMutate("iterator().remove()");
             iterator.remove();
             didRemove(currentElement);
             getEventRegister().fireObjectRemoved(currentElement);
             currentElement = null;
-        }
-
-        @Override
-        public int estimatedSize() {
-            return DefaultDomainObjectCollection.this.estimatedSize();
         }
     }
 

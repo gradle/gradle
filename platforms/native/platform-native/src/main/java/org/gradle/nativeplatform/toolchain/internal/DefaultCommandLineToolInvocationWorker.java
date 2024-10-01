@@ -29,6 +29,7 @@ import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.Locale;
 
 @NonNullApi
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
@@ -70,8 +71,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())) {
-                toolExec.getEnvironment().remove(pathVar.toUpperCase());
+            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase(Locale.ROOT))) {
+                toolExec.getEnvironment().remove(pathVar.toUpperCase(Locale.ROOT));
             }
         }
 

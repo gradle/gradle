@@ -24,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <p>The final stage of worker start-up. Takes care of executing the worker action.</p>
+ * The final stage of worker start-up. Takes care of executing the worker action.
  *
- * <p>It is instantiated and called from {@link SystemApplicationClassLoaderWorker}.<p>
+ * <p>It is instantiated and called from {@link SystemApplicationClassLoaderWorker}.</p>
  */
 public class ActionExecutionWorker implements Action<WorkerProcessContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);

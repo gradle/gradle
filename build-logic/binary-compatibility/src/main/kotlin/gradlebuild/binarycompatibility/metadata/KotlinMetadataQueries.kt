@@ -28,7 +28,10 @@ import javassist.CtMethod
 import javassist.Modifier
 import javassist.bytecode.annotation.Annotation
 import javassist.bytecode.annotation.AnnotationImpl
-import kotlinx.metadata.Flag
+import kotlinx.metadata.KmFunction
+import kotlinx.metadata.Visibility
+import kotlinx.metadata.isInfix
+import kotlinx.metadata.isOperator
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import java.lang.reflect.Proxy
 
@@ -37,7 +40,7 @@ object KotlinMetadataQueries {
 
     fun isKotlinFileFacadeClass(ctClass: CtClass): Boolean =
         if (Modifier.isPrivate(ctClass.modifiers)) false
-        else queryKotlinMetadata(ctClass, false) { metadata ->
+        else queryKotlinMetadata(ctClass) { metadata ->
             when (metadata) {
                 is KotlinClassMetadata.FileFacade -> true
                 else -> false
@@ -46,36 +49,36 @@ object KotlinMetadataQueries {
 
     fun isKotlinInternal(ctClass: CtClass): Boolean =
         if (Modifier.isPrivate(ctClass.modifiers)) false
-        else hasKotlinFlag(ctClass, Flag.IS_INTERNAL)
+        else hasAttribute(ctClass, AttributePredicate.visibility(Visibility.INTERNAL))
 
     fun isKotlinInternal(ctMember: CtMember): Boolean =
         if (Modifier.isPrivate(ctMember.modifiers)) false
-        else hasKotlinFlag(ctMember, Flag.IS_INTERNAL)
+        else hasAttribute(ctMember, AttributePredicate.visibility(Visibility.INTERNAL))
 
     fun isKotlinOperatorFunction(ctMethod: CtMethod): Boolean =
-        hasKotlinFlag(ctMethod, Flag.Function.IS_OPERATOR)
+        hasAttribute(ctMethod, AttributePredicate.functionAttribute(KmFunction::isOperator))
 
     fun isKotlinInfixFunction(ctMethod: CtMethod): Boolean =
-        hasKotlinFlag(ctMethod, Flag.Function.IS_INFIX)
+        hasAttribute(ctMethod, AttributePredicate.functionAttribute(KmFunction::isInfix))
 
     private
-    fun hasKotlinFlag(ctClass: CtClass, flag: Flag): Boolean =
-        queryKotlinMetadata(ctClass, false) { metadata ->
-            metadata.hasKotlinFlag(MemberType.TYPE, ctClass.name, flag)
+    fun hasAttribute(ctClass: CtClass, predicate: AttributePredicate): Boolean =
+        queryKotlinMetadata(ctClass) { metadata ->
+            metadata.hasAttribute(MemberType.TYPE, ctClass.name, predicate)
         }
 
     private
-    fun hasKotlinFlag(ctMember: CtMember, flag: Flag): Boolean =
-        queryKotlinMetadata(ctMember.declaringClass, false) { metadata ->
-            metadata.hasKotlinFlag(memberTypeFor(ctMember), ctMember.jvmSignature, flag)
+    fun hasAttribute(ctMember: CtMember, predicate: AttributePredicate): Boolean =
+        queryKotlinMetadata(ctMember.declaringClass) { metadata ->
+            metadata.hasAttribute(memberTypeFor(ctMember), ctMember.jvmSignature, predicate)
         }
 
     private
-    fun <T : Any?> queryKotlinMetadata(ctClass: CtClass, defaultResult: T, query: (KotlinClassMetadata) -> T): T =
+    fun queryKotlinMetadata(ctClass: CtClass, query: (KotlinClassMetadata) -> Boolean): Boolean =
         ctClass.metadata
-            ?.let { KotlinClassMetadata.read(it) }
+            ?.let { KotlinClassMetadata.readStrict(it) }
             ?.let { query(it) }
-            ?: defaultResult
+            ?: false
 
     private
     val CtClass.metadata: Metadata?

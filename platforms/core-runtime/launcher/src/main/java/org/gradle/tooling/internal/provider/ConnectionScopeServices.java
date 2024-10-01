@@ -23,7 +23,6 @@ import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -68,7 +67,6 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
-        JvmVersionDetector jvmVersionDetector,
         // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
         ShutdownCoordinator shutdownCoordinator) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
@@ -86,7 +84,6 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
                                         new ModelClassLoaderFactory())),
                                 new ClasspathInferer(),
                                 classLoaderCache))),
-            jvmVersionDetector,
             fileCollectionFactory,
             userInput,
             userInputReader

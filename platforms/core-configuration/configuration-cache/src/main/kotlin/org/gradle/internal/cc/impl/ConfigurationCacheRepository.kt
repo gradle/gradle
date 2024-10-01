@@ -16,10 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.DefaultCacheCleanupStrategy
+import org.gradle.cache.CacheCleanupStrategyFactory
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
@@ -27,6 +28,7 @@ import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
+import org.gradle.internal.cc.impl.ConfigurationCacheRepository.ReadableConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
@@ -37,11 +39,13 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.time.TimestampSuppliers
+import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.Collections
 import java.util.function.Supplier
 
 
@@ -49,6 +53,7 @@ import java.util.function.Supplier
 internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,
+    private val cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
@@ -58,35 +63,38 @@ class ConfigurationCacheRepository(
 
     abstract class Layout {
         abstract fun fileForRead(stateType: StateType): ConfigurationCacheStateFile
-
         abstract fun fileFor(stateType: StateType): ConfigurationCacheStateFile
     }
 
     private
-    inner class WriteableLayout(
+    class WriteableLayout(
         private val cacheDir: File,
         private val onFileAccess: (File) -> Unit
     ) : Layout() {
-        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
+        override fun fileForRead(stateType: StateType) =
+            cacheDir.readableConfigurationCacheStateFile(stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
     }
 
-    private
-    inner class ReadableLayout(
+    internal
+    class ReadableLayout(
         private val cacheDir: File
     ) : Layout() {
-        override fun fileForRead(stateType: StateType) = fileFor(stateType)
+        override fun fileForRead(stateType: StateType) =
+            cacheDir.readableConfigurationCacheStateFile(stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile =
+            cacheDir.readableConfigurationCacheStateFile(stateType)
     }
 
     override fun stop() {
         cache.close()
     }
 
-    private
-    inner class ReadableConfigurationCacheStateFile(
+    internal
+    class ReadableConfigurationCacheStateFile(
         private val file: File,
         override val stateType: StateType
     ) : ConfigurationCacheStateFile {
@@ -100,7 +108,7 @@ class ConfigurationCacheRepository(
             throw UnsupportedOperationException()
 
         override fun inputStream(): InputStream =
-            file.also(::markAccessed).inputStream()
+            file.inputStream()
 
         override fun delete() {
             throw UnsupportedOperationException()
@@ -115,10 +123,16 @@ class ConfigurationCacheRepository(
                 includedBuildFileFor(file, build),
                 stateType
             )
+
+        override fun relatedStateFile(path: Path): ConfigurationCacheStateFile =
+            ReadableConfigurationCacheStateFile(
+                relatedStateFileFor(file, path),
+                stateType
+            )
     }
 
     private
-    inner class WriteableConfigurationCacheStateFile(
+    class WriteableConfigurationCacheStateFile(
         private val file: File,
         override val stateType: StateType,
         private val onFileAccess: (File) -> Unit
@@ -151,6 +165,13 @@ class ConfigurationCacheRepository(
                 stateType,
                 onFileAccess
             )
+
+        override fun relatedStateFile(path: Path): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                relatedStateFileFor(file, path),
+                stateType,
+                onFileAccess
+            )
     }
 
     private
@@ -173,6 +194,7 @@ class ConfigurationCacheRepository(
 
         override fun <T : Any> useForStateLoad(action: (Layout) -> T): T {
             return withExclusiveAccessToCache(baseDir) { cacheDir ->
+                markAccessed(cacheDir)
                 action(ReadableLayout(cacheDir))
             }
         }
@@ -183,7 +205,8 @@ class ConfigurationCacheRepository(
                 Files.createDirectories(cacheDir.toPath())
                 chmod(cacheDir, 448) // octal 0700
                 markAccessed(cacheDir)
-                val stateFiles = mutableListOf<File>()
+                // this needs to be thread-safe as we may have multiple adding threads
+                val stateFiles = Collections.synchronizedList(mutableListOf<File>())
                 val layout = WriteableLayout(cacheDir, stateFiles::add)
                 try {
                     action(layout)
@@ -196,12 +219,6 @@ class ConfigurationCacheRepository(
                 }
             }
     }
-
-    private
-    fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
-        parentStateFile.run {
-            resolveSibling("$name.${build.name}")
-        }
 
     private
     val cleanupDepth = 1
@@ -220,7 +237,7 @@ class ConfigurationCacheRepository(
     private
     fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
         withCleanupStrategy(
-            DefaultCacheCleanupStrategy.from(
+            cacheCleanupStrategyFactory.daily(
                 LeastRecentlyUsedCacheCleanup(
                     SingleDepthFilesFinder(cleanupDepth),
                     fileAccessTimeJournal,
@@ -255,11 +272,34 @@ class ConfigurationCacheRepository(
     private
     fun PersistentCache.baseDirFor(cacheKey: String) =
         baseDir.resolve(cacheKey)
-
-    private
-    val StateType.fileBaseName: String
-        get() = name.toDefaultLowerCase()
-
-    private
-    fun File.stateFile(stateType: StateType) = resolve("${stateType.fileBaseName}.bin")
 }
+
+
+@VisibleForTesting
+internal
+fun File.readableConfigurationCacheStateFile(stateType: StateType) =
+    ReadableConfigurationCacheStateFile(stateFile(stateType), stateType)
+
+
+private
+fun File.stateFile(stateType: StateType) =
+    resolve("${stateType.fileBaseName}.bin")
+
+
+private
+val StateType.fileBaseName: String
+    get() = name.toDefaultLowerCase()
+
+
+private
+fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
+    parentStateFile.run {
+        resolveSibling("$name.${build.name}")
+    }
+
+
+private
+fun relatedStateFileFor(parentStateFile: File, path: Path) =
+    parentStateFile.run {
+        resolveSibling("${path.segments().joinToString("_", if (path.isAbsolute) "_" else "")}.$name")
+    }

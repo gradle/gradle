@@ -34,12 +34,12 @@ import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTar
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutationFailureReason.TargetNotFoundOrSuperseded
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 
 
-object DocumentTextMutationPlannerTest {
+class DocumentTextMutationPlannerTest {
     private
     val planner = DocumentTextMutationPlanner()
 
@@ -53,9 +53,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k = 5
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent()
         )
@@ -68,7 +71,8 @@ object DocumentTextMutationPlannerTest {
         val plan = planner.planDocumentMutations(
             document, listOf(
                 RemoveNode(document.elementNamed("f")),
-                RemoveNode(document.elementNamed("g").elementNamed("j"))
+                RemoveNode(document.elementNamed("g").elementNamed("j")),
+                RemoveNode(document.propertyNamed("enum"))
             )
         )
 
@@ -78,6 +82,7 @@ object DocumentTextMutationPlannerTest {
             g(2) {
                 h(3)
                 k = 5
+                enum = green
             }
 
             l(6)
@@ -104,9 +109,12 @@ object DocumentTextMutationPlannerTest {
             g0(2) {
                 h(3)
                 k = 5
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(), plan.newText
         )
@@ -118,6 +126,7 @@ object DocumentTextMutationPlannerTest {
             simpleDocument, listOf(
                 ElementNodeCallMutation(simpleDocument.elementNamed("f"), CallMutation.RenameCall { "f0" }),
                 RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k")) { "k0" },
+                RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("enum")) { "eco" },
                 ValueNodeCallMutation(
                     (simpleDocument.elementNamed("g").elementNamed("j").elementValues.single()) as ValueFactoryNode,
                     CallMutation.RenameCall { "jj0" }
@@ -133,9 +142,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj0(4))
                 k0 = 5
+                eco = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(), plan.newText
         )
@@ -157,6 +169,8 @@ object DocumentTextMutationPlannerTest {
 
             l(6)
 
+            enum = blue
+
             """.trimIndent(), plan.newText
         )
 
@@ -166,11 +180,12 @@ object DocumentTextMutationPlannerTest {
 
     @Test
     fun `multiple renames get correctly stacked`() {
-        val propertyNode = simpleDocument.elementNamed("g").propertyNamed("k")
 
         val mutations = listOf(
-            RenamePropertyNode(propertyNode) { "k0" },
-            RenamePropertyNode(propertyNode) { "k1" }
+            RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k")) { "k0" },
+            RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k")) { "k1" },
+            RenamePropertyNode(simpleDocument.propertyNamed("enum")) { "eco" },
+            RenamePropertyNode(simpleDocument.propertyNamed("enum")) { "eee" },
         )
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
 
@@ -182,9 +197,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k1 = 5
+                enum = green
             }
 
             l(6)
+
+            eee = blue
 
             """.trimIndent(), plan.newText
         )
@@ -196,7 +214,8 @@ object DocumentTextMutationPlannerTest {
     fun `can plan node replacement`() {
         val mutations = listOf(
             ReplaceNode(simpleDocument.elementNamed("f")) { NewDocumentNodes(listOf(nodeFromText("f0(1)"))) },
-            ReplaceNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("g0(2) { h0(3) }"))) }
+            ReplaceNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("g0(2) { h0(3) }"))) },
+            ReplaceNode(simpleDocument.propertyNamed("enum")) { NewDocumentNodes(listOf(nodeFromText("eco = red"))) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -211,6 +230,8 @@ object DocumentTextMutationPlannerTest {
 
             l(6)
 
+            eco = red
+
             """.trimIndent(),
             plan.newText
         )
@@ -220,7 +241,8 @@ object DocumentTextMutationPlannerTest {
     fun `can plan node insertion before another node`() {
         val mutations = listOf(
             InsertNodesBeforeNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))) },
-            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j")) { NewDocumentNodes(listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()"))) }
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g").elementNamed("j")) { NewDocumentNodes(listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()"))) },
+            InsertNodesBeforeNode(simpleDocument.elementNamed("g").propertyNamed("enum")) { NewDocumentNodes(listOf(nodeFromText("eco = magenta"))) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -239,9 +261,13 @@ object DocumentTextMutationPlannerTest {
                 oneMore()
                 j(jj(4))
                 k = 5
+                eco = magenta
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -252,7 +278,8 @@ object DocumentTextMutationPlannerTest {
     fun `can plan node insertion after another node`() {
         val mutations = listOf(
             InsertNodesAfterNode(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("newNode()"), nodeFromText("oneMore()"))) },
-            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j")) { NewDocumentNodes(listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()"))) }
+            InsertNodesAfterNode(simpleDocument.elementNamed("g").elementNamed("j")) { NewDocumentNodes(listOf(nodeFromText("newNodeInBlock()"), nodeFromText("oneMore()"))) },
+            InsertNodesAfterNode(simpleDocument.elementNamed("g").propertyNamed("enum")) { NewDocumentNodes(listOf(nodeFromText("eco = magenta"))) }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -267,6 +294,8 @@ object DocumentTextMutationPlannerTest {
                 newNodeInBlock()
                 oneMore()
                 k = 5
+                enum = green
+                eco = magenta
             }
 
             newNode()
@@ -274,6 +303,8 @@ object DocumentTextMutationPlannerTest {
             oneMore()
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -284,7 +315,7 @@ object DocumentTextMutationPlannerTest {
     fun `can plan node insertion into the block start`() {
         val mutations = listOf(
             AddChildrenToStartOfBlock(simpleDocument.elementNamed("g")) {
-                NewDocumentNodes(listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()")))
+                NewDocumentNodes(listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"), nodeFromText("eco = magenta")))
             }
         )
 
@@ -297,12 +328,16 @@ object DocumentTextMutationPlannerTest {
             g(2) {
                 newNode1()
                 newNode2()
+                eco = magenta
                 h(3)
                 j(jj(4))
                 k = 5
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -312,7 +347,7 @@ object DocumentTextMutationPlannerTest {
     @Test
     fun `can plan node insertion into the block end`() {
         val mutations = listOf(
-            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("newNode1()"), nodeFromText("newNode2()"))) },
+            AddChildrenToEndOfBlock(simpleDocument.elementNamed("g")) { NewDocumentNodes(listOf(nodeFromText("eco = magenta"), nodeFromText("newNode1()"), nodeFromText("newNode2()"))) },
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -325,11 +360,15 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k = 5
+                enum = green
+                eco = magenta
                 newNode1()
                 newNode2()
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -361,12 +400,15 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k = 5
+                enum = green
             }
 
             l(6) {
                 newNode3()
                 newNode4()
             }
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -391,9 +433,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k = 5
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -426,9 +471,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k = 5
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -437,10 +485,11 @@ object DocumentTextMutationPlannerTest {
 
     @Test
     fun `can simultaneously rename a property and replace its value`() {
-        val property = simpleDocument.elementNamed("g").propertyNamed("k")
         val mutations = listOf(
-            RenamePropertyNode(property) { "k0" },
-            ReplaceValue(property.value) { valueFromText("foo0(5)") }
+            RenamePropertyNode(simpleDocument.elementNamed("g").propertyNamed("k")) { "k0" },
+            ReplaceValue(simpleDocument.elementNamed("g").propertyNamed("k").value) { valueFromText("foo0(5)") },
+            RenamePropertyNode(simpleDocument.propertyNamed("enum")) { "eco" },
+            ReplaceValue(simpleDocument.propertyNamed("enum").value) { valueFromText("magenta") }
         )
 
         val plan = planner.planDocumentMutations(simpleDocument, mutations)
@@ -453,9 +502,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k0 = foo0(5)
+                enum = green
             }
 
             l(6)
+
+            eco = magenta
 
             """.trimIndent(),
             plan.newText
@@ -480,9 +532,12 @@ object DocumentTextMutationPlannerTest {
                 h(3)
                 j(jj(4))
                 k = replaced1()
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText
@@ -524,9 +579,12 @@ object DocumentTextMutationPlannerTest {
                 hReplaced()
                 j(alsoReplaced())
                 k = 5
+                enum = green
             }
 
             l(6)
+
+            enum = blue
 
             """.trimIndent(),
             plan.newText

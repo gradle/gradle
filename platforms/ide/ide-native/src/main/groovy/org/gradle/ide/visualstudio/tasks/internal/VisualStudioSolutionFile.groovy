@@ -18,33 +18,32 @@ package org.gradle.ide.visualstudio.tasks.internal
 
 import com.google.common.collect.Sets
 import org.gradle.api.Action
+import org.gradle.api.NonNullApi
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.ide.visualstudio.TextProvider
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfigurationMetadata
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
 
+@NonNullApi
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
-    List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
+    List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>()
     private Map<File, String> projects = new LinkedHashMap<>()
-    private Map<File, Set<VisualStudioProjectConfigurationMetadata>> projectConfigurations = new LinkedHashMap<>()
+    private Map<File, Set<ConfigurationSpec>> projectConfigurations = new LinkedHashMap<>()
     private baseText
 
     protected String getDefaultResourceName() {
         'default.sln'
     }
 
-    void setProjects(List<VisualStudioProjectMetadata> projects) {
-        projects.each { VisualStudioProjectMetadata project ->
-            this.projects[project.file] = project.name
-            if (!this.projectConfigurations.containsKey(project.file)) {
-                this.projectConfigurations[project.file] = new HashSet<>()
-            }
-            project.configurations.each { configuration ->
-                this.projectConfigurations[project.file].add(configuration)
-            }
+    void setProjects(List<ProjectSpec> projects) {
+        projects.each { project ->
+            this.projects[project.projectFile] = project.name
+            def configs = this.projectConfigurations.computeIfAbsent(project.projectFile, f -> new HashSet<>())
+            configs.addAll(project.configurations)
         }
     }
 
@@ -112,7 +111,8 @@ EndGlobal
     }
 
     static class SimpleTextProvider implements TextProvider {
-        private final StringBuilder builder = new StringBuilder();
+        private final StringBuilder builder = new StringBuilder()
+
         StringBuilder asBuilder() {
             return builder
         }
@@ -123,6 +123,38 @@ EndGlobal
 
         void setText(String value) {
             builder.replace(0, builder.length(), value)
+        }
+    }
+
+    static class ConfigurationSpec {
+        @Input
+        final String name
+        @Input
+        final boolean buildable
+
+        ConfigurationSpec(String name, boolean buildable) {
+            this.name = name
+            this.buildable = buildable
+        }
+    }
+
+    static class ProjectSpec {
+        @Input
+        final String name
+        @Internal
+        final File projectFile
+        @Nested
+        final List<ConfigurationSpec> configurations
+
+        ProjectSpec(String name, File projectFile, List<ConfigurationSpec> configurations) {
+            this.name = name
+            this.projectFile = projectFile
+            this.configurations = configurations
+        }
+
+        @Input
+        String getProjectFilePath() {
+            return projectFile.absolutePath
         }
     }
 }

@@ -42,7 +42,15 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
     }
 
     @Override
+    @Deprecated
     public boolean contentEquals(Dependency dependency) {
+
+        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
+            .withAdvice("Use Object.equals(Object) instead")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_content_equals")
+            .nagUser();
+
         if (!(dependency instanceof DefaultFileCollectionDependency)) {
             return false;
         }

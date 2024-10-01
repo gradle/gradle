@@ -25,6 +25,9 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
+    def setup() {
+        executer.requireDaemon().requireIsolatedDaemons() // Prevent addition of Java 9 JPMS args to the launcher and potentially daemon process which could be Java 8
+    }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {

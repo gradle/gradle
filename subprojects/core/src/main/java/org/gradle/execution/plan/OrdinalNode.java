@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * Represents a node in the graph that controls ordinality of destroyers and producers as they are
@@ -52,7 +53,7 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
 
     @Override
     public String toString() {
-        return type.name().toLowerCase() + " locations for " + getGroup();
+        return type.name().toLowerCase(Locale.ROOT) + " locations for " + getGroup();
     }
 
     @Override

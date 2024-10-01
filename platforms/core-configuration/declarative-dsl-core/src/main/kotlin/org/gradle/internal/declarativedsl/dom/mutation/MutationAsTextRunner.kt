@@ -38,11 +38,17 @@ class MutationAsTextRunner {
     ): MutationRunResult {
         val schema = applicationTarget.documentEvaluationSchema
 
+        if (!mutationDefinition.isCompatibleWithSchema(schema.analysisSchema)) {
+            return MutationRunResult(emptyList(), issues = listOf(MutationRunIssue.IncompatibleMutation))
+        }
+
         var currentDocument = applicationTarget.documentWithResolution
         val originalSourceIdentifier = currentDocument.document.sourceIdentifier
         val mutationSequence = mutationDefinition.defineModelMutationSequence(schema.analysisSchema)
 
-        return MutationRunResult(buildList {
+        var hasIssuesInSteps = false
+
+        val stepResults = buildList {
             mutationSequence.map { modelMutation ->
                 val plan = modelMutationPlanner.planModelMutation(
                     schema.analysisSchema,
@@ -53,6 +59,7 @@ class MutationAsTextRunner {
 
                 if (plan.modelMutationIssues.isNotEmpty()) {
                     add(ModelMutationStepResult.ModelMutationFailed(currentDocument, modelMutation, plan.modelMutationIssues))
+                    hasIssuesInSteps = true
                 } else {
                     val documentMutations = plan.documentMutations
                     val textMutation = documentToTextMutationPlanner.planDocumentMutations(currentDocument.document, documentMutations)
@@ -74,7 +81,8 @@ class MutationAsTextRunner {
                     currentDocument = newDocument
                 }
             }
-        })
+        }
+        return MutationRunResult(stepResults = stepResults, issues = if (hasIssuesInSteps) listOf(MutationRunIssue.HasStepFailure) else emptyList())
     }
 }
 
@@ -86,8 +94,14 @@ data class TextMutationApplicationTarget(
 
 
 data class MutationRunResult(
-    val stepResults: List<ModelMutationStepResult>
+    val stepResults: List<ModelMutationStepResult>,
+    val issues: List<MutationRunIssue>
 )
+
+sealed interface MutationRunIssue {
+    data object IncompatibleMutation : MutationRunIssue
+    data object HasStepFailure : MutationRunIssue
+}
 
 
 sealed interface ModelMutationStepResult {

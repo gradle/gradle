@@ -17,8 +17,6 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
@@ -32,6 +30,7 @@ import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -49,7 +48,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     @Override
     public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
+        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy : CacheCleanupStrategy.NO_CLEANUP);
         if (initializer != null) {
             initializer.accept(cache);
         }
@@ -57,7 +56,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     }
 
     public PersistentCache open(File cacheDir, String displayName) {
-        return new InMemoryCache(cacheDir, displayName, CleanupAction.NO_OP);
+        return new InMemoryCache(cacheDir, displayName, CacheCleanupStrategy.NO_CLEANUP);
     }
 
     @Override
@@ -69,9 +68,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         private final File cacheDir;
         private final String displayName;
         private boolean closed;
-        private final CleanupAction cleanup;
+        private final CacheCleanupStrategy cleanup;
 
-        public InMemoryCache(File cacheDir, String displayName, @Nullable CleanupAction cleanup) {
+        public InMemoryCache(File cacheDir, String displayName, CacheCleanupStrategy cleanup) {
             this.cacheDir = cacheDir;
             this.displayName = displayName;
             this.cleanup = cleanup;
@@ -87,7 +86,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         public void cleanup() {
             if (cleanup!=null) {
                 synchronized (this) {
-                    cleanup.clean(this, CleanupProgressMonitor.NO_OP);
+                    cleanup.clean(this, Instant.now());
                 }
             }
         }

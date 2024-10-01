@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -175,7 +176,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     private void addAnchorsForHeadings(Document document) {
         // add anchors for all of the headings
         for (Element heading : document.body().select("h2,h3,h4")) {
-            String anchorName = heading.text().toLowerCase().replaceAll(" ", "-");
+            String anchorName = heading.text().toLowerCase(Locale.ROOT).replaceAll(" ", "-");
             heading.attr("id", anchorName);
         }
     }

@@ -44,6 +44,17 @@ abstract class AbstractCallInterceptionTest extends Specification {
     private GroovyInterceptorsSubstitution groovyInterceptorsSubstitution
 
     def setup() {
+        doSetup()
+    }
+
+    def cleanup() {
+        doCleanup()
+    }
+
+    // doSetup and doCleanup are required here as Spock does not let us call `super.setup()` and `super.cleanup()` in the setup and cleanup methods
+    // They are supposed to be automatically invoked by Spock, but when calling them manually in resetInterceptors, the super calls don't happen.
+    // They also need to be protected as apparently resetInterceptors acts in the context of the subclass, not this class.
+    protected doSetup() {
         // Substitutions should be set before the InstrumentedClasses is constructed
         jvmInterceptorsSubstitution = new JvmInterceptorsSubstitution(jvmBytecodeInterceptorSet())
         jvmInterceptorsSubstitution.setupForCurrentThread()
@@ -57,13 +68,13 @@ abstract class AbstractCallInterceptionTest extends Specification {
         )
     }
 
-    def cleanup() {
+    protected doCleanup() {
         jvmInterceptorsSubstitution.cleanupForCurrentThread()
         groovyInterceptorsSubstitution.cleanupForCurrentThread()
     }
 
     def resetInterceptors() {
-        cleanup()
-        setup()
+        doCleanup()
+        doSetup()
     }
 }

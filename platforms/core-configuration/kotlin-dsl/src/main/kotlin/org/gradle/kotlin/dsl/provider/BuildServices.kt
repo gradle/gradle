@@ -30,11 +30,13 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -107,7 +109,9 @@ object BuildServices : ServiceRegistrationProvider {
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
         gradlePropertiesController: GradlePropertiesController,
-        transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
+        transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
+        gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -131,7 +135,9 @@ object BuildServices : ServiceRegistrationProvider {
             inputFingerprinter,
             internalOptions,
             gradlePropertiesController,
-            transformFactoryForLegacy
+            transformFactoryForLegacy,
+            gradleCoreTypeRegistry,
+            propertyUpgradeReportConfig
         )
 
     @Provides

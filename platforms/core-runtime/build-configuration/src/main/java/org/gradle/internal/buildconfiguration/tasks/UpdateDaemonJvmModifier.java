@@ -16,11 +16,11 @@
 
 package org.gradle.internal.buildconfiguration.tasks;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.util.PropertiesUtils;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.util.internal.GFileUtils;
 
@@ -32,14 +32,14 @@ import java.util.Properties;
 public class UpdateDaemonJvmModifier {
     public static void updateJvmCriteria(
         File propertiesFile,
-        JavaVersion toolchainVersion,
+        JavaLanguageVersion toolchainVersion,
         @Nullable String toolchainVendor,
         @Nullable JvmImplementation toolchainImplementation
     ) {
         validateToolchainVersion(toolchainVersion);
 
         Properties daemonJvmProperties = new Properties();
-        daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, toolchainVersion.getMajorVersion());
+        daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, toolchainVersion.toString());
         if (toolchainVendor != null) {
             daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor);
         }
@@ -55,13 +55,13 @@ public class UpdateDaemonJvmModifier {
         }
     }
 
-    private static void validateToolchainVersion(JavaVersion version) {
+    private static void validateToolchainVersion(JavaLanguageVersion version) {
         // TODO: It would be nice to enforce this as part of task configuration instead of at runtime.
         // TODO: Need to consider how to handle future versions of Java that are not yet known. This currently allows any version of Java above the minimum.
-        JavaVersion minimumSupportedVersion = JavaVersion.VERSION_1_8;
-        if (version.compareTo(minimumSupportedVersion) < 0) {
-            String exceptionMessage = String.format("Unsupported Java version '%s' provided for the 'jvm-version' option. Gradle can only run with Java %s and above.",
-                version.getMajorVersion(), minimumSupportedVersion.getMajorVersion());
+        int minimalSupportedVersion = 8;
+        if (!version.canCompileOrRun(minimalSupportedVersion)) {
+            String exceptionMessage = String.format("Unsupported Java version '%s' provided for the 'jvm-version' option. Gradle can only run with Java %d and above.",
+                version, minimalSupportedVersion);
             throw new IllegalArgumentException(exceptionMessage);
         }
     }

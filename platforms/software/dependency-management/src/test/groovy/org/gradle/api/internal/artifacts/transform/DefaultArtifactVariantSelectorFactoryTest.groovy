@@ -17,21 +17,25 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.Describables
-import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
@@ -39,25 +43,32 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def matchingCache = Mock(ConsumerProvidedVariantFinder)
-    def producerSchema = Mock(AttributesSchemaInternal)
-    def consumerSchema = Mock(AttributesSchemaInternal) {
-        getConsumerDescribers() >> []
-        getFailureDescribers(_) >> []
-    }
+    def producerSchema = Mock(ImmutableAttributesSchema)
+    def consumerSchema = Mock(ImmutableAttributesSchema)
     def attributeMatcher = Mock(AttributeMatcher)
+    def schemaServices = Mock(AttributeSchemaServices) {
+        getMatcher(consumerSchema, producerSchema) >> attributeMatcher
+    }
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
-    def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems))
-    def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
+    def variantSelectionFailureProcessor = DependencyManagementTestUtil.newFailureHandler()
+    def variantSelectorFactory = new DefaultVariantSelectorFactory(
+        matchingCache,
+        AttributeTestUtil.attributesFactory(),
+        schemaServices,
+        transformedVariantFactory,
+        variantSelectionFailureProcessor,
+        StandaloneDomainObjectContext.ANONYMOUS,
+        TestUtil.calculatedValueContainerFactory(),
+        TestUtil.taskDependencyFactory()
+    )
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.schema >> producerSchema
@@ -66,11 +77,10 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("jar")
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
-        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("classes"), false, factory)
+        def result = newSelector().select(set, typeAttributes("classes"), false, factory)
         result == variant1Artifacts
     }
 
@@ -78,7 +88,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.asDescribable() >> Describables.of('<component>')
@@ -89,12 +99,11 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variant2.asDescribable() >> Describables.of('<variant2>')
         variant2.attributes >> typeAttributes("jar")
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
         attributeMatcher.isMatchingValue(_, _, _) >> true
 
         when:
-        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("classes"), false, factory)
+        def result = newSelector().select(set, typeAttributes("classes"), false, factory)
         visit(result)
 
         then:
@@ -109,7 +118,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
         def transformedVariants = variants.collect { transformedVariant(it, requested)}
 
         given:
@@ -121,12 +130,11 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _, _) >> []
         attributeMatcher.matchMultipleCandidates(transformedVariants, _, _) >> transformedVariants
         matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
-        def selector = variantSelectorFactory.create(dependenciesResolverFactory)
+        def selector = newSelector()
 
         when:
         def result = selector.select(set, requested, false, factory)
@@ -151,7 +159,7 @@ Found the following transforms:
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.schema >> producerSchema
@@ -159,13 +167,12 @@ Found the following transforms:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_, _, _) >> []
 
         matchingCache.findTransformedVariants(_, _) >> []
 
         expect:
-        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("dll"), true, factory)
+        def result = newSelector().select(set, typeAttributes("dll"), true, factory)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -173,7 +180,7 @@ Found the following transforms:
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
-        def variants = [variant1, variant2] as Set
+        def variants = [variant1, variant2]
 
         given:
         set.schema >> producerSchema
@@ -184,13 +191,12 @@ Found the following transforms:
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
 
-        consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matchMultipleCandidates(_, _, _) >> []
 
         matchingCache.findTransformedVariants(_, _) >> []
 
         when:
-        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("dll"), false, factory)
+        def result = newSelector().select(set, typeAttributes("dll"), false, factory)
         visit(result)
 
         then:
@@ -200,6 +206,18 @@ Found the following transforms:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
   - <variant2>:
       - Incompatible because this component declares attribute 'artifactType' with value 'classes' and the consumer needed attribute 'artifactType' with value 'dll'""")
+    }
+
+    private ArtifactVariantSelector newSelector() {
+        variantSelectorFactory.create(
+            Mock(ResolutionHost),
+            ImmutableAttributes.EMPTY,
+            consumerSchema,
+            null,
+            ResolutionStrategy.SortOrder.DEFAULT,
+            Mock(ResolutionResultProvider),
+            Mock(ResolutionResultProvider)
+        )
     }
 
     private ResolvedVariant resolvedVariant() {

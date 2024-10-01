@@ -22,13 +22,14 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Internal;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
+public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainObjectCollectionInternal<T> {
     private final DomainObjectSet<T> delegate;
 
     public DelegatingDomainObjectSet(DomainObjectSet<T> delegate) {
@@ -177,5 +178,21 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     @Override
     public Set<T> findAll(Closure spec) {
         return delegate.findAll(spec);
+    }
+
+    @Override
+    public int estimatedSize() {
+        return ((DomainObjectCollectionInternal<?>) delegate).estimatedSize();
+    }
+
+    @Override
+    public void beforeCollectionChanges(Action<String> action) {
+        ((DomainObjectCollectionInternal<?>) delegate).beforeCollectionChanges(action);
+    }
+
+    @Internal
+    @Override
+    public String getDisplayName() {
+        return ((DomainObjectCollectionInternal<?>) delegate).getDisplayName();
     }
 }

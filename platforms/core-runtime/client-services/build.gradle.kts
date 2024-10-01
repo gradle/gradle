@@ -44,13 +44,14 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(projects.baseAsm)
     implementation(projects.serviceRegistryBuilder)
-
     implementation(libs.guava)
     implementation(libs.asm)
     implementation(libs.slf4jApi)
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
+    implementation(projects.fileOperations)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
     implementation(projects.time)
@@ -64,4 +65,7 @@ dependencies {
         because("Unit tests verify serialization works with TAPI types")
     }
     testImplementation(testFixtures(projects.daemonProtocol))
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

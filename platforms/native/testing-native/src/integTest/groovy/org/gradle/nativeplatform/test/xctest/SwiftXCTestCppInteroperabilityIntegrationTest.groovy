@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -25,8 +24,12 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+
+import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
+@Requires(HasXCTest)
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
     def setup() {
         buildFile << """
@@ -34,7 +37,6 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:
         def cppGreeter = new CppGreeterFunction()
@@ -79,7 +81,6 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can specify a test dependency on a library with a dependency on a c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDep(cppGreeter)

@@ -26,11 +26,13 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.EmptySchema
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
@@ -85,14 +87,15 @@ class DefaultConfigurationContainerSpec extends Specification {
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
-        TestFiles.taskDependencyFactory()
+        TestFiles.taskDependencyFactory(),
+        new DefaultProblems([new NoOpProblemEmitter()])
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
         domainObjectCollectionCallbackActionDecorator,
         metaDataProvider,
-        RootScriptDomainObjectContext.INSTANCE,
-        EmptySchema.INSTANCE,
+        domainObjectContext,
+        Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)
@@ -105,7 +108,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         when:
         def compile = configurationContainer.create("compile")
@@ -136,7 +139,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         when:
         def compile = configurationContainer.create("compile") {
@@ -152,7 +155,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "creates detached"() {
         given:
         1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
-        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")

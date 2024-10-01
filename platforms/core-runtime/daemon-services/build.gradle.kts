@@ -36,3 +36,6 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

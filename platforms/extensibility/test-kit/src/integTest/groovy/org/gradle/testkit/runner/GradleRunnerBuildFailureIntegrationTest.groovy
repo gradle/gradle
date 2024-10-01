@@ -93,7 +93,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         when:
         def runner = gradleVersion >= GradleVersion.version("4.5")
-            ? this.runner('helloWorld', '--warning-mode=none')
+            ? this.runner('helloWorld', '--warning-mode=none', "--no-problems-report")
             : this.runner('helloWorld')
         runner.buildAndFail()
 

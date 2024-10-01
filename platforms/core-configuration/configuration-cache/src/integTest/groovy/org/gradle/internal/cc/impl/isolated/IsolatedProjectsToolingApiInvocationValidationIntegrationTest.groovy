@@ -32,7 +32,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -43,7 +43,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -68,7 +68,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -79,7 +79,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -102,7 +102,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -113,7 +113,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -137,7 +137,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:
@@ -148,7 +148,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModelFails()
 
         then:

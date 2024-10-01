@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.service.Provides;
@@ -120,18 +119,10 @@ public class VersionControlServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-            return new DefaultVersionControlRepositoryFactory(cacheBuilderFactory);
-        }
-
-        @Provides
-        VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-            return new VcsDirectoryLayout(cacheBuilderFactory);
-        }
-
-        @Provides
-        PersistentVcsMetadataCache createMetadataCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-            return new PersistentVcsMetadataCache(cacheBuilderFactory);
+        void configure(ServiceRegistration registration) {
+            registration.add(DefaultVersionControlRepositoryFactory.class);
+            registration.add(VcsDirectoryLayout.class);
+            registration.add(PersistentVcsMetadataCache.class);
         }
     }
 
@@ -149,6 +140,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
     private static class VersionControlBuildServices implements ServiceRegistrationProvider {
 
+        @Provides
         void configure(ServiceRegistration registration) {
             registration.add(VcsResolverFactory.class);
         }

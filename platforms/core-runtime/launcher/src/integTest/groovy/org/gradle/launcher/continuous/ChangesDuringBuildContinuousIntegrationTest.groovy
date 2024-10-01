@@ -29,7 +29,6 @@ class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousInte
         waitAtEndOfBuildForQuietPeriod(quietPeriod)
     }
 
-    @UnsupportedWithConfigurationCache(because = "Spock interceptor interference")
     def "should trigger rebuild when java source file is changed during build execution"() {
         given:
         def inputFile = file("src/main/java/Thing.java")
@@ -37,21 +36,23 @@ class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousInte
         inputFile.makeOlder()
 
         when:
-        buildFile << """
-apply plugin: 'java'
+        buildFile """
+            apply plugin: 'java'
 
-task postCompile {
-    doLast {
-        if (!file('change-triggered').exists()) {
-            println "Modifying 'Thing.java' after initial compile task"
-            file("src/main/java/Thing.java").text = "class Thing { private static final boolean CHANGED=true; }"
-            file('change-triggered').text = 'done'
-        }
-    }
-    dependsOn 'classes'
-}
-jar.dependsOn postCompile
-"""
+            task postCompile {
+                def changeTriggered = file('change-triggered')
+                def thingJava = file("src/main/java/Thing.java")
+                doLast {
+                    if (!changeTriggered.exists()) {
+                        println "Modifying 'Thing.java' after initial compile task"
+                        thingJava.text = "class Thing { private static final boolean CHANGED=true; }"
+                        changeTriggered.text = 'done'
+                    }
+                }
+                dependsOn 'classes'
+            }
+            jar.dependsOn postCompile
+        """
         then:
         succeeds("build")
 

@@ -45,7 +45,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         }
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def projectModel = fetchModel(GradleProject)
 
         then:
@@ -57,7 +57,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         checkGradleProject(projectModel, expectedProjectModel)
 
         when: "fetching again with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         fetchModel(GradleProject)
 
         then:
@@ -92,7 +92,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        withIsolatedProjects("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
         def projectModel = fetchModel(GradleProject)
 
         then: "fetching with Isolated Projects"
@@ -104,7 +104,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         checkGradleProject(projectModel, expectedProjectModel)
 
         when: "fetching again with Isolated Projects"
-        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        withIsolatedProjects("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
         fetchModel(GradleProject)
 
         then:
@@ -118,7 +118,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildActionFails(new FetchGradleProjectForTarget(":a"))
 
         then:
@@ -153,7 +153,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         }
 
         when: "fetching with Isolated Projects"
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
@@ -166,7 +166,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         checkGradleProject(projectModel, expectedProjectModel)
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         runBuildAction(new FetchGradleProjectForTarget(":included1"))
 
         then:
@@ -189,7 +189,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         fixture.assertNoConfigurationCache()
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = fetchModel(GradleProject)
 
         then:
@@ -216,7 +216,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def updatedModel = fetchModel(GradleProject)
 
         then:
@@ -241,7 +241,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         file("b/build.gradle") << ""
 
         when:
-        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.model-project-dependencies=false")
+        withIsolatedProjects("-Dorg.gradle.internal.model-project-dependencies=false")
         fetchModel(GradleProject)
 
         then:
@@ -256,7 +256,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         file("a/build.gradle") << """
             println("updated :a")
         """
-        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.model-project-dependencies=false")
+        withIsolatedProjects("-Dorg.gradle.internal.model-project-dependencies=false")
         fetchModel(GradleProject)
 
         then:

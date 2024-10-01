@@ -19,10 +19,9 @@ package org.gradle.internal.classpath;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -83,7 +82,7 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = source.getName();
@@ -102,7 +101,7 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
                 // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
             }
-            transform(source, transformed, typeRegistry);
+            transform(source, transformed);
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
@@ -134,7 +133,7 @@ public class CustomClasspathFileTransformer implements ClasspathFileTransformer 
         return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
-    private void transform(File source, File dest, InstrumentationTypeRegistry typeRegistry) {
-        classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).transform(dest);
+    private void transform(File source, File dest) {
+        classpathElementTransformFactory.createTransformer(source, this.transform).transform(dest);
     }
 }

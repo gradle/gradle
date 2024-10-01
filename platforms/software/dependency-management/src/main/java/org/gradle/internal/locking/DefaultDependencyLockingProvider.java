@@ -16,7 +16,6 @@
 
 package org.gradle.internal.locking;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -52,6 +51,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.resource.local.FileResourceListener;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -159,7 +159,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 allLockState = lockFileReaderWriter.readUniqueLockFile();
                 uniqueLockStateLoaded = true;
             } catch (IllegalStateException e) {
-                throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'", e, LockFileReaderWriter.FORMATTING_DOC_LINK);
+                throw new InvalidLockFileException(context.getDisplayName(), e, LockFileReaderWriter.FORMATTING_DOC_LINK);
             }
         }
     }
@@ -210,16 +210,12 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     public void buildFinished() {
         if (uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
             lockFileReaderWriter.writeUniqueLockfile(allLockState);
-            if (context.isScript()) {
-                LOGGER.lifecycle("Persisted dependency lock state for buildscript of project '{}'", context.getProjectPath());
-            } else {
-                LOGGER.lifecycle("Persisted dependency lock state for project '{}'", context.getProjectPath());
-            }
+            LOGGER.lifecycle("Persisted dependency lock state for {}", context.getDisplayName());
         }
     }
 
     private List<String> getModulesOrdered(Collection<ModuleComponentIdentifier> resolvedComponents) {
-        List<String> modules = Lists.newArrayListWithCapacity(resolvedComponents.size());
+        List<String> modules = new ArrayList<>(resolvedComponents.size());
         for (ModuleComponentIdentifier identifier : resolvedComponents) {
             if (!getIgnoredEntryFilter().isSatisfiedBy(identifier)) {
                 modules.add(converter.convertToLockNotation(identifier));

@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.support.delegates
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.project.IsolatedProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -49,6 +48,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
@@ -205,10 +205,14 @@ abstract class ProjectDelegate : Project {
     override fun <T : Any?> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
         delegate.configure(objects, configureAction)
 
+    @Deprecated("Deprecated in Java")
     override fun exec(closure: Closure<*>): ExecResult =
+        @Suppress("DEPRECATION")
         delegate.exec(closure)
 
+    @Deprecated("Deprecated in Java")
     override fun exec(action: Action<in ExecSpec>): ExecResult =
+        @Suppress("DEPRECATION")
         delegate.exec(action)
 
     override fun sync(action: Action<in SyncSpec>): WorkResult =
@@ -378,10 +382,14 @@ abstract class ProjectDelegate : Project {
     override fun evaluationDependsOn(path: String): Project =
         delegate.evaluationDependsOn(path)
 
+    @Deprecated("Deprecated in Java")
     override fun javaexec(closure: Closure<*>): ExecResult =
+        @Suppress("DEPRECATION")
         delegate.javaexec(closure)
 
+    @Deprecated("Deprecated in Java")
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
+        @Suppress("DEPRECATION")
         delegate.javaexec(action)
 
     @AllowUsingApiForExternalUse

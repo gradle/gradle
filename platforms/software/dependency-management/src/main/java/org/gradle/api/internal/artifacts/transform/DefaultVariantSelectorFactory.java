@@ -16,33 +16,86 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
+
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
-    private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
+    private final DomainObjectContext domainObjectContext;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
 
+    @Inject
     public DefaultVariantSelectorFactory(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
-        ResolutionFailureHandler failureProcessor
+        ResolutionFailureHandler failureProcessor,
+        DomainObjectContext domainObjectContext,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        TaskDependencyFactory taskDependencyFactory
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
-        this.schema = schema;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.transformedVariantFactory = transformedVariantFactory;
         this.failureProcessor = failureProcessor;
+        this.domainObjectContext = domainObjectContext;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
-    public ArtifactVariantSelector create(TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
-        return new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor);
+    public ArtifactVariantSelector create(
+        ResolutionHost resolutionHost,
+        ImmutableAttributes requestAttributes,
+        ImmutableAttributesSchema consumerSchema,
+        @Nullable ConfigurationIdentity configurationId,
+        ResolutionStrategy.SortOrder artifactDependencySortOrder,
+        ResolutionResultProvider<ResolverResults> resolverResults,
+        ResolutionResultProvider<ResolverResults> strictResolverResults
+    ) {
+        TransformUpstreamDependenciesResolver dependenciesResolver = new DefaultTransformUpstreamDependenciesResolver(
+            resolutionHost,
+            configurationId,
+            requestAttributes,
+            artifactDependencySortOrder,
+            strictResolverResults,
+            resolverResults,
+            domainObjectContext,
+            calculatedValueContainerFactory,
+            attributesFactory,
+            taskDependencyFactory
+        );
+
+        return new AttributeMatchingArtifactVariantSelector(
+            consumerSchema,
+            dependenciesResolver,
+            consumerProvidedVariantFinder,
+            attributesFactory,
+            attributeSchemaServices,
+            transformedVariantFactory,
+            failureProcessor
+        );
     }
 }

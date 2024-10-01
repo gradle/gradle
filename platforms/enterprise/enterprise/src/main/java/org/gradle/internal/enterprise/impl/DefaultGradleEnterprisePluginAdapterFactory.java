@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
@@ -32,22 +31,19 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
     private final GradleEnterprisePluginBuildState buildState;
     private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
-    private final InternalProblems problems;
 
     public DefaultGradleEnterprisePluginAdapterFactory(
         GradleEnterprisePluginConfig config,
         DefaultGradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
-        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar,
-        InternalProblems problems
+        BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
         this.config = config;
         this.requiredServices = requiredServices;
         this.buildState = buildState;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
-        this.problems = problems;
     }
 
     public DefaultGradleEnterprisePluginAdapter create(GradleEnterprisePluginServiceFactory pluginServiceFactory) {
@@ -57,8 +53,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
             requiredServices,
             buildState,
             pluginServiceRef,
-            buildOperationNotificationListenerRegistrar,
-            problems
+            buildOperationNotificationListenerRegistrar
         );
     }
 }

@@ -30,7 +30,7 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
-    implementation(projects.baseServices)
+    implementation(projects.baseAsm)
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
     implementation(projects.coreApi)
@@ -40,4 +40,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.guava)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

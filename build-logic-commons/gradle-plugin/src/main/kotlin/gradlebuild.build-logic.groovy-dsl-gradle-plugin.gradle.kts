@@ -22,6 +22,7 @@ plugins {
     id("gradlebuild.code-quality")
     id("gradlebuild.ci-reporting")
     id("gradlebuild.test-retry")
+    id("gradlebuild.private-javadoc")
 }
 
 java.configureJavaToolChain()

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -41,7 +42,7 @@ public class ProjectDependencyMetadataConverter extends AbstractDependencyMetada
         ComponentSelector selector = new DefaultProjectComponentSelector(
             projectDependency.getTargetProjectIdentity(),
             ((AttributeContainerInternal) projectDependency.getAttributes()).asImmutable(),
-            projectDependency.getRequestedCapabilities()
+            ImmutableSet.copyOf(projectDependency.getCapabilitySelectors())
         );
 
         List<ExcludeMetadata> excludes = convertExcludeRules(dependency.getExcludeRules());

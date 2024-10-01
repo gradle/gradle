@@ -54,7 +54,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -65,7 +64,6 @@ import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
-import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
 /**
  * Generates a single bytecode rewriter class.
@@ -244,7 +242,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 String fieldTypeName = knownSimpleNames.add(implementationClassName.simpleName()) ?
                     implementationClassName.simpleName() :
                     implementationClassName.reflectionName();
-                String fullFieldName = camelToKebabCase(fieldTypeName).replace("-", "_").toUpperCase(Locale.US) + "_TYPE";
+                String fullFieldName = NameUtil.camelToUpperUnderscoreCase(fieldTypeName) + "_TYPE";
                 return FieldSpec.builder(String.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                     .initializer("$S", implementationClassName.reflectionName().replace(".", "/"))
                     .build();

@@ -21,8 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.internal.Describables
 import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
@@ -128,7 +128,7 @@ class ProjectMetadataController(
                     id,
                     moduleVersionId,
                     Project.DEFAULT_STATUS,
-                    EmptySchema.INSTANCE,
+                    ImmutableAttributesSchema.EMPTY,
                     variants
                 )
             }

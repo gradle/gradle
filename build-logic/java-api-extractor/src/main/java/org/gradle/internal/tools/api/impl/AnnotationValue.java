@@ -33,4 +33,9 @@ public abstract class AnnotationValue<V> extends Member implements Comparable<An
     public int compareTo(AnnotationValue<?> o) {
         return super.compare(o).result();
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s[%s=%s/%s]", getClass().getSimpleName(), getName(), value, value.getClass().getName());
+    }
 }

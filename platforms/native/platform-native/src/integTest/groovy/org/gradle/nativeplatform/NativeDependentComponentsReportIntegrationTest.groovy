@@ -32,6 +32,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleCppBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         run "dependentComponents"
 
         then:
@@ -45,6 +46,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleCppBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'dependentComponents', '--component', component
 
         then:
@@ -62,6 +64,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleCppBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         fails 'dependentComponents', '--component', 'unknown'
 
         then:
@@ -73,6 +76,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleBuildWithTestSuites()
 
         when:
+        executer.withArgument("--no-problems-report")
         fails 'dependentComponents', '--test-suites', '--component', 'unknown', '--component', 'anonymous', '--component', 'whatever', '--component', 'lib', '--component', 'main', '--component', 'libTest'
 
         then:
@@ -84,6 +88,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleCppBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'dependentComponents', '--component', 'lib', '--component', 'main'
 
         then:
@@ -187,6 +192,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'dependentComponents'
 
         then:
@@ -200,6 +206,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile multiProjectBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'libraries:dependentComponents', '--component', 'foo'
 
         then:
@@ -225,6 +232,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile multiProjectBuild()
 
         when: 'two reports in parallel'
+        executer.withArgument("--no-problems-report")
         succeeds('-q', '--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
 
         then: 'reports are not mixed'
@@ -271,6 +279,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleBuildWithPrebuiltLibrary()
 
         expect:
+        executer.withArgument("--no-problems-report")
         succeeds 'dependentComponents'
     }
 
@@ -279,6 +288,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleBuildWithTestSuites()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'dependentComponents'
 
         then:
@@ -347,6 +357,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         when:
+        executer.withArgument("--no-problems-report")
         fails 'dependentComponents'
 
         then:
@@ -381,6 +392,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         when:
+        executer.withArgument("--no-problems-report")
         fails 'dependentComponents'
 
         then:
@@ -415,6 +427,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         when:
+        executer.withArgument("--no-problems-report")
         fails 'api:dependentComponents'
 
         then:
@@ -453,6 +466,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         """.stripIndent()
 
         when:
+        executer.withArgument("--no-problems-report")
         succeeds("dependentComponents")
 
         then:
@@ -485,6 +499,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile emptyNativeBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'dependentComponents'
 
         then:
@@ -497,6 +512,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile emptyNativeBuild()
 
         when:
+        executer.withArgument("--no-problems-report")
         run 'dependentComponents', option
 
         then:

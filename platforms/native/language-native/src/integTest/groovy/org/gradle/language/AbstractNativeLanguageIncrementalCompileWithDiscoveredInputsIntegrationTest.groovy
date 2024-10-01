@@ -16,15 +16,12 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
 
     String getDependTask() {
         ":dependMainExecutableMain${sourceType}"
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not recompile when include path has #testCase"() {
         given:
         outputs.snapshot { run "mainExecutable" }

@@ -426,6 +426,137 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         !container.remove("a")
     }
 
+    def "calls beforeCollectionChanges before object is added"() {
+        def action = Mock(Action)
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.add("a")
+
+        then:
+        1 * action.execute("add(T)")
+        0 * _
+    }
+
+    def "object is not added when beforeCollectionChanges throws an exception"() {
+        def action = Mock(Action)
+        def failure = new RuntimeException()
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.add("a")
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * action.execute("add(T)") >> { throw failure }
+
+        and:
+        !toList(container).contains("a")
+    }
+
+    def "calls beforeCollectionChanges once before collection is added"() {
+        def action = Mock(Action)
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.addAll(["a", "b"])
+
+        then:
+        1 * action.execute("addAll(Collection)")
+        0 * _
+    }
+
+    def "calls beforeCollectionChanges before object is removed"() {
+        def action = Mock(Action)
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.remove("a")
+
+        then:
+        1 * action.execute("remove(Object)")
+        0 * _
+    }
+
+    def "calls beforeCollectionChanges before object is removed using iterator"() {
+        def action = Mock(Action)
+
+        container.add("a")
+        container.beforeCollectionChanges(action)
+
+        def iterator = container.iterator()
+        iterator.next()
+
+        when:
+        iterator.remove()
+
+        then:
+        1 * action.execute("iterator().remove()")
+        0 * _
+    }
+
+    def "object is not removed when beforeCollectionChanges throws an exception"() {
+        def action = Mock(Action)
+        def failure = new RuntimeException()
+
+        container.add("a")
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.remove("a")
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * action.execute("remove(Object)") >> { throw failure }
+
+        and:
+        toList(container).contains("a")
+    }
+
+    def "calls beforeCollectionChanges before collection is cleared"() {
+        def action = Mock(Action)
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.clear()
+
+        then:
+        1 * action.execute("clear()")
+        0 * _
+    }
+
+    def "calls beforeCollectionChanges before collection is removed"() {
+        def action = Mock(Action)
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.removeAll(["a", "b"])
+
+        then:
+        1 * action.execute("removeAll(Collection)")
+        0 * _
+    }
+
+    def "calls beforeCollectionChanges before collection is intersected"() {
+        def action = Mock(Action)
+        container.add("a")
+        container.add("b")
+        container.beforeCollectionChanges(action)
+
+        when:
+        container.retainAll(toList())
+
+        then:
+        1 * action.execute("retainAll(Collection)")
+        0 * _
+    }
+
     def "withType works with addLater"() {
         given:
         def value = Mock(Subtype)
