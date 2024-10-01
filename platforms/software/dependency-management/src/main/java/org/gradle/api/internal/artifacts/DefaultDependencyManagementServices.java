@@ -130,6 +130,7 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
@@ -299,6 +300,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DependencyGraphBuilder.class);
             registration.add(AttributeDescriberRegistry.class);
             registration.add(GraphVariantSelector.class);
+            registration.add(TransformedVariantConverter.class);
         }
 
         @Provides
@@ -604,10 +606,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
+        ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService, TransformedVariantConverter transformedVariantConverter) {
             InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
 
-            ResolutionFailureHandler handler = new ResolutionFailureHandler(instanceGenerator, problemsService);
+            ResolutionFailureHandler handler = new ResolutionFailureHandler(instanceGenerator, problemsService, transformedVariantConverter);
             GradlePluginVariantsSupport.configureFailureHandler(handler);
             PlatformSupport.configureFailureHandler(handler);
             return handler;
