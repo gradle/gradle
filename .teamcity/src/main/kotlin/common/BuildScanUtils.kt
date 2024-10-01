@@ -41,8 +41,5 @@ fun Stage.getBuildScanCustomValueParam(testCoverage: TestCoverage? = null): Stri
     } else {
         getBuildScanCustomValues()
     }
-    return buildScanCustomValueParam(
-        "PartOf",
-        customValues.joinToString(",")
-    )
+    return "-DbuildScan.PartOf=${customValues.joinToString(",")}"
 }

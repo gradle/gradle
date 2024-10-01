@@ -29,15 +29,15 @@ class BuildScanTagUtilsTest {
     @Test
     fun `test stage tags`() {
         assertEquals(
-            "-Dscan.value.PartOf=QuickFeedbackLinuxOnly,QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-DbuildScan.PartOf=QuickFeedbackLinuxOnly,QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
             model.stages[0].getBuildScanCustomValueParam()
         )
         assertEquals(
-            "-Dscan.value.PartOf=QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-DbuildScan.PartOf=QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
             model.stages[1].getBuildScanCustomValueParam()
         )
         assertEquals(
-            "-Dscan.value.PartOf=ReadyforRelease",
+            "-DbuildScan.PartOf=ReadyforRelease",
             model.stages[4].getBuildScanCustomValueParam()
         )
     }
