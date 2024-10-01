@@ -194,7 +194,7 @@ Based on the requirements of the build, Gradle selects one of the *variants* of 
 To describe and differentiate between *variants*, you use *attributes*.
 *Attributes* are used to define specific characteristics or properties of *variants* and the context in which those *variants* should be used.
 
-In the metadata for Jackson Databind, we see that the `runtimeElements` variant is depicted by the `org.gradle.category`, `org.gradle.dependency.bundling`, `org.gradle.libraryelement`, and `org.gradle.usage` attributes:
+In the metadata for Jackson Databind, we see that the `runtimeElements` variant is described by the `org.gradle.category`, `org.gradle.dependency.bundling`, `org.gradle.libraryelement`, and `org.gradle.usage` attributes:
 
 [source,json]
 ----
@@ -297,7 +297,7 @@ Gradle also fetches the resolved transitive dependencies of Jackson Databind inc
 
 image::dep-man-basics-8.png[]
 
-Gradle can transform artifacts using ** artifact transforms** if needed or requested.
+Gradle can transform artifacts using **artifact transforms** if needed or requested.
 Transforms are typically applied automatically during dependency resolution when Gradle needs to convert one artifact format into another that your build requires.
 
 For example, `jackson-databind` might only produce a ZIP file as an artifact called `jackson-databind-2.17.2.zip`, but the build needs `jackson-databind-2.17.2.jar`.
