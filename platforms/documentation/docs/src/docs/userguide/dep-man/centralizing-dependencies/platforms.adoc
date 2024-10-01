@@ -73,9 +73,14 @@ This defines a custom platform with specific versions of `guava` and `commons-la
 
 Gradle supports importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[BOMs], which are POM files containing `<dependencyManagement>` sections that manage dependency versions.
 
+In order to qualify as a BOM, a `.pom` file needs to have pom set.
+This means that the POM file should explicitly specify <packaging>pom</packaging> in its metadata.
+
+Gradle treats all entries in the block of a BOM similar to <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Adding Constrains On Dependencies>>.
+
 === Regular Platform
 
-To import a BOM, declare it using the `platform` keyword:
+To import a BOM, declare a dependency on it using the `platform` dependency modifier method:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
@@ -84,11 +89,17 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j`, so no explicit versions are needed.
 
+[[sub:enforced_platform]]
 === Enforced Platform
 
-The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as it affects all consumers of your project:
+The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as is effectively transitive and exports forced versions to all consumers of your project:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
+
+When using `enforcedPlatform`, exercise caution if your software component is intended for consumption by others.
+This declaration is transitive and affects the dependency graph of your consumers.
+If they disagree with any enforced versions, they'll need to use `exclude`.
+Instead, if your reusable component strongly favors specific third-party dependency versions, consider using a <<rich_versions.adoc#sec:strict-version,rich version>> declaration with `strictly`.
