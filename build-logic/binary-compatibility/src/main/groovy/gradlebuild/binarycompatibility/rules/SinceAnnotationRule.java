@@ -47,7 +47,10 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
 
         SinceTagStatus since = getRepository().getSince(member);
         if (since instanceof SinceTagStatus.Present present) {
-            if (present.getVersion().equals(getCurrentVersion())){
+            if (present.getVersion().equals(getCurrentVersion())
+                // Some methods could be added to master branch,
+                // so we have to accept such methods if correctly annotated with @since <current-master-version>
+                || present.getVersion().equals(getCurrentMasterVersion())) {
                 return null;
             } else {
                 return acceptOrReject(member, Violation.error(member, String.format(SINCE_MISMATCH_ERROR_MESSAGE, getCurrentVersion(), present.getVersion())));
