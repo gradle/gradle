@@ -86,4 +86,14 @@ public class JvmForkOptions {
         target.setEnvironment(environment);
         jvmOptions.copyTo(target);
     }
+
+    @Override
+    public String toString() {
+        return "JvmForkOptions{" +
+            "executable='" + executable + '\'' +
+            ", workingDir=" + workingDir +
+            ", environment=" + environment +
+            ", jvmOptions=" + jvmOptions +
+            '}';
+    }
 }
