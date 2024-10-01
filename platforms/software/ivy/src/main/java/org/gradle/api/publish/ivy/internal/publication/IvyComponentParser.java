@@ -328,10 +328,10 @@ public class IvyComponentParser {
         private ResolvedCoordinates resolveDependency(ModuleDependency dependency) {
 
             if (!dependency.getAttributes().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle attributes", dependency));
             }
             if (!dependency.getCapabilitySelectors().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                warnings.addUnsupported(String.format("dependency on %s declared with Gradle capabilities", dependency));
             }
 
             if (dependency instanceof ProjectDependency) {

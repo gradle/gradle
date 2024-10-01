@@ -219,7 +219,7 @@ public class ModuleMetadataSpecBuilder {
         return new ModuleMetadataSpec.Dependency(
             coordinates,
             excludedRulesFor(dependency, additionalExcludes),
-            dependencyAttributesFor(variant, dependency.getGroup(), dependency.getName(), dependency.getAttributes()),
+            dependencyAttributesFor(variant, coordinates.group, coordinates.name, dependency.getAttributes()),
             capabilitySelectorsFor(dependency.getCapabilitySelectors(), coordinates),
             dependency.isEndorsingStrictVersions(),
             isNotEmpty(dependency.getReason()) ? dependency.getReason() : null,
@@ -232,9 +232,10 @@ public class ModuleMetadataSpecBuilder {
         ComponentDependencyResolver dependencyResolver,
         String variant
     ) {
+        ModuleMetadataSpec.DependencyCoordinates coordinates = dependencyConstraintCoordinatesFor(dependencyConstraint, dependencyResolver);
         return new ModuleMetadataSpec.DependencyConstraint(
-            dependencyConstraintCoordinatesFor(dependencyConstraint, dependencyResolver),
-            dependencyAttributesFor(variant, dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getAttributes()),
+            coordinates,
+            dependencyAttributesFor(variant, coordinates.group, coordinates.name, dependencyConstraint.getAttributes()),
             isNotEmpty(dependencyConstraint.getReason()) ? dependencyConstraint.getReason() : null
         );
     }
