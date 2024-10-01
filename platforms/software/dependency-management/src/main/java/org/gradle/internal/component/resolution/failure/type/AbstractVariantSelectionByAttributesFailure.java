@@ -16,12 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
+
+import java.util.Set;
 
 /**
  * An abstract {@link VariantSelectionByAttributesFailure} that represents the situation when a variant
@@ -30,13 +32,13 @@ import org.gradle.internal.component.resolution.failure.interfaces.VariantSelect
 public abstract class AbstractVariantSelectionByAttributesFailure extends AbstractResolutionFailure implements VariantSelectionByAttributesFailure {
     private final ComponentIdentifier targetComponent;
     private final ImmutableAttributes requestedAttributes;
-    private final ImmutableCapabilities requestedCapabilities;
+    private final Set<CapabilitySelector> capabilitySelectors;
 
-    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableCapabilities requestedCapabilities) {
+    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<CapabilitySelector> capabilitySelectors) {
         super(problemId);
         this.targetComponent = targetComponent;
         this.requestedAttributes = requestedAttributes.asImmutable();
-        this.requestedCapabilities = requestedCapabilities;
+        this.capabilitySelectors = capabilitySelectors;
     }
 
     @Override
@@ -55,7 +57,7 @@ public abstract class AbstractVariantSelectionByAttributesFailure extends Abstra
     }
 
     @Override
-    public ImmutableCapabilities getRequestedCapabilities() {
-        return requestedCapabilities;
+    public Set<CapabilitySelector> getCapabilitySelectors() {
+        return capabilitySelectors;
     }
 }
