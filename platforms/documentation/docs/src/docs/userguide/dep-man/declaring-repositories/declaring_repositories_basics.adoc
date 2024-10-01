@@ -17,7 +17,7 @@
 
 Gradle can resolve local or external dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
 
-Repositories are declared in your `build.gradle(.kts)` file:
+Repositories intended for use in a single project are declared in your `build.gradle(.kts)` file:
 
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=repo-intro]"]
@@ -83,12 +83,12 @@ Gradle supports other protocols than `http` or `https` as part of the custom URL
 
 For a full coverage see the section on <<supported_repository_types.adoc#repository-types,supported repository types>>.
 
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-auth]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
-====
+You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
 
-You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository.
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo]"]
+====
 
 [[sec:declaring_multiple_repositories]]
 == Declaring multiple repositories
@@ -107,54 +107,6 @@ The order of repository declaration determines the order that Gradle will search
 If Gradle finds a dependency's metadata in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
 
 You can learn more about the inner workings of <<dependency_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
-
-NOTE: Maven POM metadata can reference additional repositories.
-These will be _ignored_ by Gradle, which will only use the repositories declared in the build itself.
-
-[[sub:local-repos]]
-=== Local repositories
-
-The following sections describe repositories format, Maven or Ivy.
-These can be declared as local repositories, using a local filesystem path to access them.
-
-====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/kotlin/buildSrc/src/main/kotlin",files="myproject.java-library-conventions.gradle.kts[tags=custom-repo]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy/buildSrc/src/main/groovy",files="myproject.java-library-conventions.gradle[tags=custom-repo]"]
-====
-
-Local repositories differ from flat directory repositories in that local repositories follow a directory structure and contain metadata.
-
-Gradle completely bypasses the <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>> for dependencies sourced from local repositories, as there can be no guarantee that content may not change between executions.
-Because of that limitation, they can have a performance impact.
-
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=local-ivy-repo]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
-====
-
-In general, external repositories should be preferred over using local repositories. Binary dependencies generally should not be stored in source control.
-
-[[sub:maven_local]]
-=== Local Maven repository
-
-Gradle can consume dependencies from the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
-Declaring this repository is particularly useful for teams who publish artifacts locally and then consume them in other projects.
-
-NOTE: Gradle manages its own <<dependency_resolution.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
-
-You should ensure that using the local Maven repository is necessary before adding `mavenLocal()` to your build script:
-
-====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
-====
-
-Gradle uses the same logic as Maven to identify the location of your local Maven cache.
-If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`
-Otherwise, Gradle defaults to `~/.m2/repository`.
-
-[[sec:case-for-maven-local]]
-TIP: As a general recommendation, avoid using `mavenLocal()`. Unlike Maven builds, Gradle can share artifacts between projects using project dependencies. Publishing to the local maven repo is not necessary for sharing artifacts between projects.
 
 [[sub:plugin-repos]]
 == Plugin repositories

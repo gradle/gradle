@@ -15,7 +15,7 @@
 [[declaring-repositories]]
 = Metadata Formats
 
-Metadata refers to the information associated with a module or dependency that describes its characteristics, relationships, and requirements.
+Dependency metadata refers to the information associated with a dependency that describes its characteristics, relationships, and requirements.
 
 This metadata includes details such as:
 
@@ -24,6 +24,7 @@ This metadata includes details such as:
 3. **Variants**: Different forms of the component (e.g., compile, runtime, apiElements, runtimeElements) that can be consumed in different contexts.
 4. **Artifacts**: The actual files (like JARs, ZIPs, etc.) produced by the component, which may include compiled code, resources, or documentation.
 5. **Capabilities**: Describes the functionality or features that a module provides or consumes, helping to avoid conflicts when different modules provide the same capability.
+6. **Attributes**: Key-value pairs used to differentiate between variants (e.g. `org.gradle.jvm.version:8`).
 
 Depending on the repository type, dependency metadata are stored in different formats:
 

@@ -200,7 +200,7 @@ Declaring this repository is beneficial for teams that publish to the local Mave
 NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 
-WARNING: Before adding Maven local as a repository, you should <<declaring_repositories_basics.adoc#sec:case-for-maven-local, make sure this is really required>>.
+WARNING: Before adding Maven local as a repository, you should <<supported_repository_types.adoc#sec:case-for-maven-local, make sure this is really required>>.
 
 To declare the local Maven cache as a repository add this to your build script:
 

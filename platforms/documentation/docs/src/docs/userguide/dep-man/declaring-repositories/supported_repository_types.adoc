@@ -25,13 +25,26 @@ You can resolve dependencies from:
 [[sec:maven_repo]]
 == Maven repositories
 
-Many organizations host dependencies in Maven repositories accessible within their network.
+Many organizations host dependencies in Maven repositories.
 Gradle can declare Maven repositories by specifying their URL:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
 ====
+
+[[sub:custom-maven-repo]]
+=== Composite Maven repository
+
+Sometimes, POMs are published in one location, and JARs in another.
+You can define such a repository as follows:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo-with-jar-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo-with-jar-repo]"]
+====
+
+Gradle will first look for POMs and artifacts at the base URL, and if the artifact is not found, it will check the additional `artifactUrls`.
 
 [[sub:accessing_secured_maven_repositories]]
 === Authenticated Maven repository
@@ -42,21 +55,36 @@ See <<supported_repository_protocols.adoc#supported_transport_protocols>> for au
 [[sub:maven_local]]
 === Local Maven repository
 
-Gradle can also consume dependencies from the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
+Gradle can consume dependencies from a local Maven repository, that is repositories on the local file system:
+
+====
+include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=local-maven]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=local-maven]"]
+====
+
+Gradle can consume dependencies from the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 This is useful for teams that want to test their setup locally before publishing their plugin.
 
-To declare the local Maven cache as a repository:
+NOTE: Gradle manages its own <<dependency_resolution.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
+
+You should ensure that using the local Maven repository is necessary before adding `mavenLocal()` to your build script:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
+Gradle uses the same logic as Maven to identify the location of your local Maven cache.
+If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`
+Otherwise, Gradle defaults to `~/.m2/repository`.
+
+[[sec:case-for-maven-local]]
+TIP: As a general recommendation, avoid using `mavenLocal()`. Unlike Maven builds, Gradle can share artifacts between projects using project dependencies. Publishing to the local maven repo is not necessary for sharing artifacts between projects.
+
 [[sec:ivy_repositories]]
 == Ivy repositories
 
-Organizations may choose to host dependencies in an Ivy repository.
-Gradle can declare Ivy repositories by specifying their URL:
+Many organizations host dependencies in Ivy repositories.
 
 [[sub:defining_an_ivy_repository_with_a_standard_layout]]
 === Standard layout Ivy repository
@@ -71,7 +99,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 [[sub:defining_a_named_layout_for_an_ivy_repository]]
 === Named layout Ivy repository
 
-You can specify that your repository follows the Ivy or Maven default layout:
+You can specify that your repository follows the Ivy default layout:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo-with-maven-layout]"]
@@ -108,14 +136,18 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 [[sub:accessing_secured_ivy_repositories]]
 === Authenticated Ivy repository
 
-Specify credentials for Ivy repositories secured by basic authentication:
+You can specify credentials for Ivy repositories that require authentication.
+See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
+
+[[sub:ivy_local]]
+=== Local Ivy repository
+
+Gradle can consume dependencies from a local Ivy repository, that is repositories on the local file system:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-ivy-repo]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=local-ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
 ====
-
-Refer to <<supported_repository_protocols.adoc#supported_transport_protocols>> for more details on authentication options.
 
 [[sub:flat_dir_resolver]]
 == Flat directory repository
