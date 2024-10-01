@@ -66,7 +66,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     def "execution with additional options uses the tool"() {
         task.getJavadocTool().set(tool)
         task.setMaxMemory("max-memory")
-        task.setVerbose(true)
+        task.options.verbose()
 
         when:
         execute(task)
