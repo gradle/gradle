@@ -80,7 +80,7 @@ See <<dependency_configurations.adoc#sec:what-are-dependency-configurations,What
 
 How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_.
 A repository is a collection of modules, organized by `group`, `name` and `version`.
-Gradle understands different <<declaring_repositories.adoc#sec:repository-types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
+Gradle understands different <<supported_repository_types.adoc#repository-types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
 
 By default, Gradle does not define any repositories. You need to define at least one with the help of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}] before you can use module dependencies. One option is use the Maven Central repository:
 
