@@ -72,7 +72,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
-NOTE: Gradle manages its own <<dependency_resolution.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
+NOTE: Gradle manages its own <<dependency_resolution_adv.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
 
 Gradle uses the same logic as Maven to identify the location of your local Maven cache.
 If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`

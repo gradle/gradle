@@ -302,7 +302,7 @@ Lastly, Gradle allows you to resolve dependencies against the <<declaring_reposi
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
 If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories_adv.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
 
-You might also be interested in learning about Gradle's own <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
+You might also be interested in learning about Gradle's own <<dependency_resolution_adv.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
 [[migmvn:controlling_dep_versions]]
 === Controlling dependency versions

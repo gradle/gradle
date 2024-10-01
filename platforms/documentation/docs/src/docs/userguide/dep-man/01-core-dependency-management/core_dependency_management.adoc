@@ -51,8 +51,8 @@ include::sample[dir="snippets/dependencyManagement/introductionCoreDependencies/
 +
 You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch local or remote _dependencies_. +
 In this example, Gradle fetches _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_. +
-During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
-Gradle then <<dependency_resolution.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
+During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+Gradle then <<dependency_resolution_adv.adoc#sec:dependency_cache,stores resolved dependencies in a local cache>> called the _dependency cache_.
 Subsequent builds use this cache to avoid unnecessary network calls and speed up the build process.
 
 <3> *Here we define dependencies used by the project.*
