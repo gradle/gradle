@@ -163,7 +163,6 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
-[[sec:repository-types]]
 == Understanding supported repository types
 
 Gradle supports a wide range of sources for dependencies, both in terms of format and in terms of connectivity.
