@@ -80,6 +80,8 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             mutableStateOf(readSettingsFile())
         }
 
+        fun isViewingSettings() = selectedDocument.value == model.settingsFile
+
         val highlightedSourceRangeByFileId = remember {
             mutableStateOf(mapOf<String, IntRange>())
         }
@@ -110,7 +112,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
 
 
         val analyzer = analyzer(model)
-        
+
         val selectedDocumentResult by derivedStateOf {
             analyzer.evaluate(selectedDocument.value.name, selectedFileContent.value)
         }
@@ -119,14 +121,14 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 analyzer.evaluate(model.settingsFile.name, settingsFileContent.value)
             }
         }
-        val domWithDefaults =
-            if (selectedDocument.value == model.settingsFile)
-                settingsWithNoOverlayOrigin(settingsResult)
-            else
-                documentWithModelDefaults(settingsResult, selectedDocumentResult)
+
+        val fullModelDom = if (isViewingSettings())
+            settingsWithNoOverlayOrigin(settingsResult)
+        else
+            documentWithModelDefaults(settingsResult, selectedDocumentResult)
 
         val hasAnyModelDefaultsContent =
-            domWithDefaults?.overlayNodeOriginContainer?.collectToMap(domWithDefaults.document)
+            fullModelDom?.overlayNodeOriginContainer?.collectToMap(fullModelDom.document)
                 ?.any { it.value !is FromOverlay } == true
 
         TitleLarge(displayName)
@@ -141,29 +143,32 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             verticallyScrollable = false,
             horizontallyScrollable = true,
             left = {
-                if (domWithDefaults != null) {
-
-                    val softwareTypeNode = domWithDefaults.document.singleSoftwareTypeNode
-                    if (softwareTypeNode == null) {
+                if (fullModelDom != null) {
+                    val softwareTypeNode = fullModelDom.document.singleSoftwareTypeNode
+                    if (isViewingSettings()) {
                         SettingsModelContent(highlightedSourceRangeByFileId, selectedDocumentResult)
                     } else {
-                        ProjectModelContent(
-                            selectedDocumentResult,
-                            domWithDefaults,
-                            softwareTypeNode,
-                            selectedDocument,
-                            highlightedSourceRangeByFileId,
-                            ::updateFileContents
-                        )
+                        if (softwareTypeNode != null) {
+                            ProjectModelContent(
+                                selectedDocumentResult,
+                                fullModelDom,
+                                softwareTypeNode,
+                                selectedDocument,
+                                highlightedSourceRangeByFileId,
+                                ::updateFileContents
+                            )
+                        } else {
+                            Text("No software type")
+                        }
                     }
                 }
             },
             right = {
-                if (domWithDefaults != null) {
+                if (fullModelDom != null) {
                     SourcesView(
-                        domWithDefaults,
+                        fullModelDom,
                         highlightedSourceRangeByFileId,
-                        hasAnyModelDefaultsContent
+                        !isViewingSettings() && hasAnyModelDefaultsContent
                     )
                 }
             },
@@ -184,7 +189,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             domWithDefaults.overlayNodeOriginContainer,
             highlightedSourceRangeByFileId
         )
-        
+
         val projectEvaluationSchemas = selectedDocumentResult.stepResults.values.last()
             .stepResultOrPartialResult.evaluationSchema
 
@@ -223,18 +228,18 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
             val document = result.stepResultOrPartialResult.resolvedDocument()
 
             /**
-             * For multistep settings, we want to avoid document content appearing as duplicates in 
+             * For multistep settings, we want to avoid document content appearing as duplicates in
              * multiple steps, so isolate each step's results within a separate document.
-             * This separate document does not have any resolution results for the parts resolved in the other steps, 
+             * This separate document does not have any resolution results for the parts resolved in the other steps,
              * so functions visiting the schema+DOM will skip those subtrees.
              */
             val overlayForJustThisDocument = indexBasedOverlayResultFromDocuments(listOf(document))
-            
+
             val highlightingContext = HighlightingContext(
                 overlayForJustThisDocument.overlayNodeOriginContainer,
                 highlightedSourceRangeByFileId
             )
-            
+
             with(
                 ModelTreeRendering(
                     indexBasedMultiResolutionContainer(listOf(document)),
@@ -307,10 +312,9 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
     ) {
         val buildDocument = domWithDefaults.inputOverlay.document
         val settingsDocument = domWithDefaults.inputUnderlay.document
-        
+
         val (buildFileId, settingsFileId) =
             listOf(buildDocument, settingsDocument).map { it.sourceIdentifier.fileIdentifier }
-
 
         val (buildFileContent, settingsFileContent) =
             listOf(buildDocument, settingsDocument).map { it.sourceData.text() }
@@ -318,8 +322,6 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
         val (buildErrorRanges, settingsErrorRanges) =
             listOf(domWithDefaults.result, domWithDefaults.inputUnderlay).map { it.errorRanges() }
 
-        val isViewingSettings = buildFileId == settingsFileId
-        
         val sources = listOfNotNull(
             SourceFileViewInput(
                 buildFileId,
@@ -335,7 +337,7 @@ class GetDeclarativeDocuments : GetModelAction.GetCompositeModelAction<ResolvedD
                 relevantIndicesRange = domWithDefaults.inputUnderlay.document.relevantRange(),
                 highlightedSourceRange = highlightedSourceRangeByFileId.value[settingsFileId],
                 errorRanges = settingsErrorRanges
-            ).takeIf { hasAnyModelDefaultsContent && !isViewingSettings },
+            ).takeIf { hasAnyModelDefaultsContent },
         )
 
         SourcesColumn(sources) { fileIdentifier, clickOffset ->
@@ -446,8 +448,8 @@ class ModelTreeRendering(
         element: ElementNode,
         indentLevel: Int
     ) {
-        if (resolutionContainer.isUnresolvedBase(element))  return
-        
+        if (resolutionContainer.isUnresolvedBase(element)) return
+
         val arguments = element.elementValues.joinToString { valueNode ->
             when (valueNode) {
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value.toString()
