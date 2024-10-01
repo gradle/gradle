@@ -50,7 +50,7 @@ Gradle will first look for POMs and artifacts at the base URL, and if the artifa
 === Authenticated Maven repository
 
 You can specify credentials for Maven repositories that require authentication.
-See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols, Supported Repository Protocols>> for authentication options.
 
 [[sub:maven_local]]
 === Local Maven repository
@@ -65,14 +65,14 @@ include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",fi
 Gradle can consume dependencies from the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 This is useful for teams that want to test their setup locally before publishing their plugin.
 
-NOTE: Gradle manages its own <<dependency_resolution.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
-
 You should ensure that using the local Maven repository is necessary before adding `mavenLocal()` to your build script:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
+
+NOTE: Gradle manages its own <<dependency_resolution.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
 
 Gradle uses the same logic as Maven to identify the location of your local Maven cache.
 If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`
@@ -137,7 +137,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 === Authenticated Ivy repository
 
 You can specify credentials for Ivy repositories that require authentication.
-See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols,Supported Repository Protocols>> for authentication options.
 
 [[sub:ivy_local]]
 === Local Ivy repository

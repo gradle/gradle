@@ -73,15 +73,16 @@ In-house repositories enable teams to publish internal binaries, setup user mana
 
 Specifying a custom URL is also helpful if you want to declare publicly-available repository that Gradle does not provide a shorthand for.
 
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API:
+
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
 ====
 
-Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
-Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`.
+Gradle supports additional <<supported_repository_protocols.adoc#supported_transport_protocols,protocols>> beyond `http` and `https`, such as `file`, `sftp`, and `s3` for custom URLs.
 
-For a full coverage see the section on <<supported_repository_types.adoc#repository-types,supported repository types>>.
+For full coverage, see the section on <<supported_repository_types.adoc#repository-types,supported repository types>>.
 
 You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
 
