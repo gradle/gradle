@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[single-version-declarations]]
+[[single-version-declaration]]
 = Declaring Versions and Ranges
 
 You can declare dependencies with specific versions or version ranges to define the acceptable versions of a dependency that your project can use:
