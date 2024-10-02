@@ -45,7 +45,9 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         buildAndFail("dependencies") // no DCL support by default
             .assertHasErrorOutput("Unresolved reference: configuration")
 
-        with(build("dependencies", enableDclCliFlag)) {
+        enableDclInGradleProperties()
+
+        with(build("dependencies")) {
             assertTasksExecuted(":dependencies")
             assertOutputContains("myConfiguration\nNo dependencies")
         }
@@ -102,6 +104,9 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
             assertOutputContains("[one, two]")
         }
     }
+
+    private fun enableDclInGradleProperties() =
+        withFile("gradle.properties").appendText("\n$DCL_ENABLED_PROPERTY_NAME=true\n")
 
     private val enableDclCliFlag =
         "-D${DCL_ENABLED_PROPERTY_NAME}=true"
