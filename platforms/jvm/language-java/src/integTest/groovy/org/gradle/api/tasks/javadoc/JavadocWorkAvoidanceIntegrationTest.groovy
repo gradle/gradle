@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
