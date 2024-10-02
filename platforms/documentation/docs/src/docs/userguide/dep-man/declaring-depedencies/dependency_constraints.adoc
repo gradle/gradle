@@ -29,7 +29,7 @@ include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="
 include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
 ====
 
-Let's first review the two different kinds of dependencies:
+In general, a dependency is considered either a **direct** dependency, or a **transitive** dependency:
 
 - *Direct dependencies* are _directly required by a component_.
 - *Transitive dependencies* are dependencies that a component needs, but only because another direct or transitive dependency needs them.

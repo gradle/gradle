@@ -1,41 +1,56 @@
-plugins {
-    id 'java-library'
+// tag::java-configuration-example[]
+// declare a "configuration" named "implementation"
+configurations {
+    // declare a "configuration" named "implementation"
+    implementation {
+        canBeConsumed = false
+        canBeResolved = false
+    }
 }
 
 // tag::declare-configuration[]
-configurations {
-    // declare a "configuration" named "someConfiguration"
-    someConfiguration
-}
 dependencies {
-    // add a project dependency to the "someConfiguration" configuration
-    someConfiguration project(":lib")
+    // add a project dependency to the implementation configuration
+    implementation project(":lib")
 }
 // end::declare-configuration[]
 
 // tag::concrete-classpath[]
 configurations {
-    // declare a configuration that is going to resolve the compile classpath of the application
-    compileClasspath.extendsFrom(someConfiguration)
-
-    // declare a configuration that is going to resolve the runtime classpath of the application
-    runtimeClasspath.extendsFrom(someConfiguration)
+    // declare a resolvable configuration that is going to resolve the compile classpath of the application
+    compileClasspath {
+        canBeConsumed = false
+        canBeDeclared = false
+        extendsFrom(implementation)
+    }
+// end::concrete-classpath[]
+    // declare a resolvable configuration that is going to resolve the runtime classpath of the application
+    runtimeClasspat {
+        canBeConsumed = false
+        canBeDeclared = false
+        extendsFrom(implementation)
+    }
+// tag::concrete-classpath[]
 }
 // end::concrete-classpath[]
 
 // tag::setup-configurations[]
 configurations {
-    // A configuration meant for consumers that need the API of this component
+    // a consumable configuration meant for consumers that need the API of this component
     exposedApi {
-        // This configuration is an "outgoing" configuration, it's not meant to be resolved
         canBeResolved = false
+        extendsFrom(implementation)
     }
-    // A configuration meant for consumers that need the implementation of this component
+// end::setup-configurations[]
+    // a consumable configuration meant for consumers that need the implementation of this component
     exposedRuntime {
         canBeResolved = false
+        extendsFrom(implementation)
     }
+// tag::setup-configurations[]
 }
 // end::setup-configurations[]
+// end::java-configuration-example[]
 
 // tag::define_attribute[]
 // An attribute of type `String`
