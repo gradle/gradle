@@ -26,13 +26,20 @@ import org.jetbrains.kotlin.lexer.KtTokens
 
 internal
 data class AccessorScope(
-    private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
+    private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf(),
+    private val containerElementFactoriesByName: HashMap<AccessorNameSpec, HashSet<TypedContainerElementFactoryEntry>> = hashMapOf()
 ) {
     fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
         uniqueAccessorsFrom(entries.asSequence().mapNotNull(::typedAccessorSpec))
 
     fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
         accessorSpecs.filter(::add)
+
+    fun uniqueContainerElementFactories(elementFactoryEntries: Iterable<TypedContainerElementFactoryEntry>): Sequence<TypedContainerElementFactoryEntry> =
+        elementFactoryEntries.asSequence().filter(::add)
+
+    private fun add(containerElementFactory: TypedContainerElementFactoryEntry): Boolean =
+        containerElementFactoriesByName.getOrPut(containerElementFactory.name) { hashSetOf() }.add(containerElementFactory)
 
     private
     fun add(accessorSpec: TypedAccessorSpec) =
@@ -276,8 +283,7 @@ val thisConvention =
 
 internal
 class AccessorNameSpec private constructor(val original: String) {
-
-    val kotlinIdentifier
+    val kotlinIdentifier: String
         get() = original
 
     val stringLiteral by unsafeLazy {
@@ -330,6 +336,13 @@ data class TypedAccessorSpec(
     val receiver: TypeAccessibility.Accessible,
     val name: AccessorNameSpec,
     val type: TypeAccessibility
+)
+
+internal
+data class TypedContainerElementFactoryEntry(
+    val name: AccessorNameSpec,
+    val receiverType: TypeAccessibility,
+    val elementType: TypeAccessibility,
 )
 
 

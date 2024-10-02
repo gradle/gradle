@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.initialization.Settings
@@ -173,6 +174,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
+        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
 }
@@ -197,6 +199,8 @@ sealed class Accessor {
     data class ForTask(val spec: TypedAccessorSpec) : Accessor()
 
     data class ForModelDefault(val spec: TypedAccessorSpec) : Accessor()
+
+    data class ForContainerElementFactory(val spec: TypedContainerElementFactoryEntry) : Accessor()
 }
 
 
@@ -220,6 +224,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
 
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
+            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
         }
     }
 }
@@ -233,6 +238,12 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) : TypedContainerElementFactoryEntry? {
+    val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
+    return name?.let {
+        TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
+    }
+}
 
 private
 inline fun <reified T> accessibleType() =
