@@ -462,8 +462,6 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
         projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
-        projectDependency.getGroup() >> "group"
-        projectDependency.getName() >> "name"
         projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
 
         when:

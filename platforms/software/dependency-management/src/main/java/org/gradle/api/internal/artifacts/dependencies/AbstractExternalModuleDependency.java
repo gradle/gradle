@@ -153,6 +153,11 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     @Override
+    public String toString() {
+        return getGroup() + ":" + getName() + ":" + getVersionConstraint().getDisplayName();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

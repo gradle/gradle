@@ -288,4 +288,31 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         expect:
         result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"
     }
+
+    def "can join 2 attribute containers with disjoint attributes"() {
+        def attributes1 = factory.of(FOO, "foo")
+        def attributes2 = factory.concat(factory.of(BAR, "bar"), factory.of(BAZ, "baz"))
+
+        when:
+        def result = factory.join(attributes1, attributes2).asImmutable()
+
+        then:
+        result.asMap().size() == 3
+        result.findEntry(FOO).get().toString() == "foo"
+        result.findEntry(BAR).get().toString() == "bar"
+        result.findEntry(BAZ).get().toString() == "baz"
+    }
+
+    def "can join 2 attribute containers with attribute overrides"() {
+        def attributes1 = factory.of(FOO, "foo")
+        def attributes2 = factory.concat(factory.of(BAR, "bar"), factory.of(FOO, "foo2"))
+
+        when:
+        def result = factory.join(attributes1, attributes2).asImmutable()
+
+        then:
+        result.asMap().size() == 2
+        result.findEntry(FOO).get().toString() == "foo2"
+        result.findEntry(BAR).get().toString() == "bar"
+    }
 }

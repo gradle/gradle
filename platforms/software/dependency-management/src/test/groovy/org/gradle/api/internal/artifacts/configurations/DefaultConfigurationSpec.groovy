@@ -98,7 +98,7 @@ import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
-class DefaultConfigurationSpec extends Specification implements InspectableConfigurationFixture {
+class DefaultConfigurationSpec extends Specification {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
@@ -1542,36 +1542,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         then:
         UnsupportedOperationException t = thrown()
         t.message == "Mutation of attributes is not allowed"
-    }
-
-    def dumpString() {
-        when:
-        def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1")
-        def otherConfSimilarDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1")
-        def otherConfDependency = dependency("dumpgroup2", "dumpname2", "dumpversion2")
-        def otherConf = conf("dumpConf")
-        otherConf.getDependencies().add(otherConfDependency)
-        otherConf.getDependencies().add(otherConfSimilarDependency)
-
-        def configuration = conf().extendsFrom(otherConf)
-        configuration.getDependencies().add(configurationDependency)
-
-        then:
-        dump(configuration) == """
-Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='Legacy'
-Current Usage:
-\tConsumable - this configuration can be selected by another project as a dependency
-\tResolvable - this configuration can be resolved by this project to a set of files
-\tDeclarable - this configuration can have dependencies added to it
-Local Dependencies:
-   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
-Local Artifacts:
-   none
-All Dependencies:
-   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
-   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}
-All Artifacts:
-   none"""
     }
 
     def "copied configuration has independent listeners"() {

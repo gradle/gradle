@@ -416,11 +416,11 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
     }
 
     static String externalDependency(String group, String name, String version) {
-        return "DefaultExternalModuleDependency{group='${group}', name='${name}', version='${version}', configuration='default'}"
+        return "${group}:${name}:${version}"
     }
 
     static String projectDependency(String projectPath) {
-        return "DefaultProjectDependency{identityPath='${projectPath}', configuration='default'}"
+        return "project '${projectPath}'"
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(String configuration="") {
