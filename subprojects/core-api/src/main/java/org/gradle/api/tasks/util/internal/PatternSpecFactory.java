@@ -131,7 +131,7 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
             return include ? Specs.satisfyAll() : Specs.satisfyNone();
         }
 
-        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(include, caseSensitive, patterns);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(include, () -> caseSensitive, patterns);
 
         return new RelativePathSpec(matcher);
     }

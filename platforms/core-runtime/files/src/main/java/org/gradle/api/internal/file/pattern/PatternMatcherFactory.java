@@ -18,6 +18,8 @@ package org.gradle.api.internal.file.pattern;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 import java.util.List;
 
@@ -26,7 +28,7 @@ public class PatternMatcherFactory {
     private static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
     private static final Splitter PATH_SPLITTER = Splitter.on(CharMatcher.anyOf("\\/")).omitEmptyStrings();
 
-    public static PatternMatcher getPatternsMatcher(boolean partialMatchDirs, boolean caseSensitive, Iterable<String> patterns) {
+    public static PatternMatcher getPatternsMatcher(boolean partialMatchDirs, Supplier<Boolean> caseSensitive, Iterable<String> patterns) {
         PatternMatcher matcher = PatternMatcher.MATCH_ALL;
         for (String pattern : patterns) {
             PatternMatcher patternMatcher = getPatternMatcher(partialMatchDirs, caseSensitive, pattern);
@@ -37,9 +39,14 @@ public class PatternMatcherFactory {
         return matcher;
     }
 
-    public static PatternMatcher getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
-        PathMatcher pathMatcher = compile(caseSensitive, pattern);
-        return new DefaultPatternMatcher(partialMatchDirs, pathMatcher);
+    public static PatternMatcher getPatternMatcher(final boolean partialMatchDirs, final Supplier<Boolean> caseSensitive, final String pattern) {
+        Supplier<PathMatcher> pathMatcherSupplier = new Supplier<PathMatcher>() {
+            @Override
+            public PathMatcher get() {
+                return compile(caseSensitive.get(), pattern);
+            }
+        };
+        return new DefaultPatternMatcher(partialMatchDirs, Suppliers.memoize(pathMatcherSupplier));
     }
 
     public static PathMatcher compile(boolean caseSensitive, String pattern) {
@@ -75,24 +82,24 @@ public class PatternMatcherFactory {
     @VisibleForTesting
     static class DefaultPatternMatcher extends PatternMatcher {
         private final boolean partialMatchDirs;
-        private final PathMatcher pathMatcher;
+        private final Supplier<PathMatcher> pathMatcher;
 
-        public DefaultPatternMatcher(boolean partialMatchDirs, PathMatcher pathMatcher) {
+        public DefaultPatternMatcher(boolean partialMatchDirs, Supplier<PathMatcher> pathMatcher) {
             this.partialMatchDirs = partialMatchDirs;
             this.pathMatcher = pathMatcher;
         }
 
         @VisibleForTesting
         PathMatcher getPathMatcher() {
-            return pathMatcher;
+            return pathMatcher.get();
         }
 
         @Override
         public boolean test(String[] segments, boolean file) {
             if (file || !partialMatchDirs) {
-                return pathMatcher.matches(segments, 0);
+                return pathMatcher.get().matches(segments, 0);
             } else {
-                return pathMatcher.isPrefix(segments, 0);
+                return pathMatcher.get().isPrefix(segments, 0);
             }
         }
     }

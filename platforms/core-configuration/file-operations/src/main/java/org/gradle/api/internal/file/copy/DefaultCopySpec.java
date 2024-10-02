@@ -85,7 +85,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final Property<ConfigurableFilePermissions> filePermissions;
     private Object destDir;
     private boolean hasCustomActions;
-    private Boolean caseSensitive;
+    private final Property<Boolean> caseSensitive;
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
@@ -106,6 +106,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.patternSet = patternSet;
         this.filePermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = objectFactory.property(ConfigurableFilePermissions.class);
+        this.caseSensitive = objectFactory.property(Boolean.class).convention(true);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -280,13 +281,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public boolean isCaseSensitive() {
-        return buildRootResolver().isCaseSensitive();
-    }
-
-    @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        this.caseSensitive = caseSensitive;
+    public Property<Boolean> getCaseSensitive() {
+        return caseSensitive;
     }
 
     @Override
@@ -315,7 +311,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
-        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, getCaseSensitive()::get, pattern);
         return eachFile(new MatchingCopyAction(matcher, action));
     }
 
@@ -324,13 +320,13 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to match");
         }
-        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, getCaseSensitive()::get, patterns);
         return eachFile(new MatchingCopyAction(matcher, action));
     }
 
     @Override
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
-        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, getCaseSensitive()::get, pattern);
         return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
@@ -339,7 +335,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to not match");
         }
-        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, getCaseSensitive()::get, patterns);
         return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
@@ -786,14 +782,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public boolean isCaseSensitive() {
-            if (caseSensitive != null) {
-                return caseSensitive;
-            }
-            if (parentResolver != null) {
-                return parentResolver.isCaseSensitive();
-            }
-            return true;
+        public Provider<Boolean> getCaseSensitive() {
+            return caseSensitive;
         }
 
         @Override
@@ -875,7 +865,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         public PatternSet getPatternSet() {
             PatternSet patterns = patternSetFactory.create();
             assert patterns != null;
-            patterns.setCaseSensitive(isCaseSensitive());
+            patterns.setCaseSensitive(getCaseSensitive().get());
             patterns.include(this.getAllIncludes());
             patterns.includeSpecs(getAllIncludeSpecs());
             patterns.exclude(this.getAllExcludes());

@@ -32,6 +32,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         super(fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;
         this.objectFactory = objectFactory;
+        getCaseSensitive().convention(parentResolver.getCaseSensitive());
         getFilePermissions().convention(parentResolver.getFilePermissions());
         getDirPermissions().convention(parentResolver.getDirPermissions());
     }
@@ -49,12 +50,6 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         addChildSpec(position, child);
         return child;
     }
-
-    @Override
-    public boolean isCaseSensitive() {
-        return buildResolverRelativeToParent(parentResolver).isCaseSensitive();
-    }
-
     @Override
     public boolean getIncludeEmptyDirs() {
         return buildResolverRelativeToParent(parentResolver).getIncludeEmptyDirs();

@@ -33,7 +33,7 @@ import java.util.List;
 
 public interface CopySpecResolver {
 
-    boolean isCaseSensitive();
+    Provider<Boolean> getCaseSensitive();
 
     /**
      * @deprecated Use {@link #getImmutableFilePermissions()} instead. This method is scheduled for removal in Gradle 9.0.

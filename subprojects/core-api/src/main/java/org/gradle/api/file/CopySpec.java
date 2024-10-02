@@ -19,9 +19,13 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.FilterReader;
@@ -93,15 +97,18 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      *
      * @return true for case-sensitive matching.
      */
-    @ToBeReplacedByLazyProperty
-    boolean isCaseSensitive();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getCaseSensitive();
 
     /**
-     * Specifies whether case-sensitive pattern matching should be used for this CopySpec.
-     *
-     * @param caseSensitive true for case-sensitive matching.
+     * Added for Kotlin DSL backwards compatibility. Use {@link #getCaseSensitive()} instead.
      */
-    void setCaseSensitive(boolean caseSensitive);
+    @Internal
+    @Deprecated
+    default Property<Boolean> getIsCaseSensitive() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsCaseSensitive()", "getCaseSensitive()");
+        return getCaseSensitive();
+    }
 
     /**
      * Tells if empty target directories will be included in the copy.

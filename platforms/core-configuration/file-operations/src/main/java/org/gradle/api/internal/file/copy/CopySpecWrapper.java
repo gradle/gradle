@@ -58,13 +58,8 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public boolean isCaseSensitive() {
-        return delegate.isCaseSensitive();
-    }
-
-    @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        delegate.setCaseSensitive(caseSensitive);
+    public Property<Boolean> getCaseSensitive() {
+        return delegate.getCaseSensitive();
     }
 
     @Override

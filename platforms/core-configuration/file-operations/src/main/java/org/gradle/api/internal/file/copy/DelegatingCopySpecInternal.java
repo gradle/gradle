@@ -43,13 +43,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     abstract protected CopySpecInternal getDelegateCopySpec();
 
     @Override
-    public boolean isCaseSensitive() {
-        return getDelegateCopySpec().isCaseSensitive();
-    }
-
-    @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        getDelegateCopySpec().setCaseSensitive(caseSensitive);
+    public Property<Boolean> getCaseSensitive() {
+        return getDelegateCopySpec().getCaseSensitive();
     }
 
     @Override

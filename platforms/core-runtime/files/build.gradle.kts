@@ -11,8 +11,8 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.jsr305)
+    api(libs.guava)
 
-    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.native)
