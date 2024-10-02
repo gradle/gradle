@@ -131,7 +131,7 @@ class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContex
      */
     //TODO-RC Use a Gradle managed facility instead of an ad-hoc thread
     private
-    val reader = thread(start = false, isDaemon = true, name = "${this::class.qualifiedName} reader thread") {
+    val reader = thread(start = false, isDaemon = true, name = "${this::class.simpleName} reader thread") {
         require(state.compareAndSet(ReaderState.STARTED, ReaderState.RUNNING)) {
             "Unexpected state: $state"
         }
