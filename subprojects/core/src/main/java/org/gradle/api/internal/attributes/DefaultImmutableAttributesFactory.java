@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 @ServiceScope(Scope.BuildSession.class)
-public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
+public class DefaultImmutableAttributesFactory extends AbstractAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;

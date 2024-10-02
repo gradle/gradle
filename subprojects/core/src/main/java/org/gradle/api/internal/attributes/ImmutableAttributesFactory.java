@@ -16,7 +16,6 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 
 import java.util.Map;
@@ -59,19 +58,7 @@ public interface ImmutableAttributesFactory {
      * @param attributes the attribute values the result should contain
      * @return immutable instance containing only the specified attributes
      */
-    default ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
-        ImmutableAttributes result = ImmutableAttributes.EMPTY;
-        for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-            /*
-                The order of the concatenation arguments here is important, as we have tests like
-                ConfigurationCacheDependencyResolutionIntegrationTest and ConfigurationCacheDependencyResolutionIntegrationTest
-                that rely on a particular order of failures when there are multiple invalid attribute type
-                conversions.  So even if it looks unnatural to list result second, this should remain.
-             */
-            result = concat(of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())), result);
-        }
-        return result;
-    }
+    ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes);
 
     /**
      * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
