@@ -191,9 +191,7 @@ interface GlobalValueDecoder : AutoCloseable {
 
 object InlineGlobalValueDecoder : GlobalValueDecoder {
     override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
-        readContext.decodePreservingSharedIdentity {
-            decode()
-        }
+        readContext.decode()
 
     override fun close() = Unit
 }
@@ -201,9 +199,7 @@ object InlineGlobalValueDecoder : GlobalValueDecoder {
 
 object InlineGlobalValueEncoder : GlobalValueEncoder {
     override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
-        writeContext.encodePreservingSharedIdentityOf(value) {
-            encode(value)
-        }
+        writeContext.encode(value)
     }
 
     override fun close() = Unit

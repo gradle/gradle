@@ -41,7 +41,6 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.internal.Debug
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -75,6 +74,7 @@ fun defaultCodecForProviderWithChangingValue(
 ) = Bindings.of {
     bind(valueSourceProviderCodec)
     bind(buildServiceProviderCodec)
+    bind(BuildServiceParameterCodec)
     bind(flowProvidersCodec)
     bind(BeanCodec)
 }.build()
@@ -228,41 +228,54 @@ class BuildServiceProviderCodec(
     private val buildStateRegistry: BuildStateRegistry
 ) : Codec<BuildServiceProvider<*, *>> {
 
-    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        writeGlobalValue(value) {
-            val serviceDetails: BuildServiceDetails<*, *> = it.serviceDetails
-            this.write(serviceDetails.buildIdentifier)
-            this.writeString(serviceDetails.name)
-            this.writeClass(serviceDetails.implementationType)
-            this.writeBoolean(serviceDetails.isResolved)
+    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) =
+        encodePreservingSharedIdentityOf(value) {
+            val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
+            write(serviceDetails.buildIdentifier)
+            writeString(serviceDetails.name)
+            writeClass(serviceDetails.implementationType)
+            writeBoolean(serviceDetails.isResolved)
             if (serviceDetails.isResolved) {
-                Debug.println("Writing ${serviceDetails.parameters} into $this")
-                this.write(serviceDetails.parameters)
-                this.writeInt(serviceDetails.maxUsages)
+                write(serviceDetails.parameters)
+                writeInt(serviceDetails.maxUsages)
             }
         }
-    }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *> {
-        return readGlobalValue<BuildServiceProvider<*, *>> {
-            val buildIdentifier = this.readNonNull<BuildIdentifier>()
-            val name = this.readString()
-            val implementationType = this.readClassOf<BuildService<*>>()
-            val isResolved = this.readBoolean()
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *> =
+        decodePreservingSharedIdentity<BuildServiceProvider<*, *>> {
+            val buildIdentifier = readNonNull<BuildIdentifier>()
+            val name = readString()
+            val implementationType = readClassOf<BuildService<*>>()
+            val isResolved = readBoolean()
             if (isResolved) {
-                val parameters = this.read() as BuildServiceParameters?
-                Debug.println("Read $parameters from $this")
-                val maxUsages = this.readInt()
+                val parameters = read() as BuildServiceParameters?
+                val maxUsages = readInt()
                 buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
                 buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
             }
         }
-    }
 
     private
     fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
         buildStateRegistry.getBuild(buildIdentifier).mutableModel.serviceOf<BuildServiceRegistryInternal>()
+}
+
+object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
+    override suspend fun WriteContext.encode(value: BuildServiceParameters) {
+        writeGlobalValue(value) {
+            BeanCodec.run {
+                encode(value)
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): BuildServiceParameters =
+        readGlobalValue {
+            BeanCodec.run {
+                decode().uncheckedCast()
+            }
+        }
 }
 
 

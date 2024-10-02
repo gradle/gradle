@@ -52,6 +52,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.codecs.core.BooleanValueSnapshotCodec
+import org.gradle.internal.serialize.codecs.core.BuildServiceParameterCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.CachedEnvironmentStateCodec
 import org.gradle.internal.serialize.codecs.core.CalculatedValueContainerCodec
@@ -191,6 +192,8 @@ class Codecs(
             baseTypes()
 
             bind(HASHCODE_SERIALIZER)
+
+            bind(BuildServiceParameterCodec)
 
             providersBlock()
 
