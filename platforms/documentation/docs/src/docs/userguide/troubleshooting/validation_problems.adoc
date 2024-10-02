@@ -105,6 +105,17 @@ This causes Gradle to ignore the annotations, so they are typically not used in 
 
 To fix this problem, you must remove the annotation, create a getter for the property you want to use and annotate the getter instead.
 
+[[ignored_annotations_on_property]]
+== Invalid annotation on property or field
+
+This error indicates that an annotation intended for a non-property method has been unexpectedly placed on a field or a property method.
+Only input and output annotations like `@InputFiles` or `@OutputDirectory` should be placed on a field or a "property" method.
+A property is defined by having a getter.
+
+This causes Gradle to ignore the annotations, so they are typically not recognized when Gradle is inspecting the class for important annotations.
+
+To fix this problem, you must remove the annotation, or change the method to match the requirements of the annotation.
+
 [[mutable_type_with_setter]]
 == Mutable type with setter
 
@@ -167,6 +178,15 @@ Gradle doesn't consider private getters as inputs for up-to-date checking, which
 It is important to fix because you might think that you have declared an input when it's not the case.
 
 To fix this, either make the getter public, or annotate an existing getter instead, or create a new annotated getter.
+
+[[private_method_must_not_be_annotated]]
+== Annotations on private methods
+
+This error indicates that you have annotated a _private_ method with an annotation that Gradle expects to query for.
+Gradle won't be able to call the private method, which means that your annotations are effectively ignored.
+It is important to fix because you might think that you have declared an annotated method which can't be used.
+
+To fix this, either make the method public, or annotate another new or existing public method instead.
 
 [[ignored_property_must_not_be_annotated]]
 == Annotations on ignored properties
@@ -425,3 +445,4 @@ Nested types are expected to either declare some annotated properties (which the
 Types of the Java SE API, types of the Kotlin stdlib, and Groovy's GString are not supported, because they meet neither of those requirements.
 
 To fix this problem, declare a nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` have some annotated properties or some behaviour that requires capturing the type as input.
+

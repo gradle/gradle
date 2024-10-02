@@ -33,6 +33,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     String typeName
     String property
+    String method
     String propertyType
     String section
     String documentationId = "validation_problems"
@@ -60,6 +61,11 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     T property(String name) {
         property = name
+        this
+    }
+
+    T method(String name) {
+        method = name
         this
     }
 
@@ -97,23 +103,31 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         "property"
     }
 
+    String getMethodIntro() {
+        "method"
+    }
+
     private String getIntro() {
         if (!hasIntro) {
             return ''
         }
-        String intro = typeName ? getTypeIntro() : getPropertyDescription()
+        String intro = typeName ? getTypeIntro() : getPropertyDescription().capitalize()
         if (pluginId) {
             return "In plugin '${pluginId}' ${intro.uncapitalize()}"
         }
         return intro
     }
 
+    private String getMethodDescription() {
+        method ? "${methodIntro} '${method}' " : ""
+    }
+
     private String getPropertyDescription() {
-        property ? "${propertyIntro.capitalize()} '${property}' " : ""
+        property ? "${propertyIntro} '${property}' " : methodDescription
     }
 
     private String getTypeIntro() {
-        "Type '$typeName' ${property ? "${propertyIntro} '${property}' " : ''}"
+        "Type '$typeName' ${propertyDescription}"
     }
 
     private String getOutro() {

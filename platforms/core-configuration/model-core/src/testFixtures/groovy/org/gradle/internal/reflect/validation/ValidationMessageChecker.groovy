@@ -57,17 +57,42 @@ trait ValidationMessageChecker {
             .render()
     }
 
-    String methodShouldNotBeAnnotatedMessage(@DelegatesTo(value = MethodShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        MethodShouldNotBeAnnotated config = methodShouldNotBeAnnotatedConfig(spec)
+    String methodShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ShouldNotBeAnnotated config = methodShouldNotBeAnnotatedConfig(spec)
         config.render()
     }
 
-    MethodShouldNotBeAnnotated methodShouldNotBeAnnotatedConfig(@DelegatesTo(value = MethodShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(MethodShouldNotBeAnnotated, 'ignored_annotations_on_method', spec)
-        config.description("$config.kind '$config.method()' should not be annotated with: @$config.annotation")
+    ShouldNotBeAnnotated methodShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_method', spec)
+        config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
             .reason("Input/Output annotations are ignored if they are placed on something else than a getter")
             .solution("Remove the annotations")
             .solution("Rename the method")
+    }
+
+    String propertyShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ShouldNotBeAnnotated config = propertyShouldNotBeAnnotatedConfig(spec)
+        config.render()
+    }
+
+    ShouldNotBeAnnotated propertyShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
+        config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
+            .reason("Non-property annotations are ignored if they are placed on a property getter")
+            .solution("Remove the annotations")
+            .solution("Rename the method")
+    }
+
+    String fieldShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ShouldNotBeAnnotated config = fieldShouldNotBeAnnotatedConfig(spec)
+        config.render()
+    }
+
+    ShouldNotBeAnnotated fieldShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
+        config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
+            .reason("Non-property annotations are ignored if they are placed on a field")
+            .solution("Remove the annotations")
     }
 
     String privateGetterAnnotatedMessage(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -81,6 +106,19 @@ trait ValidationMessageChecker {
             .reason("Annotations on private getters are ignored")
             .solution("Make the getter public")
             .solution("Annotate the public version of the getter")
+    }
+
+    String privateMethodAnnotatedMessage(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        AnnotationContext config = privateMethodAnnotatedConfig(spec)
+        config.render()
+    }
+
+    AnnotationContext privateMethodAnnotatedConfig(Closure<?> spec) {
+        def config = display(AnnotationContext, 'private_method_must_not_be_annotated', spec)
+        config.description("is private and annotated with @${config.annotation}")
+            .reason("Annotations on private methods are ignored")
+            .solution("Make the method public")
+            .solution("Annotate the public version of the method")
     }
 
     String ignoredAnnotatedPropertyMessage(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -354,9 +392,20 @@ trait ValidationMessageChecker {
         }.render()
     }
 
-    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
+    String dummyPropertyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
+            description(desc)
+            reason(testReason)
+            includeLink()
+            documentationId("id")
+            documentationSection("section")
+        }.render()
+    }
+
+    String dummyMethodValidationProblemWithLink(String onType = 'InvalidTask', String onMethod = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
+        display(SimpleMessage, 'dummy') {
+            type(onType).method(onMethod)
             description(desc)
             reason(testReason)
             includeLink()
@@ -767,27 +816,27 @@ trait ValidationMessageChecker {
         }
     }
 
-    static class MethodShouldNotBeAnnotated extends ValidationMessageDisplayConfiguration<MethodShouldNotBeAnnotated> {
+    static class ShouldNotBeAnnotated extends ValidationMessageDisplayConfiguration<ShouldNotBeAnnotated> {
         String annotation
         String kind
-        String method
+        String name
 
-        MethodShouldNotBeAnnotated(ValidationMessageChecker checker) {
+        ShouldNotBeAnnotated(ValidationMessageChecker checker) {
             super(checker)
         }
 
-        MethodShouldNotBeAnnotated kind(String kind) {
+        ShouldNotBeAnnotated kind(String kind) {
             this.kind = kind
             this
         }
 
-        MethodShouldNotBeAnnotated annotation(String name) {
+        ShouldNotBeAnnotated annotation(String name) {
             annotation = name
             this
         }
 
-        MethodShouldNotBeAnnotated method(String name) {
-            method = name
+        ShouldNotBeAnnotated method(String name) {
+            this.name = name
             this
         }
     }

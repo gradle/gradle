@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.internal.properties.annotations;
 
-/**
- * Specifies configuration options when creating a new TypeValidationData instance.
- */
-public interface TypeValidationDataSpec extends AdditionalDataSpec {
-    TypeValidationDataSpec pluginId(String pluginId);
-    TypeValidationDataSpec propertyName(String propertyName);
-    TypeValidationDataSpec methodName(String methodName);
-    TypeValidationDataSpec parentPropertyName(String parentPropertyName);
-    TypeValidationDataSpec typeName(String typeName);
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@interface SearchMethod {
 }

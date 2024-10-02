@@ -567,7 +567,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            hasProblem dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
+            hasProblem dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
         }
     }
 

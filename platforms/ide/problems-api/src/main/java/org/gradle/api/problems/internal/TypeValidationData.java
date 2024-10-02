@@ -22,6 +22,7 @@ package org.gradle.api.problems.internal;
 public interface TypeValidationData extends AdditionalData {
     String getPluginId();
     String getPropertyName();
+    String getMethodName();
     String getParentPropertyName();
     String getTypeName();
 }
