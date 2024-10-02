@@ -115,8 +115,9 @@ class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContex
         }
 
         fun get(): Any {
-            if (value == null && state.get() < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
-                throw TimeoutException("Timeout while waiting for value")
+            val state = state.get()
+            if (value == null && state < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
+                throw TimeoutException("Timeout while waiting for value, state was $state")
             }
             require(value != null) { "State is: $state"}
             return value!!
@@ -171,14 +172,14 @@ class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContex
         require(id >= 0) {
             "id: $id - $this"
         }
-        return when (val it = values.computeIfAbsent(id) { FutureValue() }) {
-            is FutureValue -> it.get().also { value ->
-                Debug.println("Waited and resolved $id - $value")
+        return when (val existing = values.computeIfAbsent(id) { FutureValue() }) {
+                is FutureValue -> existing.get().also { value ->
+                    Debug.println("Waited and resolved $id - $value")
+                }
+                else -> existing.also { value ->
+                    Debug.println("Resolved ready $id - $value")
+                }
             }
-            else -> it.also { value ->
-                Debug.println("Resolved ready $id - $value")
-            }
-        }
     }
 
     private fun startReadingIfNeeded() {
