@@ -119,7 +119,6 @@ assert 'value' == doStuff.someProp
     }
 
     @Test
-    @ToBeFixedForIsolatedProjects(because = "Investigate")
     void canExecuteExternalScriptFromInitScript() {
         TestFile initScript = testFile('init.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << '''

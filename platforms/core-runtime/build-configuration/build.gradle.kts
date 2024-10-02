@@ -7,16 +7,16 @@ description = "The Build configuration properties modifiers and helpers."
 dependencies {
     api(libs.jsr305)
     api(libs.inject)
-    
+
     api(projects.core)
     api(projects.coreApi)
+    api(projects.jvmServices)
     api(projects.toolchainsJvmShared)
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.baseServices)
-    implementation(projects.logging)
     implementation(projects.daemonProtocol)
-    implementation(projects.jvmServices)
+    implementation(projects.logging)
 
     testImplementation(testFixtures(projects.core))
 
@@ -27,4 +27,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

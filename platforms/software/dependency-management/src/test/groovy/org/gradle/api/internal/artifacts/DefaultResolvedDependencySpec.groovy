@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.internal.Describables
@@ -33,7 +34,10 @@ import static com.google.common.collect.Sets.newHashSet
 import static org.gradle.util.Matchers.strictlyEquals
 import static org.gradle.util.internal.WrapUtil.toSet
 
-class DefaultResolvedDependencySpec extends Specification {private BuildOperationExecutor buildOperationProcessor = new TestBuildOperationExecutor()
+class DefaultResolvedDependencySpec extends Specification {
+
+    private BuildOperationExecutor buildOperationProcessor = new TestBuildOperationExecutor()
+    private ResolutionHost resolutionHost = Mock(ResolutionHost)
 
     def init() {
         when:
@@ -41,7 +45,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         String someName = "someName"
         String someVersion = "someVersion"
         String someConfiguration = "someConfiguration"
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(someConfiguration, newId(someGroup, someName, someVersion), buildOperationProcessor)
+        DefaultResolvedDependency resolvedDependency = newDependency(someConfiguration, newId(someGroup, someName, someVersion))
 
         then:
         resolvedDependency.name == someGroup + ":" + someName + ":" + someVersion
@@ -59,12 +63,12 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         ResolvedArtifact artifact2 = createArtifact("2")
 
         when:
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someConfiguration", newId("someGroup", "someName", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency resolvedDependency = newDependency("someConfiguration", newId("someGroup", "someName", "someVersion"))
 
-        DefaultResolvedDependency parent1 = new DefaultResolvedDependency("p1", newId("someGroup", "someChild", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency parent1 = newDependency("p1", newId("someGroup", "someChild", "someVersion"))
         parent1.addChild(resolvedDependency)
 
-        DefaultResolvedDependency parent2 = new DefaultResolvedDependency("p2", newId("someGroup", "someChild", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency parent2 = newDependency("p2", newId("someGroup", "someChild", "someVersion"))
         parent2.addChild(resolvedDependency)
 
         resolvedDependency.addParentSpecificArtifacts(parent1, TestArtifactSet.create(ImmutableAttributes.EMPTY, Collections.singleton(artifact2)))
@@ -104,7 +108,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency("someConfiguration", newId("someGroup", "parent", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency parent = newDependency("someConfiguration", newId("someGroup", "parent", "someVersion"))
         resolvedDependency.getParents().add(parent)
 
         then:
@@ -115,7 +119,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency("someConfiguration", newId("someGroup", "parent", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency parent = newDependency("someConfiguration", newId("someGroup", "parent", "someVersion"))
         resolvedDependency.getParents().add(parent)
 
         then:
@@ -125,7 +129,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
     def getParentArtifactsWithUnknownParent() {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someConfiguration", newId("someGroup", "parent2", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency unknownParent = newDependency("someConfiguration", newId("someGroup", "parent2", "someVersion"))
 
         resolvedDependency.getParentArtifacts(unknownParent)
 
@@ -136,7 +140,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
     def getArtifactsWithUnknownParent() {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency();
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someConfiguration", newId("someGroup", "parent2", "someVersion"), buildOperationProcessor);
+        DefaultResolvedDependency unknownParent = newDependency("someConfiguration", newId("someGroup", "parent2", "someVersion"));
 
         resolvedDependency.getAllArtifacts(unknownParent)
 
@@ -153,7 +157,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
 
         createAndAddParent("parent2", resolvedDependency, newHashSet(createArtifact("parent2Specific")))
 
-        DefaultResolvedDependency child = new DefaultResolvedDependency("someChildConfiguration", newId("someGroup", "someChild", "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency child = newDependency("someChildConfiguration", newId("someGroup", "someChild", "someVersion"))
         resolvedDependency.addChild(child)
 
         Set<ResolvedArtifact> childParent1SpecificArtifacts = newHashSet(createArtifact("childParent1Specific"))
@@ -169,12 +173,12 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
 
     def equalsAndHashCode() {
         when:
-        DefaultResolvedDependency dependency = new DefaultResolvedDependency("config", newId("group", "name", "version"), buildOperationProcessor)
-        DefaultResolvedDependency same = new DefaultResolvedDependency("config", newId("group", "name", "version"), buildOperationProcessor)
-        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency("config", newId("other", "name", "version"), buildOperationProcessor)
-        DefaultResolvedDependency differentName = new DefaultResolvedDependency("config", newId("group", "other", "version"), buildOperationProcessor)
-        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency("config", newId("group", "name", "other"), buildOperationProcessor)
-        DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency("other", newId("group", "name", "version"), buildOperationProcessor)
+        DefaultResolvedDependency dependency = newDependency("config", newId("group", "name", "version"))
+        DefaultResolvedDependency same = newDependency("config", newId("group", "name", "version"))
+        DefaultResolvedDependency differentGroup = newDependency("config", newId("other", "name", "version"))
+        DefaultResolvedDependency differentName = newDependency("config", newId("group", "other", "version"))
+        DefaultResolvedDependency differentVersion = newDependency("config", newId("group", "name", "other"))
+        DefaultResolvedDependency differentConfiguration = newDependency("other", newId("group", "name", "version"))
 
         then:
         strictlyEquals(dependency, same)
@@ -185,7 +189,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
     }
     def "provides meta-data about the module"() {
         given:
-        def dependency = new DefaultResolvedDependency("config", newId("group", "module", "version"), new TestBuildOperationExecutor())
+        def dependency = newDependency("config", newId("group", "module", "version"))
 
         expect:
         dependency.module.id.group == "group"
@@ -203,7 +207,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         ResolvedArtifact artifact7 = artifact("c", "a-classifier", "jar", "jar")
 
         given:
-        def dependency = new DefaultResolvedDependency("config", newId("group", "module", "version"), new TestBuildOperationExecutor())
+        def dependency = newDependency("config", newId("group", "module", "version"))
 
         add(dependency, artifact6)
         add(dependency, artifact1)
@@ -222,7 +226,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         ResolvedArtifact artifact2 = artifact("a", null, "jar", "jar")
 
         given:
-        def dependency = new DefaultResolvedDependency("config", newId("group", "module", "version"), new TestBuildOperationExecutor())
+        def dependency = newDependency("config", newId("group", "module", "version"))
 
         add(dependency, artifact1)
         add(dependency, artifact2)
@@ -242,7 +246,7 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         DefaultResolvedDependency parent = Mock()
 
         given:
-        def dependency = new DefaultResolvedDependency("config", newId("group", "module", "version"), new TestBuildOperationExecutor())
+        def dependency = newDependency("config", newId("group", "module", "version"))
 
         dependency.parents.add(parent)
         dependency.addParentSpecificArtifacts(parent, TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4]))
@@ -266,11 +270,11 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
     }
 
     private DefaultResolvedDependency createResolvedDependency() {
-        return new DefaultResolvedDependency("someConfiguration", newId("someGroup", "someName", "someVersion"), buildOperationProcessor)
+        return newDependency("someConfiguration", newId("someGroup", "someName", "someVersion"))
     }
 
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
-        DefaultResolvedDependency parent = new DefaultResolvedDependency("someConfiguration", newId("someGroup", parentName, "someVersion"), buildOperationProcessor)
+        DefaultResolvedDependency parent = newDependency("someConfiguration", newId("someGroup", parentName, "someVersion"))
         resolvedDependency.getParents().add(parent)
         resolvedDependency.addParentSpecificArtifacts(parent, TestArtifactSet.create(ImmutableAttributes.EMPTY, parentSpecificArtifacts))
         return parent
@@ -291,5 +295,12 @@ class DefaultResolvedDependencySpec extends Specification {private BuildOperatio
         def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
         def artifactSource = calculatedValueContainerFactory.create(Describables.of("artifact"), new File("pathTo" + name))
         return new DefaultResolvableArtifact(id, artifactStub, Mock(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory).toPublicView()
+    }
+
+    private DefaultResolvedDependency newDependency(
+        String variantName,
+        ModuleVersionIdentifier moduleId
+    ) {
+        new DefaultResolvedDependency(variantName, moduleId, buildOperationProcessor, resolutionHost)
     }
 }

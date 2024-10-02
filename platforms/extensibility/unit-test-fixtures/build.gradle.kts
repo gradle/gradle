@@ -57,3 +57,6 @@ dependencies {
     }
     integTestDistributionRuntimeClasspath(projects.distributionsFull)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

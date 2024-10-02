@@ -22,12 +22,53 @@ import org.gradle.api.provider.Property;
 import java.util.function.Supplier;
 
 public interface CacheResourceConfigurationInternal extends CacheResourceConfiguration {
-    Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier();
+    /**
+     * Specifies the timestamp after which an entry must have been used in order to be retained in the cache.
+     * Any entries not used more recently than this timestamp will be candidates for eviction.
+     */
+    void setRemoveUnusedEntriesOlderThan(long timestamp);
 
     /**
-     * Configures the timestamp before which an unused entry will be removed from the cache.
+     * Configures the retention strategy that determines when an unused entry can be removed from the cache.
+     *
+     * The retention can either be:
+     * - Absolute: remove any entries not used since this timestamp
+     * - Relative: remove any entries not used in the past X milliseconds
      *
      * See {@link #setRemoveUnusedEntriesAfterDays(int)}.
      */
-    Property<Long> getRemoveUnusedEntriesOlderThan();
+    Property<EntryRetention> getEntryRetention();
+
+    /**
+     * Provides the timestamp (in millis since epoch) before which an unused entry can be removed from the cache.
+     * This is an absolute-time value and is recalculated from the configuration on each build execution.
+     */
+    Supplier<Long> getEntryRetentionTimestampSupplier();
+
+    class EntryRetention {
+        private final boolean isRelative;
+        private final long timeInMillis;
+
+        public EntryRetention(boolean isRelative, long timeInMillis) {
+            this.isRelative = isRelative;
+            this.timeInMillis = timeInMillis;
+        }
+
+        public static EntryRetention relative(long timeInMillis) {
+            return new EntryRetention(true, timeInMillis);
+        }
+
+        public static EntryRetention absolute(long timeInMillis) {
+            return new EntryRetention(false, timeInMillis);
+        }
+
+        public boolean isRelative() {
+            return isRelative;
+        }
+
+        public long getTimeInMillis() {
+            return timeInMillis;
+        }
+    }
+
 }

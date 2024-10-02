@@ -18,8 +18,8 @@ package org.gradle.internal.component.external.model.ivy;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ExternalModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
@@ -73,7 +73,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema
+        ImmutableAttributesSchema consumerSchema
     ) {
         // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
         // configurations from another ivy component.

@@ -91,15 +91,16 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "\"-Dscan.tag.PerformanceTest\""
+            "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-Dscan.tag.PerformanceTest"
         )
 
         assertEquals(
             (
                 listOf(
                     "clean",
-                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:largeTestProjectPerformanceTest",
+                    ":performance:smallTestProjectPerformanceTest",
                     "extraParameters"
                 ) + expectedRunnerParams
                 ).joinToString(" "),
@@ -156,15 +157,16 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "\"-Dscan.tag.PerformanceTest\""
+            "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-Dscan.tag.PerformanceTest"
         )
 
         assertEquals(
             (
                 listOf(
                     "clean",
-                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:largeTestProjectPerformanceTest",
+                    ":performance:smallTestProjectPerformanceTest",
                     "extraParameters"
                 ) + expectedRunnerParams
                 ).joinToString(" "),

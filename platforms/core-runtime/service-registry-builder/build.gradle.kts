@@ -13,3 +13,6 @@ dependencies {
 
     implementation(projects.serviceRegistryImpl)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

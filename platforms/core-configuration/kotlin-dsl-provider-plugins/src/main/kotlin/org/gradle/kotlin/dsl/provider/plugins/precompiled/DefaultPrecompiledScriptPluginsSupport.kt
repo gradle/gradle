@@ -55,8 +55,8 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternal
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.STRICT_MODE_SYSTEM_PROPERTY_NAME
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -186,7 +186,7 @@ fun Project.enableScriptCompilationOf(
     tasks {
 
         val extractPrecompiledScriptPluginPlugins by registering(ExtractPrecompiledScriptPluginPlugins::class) {
-            plugins = scriptPlugins
+            plugins.value(scriptPlugins)
             outputDir.set(extractedPluginsBlocks)
         }
 
@@ -235,7 +235,7 @@ fun Project.enableScriptCompilationOf(
                         .map(strictModeSystemPropertyNameMapper)
                         .orElse(true)
                 )
-                plugins = scriptPlugins
+                plugins.value(scriptPlugins)
             }
 
         compileKotlin {
@@ -522,7 +522,7 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<PrecompiledScriptPlugi
         "generateScriptPluginAdapters",
         kotlinSourceDirectorySet
     ) {
-        plugins = scriptPlugins
+        plugins.value(scriptPlugins)
         outputDirectory.set(it)
     }
 }

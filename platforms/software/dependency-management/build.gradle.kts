@@ -35,8 +35,6 @@ errorprone {
         "OperatorPrecedence", // 2 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
-        "StreamResourceLeak", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
@@ -87,7 +85,9 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation(projects.fileOperations)
     implementation(projects.time)
+    implementation(projects.baseAsm)
     implementation(projects.baseServicesGroovy)
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
@@ -117,6 +117,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.resourcesHttp))
     testImplementation(testFixtures(projects.snapshots))
+    testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.versionControl))
 
     integTestImplementation(projects.buildOption)
@@ -188,4 +189,7 @@ tasks.clean {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

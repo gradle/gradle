@@ -56,10 +56,10 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     }
 
     def releasedWrappers = Stub(CacheResourceConfigurationInternal) {
-        getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
+        getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
     }
     def snapshotWrappers = Stub(CacheResourceConfigurationInternal) {
-        getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS)
+        getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS)
     }
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getReleasedWrappers() >> releasedWrappers
@@ -110,7 +110,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.cleanup()
 
         then:
-        releasedWrappers.getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(TWICE_DEFAULT_MAX_AGE_IN_DAYS - 1)
+        releasedWrappers.getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(TWICE_DEFAULT_MAX_AGE_IN_DAYS - 1)
 
         and:
         oldCacheDir.assertDoesNotExist()
@@ -130,7 +130,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.cleanup()
 
         then:
-        releasedWrappers.getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(TWICE_DEFAULT_MAX_AGE_IN_DAYS)
+        releasedWrappers.getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(TWICE_DEFAULT_MAX_AGE_IN_DAYS)
         usedGradleVersions.getUsedGradleVersions() >> ([ GradleVersion.version('2.3.4') ] as SortedSet)
 
         and:

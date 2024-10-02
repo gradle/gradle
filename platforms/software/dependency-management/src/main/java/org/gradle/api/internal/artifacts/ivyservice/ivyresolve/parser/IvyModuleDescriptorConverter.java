@@ -78,7 +78,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     public List<Exclude> extractExcludes(ModuleDescriptor ivyDescriptor) {
-        List<Exclude> result = Lists.newArrayListWithCapacity(ivyDescriptor.getAllExcludeRules().length);
+        List<Exclude> result = new ArrayList<>(ivyDescriptor.getAllExcludeRules().length);
         for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
             result.add(forIvyExclude(excludeRule));
         }
@@ -86,7 +86,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     public List<IvyDependencyDescriptor> extractDependencies(ModuleDescriptor ivyDescriptor) {
-        List<IvyDependencyDescriptor> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
+        List<IvyDependencyDescriptor> result = new ArrayList<>(ivyDescriptor.getDependencies().length);
         for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
             addDependency(result, dependencyDescriptor);
         }
@@ -94,7 +94,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     public List<Configuration> extractConfigurations(ModuleDescriptor ivyDescriptor) {
-        List<Configuration> result = Lists.newArrayListWithCapacity(ivyDescriptor.getConfigurations().length);
+        List<Configuration> result = new ArrayList<>(ivyDescriptor.getConfigurations().length);
         for (org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration : ivyDescriptor.getConfigurations()) {
             addConfiguration(result, ivyConfiguration);
         }

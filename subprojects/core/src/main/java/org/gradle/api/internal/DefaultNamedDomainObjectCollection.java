@@ -141,7 +141,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        assertMutable("addAll(Collection<T>)");
+        assertCanMutate("addAll(Collection)");
         boolean changed = super.addAll(c);
         if (changed) {
             for (T t : c) {
@@ -154,8 +154,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public void addLater(final Provider<? extends T> provider) {
-        assertMutable("addLater(Provider)");
-        super.addLater(provider);
+        assertCanMutate("addLater(Provider)");
+        doAddLater(provider);
+    }
+
+    @Override
+    protected void doAddLater(Provider<? extends T> provider) {
+        super.doAddLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
             index.putPending(named.getName(), Providers.internal(provider));
@@ -218,19 +223,19 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     /**
-     * Asserts that an item with the given name can be added to this collection.
+     * Asserts that an item with the given name is not present in this collection.
      */
-    protected void assertCanAdd(String name) {
+    protected void assertElementNotPresent(String name) {
         if (hasWithName(name)) {
             throw new InvalidUserDataException(String.format("Cannot add a %s with name '%s' as a %s with that name already exists.", getTypeDisplayName(), name, getTypeDisplayName()));
         }
     }
 
     /**
-     * Asserts that the given item can be added to this collection.
+     * Asserts that this collection does not contain an item with the same name as the given item.
      */
-    protected void assertCanAdd(T t) {
-        assertCanAdd(getNamer().determineName(t));
+    protected void assertElementNotPresent(T t) {
+        assertElementNotPresent(getNamer().determineName(t));
     }
 
     @Override
@@ -261,13 +266,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return Cast.uncheckedNonnullCast(instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, nameFilter, elementFilter, instantiator, namer));
     }
 
+    @Override
     public String getDisplayName() {
         return getTypeDisplayName() + " container";
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
     }
 
     @Override
@@ -367,7 +368,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public T getByName(String name, Action<? super T> configureAction) throws UnknownDomainObjectException {
-        assertMutable("getByName(String, Action)");
+        assertEagerContext("getByName(String, Action)");
         T t = getByName(name);
         configureAction.execute(t);
         return t;
@@ -389,7 +390,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
-        assertMutable("named(String, Action)");
+        assertEagerContext("named(String, Action)");
         NamedDomainObjectProvider<T> provider = named(name);
         provider.configure(configurationAction);
         return provider;
@@ -411,7 +412,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
-        assertMutable("named(String, Class, Action)");
+        assertEagerContext("named(String, Class, Action)");
         NamedDomainObjectProvider<S> provider = named(name, type);
         provider.configure(configurationAction);
         return provider;
@@ -528,10 +529,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownDomainObjectException(String.format("%s with name '%s' not found.", getTypeDisplayName(),
             name));
-    }
-
-    protected String getTypeDisplayName() {
-        return getType().getSimpleName();
     }
 
     protected Spec<T> convertNameToElementFilter(Spec<String> nameFilter) {
@@ -906,8 +903,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public void configure(Action<? super I> action) {
-            assertMutable("NamedDomainObjectProvider.configure(Action)");
-            withMutationDisabled(action).execute(get());
+            assertEagerContext("NamedDomainObjectProvider.configure(Action)");
+            wrapLazyAction(action).execute(get());
         }
 
         @Override
@@ -951,13 +948,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public void configure(final Action<? super I> action) {
-            assertMutable("NamedDomainObjectProvider.configure(Action)");
+            assertEagerContext("NamedDomainObjectProvider.configure(Action)");
 
             if (action == Actions.doNothing()) {
                 return;
             }
 
-            Action<? super I> wrappedAction = withMutationDisabled(action);
+            Action<? super I> wrappedAction = wrapLazyAction(action);
             Action<? super I> decoratedAction = getEventRegister().getDecorator().decorate(wrappedAction);
 
             if (object != null) {
@@ -1008,7 +1005,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                     // To avoid breaking existing code, we open a nested evaluation scope here to allow re-entering the chain.
                     try (EvaluationContext.ScopeContext ignored = scope.nested()) {
                         // Register the domain object
-                        add(object, onCreate);
+                        doAdd(object, onCreate);
                         realized(AbstractDomainObjectCreatingProvider.this);
                         onLazyDomainObjectRealized();
                     }

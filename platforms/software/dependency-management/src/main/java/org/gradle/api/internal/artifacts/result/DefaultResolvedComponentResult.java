@@ -143,8 +143,9 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
     }
 
+    @Override
     @Nullable
-    public ResolvedVariantResult getVariant(Long id) {
+    public ResolvedVariantResult getVariant(long id) {
         return selectedVariantsById.get(id);
     }
 

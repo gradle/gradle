@@ -32,6 +32,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.util.Locale;
 
 /**
  * Displays some details about the configuration model of the project.
@@ -68,7 +69,7 @@ public abstract class ModelReport extends DefaultTask {
 
     @Option(option = "format", description = "Output format (full, short)")
     public void setFormat(String format) {
-        this.format = Format.valueOf(format.toUpperCase());
+        this.format = Format.valueOf(format.toUpperCase(Locale.ROOT));
     }
 
     @Console

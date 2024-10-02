@@ -21,13 +21,17 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 
 public interface TransformedVariantFactory {
-    ResolvedArtifactSet transformedExternalArtifacts(ComponentIdentifier componentIdentifier,
-                                                     ResolvedVariant sourceVariant,
-                                                     VariantDefinition variantDefinition,
-                                                     TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
+    ResolvedArtifactSet transformedExternalArtifacts(
+        ComponentIdentifier componentIdentifier,
+        ResolvedVariant sourceVariant,
+        VariantDefinition variantDefinition,
+        TransformUpstreamDependenciesResolver dependenciesResolver
+    );
 
-    ResolvedArtifactSet transformedProjectArtifacts(ComponentIdentifier componentIdentifier,
-                                                    ResolvedVariant sourceVariant,
-                                                    VariantDefinition variantDefinition,
-                                                    TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
+    ResolvedArtifactSet transformedProjectArtifacts(
+        ComponentIdentifier componentIdentifier,
+        ResolvedVariant sourceVariant,
+        VariantDefinition variantDefinition,
+        TransformUpstreamDependenciesResolver dependenciesResolver
+    );
 }

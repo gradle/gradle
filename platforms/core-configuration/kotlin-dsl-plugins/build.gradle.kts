@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.5.1"
+version = "5.1.2"
 
 base.archivesName = "plugins"
 
@@ -88,4 +88,7 @@ pluginPublish {
         pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
         pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins"
     )
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

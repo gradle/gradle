@@ -23,13 +23,10 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-
-import java.util.Objects;
 
 class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
     private final DependencyResolutionServices dependencyResolutionServices;
@@ -40,8 +37,7 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
         dependencyResolutionServices = factory.create();
         this.sharedRepositories = sharedRepositories;
 
-        AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) Objects.requireNonNull(dependencyResolutionServices).getAttributesSchema();
-        JavaEcosystemSupport.configureSchema(attributesSchema, dependencyResolutionServices.getObjectFactory());
+        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
 
         RepositoryHandler repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
         for (ArtifactRepository repository : sharedRepositories) {

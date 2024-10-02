@@ -160,6 +160,20 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
         assertNoDeadLinks()
     }
 
+    def "finds Markdown style links"() {
+        given:
+        sampleDoc << """
+=== Markdown Style Links
+[Invalid markdown link](https://docs.gradle.org/nowhere)
+        """
+
+        when:
+        run('checkDeadInternalLinks').buildAndFail()
+
+        then:
+        assertFoundDeadLinks([DeadLink.forMarkdownLink(sampleDoc, "[Invalid markdown link](https://docs.gradle.org/nowhere)")])
+    }
+
     private File createJavadocForClass(String path) {
         new File(docsRoot, "javadoc/${path}.html").tap {
             parentFile.mkdirs()
@@ -214,6 +228,10 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
 
         static DeadLink forJavadoc(File file, String path) {
             return new DeadLink(file, "Missing Javadoc file for $path in ${file.name}" + (path.startsWith("javadoc") ? " (You may need to remove the leading `javadoc` path component)" : ""))
+        }
+
+        static DeadLink forMarkdownLink(File file, String link) {
+            return new DeadLink(file, "Markdown-style links are not supported: $link")
         }
     }
 }

@@ -4,12 +4,6 @@ plugins {
 
 description = "Implementation for interacting with repositories over sftp"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
@@ -38,4 +32,7 @@ dependencies {
     integTestImplementation(libs.sshdSftp)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -17,6 +17,7 @@ package org.gradle.nativeplatform.platform.internal;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Arrays.asList;
 
@@ -42,7 +43,7 @@ public class Architectures {
 
     public static ArchitectureInternal forInput(String input) {
         for (KnownArchitecture knownArchitecture : KNOWN_ARCHITECTURES) {
-            if (knownArchitecture.isAlias(input.toLowerCase())) {
+            if (knownArchitecture.isAlias(input.toLowerCase(Locale.ROOT))) {
                 return new DefaultArchitecture(knownArchitecture.getCanonicalName());
             }
         }

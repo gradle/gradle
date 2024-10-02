@@ -3,6 +3,7 @@ package configurations
 import common.JvmCategory
 import common.Os
 import common.applyDefaultSettings
+import common.buildScanTagParam
 import common.toCapitalized
 import configurations.TestSplitType.EXCLUDE
 import configurations.TestSplitType.INCLUDE
@@ -95,9 +96,6 @@ class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : O
 
     applyDefaultSettings()
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
     dependencies {
         snapshotDependencies(docsTestProject.docsTests)
     }
@@ -122,10 +120,6 @@ class DocsTest(
     id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
     name = "${docsTestType.docsTestDesc} - ${testJava.version.name.toCapitalized()} ${os.asName()} ($index)"
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
-
     applyTestDefaults(
         model,
         this,
@@ -133,7 +127,7 @@ class DocsTest(
         os = os,
         arch = os.defaultArch,
         timeout = 60,
-        extraParameters = buildScanTag(docsTestType.docsTestName) +
+        extraParameters = buildScanTagParam(docsTestType.docsTestName) +
             " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
             " -PtestJavaVersion=${testJava.version.major}" +
             " -PtestJavaVendor=${testJava.vendor.name}" +

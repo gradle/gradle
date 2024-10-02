@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.buildScanTagParam
 import model.CIBuildModel
 import model.Stage
 
@@ -13,6 +14,6 @@ class CheckLinks(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType
         model,
         this,
         ":docs:checkLinks",
-        extraParameters = buildScanTag("CheckLinks") + " " + "-Porg.gradle.java.installations.auto-download=false"
+        extraParameters = buildScanTagParam("CheckLinks") + " " + "-Porg.gradle.java.installations.auto-download=false"
     )
 })

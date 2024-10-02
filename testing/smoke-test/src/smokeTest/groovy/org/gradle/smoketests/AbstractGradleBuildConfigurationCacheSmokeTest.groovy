@@ -52,8 +52,6 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
 
     void configurationCacheRun(List<String> tasks, int daemonId = 0) {
         def ccOptions = [
-            // TODO: the version of KGP we use still accesses Task.project from a cacheIf predicate
-            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
             "--stacktrace",
             "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
         ]

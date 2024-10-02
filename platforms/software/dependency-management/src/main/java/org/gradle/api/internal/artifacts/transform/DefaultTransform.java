@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
@@ -89,6 +90,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -156,7 +158,7 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher,
-                fileCollectionFactory));
+                fileCollectionFactory, (InternalProblems) internalServices.get(InternalProblems.class)));
     }
 
     /**
@@ -296,9 +298,10 @@ public class DefaultTransform implements Transform {
         PropertyWalker propertyWalker,
         Hasher hasher,
         Object parameterObject,
-        boolean cacheable
+        boolean cacheable,
+        InternalProblems problems
     ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -365,7 +368,7 @@ public class DefaultTransform implements Transform {
                             .forProperty(propertyName)
                             .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                             .contextualLabel("declares an output")
-                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
+                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
@@ -567,6 +570,7 @@ public class DefaultTransform implements Transform {
         private final FileCollectionFactory fileCollectionFactory;
         private final boolean cacheable;
         private final Class<?> implementationClass;
+        private final InternalProblems problems;
 
         public IsolateTransformParameters(
             @Nullable TransformParameters parameterObject,
@@ -577,7 +581,8 @@ public class DefaultTransform implements Transform {
             IsolatableFactory isolatableFactory,
             BuildOperationRunner buildOperationRunner,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-            FileCollectionFactory fileCollectionFactory
+            FileCollectionFactory fileCollectionFactory,
+            InternalProblems problems
         ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
@@ -588,6 +593,7 @@ public class DefaultTransform implements Transform {
             this.buildOperationRunner = buildOperationRunner;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.fileCollectionFactory = fileCollectionFactory;
+            this.problems = problems;
         }
 
         @Nullable
@@ -694,7 +700,8 @@ public class DefaultTransform implements Transform {
                             parameterPropertyWalker,
                             hasher,
                             isolatedTransformParameters,
-                            cacheable
+                            cacheable,
+                            problems
                         );
                         context.setResult(FingerprintTransformInputsOperation.Result.INSTANCE);
                     }

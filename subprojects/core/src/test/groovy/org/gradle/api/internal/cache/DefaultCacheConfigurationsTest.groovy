@@ -19,13 +19,47 @@ package org.gradle.api.internal.cache
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement
+import org.gradle.internal.time.FixedClock
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.internal.time.TimestampSuppliers.daysAgo
+import java.util.concurrent.TimeUnit
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement))
+    def clock = new FixedClock()
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement), clock)
+
+    def "timestamp supplier uses last configured retention value"() {
+        def config = cacheConfigurations.buildCache
+        def configDefault = daysToMillis(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES)
+
+        expect:
+        config.entryRetentionTimestampSupplier.get() == clock.currentTime - configDefault
+
+        when:
+        config.removeUnusedEntriesAfterDays = 3
+
+        then:
+        config.entryRetentionTimestampSupplier.get() == clock.currentTime - daysToMillis(3)
+
+        when:
+        config.removeUnusedEntriesOlderThan = 1000
+
+        then:
+        config.entryRetentionTimestampSupplier.get() == 1000
+
+        when:
+        config.removeUnusedEntriesAfterDays = 4
+
+        then:
+        config.entryRetentionTimestampSupplier.get() == clock.currentTime - daysToMillis(4)
+
+        when:
+        config.entryRetention.unset()
+
+        then:
+        config.entryRetentionTimestampSupplier.get() ==  clock.currentTime - configDefault
+    }
 
     def "cannot modify cache configurations via convenience method unless mutable"() {
         when:
@@ -47,47 +81,47 @@ class DefaultCacheConfigurationsTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
         cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
         cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
         cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
         cacheConfigurations.buildCache.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
     }
 
     def "cannot modify cache configurations via property unless mutable (method: #method)"() {
-        long firstValue = 2
-        long secondValue = 1
+        def firstValue = CacheResourceConfigurationInternal.EntryRetention.absolute(100)
+        def secondValue = CacheResourceConfigurationInternal.EntryRetention.absolute(200)
 
         when:
-        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan."${method}"(firstValue)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan."${method}"(firstValue)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
-        cacheConfigurations.buildCache.removeUnusedEntriesOlderThan."${method}"(firstValue)
+        cacheConfigurations.createdResources.entryRetention."${method}"(firstValue)
+        cacheConfigurations.downloadedResources.entryRetention."${method}"(firstValue)
+        cacheConfigurations.releasedWrappers.entryRetention."${method}"(firstValue)
+        cacheConfigurations.snapshotWrappers.entryRetention."${method}"(firstValue)
+        cacheConfigurations.buildCache.entryRetention."${method}"(firstValue)
         cacheConfigurations.cleanup."${method}"(Cleanup.DISABLED)
         cacheConfigurations.markingStrategy."${method}"(MarkingStrategy.NONE)
 
@@ -98,39 +132,39 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.finalizeConfigurationValues()
 
         and:
-        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan."${method}"(secondValue)
+        cacheConfigurations.createdResources.entryRetention."${method}"(secondValue)
 
         then:
         def e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
-        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan."${method}"(secondValue)
+        cacheConfigurations.downloadedResources.entryRetention."${method}"(secondValue)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(secondValue)
+        cacheConfigurations.releasedWrappers.entryRetention."${method}"(secondValue)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(secondValue)
+        cacheConfigurations.snapshotWrappers.entryRetention."${method}"(secondValue)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
-        cacheConfigurations.buildCache.removeUnusedEntriesOlderThan."${method}"(secondValue)
+        cacheConfigurations.buildCache.entryRetention."${method}"(secondValue)
 
         then:
         e = thrown(IllegalStateException)
-        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+        assertCannotConfigureErrorIsThrown(e, "entryRetention")
 
         when:
         cacheConfigurations.cleanup."${method}"(Cleanup.DEFAULT)
@@ -150,25 +184,31 @@ class DefaultCacheConfigurationsTest extends Specification {
         method << ["set", "value", "convention"]
     }
 
-    def "suppliers reflect changes in property values"() {
+    def "suppliers reflect changed property value relative to reference timestamp"() {
         when:
-        def createdResources = cacheConfigurations.createdResources.removeUnusedEntriesOlderThanAsSupplier
-        def downloadedResources = cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThanAsSupplier
-        def releasedWrappers = cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThanAsSupplier
-        def snapshotWrappers = cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThanAsSupplier
+        def createdResources = cacheConfigurations.createdResources.entryRetentionTimestampSupplier
+        def downloadedResources = cacheConfigurations.downloadedResources.entryRetentionTimestampSupplier
+        def releasedWrappers = cacheConfigurations.releasedWrappers.entryRetentionTimestampSupplier
+        def snapshotWrappers = cacheConfigurations.snapshotWrappers.entryRetentionTimestampSupplier
+        def buildCache = cacheConfigurations.buildCache.entryRetentionTimestampSupplier
+
 
         and:
-        def twoDaysAgo = daysAgo(2).get()
-        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        def twoDaysMillis = TimeUnit.DAYS.toMillis(2)
+        def twoDaysRetention = CacheResourceConfigurationInternal.EntryRetention.relative(twoDaysMillis)
+        cacheConfigurations.createdResources.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.downloadedResources.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.releasedWrappers.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.snapshotWrappers.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.buildCache.entryRetention.set(twoDaysRetention)
 
         then:
+        def twoDaysAgo = clock.currentTime - twoDaysMillis
         createdResources.get() == twoDaysAgo
         downloadedResources.get() == twoDaysAgo
         releasedWrappers.get() == twoDaysAgo
         snapshotWrappers.get() == twoDaysAgo
+        buildCache.get() == twoDaysAgo
     }
 
     def "cannot set values in days to less than one"() {
@@ -204,34 +244,39 @@ class DefaultCacheConfigurationsTest extends Specification {
     }
 
     def "synchronized configurations reflect changes in property values"() {
-        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations, Mock(LegacyCacheCleanupEnablement))
+        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations, Mock(LegacyCacheCleanupEnablement), clock)
 
         when:
         cacheConfigurations.synchronize(mutableCacheConfigurations)
 
         and:
-        def twoDaysAgo = daysAgo(2).get()
-        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        def twoDays = TimeUnit.DAYS.toMillis(2)
+        def twoDaysRetention = CacheResourceConfigurationInternal.EntryRetention.relative(twoDays)
+        cacheConfigurations.createdResources.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.downloadedResources.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.releasedWrappers.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.snapshotWrappers.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.buildCache.entryRetention.set(twoDaysRetention)
         cacheConfigurations.markingStrategy.set(MarkingStrategy.NONE)
 
         then:
-        mutableCacheConfigurations.createdResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
-        mutableCacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
-        mutableCacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
-        mutableCacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
+        mutableCacheConfigurations.createdResources.entryRetention.get() == twoDaysRetention
+        mutableCacheConfigurations.downloadedResources.entryRetention.get() == twoDaysRetention
+        mutableCacheConfigurations.releasedWrappers.entryRetention.get() == twoDaysRetention
+        mutableCacheConfigurations.snapshotWrappers.entryRetention.get() == twoDaysRetention
+        mutableCacheConfigurations.buildCache.entryRetention.get() == twoDaysRetention
         mutableCacheConfigurations.markingStrategy.get() == MarkingStrategy.NONE
     }
 
     def "will not require cleanup unless configured"() {
         when:
-        def twoDaysAgo = daysAgo(2).get()
-        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        def twoDays = TimeUnit.DAYS.toMillis(2)
+        def twoDaysRetention = CacheResourceConfigurationInternal.EntryRetention.relative(twoDays)
+        cacheConfigurations.createdResources.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.downloadedResources.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.releasedWrappers.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.snapshotWrappers.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.buildCache.entryRetention.set(twoDaysRetention)
         cacheConfigurations.cleanup.set(Cleanup.ALWAYS)
 
         then:
@@ -246,5 +291,9 @@ class DefaultCacheConfigurationsTest extends Specification {
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {
         assert e.message.contains(String.format(DefaultCacheConfigurations.UNSAFE_MODIFICATION_ERROR, name))
+    }
+
+    def daysToMillis(int days) {
+        return TimeUnit.DAYS.toMillis(days)
     }
 }

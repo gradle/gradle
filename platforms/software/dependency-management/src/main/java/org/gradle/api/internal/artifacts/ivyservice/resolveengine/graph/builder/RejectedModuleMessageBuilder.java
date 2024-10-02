@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +44,7 @@ class RejectedModuleMessageBuilder {
 
         Set<EdgeState> allEdges = new LinkedHashSet<>();
         allEdges.addAll(module.getIncomingEdges());
-        allEdges.addAll(module.getUnattachedDependencies());
+        allEdges.addAll(module.getUnattachedEdges());
         renderEdges(sb, allEdges);
         return sb.toString();
     }
@@ -70,7 +70,7 @@ class RejectedModuleMessageBuilder {
         ComponentSelectionReasonInternal selectionReason = selector.getSelectionReason();
         if (selectionReason.hasCustomDescriptions()) {
             sb.append(" because of the following reason");
-            List<String> reasons = Lists.newArrayListWithExpectedSize(1);
+            List<String> reasons = new ArrayList<>(1);
             for (ComponentSelectionDescriptor componentSelectionDescriptor : selectionReason.getDescriptions()) {
                 ComponentSelectionDescriptorInternal next = (ComponentSelectionDescriptorInternal) componentSelectionDescriptor;
                 if (next.hasCustomDescription()) {

@@ -35,23 +35,25 @@ import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 
-object AccessorTest {
+class AccessorTest {
     @Test
     fun `uses custom accessor in mapping to JVM`() {
         val resolution = schema.resolve(
             """
             configureCustomInstance {
                 x = 123
+                enum = B
             }""".trimIndent()
         )
         assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
+        assertEquals(Enum.B, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.enum)
     }
 
     @Test
@@ -147,5 +149,12 @@ object AccessorTest {
 
         @get:Restricted
         var y: String = ""
+
+        @get:Restricted
+        var enum: Enum = Enum.A
+    }
+
+    enum class Enum {
+        A, B, C
     }
 }

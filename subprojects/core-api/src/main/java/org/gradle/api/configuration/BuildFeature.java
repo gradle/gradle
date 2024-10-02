@@ -16,7 +16,6 @@
 
 package org.gradle.api.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
@@ -29,7 +28,6 @@ import org.gradle.api.provider.Provider;
  * @see BuildFeatures
  * @since 8.5
  */
-@Incubating
 public interface BuildFeature {
 
     /**

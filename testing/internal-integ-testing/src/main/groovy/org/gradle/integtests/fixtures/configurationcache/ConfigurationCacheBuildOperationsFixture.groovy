@@ -19,6 +19,8 @@ package org.gradle.integtests.fixtures.configurationcache
 import org.gradle.integtests.fixtures.BuildOperationTreeQueries
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
+import javax.annotation.Nullable
+
 import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.MatcherAssert.assertThat
@@ -30,6 +32,10 @@ class ConfigurationCacheBuildOperationsFixture {
 
     ConfigurationCacheBuildOperationsFixture(BuildOperationTreeQueries operations) {
         this.operations = operations
+    }
+
+    boolean getReused() {
+        storeOperation() == null && loadOperation() != null
     }
 
     void assertStateLoaded() {
@@ -65,10 +71,12 @@ class ConfigurationCacheBuildOperationsFixture {
         assertThat(storeOperation(), nullValue())
     }
 
+    @Nullable
     private BuildOperationRecord loadOperation() {
         operations.firstMatchingRegex("Load (configuration cache|instant execution) state")
     }
 
+    @Nullable
     private BuildOperationRecord storeOperation() {
         operations.firstMatchingRegex("Store (configuration cache|instant execution) state.*")
     }

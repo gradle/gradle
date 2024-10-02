@@ -18,22 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -49,20 +46,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ArtifactSetToFileCollectionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final InternalProblems problemsService;
 
-    public ArtifactSetToFileCollectionFactory(TaskDependencyFactory taskDependencyFactory, BuildOperationExecutor buildOperationExecutor) {
+    public ArtifactSetToFileCollectionFactory(TaskDependencyFactory taskDependencyFactory, BuildOperationExecutor buildOperationExecutor, InternalProblems problemsService) {
         this.taskDependencyFactory = taskDependencyFactory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.problemsService = problemsService;
     }
 
     public ResolutionHost resolutionHost(String displayName) {
-        return new NameBackedResolutionHost(displayName);
+        return new NameBackedResolutionHost(problemsService, displayName);
     }
 
     /**
@@ -72,7 +70,7 @@ public class ArtifactSetToFileCollectionFactory {
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
     public ResolutionBackedFileCollection asFileCollection(String displayName, boolean lenient, List<?> elements) {
-        return new ResolutionBackedFileCollection(new PartialSelectedArtifactProvider(elements), lenient, new NameBackedResolutionHost(displayName), taskDependencyFactory);
+        return new ResolutionBackedFileCollection(new PartialSelectedArtifactProvider(elements), lenient, new NameBackedResolutionHost(problemsService, displayName), taskDependencyFactory);
     }
 
     public ResolvedArtifactSet asResolvedArtifactSet(Throwable failure) {
@@ -160,25 +158,12 @@ public class ArtifactSetToFileCollectionFactory {
             }
         };
     }
-
-    /**
-     * Presents the contents of the given artifacts as a supplier of {@link ResolvedArtifactResult} instances.
-     *
-     * <p>Over time, this should be merged with the ArtifactCollection implementation in DefaultConfiguration
-     */
-    public Set<ResolvedArtifactResult> asResolvedArtifacts(ResolvedArtifactSet artifacts, boolean lenient) {
-        ResolvedArtifactCollectingVisitor collectingVisitor = new ResolvedArtifactCollectingVisitor();
-        ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
-        if (!lenient && !collectingVisitor.getFailures().isEmpty()) {
-            throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
-        }
-        return collectingVisitor.getArtifacts();
-    }
-
     private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
+        private final InternalProblems problemsService;
         private final String displayName;
 
-        public NameBackedResolutionHost(String displayName) {
+        public NameBackedResolutionHost(InternalProblems problemsService, String displayName) {
+            this.problemsService = problemsService;
             this.displayName = displayName;
         }
 
@@ -198,11 +183,17 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
+        public InternalProblems getProblems() {
+            return problemsService;
+        }
+
+        @Override
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(new TypedResolveException(type, displayName, failures));
+                reportProblems(failures);
+                return Optional.of(new TypedResolveException(resolutionType, displayName, failures));
             }
         }
     }

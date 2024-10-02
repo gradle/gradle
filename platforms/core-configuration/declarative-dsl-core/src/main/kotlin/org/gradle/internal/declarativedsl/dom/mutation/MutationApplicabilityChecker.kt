@@ -45,6 +45,9 @@ class MutationApplicabilityChecker(
     fun checkApplicability(
         mutationDefinition: MutationDefinition
     ): List<MutationApplicability> {
+        if (!mutationDefinition.isCompatibleWithSchema(modelSchema)) {
+            return emptyList()
+        }
         val modelMutations = mutationDefinition.defineModelMutationSequence(modelSchema)
         return modelMutations.flatMap { mutationRequest ->
             val documentMutations = planner.planModelMutation(modelSchema, documentWithResolution, mutationRequest, mutationArguments { /* none */ }).documentMutations
@@ -59,6 +62,7 @@ class MutationApplicabilityChecker(
             when (value) {
                 is DeclarativeDocument.ValueNode.ValueFactoryNode -> value.values.forEach { visitValue(it, owner) }
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> Unit
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> Unit
             }
         }
 

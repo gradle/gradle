@@ -27,6 +27,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.fileOperations)
 
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
@@ -45,3 +46,6 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

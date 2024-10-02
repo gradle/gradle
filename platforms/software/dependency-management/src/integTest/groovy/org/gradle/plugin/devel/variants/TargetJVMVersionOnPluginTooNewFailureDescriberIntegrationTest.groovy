@@ -101,7 +101,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
+        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
          root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
@@ -181,7 +181,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
+        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve com.example:producer:1.0.
      Required by:
          root project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
@@ -256,7 +256,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         fails 'greet', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':classpath'.
+        failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration 'classpath'.
    > Could not resolve project :producer.
      Required by:
          root project :
@@ -328,7 +328,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         fails 'build', "--stacktrace"
 
         then:
-        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
+        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration 'classpath'.
    > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
      Required by:
          root project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1

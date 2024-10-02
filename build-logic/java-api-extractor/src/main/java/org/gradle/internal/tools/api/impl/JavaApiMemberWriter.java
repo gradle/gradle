@@ -80,6 +80,11 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
+        method.getAnnotationDefaultValue().ifPresent(value -> {
+            AnnotationVisitor av = mv.visitAnnotationDefault();
+            writeAnnotationValue(av, value);
+            av.visitEnd();
+        });
         mv.visitEnd();
     }
 
@@ -141,6 +146,8 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             AnnotationMember annotation = ((AnnotationAnnotationValue) value).getValue();
             AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(name, annotation.getName());
             writeAnnotationValues(annotation, annVisitor);
+        } else {
+            throw new AssertionError("Unknown annotation value type: " + value.getClass().getName());
         }
     }
 }

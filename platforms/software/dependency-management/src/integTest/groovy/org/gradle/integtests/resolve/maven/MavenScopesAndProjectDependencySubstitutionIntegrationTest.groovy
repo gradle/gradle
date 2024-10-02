@@ -140,7 +140,7 @@ project(':child2') {
         }
     }
 
-    def "a dependency on compile scope of maven module includes the default of target project when they are present"() {
+    def "a dependency on maven module includes the default of target project when they are present"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
@@ -151,7 +151,7 @@ project(':child2') {
         buildFile << """
 project(':child1') {
     dependencies {
-        conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+        conf group: 'org.test', name: 'maven', version: '1.0'
     }
     configurations.conf.resolutionStrategy.dependencySubstitution {
         substitute module('org.test:replaced:1.0') using project(':child2')
@@ -191,7 +191,7 @@ project(':child2') {
     }
 
     @ToBeFixedForConfigurationCache(because = "broken file collection")
-    def "a dependency on compile scope of maven module includes the runtime dependencies of target project that is using the Java plugin"() {
+    def "a dependency on maven module includes the runtime dependencies of target project that is using the Java plugin"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
@@ -201,7 +201,7 @@ project(':child2') {
         buildFile << """
 project(':child1') {
     dependencies {
-        conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+        conf group: 'org.test', name: 'maven', version: '1.0'
     }
     configurations.conf.resolutionStrategy.dependencySubstitution {
         substitute module('org.test:replaced:1.0') using project(':child2')

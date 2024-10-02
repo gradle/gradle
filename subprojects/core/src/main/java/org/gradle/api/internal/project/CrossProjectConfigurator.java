@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.MutationGuard;
 
 public interface CrossProjectConfigurator {
 
@@ -28,5 +29,11 @@ public interface CrossProjectConfigurator {
     void allprojects(Iterable<? extends ProjectInternal> projects, Action<? super Project> configureAction);
 
     void rootProject(ProjectInternal project, Action<? super Project> buildOperationExecutor);
+
+    /**
+     * Tracks whether the current thread is executing a lazy operation on a domain
+     * object within this project.
+     */
+    MutationGuard getLazyBehaviorGuard();
 
 }

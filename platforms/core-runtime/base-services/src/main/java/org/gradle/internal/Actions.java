@@ -17,12 +17,12 @@
 package org.gradle.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -91,7 +91,7 @@ public abstract class Actions {
      */
     @SafeVarargs
     public static <T> Action<T> composite(Action<? super T>... actions) {
-        List<Action<? super T>> filtered = Lists.newArrayListWithCapacity(actions.length);
+        List<Action<? super T>> filtered = new ArrayList<Action<? super T>>(actions.length);
         for (Action<? super T> action : actions) {
             if (doesSomething(action)) {
                 filtered.add(action);

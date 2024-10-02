@@ -151,6 +151,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         """
 
         when:
+        if (forkOption == "java home") {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(earlierJdk).run(":compileJava", "--info")
 
         then:

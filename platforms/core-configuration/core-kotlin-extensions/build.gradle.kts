@@ -21,3 +21,6 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.stdlibKotlinExtensions)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

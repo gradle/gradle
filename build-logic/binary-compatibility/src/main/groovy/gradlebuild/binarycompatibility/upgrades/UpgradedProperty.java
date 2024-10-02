@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class UpgradedProperty {
+    private final String containingType;
     private final String propertyName;
     private final String methodName;
     private final String methodDescriptor;
-    private final String containingType;
 
     /**
      * Was upgradedMethods originally, but got renamed to upgradedAccessors and then to replacedAccessors
@@ -65,6 +65,29 @@ public class UpgradedProperty {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UpgradedProperty that = (UpgradedProperty) o;
+        return containingType.equals(that.containingType) && propertyName.equals(that.propertyName) && methodName.equals(that.methodName) && methodDescriptor.equals(that.methodDescriptor) && replacedAccessors.equals(that.replacedAccessors);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = containingType.hashCode();
+        result = 31 * result + propertyName.hashCode();
+        result = 31 * result + methodName.hashCode();
+        result = 31 * result + methodDescriptor.hashCode();
+        result = 31 * result + replacedAccessors.hashCode();
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "UpgradedProperty{" +
             "propertyName='" + propertyName + '\'' +
@@ -96,6 +119,27 @@ public class UpgradedProperty {
 
         public BinaryCompatibility getBinaryCompatibility() {
             return binaryCompatibility;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ReplacedAccessor that = (ReplacedAccessor) o;
+            return name.equals(that.name) && descriptor.equals(that.descriptor) && binaryCompatibility == that.binaryCompatibility;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name.hashCode();
+            result = 31 * result + descriptor.hashCode();
+            result = 31 * result + binaryCompatibility.hashCode();
+            return result;
         }
 
         @Override
@@ -135,6 +179,13 @@ public class UpgradedProperty {
         public static AccessorKey ofReplacedAccessor(String containingType, ReplacedAccessor replacedAccessor) {
             return new AccessorKey(containingType, replacedAccessor.getName(), replacedAccessor.getDescriptor());
         }
+
+        public static AccessorKey ofMethodWithSameSignatureButNewName(String newName, JApiMethod jApiMethod) {
+            String descriptor = jApiMethod.getNewMethod().get().getSignature();
+            String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
+            return new AccessorKey(containingType, newName, descriptor);
+        }
+
 
         public static AccessorKey ofNewMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();

@@ -51,6 +51,19 @@ class UnsupportedSyntaxFeatureCheckTest {
         Assert.assertTrue(result.all { it.reason == UnsupportedSyntaxInDocument(UnsupportedSyntaxCause.LocalVal) })
     }
 
+    @Test
+    fun `report named reference with explicit receiver`() {
+        val result = projectSchema.runChecks(
+            """
+            a = Color.blue
+            """.trimIndent()
+        )
+
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals(listOf(1), result.map { it.location.sourceData.lineRange.first })
+        Assert.assertTrue(result.all { it.reason == UnsupportedSyntaxInDocument(UnsupportedSyntaxCause.NamedReferenceWithExplicitReceiver) })
+    }
+
     private
     fun EvaluationSchema.runChecks(code: String): List<DocumentCheckFailure> {
         val languageModel = DefaultLanguageTreeBuilder().build(parse(code), SourceIdentifier("test"))

@@ -8,7 +8,6 @@ errorprone {
     disabledChecks.addAll(
         "InlineMeSuggester", // 7 occurrences
         "MixedMutabilityReturnType", // 5 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
     )
 }
 
@@ -48,3 +47,6 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

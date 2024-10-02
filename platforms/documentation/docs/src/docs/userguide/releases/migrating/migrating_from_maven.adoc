@@ -302,7 +302,7 @@ Lastly, Gradle allows you to resolve dependencies against the <<declaring_reposi
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
 If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories_adv.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
 
-You might also be interested in learning about Gradle's own <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
+You might also be interested in learning about Gradle's own <<dependency_resolution_adv.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
 [[migmvn:controlling_dep_versions]]
 === Controlling dependency versions
@@ -408,7 +408,7 @@ include::sample[dir="snippets/mavenMigration/multiModule/groovy",files="settings
 include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out[]
 ----
  2. Replace cross-module dependencies with <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependencies>>.
- 3. Replicate project inheritance with <<sharing_build_logic_between_subprojects#sec:convention_plugins,convention plugins>>.
+ 3. Replicate project inheritance with <<sharing_build_logic_between_subprojects#sec:sharing_logic_via_convention_plugins,convention plugins>>.
 +
 This basically involves creating a root project build script that injects shared configuration into the appropriate subprojects.
 

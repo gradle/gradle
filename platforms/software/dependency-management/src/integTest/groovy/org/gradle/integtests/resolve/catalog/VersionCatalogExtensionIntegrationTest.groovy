@@ -2425,7 +2425,7 @@ Second: 1.1"""
                 assert original.transitive == copied.transitive
                 assert original.targetConfiguration == copied.targetConfiguration
                 assert original.attributes == copied.attributes
-                assert original.requestedCapabilities == copied.requestedCapabilities
+                assert original.capabilitySelectors == copied.capabilitySelectors
                 assert original.endorsingStrictVersions == copied.endorsingStrictVersions
 
                 // ExternalDependency + ExternalModuleDependency

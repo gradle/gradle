@@ -25,7 +25,6 @@ errorprone {
         "EqualsUnsafeCast", // 1 occurrences
         "FutureReturnValueIgnored", // 1 occurrences
         "LockNotBeforeTry", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
         "ThreadLocalUsage", // 2 occurrences
     )
 }
@@ -116,3 +115,6 @@ integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

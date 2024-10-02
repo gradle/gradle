@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.parsing
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
 class BasicParsingTest {
@@ -43,7 +43,7 @@ class BasicParsingTest {
                     args = [
                         FunctionArgument.Named [indexes: 2..7, line/column: 1/3..1/8, file: test] (
                             name = x,
-                            expr = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                            expr = NamedReference [indexes: 6..7, line/column: 1/7..1/8, file: test] (
                                 name = y
                             )
                         )
@@ -70,11 +70,11 @@ class BasicParsingTest {
         val expected = """
             FunctionCall [indexes: 10..17, line/column: 1/11..1/18, file: test] (
                 name = k
-                receiver = PropertyAccess [indexes: 8..9, line/column: 1/9..1/10, file: test] (
-                    receiver = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
-                        receiver = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
-                            receiver = PropertyAccess [indexes: 2..3, line/column: 1/3..1/4, file: test] (
-                                receiver = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                receiver = NamedReference [indexes: 8..9, line/column: 1/9..1/10, file: test] (
+                    receiver = NamedReference [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                        receiver = NamedReference [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                            receiver = NamedReference [indexes: 2..3, line/column: 1/3..1/4, file: test] (
+                                receiver = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                                     name = f
                                 )
                                 name = g
@@ -87,7 +87,7 @@ class BasicParsingTest {
                 )
                 args = [
                     FunctionArgument.Positional [indexes: 12..16, line/column: 1/13..1/17, file: test] (
-                        expr = PropertyAccess [indexes: 12..16, line/column: 1/13..1/17, file: test] (
+                        expr = NamedReference [indexes: 12..16, line/column: 1/13..1/17, file: test] (
                             name = test
                         )
                     )
@@ -112,7 +112,7 @@ class BasicParsingTest {
                         expr = IntLiteral [indexes: 2..3, line/column: 1/3..1/4, file: test] (1)
                     )
                     FunctionArgument.Positional [indexes: 5..6, line/column: 1/6..1/7, file: test] (
-                        expr = PropertyAccess [indexes: 5..6, line/column: 1/6..1/7, file: test] (
+                        expr = NamedReference [indexes: 5..6, line/column: 1/6..1/7, file: test] (
                             name = x
                         )
                     )
@@ -144,13 +144,13 @@ class BasicParsingTest {
                 args = [
                     FunctionArgument.Named [indexes: 2..7, line/column: 1/3..1/8, file: test] (
                         name = a,
-                        expr = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                        expr = NamedReference [indexes: 6..7, line/column: 1/7..1/8, file: test] (
                             name = b
                         )
                     )
                     FunctionArgument.Named [indexes: 9..14, line/column: 1/10..1/15, file: test] (
                         name = c,
-                        expr = PropertyAccess [indexes: 13..14, line/column: 1/14..1/15, file: test] (
+                        expr = NamedReference [indexes: 13..14, line/column: 1/14..1/15, file: test] (
                             name = d
                         )
                     )
@@ -169,9 +169,9 @@ class BasicParsingTest {
 
         val expected = """
             Assignment [indexes: 0..9, line/column: 1/1..1/10, file: test] (
-                lhs = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
-                    receiver = PropertyAccess [indexes: 2..3, line/column: 1/3..1/4, file: test] (
-                        receiver = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                lhs = NamedReference [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                    receiver = NamedReference [indexes: 2..3, line/column: 1/3..1/4, file: test] (
+                        receiver = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                             name = a
                         )
                         name = b
@@ -193,7 +193,7 @@ class BasicParsingTest {
 
         val expected = """
             Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
-                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                     name = a
                 )
                 rhs = This
@@ -211,7 +211,7 @@ class BasicParsingTest {
 
         val expected = """
             Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
-                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                     name = a
                 )
                 rhs = Null
@@ -237,12 +237,12 @@ class BasicParsingTest {
 
         val expected = """
             Assignment [indexes: 0..9, line/column: 1/1..1/10, file: test] (
-                lhs = PropertyAccess [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
                     name = a
                 )
-                rhs = PropertyAccess [indexes: 8..9, line/column: 1/9..1/10, file: test] (
-                    receiver = PropertyAccess [indexes: 6..7, line/column: 1/7..1/8, file: test] (
-                        receiver = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                rhs = NamedReference [indexes: 8..9, line/column: 1/9..1/10, file: test] (
+                    receiver = NamedReference [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                        receiver = NamedReference [indexes: 4..5, line/column: 1/5..1/6, file: test] (
                             name = b
                         )
                         name = c
@@ -267,7 +267,7 @@ class BasicParsingTest {
                     FunctionArgument.Lambda [indexes: 2..11, line/column: 1/3..1/12, file: test] (
                         block = Block [indexes: 4..9, line/column: 1/5..1/10, file: test] (
                             Assignment [indexes: 4..9, line/column: 1/5..1/10, file: test] (
-                                lhs = PropertyAccess [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                                lhs = NamedReference [indexes: 4..5, line/column: 1/5..1/6, file: test] (
                                     name = b
                                 )
                                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
@@ -394,14 +394,14 @@ class BasicParsingTest {
                 name = f
                 args = [
                     FunctionArgument.Positional [indexes: 106..107, line/column: 3/3..3/4, file: test] (
-                        expr = PropertyAccess [indexes: 106..107, line/column: 3/3..3/4, file: test] (
+                        expr = NamedReference [indexes: 106..107, line/column: 3/3..3/4, file: test] (
                             name = x
                         )
                     )
                 ]
             )
             Assignment [indexes: 111..116, line/column: 6/1..6/6, file: test] (
-                lhs = PropertyAccess [indexes: 111..112, line/column: 6/1..6/2, file: test] (
+                lhs = NamedReference [indexes: 111..112, line/column: 6/1..6/2, file: test] (
                     name = a
                 )
                 rhs = IntLiteral [indexes: 115..116, line/column: 6/5..6/6, file: test] (1)
