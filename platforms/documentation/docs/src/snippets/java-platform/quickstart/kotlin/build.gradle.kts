@@ -2,6 +2,7 @@
 plugins {
     `java-platform`
 }
+
 // end::use-plugin[]
 
 // tag::repo[]

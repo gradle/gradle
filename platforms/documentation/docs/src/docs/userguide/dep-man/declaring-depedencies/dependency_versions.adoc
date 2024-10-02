@@ -46,15 +46,13 @@ Gradle supports various ways to declare *versions and ranges*:
 
 When the upper or lower bound is missing, the range has no upper or lower bound.
 
-The symbol `]` can be used instead of `(` for an exclusive lower bound (and vice versa).
-
 An upper bound exclude acts as a prefix exclude.
 
 |_Prefix_ version range
 |`1.\+`, `1.3.+`
 |Only versions exactly matching the portion before the `\+` are included.
 
-The range `+` on its own will include any version.
+Declaring a version as `+`, without any prefix, will include any version.
 
 |`latest-status` version
 |`latest.integration`, `latest.release`
@@ -131,7 +129,7 @@ For transitive dependencies, if no acceptable version is found, dependency resol
 +
 Dynamic versions are supported.
 +
-When defined, it overrides any previous `require` declaration and clears any previous `reject`.
+When defined, it overrides any previous `require` declaration and clears any previous `reject` already declared on that dependency.
 
 [[sec:required-version]]
 `require`::
@@ -140,7 +138,7 @@ This is the default behavior for a direct dependency.
 +
 Dynamic versions are supported.
 +
-When defined, it overrides any previous `strictly` declaration and clears any previous `reject`.
+When defined, it overrides any previous `strictly` declaration and clears any previous `reject` already declared on that dependency.
 
 [[sec:preferred-version]]
 `prefer`::
@@ -149,7 +147,7 @@ It applies only if there is no stronger non-dynamic version specified.
 +
 This term does not support dynamic versions and can complement `strictly` or `require`.
 +
-When defined, it overrides any previous `prefer` declaration and clears any previous `reject`.
+When defined, it overrides any previous `prefer` declaration and clears any previous `reject` already declared on that dependency.
 
 Additionally, there is a term outside the hierarchy:
 
@@ -264,7 +262,7 @@ Overwrites versions from transitive dependencies. +
 |===
 
 Lines annotated with a lock (🔒) indicate situations where leveraging <<dependency_locking.adoc#dependency-locking,dependency locking>> is recommended.
-Another related concept is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of the declared ones.
+NOTE: When using dependency locking, publishing  <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> is always recommended.
 
 Using `strictly` in a library requires careful consideration, as it affects downstream consumers.
 However, when used correctly, it helps consumers understand which combinations of libraries may be incompatible in their context.
@@ -282,7 +280,7 @@ The highest level of version declaration—`strictly` or `require` over `prefer`
 == Endorsing strict versions
 
 [[sec:enforcing_dependency_version]]
-Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph.
+Gradle resolves any dependency version conflicts by selecting the greatest version found in the dependency graph.
 Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
 In general, forcing dependencies is done to downgrade a dependency.
@@ -319,27 +317,10 @@ To avoid this, it is recommended to use version ranges and a preferred version w
 For example, `B` might say, instead of `strictly 1.0`, that it _strictly depends_ on the `[1.0, 2.0[` range, but _prefers_ `1.0`.
 Then if a consumer chooses `1.1` (or any other version in the range), the build will _no longer fail_.
 
-[[forced_dependencies_vs_strict_dependencies]]
-=== Forced dependencies vs strict dependencies
-
-If you need to enforce a specific version at the configuration level, use <<resolution_rules.adoc#resolution_rules,Resolution Rules>> instead:
-
-====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
-====
-
-Differences between forced and strict dependencies:
-
-- **Forced Dependencies:** Apply to the configuration level and override any transitive versions within that configuration.
-- **Strict Dependencies:** Are applied transitively to the subgraph and can lead to build failures if there are conflicts with the consumer's requirements.
-
-Use these approaches with caution to ensure compatibility and avoid unexpected build issues.
-
 [[sec:declaring_without_version]]
 == Declaring without version
 
-For larger projects, it's advisable to declare *dependencies without versions* and manage versions using <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>:
+For larger projects, it's advisable to declare *dependencies without versions* and manage versions using <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>>:
 
 ====
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]

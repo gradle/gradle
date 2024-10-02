@@ -32,13 +32,10 @@ configurations {
     create("exposedApi") {
         // This configuration is an "outgoing" configuration, it's not meant to be resolved
         isCanBeResolved = false
-        // As an outgoing configuration, explain that consumers may want to consume it
-        assert(isCanBeConsumed)
     }
     // A configuration meant for consumers that need the implementation of this component
     create("exposedRuntime") {
         isCanBeResolved = false
-        assert(isCanBeConsumed)
     }
 }
 // end::setup-configurations[]
