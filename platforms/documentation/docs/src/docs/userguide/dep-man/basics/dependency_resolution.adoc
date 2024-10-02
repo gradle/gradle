@@ -1,0 +1,307 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[understanding_dependency_resolution]]
+= 6. Dependency Resolution
+
+Dependency resolution in Gradle involves two main steps:
+
+1. **Graph Resolution**
+2. **Artifact Resolution**
+
+image::dep-man-basics-1.png[]
+
+== 1. Graph Resolution
+
+*Graph resolution* is the process of determining the full set of transitive dependencies, and their versions, that are required for a given set of declared dependencies.
+
+Graph resolution operates solely on dependency metadata (GMM, POMs).
+In this phase, artifacts (JARs) are _not_ resolved.
+Only the structure of the graph, based on the relationship between dependencies, are calculated at this time.
+
+=== 1. Discovering dependencies
+
+image::dep-man-basics-2.png[]
+
+Graph resolution begins with the *project* and external (*module*) dependencies declared in the build script.
+
+- A *module* is a discrete unit of software that can be built and published, such as link:https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind[`com.fasterxml.jackson.core:jackson-databind`].
+- Each version of a *module* is referred to as a *component*, such as link:https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.17.2[`com.fasterxml.jackson.core:jackson-databind:2.17.2`].
+
+A *project* contributes a single component to the dependency graph, which itself belongs to a module.
+
+In the example below, the *component* `com.fasterxml.jackson.core:jackson-databind:2.17.2` is added as a dependency to the `implementation` *configuration* in a Java application:
+
+[source,kotlin]
+.build.gradle.kts
+----
+dependencies {
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+}
+----
+
+=== 2. Perform conflict resolution
+
+image::dep-man-basics-3.png[]
+
+Gradle identifies and resolves any version conflicts when multiple declared or transitive dependencies request different *versions* of the same *module*.
+
+Even though a user might declare version `2.17.2` of a *module*, this may not be the version ultimately resolved in the graph.
+Gradle’s conflict resolution strategy, which defaults to selecting the highest version, selects a single version of a module when multiple are requested.
+
+However, Gradle APIs can be used to change the outcome:
+
+- **Resolution Rules**: Gradle allows configuring rules to enforce specific versions, reject certain versions, or substitute dependencies as needed.
+- **Dependency Substitution**: Rules defined in build logic can replace one dependency with another, alter versions, or redirect requests for one module with another.
+- **Dynamic Versions**: If dependencies are defined with dynamic versions (e.g., `1.0.+`) or version ranges (e.g., `[1.0, 2.0)`), Gradle resolves these to specific versions by querying the repositories.
+- **Dependency Locking**: If enabled, Gradle checks lock files to ensure consistent versions across build invocations, preventing unexpected changes in dependency versions.
+
+In the example, Gradle selects the *component* `com.fasterxml.jackson.core:jackson-databind:2.17.2` (the `2.17.2` version of the `com.fasterxml.jackson.core:jackson-databind` *module*).
+
+=== 3. Retrieve the metadata
+
+image::dep-man-basics-4.png[]
+
+Once Gradle has determined which version of an external *module* to resolve, it fetches the *metadata* for the *component* from an `ivy`, `pom`, or link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`GMM`] metadata file in the repository.
+
+Here’s a sample of the *metadata* for link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`com.fasterxml.jackson.core:jackson-databind:2.17.2`]:
+
+[source,json]
+----
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.fasterxml.jackson.core",
+    "module": "jackson-databind",
+    "version": "2.17.2",
+  },
+  "variants": [
+    {
+      "name": "apiElements"
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.fasterxml.jackson.core",
+          "module": "jackson-annotations",
+          "version": {
+            "requires": "2.17.2"
+          }
+        },
+        {
+          "group": "com.fasterxml.jackson.core",
+          "module": "jackson-core",
+          "version": {
+            "requires": "2.17.2"
+          }
+        },
+        {
+          "group": "com.fasterxml.jackson",
+          "module": "jackson-bom",
+          "version": {
+            "requires": "2.17.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "jackson-databind-2.17.2.jar"
+        }
+      ]
+    }
+  ]
+}
+----
+
+As you can see, the `com.fasterxml.jackson.core:jackson-databind:2.17.2` *component* offers two *variants*:
+
+- The `apiElements` *variant* includes dependencies required for compiling projects against Jackson Databind.
+- The `runtimeElements` *variant* includes dependencies required for executing Jackson Databind during runtime.
+
+A *variant* is a specific variation of a *component* tailored for a particular use case or environment.
+*Variants* allow you to provide different definitions of your *component* depending on the context in which it’s used.
+
+Each *variant* consists of a set of *artifacts* and defines a set of *dependencies*.
+The `runtimeElements` variant provides the `jackson-databind-2.17.2.jar` artifact, which will be downloaded later in the *Artifact Resolution* phase.
+
+=== 4. Update the graph
+
+image::dep-man-basics-5.png[]
+
+Gradle builds a dependency graph that represents a configuration's dependencies and their relationships.
+This graph includes both direct dependencies (explicitly declared in the build script) and transitive dependencies (dependencies of the direct dependencies and other transitive dependencies).
+
+The dependency graph is made up of _nodes_ where:
+
+- Each _node_ represents a *variant*.
+- Each *dependency* selects a *variant* from a *component*.
+
+These _nodes_ are connected by edges, representing the dependencies between *variants*.
+The edges indicate how one variant relies on another.
+
+For instance, if your project depends on Jackson Databind, and Jackson Databind depends on `jackson-annotations`, the edge in the graph represents that `jackson-annotations` is a dependency of one of Jackson Databind's variants.
+
+The `dependencies` task can be used to visualize the structure of a dependency graph:
+
+[source,text]
+----
+$ ./gradlew app:dependencies
+
+[...]
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- com.fasterxml.jackson.core:jackson-databind:2.17.2
+     +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
+     |    \--- com.fasterxml.jackson:jackson-bom:2.17.2
+     |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2 (c)
+     |         +--- com.fasterxml.jackson.core:jackson-core:2.17.2 (c)
+     |         \--- com.fasterxml.jackson.core:jackson-databind:2.17.2 (c)
+     +--- com.fasterxml.jackson.core:jackson-core:2.17.2
+     |    \--- com.fasterxml.jackson:jackson-bom:2.17.2 (*)
+     \--- com.fasterxml.jackson:jackson-bom:2.17.2 (*)
+----
+
+In this output, `runtimeClasspath` represent specific resolvable configurations in the project.
+Each resolvable configuration calculates a separate dependency graph.
+
+Different configurations can resolve to a different set of transitive dependencies for the same set of declared dependencies.
+Each *variant* is owned by a specific version of a *component*.
+
+=== 5. Select a variant
+
+image::dep-man-basics-6.png[]
+
+Based on the requirements of the build, Gradle selects one of the *variants* of the module.
+
+To describe and differentiate between *variants*, you use *attributes*.
+*Attributes* are used to define specific characteristics or properties of *variants* and the context in which those *variants* should be used.
+
+In the metadata for Jackson Databind, we see that the `runtimeElements` variant is described by the `org.gradle.category`, `org.gradle.dependency.bundling`, `org.gradle.libraryelement`, and `org.gradle.usage` attributes:
+
+[source,json]
+----
+{
+  "variants": [
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"  <1>
+      }
+    }
+  ]
+}
+----
+<1> For the `apiElements` variant, this attribute differs: "org.gradle.usage": "java-api"`
+
+*Attributes* are used to select the appropriate *variant* during dependency resolution.
+
+In the case of our Java application example, which has Jackson Databind as a dependency, Gradle will select the runtime variant to build the app.
+
+To see a more detailed view of which *variant* Gradle resolved for a given configuration, you can run the `dependencyInsight` task:
+
+[source,text]
+----
+$ ./gradlew :app:dependencyInsight --configuration runtimeClasspath --dependency com.fasterxml.jackson.core:jackson-databind:2.17.2
+
+> Task :app:dependencyInsight
+
+com.fasterxml.jackson.core:jackson-databind:2.17.2 (by constraint)
+ Variant runtimeElements:
+    | Attribute Name                 | Provided     | Requested    |
+    |--------------------------------|--------------|--------------|
+    | org.gradle.status              | release      |              |
+    | org.gradle.category            | library      | library      |
+    | org.gradle.dependency.bundling | external     | external     |
+    | org.gradle.libraryelements     | jar          | jar          |
+    | org.gradle.usage               | java-runtime | java-runtime |
+    | org.gradle.jvm.environment     |              | standard-jvm |
+    | org.gradle.jvm.version         |              | 11           |
+
+com.fasterxml.jackson.core:jackson-databind:2.17.2
++--- runtimeClasspath
+\--- com.fasterxml.jackson:jackson-bom:2.17.2
+     +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
+     |    +--- com.fasterxml.jackson:jackson-bom:2.17.2 (*)
+     |    \--- com.fasterxml.jackson.core:jackson-databind:2.17.2 (*)
+     +--- com.fasterxml.jackson.core:jackson-core:2.17.2
+     |    +--- com.fasterxml.jackson:jackson-bom:2.17.2 (*)
+     |    \--- com.fasterxml.jackson.core:jackson-databind:2.17.2 (*)
+     \--- com.fasterxml.jackson.core:jackson-databind:2.17.2 (*)
+----
+
+In this example, Gradle uses the `runtimeElements` *variant* of `jackson-databind` for the `runtimeClasspath` configuration.
+
+== 2. Artifact Resolution
+
+**Artifact resolution** occurs after the dependency graph is constructed.
+For each node in the dependency graph, Gradle fetches the necessary physical files (*artifacts*).
+
+This process uses the resolved graph and repository definitions to produce the required files as output.
+
+=== 1. Fetching artifacts
+
+image::dep-man-basics-7.png[]
+
+Gradle locates and downloads the actual *artifacts* (such as JAR files, ZIP files, etc.) referenced in the graph.
+These artifacts correspond to the nodes discovered during graph resolution.
+
+In our example, Gradle resolved the `runtimeElements` *variant* of `com.fasterxml.jackson.core:jackson-databind` during the dependency graph resolution.
+That *variant* corresponds to the JAR file `jackson-databind-2.17.2.jar` as the artifact:
+
+[source,json]
+----
+{
+  "component": {
+    "group": "com.fasterxml.jackson.core",
+    "module": "jackson-databind",
+    "version": "2.17.2"
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "dependencies": [],
+      "files": [
+        {
+          "name": "jackson-databind-2.17.2.jar"
+        }
+      ]
+    }
+  ]
+}
+----
+
+Gradle also fetches the resolved transitive dependencies of Jackson Databind including `jackson-annotations` and `jackson-core` which correspond to `jackson-annotations-2.17.2.jar` and `jackson-core-2.17.2.jar` respectively.
+
+=== 2. Transform artifacts
+
+image::dep-man-basics-8.png[]
+
+Gradle can transform artifacts using **artifact transforms** if needed or requested.
+Transforms are typically applied automatically during dependency resolution when Gradle needs to convert one artifact format into another that your build requires.
+
+For example, `jackson-databind` might only produce a ZIP file as an artifact called `jackson-databind-2.17.2.zip`, but the build needs `jackson-databind-2.17.2.jar`.
+Gradle can use Gradle provided transforms or user programmed transforms to convert the `zip` file into a `jar` file.
+
+[.text-right]
+**Next Step:** <<variant_aware_resolution.adoc#variant_aware_resolution,View Variant-Aware Dependency Resolution in Action>> >>
