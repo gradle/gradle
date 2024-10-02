@@ -382,4 +382,3 @@ Creating a version catalog programmatically uses the link:{javadocPath}/org/grad
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_bundle]"]
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_bundle]"]
 ====
-
