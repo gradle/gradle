@@ -41,7 +41,7 @@ Version catalogs offer several advantages:
 - *Centralized Version Management*: Each catalog is visible to all projects in a build.
 - *Dependency Bundles*: Catalogs can group commonly used dependencies into <<#sec:dependency-bundles,bundles>>.
 - *Version Separation*: Catalogs can separate dependency coordinates from version information, allowing shared version declarations.
-- *Conflict Resolution*: Like regular dependency notation, version catalogs declare requested <<#sec:common-version-numbers,versions>> but do not enforce them during <<dependency_resolution#understanding_dependency_resolution,conflict resolution>>.
+- *Conflict Resolution*: Like regular dependency notation, version catalogs declare requested <<#sec:common-version-numbers,versions>> but do not enforce them during <<dependency_resolution_adv#understanding_dependency_resolution,conflict resolution>>.
 
 While version catalogs define versions, they don't influence the dependency resolution process.
 Gradle may still select different versions due to dependency graph conflicts or constraints applied through platforms or dependency management APIs.
