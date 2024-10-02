@@ -19,6 +19,8 @@ package org.gradle.internal.component.resolution.failure.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -47,10 +49,14 @@ public final class TransformationChainData {
         return startingVariant;
     }
 
-    public String describeTransformations() {
+    public String summarizeTransformations() {
         return steps.stream()
-            .map(TransformData::getTransformName)
+            .map(t -> "'" + t.getTransformName() + "'")
             .collect(Collectors.joining(", "));
+    }
+
+    public ImmutableList<TransformData> getSteps() {
+        return steps;
     }
 
     /**
@@ -63,5 +69,48 @@ public final class TransformationChainData {
      */
     public ImmutableAttributes getFinalAttributes() {
         return finalAttributes;
+    }
+
+    /**
+     * Obtain an object that represents this chain in matter such that it is equal to
+     * any other chain containing the same set (<strong>not sequence</strong> - the
+     * transforms can be in any order) of transforms.
+     * <p>
+     * Immutable data class.
+     */
+    public TransformationFingerprint fingerprint() {
+        return new TransformationFingerprint(this);
+    }
+
+    /**
+     * Immutable data class representing a unique set (<strong>not sequence</strong> - the
+     * transforms can be in any order) of transforms in a chain.
+     * <p>
+     * This type must implement {@link #equals(Object)} and {@link #hashCode()}.
+     */
+    public static final class TransformationFingerprint {
+        private final HashSet<TransformData> steps;
+
+        public TransformationFingerprint(TransformationChainData chain) {
+            steps = new HashSet<>(chain.steps);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            TransformationFingerprint that = (TransformationFingerprint) o;
+            return Objects.equals(steps, that.steps);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(steps);
+        }
     }
 }

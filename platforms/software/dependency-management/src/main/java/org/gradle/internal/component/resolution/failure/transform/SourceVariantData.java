@@ -29,7 +29,7 @@ public final class SourceVariantData {
     private final ImmutableAttributes attributes;
 
     public SourceVariantData(String variantName, ImmutableAttributes attributes) {
-        this.variantName = variantName;
+        this.variantName = quoteVariantName(variantName);
         this.attributes = attributes;
     }
 
@@ -39,5 +39,14 @@ public final class SourceVariantData {
 
     public ImmutableAttributes getAttributes() {
         return attributes;
+    }
+
+    private String quoteVariantName(String variantName) {
+        int variantIdx = variantName.indexOf(" variant ");
+        if (variantIdx == -1) {
+            return variantName;
+        } else {
+            return variantName.substring(0, variantIdx + 9) + "'" + variantName.substring(variantIdx + 9) + "'";
+        }
     }
 }

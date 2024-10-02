@@ -35,6 +35,63 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.12]]
+== Upgrading from 8.11 and earlier
+
+=== Potential breaking changes
+
+=== Deprecations
+
+[[deprecated_ambiguous_transformation_chains]]
+==== Deprecated Ambiguous Transformation Chains
+
+Previously, when at least two equal-length chains of <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> were available that would produce compatible variants that would each satisfy a resolution request, Gradle would arbitrarily, and silently, pick one.
+
+Now, Gradle emits a deprecation warning that explains this situation:
+
+```text
+There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0.
+Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+  - color 'red'
+  - texture 'smooth'
+Found the following transformation chains:
+  - From configuration ':squareBlueSmoothElements':
+      - With source attributes:
+          - artifactType 'txt'
+          - color 'blue'
+          - shape 'square'
+          - texture 'smooth'
+      - Candidate transformation chains:
+          - Transformation chain: 'BrokenColorTransform', producing attributes:
+              - 'BrokenColorTransform':
+                  - Converts from attributes:
+                      - color 'blue'
+                      - texture 'smooth'
+                  - To attributes:
+                      - color 'red'
+          - Transformation chain: 'BrokenColorTransform2', producing attributes:
+              - 'BrokenColorTransform2':
+                  - Converts from attributes:
+                      - color 'blue'
+                      - texture 'smooth'
+                  - To attributes:
+                      - color 'red'
+ Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.
+
+```
+
+In such a scenario, Gradle has no way to know which of the two (or more) possible transformation chains should be used.
+Picking an arbitrary chain can lead to inefficient performance or unexpected behavior changes when seemingly unrelated parts of the build are modified.
+This is potentially a very complex situation and the message now fully explains the situation by printing all the registered transforms in order, along with their source (input) variants for each candidate chain.
+
+When encountering this type of failure, build authors should either:
+
+1. Add additional, distinguishing attributes when registering transforms present in the chain, to ensure that only a single chain will be selectable to satisfy the request
+2. Request additional attributes to disambiguate which chain is selected (if they result in non-identical final attributes)
+3. Remove unnecessary registered transforms from the build
+
+This will become an error in Gradle 9.0.
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 

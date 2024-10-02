@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -229,6 +231,53 @@ ${artifactTransform("TestTransform")}
 """
 
         when:
+        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. " + """
+Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
+  - artifactType 'final'
+  - org.gradle.category 'library'
+  - org.gradle.dependency.bundling 'external'
+  - org.gradle.jvm.environment 'standard-jvm'
+  - org.gradle.jvm.version '17'
+  - org.gradle.libraryelements 'classes'
+  - org.gradle.usage 'java-api'
+Found the following transformation chains:
+  - From configuration ':lib:apiElements':
+      - With source attributes:
+          - artifactType 'jar'
+          - org.gradle.category 'library'
+          - org.gradle.dependency.bundling 'external'
+          - org.gradle.jvm.version '17'
+          - org.gradle.libraryelements 'jar'
+          - org.gradle.usage 'java-api'
+      - Candidate transformation chains:
+          - Transformation chain: 'TestTransform', producing attributes:
+              - 'TestTransform':
+                  - Converts from attributes:
+                      - artifactType 'jar'
+                      - org.gradle.libraryelements 'jar'
+                      - org.gradle.usage 'java-api'
+                  - To attributes:
+                      - artifactType 'final'
+                      - org.gradle.libraryelements 'classes'
+                      - org.gradle.usage 'java-api'
+  - From configuration ':lib:apiElements' variant 'classes':
+      - With source attributes:
+          - artifactType 'java-classes-directory'
+          - org.gradle.category 'library'
+          - org.gradle.dependency.bundling 'external'
+          - org.gradle.jvm.version '17'
+          - org.gradle.libraryelements 'classes'
+          - org.gradle.usage 'java-api'
+      - Candidate transformation chains:
+          - Transformation chain: 'TestTransform', producing attributes:
+              - 'TestTransform':
+                  - Converts from attributes:
+                      - artifactType 'java-classes-directory'
+                      - org.gradle.usage 'java-api'
+                  - To attributes:
+                      - artifactType 'final'
+                      - org.gradle.usage 'java-api'
+ Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_ambiguous_transformation_chains"""))
         run "resolve"
 
         then:
@@ -240,7 +289,7 @@ ${artifactTransform("TestTransform")}
         fails 'resolve', '-PextraAttribute'
 
         then:
-        failureCauseContains('Found multiple transforms')
+        failureCauseContains('Found multiple transformation chains')
     }
 
     def "transform with two attributes will not confuse"() {
