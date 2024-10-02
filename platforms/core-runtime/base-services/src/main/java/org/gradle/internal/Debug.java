@@ -19,6 +19,7 @@ package org.gradle.internal;
 import com.google.common.base.Supplier;
 import org.apache.commons.lang.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -67,12 +68,17 @@ public class Debug {
             return;
         }
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-        println("[" + Thread.currentThread().getName() + "] " + asString(message));
+        println(getPrefix() + asString(message));
         for (StackTraceElement element : trace) {
             if (element.getClassName().contains("org.gradle") && !element.getMethodName().startsWith("invoke")) {
                 println("\t*" + element);
             }
         }
+    }
+
+    @Nonnull
+    public static String getPrefix() {
+        return "[" + Thread.currentThread().getName() + "] ";
     }
 
     @Nullable
