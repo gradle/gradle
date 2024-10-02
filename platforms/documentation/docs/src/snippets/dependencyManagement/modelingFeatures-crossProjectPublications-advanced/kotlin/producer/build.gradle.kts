@@ -16,11 +16,11 @@ val instrumentedJars by configurations.creating {
 }
 // end::declare-outgoing-configuration[]
 
-// tag::declare-task[
+// tag::declare-task[]
 val instrumentedJar = tasks.register("instrumentedJar", Jar::class) {
     archiveClassifier = "instrumented"
 }
-// end::declare-task[
+// end::declare-task[]
 
 // tag::attach-outgoing-artifact[]
 artifacts {
