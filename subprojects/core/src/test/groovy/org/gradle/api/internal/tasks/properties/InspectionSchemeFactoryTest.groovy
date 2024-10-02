@@ -39,6 +39,7 @@ class InspectionSchemeFactoryTest extends Specification {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         [(Thing1): TYPE, (Thing2): TYPE],
+        [:],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],
@@ -47,12 +48,12 @@ class InspectionSchemeFactoryTest extends Specification {
         { false },
         cacheFactory
     )
-    def factory = new InspectionSchemeFactory([], [handler1, handler2], typeAnnotationMetadataStore, cacheFactory)
+    def factory = new InspectionSchemeFactory([], [handler1, handler2], [], typeAnnotationMetadataStore, cacheFactory)
 
     def "creates inspection scheme that understands given property annotations and injection annotations"() {
         def instantiationScheme = Stub(InstantiationScheme)
         instantiationScheme.injectionAnnotations >> [Inject]
-        def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
+        def scheme = factory.inspectionScheme([Thing1, Thing2], [], [], instantiationScheme)
 
         when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
@@ -78,7 +79,7 @@ class InspectionSchemeFactoryTest extends Specification {
     def "annotation can be used for property annotation and injection annotations"() {
         def instantiationScheme = Stub(InstantiationScheme)
         instantiationScheme.injectionAnnotations >> [Thing2, Inject]
-        def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
+        def scheme = factory.inspectionScheme([Thing1, Thing2], [], [], instantiationScheme)
 
         when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)

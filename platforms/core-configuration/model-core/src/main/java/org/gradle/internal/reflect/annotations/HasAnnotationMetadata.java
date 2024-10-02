@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.internal.reflect.annotations;
 
-/**
- * Specifies configuration options when creating a new TypeValidationData instance.
- */
-public interface TypeValidationDataSpec extends AdditionalDataSpec {
-    TypeValidationDataSpec pluginId(String pluginId);
-    TypeValidationDataSpec propertyName(String propertyName);
-    TypeValidationDataSpec methodName(String methodName);
-    TypeValidationDataSpec parentPropertyName(String parentPropertyName);
-    TypeValidationDataSpec typeName(String typeName);
+import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Optional;
+
+public interface HasAnnotationMetadata {
+    Method getMethod();
+
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+
+    <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType);
+
+    ImmutableMap<AnnotationCategory, Annotation> getAnnotations();
+
+    TypeToken<?> getDeclaredType();
 }

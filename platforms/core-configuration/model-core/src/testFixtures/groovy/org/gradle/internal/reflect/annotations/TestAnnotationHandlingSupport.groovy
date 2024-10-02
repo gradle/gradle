@@ -54,6 +54,7 @@ trait TestAnnotationHandlingSupport {
     TypeAnnotationMetadataStore typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [ThisIsAThing],
         [(TestNested): TYPE, (Long): TYPE, (Short): TYPE, (Tint): Modifiers.COLOR],
+        [:],
         ["java", "groovy"],
         [Object],
         [Object, GroovyObject],
@@ -71,6 +72,8 @@ trait TestAnnotationHandlingSupport {
             new SimplePropertyAnnotationHandler(Short, INPUT, [Tint]),
         ],
         [ItDepends, Tint],
+        [],
+        [],
         typeAnnotationMetadataStore,
         { annotations -> annotations.get(TYPE)?.annotationType() },
         TestCrossBuildInMemoryCacheFactory.instance(),

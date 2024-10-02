@@ -54,9 +54,22 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
     }
 
+    private static final BAZ = new AnnotationCategory() {
+        @Override
+        String getDisplayName() {
+            return "baz"
+        }
+
+        @Override
+        String toString() {
+            return displayName
+        }
+    }
+
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
         [(Large): TYPE, (Small): TYPE, (Color): COLOR],
+        [(Foo): TYPE, (Bar): TYPE, (Baz): BAZ],
         ["java", "groovy"],
         [Object],
         [Object, GroovyObject],
@@ -89,7 +102,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         private String getPrivateProperty() { "private" }
     }
 
-    def "finds annotated properties"() {
+    def "finds annotated properties and methods"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
             publicProperty: [(TYPE): Large],
@@ -99,6 +112,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             injectedProperty: [(TYPE): Inject],
         ], [
             strict(privateGetterAnnotatedMessage { property('privateProperty').annotation(Small.simpleName).includeLink() })
+        ]
+        and:
+        assertMethods TypeWithAnnotatedMethod, [
+            publicMethod: [(TYPE): Foo],
+            protectedMethod: [(TYPE): Foo],
+            packageMethod: [(TYPE): Bar],
+            privateMethod: [(TYPE): Bar],
+        ], [
+            strict(privateMethodAnnotatedMessage { method('privateMethod').annotation(Bar.simpleName).includeLink() })
         ]
     }
 
@@ -121,9 +143,26 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getInjectedProperty() { "injected" }
     }
 
-    def "ignores all properties on type #type.simpleName"() {
+    @SuppressWarnings("unused")
+    class TypeWithAnnotatedMethod {
+        @Foo
+        String publicMethod() { "public" }
+
+        @Foo
+        protected boolean protectedMethod() { true }
+
+        @Bar
+        @PackageScope
+        boolean packageMethod() { false }
+
+        @Bar
+        private String privateMethod() { "private" }
+    }
+
+    def "ignores all methods and properties on type #type.simpleName"() {
         expect:
         assertProperties type, [:]
+        assertMethods type, [:]
         where:
         type << [int, EmptyGroovyObject, int[], Object[], Nullable]
     }
@@ -213,7 +252,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
                     .includeLink()
             })
         ]
-        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].getter.name == "getBool"
+        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
 
     @SuppressWarnings("unused")
@@ -244,7 +283,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIgnoredIsGetterBooleanProperty, [
             bool: [(TYPE): Small],
         ]
-        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].getter.name == "getBool"
+        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
 
     @SuppressWarnings("unused")
@@ -262,7 +301,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIgnoredGetGetterBooleanProperty, [
             bool: [(TYPE): Small],
         ]
-        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].getter.name == "isBool"
+        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "isBool"
     }
 
     @SuppressWarnings("unused")
@@ -327,11 +366,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
     }
 
-    def "superclass properties are present in subclass"() {
+    def "superclass properties and methods are present in subclass"() {
         expect:
         assertProperties TypeWithSuperclassProperties, [
             baseProperty: [(TYPE): Small],
             subclassProperty: [(TYPE): Large]
+        ]
+        and:
+        assertMethods TypeWithSuperclassMethods, [
+            baseMethod: [(TYPE): Foo],
+            subclassMethod: [(TYPE): Bar]
         ]
     }
 
@@ -347,11 +391,28 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getSubclassProperty()
     }
 
-    def "properties are inherited from implemented interface"() {
+    @SuppressWarnings("unused")
+    interface BaseTypeWithSuperClassMethods {
+        @Foo
+        String baseMethod()
+    }
+
+    @SuppressWarnings("unused")
+    interface TypeWithSuperclassMethods extends BaseTypeWithSuperClassMethods {
+        @Bar
+        String subclassMethod()
+    }
+
+    def "properties and methods are inherited from implemented interface"() {
         expect:
         assertProperties TypeWithInterfaceProperties, [
             interfaceProperty: [(TYPE): Small],
             subclassProperty: [(TYPE): Large]
+        ]
+        and:
+        assertMethods TypeWithInterfaceMethods, [
+            interfaceMethod: [(TYPE): Foo],
+            subclassMethod: [(TYPE): Bar]
         ]
     }
 
@@ -367,10 +428,26 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         abstract String getSubclassProperty()
     }
 
-    def "overridden properties inherit super-class annotations"() {
+    @SuppressWarnings("unused")
+    interface InterfaceWithMethods {
+        @Foo
+        String interfaceMethod()
+    }
+
+    @SuppressWarnings("unused")
+    abstract class TypeWithInterfaceMethods implements InterfaceWithMethods {
+        @Bar
+        abstract String subclassMethod()
+    }
+
+    def "overridden properties and methods inherit super-class annotations"() {
         expect:
         assertProperties TypeWithInheritedProperty, [
             overriddenProperty: [(COLOR): Color]
+        ]
+        and:
+        assertMethods TypeWithInheritedMethods, [
+            overriddenMethod: [(TYPE): Foo]
         ]
     }
 
@@ -386,10 +463,27 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getOverriddenProperty() { "test" }
     }
 
+    @SuppressWarnings("unused")
+    class BaseTypeWithInheritedMethods {
+        @Foo
+        String overriddenMethod() { "test" }
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithInheritedMethods extends BaseTypeWithInheritedMethods {
+        @Override
+        String overriddenMethod() { "test" }
+    }
+
     def "annotation defined on implemented interface takes precedence over superclass annotation"() {
         expect:
         assertProperties TypeWithInheritedPropertyFromSuperClassAndInterface, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "interface" }]
+        ]
+
+        and:
+        assertMethods TypeWithInheritedMethodFromSuperClassAndInterface, [
+            overriddenMethod: [(TYPE): Foo]
         ]
     }
 
@@ -407,12 +501,32 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getOverriddenProperty() { "test" }
     }
 
-    def "implemented properties inherit annotation from first conflicting interface"() {
+    @SuppressWarnings("unused")
+    interface InterfaceWithInheritedMethod {
+        @Foo
+        String getOverriddenProperty()
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithInheritedMethodFromSuperClassAndInterface
+        extends BaseTypeWithInheritedMethods
+        implements InterfaceWithInheritedMethod {
+        @Override
+        String getOverriddenProperty() { "test" }
+    }
+
+    def "implemented properties and methods inherit annotation from first conflicting interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ], [
             strict(conflictingAnnotationsMessage { property('overriddenProperty').inConflict('Color', 'Color').includeLink().kind('color annotations inherited (from interface)') })
+        ]
+        and:
+        assertMethods TypeWithImplementedMethodFromInterfaces, [
+            overriddenMethod: [(BAZ): { it instanceof Baz && it.declaredBy() == "first-interface" }]
+        ], [
+            strict(conflictingAnnotationsMessage { method('overriddenMethod').inConflict('Baz', 'Baz').includeLink().kind('baz annotations inherited (from interface)') })
         ]
     }
 
@@ -435,10 +549,33 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getOverriddenProperty() { "test" }
     }
 
+    @SuppressWarnings("unused")
+    interface FirstInterfaceWithInheritedMethod {
+        @Baz(declaredBy = "first-interface")
+        String overriddenMethod()
+    }
+
+    @SuppressWarnings("unused")
+    interface SecondInterfaceWithInheritedMethod {
+        @Baz(declaredBy = "second-interface")
+        String overriddenMethod()
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithImplementedMethodFromInterfaces
+        implements FirstInterfaceWithInheritedMethod, SecondInterfaceWithInheritedMethod {
+        @Override
+        String overriddenMethod() { "test" }
+    }
+
     def "subtype can resolve conflicting annotations from implemented interfaces"() {
         expect:
         assertProperties TypeOverridingPropertyFromConflictingInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "subtype" }]
+        ]
+        and:
+        assertMethods TypeOverridingMethodFromConflictingInterfaces, [
+            overriddenMethod: [(BAZ): { it instanceof Baz && it.declaredBy() == "subtype" }]
         ]
     }
 
@@ -450,37 +587,70 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getOverriddenProperty() { "test" }
     }
 
+    @SuppressWarnings("unused")
+    class TypeOverridingMethodFromConflictingInterfaces
+        implements FirstInterfaceWithInheritedMethod, SecondInterfaceWithInheritedMethod {
+        @Override
+        @Baz(declaredBy = "subtype")
+        String overriddenMethod() { "test" }
+    }
+
     def "can override same annotation in subclass"() {
         expect:
-        assertProperties TypeWithOverride, [
+        assertProperties TypeWithPropertyOverride, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "override" }]
+        ]
+        and:
+        assertMethods TypeWithMethodOverride, [
+            overriddenMethod: [(BAZ): { it instanceof Baz && it.declaredBy() == "override" }]
         ]
     }
 
-    def "property getter is from overriding class"() {
+    def "property getter or method is from overriding class"() {
         when:
-        def metadata = store.getTypeAnnotationMetadata(TypeWithOverride)
+        def propertyMetadata = store.getTypeAnnotationMetadata(TypeWithPropertyOverride)
         then:
-        metadata.propertiesAnnotationMetadata[0].getter.declaringClass == TypeWithOverride
+        propertyMetadata.propertiesAnnotationMetadata[0].method.declaringClass == TypeWithPropertyOverride
+        when:
+        def methodMetadata = store.getTypeAnnotationMetadata(TypeWithMethodOverride)
+        then:
+        methodMetadata.methodsAnnotationMetadata[0].method.declaringClass == TypeWithMethodOverride
     }
 
     @SuppressWarnings("unused")
-    interface BaseTypeWithOverride {
+    interface BaseTypeWithPropertyOverride {
         @Color(declaredBy = "base")
         String getOverriddenProperty()
     }
 
     @SuppressWarnings("unused")
-    interface TypeWithOverride extends BaseTypeWithOverride {
+    interface TypeWithPropertyOverride extends BaseTypeWithPropertyOverride {
         @Override
         @Color(declaredBy = "override")
         String getOverriddenProperty()
+    }
+
+    @SuppressWarnings("unused")
+    interface BaseTypeWithMethodOverride {
+        @Baz(declaredBy = "base")
+        String overriddenMethod()
+    }
+
+    @SuppressWarnings("unused")
+    interface TypeWithMethodOverride extends BaseTypeWithMethodOverride {
+        @Override
+        @Baz(declaredBy = "override")
+        String overriddenMethod()
     }
 
     def "can override annotation with different annotation in same category in subclass"() {
         expect:
         assertProperties CanOverrideOverrideCategoryClass, [
             overriddenProperty: [(TYPE): Small, (COLOR): Color]
+        ]
+        and:
+        assertMethods CanOverrideOverrideMethodCategoryClass, [
+            overriddenMethod: [(TYPE): Bar, (BAZ): Baz]
         ]
     }
 
@@ -500,6 +670,24 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         @Override
         @Small
         String getOverriddenProperty()
+    }
+
+    @SuppressWarnings("unused")
+    interface CanOverrideMethodCategoryBaseClass {
+        @Foo
+        String overriddenMethod()
+    }
+
+    interface CanOverrideMethodCategoryIntermediateClass extends CanOverrideMethodCategoryBaseClass {
+        @Override
+        @Baz
+        String overriddenMethod()
+    }
+
+    interface CanOverrideOverrideMethodCategoryClass extends CanOverrideMethodCategoryIntermediateClass {
+        @Override
+        @Bar
+        String overriddenMethod()
     }
 
     def "can ignore supertype property"() {
@@ -542,7 +730,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getPropertyIgnoredInBase()
     }
 
-    def "warns about conflicting property types being specified, chooses first declaration"() {
+    def "warns about conflicting property or method types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
             largeThenSmall: [(TYPE): Large],
@@ -550,6 +738,14 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         ], [
             strict(conflictingAnnotationsMessage { property('largeThenSmall').inConflict('Large', 'Small').includeLink() }),
             strict(conflictingAnnotationsMessage { property('smallThenLarge').inConflict('Small', 'Large').includeLink() })
+        ]
+        and:
+        assertMethods TypeWithMethodsWithMultipleAnnotationsOfSameCategory, [
+            largeThenSmall: [(TYPE): Foo],
+            smallThenLarge: [(TYPE): Bar]
+        ], [
+            strict(conflictingAnnotationsMessage { method('largeThenSmall').inConflict('Foo', 'Bar').includeLink() }),
+            strict(conflictingAnnotationsMessage { method('smallThenLarge').inConflict('Bar', 'Foo').includeLink() })
         ]
     }
 
@@ -562,6 +758,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         @Small
         @Large
         String getSmallThenLarge()
+    }
+
+    @SuppressWarnings("unused")
+    interface TypeWithMethodsWithMultipleAnnotationsOfSameCategory {
+        @Foo
+        @Bar
+        String largeThenSmall()
+
+        @Bar
+        @Foo
+        String smallThenLarge()
     }
 
     def "warns about both method and field having the same annotation, prefers method annotation"() {
@@ -639,12 +846,18 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
     }
 
-    def "warns about annotations on private properties"() {
+    def "warns about annotations on private properties or methods"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
             privateInput: [(TYPE): Large]
         ], [
             strict(privateGetterAnnotatedMessage { property('privateInput').annotation(Large.simpleName).includeLink() })
+        ]
+        and:
+        assertMethods WithAnnotationsOnPrivateMethod, [
+            privateMethod: [(TYPE): Foo]
+        ], [
+            strict(privateMethodAnnotatedMessage { method('privateMethod').annotation(Foo.simpleName).includeLink() })
         ]
     }
 
@@ -656,6 +869,18 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
 
         private String getNotAnInput() {
+            'Not an input'
+        }
+    }
+
+    @SuppressWarnings("unused")
+    class WithAnnotationsOnPrivateMethod {
+        @Foo
+        private String privateMethod() {
+            'Input'
+        }
+
+        private String anotherMethod() {
             'Not an input'
         }
     }
@@ -704,7 +929,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     @Irrelevant
     interface TypeWithAnnotations {}
 
-    def "warns about annotations on non-getter methods"() {
+    def "warns about property annotations on non-property methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
             strict(methodShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedNonGetterMethods.canonicalName).kind('method').method('doSomething').annotation('Large').includeLink() }),
@@ -729,6 +954,34 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         void setSomething(String something) {}
     }
 
+    def "warns about non-property annotations on fields or property methods"() {
+        expect:
+        assertMethods TypeWithAnnotatedGetterMethods, [:], [
+            strict(fieldShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('field').method('anything').annotation('Foo').includeLink() }),
+            strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('property').method('getSomething').annotation('Foo').includeLink() }),
+            strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('static method').method('getStatic').annotation('Bar').includeLink() }),
+            strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('property').method('isSomethingElse').annotation('Bar').includeLink() }),
+            strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('property').method('setSomething').annotation('Foo').includeLink() }),
+        ]
+    }
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    private static class TypeWithAnnotatedGetterMethods {
+        @Foo
+        String anything
+
+        @Foo
+        String getSomething() {}
+
+        @Bar
+        static String getStatic() { "static" }
+
+        @Bar
+        boolean isSomethingElse() {}
+
+        @Foo
+        void setSomething(String something) {}
+    }
 
     def "ignores validation of generated Groovy methods"() {
         expect:
@@ -745,6 +998,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     def "does not detect methods on type from ignored package"() {
         expect:
         assertProperties ArrayList, [:]
+        and:
+        assertMethods ArrayList, [:]
     }
 
     void assertProperties(Class<?> type, Map<String, Map<AnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
@@ -762,6 +1017,41 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
             actualCategories.forEach { category ->
                 def actualAnnotation = actualProperty.annotations[category]
+                def expectedAnnotation = expectedAnnotations[category]
+                if (expectedAnnotation instanceof Class) {
+                    assert actualAnnotation.annotationType() == expectedAnnotation
+                } else if (expectedAnnotation instanceof Closure) {
+                    assert expectedAnnotation.call(actualAnnotation)
+                } else {
+                    throw new IllegalArgumentException("Unknown expectation $expectedAnnotation")
+                }
+            }
+        }
+
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
+        metadata.visitValidationFailures(validationContext)
+        List<String> actualErrors = validationContext.problems
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+        actualErrors.sort()
+        expectedErrors.sort()
+        assert actualErrors == expectedErrors
+    }
+
+    void assertMethods(Class<?> type, Map<String, Map<AnnotationCategory, ?>> expectedMethods, List<String> expectedErrors = []) {
+        def metadata = store.getTypeAnnotationMetadata(type)
+        def actualMethodNames = metadata.methodsAnnotationMetadata*.method.name.sort()
+        def expectedMethodNames = expectedMethods.keySet().sort()
+        assert actualMethodNames == expectedMethodNames
+
+        metadata.methodsAnnotationMetadata.forEach { actualMethod ->
+            def expectedAnnotations = expectedMethods[actualMethod.method.name]
+
+            def actualCategories = actualMethod.annotations.keySet().sort()
+            def expectedCategories = expectedAnnotations.keySet().sort()
+            assert actualCategories == expectedCategories
+
+            actualCategories.forEach { category ->
+                def actualAnnotation = actualMethod.annotations[category]
                 def expectedAnnotation = expectedAnnotations[category]
                 if (expectedAnnotation instanceof Class) {
                     assert actualAnnotation.annotationType() == expectedAnnotation
@@ -822,4 +1112,20 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface Ignored2 {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface Foo {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD])
+@interface Bar {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD])
+@interface Baz {
+    String declaredBy() default ""
 }

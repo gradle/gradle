@@ -64,6 +64,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -80,11 +81,13 @@ import org.gradle.internal.execution.model.annotations.InputFilesPropertyAnnotat
 import org.gradle.internal.execution.model.annotations.InputPropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.TaskActionAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.properties.annotations.MethodAnnotationHandler;
 import org.gradle.internal.properties.annotations.NestedBeanAnnotationHandler;
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
@@ -103,6 +106,7 @@ import org.gradle.work.NormalizeLineEndings;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @VisibleForTesting
@@ -124,6 +128,10 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
         OutputFiles.class,
         ServiceReference.class,
         SoftwareType.class
+    );
+
+    public static final ImmutableSet<Class<? extends Annotation>> METHOD_TYPE_ANNOTATIONS = ImmutableSet.of(
+        TaskAction.class
     );
 
     @VisibleForTesting
@@ -156,6 +164,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 RegistersSoftwareTypes.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
+            METHOD_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
             ImmutableSet.of(
                 "java",
                 "groovy",
@@ -188,10 +197,11 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     InspectionSchemeFactory createInspectionSchemeFactory(
         List<TypeAnnotationHandler> typeHandlers,
         List<PropertyAnnotationHandler> propertyHandlers,
+        List<MethodAnnotationHandler> methodHandlers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
-        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, typeAnnotationMetadataStore, cacheFactory);
+        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, methodHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
     @Provides
@@ -230,6 +240,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 NormalizeLineEndings.class,
                 ReplacesEagerProperty.class
             ),
+            ImmutableSet.of(),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
@@ -361,5 +372,10 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @Provides
     ImmutableWorkspaceMetadataStore createImmutableWorkspaceMetadataStore() {
         return new DefaultImmutableWorkspaceMetadataStore();
+    }
+
+    @Provides
+    MethodAnnotationHandler createTaskActionHandler() {
+        return new TaskActionAnnotationHandler();
     }
 }

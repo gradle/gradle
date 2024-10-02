@@ -148,6 +148,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
                 allPropertyTypes.build(),
                 Collections.emptySet(),
+                Collections.emptyList(),
                 instantiationScheme,
                 MissingPropertyAnnotationHandler.DO_NOTHING
             );
