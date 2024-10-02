@@ -95,6 +95,22 @@ public class ReleaseNotesTransformer extends FilterReader {
         rewritten = rewritten.replaceAll("GRADLE-\\d+", "<a href=\"https://issues.gradle.org/browse/$0\">$0</a>");
         // Turn Gradle Github issue numbers into issue links
         rewritten = rewritten.replaceAll("(gradle/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
+        // Replace YouTube references by embedded videos, ?si= attribute is a must
+        // E.g. @VIDEO:UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&start=371 => https://www.youtube.com/embed/UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&amp;start=371"
+        // "&rel=0" is also force-injected to prevent video recommendations from other channels
+        rewritten = rewritten.replaceAll("\\@VIDEO\\@([a-zA-Z\\-_]+)\\:([^\\s<]+)", 
+"<details> \n" +
+"  <summary>📺 Watch the $1</summary> \n" +
+"  <div class=\"youtube-video\"> \n" +
+"    <div class=\"youtube-player\"> \n" +
+"        <iframe src=\"https://www.youtube.com/embed/$2&rel=0\" title=\"YouTube video player\"  \n" +
+"          frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" \n" +
+"          referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen> \n" +
+"        </iframe> \n" +
+"    </div> \n" +
+"  </div> \n" +
+"</details>");
+
         document.body().html(rewritten);
 
         return new StringReader(document.toString());

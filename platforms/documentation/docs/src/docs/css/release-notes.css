@@ -91,3 +91,27 @@ a.incubating-marker:hover {
 .java_literal {
   color: #d14;
 }
+
+/* Embedded Videos */
+.youtube-video {
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+
+  div {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    aspect-ratio: 16/9;
+    max-width: 900px;
+  }
+
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
