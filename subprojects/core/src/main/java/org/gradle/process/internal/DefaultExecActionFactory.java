@@ -639,7 +639,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public JvmForkOptions toEffectiveJvmForkOptions() {
+        public EffectiveJavaForkOptions toEffectiveJvmForkOptions() {
             return delegate.toEffectiveJvmForkOptions();
         }
     }

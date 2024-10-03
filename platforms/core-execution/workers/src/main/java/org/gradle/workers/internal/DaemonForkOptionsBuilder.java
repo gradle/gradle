@@ -21,7 +21,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.JavaForkOptionsInternal;
-import org.gradle.process.internal.JvmForkOptions;
+import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ public class DaemonForkOptionsBuilder {
     }
 
     public DaemonForkOptions build() {
-        JvmForkOptions forkOptions = buildJavaForkOptions().toEffectiveJvmForkOptions();
+        EffectiveJavaForkOptions forkOptions = buildJavaForkOptions().toEffectiveJvmForkOptions();
         if (OperatingSystem.current().isWindows() && keepAliveMode == KeepAliveMode.DAEMON) {
             List<String> jvmArgs = forkOptions.getJvmOptions().getAllJvmArgs();
             Optional<String> unreliableArgument = findUnreliableArgument(jvmArgs);

@@ -33,14 +33,14 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
  * Strongly relates to {@link JavaForkOptions}.
  */
 @NonNullApi
-public class JvmForkOptions {
+public class EffectiveJavaForkOptions {
 
     private final JvmOptions jvmOptions;
     private final String executable;
     private final File workingDir;
     private final Map<String, Object> environment;
 
-    public JvmForkOptions(String executable, File workingDir, Map<String, Object> environment, JvmOptions jvmOptions) {
+    public EffectiveJavaForkOptions(String executable, File workingDir, Map<String, Object> environment, JvmOptions jvmOptions) {
         this.jvmOptions = jvmOptions;
         this.executable = executable;
         this.workingDir = workingDir;
@@ -66,7 +66,7 @@ public class JvmForkOptions {
     /**
      * Returns true if the given options are compatible with this set of options.
      */
-    public boolean isCompatibleWith(JvmForkOptions forkOptions) {
+    public boolean isCompatibleWith(EffectiveJavaForkOptions forkOptions) {
         return jvmOptions.getDebug() == forkOptions.getJvmOptions().getDebug()
             && jvmOptions.getEnableAssertions() == forkOptions.getJvmOptions().getEnableAssertions()
             && normalized(executable).equals(normalized(forkOptions.getExecutable()))

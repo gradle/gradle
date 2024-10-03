@@ -19,23 +19,23 @@ package org.gradle.workers.internal;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.JvmForkOptions;
+import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
 import java.util.Map;
 
 public class DaemonForkOptions {
-    private final JvmForkOptions jvmForkOptions;
+    private final EffectiveJavaForkOptions forkOptions;
     private final KeepAliveMode keepAliveMode;
     private final ClassLoaderStructure classLoaderStructure;
 
     DaemonForkOptions(
-        JvmForkOptions jvmForkOptions,
+        EffectiveJavaForkOptions forkOptions,
         KeepAliveMode keepAliveMode,
         ClassLoaderStructure classLoaderStructure
     ) {
-        this.jvmForkOptions = jvmForkOptions;
+        this.forkOptions = forkOptions;
         this.keepAliveMode = keepAliveMode;
         this.classLoaderStructure = classLoaderStructure;
     }
@@ -45,19 +45,19 @@ public class DaemonForkOptions {
     }
 
     public JvmOptions getJvmOptions() {
-        return jvmForkOptions.getJvmOptions();
+        return forkOptions.getJvmOptions();
     }
 
     public String getExecutable() {
-        return jvmForkOptions.getExecutable();
+        return forkOptions.getExecutable();
     }
 
     public File getWorkingDir() {
-        return jvmForkOptions.getWorkingDir();
+        return forkOptions.getWorkingDir();
     }
 
     public Map<String, Object> getEnvironment() {
-        return jvmForkOptions.getEnvironment();
+        return forkOptions.getEnvironment();
     }
 
     public ClassLoaderStructure getClassLoaderStructure() {
@@ -65,11 +65,11 @@ public class DaemonForkOptions {
     }
 
     public void copyTo(JavaForkOptions target) {
-        jvmForkOptions.copyTo(target);
+        forkOptions.copyTo(target);
     }
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
-        return jvmForkOptions.isCompatibleWith(other.jvmForkOptions)
+        return forkOptions.isCompatibleWith(other.forkOptions)
             && keepAliveMode == other.getKeepAliveMode()
             && Objects.equal(classLoaderStructure, other.getClassLoaderStructure());
     }
@@ -81,7 +81,7 @@ public class DaemonForkOptions {
             .add("minHeapSize", getJvmOptions().getMinHeapSize())
             .add("maxHeapSize", getJvmOptions().getMaxHeapSize())
             .add("jvmArgs", getJvmOptions().getJvmArgs())
-            .add("keepAliveMode", keepAliveMode)
+            .add("keepAliveMode", getKeepAliveMode())
             .toString();
     }
 }

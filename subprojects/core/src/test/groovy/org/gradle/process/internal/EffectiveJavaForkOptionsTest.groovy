@@ -23,20 +23,20 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
-class JvmForkOptionsTest extends Specification {
+class EffectiveJavaForkOptionsTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
-    private JvmForkOptions options
+    private EffectiveJavaForkOptions options
 
     def setup() {
-        options = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
     }
 
     def "defaults are compatible"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other)
@@ -44,7 +44,7 @@ class JvmForkOptionsTest extends Specification {
 
     def "is compatible with identical options"() {
         def factory = {
-            new JvmForkOptions("/foo/bar", new File("foo"), ["FOO": "BAR"], new JvmOptions(fileCollectionFactory)).tap {
+            new EffectiveJavaForkOptions("/foo/bar", new File("foo"), ["FOO": "BAR"], new JvmOptions(fileCollectionFactory)).tap {
                 jvmOptions.with {
                     systemProperties = ["foo": "bar", "bar": "foo"]
                     minHeapSize = "128m"
@@ -61,7 +61,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with different representations of heap options"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -78,7 +78,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with lower heap requirements"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -95,7 +95,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with higher heap requirements"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -112,7 +112,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with the same set of jvm args"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.jvmArgs = ["-server", "-esa"]
@@ -123,7 +123,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with a subset of jvm args"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.jvmArgs = ["-server", "-esa"]
@@ -134,7 +134,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with a superset of jvm args"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.jvmArgs = ["-server"]
@@ -145,7 +145,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with a different set of jvm args"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.jvmArgs = ["-server", "-esa"]
@@ -156,71 +156,71 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with same executable"() {
-        options = new JvmForkOptions("foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other)
     }
 
     def "is not compatible with different executables"() {
-        options = new JvmForkOptions("foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("bar", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("bar", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         !options.isCompatibleWith(other)
     }
 
     def "is compatible with same workingDir"() {
-        options = new JvmForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("",  new File("foo"), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("",  new File("foo"), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other)
     }
 
     def "is not compatible with different workingDir"() {
-        options = new JvmForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("",  new File("bar"), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("",  new File("bar"), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         !options.isCompatibleWith(other)
     }
 
     def "is compatible with same environment variables"() {
-        options = new JvmForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other)
     }
 
     def "is not compatible with different environment variables"() {
-        options = new JvmForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("", new File(""), ["BAZ": "foo", "FOO": "bar"], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), ["BAZ": "foo", "FOO": "bar"], new JvmOptions(fileCollectionFactory))
 
         expect:
         !options.isCompatibleWith(other)
     }
 
     def "is compatible with subset of environment variables"() {
-        options = new JvmForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("", new File(""), ["FOO": "bar"], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar"], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other)
     }
 
     def "is not compatible with super set of environment variables"() {
-        options = new JvmForkOptions("", new File(""), ["FOO": "bar"], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar"], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), ["FOO": "bar", "BAR": "foo"], new JvmOptions(fileCollectionFactory))
 
         expect:
         !options.isCompatibleWith(other)
     }
 
     def "is compatible with the same system properties"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.systemProperties = ["foo": "bar", "bar": "foo"]
@@ -231,7 +231,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different system properties"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.systemProperties = ["foo": "bar", "bar": "foo"]
@@ -242,7 +242,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with subset of system properties"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.systemProperties = ["foo": "bar", "bar": "foo"]
@@ -253,7 +253,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with super set of system properties"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.systemProperties = ["foo": "bar"]
@@ -264,7 +264,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with same debug setting"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.debug = true
@@ -275,7 +275,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different debug setting"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.debug = true
@@ -286,7 +286,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is compatible with same enableAssertions setting"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.enableAssertions = true
@@ -297,7 +297,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different enableAssertions setting"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.enableAssertions = true
@@ -309,8 +309,8 @@ class JvmForkOptionsTest extends Specification {
 
     def "is compatible with same bootstrapClasspath"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        def options = new JvmForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
+        def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -327,8 +327,8 @@ class JvmForkOptionsTest extends Specification {
     def "is not compatible with different bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file2.jar', 'file3.jar'].collect { new File(it).canonicalFile }
-        def options = new JvmForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
+        def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -343,8 +343,8 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "string values are trimmed"() {
-        options = new JvmForkOptions(" foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
-        def other = new JvmForkOptions("foo ", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions(" foo", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("foo ", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -363,7 +363,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "capitalization of memory options is irrelevant"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -380,7 +380,7 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "capitalization of JVM args is relevant"() {
-        def other = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         options.jvmOptions.with {
@@ -395,8 +395,8 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "unspecified heap options are only compatible with unspecified heap options"() {
-        def other1 = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
-        def other2 = new JvmForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other1 = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other2 = new EffectiveJavaForkOptions("", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         when:
         other2.jvmOptions.with {
@@ -410,9 +410,9 @@ class JvmForkOptionsTest extends Specification {
     }
 
     def "unspecified executable is only compatible with unspecified executable options"() {
-        options = new JvmForkOptions(null, new File(""), [:], new JvmOptions(fileCollectionFactory))
-        def other1 = new JvmForkOptions(null, new File(""), [:], new JvmOptions(fileCollectionFactory))
-        def other2 = new JvmForkOptions("/foo/bar", new File(""), [:], new JvmOptions(fileCollectionFactory))
+        options = new EffectiveJavaForkOptions(null, new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other1 = new EffectiveJavaForkOptions(null, new File(""), [:], new JvmOptions(fileCollectionFactory))
+        def other2 = new EffectiveJavaForkOptions("/foo/bar", new File(""), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other1)
