@@ -183,7 +183,7 @@ NOTE: Configurations can only extend configurations within the same project.
 When extending a configuration, the new configuration inherits:
 
 * dependencies
-* dependencies constrains
+* dependency constraints
 * exclude rules
 * artifacts
 * capabilities
