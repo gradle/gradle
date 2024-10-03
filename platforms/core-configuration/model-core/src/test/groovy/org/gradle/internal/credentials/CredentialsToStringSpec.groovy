@@ -16,6 +16,7 @@
 
 package org.gradle.internal.credentials
 
+import org.gradle.util.TestCredentialUtil
 import spock.lang.Specification
 
 class CredentialsToStringSpec extends Specification {
@@ -39,7 +40,7 @@ class CredentialsToStringSpec extends Specification {
     }
 
     private static DefaultPasswordCredentials makePasswordCredentials(String secretValue) {
-        def credentials = new DefaultPasswordCredentials()
+        def credentials = TestCredentialUtil.defaultPasswordCredentials()
         credentials.setUsername(UUID.randomUUID().toString())
         credentials.setPassword(secretValue)
         return credentials

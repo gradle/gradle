@@ -20,13 +20,17 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.credentials.DefaultPasswordCredentials
+import org.gradle.util.TestCredentialUtil
 import spock.lang.Specification
 
 class CredentialsProviderFactoryTest extends Specification {
 
     def providerFactory = Mock(ProviderFactory)
-    def factory = new CredentialsProviderFactory(providerFactory)
+    def objectFactory = Mock(ObjectFactory)
+    def factory = new CredentialsProviderFactory(providerFactory, objectFactory)
 
     def "does not allow non-letters and non-digits for identity"() {
         when:
@@ -91,6 +95,7 @@ class CredentialsProviderFactoryTest extends Specification {
         given:
         providerFactory.gradleProperty('myServiceUsername') >> new DefaultProvider<>({ 'admin' })
         providerFactory.gradleProperty('myServicePassword') >> new DefaultProvider<>({ 'secret' })
+        objectFactory.newInstance(DefaultPasswordCredentials) >> TestCredentialUtil.defaultPasswordCredentials()
         def provider = factory.provide(PasswordCredentials, 'myService')
 
         when:

@@ -79,7 +79,8 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
             TestUtil.services()
         ),
         null,
-        null
+        null,
+        TestUtil.objectFactory()
     )
 
     def "generates sources for empty model"() {
