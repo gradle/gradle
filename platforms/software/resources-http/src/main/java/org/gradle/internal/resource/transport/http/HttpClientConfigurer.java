@@ -220,20 +220,30 @@ public class HttpClientConfigurer {
                     credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
 
                     LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
-                } else if (credentials instanceof PasswordCredentials) {
-                    PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+                } else if (credentials instanceof PasswordCredentials || credentials instanceof HttpProxySettings.HttpProxyCredentials) {
+                    String username;
+                    String password;
+                    if (credentials instanceof PasswordCredentials) {
+                        PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+                        username = passwordCredentials.getUsername();
+                        password = passwordCredentials.getPassword();
+                    } else {
+                        HttpProxySettings.HttpProxyCredentials proxyCredentials = (HttpProxySettings.HttpProxyCredentials) credentials;
+                        username = proxyCredentials.getUsername();
+                        password = proxyCredentials.getPassword();
+                    }
 
                     if (authentication instanceof AllSchemesAuthentication) {
-                        NTLMCredentials ntlmCredentials = new NTLMCredentials(passwordCredentials);
+                        NTLMCredentials ntlmCredentials = new NTLMCredentials(username, password);
                         Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
                         credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
 
-                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", passwordCredentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
+                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
                     }
 
-                    Credentials httpCredentials = new UsernamePasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
+                    Credentials httpCredentials = new UsernamePasswordCredentials(username, password);
                     credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
-                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", passwordCredentials, host, port, scheme);
+                    LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", credentials, host, port, scheme);
                 } else {
                     throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
                 }
