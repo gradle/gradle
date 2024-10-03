@@ -165,7 +165,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             String secretKey = getRequiredProperty("SecretKey");
             assertRequiredValuesPresent();
 
-            AwsCredentials credentials = new DefaultAwsCredentials();
+            AwsCredentials credentials = objectFactory.newInstance(DefaultAwsCredentials.class);
             credentials.setAccessKey(accessKey);
             credentials.setSecretKey(secretKey);
             credentials.setSessionToken(getOptionalProperty("SessionToken"));

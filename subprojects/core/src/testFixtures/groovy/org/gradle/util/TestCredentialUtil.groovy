@@ -16,7 +16,7 @@
 
 package org.gradle.util
 
-
+import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 
 class TestCredentialUtil {
@@ -30,5 +30,17 @@ class TestCredentialUtil {
         credentials.setUsername(username);
         credentials.setPassword(password);
         return credentials;
+    }
+
+    static DefaultAwsCredentials defaultAwsCredentials() {
+        return new DefaultAwsCredentials() {}
+    }
+
+    static DefaultAwsCredentials defaultAwsCredentials(String secretValue) {
+        def credentials = defaultAwsCredentials()
+        credentials.setAccessKey(secretValue)
+        credentials.setSecretKey(secretValue)
+        credentials.setSessionToken(secretValue)
+        return credentials
     }
 }

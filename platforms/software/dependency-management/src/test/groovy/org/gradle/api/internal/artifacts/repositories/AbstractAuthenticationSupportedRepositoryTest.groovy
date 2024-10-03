@@ -73,7 +73,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     def "getCredentials(Class) instantiates credentials if not yet configured"() {
         given:
-        DefaultAwsCredentials enhancedCredentials = new DefaultAwsCredentials()
+        DefaultAwsCredentials enhancedCredentials = TestCredentialUtil.defaultAwsCredentials()
         enhanceCredentials(enhancedCredentials, 'accessKey', 'secretKey')
 
         Instantiator instantiator = Mock()

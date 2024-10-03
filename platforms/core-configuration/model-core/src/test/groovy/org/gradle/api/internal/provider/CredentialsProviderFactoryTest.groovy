@@ -22,6 +22,7 @@ import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.util.TestCredentialUtil
 import spock.lang.Specification
@@ -127,6 +128,7 @@ class CredentialsProviderFactoryTest extends Specification {
         providerFactory.gradleProperty('idAccessKey') >> new DefaultProvider<>({ 'access' })
         providerFactory.gradleProperty('idSecretKey') >> new DefaultProvider<>({ 'secret' })
         providerFactory.gradleProperty('idSessionToken') >> Providers.notDefined()
+        objectFactory.newInstance(DefaultAwsCredentials) >> TestCredentialUtil.defaultAwsCredentials()
         def provider = factory.provide(AwsCredentials, "id")
 
         when:
@@ -143,6 +145,7 @@ class CredentialsProviderFactoryTest extends Specification {
         providerFactory.gradleProperty('idAccessKey') >> new DefaultProvider<>({ 'access' })
         providerFactory.gradleProperty('idSecretKey') >> new DefaultProvider<>({ 'secret' })
         providerFactory.gradleProperty('idSessionToken') >> new DefaultProvider<>({ 'token' })
+        objectFactory.newInstance(DefaultAwsCredentials) >> TestCredentialUtil.defaultAwsCredentials()
         def provider = factory.provide(AwsCredentials, "id")
 
         when:

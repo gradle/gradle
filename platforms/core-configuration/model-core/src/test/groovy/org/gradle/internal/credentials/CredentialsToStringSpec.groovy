@@ -32,11 +32,7 @@ class CredentialsToStringSpec extends Specification {
     }
 
     private static DefaultAwsCredentials makeAwsCredentials(String secretValue) {
-        def credentials = new DefaultAwsCredentials()
-        credentials.setAccessKey(secretValue)
-        credentials.setSecretKey(secretValue)
-        credentials.setSessionToken(secretValue)
-        return credentials
+        return TestCredentialUtil.defaultAwsCredentials(secretValue)
     }
 
     private static DefaultPasswordCredentials makePasswordCredentials(String secretValue) {
