@@ -17,11 +17,15 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -58,8 +62,19 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     private boolean allowInsecureProtocol;
     private boolean useExpectContinue;
 
+    @Deprecated
     public HttpBuildCache() {
+        DeprecationLogger.deprecateMethod(HttpBuildCache.class, "<init>()")
+            .willBeRemovedInGradle9()
+            // TODO
+            .undocumented()
+            .nagUser();
         this.credentials = new HttpBuildCacheCredentials();
+    }
+
+    @Inject
+    public HttpBuildCache(ObjectFactory objectFactory) {
+        this.credentials = objectFactory.newInstance(HttpBuildCacheCredentials.class);
     }
 
     /**
