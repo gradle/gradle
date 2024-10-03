@@ -55,7 +55,7 @@ Now that we've created a _dependency scope_ configuration for declaring dependen
 == Traversing a dependency graph
 
 In the _graph resolution_ phase, Gradle downloads and examines component metadata (GMM, POM, and IVY XML) for declared and transitive dependencies to construct a dependency graph.
-This process is described in detail by the <<dependency_resolution.adoc#understanding_dependency_resolution, Dependency Resolution>> chapter.
+This process is described in detail by the <<dependency_resolution_adv.adoc#understanding_dependency_resolution, Dependency Resolution>> chapter.
 
 The output of the graph resolution phase is a fully resolved dependency graph, which is used as the input to the artifact resolution phase.
 The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult] API provides access to the resolved dependency graph without triggering artifact resolution.
