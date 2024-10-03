@@ -16,17 +16,3 @@ dependencies {
     implementation(libs.guava)
 }
 // end::usage[]
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-application {
-    mainClass = "org.example.App"
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
