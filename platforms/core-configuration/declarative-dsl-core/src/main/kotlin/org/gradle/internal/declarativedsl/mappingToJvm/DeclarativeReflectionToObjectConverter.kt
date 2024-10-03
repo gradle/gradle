@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -137,7 +138,11 @@ class DeclarativeReflectionToObjectConverter(
         ObjectAccessKey.ConfiguringLambda(
             origin.receiver,
             origin.function,
-            identityValues = origin.parameterBindings.bindingMap.values.map { (it as? ObjectOrigin.ConstantOrigin)?.literal?.value })
+            identityValues = origin.parameterBindings.bindingMap.map {(parameter, value) ->
+                if (parameter.semantics is ParameterSemantics.IdentityKey) {
+                    (value as? ObjectOrigin.ConstantOrigin)?.literal?.value
+                } else null
+            })
     ) {
         val function = origin.function
         val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
