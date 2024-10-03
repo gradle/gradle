@@ -40,7 +40,7 @@ abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : Build
             allowEmpty = false,
             description = "The test project to use. E.g. largeJavaMultiProject"
         )
-        param("channel", "adhoc")
+        param("env.PERFORMANCE_CHANNEL", "adhoc")
         param("checks", "all")
         text("runs", "40", display = ParameterDisplay.PROMPT, allowEmpty = false)
         text("warmups", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
@@ -88,7 +88,7 @@ abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : Build
                 performanceTestCommandLine(
                     "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                     "%performance.baselines%",
-                    """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
+                    """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% %additional.gradle.parameters%""",
                     os,
                     arch,
                     "%testJavaVersion%",
