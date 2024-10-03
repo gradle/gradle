@@ -38,6 +38,8 @@ This release adds Clang and GCC support to Gradle on Linux platforms that use th
 
 Thank you to [Matthew Von-Maszewski](https://github.com/matthewvon) for the contribution.
 
+@wistia(Summary,756h06ef3b)@
+
 <a name="config-cache"></a>
 ### Configuration cache improvements
 
