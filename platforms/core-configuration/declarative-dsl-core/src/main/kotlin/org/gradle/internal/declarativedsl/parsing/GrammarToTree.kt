@@ -641,7 +641,7 @@ class GrammarToTree(
 
             elementIfNoFailures {
                 var isLeftArgument = true
-                var operationTokenName: String? = null
+                var operation: LighterASTNode? = null
                 var leftArg: LighterASTNode? = null
                 var rightArg: LighterASTNode? = null
 
@@ -649,7 +649,7 @@ class GrammarToTree(
                     when (it.tokenType) {
                         OPERATION_REFERENCE -> {
                             isLeftArgument = false
-                            operationTokenName = it.asText
+                            operation = it
                         }
                         else -> if (it.isExpression()) {
                             if (isLeftArgument) {
@@ -662,12 +662,12 @@ class GrammarToTree(
                 }
 
                 elementIfNoFailures {
-                    if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
+                    if (operation == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
                     if (leftArg == null) collectingFailure(tree.parsingError(node, "Missing left hand side in binary expression"))
                     if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
 
                     elementIfNoFailures {
-                        val operationToken = operationTokenName!!.getOperationSymbol()
+                        val operationToken = operation!!.asText.getOperationSymbol()
                         when (operationToken) {
                             EQ -> {
                                 val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
@@ -677,9 +677,9 @@ class GrammarToTree(
                                 }
                             }
 
-                            IDENTIFIER -> tree.unsupported(node, UnsupportedLanguageFeature.InfixFunctionCall)
+                            IDENTIFIER -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.InfixFunctionCall)
 
-                            else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
+                            else -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
                         }
                     }
                 }
