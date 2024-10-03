@@ -46,6 +46,9 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
+<!-- To embed videos, use the macros below. You can extract the URL from YouTube by clicking the "Share" button -->
+@video(summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
+
 ================== END TEMPLATE ==========================
 
 
