@@ -72,8 +72,11 @@ object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
 internal
-data class LoadResult(val stateFile: File, val originInvocationId: String? = null) : ConfigurationCacheLoadBuildOperationType.Result {
-    override fun getCacheEntrySize(): Long = stateFile.length()
+data class LoadResult(val stateFiles: List<File>, val originInvocationId: String? = null) : ConfigurationCacheLoadBuildOperationType.Result {
+    override fun getCacheEntrySize(): Long = stateFiles.asSequence()
+        .filter { it.isFile }
+        .sumOf { it.length() }
+
     override fun getOriginBuildInvocationId(): String? = originInvocationId
 }
 
@@ -83,8 +86,10 @@ object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
 internal
-data class StoreResult(val stateFile: File, val storeFailure: Throwable?) : ConfigurationCacheStoreBuildOperationType.Result {
-    override fun getCacheEntrySize(): Long = stateFile.length()
+data class StoreResult(val stateFiles: List<File>, val storeFailure: Throwable?) : ConfigurationCacheStoreBuildOperationType.Result {
+    override fun getCacheEntrySize(): Long = stateFiles.asSequence()
+        .filter { it.isFile }
+        .sumOf { it.length() }
 }
 
 
