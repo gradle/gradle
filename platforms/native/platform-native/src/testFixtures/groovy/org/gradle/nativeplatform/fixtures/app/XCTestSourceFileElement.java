@@ -77,7 +77,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
         return sourceFile("swift", getTestSuiteName() + ".swift",
                 renderImports()
                 + "\n"
-                + "class " + getTestSuiteName() + ": XCTestCase {\n"
+                    + "class " + getTestSuiteName() + ": XCTestCase, @unchecked Sendable {\n"
                 + "    " + renderTestCases() + "\n"
                 + "}");
     }

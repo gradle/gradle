@@ -108,8 +108,8 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         subprojectDir.file("src/test/swift/HolaTests.swift") << """
             import XCTest
             @testable import Lib
-            class HolaTests: XCTestCase {
-                public static var allTests = [
+            class HolaTests: XCTestCase, @unchecked Sendable {
+                public static let allTests = [
                     ("testGreeting", testGreeting),
                 ]
 
