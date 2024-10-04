@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.defaults.isDefaultsConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion

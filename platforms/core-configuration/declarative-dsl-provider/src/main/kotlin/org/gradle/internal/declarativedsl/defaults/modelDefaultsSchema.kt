@@ -31,7 +31,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
-import org.gradle.internal.declarativedsl.settings.UnsupportedSyntaxFeatureCheck
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 

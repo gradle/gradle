@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaults
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
-import org.gradle.internal.declarativedsl.settings.UnsupportedSyntaxFeatureCheck
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 

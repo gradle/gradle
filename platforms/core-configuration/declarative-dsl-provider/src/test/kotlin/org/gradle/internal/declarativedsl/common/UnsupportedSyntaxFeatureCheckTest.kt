@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.settings
+package org.gradle.internal.declarativedsl.common
 
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.AnalyzedStatementUtils
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
