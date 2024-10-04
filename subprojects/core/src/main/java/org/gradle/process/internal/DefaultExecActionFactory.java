@@ -150,7 +150,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        final DefaultJavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
         if (forkOptions.getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
         }
@@ -164,7 +164,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        JavaForkOptionsInternal copy = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
         options.copyTo(copy);
         return new ImmutableJavaForkOptions(copy);
     }
@@ -429,12 +429,12 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public void setExecutable(Object executable) {
+        public void setSystemProperties(Map<String, ?> properties) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void setSystemProperties(Map<String, ?> properties) {
+        public void setExecutable(Object executable) {
             throw new UnsupportedOperationException();
         }
 
@@ -624,18 +624,23 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public boolean isCompatibleWith(JavaForkOptions options) {
-            return delegate.isCompatibleWith(options);
-        }
-
-        @Override
         public void setExtraJvmArgs(Iterable<?> jvmArgs) {
             throw new UnsupportedOperationException();
         }
 
         @Override
+        public Iterable<?> getExtraJvmArgs() {
+            return ImmutableList.copyOf(delegate.getExtraJvmArgs());
+        }
+
+        @Override
         public void checkDebugConfiguration(Iterable<?> arguments) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public EffectiveJavaForkOptions toEffectiveJvmForkOptions() {
+            return delegate.toEffectiveJvmForkOptions();
         }
     }
 }
