@@ -58,6 +58,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
     }
 
     private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {
+        @Provides
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);

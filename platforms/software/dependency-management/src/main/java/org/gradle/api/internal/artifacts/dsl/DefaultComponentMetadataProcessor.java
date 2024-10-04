@@ -198,7 +198,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         if (metadataRuleContainer.isEmpty()) {
             updatedMetadata = metadata;
         } else {
-            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(componentIdentifierNotationParser, metadata, attributesFactory);
+            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
             processAllRules(null, details, metadata.getId());
             updatedMetadata = details.asImmutable();
         }
@@ -315,14 +315,12 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     static class ShallowComponentMetadataAdapter implements ComponentMetadataDetails {
-        private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
         private final ModuleVersionIdentifier id;
         private boolean changing;
         private List<String> statusScheme;
         private final AttributeContainerInternal attributes;
 
-        public ShallowComponentMetadataAdapter(NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser, ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
-            this.componentIdentifierNotationParser = componentIdentifierNotationParser;
+        public ShallowComponentMetadataAdapter(ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
             id = source.getId();
             changing = source.isChanging();
             statusScheme = source.getStatusScheme();

@@ -312,17 +312,17 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     }
 
     private void publishChecksums(ExternalResourceName destination, File content) {
-        publishChecksum(destination, content, "sha1", 40);
+        publishChecksum(destination, content, "sha1");
 
         if (!ExternalResourceResolver.disableExtraChecksums()) {
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-256");
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-512");
         }
     }
 
-    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm) {
         try {
-            publishChecksum(destination, content, algorithm, length);
+            publishChecksum(destination, content, algorithm);
         } catch (Exception ex) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.", ex);
@@ -332,13 +332,13 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         }
     }
 
-    private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
-        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(Locale.ROOT), length);
+    private void publishChecksum(ExternalResourceName destination, File content, String algorithm) {
+        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(Locale.ROOT));
         ExternalResourceName checksumDestination = destination.append("." + algorithm.replaceAll("-", ""));
         repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksum));
     }
 
-    private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
+    private byte[] createChecksumFile(File src, String algorithm) {
         HashCode hash = checksumService.hash(src, algorithm);
         String formattedHashString = hash.toString();
         try {
