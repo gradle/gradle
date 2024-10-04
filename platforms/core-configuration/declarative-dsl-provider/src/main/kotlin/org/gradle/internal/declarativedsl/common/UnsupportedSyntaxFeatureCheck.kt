@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.settings
+package org.gradle.internal.declarativedsl.common
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument

@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaults
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
@@ -28,7 +29,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun projectInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStepWithConversion(
     "project",
-    features = setOf(ApplyModelDefaults()),
+    features = setOf(ApplyModelDefaults(), UnsupportedSyntaxFeatureCheck.feature),
 ) {
     projectEvaluationSchema(softwareTypeRegistry)
 }
