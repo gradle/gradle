@@ -53,7 +53,7 @@ fun settingsInterpretationSequence(
                 features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
             defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry),
-            SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStepWithConversion("settings", features =  setOf(UnsupportedSyntaxFeatureCheck.feature)) { settingsEvaluationSchema(settings) }
         )
     )
 
