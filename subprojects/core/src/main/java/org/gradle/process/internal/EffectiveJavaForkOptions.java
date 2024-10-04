@@ -89,7 +89,7 @@ public class EffectiveJavaForkOptions {
 
     @Override
     public String toString() {
-        return "JvmForkOptions{" +
+        return "EffectiveJavaForkOptions{" +
             "executable='" + executable + '\'' +
             ", workingDir=" + workingDir +
             ", environment=" + environment +
