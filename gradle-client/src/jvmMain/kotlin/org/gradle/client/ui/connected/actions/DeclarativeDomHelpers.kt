@@ -8,10 +8,8 @@ import org.gradle.internal.declarativedsl.dom.DocumentNodeContainer
 val DeclarativeDocument.singleSoftwareTypeNode: ElementNode?
     get() = content.filterIsInstance<ElementNode>().singleOrNull()
 
-fun DocumentNodeContainer.childElementNode(
-    name: String
-): ElementNode? =
-    content.filterIsInstance<ElementNode>().singleOrNull() { it.name == name }
+fun DocumentNodeContainer.childElementNodes(name: String): List<ElementNode> = 
+    content.filterIsInstance<ElementNode>().filter { it.name == name }
 
 fun DocumentNodeContainer.property(name: String): PropertyNode? =
     content.filterIsInstance<PropertyNode>().singleOrNull { it.name == name }

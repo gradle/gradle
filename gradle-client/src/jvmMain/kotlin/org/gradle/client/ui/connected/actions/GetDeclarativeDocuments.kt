@@ -450,21 +450,8 @@ class ModelTreeRendering(
     ) {
         if (resolutionContainer.isUnresolvedBase(element)) return
 
-        val arguments = element.elementValues.joinToString { valueNode ->
-            when (valueNode) {
-                is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value.toString()
-                is DeclarativeDocument.ValueNode.NamedReferenceNode -> valueNode.referenceName
-                is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
-                    val args = valueNode.values.map {
-                        (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."
-                    }
-                    val argsString = args.joinToString(",", "(", ")") ?: "()"
-                    "${valueNode.factoryName}$argsString"
-                }
-            }
-        }
-        val elementType =
-            (resolutionContainer.data(element) as? ContainerElementResolved)?.elementType as? DataClass
+        val arguments = elementArgumentsString(element)
+        val elementType = (resolutionContainer.data(element) as? ContainerElementResolved)?.elementType as? DataClass
 
         val elementTextRepresentation = "${element.name}($arguments)"
 
@@ -497,6 +484,21 @@ class ModelTreeRendering(
         }
     }
 
+    private fun elementArgumentsString(element: ElementNode) =
+        element.elementValues.joinToString { valueNode ->
+            when (valueNode) {
+                is DeclarativeDocument.ValueNode.LiteralValueNode -> valueNode.value.toString()
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> valueNode.referenceName
+                is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
+                    val args = valueNode.values.map {
+                        (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."
+                    }
+                    val argsString = args.joinToString(",", "(", ")") ?: "()"
+                    "${valueNode.factoryName}$argsString"
+                }
+            }
+        }
+
     @Composable
     private fun ModelTreeRendering.ConfiguringFunctionInfo(
         subFunction: SchemaMemberFunction,
@@ -505,23 +507,28 @@ class ModelTreeRendering(
     ) {
         if (parentNode is ElementNode && resolutionContainer.isUnresolvedBase(parentNode))
             return
+        
+        val functionNodes = parentNode.childElementNodes(subFunction.simpleName)
+        functionNodes.forEach { functionNode ->
+            val functionType = functionNode.type(resolutionContainer) as? DataClass
 
-        val functionNode = parentNode.childElementNode(subFunction.simpleName)
-        val functionType = functionNode?.type(resolutionContainer) as? DataClass
-        WithDecoration(functionNode) {
-            TitleSmall(
-                text = subFunction.simpleName,
-                modifier = Modifier
-                    .withHoverCursor()
-                    .semiTransparentIfNull(functionType)
-                    .withClickTextRangeSelection(functionNode, highlightingContext)
+            WithDecoration(functionNode) {
+                val title = subFunction.simpleName +
+                        if (functionNode.elementValues.isNotEmpty()) "(${elementArgumentsString(functionNode)})" else ""
+                TitleSmall(
+                    text = title,
+                    modifier = Modifier
+                        .withHoverCursor()
+                        .semiTransparentIfNull(functionType)
+                        .withClickTextRangeSelection(functionNode, highlightingContext)
+                )
+            }
+            ElementInfoOrNothingDeclared(
+                functionType,
+                functionNode,
+                indentLevel + 1
             )
         }
-        ElementInfoOrNothingDeclared(
-            functionType,
-            functionNode,
-            indentLevel + 1
-        )
     }
 
 
