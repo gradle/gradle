@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.serialize
 
-import org.gradle.internal.Debug
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.graph.CloseableReadContext
@@ -53,21 +52,13 @@ class DefaultGlobalValueEncoder(
     var nextId = AtomicInteger(1)
 
     override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
-
-        Debug.println(">>>")
-        Debug.println("Writing $value ${globalContext.name}")
-        Debug.println("Client context ${writeContext.name}")
-        Debug.println("Global context ${globalContext.name}")
-        Debug.println("<<<")
         val id = values.computeIfAbsent(value) { _ ->
             val id = nextId.getAndIncrement()
             // write the id and value to the global context
-            Debug.println("Writing $id - $value - ${globalContext.name}")
             doWriteValue(id, value)
             id
         }
         // write the id to the client context
-        Debug.println("Writing $id to ${writeContext.name} for $value")
         writeContext.writeSmallInt(id)
     }
 
@@ -143,11 +134,9 @@ class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContex
                     stopReading()
                     break
                 }
-                Debug.println("Reading id $id from $this")
                 val read = runReadOperation {
                     read()!!
                 }
-                Debug.println("Read id $id - $read")
                 values.compute(id) { _, value ->
                     when (value) {
                         is FutureValue -> value.complete(read)
@@ -157,35 +146,24 @@ class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContex
                 }
             }
             state.set(ReaderState.STOPPED)
-            Debug.println("Stopped reading ${globalContext.name}")
         }
     }
 
     private
     fun ReadContext.resolveValue(id: Int): Any {
         startReadingIfNeeded()
-        Debug.println(">>>")
-        Debug.println("Resolving $id")
-        Debug.println("Client context: ${this.name}")
-        Debug.println("Global context: ${globalContext.name}")
-        Debug.println("<<<")
         require(id >= 0) {
             "id: $id - $this"
         }
         return when (val existing = values.computeIfAbsent(id) { FutureValue() }) {
-                is FutureValue -> existing.get().also { value ->
-                    Debug.println("Waited and resolved $id - $value")
-                }
-                else -> existing.also { value ->
-                    Debug.println("Resolved ready $id - $value")
-                }
+                is FutureValue -> existing.get()
+                else -> existing
             }
     }
 
     private fun startReadingIfNeeded() {
         if (state.compareAndSet(ReaderState.READY, ReaderState.STARTED)) {
             reader.start()
-            Debug.println("Started reader")
         }
     }
 

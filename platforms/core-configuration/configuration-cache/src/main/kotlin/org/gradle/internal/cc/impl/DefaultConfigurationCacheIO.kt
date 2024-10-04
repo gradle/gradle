@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.internal.Debug
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
@@ -264,9 +263,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun globalValueEncoderFor(baseFile: ConfigurationCacheStateFile, globalsFile: ConfigurationCacheStateFile, stringEncoder: StringEncoder): GlobalValueEncoder =
         isUsingGlobalValueDeduplicationStrategy(baseFile).let { deduplicate ->
-            Debug.println("encoder - deduplicating? $deduplicate - $baseFile")
             if (deduplicate) {
-                Debug.println("globalsFile: $globalsFile")
                 val (globalContext, _) = writeContextFor(globalsFile, stringEncoder, InlineGlobalValueEncoder) { "global values" }
                 globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
                 DefaultGlobalValueEncoder(globalContext)
@@ -278,9 +275,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun globalValueDecoder(baseFile: ConfigurationCacheStateFile, globalsFile: ConfigurationCacheStateFile, stringDecoder: StringDecoder): GlobalValueDecoder =
         isUsingGlobalValueDeduplicationStrategy(baseFile).let { deduplicate ->
-            Debug.println("decoder - deduplicating? $deduplicate - $baseFile")
             if (deduplicate) {
-                Debug.println("globalsFile: $globalsFile")
                 // Create a context that honors global value duplication
                 // but uses an inline global value decoder
                 val (globalContext, _) = readContextFor(globalsFile, stringDecoder)
