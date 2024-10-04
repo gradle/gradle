@@ -387,6 +387,33 @@ Other common scenarios are less clear cut and may have better solutions. For exa
 
 If you're unsure whether to create a custom source set or not, then go ahead and do so. It should be straightforward and if it's not, then it's probably not the right tool for the job.
 
+[[sec:java_compiling_errors]]
+=== Debugging compiling errors
+
+Gradle provides detailed reporting for compilation failures.
+
+If a compilation task fails, the summary of errors is displayed in the following locations:
+
+- The task's output, providing immediate context for the error.
+- The "What went wrong" summary at the bottom of the build output, consolidated with all other failures for easy reference.
+
+[source,text]
+----
+* What went wrong:
+Execution failed for task ':project1:compileJava'.
+> Compilation failed; see the compiler output below.
+Java compilation warning (compilation:java:java-compilation-warning)
+  sample-project/src/main/java/Problem1.java:6: warning: [cast] redundant cast to String
+          var warning = (String)"warning";
+                        ^
+Java compilation error (compilation:java:java-compilation-error)
+  sample-project/src/main/java/Problem2.java:6: error: incompatible types: int cannot be converted to String
+          String a = 1;
+                     ^
+----
+
+This reporting feature works with the `—continue` flag.
+
 [[sec:java_resources]]
 == Managing resources
 
