@@ -22,10 +22,20 @@ import org.gradle.internal.credentials.DefaultPasswordCredentials
 
 class TestCredentialUtil {
 
+    /**
+     * Instantiates a new DefaultPasswordCredentials object.
+     *
+     * It avoids instantiation via TestUtil.newInstance() since otherwise tests have to depend on distribution-core.
+     *
+     * Note: Generated object is not decorated.
+     */
     static DefaultPasswordCredentials defaultPasswordCredentials() {
         return new DefaultPasswordCredentials() {}
     }
 
+    /**
+     * @see #defaultPasswordCredentials()
+     */
     static DefaultPasswordCredentials defaultPasswordCredentials(String username, String password) {
         DefaultPasswordCredentials credentials = defaultPasswordCredentials()
         credentials.setUsername(username);
@@ -33,10 +43,20 @@ class TestCredentialUtil {
         return credentials;
     }
 
+    /**
+     * Instantiates a new DefaultAwsCredentials object.
+     *
+     * It avoids instantiation via TestUtil.newInstance() since otherwise tests have to depend on distribution-core.
+     *
+     * Note: Generated object is not decorated.
+     */
     static DefaultAwsCredentials defaultAwsCredentials() {
         return new DefaultAwsCredentials() {}
     }
 
+    /**
+     * @see #defaultAwsCredentials()
+     */
     static DefaultAwsCredentials defaultAwsCredentials(String secretValue) {
         def credentials = defaultAwsCredentials()
         credentials.setAccessKey(secretValue)
@@ -45,10 +65,20 @@ class TestCredentialUtil {
         return credentials
     }
 
+    /**
+     * Instantiates a new DefaultHttpHeaderCredentials object.
+     *
+     * It avoids instantiation via TestUtil.newInstance() since otherwise tests have to depend on distribution-core.
+     *
+     * Note: Generated object is not decorated.
+     */
     static DefaultHttpHeaderCredentials defaultHttpHeaderCredentials() {
         return new DefaultHttpHeaderCredentials() {}
     }
 
+    /**
+     * @see #defaultHttpHeaderCredentials()
+     */
     static DefaultHttpHeaderCredentials defaultHttpHeaderCredentials(String name, String value) {
         def credentials = defaultHttpHeaderCredentials()
         credentials.setName(name)
