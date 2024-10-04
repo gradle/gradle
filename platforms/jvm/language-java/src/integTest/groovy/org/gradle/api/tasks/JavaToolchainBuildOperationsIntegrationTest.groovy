@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -33,6 +34,7 @@ import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+@LocalOnly(because = "Multiple choices for a Java version cause the tests to fail as the Java version is not deterministic") // https://github.com/gradle/gradle-private/issues/4498
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests
