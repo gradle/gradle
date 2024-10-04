@@ -406,7 +406,7 @@ Java compilation warning
   sample-project/src/main/java/Problem1.java:6: warning: [cast] redundant cast to String
           var warning = (String)"warning";
                         ^
-Java compilation error (compilation:java:java-compilation-error)
+Java compilation error
   sample-project/src/main/java/Problem2.java:6: error: incompatible types: int cannot be converted to String
           String a = 1;
                      ^
