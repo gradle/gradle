@@ -493,7 +493,7 @@ class ModelTreeRendering(
                     val args = valueNode.values.map {
                         (it as? DeclarativeDocument.ValueNode.LiteralValueNode)?.value ?: "..."
                     }
-                    val argsString = args.joinToString(",", "(", ")") ?: "()"
+                    val argsString = args.joinToString(",", "(", ")")
                     "${valueNode.factoryName}$argsString"
                 }
             }
@@ -507,27 +507,35 @@ class ModelTreeRendering(
     ) {
         if (parentNode is ElementNode && resolutionContainer.isUnresolvedBase(parentNode))
             return
-        
-        val functionNodes = parentNode.childElementNodes(subFunction.simpleName)
-        functionNodes.forEach { functionNode ->
-            val functionType = functionNode.type(resolutionContainer) as? DataClass
 
-            WithDecoration(functionNode) {
-                val title = subFunction.simpleName +
+        val functionNodes = parentNode.childElementNodes(resolutionContainer, subFunction)
+        if (functionNodes.isNotEmpty()) {
+            functionNodes.forEach { functionNode ->
+                val functionType = functionNode.type(resolutionContainer) as? DataClass
+
+                WithDecoration(functionNode) {
+                    val argsString =
                         if (functionNode.elementValues.isNotEmpty()) "(${elementArgumentsString(functionNode)})" else ""
-                TitleSmall(
-                    text = title,
-                    modifier = Modifier
-                        .withHoverCursor()
-                        .semiTransparentIfNull(functionType)
-                        .withClickTextRangeSelection(functionNode, highlightingContext)
-                )
+                    val title = subFunction.simpleName + argsString
+                    TitleSmall(
+                        text = title,
+                        modifier = Modifier
+                            .withHoverCursor()
+                            .semiTransparentIfNull(functionType)
+                            .withClickTextRangeSelection(functionNode, highlightingContext)
+                    )
+                }
+                ElementInfoOrNothingDeclared(functionType, functionNode, indentLevel + 1)
             }
-            ElementInfoOrNothingDeclared(
-                functionType,
-                functionNode,
-                indentLevel + 1
+        } else {
+            TitleSmall(
+                text = subFunction.simpleName,
+                modifier = Modifier
+                    .withHoverCursor()
+                    .semiTransparentIfNull(null)
+                    .withClickTextRangeSelection(null, highlightingContext)
             )
+            ElementInfoOrNothingDeclared(null, null, indentLevel + 1)
         }
     }
 
