@@ -125,7 +125,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
                 throw new MissingValueException(errorBuilder.toString());
             }
             if (objectFactory == null) {
-                throw new UnsupportedOperationException("Cannot create credentials without an ObjectFactory");
+                throw new UnsupportedOperationException("Cannot create credentials in this context since ObjectFactory is not available");
             }
         }
 
@@ -185,7 +185,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             String value = getRequiredProperty("AuthHeaderValue");
             assertRequiredValuesPresent();
 
-            HttpHeaderCredentials credentials = new DefaultHttpHeaderCredentials();
+            HttpHeaderCredentials credentials = objectFactory.newInstance(DefaultHttpHeaderCredentials.class);
             credentials.setName(name);
             credentials.setValue(value);
             return credentials;

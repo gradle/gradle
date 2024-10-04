@@ -23,6 +23,7 @@ import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.credentials.DefaultHttpHeaderCredentials
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.util.TestCredentialUtil
 import spock.lang.Specification
@@ -185,6 +186,7 @@ class CredentialsProviderFactoryTest extends Specification {
         given:
         providerFactory.gradleProperty('myServiceAuthHeaderName') >> new DefaultProvider<>({ 'Private-Token' })
         providerFactory.gradleProperty('myServiceAuthHeaderValue') >> new DefaultProvider<>({ 'secret' })
+        objectFactory.newInstance(DefaultHttpHeaderCredentials) >> TestCredentialUtil.defaultHttpHeaderCredentials()
         def provider = factory.provide(HttpHeaderCredentials, 'myService')
 
         when:

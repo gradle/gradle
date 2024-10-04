@@ -36,16 +36,10 @@ class CredentialsToStringSpec extends Specification {
     }
 
     private static DefaultPasswordCredentials makePasswordCredentials(String secretValue) {
-        def credentials = TestCredentialUtil.defaultPasswordCredentials()
-        credentials.setUsername(UUID.randomUUID().toString())
-        credentials.setPassword(secretValue)
-        return credentials
+        return TestCredentialUtil.defaultPasswordCredentials(UUID.randomUUID().toString(), secretValue)
     }
 
     private static DefaultHttpHeaderCredentials makeHttpHeaderCredentials(String secretValue) {
-        def credentials = new DefaultHttpHeaderCredentials()
-        credentials.setName(UUID.randomUUID().toString())
-        credentials.setValue(secretValue)
-        return credentials
+        return TestCredentialUtil.defaultHttpHeaderCredentials(UUID.randomUUID().toString(), secretValue)
     }
 }
