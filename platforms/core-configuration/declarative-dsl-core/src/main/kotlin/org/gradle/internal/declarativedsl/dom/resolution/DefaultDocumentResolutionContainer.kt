@@ -50,6 +50,7 @@ import org.gradle.internal.declarativedsl.dom.ElementNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.NamedReferenceNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.NonEnumValueNamedReference
 import org.gradle.internal.declarativedsl.dom.NotAssignable
+import org.gradle.internal.declarativedsl.dom.OpaqueValueInIdentityKey
 import org.gradle.internal.declarativedsl.dom.PropertyNotAssignedReason
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
 import org.gradle.internal.declarativedsl.dom.UnresolvedName
@@ -216,8 +217,7 @@ class DocumentResolver(
                 is FunctionSemantics.NewObjectFunctionSemantics -> {
                     ElementResolution.SuccessfulElementResolution.ContainerElementResolved(
                         typeRefContext.resolveRef((semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType ?: semantics.returnValueType),
-                        function as SchemaMemberFunction,
-                        false // TODO: produce proper key markers
+                        function as SchemaMemberFunction
                     )
                 }
 
@@ -275,6 +275,7 @@ class DocumentResolver(
             is ErrorReason.AmbiguousImport,
             ErrorReason.DanglingPureExpression,
             is ErrorReason.NonReadableProperty,
+            is ErrorReason.OpaqueArgumentForIdentityParameter,
             ErrorReason.UnitAssignment, // TODO: should we still check for this?
             ErrorReason.AccessOnCurrentReceiverOnlyViolation -> error("not expected here")
         }
@@ -294,6 +295,8 @@ class DocumentResolver(
             is ErrorReason.UnresolvedFunctionCallReceiver -> UnresolvedBase
 
             is ErrorReason.UnresolvedReference -> UnresolvedName
+
+            is ErrorReason.OpaqueArgumentForIdentityParameter -> OpaqueValueInIdentityKey
 
             is ErrorReason.ReadOnlyPropertyAssignment,
             ErrorReason.UnitAssignment,

@@ -241,10 +241,14 @@ private fun elementFactoryFunction(
         receiverTypeRef,
         elementFactoryName,
         listOf(
-            DefaultDataParameter("name", DataTypeInternal.DefaultStringDataType.ref, false, ParameterSemanticsInternal.DefaultUnknown)
+            DefaultDataParameter("name", DataTypeInternal.DefaultStringDataType.ref, false, ParameterSemanticsInternal.DefaultIdentityKey(null))
         ),
         false,
-        FunctionSemanticsInternal.DefaultAddAndConfigure(elementTypeRef, DefaultRequired)
+        FunctionSemanticsInternal.DefaultAccessAndConfigure(
+            ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(elementTypeRef),
+            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject,
+            DefaultRequired
+        )
     )
 }
 
