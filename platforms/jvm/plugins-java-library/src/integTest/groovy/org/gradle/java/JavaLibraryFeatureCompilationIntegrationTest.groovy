@@ -693,6 +693,52 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         succeeds("verifyConfigurations")
     }
 
+    def "can depend on a feature using requireFeature"() {
+        settingsFile << """
+            include("other")
+        """
+
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                create("foo")
+            }
+
+            java {
+                registerFeature("foo") {
+                    usingSourceSet(sourceSets.foo)
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(":other")) {
+                    capabilities {
+                        requireFeature("foo")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    assert files*.name == ["other-foo.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+    }
+
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
         def tasks = [":$subproject:process${feature.capitalize()}Resources", ":$subproject:${feature.isEmpty() ? 'classes' : feature + 'Classes'}", ":$subproject:${feature.isEmpty() ? 'jar' : feature + 'Jar'}"]
         if (expectExecuted) {
