@@ -30,7 +30,7 @@ class TestCredentialUtil {
      * Note: Generated object is not decorated.
      */
     static DefaultPasswordCredentials defaultPasswordCredentials() {
-        return new DefaultPasswordCredentials() {}
+        return TestUtil.newInstance(DefaultPasswordCredentials)
     }
 
     /**
@@ -51,7 +51,7 @@ class TestCredentialUtil {
      * Note: Generated object is not decorated.
      */
     static DefaultAwsCredentials defaultAwsCredentials() {
-        return new DefaultAwsCredentials() {}
+        return TestUtil.newInstance(DefaultAwsCredentials)
     }
 
     /**
@@ -73,7 +73,7 @@ class TestCredentialUtil {
      * Note: Generated object is not decorated.
      */
     static DefaultHttpHeaderCredentials defaultHttpHeaderCredentials() {
-        return new DefaultHttpHeaderCredentials() {}
+        return TestUtil.newInstance(DefaultHttpHeaderCredentials)
     }
 
     /**

@@ -65,6 +65,8 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
+import java.util.function.Supplier
+
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
@@ -86,11 +88,14 @@ class TestUtil {
 
     static InstantiatorFactory instantiatorFactory() {
         if (instantiatorFactory == null) {
-            NativeServicesTestFixture.initialize()
-            def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
-            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, new OutputPropertyRoleAnnotationHandler([]))
+            instantiatorFactory = createInstantiatorFactory({ [] })
         }
         return instantiatorFactory
+    }
+
+    static InstantiatorFactory createInstantiatorFactory(Supplier<List<InjectAnnotationHandler>> injectHandlers) {
+        NativeServicesTestFixture.initialize()
+        return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), injectHandlers.get(), new OutputPropertyRoleAnnotationHandler([]))
     }
 
     static ManagedFactoryRegistry managedFactoryRegistry() {
