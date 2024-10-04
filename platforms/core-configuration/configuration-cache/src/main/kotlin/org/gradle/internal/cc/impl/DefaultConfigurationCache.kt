@@ -446,7 +446,7 @@ class DefaultConfigurationCache internal constructor(
             }
 
             val storeFailure = stateStoreResult.value
-            StoreResult(stateStoreResult.accessedFiled, storeFailure)
+            StoreResult(stateStoreResult.accessedFiles, storeFailure)
         }
 
         crossConfigurationTimeBarrier()
@@ -481,7 +481,7 @@ class DefaultConfigurationCache internal constructor(
         val result = buildOperationRunner.withLoadOperation {
             val storeLoadResult = store.useForStateLoad(stateType, action)
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
-            LoadResult(storeLoadResult.accessedFiled, intermediateLoadResult.originInvocationId) to actionResult
+            LoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
         crossConfigurationTimeBarrier()
         return result

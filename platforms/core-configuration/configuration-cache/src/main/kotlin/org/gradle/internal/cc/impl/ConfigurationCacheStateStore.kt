@@ -25,7 +25,7 @@ interface ConfigurationCacheStateStore {
 
     data class StateFile(val stateType: StateType, val file: File)
 
-    data class StateAccessResult<T>(val value: T, val accessedFiled: List<File>)
+    data class StateAccessResult<T>(val value: T, val accessedFiles: List<File>)
 
     fun assignSpoolFile(stateType: StateType): StateFile
 
