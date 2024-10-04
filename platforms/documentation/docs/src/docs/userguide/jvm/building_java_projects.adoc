@@ -402,7 +402,7 @@ If a compilation task fails, the summary of errors is displayed in the following
 * What went wrong:
 Execution failed for task ':project1:compileJava'.
 > Compilation failed; see the compiler output below.
-Java compilation warning (compilation:java:java-compilation-warning)
+Java compilation warning
   sample-project/src/main/java/Problem1.java:6: warning: [cast] redundant cast to String
           var warning = (String)"warning";
                         ^
