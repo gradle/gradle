@@ -133,8 +133,8 @@ All problems reported via the [Problems API](userguide/implementing_gradle_plugi
 The console output provides a link to this report, as shown below:
 
 ```
-> Task :reportProblem
-[Incubating] Problem report is available at: <project-dir>/build/tmp/te%C5%9Dt%20files/ProblemsSer.Test/h79pc/build/reports/problems/problems-report.html
+> Task :someTask
+[Incubating] Problem report is available at: <project-dir>/build/tmp/test files/ProblemsSer.Test/h79pc/build/reports/problems/problems-report.html
 
 BUILD SUCCESSFUL in 1s
 1 actionable task: 1 executed
@@ -146,7 +146,7 @@ The rendered report link directs you to a detailed HTML view of the problems, su
 
 This report serves as a central location for users to review problems occurring in a build, whether they originate from internal or external plugins.
 
-If you do not want to generate this report, you can disable it with the `--no-problems-report` flag
+If you do not want to generate this report, you can disable it with the `--no-problems-report` flag, otherwise the report is created regardless whether there have been any problems reported or not.
 
 <a name="dependency-resolution"></a>
 ### Dependency management improvements
