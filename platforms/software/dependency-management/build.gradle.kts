@@ -14,7 +14,6 @@ errorprone {
         "AmbiguousMethodReference", // 1 occurrences
         "ClassCanBeStatic",
         "DefaultCharset", // 3 occurrences
-        "EmptyBlockTag", // 2 occurrences
         "Finally", // 4 occurrences
         "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 2 occurrences
