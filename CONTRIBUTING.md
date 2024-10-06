@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Gradle!
 This guide explains how to contribute to the core Gradle components, 
 extensions and documentation located in this repository.
 For other extensions and components, see the 
-[Gradle Community Resources](https://gradle.org/resources/).
+[Gradle Community Resources](https://community.gradle.org/).
 
 This guide will help you to...
 
