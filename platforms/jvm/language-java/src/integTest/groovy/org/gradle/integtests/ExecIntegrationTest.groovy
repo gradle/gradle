@@ -21,8 +21,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.ShellScript
 import org.gradle.process.TestJavaMain
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.TextUtil
@@ -395,6 +397,134 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             'execTask', 'execProjectMethod', 'execInjectedTaskAction',
             'javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction'
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30790")
+    def "#task task inherits environment variables of build process"() {
+        given:
+        def shellScript = ShellScript.builder()
+            .printEnvironmentVariableIfPresent("TEST_VAR1")
+            .printEnvironmentVariableIfPresent("TEST_VAR2")
+            .writeTo(testDirectory, "printEnv")
+        def shellScriptCmd = ShellScript.cmdToVarargLiterals(shellScript.commandLine)
+
+        buildFile """
+            tasks.register("runExec", Exec) {
+                commandLine($shellScriptCmd)
+            }
+
+            tasks.register("runJavaExec", JavaExec) {
+                ${javaExecSpec()}
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(TEST_VAR1: "FOO")
+        succeeds("run$task")
+
+        then:
+        outputContains("TEST_VAR1=FOO")
+        outputDoesNotContain("TEST_VAR2=")
+
+        when:
+        executer.withEnvironmentVars(TEST_VAR2: "BAR")
+        succeeds("run$task")
+
+        then:
+        outputDoesNotContain("TEST_VAR1=")
+        outputContains("TEST_VAR2=BAR")
+
+        where:
+        task << ["Exec", "JavaExec"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30790")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/30790")
+    def "#task task can add to inherited environment variables"() {
+        given:
+        def shellScript = ShellScript.builder()
+            .printEnvironmentVariableIfPresent("TEST_VAR0")
+            .printEnvironmentVariableIfPresent("TEST_VAR1")
+            .printEnvironmentVariableIfPresent("TEST_VAR2")
+            .writeTo(testDirectory, "printEnv")
+        def shellScriptCmd = ShellScript.cmdToVarargLiterals(shellScript.commandLine)
+
+        buildFile """
+            tasks.register("runExec", Exec) {
+                commandLine($shellScriptCmd)
+                environment("TEST_VAR0", "BAZ")
+            }
+
+            tasks.register("runJavaExec", JavaExec) {
+                ${javaExecSpec()}
+                environment("TEST_VAR0", "BAZ")
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(TEST_VAR1: "FOO")
+        succeeds("run$task")
+
+        then:
+        outputContains("TEST_VAR0=BAZ")
+        outputContains("TEST_VAR1=FOO")
+        outputDoesNotContain("TEST_VAR2=")
+
+        when:
+        executer.withEnvironmentVars(TEST_VAR2: "BAR")
+        succeeds("run$task")
+
+        then:
+        outputContains("TEST_VAR0=BAZ")
+        outputDoesNotContain("TEST_VAR1=")
+        outputContains("TEST_VAR2=BAR")
+
+        where:
+        task << ["Exec", "JavaExec"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30790")
+    def "#task task can replace inherited environment variables"() {
+        given:
+        def shellScript = ShellScript.builder()
+            .printEnvironmentVariableIfPresent("TEST_VAR0")
+            .printEnvironmentVariableIfPresent("TEST_VAR1")
+            .printEnvironmentVariableIfPresent("TEST_VAR2")
+            .writeTo(testDirectory, "printEnv")
+        def shellScriptCmd = ShellScript.cmdToVarargLiterals(shellScript.commandLine)
+
+        buildFile """
+            tasks.register("runExec", Exec) {
+                commandLine($shellScriptCmd)
+                environment = [TEST_VAR0: "BAZ"]
+            }
+
+            tasks.register("runJavaExec", JavaExec) {
+                ${javaExecSpec()}
+                environment = [TEST_VAR0: "BAZ"]
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(TEST_VAR1: "FOO")
+        succeeds("run$task")
+
+        then:
+        outputContains("TEST_VAR0=BAZ")
+        outputDoesNotContain("TEST_VAR1=")
+        outputDoesNotContain("TEST_VAR2=")
+
+        when:
+        executer.withEnvironmentVars(TEST_VAR2: "BAR")
+        succeeds("run$task")
+
+        then:
+        outputContains("TEST_VAR0=BAZ")
+        outputDoesNotContain("TEST_VAR1=")
+        outputDoesNotContain("TEST_VAR2=")
+
+        where:
+        task << ["Exec", "JavaExec"]
     }
 
     @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
