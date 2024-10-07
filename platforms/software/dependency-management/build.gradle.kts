@@ -31,7 +31,6 @@ errorprone {
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
-        "OperatorPrecedence", // 2 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences

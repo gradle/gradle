@@ -17,9 +17,9 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
@@ -155,9 +155,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure
-                    || arguments.length == 1 && arguments[0] instanceof Class
-                    || arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure)
+            return ((arguments.length == 1 && arguments[0] instanceof Closure)
+                || (arguments.length == 1 && arguments[0] instanceof Class)
+                || (arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure))
                     && hasProperty(name);
         }
     }

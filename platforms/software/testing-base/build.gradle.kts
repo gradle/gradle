@@ -14,7 +14,6 @@ errorprone {
     disabledChecks.addAll(
         "InlineMeInliner", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
-        "OperatorPrecedence", // 1 occurrences
     )
 }
 
