@@ -88,14 +88,14 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-resolut
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 ====
 
-If version `1.3` is also present in the dependency graph, Gradle’s default conflict resolution strategy would select `1.3` as the latest version.
+If version `1.3` is also present in the dependency graph, then even with this rule, Gradle’s default conflict resolution strategy would select `1.3` as the latest version.
 
 **Difference from Rich Version Constraints:** Using <<rich_versions.adoc#rich-version-constraints,rich version>> constraints, you can reject certain versions outright, causing the build to fail or select a non-rejected version if a dynamic dependency is used. In contrast, a dependency resolve rule like the one shown here manipulates the version being requested, replacing it with a known good version when a rejected one is found. This approach is a *solution* for handling rejected versions, while rich version constraints are about expressing the intent to avoid certain versions.
 
 [[sec:module_replacement]]
 == Using module replacement rules
 
-While it's generally better to manage module conflicts using <<dependency_capability_conflict.adoc#sub:capabilities, capabilities>>, there are scenarios—especially when working with older versions of Gradle that require a different approach.
+While it's generally better to manage module conflicts using <<dependency_capability_conflict.adoc#sub:capabilities, capabilities>>, there are scenarios—especially when working with older versions of Gradle-that require a different approach.
 In these cases, *module replacement rules* offer a solution by allowing you to specify that a legacy library has been replaced by a newer one.
 
 *Module replacement rules* allow you to declare that a legacy library has been replaced by a newer one.
@@ -205,7 +205,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-conditi
 [[sec:variant_aware_substitutions]]
 === Substituting a dependency with another variant
 
-you can substitute a dependency with another <<variant_model.adoc#understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
+You can substitute a dependency with another <<variant_model.adoc#understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
 
 This is useful when your build process needs to change the type of dependency based on specific conditions:
 
@@ -366,7 +366,8 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-selecti
 
 Note that version selection is applied starting with the highest version first.
 The version selected will be the first version found that all component selection rules accept.
-A version is considered accepted if no rule explicitly rejects it.
+
+IMPORTANT: A version is considered accepted if no rule explicitly rejects it.
 
 Similarly, rules can be targeted at specific modules.
 Modules must be specified in the form of `group:module`:

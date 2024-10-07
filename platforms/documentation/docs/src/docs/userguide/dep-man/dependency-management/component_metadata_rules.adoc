@@ -15,7 +15,7 @@
 [[sec:component_metadata_rules]]
 = Using Component Metadata Rules
 
-Each module pulled from a repository includes metadata, such as its group, name, version, and the various variants it provides along with their artifacts and dependencies.
+Each component pulled from a repository includes metadata, such as its group, name, version, and the various variants it provides along with their artifacts and dependencies.
 
 Occasionally, this metadata might be incomplete or incorrect.
 
@@ -32,7 +32,10 @@ These rules can be defined in two ways:
 2. **As a Separate Class:** Implementing the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataRule.html[`ComponentMetadataRule`] interface.
 
 While inline actions are convenient for quick experimentation, it's generally recommended to define rules as separate classes.
+
 Rules written as isolated classes can be annotated with `@CacheableRule`, allowing their results to be cached and avoiding re-execution each time dependencies are resolved.
+
+TIP: A rule should always be cacheable to avoid major impacts on build performance and ensure faster build times.
 
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=config-component-metadata-rule]"]
@@ -299,7 +302,7 @@ This example, and how it can be tackled with a component metadata rule, is descr
 
 == Making Ivy modules variant-aware
 
-Modules with Ivy metadata, do not have variants by default.
+Modules published using Ivy do not have variants available by default.
 
 However, _Ivy configurations_ can be mapped to variants as the `addVariant(name, baseVariantOrConfiguration)` accepts any Ivy configuration that was published as base.
 This can be used, for example, to define runtime and compile variants.
