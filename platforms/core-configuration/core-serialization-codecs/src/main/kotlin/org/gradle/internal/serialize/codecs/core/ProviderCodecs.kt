@@ -55,6 +55,9 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.ShareableObjectCodec
+import org.gradle.internal.serialize.graph.codecs.ShareableObjectSpec
+import org.gradle.internal.serialize.graph.codecs.ShareableObjectSpecCodec
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
@@ -75,6 +78,8 @@ fun defaultCodecForProviderWithChangingValue(
     bind(valueSourceProviderCodec)
     bind(buildServiceProviderCodec)
     bind(BuildServiceParameterCodec)
+    bind(ShareableObjectCodec)
+    bind(ShareableObjectSpecCodec)
     bind(flowProvidersCodec)
     bind(BeanCodec)
 }.build()
@@ -261,21 +266,13 @@ class BuildServiceProviderCodec(
         buildStateRegistry.getBuild(buildIdentifier).mutableModel.serviceOf<BuildServiceRegistryInternal>()
 }
 
+
 object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
-    override suspend fun WriteContext.encode(value: BuildServiceParameters) {
-        writeGlobalValue(value) {
-            BeanCodec.run {
-                encode(value)
-            }
-        }
-    }
+    override suspend fun WriteContext.encode(value: BuildServiceParameters) =
+        write(ShareableObjectSpec(value))
 
     override suspend fun ReadContext.decode(): BuildServiceParameters =
-        readGlobalValue {
-            BeanCodec.run {
-                decode().uncheckedCast()
-            }
-        }
+        readNonNull<ShareableObjectSpec>().sharedBean.uncheckedCast()
 }
 
 
