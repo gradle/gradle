@@ -19,8 +19,8 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
-import org.gradle.internal.serialize.graph.GlobalValueDecoder
-import org.gradle.internal.serialize.graph.GlobalValueEncoder
+import org.gradle.internal.serialize.graph.SharedObjectDecoder
+import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -40,9 +40,9 @@ private const val EOF = -1
 /**
  * This value encoder stores data into a build-wide context.
  */
-class DefaultGlobalValueEncoder(
+class DefaultSharedObjectEncoder(
     private val globalContext: CloseableWriteContext
-) : GlobalValueEncoder {
+) : SharedObjectEncoder {
 
     private
     val values = ConcurrentHashMap<Any, Int>()
@@ -79,7 +79,7 @@ class DefaultGlobalValueEncoder(
     }
 }
 
-class DefaultGlobalValueDecoder(globalContextProvider: () -> CloseableReadContext) : GlobalValueDecoder, AutoCloseable {
+class DefaultSharedObjectDecoder(globalContextProvider: () -> CloseableReadContext) : SharedObjectDecoder, AutoCloseable {
     enum class ReaderState {
         READY, STARTED, RUNNING, STOPPING, STOPPED
     }

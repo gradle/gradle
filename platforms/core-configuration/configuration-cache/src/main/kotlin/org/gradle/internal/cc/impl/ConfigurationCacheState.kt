@@ -149,7 +149,7 @@ interface ConfigurationCacheStateFile {
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
     fun relatedStateFile(path: Path): ConfigurationCacheStateFile
-    fun stateFileForGlobalValues(): ConfigurationCacheStateFile
+    fun stateFileForSharedObjects(): ConfigurationCacheStateFile
 }
 
 

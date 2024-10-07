@@ -63,7 +63,7 @@ class DefaultWriteContext(
 
     val stringEncoder: StringEncoder = InlineStringEncoder,
 
-    val globalValueEncoder: GlobalValueEncoder = InlineGlobalValueEncoder
+    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener, name), CloseableWriteContext, Encoder by encoder {
 
@@ -96,8 +96,8 @@ class DefaultWriteContext(
         }
     }
 
-    override suspend fun <T : Any> writeGlobalValue(value: T, encode: suspend WriteContext.(T) -> Unit) {
-        globalValueEncoder.run {
+    override suspend fun <T : Any> writeShareableObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
+        sharedObjectEncoder.run {
             write(this@DefaultWriteContext, value, encode)
         }
     }
@@ -179,17 +179,17 @@ object InlineStringDecoder : StringDecoder {
 }
 
 
-interface GlobalValueEncoder : AutoCloseable {
+interface SharedObjectEncoder : AutoCloseable {
     suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
 }
 
 
-interface GlobalValueDecoder : AutoCloseable {
+interface SharedObjectDecoder : AutoCloseable {
     suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
 }
 
 
-object InlineGlobalValueDecoder : GlobalValueDecoder {
+object InlineSharedObjectDecoder : SharedObjectDecoder {
     override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
         readContext.decode()
 
@@ -197,7 +197,7 @@ object InlineGlobalValueDecoder : GlobalValueDecoder {
 }
 
 
-object InlineGlobalValueEncoder : GlobalValueEncoder {
+object InlineSharedObjectEncoder : SharedObjectEncoder {
     override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
         writeContext.encode(value)
     }
@@ -225,7 +225,7 @@ class DefaultReadContext(
 
     val stringDecoder: StringDecoder = InlineStringDecoder,
 
-    val globalValueDecoder: GlobalValueDecoder = InlineGlobalValueDecoder
+    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener, name), CloseableReadContext, Decoder by decoder {
 
@@ -264,8 +264,8 @@ class DefaultReadContext(
         decode()
     }
 
-    override suspend fun <T : Any> readGlobalValue(decode: suspend ReadContext.() -> T): T =
-        globalValueDecoder.run {
+    override suspend fun <T : Any> readShareableObject(decode: suspend ReadContext.() -> T): T =
+        sharedObjectDecoder.run {
             read(this@DefaultReadContext, decode)
         }
 
