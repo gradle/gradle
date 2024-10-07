@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.primitives.Primitives
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -51,6 +52,7 @@ import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.InlineStringDecoder
 import org.gradle.internal.serialize.graph.InlineStringEncoder
+import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
@@ -80,6 +82,12 @@ import java.io.Closeable
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.math.MathContext
+import java.math.RoundingMode
+import java.util.Collections
+import java.util.IdentityHashMap
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.pow
 
 
 @ServiceScope(Scope.Build::class)
@@ -200,19 +208,28 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) {
-        writeConfigurationCacheStateWithStringEncoder(currentStringEncoder, stateFile) { cacheState ->
+        val baseContext = this
+        require(baseContext is DefaultWriteContext)
+        writeConfigurationCacheStateWithStringEncoder(baseContext.stringEncoder, stateFile) { cacheState ->
+            require(this is DefaultWriteContext)
+            onWrite = baseContext.onWrite
             cacheState.run {
                 writeBuildContent(host.currentBuild, buildTreeState)
             }
         }
     }
 
-    override fun ReadContext.readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
-        readConfigurationCacheStateWithStringDecoder(currentStringDecoder, stateFile) { state ->
+    override fun ReadContext.readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild): CachedBuildState {
+        val baseContext = this
+        require(baseContext is DefaultReadContext)
+        return readConfigurationCacheStateWithStringDecoder(baseContext.stringDecoder, stateFile) { state ->
+            require(this is DefaultReadContext)
+            onRead = baseContext.onRead
             state.run {
                 readBuildContent(includedBuild)
             }
         }
+    }
 
     private
     fun <T> readConfigurationCacheState(
@@ -220,8 +237,15 @@ class DefaultConfigurationCacheIO internal constructor(
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T {
         return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
+            val collector = getCollector()
             withParallelStringDecoderFor(stateFile) { stringEncoder ->
-                readConfigurationCacheStateWithStringDecoder(stringEncoder, stateFile, action)
+                readConfigurationCacheStateWithStringDecoder(stringEncoder, stateFile) {
+                    require(this is DefaultReadContext)
+                    this.onRead = collector::collect
+                    action(it)
+                }
+            }.also {
+                collector.printStats("Load", sortByLength = false)
             }
         } else {
             readConfigurationCacheStateWithStringDecoder(InlineStringDecoder, stateFile, action)
@@ -234,12 +258,134 @@ class DefaultConfigurationCacheIO internal constructor(
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
         return if (isUsingParallelStringDeduplicationStrategy(stateFile)) {
+            val collector = getCollector()
             withParallelStringEncoderFor(stateFile) { stringEncoder ->
-                writeConfigurationCacheStateWithStringEncoder(stringEncoder, stateFile, action)
+                writeConfigurationCacheStateWithStringEncoder(stringEncoder, stateFile) {
+                    require(this is DefaultWriteContext)
+                    onWrite = collector::collect
+                    action(it)
+                }
+            }.also {
+                collector.printStats("Write", sortByLength = true)
             }
         } else {
             writeConfigurationCacheStateWithStringEncoder(InlineStringEncoder, stateFile, action)
         }
+    }
+
+    private fun getCollector(): Collector =
+        if (startParameter.collectStats)
+            DefaultCollector()
+        else
+            Collector.NULL_COLLECTOR
+
+    interface Collector {
+        fun collect(context: IsolateContext, obj: Any?, length: Long?)
+        fun printStats(description: String, sortByLength: Boolean)
+
+        companion object {
+            val NULL_COLLECTOR = object : Collector {
+                override fun collect(context: IsolateContext, obj: Any?, length: Long?) {
+                }
+                override fun printStats(description: String, sortByLength: Boolean) {
+                }
+            }
+        }
+    }
+
+    private
+    class DefaultCollector: Collector {
+
+        private
+        data class Operation(
+            val context: IsolateContext,
+            val length: Long
+        )
+
+        private
+        class Stats {
+            val totalLength: Long get() = operations.sumOf(Operation::length)
+            val count: Long get() = operations.size.toLong()
+            val operations = Collections.synchronizedList(mutableListOf<Operation>())
+
+            val hasDetails: Boolean get() = totalLength > 0
+
+            fun contextInfo(): String {
+                val contexts = operations.map { it.context }.toSet().size
+                return contexts.takeIf { it > 1 }?.let { "in $it contexts " } ?: ""
+            }
+
+            fun details(): String? {
+                if (!hasDetails) return null
+                val lengths = operations.map(Operation::length)
+                val maxLength = lengths.max()
+                val minLength = lengths.min()
+                val meanLength = lengths.average()
+                val stdDeviation = Math.sqrt(lengths.map { (it - meanLength).pow(2) }.average())
+                return "(total: $totalLength, max: $maxLength, min: $minLength, avg: ${meanLength.toBigDecimal()}, stdDev: ${stdDeviation.toBigDecimal().toEngineeringString()})"
+            }
+
+            fun addStat(context: IsolateContext, length: Long?): Stats {
+                require(length != 0L)
+                operations.add(Operation(context, length ?: 0))
+                return this
+            }
+
+            private
+            fun Double.toBigDecimal() = toBigDecimal(MC)
+
+            companion object {
+                private val MC: MathContext = MathContext(5, RoundingMode.HALF_EVEN)
+            }
+        }
+
+        val stats: MutableMap<Any, AtomicReference<Stats>> = Collections.synchronizedMap(IdentityHashMap())
+
+        override fun collect(context: IsolateContext, obj: Any?, length: Long?) {
+            obj?.takeUnless {
+                0L == length || Primitives.isWrapperType(it.javaClass) || it.javaClass.isEnum || it is String || it is File || it is Class<*>
+            }?.let {
+                stats.computeIfAbsent(it) { AtomicReference(Stats()) }.updateAndGet {
+                    it.addStat(context, length)
+                }
+            }
+        }
+
+        override fun printStats(description: String, sortByLength: Boolean) {
+            val count = stats.size
+            val cut = minOf(200, count)
+            val sorter = if (sortByLength) Stats::totalLength else Stats::count
+            val sorted = stats.asSequence()
+                .filter { it.value.get().count > 1 }
+                .sortedByDescending {
+                    sorter.invoke(it.value.get())
+                }
+            val topObjects = sorted.take(cut)
+            val totalLength = stats.values.sumOf { it.get().totalLength }
+            val totalCount = stats.values.sumOf { it.get().count }
+            print("[stats] Stats for $description: $count objects, $totalCount locations, $totalLength total length")
+            if (count > cut) {
+                val topTotalLength = topObjects.sumOf { it.value.get().totalLength }
+                val topTotalCount = topObjects.sumOf { it.value.get().count }
+                print(" - top $cut objects: $topTotalCount locations, $topTotalLength total length")
+            }
+            println()
+            topObjects
+                .forEach {
+                    val instance = it.key
+                    val stats = it.value.get()
+                    val simpleString = instance.toSimpleString()
+                    val fullString = instance.toString()
+                    println("[stats] ${stats.count} - $simpleString - ${stats.contextInfo()}($fullString)")
+                    if (stats.hasDetails) {
+                        println("[stats] ${stats.details()}")
+                    }
+                }
+            println("[stats] End of stats for $description")
+        }
+
+        private
+        fun Any.toSimpleString() = "${javaClass.simpleName}@${System.identityHashCode(this).let(Integer::toHexString)}"
     }
 
     private
@@ -457,7 +603,7 @@ class DefaultConfigurationCacheIO internal constructor(
         stringEncoder: StringEncoder = InlineStringEncoder,
     ): CloseableWriteContext = DefaultWriteContext(
         codecs.userTypesCodec(),
-        encoder,
+        encoder as PositionAwareEncoder,
         beanStateWriterLookup,
         logger,
         tracer,
@@ -495,7 +641,10 @@ class DefaultConfigurationCacheIO internal constructor(
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
         override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
-                readContextFor(it, baseContext.currentStringDecoder).also { (subContext, subCodecs) ->
+                require(baseContext is DefaultReadContext)
+                readContextFor(it, baseContext.stringDecoder).also { (subContext, subCodecs) ->
+                    require(subContext is DefaultReadContext)
+                    subContext.onRead = baseContext.onRead
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                     subContext.setSingletonProperty(baseContext.getSingletonProperty<ProjectProvider>())
                 }.first
@@ -503,25 +652,15 @@ class DefaultConfigurationCacheIO internal constructor(
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
-                writeContextFor(it, baseContext.currentStringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                require(baseContext is DefaultWriteContext)
+                writeContextFor(it, baseContext.stringEncoder) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                    require(subContext is DefaultWriteContext)
+                    subContext.onWrite = baseContext.onWrite
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
     }
 
-    private
-    val WriteContext.currentStringEncoder: StringEncoder
-        get() {
-            require(this is DefaultWriteContext)
-            return this.stringEncoder
-        }
-
-    private
-    val ReadContext.currentStringDecoder: StringDecoder
-        get() {
-            require(this is DefaultReadContext)
-            return this.stringDecoder
-        }
 
     private
     fun codecs(): Codecs =

@@ -25,6 +25,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -40,13 +41,14 @@ interface BeanStateReaderLookup {
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 }
 
+typealias WriteListener = IsolateContext.(Any?, Long) -> Unit
 
 class DefaultWriteContext(
 
     codec: Codec<Any?>,
 
     private
-    val encoder: Encoder,
+    val encoder: PositionAwareEncoder,
 
     private
     val beanStateWriterLookup: BeanStateWriterLookup,
@@ -60,7 +62,9 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder,
 
-    val stringEncoder: StringEncoder = InlineStringEncoder
+    val stringEncoder: StringEncoder = InlineStringEncoder,
+
+    var onWrite: WriteListener = { _: Any?, _: Long? -> }
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
 
@@ -89,7 +93,10 @@ class DefaultWriteContext(
 
     override suspend fun write(value: Any?) {
         getCodec().run {
+            val start = encoder.writePosition
             encode(value)
+            val end = encoder.writePosition
+            onWrite(value, end - start)
         }
     }
 
@@ -186,6 +193,8 @@ class DefaultReadContext(
 
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
 
+    var onRead: IsolateContext.(Any?, Long?) -> Unit = { _, _ -> }
+
     override val sharedIdentities = ReadIdentities()
 
     private
@@ -219,6 +228,9 @@ class DefaultReadContext(
 
     override suspend fun read(): Any? = getCodec().run {
         decode()
+    }.also {
+        //TODO-RC include decoder offset
+        onRead(it, null)
     }
 
     override fun readClass(): Class<*> = classDecoder.run {
