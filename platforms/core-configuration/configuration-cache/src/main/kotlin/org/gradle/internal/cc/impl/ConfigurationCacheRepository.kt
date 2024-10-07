@@ -137,7 +137,8 @@ class ConfigurationCacheRepository(
         override fun stateFileForSharedObjects(): ConfigurationCacheStateFile =
             ReadableConfigurationCacheStateFile(
                 globalsFileFor(file),
-                StateType.WorkGlobals
+                StateType.WorkGlobals,
+                onFileAccess
             )
     }
 
