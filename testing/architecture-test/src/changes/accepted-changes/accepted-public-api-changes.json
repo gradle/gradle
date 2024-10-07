@@ -1,6 +1,38 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider,org.gradle.api.Action)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible,org.gradle.api.Action)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.tooling.events.problems.ProblemDefinition",
             "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
             "acceptation": "Change in incubating API",
@@ -32,6 +64,5 @@
                 "From non-null returning to null returning breaking change"
             ]
         }
-
     ]
 }
