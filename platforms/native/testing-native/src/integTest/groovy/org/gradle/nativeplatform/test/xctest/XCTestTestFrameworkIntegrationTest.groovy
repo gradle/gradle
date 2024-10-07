@@ -29,12 +29,12 @@ import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 
 import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @Requires(HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
-        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 
         File initScript = file("init.gradle") << """
 allprojects { p ->
