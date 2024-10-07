@@ -85,4 +85,15 @@ class DefaultProcessForkOptionsTest extends Specification {
         1 * target.setExecutable('executable')
         1 * target.setEnvironment({ !it.empty })
     }
+
+    def canSetEnvironmentToItself() {
+        given:
+        options.environment = [key: 1]
+
+        when:
+        options.environment = Collections.unmodifiableMap(options.environment)
+
+        then:
+        options.environment == [key: 1]
+    }
 }
