@@ -15,7 +15,7 @@
 [[dependency-locking]]
 = Locking Versions
 
-Using <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can make builds non-deterministic, causing them to break unexpectedly, sometimes due to a transitive dependency outside the build author's control.
+Using <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can cause builds to break unexpectedly because the exact version of a dependency that gets resolved can change over time:
 
 ====
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic]"]
@@ -25,25 +25,31 @@ include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic
 To ensure https://reproducible-builds.org/[reproducible builds], it's necessary to *lock versions* of dependencies and their transitive dependencies.
 This guarantees that a build with the same inputs will always resolve to the same module versions, a process known as *dependency locking*.
 
-Dependency locking is crucial for several scenarios:
+*Dependency locking* is a process where Gradle saves the resolved versions of dependencies to a lock file, ensuring that subsequent builds use the same dependency versions.
+This lock state is stored in a file and helps to prevent unexpected changes in the dependency graph.
 
-- **Managing Multiple Repositories:** Companies managing multiple repositories can avoid relying on `-SNAPSHOT` or changing dependencies, which can cause cascading failures when a dependency introduces a bug or incompatibility.
+Dependency locking offers several key advantages:
 
-- **Using the Latest Dependencies:** Teams that use dynamic versions can lock their dependencies only for releases. The release tag will include the locked states, ensuring the build remains fully reproducible when bug fixes need to be developed.
+- **Avoiding Cascading Failures**: Teams managing multiple repositories no longer need to rely on `-SNAPSHOT` or changing dependencies, which can lead to unexpected failures if a dependency introduces a bug or incompatibility.
+- **Dynamic Version Flexibility with Stability**: Teams that use the latest versions of dependencies can rely on dynamic versions during development and testing phases, locking them only for releases.
+- **Publishing Resolved Versions**: By combining dependency locking with the practice of <<publishing_maven.adoc#publishing_maven:resolved_dependencies,publishing resolved versions>>, dynamic versions are replaced with the actual resolved versions at the time of publication.
+- **Optimizing Build Cache Usage**: Since dynamic or changing dependencies violate the principle of <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs>>, locking dependencies ensures that tasks have consistent inputs.
+- **Enhanced Development Workflow**: Developers can lock dependencies locally for stability while working on a feature or debugging an issue, while CI environments can test the latest `SNAPSHOT` or nightly versions to provide early feedback on integration issues. This allows teams to balance stability and early feedback during development.
 
-- **Publishing Resolved Versions:** Combined with <<publishing_maven.adoc#publishing_maven:resolved_dependencies,publishing resolved versions>>, dependency locking allows replacing the declared dynamic versions at publication time. Consumers will then see the resolved versions that your release used.
-
-== Locking specific configurations
+== Activate locking for specific configurations
 
 Locking is enabled per <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configuration>>.
 
 Once enabled, you must create an initial lock state, causing Gradle to verify that resolution results do not change.
-This ensures the same dependencies are selected, even if newer versions are available.
-If your build changes in a way that impacts the resolved set of dependencies, it will fail, ensuring that changes in published dependencies or build definitions do not alter resolution without updating the lock state.
+This ensures that if the selected dependencies differ from the locked ones (due to newer versions being available), the build will fail, preventing unexpected version changes.
 
-[NOTE]
+[WARNING]
 ====
-Dependency locking is effective with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>> but has no impact on <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (e.g., `-SNAPSHOT`), where the coordinates remain the same, but the content may change. Gradle will emit a warning when persisting the lock state if changing dependencies are present in the resolution result.
+Dependency locking is effective with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>, but it **should not be used** with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (e.g., `-SNAPSHOT`), where the coordinates remain the same, but the content may change.
+
+Using dependency locking with changing versions indicates a misunderstanding of these features and can lead to unpredictable results.
+
+Gradle will emit a warning when persisting the lock state if changing dependencies are present in the resolution result.
 ====
 
 Locking of a configuration happens through the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API:
@@ -56,7 +62,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 Only configurations that can be resolved will have lock state attached to them.
 Applying locking on non resolvable-configurations is a no-op.
 
-== Locking all configurations
+== Activate locking for all configurations
 
 The following locks all configurations:
 
@@ -67,7 +73,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 
 The above will lock all _project_ configurations, but not the _buildscript_ ones.
 
-== Disable locking specific configurations
+== Disable locking for specific configurations
 
 You can also disable locking on a specific configuration.
 
@@ -78,7 +84,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSi
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSingleConfiguration/groovy",files="build.gradle[tags=locking-one]"]
 ====
 
-== Locking buildscript classpath configuration
+== Activate locking for a buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
 
@@ -91,7 +97,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingClas
 
 == Generating and updating dependency locks
 
-To generate or update the lock state, use the `--write-locks` command line argument along with the tasks that would trigger configurations to be resolved:
+To generate or update the lock state, add the `--write-locks` argument while invoking whatever tasks that would trigger the locked configurations to be resolved:
 
 [source,text]
 ----
@@ -131,7 +137,6 @@ You have two options for this:
 
 2. **Declare a Custom Task to Resolve All Configurations:**
 - This approach is particularly useful if you need more control over which configurations are locked.
-- It is not applicable to Android projects.
 
 This custom task resolves all configurations, locking them in the process:
 
@@ -140,12 +145,15 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
 ====
 
-This is especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
 By filtering and resolving specific configurations, you ensure that only the relevant ones are locked, tailoring the locking process to your project's needs.
+This is especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
 
 == Understanding lock state location and format
 
-A lockfile is a critical component that stores the exact versions of dependencies used in a project, ensuring consistent builds across different environments and over time. It prevents unexpected changes in dependencies when a project is built on different machines or at different times.
+A lockfile is a critical component that records the exact versions of dependencies used in a project, allowing for verification during builds to ensure consistent results across different environments and over time.
+It helps identify discrepancies in dependencies when a project is built on different machines or at different times.
+
+TIP: Lockfiles should be checked in to source control.
 
 === Location of lock files
 
@@ -204,10 +212,10 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 
 == Running a build with lock state present
 
-The moment a build needs to resolve a configuration that has locking enabled and it finds a matching lock state,
+The moment a build needs to resolve a configuration that has locking enabled, and it finds a matching lock state,
 it will use it to verify that the given configuration still resolves the same versions.
 
-A successful build indicates that the same dependencies are used as stored in the lock state, regardless if new versions matching the dynamic selector have been produced.
+A successful build indicates that the same dependencies are used by your build as stored in the lock state, regardless if new versions matching the dynamic selector are available in any of the repositories your build uses.
 
 The complete validation is as follows:
 
@@ -225,6 +233,12 @@ In this mode, in addition to the validations above, dependency locking will fail
 
 Lenient mode::
 In this mode, dependency locking will still pin dynamic versions but otherwise changes to the dependency resolution are no longer errors.
+Other changes include:
+
+- Adding or removing dependencies, even if they are strictly versioned, without causing a build failure.
+- Allowing transitive dependencies to shift, as long as dynamic versions are still pinned.
+
+This mode offers flexibility for situations where you might want to explore or test new dependencies or changes in versions without breaking the build, making it useful for testing nightly or snapshot builds.
 
 The lock mode can be controlled from the `dependencyLocking` block as shown below:
 
@@ -260,7 +274,6 @@ To disable dependency locking for a configuration:
 
 1. **Remove Locking Configuration:**
 Ensure that the configuration you no longer want to lock is not configured with dependency locking. This means removing or commenting out any `activateDependencyLocking()` calls for that configuration.
-
 2. **Update Lock State:**
 The next time you update and save the lock state (using the `--write-locks` option), Gradle will automatically clean up any stale lock state associated with the configurations that are no longer locked.
 
@@ -269,7 +282,7 @@ NOTE: Gradle must resolve a configuration that is no longer marked as locked to 
 [[ignoring_dependencies]]
 == Ignoring specific dependencies from the lock state
 
-In some scenarios, dependency locking may not be focused on reproducibility.
+In some scenarios, you may want to use dependency locking for other reasons than build reproducibility.
 
 As a build author, you might want certain dependencies to update more frequently than others.
 For example, internal dependencies within an organization might always use the latest version, while third-party dependencies follow a different update cycle.
@@ -288,10 +301,10 @@ See <<#selectively_updating_lock_state_entries,the description>> on updating loc
 
 Ignoring dependencies will have the following effects:
 
-- Ignored dependencies apply across all locked configurations, and the setting is project-wide.
+- Ignored dependencies apply across all locked configurations, and the setting is project scoped.
 - Ignoring a dependency does not exclude its transitive dependencies from the lock state.
 - No validation ensures that an ignored dependency is present in any configuration resolution.
-- If the dependency is present in the lock state, it will be filtered out when loading.
+- If the dependency is present in lock state, loading it will filter out the dependency.
 - If the dependency is present in the resolution result, it will be ignored when validating the resolution against the lock state.
 - When the lock state is updated and persisted, any ignored dependency will be omitted from the written lock state.
 

@@ -8,6 +8,7 @@ repositories {
 
 // tag::dynamic[]
 dependencies {
+    // Depend on the latest 5.x release of Spring available in the searched repositories
     implementation("org.springframework:spring-web:5.+")
 }
 // end::dynamic[]
