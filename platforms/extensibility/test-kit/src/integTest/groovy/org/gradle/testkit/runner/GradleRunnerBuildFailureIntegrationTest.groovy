@@ -112,10 +112,10 @@ $t.buildResult.output"""
 
     def GradleRunner createRunner() {
         def args = ['helloWorld']
-        if(gradleVersion >= GradleVersion.version("4.5")){
+        if (gradleVersion >= GradleVersion.version("4.5")) {
             args += '--warning-mode=none'
         }
-        if(gradleVersion > GradleVersion.version("8.10")){
+        if (gradleVersion > GradleVersion.version("8.11-milestone-1")) {
             args += "--no-problems-report"
         }
         this.runner(args)
