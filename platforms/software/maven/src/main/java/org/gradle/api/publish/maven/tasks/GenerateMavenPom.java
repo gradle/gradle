@@ -21,7 +21,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
@@ -124,9 +123,6 @@ public abstract class GenerateMavenPom extends DefaultTask {
     public void doGenerate() {
         mavenPomSpec.get().writeTo(getDestination().getAsFile().get());
     }
-
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
     @Deprecated
