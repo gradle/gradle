@@ -74,7 +74,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     /**
      * Sets the repository to publish to.
      *
-     * @param repository The repository to publish to
+     * @param repository The repository to publish to. Only instances of {@link DefaultMavenArtifactRepository} are supported.
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
