@@ -480,11 +480,12 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ITaskFactory createITaskFactory(Instantiator instantiator, TaskClassInfoStore taskClassInfoStore) {
+    protected ITaskFactory createITaskFactory(Instantiator instantiator, TaskClassInfoStore taskClassInfoStore, InternalProblems problems) {
         return new AnnotationProcessingTaskFactory(
             instantiator,
             taskClassInfoStore,
-            new TaskFactory());
+            new TaskFactory()
+        );
     }
 
     @Provides

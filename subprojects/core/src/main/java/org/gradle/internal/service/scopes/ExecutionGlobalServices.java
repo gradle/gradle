@@ -162,7 +162,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
-        annotationRegistry.registerPropertyTypeAnnotations(builder);
+        annotationRegistry.registerAnnotationTypes(builder);
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
@@ -216,8 +216,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @Provides
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory, AnnotationHandlerRegistar annotationRegistry) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
-        allPropertyTypes.addAll(ImmutableSet.of(
+        ImmutableSet.Builder<Class<? extends Annotation>> allAnnotationTypes = ImmutableSet.builder();
+        allAnnotationTypes.addAll(ImmutableSet.of(
             Input.class,
             InputFile.class,
             InputFiles.class,
@@ -233,11 +233,12 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
             ReplacedBy.class,
             Internal.class,
             ServiceReference.class,
-            OptionValues.class
+            OptionValues.class,
+            TaskAction.class
         ));
-        annotationRegistry.registerPropertyTypeAnnotations(allPropertyTypes);
+        annotationRegistry.registerAnnotationTypes(allAnnotationTypes);
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-            allPropertyTypes.build(),
+            allAnnotationTypes.build(),
             ImmutableSet.of(
                 Classpath.class,
                 CompileClasspath.class,
@@ -260,8 +261,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultTaskClassInfoStore(cacheFactory);
+    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskScheme taskScheme) {
+        return new DefaultTaskClassInfoStore(cacheFactory, taskScheme.getMetadataStore());
     }
 
     @Provides
@@ -375,7 +376,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @ServiceScope(Scope.Global.class)
     interface AnnotationHandlerRegistar {
-        void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
+        void registerAnnotationTypes(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }
 
     @Provides
