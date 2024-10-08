@@ -178,7 +178,7 @@ object InlineStringDecoder : StringDecoder {
     override fun close() = Unit
 }
 
-
+//TODO-RC consider making the implementations auto-closeable
 interface SharedObjectEncoder : AutoCloseable {
     suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
 }

@@ -137,8 +137,6 @@ import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
-import org.gradle.internal.serialize.graph.codecs.ShareableObjectCodec
-import org.gradle.internal.serialize.graph.codecs.ShareableObjectSpecCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.state.ManagedFactoryRegistry
 
@@ -196,8 +194,6 @@ class Codecs(
             bind(HASHCODE_SERIALIZER)
 
             bind(BuildServiceParameterCodec)
-            bind(ShareableObjectCodec)
-            bind(ShareableObjectSpecCodec)
 
             providersBlock()
 
