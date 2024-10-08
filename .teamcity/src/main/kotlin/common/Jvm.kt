@@ -32,3 +32,10 @@ object BuildToolBuildJvm : Jvm {
     override val vendor: JvmVendor
         get() = JvmVendor.openjdk
 }
+
+object OpenJdk8 : Jvm {
+    override val version: JvmVersion
+        get() = JvmVersion.java8
+    override val vendor: JvmVendor
+        get() = JvmVendor.openjdk
+}
