@@ -89,6 +89,11 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         }
 
         @Override
+        public <T> Class<? extends T> getDeserializedType(Class<T> implType) {
+            return classGenerator.generate(implType).getGeneratedClass();
+        }
+
+        @Override
         public <T> T newInstance(Class<T> implType, Class<? super T> baseClass) {
             // TODO - The baseClass can be inferred from the implType, so attach the serialization constructor onto the GeneratedClass rather than parameterizing and caching here
             try {

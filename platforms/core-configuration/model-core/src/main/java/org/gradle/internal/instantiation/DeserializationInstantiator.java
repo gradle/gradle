@@ -28,4 +28,9 @@ public interface DeserializationInstantiator {
      * @throws ObjectInstantiationException On failure to create the new instance.
      */
     <T> T newInstance(Class<T> implType, Class<? super T> baseClass) throws ObjectInstantiationException;
+
+    /**
+     * Returns the generated type for the given implementation type.
+     */
+    <T> Class<? extends T> getDeserializedType(Class<T> implType);
 }

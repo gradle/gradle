@@ -38,6 +38,7 @@ import org.gradle.internal.cc.impl.serialize.ParallelStringDecoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -92,7 +93,8 @@ class DefaultConfigurationCacheIO internal constructor(
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry
+    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
+    private val instantiatorFactory: InstantiatorFactory
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
@@ -487,7 +489,10 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun classDecoder() =
-        DefaultClassDecoder(classLoaderScopeRegistry.coreAndPluginsScope)
+        DefaultClassDecoder(
+            classLoaderScopeRegistry.coreAndPluginsScope,
+            instantiatorFactory.decorateScheme().deserializationInstantiator()
+        )
 
     /**
      * Provides R/W isolate contexts based on some other context.
