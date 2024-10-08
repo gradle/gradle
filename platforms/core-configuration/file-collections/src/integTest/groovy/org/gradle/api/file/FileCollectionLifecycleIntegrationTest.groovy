@@ -21,6 +21,41 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+    def "UPGRADED task #annotation configurable file collection is NOT implicitly finalized when task starts execution"() {
+        executer.requireOwnGradleUserHomeDir("temp")
+        buildFile << """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                ${annotation}
+                abstract ConfigurableFileCollection getProp()
+
+                @TaskAction
+                void go() {
+                    println "value: " + prop.files
+                }
+            }
+
+            task show(type: SomeTask) {
+                def layout = project.layout
+                prop.setFrom([layout.projectDir.file("in.txt")])
+                doFirst {
+                    prop.setFrom([layout.projectDir.file("other.txt")])
+                }
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Changing property value of this file collection at execution time. This behavior has been deprecated.*")
+        succeeds("show")
+
+        where:
+        annotation     | _
+        "@InputFiles"  | _
+        "@OutputFiles" | _
+    }
+
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
         buildFile """
             def files = objects.fileCollection()

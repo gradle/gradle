@@ -141,6 +141,43 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
+    def "UPGRADED task @Input property is NOT implicitly finalized when task starts execution"() {
+        given:
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                @Input
+                abstract Property<String> getProp()
+
+                @OutputFile
+                final Property<RegularFile> outputFile = project.objects.fileProperty()
+
+                @TaskAction
+                void go() {
+                    outputFile.get().asFile.text = prop.get()
+                }
+            }
+
+            task thing(type: SomeTask) {
+                prop = "value 1"
+                outputFile = layout.buildDirectory.file("out.txt")
+                doFirst {
+                    prop.set("broken")
+                }
+            }
+
+            afterEvaluate {
+                thing.prop = "value 2"
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
+        succeeds("thing")
+    }
+
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
