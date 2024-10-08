@@ -4,13 +4,6 @@ plugins {
 
 description = "Implementation for interacting with repositories over HTTP"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
