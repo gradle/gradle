@@ -16,15 +16,13 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 @ServiceScope(Scope.BuildTree.class)
@@ -34,7 +32,6 @@ public class DefaultProblems implements InternalProblems {
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> emitter;
     private final InternalProblemReporter internalReporter;
-    private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
 
     public DefaultProblems(Collection<ProblemEmitter> emitter, CurrentBuildOperationRef currentBuildOperationRef) {
@@ -49,26 +46,22 @@ public class DefaultProblems implements InternalProblems {
         this.emitter = emitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        internalReporter = createReporter(emitter, problemStream, problemsForThrowables);
+        this.internalReporter = createReporter();
     }
 
     @Override
     public ProblemReporter getReporter() {
-        return createReporter(emitter, problemStream, problemsForThrowables);
+        return createReporter();
     }
 
-    private DefaultProblemReporter createReporter(Collection<ProblemEmitter> emitter, ProblemStream problemStream, Multimap<Throwable, Problem> problems) {
-        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, problems, additionalDataBuilderFactory);
+    @Nonnull
+    private DefaultProblemReporter createReporter() {
+        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, additionalDataBuilderFactory);
     }
 
     @Override
     public InternalProblemReporter getInternalReporter() {
         return internalReporter;
-    }
-
-    @Override
-    public Multimap<Throwable, Problem> getProblemsForThrowables() {
-        return problemsForThrowables;
     }
 
     @Override

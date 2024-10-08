@@ -34,5 +34,5 @@ public interface ProblemEmitter {
      * @param problem The problem to emit.
      */
     void emit(Problem problem, @Nullable OperationIdentifier id);
-
+    
 }

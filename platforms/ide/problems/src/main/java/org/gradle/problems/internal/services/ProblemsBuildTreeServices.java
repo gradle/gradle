@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -42,18 +43,18 @@ import java.util.Collection;
 
 @ServiceScope(Scope.BuildTree.class)
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
-
     @Provides
     InternalProblems createProblemsService(
         ProblemStream problemStream,
-        Collection<ProblemEmitter> problemEmitters
+        Collection<ProblemEmitter> problemEmitters,
+        ProblemSummarizer problemSummarizer
     ) {
         return new DefaultProblems(problemEmitters, problemStream, CurrentBuildOperationRef.instance());
     }
 
     @Provides
-    ProblemEmitter createProblemEmitter(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
+    ProblemEmitter createProblemEmitter(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, ProblemSummarizer problemSummarizer) {
+        return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter, problemSummarizer);
     }
 
     @Provides
