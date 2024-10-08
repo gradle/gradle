@@ -144,6 +144,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    public void warnOnUpgradedPropertyChanges() {
+        valueState.warnOnUpgradedPropertyChanges();
+    }
+
+    @Override
     public void disallowUnsafeRead() {
         valueState.disallowUnsafeRead();
     }

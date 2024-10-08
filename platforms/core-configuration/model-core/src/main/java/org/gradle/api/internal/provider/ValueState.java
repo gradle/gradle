@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 
@@ -165,6 +166,8 @@ public abstract class ValueState<S> {
      */
     public abstract S setToConventionIfUnset(S value);
 
+    public abstract void warnOnUpgradedPropertyChanges();
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
         private final Function<S, S> copier;
@@ -172,6 +175,7 @@ public abstract class ValueState<S> {
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
         private boolean disallowUnsafeRead;
+        private boolean warnOnUpgradedPropertyChanges;
         private S convention;
 
         public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
@@ -219,6 +223,12 @@ public abstract class ValueState<S> {
         public void beforeMutate(Describable displayName) {
             if (disallowChanges) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
+            } else if (warnOnUpgradedPropertyChanges) {
+                DeprecationLogger.deprecateBehaviour("Changing property value of " + displayName.getDisplayName() + " at execution time.")
+                    .startingWithGradle9("changing property value of " + displayName.getDisplayName() + " at execution time is deprecated and will fail in Gradle 10")
+                    // TODO add documentation
+                    .undocumented()
+                    .nagUser();
             }
         }
 
@@ -269,6 +279,11 @@ public abstract class ValueState<S> {
                 return setToConvention();
             }
             return value;
+        }
+
+        @Override
+        public void warnOnUpgradedPropertyChanges() {
+            warnOnUpgradedPropertyChanges = true;
         }
 
         @Override
@@ -416,6 +431,11 @@ public abstract class ValueState<S> {
         @Override
         public S setToConventionIfUnset(S value) {
             throw unexpected();
+        }
+
+        @Override
+        public void warnOnUpgradedPropertyChanges() {
+            // Finalized already so nothing to warn about
         }
 
         @Override

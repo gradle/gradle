@@ -30,6 +30,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.NestedValidationUtil;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -38,7 +39,6 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker.InstanceMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
-import org.gradle.internal.properties.annotations.NestedValidationUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -136,8 +136,8 @@ public class DefaultPropertyWalker implements PropertyWalker {
             if (isConfigurable()) {
                 Object value = cachedInvoker.get();
                 if (isUpgradedProperty) {
-                    // TODO: Remove this once all properties are upgraded
-                    ((HasConfigurableValueInternal) value).warnOnChanges();
+                    // TODO: Remove this with Gradle 10
+                    ((HasConfigurableValueInternal) value).warnOnUpgradedPropertyChanges();
                 } else {
                     ((HasConfigurableValueInternal) value).implicitFinalizeValue();
                 }

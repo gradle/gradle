@@ -26,9 +26,7 @@ public interface HasConfigurableValueInternal extends HasConfigurableValue {
     void implicitFinalizeValue();
 
     /**
-     * Used for Provider API migration to not finalize values but warn on changes to the value of this object.
+     * Used for Provider API migration to not finalize values but only warn on changes to the value of this object.
      */
-    default void warnOnChanges() {
-        // TODO: Implement this method
-    }
+    void warnOnUpgradedPropertyChanges();
 }
