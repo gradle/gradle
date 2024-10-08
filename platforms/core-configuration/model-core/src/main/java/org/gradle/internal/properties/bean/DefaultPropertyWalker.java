@@ -27,6 +27,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
@@ -87,7 +88,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
             @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
-                PropertyValue cachedValue = new CachedPropertyValue(() -> propertyMetadata.getPropertyValue(parent), propertyMetadata.getDeclaredType().getRawType());
+                PropertyValue cachedValue = new CachedPropertyValue(
+                    () -> propertyMetadata.getPropertyValue(parent),
+                    propertyMetadata.getDeclaredType().getRawType(),
+                    // Upgraded properties should not be finalized to simplify migration
+                    propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class)
+                );
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
@@ -101,10 +107,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         private final Supplier<Object> cachedInvoker;
         private final Class<?> declaredType;
+        private final boolean isUpgradedProperty;
 
-        public CachedPropertyValue(Supplier<Object> supplier, Class<?> declaredType) {
+        public CachedPropertyValue(Supplier<Object> supplier, Class<?> declaredType, boolean isUpgradedProperty) {
             this.declaredType = declaredType;
             this.cachedInvoker = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(supplier::get));
+            this.isUpgradedProperty = isUpgradedProperty;
         }
 
         @Override
@@ -127,7 +135,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
         public void maybeFinalizeValue() {
             if (isConfigurable()) {
                 Object value = cachedInvoker.get();
-                ((HasConfigurableValueInternal) value).implicitFinalizeValue();
+                if (isUpgradedProperty) {
+                    // TODO: Remove this once all properties are upgraded
+                    ((HasConfigurableValueInternal) value).warnOnChanges();
+                } else {
+                    ((HasConfigurableValueInternal) value).implicitFinalizeValue();
+                }
             }
         }
 
