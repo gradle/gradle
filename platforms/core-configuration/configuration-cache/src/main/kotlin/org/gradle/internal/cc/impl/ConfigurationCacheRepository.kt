@@ -136,8 +136,8 @@ class ConfigurationCacheRepository(
 
         override fun stateFileForSharedObjects(): ConfigurationCacheStateFile =
             ReadableConfigurationCacheStateFile(
-                globalsFileFor(file),
-                StateType.WorkGlobals,
+                sharedObjectsFileFor(file),
+                StateType.WorkShared,
                 onFileAccess
             )
     }
@@ -186,8 +186,8 @@ class ConfigurationCacheRepository(
 
         override fun stateFileForSharedObjects(): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
-                globalsFileFor(file),
-                StateType.WorkGlobals,
+                sharedObjectsFileFor(file),
+                StateType.WorkShared,
                 onFileAccess
             )
     }
@@ -329,7 +329,7 @@ fun relatedStateFileFor(parentStateFile: File, path: Path) =
 
 
 private
-fun globalsFileFor(parentStateFile: File) =
+fun sharedObjectsFileFor(parentStateFile: File) =
     parentStateFile.run {
         resolveSibling(".globals.$name")
     }

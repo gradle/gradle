@@ -347,7 +347,7 @@ class ConfigurationCacheFingerprintCheckerTest {
             values.add(value)
         }
 
-        override suspend fun <T : Any> writeShareableObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
+        override suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
             values.add(value)
         }
 
@@ -459,7 +459,7 @@ class ConfigurationCacheFingerprintCheckerTest {
 
         override suspend fun read(): Any? = next()
 
-        override suspend fun <T : Any> readShareableObject(decode: suspend ReadContext.() -> T): T = next()
+        override suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T = next()
 
         @Suppress("unchecked_cast")
         private

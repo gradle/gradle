@@ -76,12 +76,12 @@ class ConfigurationCacheStartParameter internal constructor(
     val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
 
     /**
-     * Whether global values stored to the configuration cache should be deduplicated
+     * Whether shareable objects in the configuration cache should be shared
      * in order to save space on disk and to use less memory on a cache hit.
      *
      * The default is `true`.
      */
-    val isSharingShareableObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.shareable-objects", true)
+    val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
 
     /**
      * Whether configuration cache storing/loading should be done in parallel.

@@ -262,7 +262,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun sharedObjectEncoderFor(baseFile: ConfigurationCacheStateFile, globalsFile: ConfigurationCacheStateFile, stringEncoder: StringEncoder): SharedObjectEncoder =
-        isUsingShareableObjectSharingStrategy(baseFile).let { deduplicate ->
+        isUsingObjectSharingStrategy(baseFile).let { deduplicate ->
             if (deduplicate) {
                 val (globalContext, _) = writeContextFor(globalsFile, stringEncoder, InlineSharedObjectEncoder) { "global values" }
                 globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
@@ -274,7 +274,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun sharedObjectDecoder(baseFile: ConfigurationCacheStateFile, globalsFile: ConfigurationCacheStateFile, stringDecoder: StringDecoder): SharedObjectDecoder =
-        isUsingShareableObjectSharingStrategy(baseFile).let { deduplicate ->
+        isUsingObjectSharingStrategy(baseFile).let { deduplicate ->
             if (deduplicate) {
                 // Create a context that honors global value duplication
                 // but uses an inline global value decoder
@@ -435,8 +435,8 @@ class DefaultConfigurationCacheIO internal constructor(
      * for everything else we use the sequential, per encoder/decoder, deduplication strategy.
      */
     private
-    fun isUsingShareableObjectSharingStrategy(stateFile: ConfigurationCacheStateFile) =
-        stateFile.stateType == StateType.Work && startParameter.isSharingShareableObjects
+    fun isUsingObjectSharingStrategy(stateFile: ConfigurationCacheStateFile) =
+        stateFile.stateType == StateType.Work && startParameter.isSharingObjects
 
     private
     fun loggingTracerFor(profile: () -> String, encoder: PositionAwareEncoder) =

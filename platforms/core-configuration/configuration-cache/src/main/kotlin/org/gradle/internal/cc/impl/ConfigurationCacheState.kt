@@ -104,7 +104,7 @@ enum class StateType(val encryptable: Boolean = false) {
     /**
      * Contains work-related state that is meant to be shared for the entire build.
      */
-    WorkGlobals(true),
+    WorkShared(true),
 
     /**
      * Contains the side effects observed during the creation of the [Model].

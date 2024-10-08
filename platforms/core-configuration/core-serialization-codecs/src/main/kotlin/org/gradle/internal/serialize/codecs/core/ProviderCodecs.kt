@@ -264,14 +264,14 @@ class BuildServiceProviderCodec(
 
 object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
     override suspend fun WriteContext.encode(value: BuildServiceParameters) =
-        writeShareableObject(value) {
+        writeSharedObject(value) {
             BeanCodec.run {
                 encode(value)
             }
         }
 
     override suspend fun ReadContext.decode(): BuildServiceParameters =
-        readShareableObject {
+        readSharedObject {
             BeanCodec.run {
                 decode()
             }

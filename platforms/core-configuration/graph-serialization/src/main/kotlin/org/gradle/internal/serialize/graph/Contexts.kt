@@ -96,7 +96,7 @@ class DefaultWriteContext(
         }
     }
 
-    override suspend fun <T : Any> writeShareableObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
+    override suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
         sharedObjectEncoder.run {
             write(this@DefaultWriteContext, value, encode)
         }
@@ -264,7 +264,7 @@ class DefaultReadContext(
         decode()
     }
 
-    override suspend fun <T : Any> readShareableObject(decode: suspend ReadContext.() -> T): T =
+    override suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T =
         sharedObjectDecoder.run {
             read(this@DefaultReadContext, decode)
         }
