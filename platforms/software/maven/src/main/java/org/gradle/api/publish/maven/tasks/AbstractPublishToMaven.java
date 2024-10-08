@@ -62,7 +62,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     }
 
     /**
-     * The publication to be published.
+     * The publication to be published. Currently only instances of MavenPublicationInternal are supported.
      */
     @Internal
     @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
@@ -73,7 +73,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     /**
      * Sets the publication to be published.
      *
-     * @param publication The publication to be published
+     * @param publication The publication to be published. Currently only instances of MavenPublicationInternal are supported.
      */
     public void setPublication(MavenPublication publication) {
         this.publication.set(toPublicationInternal(publication));
