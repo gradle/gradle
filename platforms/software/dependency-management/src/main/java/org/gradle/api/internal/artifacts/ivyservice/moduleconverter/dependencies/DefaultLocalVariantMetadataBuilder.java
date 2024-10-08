@@ -52,7 +52,6 @@ import org.gradle.internal.model.ModelContainer;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Encapsulates all logic required to build a {@link LocalVariantGraphResolveMetadata} from a
@@ -117,9 +116,6 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
         CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata> dependencies =
             getConfigurationDependencyState(description, hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
 
-        CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
-            getConfigurationArtifacts(configurationName, description, componentId, hierarchy, configurationsProvider, model, calculatedValueContainerFactory);
-
         return new DefaultLocalVariantGraphResolveMetadata(
             configurationName,
             description,
@@ -130,42 +126,8 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
             configuration.isDeprecatedForConsumption(),
             dependencies,
             variantsBuilder.build(),
-            calculatedValueContainerFactory,
-            artifacts
+            calculatedValueContainerFactory
         );
-    }
-
-    private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getConfigurationArtifacts(
-        String name,
-        String description,
-        ComponentIdentifier componentId,
-        ImmutableSet<String> hierarchy,
-        ConfigurationsProvider configurationsProvider,
-        ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        return calculatedValueContainerFactory.create(Describables.of(description, "artifacts"), context -> model.fromMutableState(m -> {
-            Set<PublishArtifact> ownArtifacts = configurationsProvider.findByName(name).getOutgoing().getArtifacts();
-
-            ImmutableSet.Builder<LocalComponentArtifactMetadata> result = ImmutableSet.builderWithExpectedSize(ownArtifacts.size());
-            for (PublishArtifact ownArtifact : ownArtifacts) {
-                // The following line may realize tasks, so project lock must be held.
-                result.add(new PublishArtifactLocalArtifactMetadata(componentId, ownArtifact));
-            }
-
-            // TODO: Deprecate the behavior of inheriting artifacts from parent configurations.
-            for (String config : hierarchy) {
-                if (config.equals(name)) {
-                    continue;
-                }
-                Set<PublishArtifact> inheritedArtifacts = configurationsProvider.findByName(config).getOutgoing().getArtifacts();
-                for (PublishArtifact inheritedArtifact : inheritedArtifacts) {
-                    // The following line may realize tasks, so project lock must be held.
-                    result.add(new PublishArtifactLocalArtifactMetadata(componentId, inheritedArtifact));
-                }
-            }
-            return result.build().asList();
-        }));
     }
 
     private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getVariantArtifacts(

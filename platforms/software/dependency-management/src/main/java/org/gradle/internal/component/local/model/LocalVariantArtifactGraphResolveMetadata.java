@@ -16,23 +16,17 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
-
 import java.util.Set;
 
 /**
  * Artifact metadata for local graph variants.
  */
-public interface LocalVariantArtifactGraphResolveMetadata extends VariantArtifactGraphResolveMetadata {
-
-    @Override
-    ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
+public interface LocalVariantArtifactGraphResolveMetadata {
 
     /**
      * The artifact options for this variant. These are effectively precomputed or
      * producer-defined transforms.
      */
-    Set<? extends VariantResolveMetadata> getArtifactVariants();
+    Set<LocalVariantMetadata> getArtifactVariants();
+
 }

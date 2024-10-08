@@ -48,7 +48,6 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     private final CalculatedValue<VariantDependencyMetadata> dependencies;
     private final Set<LocalVariantMetadata> variants;
     private final CalculatedValueContainerFactory factory;
-    private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
 
     public DefaultLocalVariantGraphResolveMetadata(
         String name,
@@ -60,8 +59,7 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
         boolean deprecatedForConsumption,
         CalculatedValue<VariantDependencyMetadata> dependencies,
         Set<LocalVariantMetadata> variants,
-        CalculatedValueContainerFactory factory,
-        CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts
+        CalculatedValueContainerFactory factory
     ) {
         this.name = name;
         this.description = description;
@@ -73,7 +71,6 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
         this.dependencies = dependencies;
         this.variants = variants;
         this.factory = factory;
-        this.artifacts = artifacts;
     }
 
     @Override
@@ -93,17 +90,10 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
             ));
         }
 
-        CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> transformedArtifacts =
-            factory.create(Describables.of(description, "artifacts"), context ->
-                prepareToResolveArtifacts().getArtifacts().stream()
-                    .map(artifactTransformer::transform)
-                    .collect(ImmutableList.toImmutableList())
-            );
-
         return new DefaultLocalVariantGraphResolveMetadata(
             name, description, componentId, transitive, attributes, capabilities,
             deprecatedForConsumption,
-            dependencies, copiedVariants.build(), factory, transformedArtifacts
+            dependencies, copiedVariants.build(), factory
         );
     }
 
@@ -162,16 +152,10 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
 
     @Override
     public LocalVariantArtifactGraphResolveMetadata prepareToResolveArtifacts() {
-        artifacts.finalizeIfNotAlready();
         for (LocalVariantMetadata variant : variants) {
             variant.prepareToResolveArtifacts();
         }
         return this;
-    }
-
-    @Override
-    public ImmutableList<LocalComponentArtifactMetadata> getArtifacts() {
-        return artifacts.get();
     }
 
     @Override
