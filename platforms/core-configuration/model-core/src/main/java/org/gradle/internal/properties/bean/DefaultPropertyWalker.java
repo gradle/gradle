@@ -19,6 +19,8 @@ package org.gradle.internal.properties.bean;
 import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
@@ -88,17 +90,30 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
             @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
+                boolean isUpgradedProperty = propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class);
+                Class<?> propertyType = propertyMetadata.getDeclaredType().getRawType();
+                String propertyDisplayName = getPropertyDisplayName(parent, qualifiedName, propertyType, isUpgradedProperty);
                 PropertyValue cachedValue = new CachedPropertyValue(
                     () -> propertyMetadata.getPropertyValue(parent),
                     propertyMetadata.getDeclaredType().getRawType(),
-                    // Upgraded properties should not be finalized to simplify migration
-                    propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class)
+                    isUpgradedProperty,
+                    propertyDisplayName
                 );
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
                 }
                 handler.visitPropertyValue(qualifiedName, cachedValue, propertyMetadata, visitor);
+            }
+
+            @Nullable
+            private String getPropertyDisplayName(Object parent, String qualifiedName, Class<?> propertyType, boolean isUpgradedProperty) {
+                if (isUpgradedProperty && parent instanceof Task && FileCollection.class.isAssignableFrom(propertyType)) {
+                    // FileCollection properties often don't have attached a nice display name,
+                    // so for upgraded task properties we calculate it at finalization.
+                    return parent + " property '" + qualifiedName + "'";
+                }
+                return null;
             }
         });
     }
@@ -108,11 +123,19 @@ public class DefaultPropertyWalker implements PropertyWalker {
         private final Supplier<Object> cachedInvoker;
         private final Class<?> declaredType;
         private final boolean isUpgradedProperty;
+        @Nullable
+        private final String propertyDisplayName;
 
-        public CachedPropertyValue(Supplier<Object> supplier, Class<?> declaredType, boolean isUpgradedProperty) {
+        public CachedPropertyValue(
+            Supplier<Object> supplier,
+            Class<?> declaredType,
+            boolean isUpgradedProperty,
+            @Nullable String propertyDisplayName
+        ) {
             this.declaredType = declaredType;
             this.cachedInvoker = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(supplier::get));
             this.isUpgradedProperty = isUpgradedProperty;
+            this.propertyDisplayName = propertyDisplayName;
         }
 
         @Override
@@ -136,8 +159,9 @@ public class DefaultPropertyWalker implements PropertyWalker {
             if (isConfigurable()) {
                 Object value = cachedInvoker.get();
                 if (isUpgradedProperty) {
-                    // TODO: Remove this with Gradle 10
-                    ((HasConfigurableValueInternal) value).warnOnUpgradedPropertyChanges();
+                    // Upgraded properties should not be finalized to simplify migration.
+                    // This behaviour should be removed with Gradle 10.
+                    ((HasConfigurableValueInternal) value).warnOnUpgradedPropertyChanges(propertyDisplayName);
                 } else {
                     ((HasConfigurableValueInternal) value).implicitFinalizeValue();
                 }

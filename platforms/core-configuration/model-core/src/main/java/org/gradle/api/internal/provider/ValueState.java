@@ -166,7 +166,7 @@ public abstract class ValueState<S> {
      */
     public abstract S setToConventionIfUnset(S value);
 
-    public abstract void warnOnUpgradedPropertyChanges();
+    public abstract void warnOnUpgradedPropertyChanges(@Nullable String propertyDisplayName);
 
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
@@ -175,6 +175,13 @@ public abstract class ValueState<S> {
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
         private boolean disallowUnsafeRead;
+
+        /**
+         * For upgraded properties that are FileCollection we get display name at finalization.
+         * TODO: Remove this and implement general solution for displaying task FileCollection names.
+         */
+        @Nullable
+        private String upgradedPropertyDisplayName;
         private boolean warnOnUpgradedPropertyChanges;
         private S convention;
 
@@ -224,8 +231,9 @@ public abstract class ValueState<S> {
             if (disallowChanges) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
             } else if (warnOnUpgradedPropertyChanges) {
-                DeprecationLogger.deprecateBehaviour("Changing property value of " + displayName.getDisplayName() + " at execution time.")
-                    .startingWithGradle9("changing property value of " + displayName.getDisplayName() + " at execution time is deprecated and will fail in Gradle 10")
+                String shownDisplayName = upgradedPropertyDisplayName == null ? displayName.getDisplayName() : upgradedPropertyDisplayName;
+                DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
+                    .startingWithGradle9("changing property value of " + shownDisplayName + " at execution time is deprecated and will fail in Gradle 10")
                     // TODO add documentation
                     .undocumented()
                     .nagUser();
@@ -282,7 +290,8 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void warnOnUpgradedPropertyChanges() {
+        public void warnOnUpgradedPropertyChanges(@Nullable String propertyDisplayName) {
+            upgradedPropertyDisplayName = propertyDisplayName;
             warnOnUpgradedPropertyChanges = true;
         }
 
@@ -434,7 +443,7 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void warnOnUpgradedPropertyChanges() {
+        public void warnOnUpgradedPropertyChanges(@Nullable String propertyDisplayName) {
             // Finalized already so nothing to warn about
         }
 

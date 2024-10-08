@@ -144,8 +144,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void warnOnUpgradedPropertyChanges() {
-        valueState.warnOnUpgradedPropertyChanges();
+    public void warnOnUpgradedPropertyChanges(@Nullable String propertyDisplayName) {
+        valueState.warnOnUpgradedPropertyChanges(propertyDisplayName);
     }
 
     @Override
