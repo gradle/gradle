@@ -38,12 +38,15 @@ publishing {
 
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
-    def predicate = provider {
-        (repository == publishing.repositories.external && publication == publishing.publications.binary)
-            || (repository == publishing.repositories.internal && publication == publishing.publications.binaryAndSources)
+    def publishIf = provider {
+        if (repository == publishing.repositories.external)
+            return publication == publishing.publications.binary
+        if (repository == publishing.repositories.internal)
+            return publication == publishing.publications.binaryAndSources
+        return false
     }
     onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
-        predicate.get()
+        publishIf.get()
     }
 }
 // end::task-config[]
