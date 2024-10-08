@@ -52,14 +52,6 @@
         },
         {
             "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
-            "member": "Class org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
-            "acceptation": "Changed to idiomatic injection",
-            "changes": [
-                "Abstract method has been added to a superclass"
-            ]
-        },
-        {
-            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
             "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getListenerManager()",
             "acceptation": "The method is unused",
             "changes": [

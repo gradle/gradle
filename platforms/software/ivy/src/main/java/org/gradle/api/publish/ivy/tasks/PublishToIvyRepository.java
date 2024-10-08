@@ -25,7 +25,6 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -293,7 +292,4 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
     @Inject
     protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
-
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
 }
