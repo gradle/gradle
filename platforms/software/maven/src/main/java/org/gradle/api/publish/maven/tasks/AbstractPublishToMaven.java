@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublicationTracker;
@@ -102,9 +101,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
 
     @Inject
     protected abstract MavenPublishers getMavenPublishers();
-    @Inject
-    protected abstract MavenDuplicatePublicationTracker getDuplicatePublicationTracker();
 
     @Inject
-    protected abstract ObjectFactory getObjectFactory();
+    protected abstract MavenDuplicatePublicationTracker getDuplicatePublicationTracker();
 }
