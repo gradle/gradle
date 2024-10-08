@@ -30,6 +30,14 @@ public class MacOSSdkPathLocator extends AbstractLocator {
 
     @Override
     protected List<String> getXcrunFlags() {
+        // The manpage of `xcrun` states for the --sdk argument:
+        // If no --sdk argument is provided,
+        // then the SDK used will be taken from the SDKROOT environment variable, if present.
+        // Thus, if `SDKROOT` is set, avoid changing behavior in relation to 8.10 and before.
+        String sdkroot = System.getenv("SDKROOT");
+        if (sdkroot != null) {
+            return ImmutableList.of("--show-sdk-path");
+        }
         return ImmutableList.of("--sdk", "macosx", "--show-sdk-path");
     }
 }
