@@ -27,7 +27,7 @@ import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
 import org.gradle.internal.serialize.graph.withDebugFrame
-import org.gradle.internal.serialize.graph.writeNextProperty
+import org.gradle.internal.serialize.graph.writePropertyValue
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
 
@@ -92,7 +92,7 @@ object JavaRecordEncoding : Encoding {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
             withDebugFrame({ "${clazz.typeName}.$fieldName" }) {
-                writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
+                writePropertyValue(PropertyKind.Field, fieldName, fieldValue)
             }
         }
     }

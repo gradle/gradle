@@ -344,7 +344,7 @@ suspend fun ReadContext.decodeBean(): Any {
     val beanType = readClass()
     return withBeanTrace(beanType) {
         beanStateReaderFor(beanType).run {
-            newBean(false).also {
+            newBean().also {
                 readStateOf(it)
             }
         }
@@ -359,12 +359,12 @@ interface BeanStateWriter {
 
 interface BeanStateReader {
 
-    fun ReadContext.newBeanWithId(generated: Boolean, id: Int) =
-        newBean(generated).also {
+    fun ReadContext.newBeanWithId(id: Int) =
+        newBean().also {
             isolate.identities.putInstance(id, it)
         }
 
-    fun ReadContext.newBean(generated: Boolean): Any
+    fun ReadContext.newBean(): Any
 
     suspend fun ReadContext.readStateOf(bean: Any)
 }
