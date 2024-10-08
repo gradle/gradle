@@ -209,7 +209,7 @@ class DefaultConfigurationCacheIO internal constructor(
     override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) =
         // we share the string encoder with the root build, but not the global value encoder
         withSharedObjectEncoderFor(stateFile, currentStringEncoder) { sharedObjectEncoder ->
-            writeConfigurationCacheStateWithCustomEncoders(currentStringEncoder, sharedObjectEncoder, stateFile) { cacheState ->
+            writeConfigurationCacheStateWithSpecialEncoders(currentStringEncoder, sharedObjectEncoder, stateFile) { cacheState ->
                 cacheState.run {
                     writeBuildContent(host.currentBuild, buildTreeState)
                 }
@@ -242,7 +242,7 @@ class DefaultConfigurationCacheIO internal constructor(
     ): T =
         withStringEncoderFor(stateFile) { stringEncoder ->
             withSharedObjectEncoderFor(stateFile, stringEncoder) { sharedObjectEncoder ->
-                writeConfigurationCacheStateWithCustomEncoders(stringEncoder, sharedObjectEncoder, stateFile, action)
+                writeConfigurationCacheStateWithSpecialEncoders(stringEncoder, sharedObjectEncoder, stateFile, action)
             }
         }
 
@@ -331,7 +331,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     private
-    fun <T> writeConfigurationCacheStateWithCustomEncoders(
+    fun <T> writeConfigurationCacheStateWithSpecialEncoders(
         stringEncoder: StringEncoder,
         sharedObjectEncoder: SharedObjectEncoder,
         stateFile: ConfigurationCacheStateFile,
