@@ -82,7 +82,7 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
     }
 
     private ConstantExpression getSourceLocation() {
-        // FIXME-RC: we only collect the name (and even that is unreliable), as it may come from a cached .class file compiled from a different file name
-        return location == null ? ConstantExpression.NULL : new ConstantExpression(Paths.get(location.getPath()).getFileName().toString());
+        // FIXME-RC: locations (and even filenames) are unreliable, as they may come from cached .class files compiled from a different file location/name
+        return location == null ? ConstantExpression.NULL : new ConstantExpression(Paths.get(location.getPath()).toString());
     }
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.provider.DefaultProperty
@@ -26,9 +27,11 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.name
+import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -53,8 +56,8 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
                     val originalValue = expression.getValueArgument(0)
                     val provenanceOffset = originalValue!!.startOffset
                     val file = moduleFragment.files.first()
-                    // FIXME-RC: we only collect the name (and even that is unreliable), as it may come from a cached .class file compiled from a different file name
-                    val sourceUnit = file.name
+                    // FIXME-RC: path (and name) are unreliable, as it may come from a cached .class file compiled from a different file path/name
+                    val sourceUnit = file.path
                     val fileEntry = file.fileEntry
                     val lineNumber = fileEntry.getLineNumber(provenanceOffset) + 1
                     val columnNumber = fileEntry.getColumnNumber(provenanceOffset)
@@ -69,7 +72,7 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
                         endOffset = expression.endOffset
                     ).build {
                         irCall(
-                            targetType.getSimpleFunction("withProv")!!
+                            withProvFunctionFor(targetType)
                         ).apply {
                             putValueArgument(0, originalValue)
                             putValueArgument(1, irString(sourceUnit))
@@ -84,6 +87,9 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
             }
         }, null)
     }
+
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
+    private fun withProvFunctionFor(targetType: IrClassSymbol) = targetType.getSimpleFunction("withProv")!!
 
     private
     fun IrCall.isPropertyAssignment() =

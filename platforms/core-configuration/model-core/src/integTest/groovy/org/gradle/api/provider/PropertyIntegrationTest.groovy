@@ -140,7 +140,9 @@ task thing(type: SomeTask) {
     def "fails when input file does not exist"() {
         enableProblemsApiCheck()
         given:
+        // include build file location in file to avoid caching
         buildFile << """
+            // ${buildFile.path}
             abstract class SomeTask extends DefaultTask {
                 @InputFile
                 abstract RegularFileProperty getProp()
@@ -163,13 +165,13 @@ task thing(type: SomeTask) {
         failureDescriptionContains("""- Type 'SomeTask' property 'prop' specifies file '${fileLocation.absolutePath}' which doesn't exist.""")
         verifyAll(receivedProblem) {problem ->
             problem.details == "An input file was expected to be present but it doesn't exist"
-            problem.additionalData?.propertyName == "prop"
+            problem.additionalData?.asMap?.propertyName == "prop"
             problem.locations != null
             problem.locations.size() == 1
             def (LineInFileLocation location) = problem.locations
-            location.line == 11
+            location.line == 12
             location.column == 24
-            location.path == "build.gradle"
+            location.path == buildFile.absolutePath
         }
     }
 

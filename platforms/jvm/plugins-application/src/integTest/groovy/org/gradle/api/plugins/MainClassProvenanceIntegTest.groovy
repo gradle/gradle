@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 
 class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
 
@@ -58,7 +59,8 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         "mainClass =  'Foo'" | "7:30"
     }
 
-    def 'it works for script plugin applied with apply from'() {
+    @ToBeImplemented
+    def 'script plugin applied with apply from includes provenance'() {
         given:
         groovyFile file(pluginFileName), """
         def someProperty = objects.property(String)
@@ -75,7 +77,9 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         run 'build'
 
         then:
-        outputContains "${pluginFileName}:$position"
+        // Should be:
+        // outputContains "${pluginFileName}:$position"
+        outputContains "null"
 
         where:
         assignment           | position | pluginFileName
@@ -87,6 +91,7 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         def buildScriptFile = testDirectory.file(buildScriptFileName)
         given:
         groovyFile(buildScriptFile, """
+            // $buildScriptFileName
             plugins {
                 id 'application'
             }
@@ -103,13 +108,13 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         run 'build'
 
         then:
-        outputContains "${buildScriptFile.name}:$position"
+        outputContains "${buildScriptFileName}:$position"
 
         where:
         assignment           | position | buildScriptFileName
-        "mainClass = 'Foo'"  | "7:29"   | "custom-script-1.gradle"
-        "mainClass = 'Foo'"  | "7:29"   | "custom-script-2.gradle"
-        "mainClass = 'Foo'"  | "7:29"   | "build.gradle"
+        "mainClass = 'Foo'"  | "8:29"   | "custom-script-1.gradle"
+        "mainClass = 'Foo'"  | "8:29"   | "custom-script-2.gradle"
+        "mainClass = 'Foo'"  | "8:29"   | "build.gradle"
     }
 
     def 'it works for chained assignments'() {
@@ -144,6 +149,7 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         def buildScriptFile = testDirectory.file(buildScriptFileName)
         given:
         buildScriptFile << """
+            // $buildScriptFileName
             plugins {
                 id("application")
             }
@@ -164,9 +170,9 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
 
         where:
         assignment           | position | buildScriptFileName
-        'mainClass = "Foo"'  | "7:29"   | "custom-file-1.gradle.kts"
-        'mainClass = "Foo"'  | "7:29"   | "custom-file-2.gradle.kts"
-        'mainClass = "Foo"'  | "7:29"   | "build.gradle.kts"
+        'mainClass = "Foo"'  | "8:28"   | "custom-file-1.gradle.kts"
+        'mainClass = "Foo"'  | "8:28"   | "custom-file-2.gradle.kts"
+        'mainClass = "Foo"'  | "8:28"   | "build.gradle.kts"
     }
 
     def 'it works for chained assignment in Kotlin'() {
@@ -194,7 +200,7 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
 
         where:
         assignment           | position
-        'mainClass = "Foo"'  | "7:29"
+        'mainClass = "Foo"'  | "7:28"
     }
 
 }
