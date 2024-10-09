@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenes
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValue;
@@ -61,14 +59,11 @@ public class LocalComponentGraphResolveStateFactory {
      * Creates state for a component loaded from the configuration cache.
      */
     public LocalComponentGraphResolveState realizedStateFor(
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionId,
-        String status,
-        ImmutableAttributesSchema schema,
+        LocalComponentGraphResolveMetadata metadata,
         List<? extends LocalVariantGraphResolveState> variants
     ) {
         LocalVariantGraphResolveStateFactory configurationFactory = new RealizedListVariantFactory(variants);
-        return createLocalComponentState(componentIdentifier, moduleVersionId, status, schema, false, configurationFactory);
+        return createLocalComponentState(false, metadata, configurationFactory);
     }
 
     /**
@@ -76,7 +71,7 @@ public class LocalComponentGraphResolveStateFactory {
      */
     public LocalVariantGraphResolveState realizedVariantStateFor(
         ComponentIdentifier componentId,
-        DefaultLocalVariantGraphResolveMetadata metadata,
+        LocalVariantGraphResolveMetadata metadata,
         DefaultLocalVariantGraphResolveState.VariantDependencyMetadata dependencyMetadata,
         Set<LocalVariantMetadata> variants
     ) {
@@ -101,13 +96,10 @@ public class LocalComponentGraphResolveStateFactory {
      */
     public LocalComponentGraphResolveState stateFor(
         ModelContainer<?> model,
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionId,
-        ConfigurationsProvider configurations,
-        String status,
-        ImmutableAttributesSchema schema
+        LocalComponentGraphResolveMetadata metadata,
+        ConfigurationsProvider configurations
     ) {
-        return lazyStateFor(model, componentIdentifier, configurations, moduleVersionId, status, schema, false);
+        return lazyStateFor(model, metadata, configurations, false);
     }
 
     /**
@@ -115,49 +107,34 @@ public class LocalComponentGraphResolveStateFactory {
      */
     public LocalComponentGraphResolveState adHocStateFor(
         ModelContainer<?> model,
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionId,
-        ConfigurationsProvider configurations,
-        String status,
-        ImmutableAttributesSchema schema
+        LocalComponentGraphResolveMetadata metadata,
+        ConfigurationsProvider configurations
     ) {
-        return lazyStateFor(model, componentIdentifier, configurations, moduleVersionId, status, schema, true);
+        return lazyStateFor(model, metadata, configurations, true);
     }
 
     private LocalComponentGraphResolveState lazyStateFor(
         ModelContainer<?> model,
-        ComponentIdentifier componentIdentifier,
+        LocalComponentGraphResolveMetadata metadata,
         ConfigurationsProvider configurations,
-        ModuleVersionIdentifier moduleVersionId,
-        String status,
-        ImmutableAttributesSchema schema,
         boolean adHoc
     ) {
         LocalVariantGraphResolveStateFactory variantsFactory = new ConfigurationsProviderVariantFactory(
-            componentIdentifier,
+            metadata.getId(),
             configurations,
             metadataBuilder,
             model,
             calculatedValueContainerFactory
         );
 
-        return createLocalComponentState(componentIdentifier, moduleVersionId, status, schema, adHoc, variantsFactory);
+        return createLocalComponentState(adHoc, metadata, variantsFactory);
     }
 
     private DefaultLocalComponentGraphResolveState createLocalComponentState(
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionId,
-        String status,
-        ImmutableAttributesSchema schema,
         boolean adHoc,
+        LocalComponentGraphResolveMetadata metadata,
         LocalVariantGraphResolveStateFactory variantsFactory
     ) {
-        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionId,
-            componentIdentifier,
-            status,
-            schema
-        );
 
         return new DefaultLocalComponentGraphResolveState(
             idGenerator.nextComponentId(),

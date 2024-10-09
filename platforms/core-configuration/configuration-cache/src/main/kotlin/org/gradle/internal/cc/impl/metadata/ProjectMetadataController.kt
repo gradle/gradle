@@ -32,6 +32,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
@@ -123,12 +124,17 @@ class ProjectMetadataController(
                 val id = readNonNull<ComponentIdentifier>()
                 val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
 
-                val variants = readVariants(id, ownerService())
-                resolveStateFactory.realizedStateFor(
-                    id,
+                val metadata = LocalComponentGraphResolveMetadata(
                     moduleVersionId,
+                    id,
                     Project.DEFAULT_STATUS,
-                    ImmutableAttributesSchema.EMPTY,
+                    ImmutableAttributesSchema.EMPTY
+                )
+
+                val variants = readVariants(id, ownerService())
+
+                resolveStateFactory.realizedStateFor(
+                    metadata,
                     variants
                 )
             }

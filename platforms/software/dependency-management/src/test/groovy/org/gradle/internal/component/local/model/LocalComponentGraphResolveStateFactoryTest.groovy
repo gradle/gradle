@@ -69,13 +69,16 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
     LocalComponentGraphResolveState state
 
     def setup() {
-        state = stateFactory.stateFor(
-            StandaloneDomainObjectContext.ANONYMOUS,
-            componentIdentifier,
+        def metadata = new LocalComponentGraphResolveMetadata(
             id,
-            project.configurations as ConfigurationsProvider,
+            componentIdentifier,
             "status",
             ImmutableAttributesSchema.EMPTY
+        )
+        state = stateFactory.stateFor(
+            StandaloneDomainObjectContext.ANONYMOUS,
+            metadata,
+            project.configurations as ConfigurationsProvider
         )
     }
 

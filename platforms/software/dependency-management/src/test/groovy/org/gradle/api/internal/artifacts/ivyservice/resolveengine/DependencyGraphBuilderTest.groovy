@@ -58,6 +58,7 @@ import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolve
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveState
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantMetadata
@@ -1071,7 +1072,14 @@ class DependencyGraphBuilderTest extends Specification {
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
         def defaultVariant = createVariantMetadata("default", componentId, [], artifacts)
-        resolveStateFactory.realizedStateFor(componentId, id, "release", attributesSchema, [defaultVariant])
+        def metadata = new LocalComponentGraphResolveMetadata(
+            id,
+            componentId,
+            "release",
+            attributesSchema
+        )
+
+        resolveStateFactory.realizedStateFor(metadata, [defaultVariant])
     }
 
     LocalComponentGraphResolveState rootProject() {
@@ -1080,9 +1088,16 @@ class DependencyGraphBuilderTest extends Specification {
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
         def defaultVariant = createVariantMetadata("default", componentId, [], artifacts)
-
         def rootVariant = createVariantMetadata("root", componentId, defaultVariant.getDependencies(), [])
-        resolveStateFactory.realizedStateFor(componentId, newId("group", "root", "1.0"), "release", attributesSchema, [defaultVariant, rootVariant])
+
+        def metadata = new LocalComponentGraphResolveMetadata(
+            newId("group", "root", "1.0"),
+            componentId,
+            "release",
+            attributesSchema
+        )
+
+        resolveStateFactory.realizedStateFor(metadata, [defaultVariant, rootVariant])
     }
 
     def createVariantMetadata(String name, ComponentIdentifier componentId, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
