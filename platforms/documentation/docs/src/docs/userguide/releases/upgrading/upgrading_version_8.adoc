@@ -47,7 +47,7 @@ Also see the link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.10[Kotli
 
 The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.20 as well.
 
-Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backwards compatibility.
+Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backward compatibility.
 
 ==== Gradle daemon JVM configuration via toolchain
 
@@ -57,17 +57,17 @@ If you configured the task in a build script, you will need to replace:
 
 `jvmVersion = JavaVersion.VERSION_17`
 
-with:
+With:
 
 `jvmVersion = JavaLanguageVersion.of(17)`
 
-There is no impact when using the CLI options to configure which JVM version to use for the Gradle Daemon.
+Using the CLI options to configure which JVM version to use for the Gradle Daemon has no impact.
 
 ==== Name matching changes
 
-The name matching logic has been updated to treat numbers as word boundaries for camelCase names.
+The name-matching logic has been updated to treat numbers as word boundaries for camelCase names.
 Previously, a request like `unique` would match both `uniqueA` and `unique1`.
-Now, such a request will fail due to ambiguity. To avoid issues, use the exact name instead of a shortened version.
+Such a request will now fail due to ambiguity. To avoid issues, use the exact name instead of a shortened version.
 
 This change impacts:
 
@@ -129,7 +129,7 @@ val files = myConfig.files
 Starting in Gradle 9.0, selecting variants by name from non-Ivy external components will be forbidden.
 
 Selecting variants by name from local components will still be permitted; however, this pattern is discouraged.
-For local components, variant aware dependency resolution should be preferred over selecting variants by name.
+Variant aware dependency resolution should be preferred over selecting variants by name for local components.
 
 The following dependencies will fail to resolve when targeting a non-Ivy external component:
 
@@ -220,7 +220,7 @@ tasks.withType(JavaCompile) {
 The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
 
 The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
-The existing method does not behave as specified by its javadoc, and we do not plan to introduce a replacement that does.
+The existing method does not behave as specified by its Javadoc, and we do not plan to introduce a replacement that does.
 
 Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
 
@@ -235,7 +235,7 @@ link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[P
 These methods cannot be used with the configuration cache and should be replaced with compatible alternatives.
 At execution time, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service or standard Java/Groovy/Kotlin APIs, like `java.lang.ProcessBuilder` to run processes.
 Running external processes at configuration time isn't recommended, but methods of <<configuration_cache.adoc#config_cache:requirements:external_processes, `ProviderFactory`>> or a custom
-link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if absolutely necessary, at a cost of making the process output an input to the build configuration.
+link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if necessary, at the cost of making the process output an input to the build configuration.
 
 [[detached_configurations_cannot_extend]]
 ==== Detached Configurations should not use `extendsFrom`
@@ -260,7 +260,7 @@ We do not plan to introduce a replacement for this feature.
 
 Gradle's API allowed some properties that represented nested groups of properties to be replaced wholesale with a setter method.
 This was awkward and unusual to do and would sometimes require the use of internal APIs.
-To simplify the API and ensure consistent behavior, the setters for these properties will be removed in Gradle 9.0.
+The setters for these properties will be removed in Gradle 9.0 to simplify the API and ensure consistent behavior.
 Instead of using the setter method, these properties should be configured by calling the getter and configuring the object directly or using the convenient configuration method.
 For example, in `CompileOptions`, instead of calling the `setForkOptions` setter, you can call `getForkOptions()` or `forkOptions(Action)`.
 
