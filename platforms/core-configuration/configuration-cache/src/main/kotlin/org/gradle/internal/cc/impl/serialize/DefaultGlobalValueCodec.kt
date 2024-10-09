@@ -73,22 +73,22 @@ class DefaultSharedObjectEncoder(
 
     override fun close() {
         globalContext.synchronized {
-            writeSmallInt(EOF)
-            close()
+            use {
+                writeSmallInt(EOF)
+            }
         }
     }
 }
 
-class DefaultSharedObjectDecoder(globalContextProvider: () -> CloseableReadContext) : SharedObjectDecoder, AutoCloseable {
+class DefaultSharedObjectDecoder(
+    private val globalContext: CloseableReadContext
+) : SharedObjectDecoder, AutoCloseable {
     enum class ReaderState {
         READY, STARTED, RUNNING, STOPPING, STOPPED
     }
 
     private
     val state = AtomicReference(ReaderState.READY)
-
-    private
-    val globalContext by lazy(globalContextProvider)
 
     private
     inner class FutureValue {

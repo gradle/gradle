@@ -280,7 +280,7 @@ class DefaultConfigurationCacheIO internal constructor(
                 // but uses an inline global value decoder
                 val (globalContext, _) = readContextFor(globalsFile, stringDecoder)
                 globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
-                DefaultSharedObjectDecoder { globalContext }
+                DefaultSharedObjectDecoder(globalContext)
             } else {
                 InlineSharedObjectDecoder
             }
