@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.views;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.provider.MapProperty;
 
 import javax.annotation.Nullable;
@@ -71,7 +72,10 @@ public class MapPropertyMapView<K, V> extends AbstractMap<K, V> {
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        delegate.putAll(m);
+        // Map.putAll only copies the values from the argument.
+        // MapProperty.putAll captures the argument reference, so we need a defensive copy to get the old behavior.
+        // ImmutableMap is null-hostile, but so is the MapProperty.
+        delegate.putAll(ImmutableMap.copyOf(m));
     }
 
     @Override
