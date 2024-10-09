@@ -22,20 +22,17 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
 
-public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
+public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
 
-    private boolean ignoreExitValue;
-    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
     @Inject
     public DefaultExecSpec(PathToFileResolver resolver) {
         super(resolver);
+        getIgnoreExitValue().convention(false);
     }
 
     public void copyTo(ExecSpec targetSpec) {
@@ -49,15 +46,15 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     }
 
     static void copyBaseExecSpecTo(BaseExecSpec source, BaseExecSpec target) {
-        target.setIgnoreExitValue(source.isIgnoreExitValue());
-        if (source.getStandardInput() != null) {
-            target.setStandardInput(source.getStandardInput());
+        target.getIgnoreExitValue().set(source.getIgnoreExitValue());
+        if (source.getStandardInput().isPresent()) {
+            target.getStandardInput().set(source.getStandardInput());
         }
-        if (source.getStandardOutput() != null) {
-            target.setStandardOutput(source.getStandardOutput());
+        if (source.getStandardOutput().isPresent()) {
+            target.getStandardOutput().set(source.getStandardOutput());
         }
-        if (source.getErrorOutput() != null) {
-            target.setErrorOutput(source.getErrorOutput());
+        if (source.getErrorOutput().isPresent()) {
+            target.getErrorOutput().set(source.getErrorOutput());
         }
     }
 
@@ -125,49 +122,5 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
         return argumentsSpec.getArgumentProviders();
-    }
-
-    @Override
-    public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public BaseExecSpec setStandardInput(InputStream inputStream) {
-        streamsSpec.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
-    }
-
-    @Override
-    public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        streamsSpec.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        streamsSpec.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
     }
 }

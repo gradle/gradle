@@ -16,6 +16,7 @@
 
 package gradlebuild.performance.reporter
 
+import gradlebuild.basics.Gradle9PropertyUpgradeSupport
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -78,9 +79,9 @@ class PerformanceReporter {
 
                 spec.setClasspath(classpath)
 
-                spec.ignoreExitValue = true
-                spec.setErrorOutput(output)
-                spec.setStandardOutput(output)
+                Gradle9PropertyUpgradeSupport.setProperty(spec, "setIgnoreExitValue", true)
+                Gradle9PropertyUpgradeSupport.setProperty(spec, "setErrorOutput", output)
+                Gradle9PropertyUpgradeSupport.setProperty(spec, "setStandardOutput", output)
             }
         })
 
