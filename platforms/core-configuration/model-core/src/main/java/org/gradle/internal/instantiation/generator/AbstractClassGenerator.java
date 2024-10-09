@@ -438,6 +438,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             && (Provider.class.isAssignableFrom(property.getType()) || isConfigurableFileCollectionType(property.getType()) || hasNestedAnnotation(property));
     }
 
+    private static boolean isReattachProperty(PropertyMetadata property) {
+        // Properties that should have reattached property owners upon reading from the cache
+        return hasPropertyType(property) || isConfigurableFileCollectionType(property.getType());
+    }
+
     private static boolean isNameProperty(PropertyMetadata property) {
         // Property is read only, called "name", has type String and getter is abstract
         return property.isReadOnly() && "name".equals(property.getName()) && property.getType() == String.class && property.getMainGetter().isAbstract();
@@ -1129,7 +1134,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.markPropertyAsIneligibleForConventionMapping(property);
             }
             for (PropertyMetadata property : readOnlyProperties) {
-                if (hasPropertyType(property)) {
+                if (isReattachProperty(property)) {
                     boolean applyRole = isRoleType(property);
                     visitor.attachOnDemand(property, applyRole);
                 }
