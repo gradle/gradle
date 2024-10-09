@@ -50,7 +50,8 @@ class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificat
 
     def maybeExpectDeprecations() {
         if (targetVersion >= GradleVersion.version("7.1")) {
-            expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle X. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+            def willBeRemovedIn = targetVersion >= GradleVersion.version("8.0") ? "9.0" : "8.0"
+            expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle $willBeRemovedIn. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         }
     }
 }

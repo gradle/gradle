@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -78,18 +79,17 @@ public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
 
     /**
-     * Locates the tool chain that would be used as the default for the current machine, if any.
-     *
-     * @return null if there is no such tool chain.
+     * Locates the C++ tool chain that would be used as the default for the current machine. Asserts that there is a tool chain installed.
      */
-    @Nullable
-    public static InstalledToolChain getDefaultToolChain() {
-        for (ToolChainCandidate toolChain : getToolChains()) {
-            if (toolChain.isAvailable()) {
-                return (InstalledToolChain) toolChain;
+    public static InstalledCppToolChain getDefaultToolChain() {
+        List<ToolChainCandidate> toolChains = getToolChains();
+        for (ToolChainCandidate toolChain : toolChains) {
+            if (toolChain.isAvailable() && toolChain instanceof InstalledCppToolChain) {
+                System.out.println("Using C++ toolchain: " + toolChain);
+                return (InstalledCppToolChain) toolChain;
             }
         }
-        return null;
+        throw new IllegalStateException("Could not find an installed C++ toolchain. Found: " + Joiner.on(", ").join(toolChains));
     }
 
     /**
@@ -138,7 +138,8 @@ public class AvailableToolChains {
         //   We need to search for Clang differently on macOS because we need to know the Xcode version for x86 support.
         if (OperatingSystem.current().isMacOsX()) {
             toolChains.addAll(findXcodes().stream().map(InstalledXcode::getClang).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
-        } else {
+        }
+        if (toolChains.isEmpty()) {
             GccMetadataProvider versionDeterminer = GccMetadataProvider.forClang(TestFiles.execActionFactory());
             Set<File> clangCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("clang"));
             if (!clangCandidates.isEmpty()) {
@@ -262,10 +263,11 @@ public class AvailableToolChains {
         File rootSwiftInstall = new File("/opt/swift");
         File[] swiftCandidates = GUtil.getOrDefault(rootSwiftInstall.listFiles(swiftInstall -> swiftInstall.isDirectory() && !swiftInstall.getName().equals("latest")), () -> new File[0]);
 
+        Set<Integer> supportedSwiftMajorVersions = Arrays.stream(SwiftVersion.values()).map(SwiftVersion::getVersion).collect(Collectors.toSet());
         for (File swiftInstall : swiftCandidates) {
             File swiftc = new File(swiftInstall, "/usr/bin/swiftc");
             SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(Collections.emptyList(), spec -> spec.executable(swiftc));
-            if (version.isAvailable()) {
+            if (version.isAvailable() && supportedSwiftMajorVersions.contains(version.getComponent().getVersion().getMajor())) {
                 File binDir = swiftc.getParentFile();
                 toolChains.add(new InstalledSwiftc(binDir, version.getComponent().getVersion()).inPath(binDir, new File("/usr/bin")));
             }
@@ -477,7 +479,15 @@ public class AvailableToolChains {
         }
     }
 
-    public static abstract class GccCompatibleToolChain extends InstalledToolChain {
+    public static abstract class InstalledCppToolChain extends InstalledToolChain {
+        public InstalledCppToolChain(ToolFamily family, VersionNumber version) {
+            super(family, version);
+        }
+
+        abstract File getCppCompiler();
+    }
+
+    public static abstract class GccCompatibleToolChain extends InstalledCppToolChain {
         protected GccCompatibleToolChain(ToolFamily family, VersionNumber version) {
             super(family, version);
         }
@@ -496,8 +506,6 @@ public class AvailableToolChains {
         public File getStaticLibArchiver() {
             return find("ar");
         }
-
-        public abstract File getCppCompiler();
 
         public abstract File getCCompiler();
 
@@ -715,10 +723,14 @@ public class AvailableToolChains {
                     return getVersion().getMajor() == 3;
                 case SWIFTC_4:
                     return getVersion().getMajor() == 4;
+                case SWIFTC_4_OR_OLDER:
+                    return getVersion().getMajor() <= 4;
                 case SWIFTC_5:
                     return getVersion().getMajor() == 5;
-                case SWIFTC_4_OR_OLDER:
-                    return getVersion().getMajor() < 5;
+                case SWIFTC_5_OR_OLDER:
+                    return getVersion().getMajor() <= 5;
+                case SWIFTC_6:
+                    return getVersion().getMajor() == 6;
                 default:
                     return false;
             }
@@ -866,7 +878,7 @@ public class AvailableToolChains {
         }
     }
 
-    public static class InstalledVisualCpp extends InstalledToolChain {
+    public static class InstalledVisualCpp extends InstalledCppToolChain {
         private final String displayVersion;
         private VersionNumber version;
         private File installDir;
@@ -962,6 +974,7 @@ public class AvailableToolChains {
             return version;
         }
 
+        @Override
         public File getCppCompiler() {
             return cppCompiler;
         }
@@ -998,7 +1011,7 @@ public class AvailableToolChains {
                     return true;
                 case SUPPORTS_32:
                 case SUPPORTS_32_AND_64:
-                    return (!OperatingSystem.current().isMacOsX()) || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
+                    return !OperatingSystem.current().isMacOsX() || getVersion().compareTo(VersionNumber.parse("10.0.0")) < 0;
                 default:
                     return false;
             }

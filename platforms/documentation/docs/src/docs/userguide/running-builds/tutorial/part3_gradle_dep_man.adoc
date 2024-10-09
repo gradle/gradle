@@ -37,7 +37,7 @@ Learn the basics of project dependencies and Gradle's dependency management.
 == Step 1. Understanding the Version Catalog
 A version catalog is used to declare all direct dependencies of a project in a central location.
 
-It is created in by Gradle init in `gradle/libs.versions.toml` and referenced in subproject build files.
+It is created by Gradle init in `gradle/libs.versions.toml` and referenced in subproject build files.
 
 .libs.versions.toml
 [source,text]
@@ -76,7 +76,7 @@ dependencies {
 
 In this example, `libs.guava` and `libs.junit.jupiter` refer to the corresponding libraries defined in your version catalog.
 
-TIP: The `versions.junit.jupiter` syntax is used because the key contains a hyphen which is a special characters.
+TIP: The `libs.junit.jupiter` syntax is used because the key contains a hyphen which is a special character.
 
 A version catalog provides a number of advantages over declaring dependencies directly in build scripts:
 
@@ -245,7 +245,7 @@ There are several transitive dependencies under `junit` and `guava`.
 For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:32.1.2-jre` dependency.
 
 == Step 6. Updating Project Dependencies
-Adding and changing dependencies is done in the build file.
+Adding and changing dependencies is done in the build file and in the version catalog.
 
 Let's change the `guava` version and look at how this affects the dependency tree.
 

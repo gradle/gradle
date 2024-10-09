@@ -16,22 +16,23 @@
 
 package org.gradle.api.tasks.diagnostics.internal.configurations;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.ConfigurableReport;
-import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.api.reporting.internal.DefaultReportContainer;
+import org.gradle.api.reporting.internal.DelegatingReportContainer;
 import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 /**
  * Default implementation of {@link ConfigurationReports} which allows for adding and configuring reports.
  *
  * Class must by non-{@code final}.
  */
-public class ConfigurationReportsImpl extends TaskReportContainer<ConfigurableReport> implements ConfigurationReports {
+public class ConfigurationReportsImpl extends DelegatingReportContainer<ConfigurableReport> implements ConfigurationReports {
     @Inject
-    public ConfigurationReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(ConfigurableReport.class, task, callbackActionDecorator);
+    public ConfigurationReportsImpl(ObjectFactory objectFactory) {
+        super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> Collections.emptyList()));
     }
 }

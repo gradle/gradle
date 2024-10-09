@@ -31,6 +31,9 @@ object ImmutableMapCodec : Codec<ImmutableMap<Any, Any>> {
 
     override suspend fun ReadContext.decode(): ImmutableMap<Any, Any>? {
         val size = readSmallInt()
+        if (size == 0) {
+            return ImmutableMap.of()
+        }
         val builder = ImmutableMap.builderWithExpectedSize<Any, Any>(size)
         repeat(size) {
             val key = read()!!

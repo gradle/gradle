@@ -189,7 +189,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def bean = create(InterfaceDomainSetPropertyBean)
 
         expect:
-        bean.prop.toString() == "[]"
+        bean.prop.toString() == "NamedBean collection"
         bean.prop.empty
         bean.prop.add(Stub(NamedBean))
         bean.prop.size() == 1

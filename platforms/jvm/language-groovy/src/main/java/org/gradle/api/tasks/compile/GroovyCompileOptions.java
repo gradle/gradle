@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -26,6 +27,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
@@ -38,6 +40,7 @@ import java.util.Map;
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
+@SuppressWarnings("deprecation")
 public abstract class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
@@ -269,9 +272,27 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     /**
      * Sets options for running the Groovy compiler in a separate process. These options only take effect
      * if {@code fork} is set to {@code true}.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
      */
+    @Deprecated
     public void setForkOptions(GroovyForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "setForkOptions(GroovyForkOptions)")
+            .replaceWith("forkOptions(Action)")
+            .withContext("Setting a new instance of forkOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
+    }
+
+    /**
+     * Execute the given action against {@link #getForkOptions()}.
+     *
+     * @since 8.11
+     */
+    public void forkOptions(Action<? super GroovyForkOptions> action) {
+        action.execute(forkOptions);
     }
 
     /**
@@ -374,10 +395,22 @@ public abstract class GroovyCompileOptions extends AbstractOptions {
     /**
      * Convenience method to set {@link GroovyForkOptions} with named parameter syntax.
      * Calling this method will set {@code fork} to {@code true}.
+     *
+     * @deprecated This method will be removed in Gradle 9.0
      */
+    @Deprecated
     public GroovyCompileOptions fork(Map<String, Object> forkArgs) {
+
+        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "fork(Map)")
+            .withAdvice("Set properties directly on the 'forkOptions' property instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_abstract_options")
+            .nagUser();
+
         fork = true;
-        forkOptions.define(forkArgs);
+
+        // Disable deprecation to avoid double-warning
+        DeprecationLogger.whileDisabled(() -> forkOptions.define(forkArgs));
         return this;
     }
 }

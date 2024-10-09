@@ -13,3 +13,6 @@ dependencies {
 
     testImplementation(testFixtures(projects.hashing))
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

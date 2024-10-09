@@ -25,6 +25,7 @@ import configurations.SmokeTests
 import configurations.TestPerformanceTest
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
 import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
+import projects.DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE
 
 enum class StageName(val stageName: String, val description: String, val uuid: String) {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
@@ -32,6 +33,7 @@ enum class StageName(val stageName: String, val description: String, val uuid: S
     PULL_REQUEST_FEEDBACK("Pull Request Feedback", "Run various functional tests", "PullRequestFeedback"),
     READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components", "ReadyforNightly"),
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReadyforRelease"),
+    WEEKLY_VALIDATION("Weekly Validation", "Once a week: Run tests in even more environments but less often", "WeeklyValidation"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled", "ExperimentalVfsRetention"),
     EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance");
@@ -133,13 +135,26 @@ data class CIBuildModel(
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, ALL_CROSS_VERSION_BUCKETS.size),
-                TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = 20, arch = Arch.AARCH64)
+                TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
+                TestCoverage(37, TestType.configCache, Os.MACOS, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64, failStage = false),
+                TestCoverage(38, TestType.configCache, Os.WINDOWS, JvmCategory.MAX_VERSION, failStage = false),
             ),
             docsTests = listOf(
                 DocsTestCoverage(Os.MACOS, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_DISABLED)),
             ),
             performanceTests = slowPerformanceTestCoverages,
             performanceTestPartialTriggers = listOf(PerformanceTestPartialTrigger("All Performance Tests", "AllPerformanceTests", performanceRegressionTestCoverages + slowPerformanceTestCoverages))
+        ),
+        Stage(
+            StageName.WEEKLY_VALIDATION,
+            trigger = Trigger.weekly,
+            runsIndependent = true,
+            functionalTests = listOf(
+                TestCoverage(39, TestType.configCache, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
+                TestCoverage(40, TestType.configCache, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AMD64),
+                TestCoverage(41, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
+                TestCoverage(42, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AMD64),
+            ),
         ),
         Stage(
             StageName.HISTORICAL_PERFORMANCE,
@@ -228,7 +243,8 @@ data class TestCoverage(
     val buildJvm: Jvm = BuildToolBuildJvm,
     val expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
     val withoutDependencies: Boolean = false,
-    val arch: Arch = os.defaultArch
+    val arch: Arch = os.defaultArch,
+    val failStage: Boolean = true,
 ) {
 
     constructor(
@@ -240,7 +256,8 @@ data class TestCoverage(
         buildJvm: Jvm = BuildToolBuildJvm,
         withoutDependencies: Boolean = false,
         arch: Arch = Arch.AMD64,
-    ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvm, expectedBucketNumber, withoutDependencies, arch)
+        failStage: Boolean = true,
+    ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvm, expectedBucketNumber, withoutDependencies, arch, failStage)
 
     fun asId(projectId: String): String {
         return "${projectId}_$testCoveragePrefix"

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.cc.impl.inputs.undeclared
 
+import org.gradle.test.fixtures.Flaky
+
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4440")
 class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     String getLocation() {

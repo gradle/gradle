@@ -19,7 +19,6 @@ package org.gradle.internal.classpath.transforms;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,8 +32,8 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
  * This transformation filters out not yet supported versioned directories of the multi-release JARs.
  */
 class MultiReleaseClasspathElementTransformForLegacy extends BaseClasspathElementTransform {
-    MultiReleaseClasspathElementTransformForLegacy(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentationTypeRegistry typeRegistry, ClassTransform transform) {
-        super(source, classpathBuilder, classpathWalker, typeRegistry, transform);
+    MultiReleaseClasspathElementTransformForLegacy(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, ClassTransform transform) {
+        super(source, classpathBuilder, classpathWalker, transform);
     }
 
     @Override

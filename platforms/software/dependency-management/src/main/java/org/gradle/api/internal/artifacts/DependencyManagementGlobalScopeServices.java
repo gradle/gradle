@@ -57,7 +57,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -115,11 +114,6 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
     @Provides
     TypeAnnotationHandler createCacheableTransformAnnotationHandler() {
         return new CacheableTransformTypeAnnotationHandler();
-    }
-
-    @Provides
-    PreferJavaRuntimeVariant createPreferJavaRuntimeVariant(NamedObjectInstantiator instantiator) {
-        return new PreferJavaRuntimeVariant(instantiator);
     }
 
     @Provides

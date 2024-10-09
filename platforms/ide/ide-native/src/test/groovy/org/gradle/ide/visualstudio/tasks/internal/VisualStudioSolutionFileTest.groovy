@@ -19,8 +19,6 @@ package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Action
 import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfigurationMetadata
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -41,7 +39,7 @@ class VisualStudioSolutionFileTest extends Specification {
     def "empty solution file"() {
         expect:
         generatedSolution.content ==
-"""Microsoft Visual Studio Solution File, Format Version 11.00
+            """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
 Global
@@ -63,18 +61,18 @@ EndGlobal
 
         then:
         generatedSolution.content ==
-"""Microsoft Visual Studio Solution File, Format Version 11.00
+            """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.file.absolutePath}", "${getUUID(project.file)}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.projectFile.absolutePath}", "${getUUID(project.projectFile)}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		projectConfig|Win32 = projectConfig|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		${getUUID(project.file)}.projectConfig|Win32.ActiveCfg = projectConfig|Win32
-		${getUUID(project.file)}.projectConfig|Win32.Build.0 = projectConfig|Win32
+		${getUUID(project.projectFile)}.projectConfig|Win32.ActiveCfg = projectConfig|Win32
+		${getUUID(project.projectFile)}.projectConfig|Win32.Build.0 = projectConfig|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,12 +89,12 @@ EndGlobal
 
         then:
         generatedSolution.content ==
-"""Microsoft Visual Studio Solution File, Format Version 11.00
+            """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.file.absolutePath}", "${getUUID(project1.file)}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.projectFile.absolutePath}", "${getUUID(project1.projectFile)}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.file.absolutePath}", "${getUUID(project2.file)}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.projectFile.absolutePath}", "${getUUID(project2.projectFile)}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,16 +103,16 @@ Global
 		configA|Win32 = configA|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		${getUUID(project1.file)}.config1|Win32.ActiveCfg = config1|Win32
-		${getUUID(project1.file)}.config1|Win32.Build.0 = config1|Win32
-		${getUUID(project1.file)}.config2|Win32.ActiveCfg = config2|Win32
-		${getUUID(project1.file)}.config2|Win32.Build.0 = config2|Win32
-		${getUUID(project1.file)}.configA|Win32.ActiveCfg = config2|Win32
-		${getUUID(project2.file)}.config1|Win32.ActiveCfg = config1|Win32
-		${getUUID(project2.file)}.config1|Win32.Build.0 = config1|Win32
-		${getUUID(project2.file)}.config2|Win32.ActiveCfg = configA|Win32
-		${getUUID(project2.file)}.configA|Win32.ActiveCfg = configA|Win32
-		${getUUID(project2.file)}.configA|Win32.Build.0 = configA|Win32
+		${getUUID(project1.projectFile)}.config1|Win32.ActiveCfg = config1|Win32
+		${getUUID(project1.projectFile)}.config1|Win32.Build.0 = config1|Win32
+		${getUUID(project1.projectFile)}.config2|Win32.ActiveCfg = config2|Win32
+		${getUUID(project1.projectFile)}.config2|Win32.Build.0 = config2|Win32
+		${getUUID(project1.projectFile)}.configA|Win32.ActiveCfg = config2|Win32
+		${getUUID(project2.projectFile)}.config1|Win32.ActiveCfg = config1|Win32
+		${getUUID(project2.projectFile)}.config1|Win32.Build.0 = config1|Win32
+		${getUUID(project2.projectFile)}.config2|Win32.ActiveCfg = configA|Win32
+		${getUUID(project2.projectFile)}.configA|Win32.ActiveCfg = configA|Win32
+		${getUUID(project2.projectFile)}.configA|Win32.Build.0 = configA|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -130,17 +128,17 @@ EndGlobal
 
         then:
         generatedSolution.content ==
-                """Microsoft Visual Studio Solution File, Format Version 11.00
+            """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.file.absolutePath}", "${getUUID(project.file)}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.projectFile.absolutePath}", "${getUUID(project.projectFile)}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		unbuildable|Win32 = unbuildable|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		${getUUID(project.file)}.unbuildable|Win32.ActiveCfg = unbuildable|Win32
+		${getUUID(project.projectFile)}.unbuildable|Win32.ActiveCfg = unbuildable|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,12 +155,12 @@ EndGlobal
 
         then:
         generatedSolution.content ==
-                """Microsoft Visual Studio Solution File, Format Version 11.00
+            """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.file.absolutePath}", "${getUUID(project1.file)}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.projectFile.absolutePath}", "${getUUID(project1.projectFile)}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.file.absolutePath}", "${getUUID(project2.file)}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.projectFile.absolutePath}", "${getUUID(project2.projectFile)}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -171,14 +169,14 @@ Global
 		unbuildable|Win32 = unbuildable|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		${getUUID(project1.file)}.config1|Win32.ActiveCfg = config1|Win32
-		${getUUID(project1.file)}.config1|Win32.Build.0 = config1|Win32
-		${getUUID(project1.file)}.config2|Win32.ActiveCfg = config2|Win32
-		${getUUID(project1.file)}.config2|Win32.Build.0 = config2|Win32
-		${getUUID(project1.file)}.unbuildable|Win32.ActiveCfg = config2|Win32
-		${getUUID(project2.file)}.config1|Win32.ActiveCfg = unbuildable|Win32
-		${getUUID(project2.file)}.config2|Win32.ActiveCfg = unbuildable|Win32
-		${getUUID(project2.file)}.unbuildable|Win32.ActiveCfg = unbuildable|Win32
+		${getUUID(project1.projectFile)}.config1|Win32.ActiveCfg = config1|Win32
+		${getUUID(project1.projectFile)}.config1|Win32.Build.0 = config1|Win32
+		${getUUID(project1.projectFile)}.config2|Win32.ActiveCfg = config2|Win32
+		${getUUID(project1.projectFile)}.config2|Win32.Build.0 = config2|Win32
+		${getUUID(project1.projectFile)}.unbuildable|Win32.ActiveCfg = config2|Win32
+		${getUUID(project2.projectFile)}.config1|Win32.ActiveCfg = unbuildable|Win32
+		${getUUID(project2.projectFile)}.config2|Win32.ActiveCfg = unbuildable|Win32
+		${getUUID(project2.projectFile)}.unbuildable|Win32.ActiveCfg = unbuildable|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -213,18 +211,18 @@ EndGlobal
         generatedSolutionFile.text == "tset"
     }
 
-    private VisualStudioProjectMetadata createProject(String projectName, List<String> configNames, boolean buildable = true) {
+    private VisualStudioSolutionFile.ProjectSpec createProject(String projectName, List<String> configNames, boolean buildable = true) {
         final project1File = new File(projectName)
-        def metadata = Stub(VisualStudioProjectMetadata)
-        metadata.file >> project1File
-        metadata.name >> projectName
-        metadata.configurations >> configNames.collect {
-            def configurationMetadata = Stub(VisualStudioProjectConfigurationMetadata)
-            configurationMetadata.name >> "$it|Win32"
-            configurationMetadata.buildable >> buildable
-            return configurationMetadata
+        def configurations = configNames.collect {
+            return new VisualStudioSolutionFile.ConfigurationSpec(
+                "$it|Win32", buildable
+            )
         }
-        return metadata
+        return new VisualStudioSolutionFile.ProjectSpec(
+            projectName,
+            project1File,
+            configurations
+        )
     }
 
     private SolutionFile getGeneratedSolution() {

@@ -19,39 +19,49 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 
 /**
- * A guard object for the mutability of an object. All mutable method of the object needs to be guarded by calling {@code #assertMutationAllowed(String)}. If you want to allow ad-hoc code to pass over the mutation guard of the object, the object will need to implement {@code WithMutationGuard}. You can then use {@code MutationGuards#of(Object)} to acquire the guard and enable/disable the mutation as you see fit.
+ * Tracks whether the current thread is executing a lazy operation.
+ * <p>
+ * This class is poorly named, and should be renamed to something like "LazyGuard",
+ * as the intention of this class is to track whether the current thread is executing
+ * a lazy action, so that we can fail other operations in those cases.
  */
 public interface MutationGuard {
     /**
-     * Wraps the specified action with mutation disabling code.
+     * Wraps the specified action that is executed lazily. When this action
+     * is executed, the executing thread is marked as executing a lazy operation.
      *
-     * @param action the action to disable mutation during execution.
-     * @param <T> the action parameter type
+     * @param action the action to wrap.
+     *
      * @return an action
      */
-    <T> Action<? super T> withMutationDisabled(Action<? super T> action);
+    <T> Action<? super T> wrapLazyAction(Action<? super T> action);
 
     /**
-     * Wraps the specified action with mutation enabling code.
+     * Wraps the specified action that is executed eagerly. When this action
+     * is executed, the executing thread is marked as executing an eager operation.
      *
-     * @param action the action to enable mutation during execution.
-     * @param <T> the action parameter type
+     * @param action the action to wrap.
+     *
      * @return an action
      */
-    <T> Action<? super T> withMutationEnabled(Action<? super T> action);
+    <T> Action<? super T> wrapEagerAction(Action<? super T> action);
 
     /**
-     * Returns {@code true} if the mutation is enabled, and {@code false} otherwise.
+     * Returns {@code true} iff the current thread is executing a lazy operation.
      */
-    boolean isMutationAllowed();
+    boolean isLazyContext();
 
     /**
-     * Throws exception when mutation is not allowed.
+     * Throws exception if the current thread is executing a lazy action.
      *
      * @param methodName the method name the assertion is testing
      * @param target the target object been asserted on
      */
-    void assertMutationAllowed(String methodName, Object target);
+    void assertEagerContext(String methodName, Object target);
 
-    <T> void assertMutationAllowed(String methodName, T target, Class<T> targetType);
+    /**
+     * Same as {@link #assertEagerContext(String, Object)}, but the public type
+     * of the target may be specified for improved error messages.
+     */
+    <T> void assertEagerContext(String methodName, T target, Class<T> targetType);
 }

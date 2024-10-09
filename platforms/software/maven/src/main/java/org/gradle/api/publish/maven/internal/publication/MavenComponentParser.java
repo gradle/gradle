@@ -313,7 +313,7 @@ public class MavenComponentParser {
             if (!dependency.getAttributes().isEmpty()) {
                 warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
             }
-            if (!dependency.getRequestedCapabilities().isEmpty()) {
+            if (!dependency.getCapabilitySelectors().isEmpty()) {
                 warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
             }
 

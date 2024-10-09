@@ -20,9 +20,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * Uniquely identifies the target of some configuration.
@@ -40,7 +40,7 @@ public abstract class ConfigurationTargetIdentifier {
         SETTINGS,
         PROJECT;
 
-        public final String label = TextUtil.toLowerCaseLocaleSafe(name());
+        public final String label = name().toLowerCase(Locale.ROOT);
     }
 
     public abstract Type getTargetType();

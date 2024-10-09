@@ -102,3 +102,6 @@ tasks.jar {
     from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
     dependsOn(copyGr8OutputJarAsGradleWrapperJar)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

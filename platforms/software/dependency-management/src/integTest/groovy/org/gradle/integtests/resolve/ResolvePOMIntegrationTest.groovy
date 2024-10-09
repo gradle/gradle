@@ -99,6 +99,7 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
         succeeds "resolve"
     }
 

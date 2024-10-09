@@ -31,7 +31,7 @@ A multi-project build consists of one root project and one or more subprojects.
 [[sec:project_structure]]
 == Multi-Project structure
 
-The following represents the structure of a multi-project build that contains two subprojects:
+The following represents the structure of a multi-project build that contains three subprojects:
 
 image::multi-project-structure.png[]
 

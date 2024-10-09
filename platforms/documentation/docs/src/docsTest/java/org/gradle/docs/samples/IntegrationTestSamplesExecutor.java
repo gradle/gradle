@@ -93,6 +93,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .withWarningMode(warningMode)
             .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
+            .withArgument("--no-problems-report")
             .withTasks(args);
 
         if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {

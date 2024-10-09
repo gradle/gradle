@@ -25,12 +25,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Collection;
@@ -48,15 +48,22 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
     private final String variantName;
     private final ModuleVersionIdentifier moduleVersionId;
-    private final BuildOperationExecutor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ResolutionHost resolutionHost;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
-    public DefaultResolvedDependency(String variantName, ModuleVersionIdentifier moduleVersionId, BuildOperationExecutor buildOperationProcessor) {
+    public DefaultResolvedDependency(
+        String variantName,
+        ModuleVersionIdentifier moduleVersionId,
+        BuildOperationExecutor buildOperationExecutor,
+        ResolutionHost resolutionHost
+    ) {
         this.moduleVersionId = moduleVersionId;
         this.variantName = variantName;
-        this.buildOperationProcessor = buildOperationProcessor;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.resolutionHost = resolutionHost;
         this.moduleArtifacts = new LinkedHashSet<>();
     }
 
@@ -129,9 +136,9 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
-        ParallelResolveArtifactSet.wrap(artifacts, buildOperationProcessor).visit(visitor);
+        ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
         if (!visitor.getFailures().isEmpty()) {
-            throw UncheckedException.throwAsUncheckedException(visitor.getFailures().get(0));
+            resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         }
         return visitor.getArtifacts();
     }

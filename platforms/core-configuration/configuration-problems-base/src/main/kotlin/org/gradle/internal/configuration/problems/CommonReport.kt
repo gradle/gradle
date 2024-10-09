@@ -40,6 +40,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.contracts.ExperimentalContracts
@@ -59,7 +60,8 @@ class CommonReport(
     temporaryFileProvider: TemporaryFileProvider,
     internalOptions: InternalOptions,
     reportContext: String,
-    reportFileName: String
+    reportFileName: String,
+    private val distinctReports: Boolean = true // true if every build should have its separate report, false if the previous report should be overwritten
 ) : Closeable {
 
     companion object {
@@ -142,7 +144,8 @@ class CommonReport(
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
-            private val groovyJsonClassLoader: ClassLoader
+            private val groovyJsonClassLoader: ClassLoader,
+            private val distinctReports: Boolean
         ) : State() {
 
             private
@@ -226,15 +229,33 @@ class CommonReport(
 
             private
             fun moveSpoolFileTo(outputDirectory: File): File {
-                val reportDir = outputDirectory.resolve(reportHash())
+                val reportDir = getReportDirectory(outputDirectory)
+
                 val reportFile = reportDir.resolve("$reportFileName.html")
-                if (!reportFile.exists()) {
+                if (distinctReports) {
+                    if (!reportFile.exists()) {
+                        moveFileToOutput(reportDir, reportFile)
+                    }
+                } else {
+                    moveFileToOutput(reportDir, reportFile)
+                }
+                return reportFile
+            }
+
+            private fun getReportDirectory(outputDirectory: File) =
+                if (distinctReports)
+                    outputDirectory.resolve(reportHash())
+                else
+                    outputDirectory
+
+            private
+            fun moveFileToOutput(reportDir: File, reportFile: File) {
+                if (!reportDir.exists()) {
                     require(reportDir.mkdirs()) {
                         "Could not create $reportFileName directory '$reportDir'"
                     }
-                    Files.move(spoolFile.toPath(), reportFile.toPath())
                 }
-                return reportFile
+                Files.move(spoolFile.toPath(), reportFile.toPath(), REPLACE_EXISTING)
             }
 
             private
@@ -254,7 +275,8 @@ class CommonReport(
             temporaryFileProvider,
             reportFileName,
             executorFactory.create("${reportContext.capitalized()} writer", 1),
-            CharBuf::class.java.classLoader
+            CharBuf::class.java.classLoader,
+            distinctReports
         ).onDiagnostic(problem)
     }
 

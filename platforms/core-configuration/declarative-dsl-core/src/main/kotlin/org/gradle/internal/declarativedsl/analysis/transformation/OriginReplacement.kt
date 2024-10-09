@@ -45,6 +45,7 @@ object OriginReplacement {
                 is ObjectOrigin.PropertyReference -> origin.copy(receiver = replace(origin.receiver))
 
                 is ObjectOrigin.ConstantOrigin,
+                is ObjectOrigin.EnumConstantOrigin,
                 is ObjectOrigin.External,
                 is ObjectOrigin.NullObjectOrigin -> origin
             }

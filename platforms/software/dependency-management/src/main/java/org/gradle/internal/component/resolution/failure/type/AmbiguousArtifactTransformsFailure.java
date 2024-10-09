@@ -30,6 +30,15 @@ import java.util.List;
  * available that would satisfy an artifact selection request.
  */
 public final class AmbiguousArtifactTransformsFailure extends AbstractArtifactSelectionFailure {
+    /*
+     * TODO: We need to keep track of the transformed variant and transformation chains that are available
+     * to satisfy the artifact selection request somehow (so that failure describers can investigate it), but
+     * we should use a much simpler stateless data-only type (without Project and Gradle references) for this.
+     *
+     * This type causes issues with BuildOperationTrace serialization and really isn't the right place to use
+     * this type...but this is what was originally used to describe these kind of failures, so it remains for now
+     * until we have a chance to refactor this.
+     */
     private final ImmutableList<TransformedVariant> transformedVariants;
 
     public AmbiguousArtifactTransformsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {

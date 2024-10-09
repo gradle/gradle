@@ -17,7 +17,6 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
@@ -94,21 +93,19 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return collection.getMutationGuard();
+    public MutationGuard getLazyBehaviorGuard() {
+        return collection.getLazyBehaviorGuard();
     }
 
-    private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
+    private static class FilteringIterator<T, S extends T> implements Iterator<S> {
         private final CollectionFilter<S> filter;
         private final Iterator<T> iterator;
-        private final int estimatedSize;
 
         private S next;
 
         FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
             this.iterator = collection.iteratorNoFlush();
             this.filter = filter;
-            this.estimatedSize = collection.estimatedSize();
             this.next = findNext();
         }
 
@@ -144,11 +141,6 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
         @Override
         public void remove() {
             throw new UnsupportedOperationException("This iterator does not support removal");
-        }
-
-        @Override
-        public int estimatedSize() {
-            return estimatedSize;
         }
     }
 

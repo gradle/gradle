@@ -19,19 +19,32 @@ package org.gradle.api.internal.initialization.transform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
+import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
+import java.util.Optional;
+
+import static org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform.Parameters;
 
 /**
  * Artifact transform that instruments project based artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache.")
-public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
+public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<Parameters> {
+
+    public interface Parameters extends BaseInstrumentingArtifactTransform.Parameters {
+        @Input
+        Property<Boolean> getIsUpgradeReport();
+    }
 
     @Override
     @Classpath
@@ -48,17 +61,28 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     }
 
     @Override
-    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter() {
-        return new InterceptorTypeRegistryAndFilter() {
+    protected InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs) {
+        Optional<BytecodeUpgradeReportMethodInterceptionListener> interceptionListener = getParameters().getIsUpgradeReport().getOrElse(false)
+            ? Optional.of(new BytecodeUpgradeReportMethodInterceptionListener(outputs.file(MethodInterceptionReportCollector.INTERCEPTED_METHODS_REPORT_FILE)))
+            : Optional.empty();
+
+        return new InstrumentingClassTransformProvider() {
             @Override
-            public InstrumentationTypeRegistry getRegistry() {
-                return InstrumentationTypeRegistry.EMPTY;
+            public InstrumentingClassTransform getClassTransform() {
+                return interceptionListener
+                    // TODO: Using gradleCoreTypeRegistry means we won't detect calls for user types that extend from Gradle types, fix that
+                    .map(listener -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT, getGradleCoreTypeRegistry(), listener))
+                    .orElseGet(() -> new InstrumentingClassTransform(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY));
             }
 
             @Override
-            public BytecodeInterceptorFilter getFilter() {
-                return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+            public void close() {
+                interceptionListener.ifPresent(BytecodeUpgradeReportMethodInterceptionListener::close);
             }
         };
+    }
+
+    private InstrumentationTypeRegistry getGradleCoreTypeRegistry() {
+        return internalServices.get().getGradleCoreInstrumentationTypeRegistry();
     }
 }

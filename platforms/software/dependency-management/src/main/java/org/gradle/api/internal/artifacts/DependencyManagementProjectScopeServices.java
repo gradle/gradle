@@ -31,6 +31,7 @@ import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -59,10 +60,11 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         StartParameter startParameter,
         ImmutableAttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        ProjectStateRegistry projectStateRegistry
     ) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory, projectStateRegistry);
     }
 
     @Provides

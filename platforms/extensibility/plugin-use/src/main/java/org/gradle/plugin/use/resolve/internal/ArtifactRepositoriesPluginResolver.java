@@ -163,8 +163,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         return PluginResolutionResult.notFound(SOURCE_NAME, message, detail.toString());
     }
 
-    /*
+    /**
      * Checks whether the plugin marker artifact exists in the backing artifacts repositories.
+     *
+     * TODO: Performing resolution here is likely quite inefficient. This performs resolution
+     * for each plugin request that is not already found on the classpath. Doing this allows
+     * us to produce a better error message at the cost of performance. We should limit the
+     * number of resolutions we perform in the buildscript context in order to avoid IO and
+     * serial bottlenecks before the build can start configuration and thus perform actual work.
      */
     private boolean exists(ModuleDependency dependency) {
         ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();

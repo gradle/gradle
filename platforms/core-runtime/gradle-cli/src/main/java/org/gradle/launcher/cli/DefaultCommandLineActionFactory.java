@@ -94,8 +94,23 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         return new DefaultBuildClientMetaData(new GradleLauncherMetaData());
     }
 
-    private static void showUsage(PrintStream out, CommandLineParser parser) {
+    private static void showUsage(PrintStream out, CommandLineParser parser, @Nullable String suggestedTaskSelector) {
         out.println();
+        out.print("To see more detail about a task, run ");
+        clientMetaData().describeCommand(out, "help --task <task>");
+        out.println();
+        if (suggestedTaskSelector != null) {
+            out.print("For example, ");
+            clientMetaData().describeCommand(out, "help --task " + suggestedTaskSelector);
+            out.println();
+        }
+        out.println();
+        out.print("To see a list of available tasks, run ");
+        clientMetaData().describeCommand(out, "tasks");
+        out.println();
+
+        out.println();
+
         out.print("USAGE: ");
         clientMetaData().describeCommand(out, "[option...]", "[task...]");
         out.println();
@@ -139,7 +154,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         @Nullable
         public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
             if (commandLine.hasOption(HELP)) {
-                return new ShowUsageAction(parser);
+                return new ShowUsageAction(parser, commandLine);
             }
             if (commandLine.hasOption(VERSION)) {
                 return new ShowVersionAction(parameters);
@@ -166,25 +181,40 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         private final Exception exception;
         private final CommandLineParser parser;
 
-        public CommandLineParseFailureAction(CommandLineParser parser, Exception exception) {
+        private final List<String> args;
+
+        public CommandLineParseFailureAction(CommandLineParser parser, Exception exception, List<String> args) {
             this.parser = parser;
             this.exception = exception;
+            this.args = args;
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
             System.err.println();
             System.err.println(exception.getMessage());
-            showUsage(System.err, parser);
+            showUsage(System.err, parser, getSuggestedTaskSelector());
             executionListener.onFailure(exception);
+        }
+
+        @Nullable
+        private String getSuggestedTaskSelector() {
+            for (String arg : args) {
+                if (!arg.startsWith("-")) {
+                    return arg;
+                }
+            }
+            return null;
         }
     }
 
     private static class ShowUsageAction implements Action<ExecutionListener> {
         private final CommandLineParser parser;
+        private final ParsedCommandLine commandLine;
 
-        public ShowUsageAction(CommandLineParser parser) {
+        public ShowUsageAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             this.parser = parser;
+            this.commandLine = commandLine;
         }
 
         @Override
@@ -193,7 +223,16 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             System.out.print("To see help contextual to the project, use ");
             clientMetaData().describeCommand(System.out, "help");
             System.out.println();
-            showUsage(System.out, parser);
+            showUsage(System.out, parser, getSuggestedTaskSelector());
+        }
+
+        @Nullable
+        private String getSuggestedTaskSelector() {
+            if (!commandLine.getExtraArguments().isEmpty()) {
+                return commandLine.getExtraArguments().get(0);
+            } else {
+                return null;
+            }
         }
     }
 
@@ -258,7 +297,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
          * Another key:  Another value
          * [blank line]
          * </pre>
-         * </p>
          *
          * @param lines the lines to print
          */
@@ -326,7 +364,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(commandLine, null);
                 action = createAction(parser, commandLine, parameters);
             } catch (CommandLineArgumentException e) {
-                action = new CommandLineParseFailureAction(parser, e);
+                action = new CommandLineParseFailureAction(parser, e, args);
             }
 
             action.execute(executionListener);

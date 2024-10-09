@@ -273,7 +273,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask", "--info")
 
         then:
-        outputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, removeUnusedEntriesAfter = 7 days).")
+        outputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, remove unused entries = after 7 days).")
 
         and:
         localBuildCache.empty

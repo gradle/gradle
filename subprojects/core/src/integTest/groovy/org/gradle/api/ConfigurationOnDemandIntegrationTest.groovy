@@ -19,6 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
@@ -27,8 +28,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @FluidDependenciesResolveTest
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
@@ -194,6 +193,7 @@ project(':api') {
         fixture.assertProjectsConfigured(':', ':impl', ':api')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "name matching execution from root evaluates all projects"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -212,6 +212,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "name matching execution from subproject evaluates only the subproject recursively"() {
         createDirs("api", "impl", "impl/one", "impl/two", "impl/two/abc")
         settingsFile << "include 'api', 'impl:one', 'impl:two', 'impl:two:abc'"
@@ -225,6 +226,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "may run implicit tasks from root"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -236,6 +238,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "may run implicit tasks for subproject"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -247,6 +250,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":api")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "respects default tasks"() {
         createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
@@ -345,7 +349,7 @@ project(':api') {
         output.contains "Horray!!!"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "runs configuration at execution time")
     def "may configure project at execution time"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -371,6 +375,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":a", ":b")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "handles buildNeeded"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -411,6 +416,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "task command-line argument may look like a task path"() {
         createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
@@ -560,20 +566,21 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForIsolatedProjects(because = "reaches out to a property of the parent project")
     def "extra properties defined in parent project are accessible to child"() {
         createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"
-        file('a/build.gradle') << """
-ext.foo = "Moo!!!"
-"""
-        file('a/child/build.gradle') << """
-task printExt {
-    doLast {
-        println "The Foo says " + foo
-    }
-}
-"""
+        buildFile('a/build.gradle', """
+            ext.foo = "Moo!!!"
+        """)
+        buildFile('a/child/build.gradle', """
+            task printExt {
+                def foo = foo
+                doLast {
+                    println "The Foo says " + foo
+                }
+            }
+        """)
         when:
         run(":a:child:printExt")
 

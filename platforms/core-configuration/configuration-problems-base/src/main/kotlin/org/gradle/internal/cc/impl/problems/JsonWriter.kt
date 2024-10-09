@@ -16,62 +16,69 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import org.apache.groovy.json.internal.CharBuf
+import com.fasterxml.jackson.core.JsonFactory
 import java.io.Writer
 
 class JsonWriter(private val writer: Writer) {
-    private var nextItemNeedsComma = false
+
+    class JsonObject(val jsonWriter: JsonWriter) : AutoCloseable {
+        init {
+            jsonWriter.beginObject()
+        }
+
+        override fun close() {
+            jsonWriter.endObject()
+        }
+    }
+
+    private
+    val jsonGenerator = JsonFactory().createGenerator(writer)
 
     fun jsonObject(body: () -> Unit) {
-        elementSeparator()
-        beginObject()
-        body()
-        endObject()
+        JsonObject(this).use {
+            body()
+        }
     }
 
     fun beginObject() {
-        increaseLevel()
-        write('{')
+        jsonGenerator.writeStartObject()
     }
 
     fun endObject() {
-        write('}')
-        decreaseLevel()
+        jsonGenerator.writeEndObject()
     }
 
     fun beginArray() {
-        increaseLevel()
-        write('[')
+        jsonGenerator.writeStartArray()
     }
 
     fun endArray() {
-        write(']')
-        decreaseLevel()
-    }
-
-
-    fun property(name: String, value: String) {
-        property(name) { jsonString(value) }
-    }
-
-    fun property(name: String, value: () -> Unit) {
-        elementSeparator()
-        propertyName(name)
-        increaseLevel()
-        value()
-        decreaseLevel()
+        jsonGenerator.writeEndArray()
     }
 
     fun propertyName(name: String) {
-        simpleString(name)
-        write(':')
+        jsonGenerator.writeFieldName(name)
     }
 
-    fun write(csq: CharSequence) {
-        writer.append(csq)
+    fun property(name: String, value: String) {
+        jsonGenerator.writeStringField(name, value)
+    }
+
+    fun property(name: String, value: Int) {
+        jsonGenerator.writeNumberField(name, value)
+    }
+
+    fun property(name: String, value: () -> Unit) {
+        jsonGenerator.writeFieldName(name)
+        value()
     }
 
     fun <T> jsonObjectList(list: Iterable<T>, body: (T) -> Unit) {
+        jsonObjectList(list.iterator(), body)
+    }
+
+    private
+    fun <T> jsonObjectList(list: Iterator<T>, body: (T) -> Unit) {
         jsonList(list) {
             jsonObject {
                 body(it)
@@ -79,59 +86,26 @@ class JsonWriter(private val writer: Writer) {
         }
     }
 
-    private
-    fun elementSeparator() {
-        if (nextItemNeedsComma) {
-            comma()
-        } else {
-            nextItemNeedsComma = true
-        }
-    }
-
-    private
-    fun comma() {
-        write(',')
-    }
-
-    private
-    fun increaseLevel() {
-        nextItemNeedsComma = false
-    }
-
-    private
-    fun decreaseLevel() {
-        nextItemNeedsComma = true
-    }
-
-    private
-    fun simpleString(name: String) {
-        write('"')
-        write(name)
-        write('"')
-    }
-
-    private
-    fun jsonString(value: String) {
-        if (value.isEmpty()) {
-            write("\"\"")
-        } else {
-            buffer.addJsonEscapedString(value)
-            write(buffer.toStringAndRecycle())
-        }
-    }
-
-    private
-    val buffer = CharBuf.create(255)
-
-    private
-    fun write(c: Char) = writer.append(c)
-
-    private
     fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
+        jsonList(list.iterator(), body)
+    }
+
+    private
+    fun <T> jsonList(list: Iterator<T>, body: (T) -> Unit) {
         beginArray()
         list.forEach {
-            body(it)
+            jsonListItem {
+                body(it)
+            }
         }
         endArray()
+    }
+
+    fun jsonListItem(body: () -> Unit) {
+        body()
+    }
+
+    fun flush() {
+        jsonGenerator.flush()
     }
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.Swift5
+import org.gradle.nativeplatform.fixtures.app.Swift6
 import org.gradle.util.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -90,7 +90,6 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
-    @ToBeFixedForConfigurationCache
     def "ignores duplicate target machines"() {
         given:
         makeSingleProject()
@@ -101,9 +100,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}")
         buildFile << """
             task verifyTargetMachines {
+                def targetMachines = ${componentUnderTestDsl}.targetMachines
+                def hostMachine = machines.${currentHostOperatingSystemFamilyDsl}
                 doLast {
-                    assert ${componentUnderTestDsl}.targetMachines.get().size() == 1
-                    assert ${componentUnderTestDsl}.targetMachines.get() == [machines.${currentHostOperatingSystemFamilyDsl}] as Set
+                    assert targetMachines.get().size() == 1
+                    assert targetMachines.get() == [hostMachine] as Set
                 }
             }
         """
@@ -127,6 +128,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     @Override
     SourceElement getSwift5Component() {
         return new Swift5('project')
+    }
+
+    @Override
+    SourceElement getSwift6Component() {
+        return new Swift6('project')
     }
 
     @Override

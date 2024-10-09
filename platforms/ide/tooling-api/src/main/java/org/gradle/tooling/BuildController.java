@@ -224,5 +224,5 @@ public interface BuildController {
      * @since 8.6
      */
     @Incubating
-    <T> void send(T value);
+    void send(Object value);
 }

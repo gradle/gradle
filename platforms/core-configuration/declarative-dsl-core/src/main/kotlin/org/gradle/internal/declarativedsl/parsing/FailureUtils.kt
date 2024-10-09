@@ -30,7 +30,7 @@ import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.Null
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.This
 
@@ -58,7 +58,7 @@ fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResu
                 current.args.forEach(::collectFrom)
             }
 
-            is PropertyAccess -> current.receiver?.let(::collectFrom)
+            is NamedReference -> current.receiver?.let(::collectFrom)
             is LocalValue -> collectFrom(current.rhs)
             is FunctionArgument.Lambda -> collectFrom(current.block)
             is FunctionArgument.ValueArgument -> collectFrom(current.expr)

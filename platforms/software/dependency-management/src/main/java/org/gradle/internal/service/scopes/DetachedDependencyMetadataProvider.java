@@ -43,7 +43,7 @@ public class DetachedDependencyMetadataProvider implements DependencyMetaDataPro
 
     @Override
     public Module getModule() {
-        // TODO add a "RootComponentIdentifier" interface to mark this as a root component
         return delegate.getModule();
     }
-}
+
+ }

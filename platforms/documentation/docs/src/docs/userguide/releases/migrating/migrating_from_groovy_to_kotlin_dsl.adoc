@@ -29,7 +29,7 @@ image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 
 [TIP]
 ====
-Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
+Please also read the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
 
 The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
 This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#using_plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
@@ -52,7 +52,7 @@ Builds with slow configuration time might affect the IDE responsiveness, please 
 * The Kotlin DSL will not support `model {}` elements. This is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 * Enabling the incubating configuration on demand feature is not recommended as it can lead to very hard-to-diagnose problems.
 
-Read more in the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>>.
+Read more in the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>>.
 
 If you run to trouble or a suspected bug, please take advantage of the `gradle/gradle` link:{gradle-issues}[issue tracker].
 
@@ -486,7 +486,7 @@ Depending on your build structure you might be interested in the following user 
 
 * The <<writing_build_scripts#writing_build_scripts,Writing Build Scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
 * The <<multi_project_builds#multi_project_builds,Multi-project Builds>> chapter demonstrates various multi-project build structures.
-* The <<custom_plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
+* The <<custom_plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
 * The <<composite_builds#composite_builds,Composing builds>> chapter demonstrates how to use Composite Builds.
 
 

@@ -373,9 +373,9 @@ public class PomReader implements PomParent {
             String relocGroupId = getFirstChildText(relocation, GROUP_ID);
             String relocArtId = getFirstChildText(relocation, ARTIFACT_ID);
             String relocVersion = getFirstChildText(relocation, VERSION);
-            relocGroupId = relocGroupId == null ? getGroupId() : relocGroupId;
-            relocArtId = relocArtId == null ? getArtifactId() : relocArtId;
-            relocVersion = relocVersion == null ? getVersion() : relocVersion;
+            relocGroupId = relocGroupId == null ? getGroupId() : replaceProps(relocGroupId);
+            relocArtId = relocArtId == null ? getArtifactId() : replaceProps(relocArtId);
+            relocVersion = relocVersion == null ? getVersion() : replaceProps(relocVersion);
             return DefaultModuleVersionIdentifier.newId(relocGroupId, relocArtId, relocVersion);
         }
     }

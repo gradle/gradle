@@ -318,7 +318,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
         then:
         failure.assertHasDescription("Execution failed for task ':included:compileJava'.")
-        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+        failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
     def "buildSrc can apply plugins contributed by a build included by the root build and use them in plugins for the root build"() {

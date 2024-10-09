@@ -2,6 +2,7 @@ import gradlebuild.basics.googleApisJs
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"
@@ -19,20 +20,20 @@ repositories {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.modelCore)
+    api(projects.reportRendering)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.fileCollections)
     implementation(projects.logging)
-    implementation(projects.modelCore)
-    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.jatl)
@@ -67,4 +68,7 @@ val reportResources = tasks.register<Copy>("reportResources") {
 
 sourceSets.main {
     output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

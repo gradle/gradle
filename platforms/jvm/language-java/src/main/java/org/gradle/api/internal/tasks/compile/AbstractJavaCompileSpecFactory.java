@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
@@ -46,7 +47,8 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         if (compileOptions.isFork()) {
-            File forkJavaHome = compileOptions.getForkOptions().getJavaHome();
+            @SuppressWarnings("deprecation")
+            File forkJavaHome = DeprecationLogger.whileDisabled(compileOptions.getForkOptions()::getJavaHome);
             if (forkJavaHome != null) {
                 LOGGER.info("Compilation mode: command line compilation");
                 return getCommandLineSpec(Jvm.forHome(forkJavaHome).getJavacExecutable());

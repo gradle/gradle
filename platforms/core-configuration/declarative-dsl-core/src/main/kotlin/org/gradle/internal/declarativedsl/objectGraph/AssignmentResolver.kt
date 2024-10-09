@@ -167,6 +167,7 @@ class AssignmentResolver {
 
             is ObjectOrigin.NewObjectFromTopLevelFunction,
             is ObjectOrigin.ConstantOrigin,
+            is ObjectOrigin.EnumConstantOrigin,
             is ObjectOrigin.External,
             is ObjectOrigin.NullObjectOrigin,
             is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?

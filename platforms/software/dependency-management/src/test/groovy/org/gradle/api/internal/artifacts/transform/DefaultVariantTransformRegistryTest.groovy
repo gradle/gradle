@@ -24,14 +24,14 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
@@ -47,8 +47,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultVariantTransformRegistryTest extends Specification {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
 
     @Rule
@@ -58,12 +56,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformInvocationFactory = Mock(TransformInvocationFactory)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionFactory = Mock(FileCollectionFactory)
+    @SuppressWarnings('unused') // Still necessary for stubbing
     def propertyWalker = Mock(PropertyWalker)
     def inspectionScheme = Stub(InspectionScheme) {
         getPropertyWalker() >> propertyWalker
     }
     def domainObjectContext = Mock(DomainObjectContext) {
-        getModel() >> RootScriptDomainObjectContext.INSTANCE
+        getModel() >> StandaloneDomainObjectContext.ANONYMOUS
     }
 
     def isolatableFactory = new TestIsolatableFactory()
@@ -90,8 +89,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
             ),
             inspectionScheme
         ),
-        Stub(ServiceLookup)
-
+        Stub(ServiceLookup) {
+            get(InternalProblems) >> Mock(InternalProblems)
+        }
     )
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 

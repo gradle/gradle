@@ -67,7 +67,7 @@ public abstract class VisualStudioPlugin extends IdePlugin {
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry artifactRegistry;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
     public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
@@ -188,21 +188,16 @@ public abstract class VisualStudioPlugin extends IdePlugin {
     }
 
     private Task createSolutionTask(VisualStudioSolution solution) {
-        GenerateSolutionFileTask solutionFileTask = project.getTasks().create(solution.getName() + "VisualStudioSolution", GenerateSolutionFileTask.class);
-        solutionFileTask.setVisualStudioSolution(solution);
-        return solutionFileTask;
+        return project.getTasks().create(solution.getName() + "VisualStudioSolution", GenerateSolutionFileTask.class, solution);
     }
 
     private Task createProjectsFileTask(VisualStudioProject vsProject) {
-        GenerateProjectFileTask task = project.getTasks().create(vsProject.getName() + "VisualStudioProject", GenerateProjectFileTask.class);
-        task.setVisualStudioProject(vsProject);
+        GenerateProjectFileTask task = project.getTasks().create(vsProject.getName() + "VisualStudioProject", GenerateProjectFileTask.class, vsProject);
         task.initGradleCommand();
         return task;
     }
 
     private Task createFiltersFileTask(VisualStudioProject vsProject) {
-        GenerateFiltersFileTask task = project.getTasks().create(vsProject.getName() + "VisualStudioFilters", GenerateFiltersFileTask.class);
-        task.setVisualStudioProject(vsProject);
-        return task;
+        return project.getTasks().create(vsProject.getName() + "VisualStudioFilters", GenerateFiltersFileTask.class, vsProject);
     }
 }
