@@ -133,6 +133,13 @@ class ConfigurationCacheRepository(
                 stateType,
                 onFileAccess
             )
+
+        override fun stateFileForSharedObjects(): ConfigurationCacheStateFile =
+            ReadableConfigurationCacheStateFile(
+                sharedObjectsFileFor(file),
+                StateType.WorkShared,
+                onFileAccess
+            )
     }
 
     private
@@ -174,6 +181,13 @@ class ConfigurationCacheRepository(
             WriteableConfigurationCacheStateFile(
                 relatedStateFileFor(file, path),
                 stateType,
+                onFileAccess
+            )
+
+        override fun stateFileForSharedObjects(): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                sharedObjectsFileFor(file),
+                StateType.WorkShared,
                 onFileAccess
             )
     }
@@ -311,4 +325,11 @@ private
 fun relatedStateFileFor(parentStateFile: File, path: Path) =
     parentStateFile.run {
         resolveSibling("${path.segments().joinToString("_", if (path.isAbsolute) "_" else "")}.$name")
+    }
+
+
+private
+fun sharedObjectsFileFor(parentStateFile: File) =
+    parentStateFile.run {
+        resolveSibling(".globals.$name")
     }
