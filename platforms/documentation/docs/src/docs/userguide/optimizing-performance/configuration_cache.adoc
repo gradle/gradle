@@ -559,7 +559,7 @@ For example, running tests after making some changes to the source code.
 When working on a plugin, progressively target the contributed or configured tasks.
 
 Explore by turning problems into warnings::
-Don't stop at the first build failure and <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
+Don't stop at the first build failure; <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
 If a build fails, use the HTML report to reason about the reported problems related to the failure.
 Continue running more useful tasks.
 +
