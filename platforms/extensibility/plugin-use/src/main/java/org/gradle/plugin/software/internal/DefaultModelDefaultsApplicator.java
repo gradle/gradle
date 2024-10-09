@@ -31,7 +31,7 @@ public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     }
 
     @Override
-    public <T> void applyDefaultsTo(T target, Plugin<? super T> plugin, SoftwareTypeImplementation<?> softwareTypeImplementation) {
+    public <T> void applyDefaultsTo(T target, Plugin<?> plugin, SoftwareTypeImplementation<?> softwareTypeImplementation) {
         defaultsHandlers.forEach(handler -> handler.apply(target, softwareTypeImplementation.getSoftwareType(), plugin));
     }
 }

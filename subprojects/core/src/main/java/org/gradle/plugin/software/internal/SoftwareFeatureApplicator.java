@@ -17,12 +17,15 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Encapsulates the work of applying a software feature to a target.
  *
  * @since 8.12
  */
+@ServiceScope(Scope.Project.class)
 public interface SoftwareFeatureApplicator {
     /**
      * Applies the given software feature to the target, registering the public model object as an extension of the target and

@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -29,10 +28,9 @@ class SoftwareFeatureApplyingPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
     def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
     def softwareFeatureApplicator = Mock(SoftwareFeatureApplicator)
-    def modelDefaultsApplicator = Mock(ModelDefaultsApplicator)
     def plugin = Mock(Plugin)
     def softwareTypeImplementation = Mock(SoftwareTypeImplementation)
-    def pluginTarget = new SoftwareFeatureApplyingPluginTarget(target, delegate, softwareTypeRegistry, softwareFeatureApplicator, modelDefaultsApplicator)
+    def pluginTarget = new SoftwareFeatureApplyingPluginTarget(target, delegate, softwareTypeRegistry, softwareFeatureApplicator)
 
     def "applies software feature to target"() {
         when:
@@ -41,7 +39,6 @@ class SoftwareFeatureApplyingPluginTargetTest extends Specification {
         then:
         1 * softwareTypeRegistry.implementationFor(plugin.getClass()) >> Optional.of(softwareTypeImplementation)
         1 * softwareFeatureApplicator.applyFeatureTo(target, softwareTypeImplementation)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
     }
 
     def "does not apply software feature when plugin is not in registry"() {
@@ -51,7 +48,6 @@ class SoftwareFeatureApplyingPluginTargetTest extends Specification {
         then:
         1 * softwareTypeRegistry.implementationFor(plugin.getClass()) >> Optional.empty()
         0 * softwareFeatureApplicator.applyFeatureTo(_, _)
-        0 * modelDefaultsApplicator.applyDefaultsTo(_, _, _)
     }
 
     def "delegates to target for other methods"() {

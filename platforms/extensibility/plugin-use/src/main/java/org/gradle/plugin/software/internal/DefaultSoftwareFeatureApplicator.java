@@ -49,12 +49,14 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
  */
 public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicator {
     private final Project project;
+    private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
     private final Set<AppliedFeature> applied = new HashSet<>();
 
-    public DefaultSoftwareFeatureApplicator(Project project, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public DefaultSoftwareFeatureApplicator(Project project, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.project = project;
+        this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
@@ -63,15 +65,15 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
-            applyAndMaybeRegisterExtension(target, softwareFeature);
+            Plugin<Project> plugin = project.getPlugins().getPlugin(softwareFeature.getPluginClass());
+            applyAndMaybeRegisterExtension(target, softwareFeature, plugin);
             applied.add(appliedFeature);
+            modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareFeature);
         }
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getSoftwareType()));
     }
 
-    private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
-        Plugin<Project> plugin = project.getPlugins().getPlugin(softwareFeature.getPluginClass());
-
+    private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
         ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext);
         inspectionScheme.getPropertyWalker().visitProperties(

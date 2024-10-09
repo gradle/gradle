@@ -31,11 +31,12 @@ import spock.lang.Specification
 
 class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def target = Mock(ProjectInternal)
+    def modelDefaultsApplicator = Mock(ModelDefaultsApplicator)
     def inspectionScheme = Mock(InspectionScheme)
     def problems = Mock(InternalProblems) {
         getAdditionalDataBuilderFactory() >> new AdditionalDataBuilderFactory()
     }
-    def applicator = new DefaultSoftwareFeatureApplicator(target, inspectionScheme, problems)
+    def applicator = new DefaultSoftwareFeatureApplicator(target, modelDefaultsApplicator, inspectionScheme, problems)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def propertyWalker = Mock(PropertyWalker)
@@ -60,6 +61,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -82,6 +84,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -122,6 +125,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         _ * target.getExtensions() >> extensions
         _ * softwareType.name() >> "foo"
         0 * extensions.add(_, _, _)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.provider
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.layout.BuildLayoutConfiguration
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
@@ -29,7 +30,6 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import java.io.File
 
@@ -68,8 +68,8 @@ object ProjectServices : ServiceRegistrationProvider {
     @Provides
     fun createDeclarativeModelDefaultsHandler(
         softwareTypeRegistry: SoftwareTypeRegistry,
-        softwareFeatureApplicator: SoftwareFeatureApplicator
+        objectFactory: ObjectFactory
     ): ModelDefaultsHandler {
-        return DeclarativeModelDefaultsHandler(softwareTypeRegistry, softwareFeatureApplicator)
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry)
     }
 }

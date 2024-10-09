@@ -101,7 +101,6 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
@@ -231,7 +230,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         InternalProblems problems,
-        ModelDefaultsApplicator modelDefaultsApplicator,
         SoftwareTypeRegistry softwareTypeRegistry,
         SoftwareFeatureApplicator softwareFeatureApplicator
     ) {
@@ -242,7 +240,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new SoftwareFeatureApplyingPluginTarget(project, ruleBasedTarget, softwareTypeRegistry, softwareFeatureApplicator, modelDefaultsApplicator);
+        PluginTarget pluginTarget = new SoftwareFeatureApplyingPluginTarget(project, ruleBasedTarget, softwareTypeRegistry, softwareFeatureApplicator);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,

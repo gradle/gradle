@@ -27,12 +27,12 @@ dependencies {
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
     api(libs.kotlinStdlib)
+    api(libs.inject)
 
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-    implementation(libs.inject)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
 
