@@ -53,11 +53,11 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
 
         /**
          * a = b
-         * =>
+         * =&gt;
          * clearProv(a = withProv("...", b))
          *
          * a = b = c
-         * =>
+         * =&gt;
          * clearProv(a = withProv("...", clearProv(b = withProv("...", c))))
          */
         @Override
