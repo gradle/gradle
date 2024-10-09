@@ -28,7 +28,9 @@ class SwiftCompilerDetectingApp extends SourceFileElement implements AppElement 
     @Override
     SourceFile getSourceFile() {
         return sourceFile('swift', 'main.swift', """
-            #if swift(>=5.0)
+            #if swift(>=6.0)
+                print("Compiled using Swift 6.x compiler")
+            #elseif swift(>=5.0)
                 print("Compiled using Swift 5.x compiler")
             #elseif swift(>=4.0)
                 print("Compiled using Swift 4.x compiler")

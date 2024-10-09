@@ -253,6 +253,22 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_6)
+    def "can compile Swift 6 component on Swift 6 compiler"() {
+        given:
+        makeSingleProject()
+        swift6Component.writeToProject(testDirectory)
+        verifySwiftVersion(6)
+        settingsFile << "rootProject.name = '${swift6Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
     def "assemble task warns when current operating system family is excluded"() {
         given:
         makeSingleProject()
@@ -353,6 +369,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     abstract SourceElement getSwift4Component()
 
     abstract SourceElement getSwift5Component()
+
+    abstract SourceElement getSwift6Component()
 
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
 
