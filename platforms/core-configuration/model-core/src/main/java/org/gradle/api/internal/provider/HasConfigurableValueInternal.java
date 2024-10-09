@@ -18,8 +18,6 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.HasConfigurableValue;
 
-import javax.annotation.Nullable;
-
 public interface HasConfigurableValueInternal extends HasConfigurableValue {
     /**
      * Same semantics as {@link org.gradle.api.provider.HasConfigurableValue#finalizeValue()}, but finalizes the value of this object lazily, when the value is queried.
@@ -30,5 +28,5 @@ public interface HasConfigurableValueInternal extends HasConfigurableValue {
     /**
      * Used for Provider API migration to not finalize values but only warn on changes to the value of this object.
      */
-    void warnOnUpgradedPropertyChanges(@Nullable String propertyDisplayName);
+    void warnOnUpgradedPropertyChanges();
 }

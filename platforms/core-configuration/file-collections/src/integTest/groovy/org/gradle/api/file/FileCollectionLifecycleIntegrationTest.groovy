@@ -268,11 +268,11 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("get files failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get elements failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get files in afterEvaluate failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("get elements in afterEvaluate failed with: Cannot query the value of this file collection because configuration of root project 'broken' has not completed yet.")
-        outputContains("set after read failed with: The value for this file collection is final and cannot be changed any further.")
+        outputContains("get files failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get files in afterEvaluate failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements in afterEvaluate failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("set after read failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
         output.count("value = [${file('some-file-2')}]") == 2
         output.count("elements = [${file('some-file-2')}]") == 2
     }
@@ -309,7 +309,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("set failed with: The value for this file collection is final and cannot be changed any further.")
+        outputContains("set failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
         output.count("value = [${file('some-file')}]") == 2
     }
 
@@ -348,7 +348,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("finalize failed with: Cannot finalize the value of this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("finalize failed with: Cannot finalize the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
         output.count("value = [${file('some-file')}]") == 2
     }
 
