@@ -189,7 +189,8 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
             "-Porg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
-            "-PbuildCommitDistribution=true"
+            "-PbuildCommitDistribution=true",
+            "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
 
         if (project.gradle.startParameter.isBuildCacheEnabled) {
