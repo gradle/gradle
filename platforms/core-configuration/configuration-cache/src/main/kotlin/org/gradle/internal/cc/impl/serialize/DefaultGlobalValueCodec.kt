@@ -126,7 +126,7 @@ class DefaultSharedObjectDecoder(
         require(state.compareAndSet(ReaderState.STARTED, ReaderState.RUNNING)) {
             "Unexpected state: $state"
         }
-        globalContext.useToRun {
+        globalContext.run {
             while (state.get() == ReaderState.RUNNING) {
                 val id = readSmallInt()
                 if (id == EOF) {
@@ -167,8 +167,12 @@ class DefaultSharedObjectDecoder(
     }
 
     override fun close() {
-        stopReading()
-        reader.join(TimeUnit.MINUTES.toMillis(1))
+        try {
+            stopReading()
+            reader.join(TimeUnit.MINUTES.toMillis(1))
+        } finally {
+            globalContext.close()
+        }
     }
 
     private fun stopReading() {
