@@ -2,9 +2,6 @@
 pluginManagement {  // <1>
     repositories {
         gradlePluginPortal()
-        maven {
-            url 'https://maven.example.com/plugins'
-        }
     }
 }
 // end::simple-setting-repositories[]

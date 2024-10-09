@@ -11,7 +11,17 @@ buildscript {
         classpath 'com.android.tools.build:gradle:4.1.0' // used in subproject
     }
 }
+// end::code[]
 
+// tag::apply[]
+plugins {
+    id 'my-create-file-plugin' // Apply the convention plugin
+    id 'com.example.my-binary-plugin' // Apply the binary plugin
+    id 'groovy' // Apply the Groovy DSL plugin
+}
+// end::apply[]
+
+// tag::code[]
 tasks.register('encode') {
     doLast {
         def byte[] encodedString = new Base64().encode('hello world\n'.getBytes())
@@ -20,30 +30,26 @@ tasks.register('encode') {
 }
 // end::code[]
 
-// tag::apply[]
-plugins {
-    id("my-create-file-plugin")  // Apply the plugin
-}
-// end::apply[]
-
 // tag::plugin-1[]
 class SamplePlugin1 implements Plugin<Project> { // <1>
     void apply(Project project) {   // <2>
-        project.tasks.create("SampleTask") {
+        project.tasks.register("helloTaskInRootBuildFileSamplePlugin1") {
             doLast {
-                println("Hello world!")
+                println("Hello world from the root build file!")
             }
         }
     }
 }
+
+apply plugin: SamplePlugin1
 // end::plugin-1[]
 
 // tag::plugin-2[]
 class SamplePlugin2 implements Plugin<Project> {
     void apply(Project project) {
-        project.tasks.register("createFileTask") {
+        project.tasks.register("createFileTaskInRootBuildFileSamplePlugin2") {
             doLast {
-                String fileText = "HELLO FROM MY PLUGIN"
+                String fileText = "HELLO FROM MY SCRIPT PLUGIN"
                 File myFile = new File("myfile.txt")
                 myFile.createNewFile()
                 myFile.writeText(fileText)

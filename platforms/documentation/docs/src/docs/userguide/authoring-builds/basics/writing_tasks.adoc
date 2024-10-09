@@ -86,7 +86,7 @@ In the `named()` method, we find the `createAFileTask` task and set the text tha
 
 When the task is executed:
 
-[source]
+[source,text]
 ----
 $ ./gradlew createAFileTask
 
@@ -101,7 +101,7 @@ BUILD SUCCESSFUL in 5s
 A text file called `myfile.txt` is created in the project root folder:
 
 .myfile.txt
-[source,txt]
+[source,text]
 ----
 HELLO FROM THE NAMED METHOD
 ----
