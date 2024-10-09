@@ -23,6 +23,8 @@ import spock.lang.Specification
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 
+import static javax.tools.Diagnostic.NOPOS
+
 class DiagnosticToProblemListenerTest extends Specification {
 
     private static final String DIAGNOSTIC_DETAIL = "Error detail line 1\nerror detail line 2"
@@ -45,7 +47,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.id("dummy-code", "Java compilation error",  GradleCoreProblemGroup.compilation().java())
+        1 * spec.id("dummy-code", "Java compilation error", GradleCoreProblemGroup.compilation().java())
     }
 
     def "file location is correctly reported"() {
@@ -54,7 +56,10 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
-        diagnostic.lineNumber | diagnostic.columnNumber | diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.lineNumber >> NOPOS
+        diagnostic.columnNumber >> NOPOS
+        diagnostic.startPosition >> NOPOS
+        diagnostic.endPosition >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
@@ -74,13 +79,15 @@ class DiagnosticToProblemListenerTest extends Specification {
             name >> "SomeFile.java"
         }
         diagnostic.lineNumber >> 1
-        diagnostic.columnNumber | diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.columnNumber  >> NOPOS
+        diagnostic.startPosition >> NOPOS
+        diagnostic.endPosition >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         1 * spec.lineInFileLocation("SomeFile.java", 1)
         0 * spec.lineInFileLocation(_, _, _)
         0 * spec.lineInFileLocation(_, _, _, _)
@@ -96,13 +103,15 @@ class DiagnosticToProblemListenerTest extends Specification {
         }
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
-        diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.startPosition  >> NOPOS
+        diagnostic.endPosition >> NOPOS
+        diagnostic.position >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         // With a column number, the line-only location should not be reported ...
         0 * spec.lineInFileLocation("SomeFile.java", 1)
         // ... but the line and column location should be
@@ -119,17 +128,18 @@ class DiagnosticToProblemListenerTest extends Specification {
         }
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
+        diagnostic.position >> NOPOS
         // Start is defined ...
         diagnostic.startPosition >> 1
         // ... but end is not
-        diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.endPosition >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         // Behavior should be the same as when only line and column are defined
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         0 * spec.lineInFileLocation(_, _)
         1 * spec.lineInFileLocation("SomeFile.java", 1, 1)
         0 * spec.lineInFileLocation(_, _, _, _)
@@ -145,16 +155,17 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
         // Start is not defined ...
-        diagnostic.startPosition >> Diagnostic.NOPOS
+        diagnostic.startPosition >> NOPOS
         // ... but end is
         diagnostic.endPosition >> 1
+        diagnostic.position >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         // Behavior should be the same as when only line and column are defined
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         0 * spec.lineInFileLocation(_, _)
         1 * spec.lineInFileLocation("SomeFile.java", 1, 1)
         0 * spec.lineInFileLocation(_, _, _, _)
@@ -180,11 +191,11 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         0 * spec.lineInFileLocation(_, _)
         0 * spec.lineInFileLocation(_, _, _)
         1 * spec.lineInFileLocation("SomeFile.java", 1, 1, 10)
-        1 * spec.offsetInFileLocation("SomeFile.java", 10, 10)
+        0 * spec.offsetInFileLocation("SomeFile.java", 10, 10)
     }
 
     def "multiline diagnostic messages are composed into contextual message and details"() {

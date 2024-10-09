@@ -31,6 +31,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsTopLevelReceiver
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.software.softwareTypesConventions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -38,7 +39,7 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
     "settingsDefaults",
-    features = setOf(DefineModelDefaults()),
+    features = setOf(DefineModelDefaults(), UnsupportedSyntaxFeatureCheck.feature),
     buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(softwareTypeRegistry) }
 )
 

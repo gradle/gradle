@@ -76,6 +76,7 @@ val propagatedEnvironmentVariables = listOf(
     "LC_ALL",
     "LC_CTYPE",
 
+    "JDK8",
     "JDK_HOME",
     "JRE_HOME",
     "CommonProgramFiles",

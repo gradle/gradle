@@ -54,6 +54,9 @@ data object UnresolvedSignature : ElementNotResolvedReason, ValueFactoryNotResol
 data object UnresolvedName : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason, NamedReferenceNotResolvedReason
 
 
+data object OpaqueValueInIdentityKey : ElementNotResolvedReason, ValueFactoryNotResolvedReason
+
+
 data object NotAssignable : PropertyNotAssignedReason
 
 

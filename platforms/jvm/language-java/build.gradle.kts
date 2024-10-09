@@ -17,7 +17,6 @@ errorprone {
         "InvalidInlineTag", // 3 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 3 occurrences
-        "OperatorPrecedence", // 2 occurrences
     )
 }
 

@@ -94,7 +94,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             severity == Severity.ERROR
             contextualLabel == '\';\' expected'
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
 
         result.error.contains("2 errors\n")
@@ -113,26 +113,26 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
             solutions.empty
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
 
         result.error.contains("4 errors\n")
@@ -150,13 +150,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
 
         result.error.contains("2 warnings\n")
@@ -175,25 +175,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
 
         result.error.contains("4 warnings\n")
@@ -212,25 +212,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
 
         result.error.contains("4 errors\n")
@@ -252,25 +252,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
-            contextualLabel =='\';\' expected'
+            contextualLabel == '\';\' expected'
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
         }
 
         result.error.contains("2 errors\n")
@@ -291,10 +291,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         // 2 warnings + 1 special error
         // The compiler will report a single error, implying that the warnings were treated as errors
         verifyAll(receivedProblem(0)) {
-            assertLocations(it, false)
+            assertLocations(it, false, false)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-warnings-and-werror'
-            contextualLabel =='warnings found and -Werror specified'
+            contextualLabel == 'warnings found and -Werror specified'
             solutions.empty
             additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
         }
@@ -312,12 +312,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
                 it.path == fooFileLocation.absolutePath
             }
-            additionalData.asMap ["formatted"] == """\
+            additionalData.asMap["formatted"] == """\
 $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -326,9 +326,9 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.asMap ["formatted"] == """\
+            additionalData.asMap["formatted"] == """\
 ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -432,7 +432,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
             // In JDK8, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
         }
@@ -460,7 +460,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             assertLocations(it, true)
             severity == Severity.WARNING
             fqid == 'compilation:java:compiler-warn-redundant-cast'
-            contextualLabel =='redundant cast to java.lang.String'
+            contextualLabel == 'redundant cast to java.lang.String'
             // In JDK11, the compiler will not simplify the type to just "String"
             additionalData.asMap["formatted"].contains("redundant cast to String")
         }
@@ -518,7 +518,8 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
      */
     void assertLocations(
         ReceivedProblem problem,
-        boolean expectPreciseLocation = true
+        boolean expectLineLocation = true,
+        boolean expectOffsetLocation = !expectLineLocation
     ) {
         assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
@@ -526,34 +527,41 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         // We use this counter to assert that we have visited all locations
         def assertedLocationCount = 0
 
-        FileLocation fileLocation = locations.find { it instanceof FileLocation }
-        assert fileLocation != null: "Expected a file location, but it was null"
-        def fileLocationPath = fileLocation.path
-        // Register that we've asserted this location
-        assertedLocationCount += 1
-        // Check if we expect this file location
-        def occurrences = possibleFileLocations.get(fileLocationPath)
-        assert occurrences, "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
-        visitedFileLocations.putIfAbsent(fileLocationPath, 0)
-        visitedFileLocations[fileLocationPath] += 1
-
-        if (expectPreciseLocation) {
-            def positionLocation = locations.find {
+        if (expectLineLocation) {
+            LineInFileLocation positionLocation = locations.find {
                 it instanceof LineInFileLocation
             }
             assert positionLocation != null: "Expected a precise file location, but it was null"
             // Register that we've asserted this location
             assertedLocationCount += 1
-
-            def offsetLocation = locations.find {
+            assertOccurence(positionLocation)
+        } else if (expectOffsetLocation) {
+            OffsetInFileLocation offsetLocation = locations.find {
                 it instanceof OffsetInFileLocation
             }
             assert offsetLocation != null: "Expected a precise file location, but it was null"
             // Register that we've asserted this location
             assertedLocationCount += 1
+            assertOccurence(offsetLocation)
+        } else {
+            FileLocation fileLocation = locations.find { it instanceof FileLocation }
+            assert fileLocation != null: "Expected a file location, but it was null"
+            def fileLocationPath = fileLocation.path
+            // Register that we've asserted this location
+            assertedLocationCount += 1
+            // Check if we expect this file location
+            assertOccurence(fileLocation)
         }
 
         assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
+    }
+
+    void assertOccurence(FileLocation fileLocationPath) {
+        def path = fileLocationPath.path
+        def occurrences = possibleFileLocations.get(path)
+        assert occurrences, "Not found file location '${path}' in the expected file locations: ${possibleFileLocations.keySet()}"
+        visitedFileLocations.putIfAbsent(path, 0)
+        visitedFileLocations[path] += 1
     }
 
     TestFile writeJavaCausingTwoCompilationErrors(String className, String sourceSet = "main") {

@@ -25,11 +25,11 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
+import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
@@ -157,6 +157,49 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
             ]
 
             projectInvalidationReasons == []
+        }
+    }
+
+    def "emits entry size in the build operations"() {
+        given:
+        withLibBuild()
+
+        when:
+        inDirectory 'lib'
+        configurationCacheRun 'assemble'
+
+        then:
+        workGraphStoredAndLoaded()
+
+        and:
+        def cacheDir = file('lib/.gradle/configuration-cache')
+        def entryDir = single(subDirsOf(cacheDir))
+        def entryFiles = entryDir.listFiles().toList()
+            .findAll { it.name !in ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin'] } // TODO: include fingerprints as well
+
+        entryFiles.size() > 0
+        entryFiles.every { it.name.endsWith(".bin") } // sanity check
+
+        and:
+        def totalEntryBytes = entryFiles.sum { it.length() } as long
+
+        with(operations.only(ConfigurationCacheStoreBuildOperationType).result) {
+            cacheEntrySize == totalEntryBytes
+        }
+        with(operations.only(ConfigurationCacheLoadBuildOperationType).result) {
+            cacheEntrySize == totalEntryBytes
+        }
+
+        when:
+        inDirectory 'lib'
+        configurationCacheRun 'assemble'
+
+        then:
+        workGraphLoaded()
+
+        and:
+        with(operations.only(ConfigurationCacheLoadBuildOperationType).result) {
+            cacheEntrySize == totalEntryBytes
         }
     }
 
@@ -725,6 +768,17 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
                     Lib.main();
                 } }
             """
+        }
+    }
+
+    private static List<TestFile> subDirsOf(TestFile dir) {
+        dir.listFiles().findAll { it.directory }
+    }
+
+    private static <T> T single(List<T> list) {
+        list.with {
+            assert size() == 1
+            get(0)
         }
     }
 }

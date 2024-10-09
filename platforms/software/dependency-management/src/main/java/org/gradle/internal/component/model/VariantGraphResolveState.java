@@ -41,15 +41,12 @@ public interface VariantGraphResolveState extends HasAttributes {
     VariantGraphResolveMetadata getMetadata();
 
     /**
-     * Determines the set of artifacts for this variant, if required during graph resolution. Does not necessarily download the artifacts.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
-     * required.
-     */
-    VariantArtifactGraphResolveMetadata resolveArtifacts();
-
-    /**
-     * Returns the state required to select and resolve artifacts for this variant.
+     * Returns the state required to select and resolve artifacts for this variant. Does not
+     * necessarily download the artifacts.
+     * <p>
+     * Note that this may be expensive, for example it may block waiting for access to the source
+     * project or for network or IO requests to the source repository, and should be used only
+     * when required.
      */
     VariantArtifactResolveState prepareForArtifactResolution();
 }

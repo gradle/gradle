@@ -9,7 +9,6 @@ description = "API extraction for Java"
 
 errorprone {
     disabledChecks.addAll(
-        "EmptyBlockTag", // 2 occurrences
         "NonApiType", // 1 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
     )
