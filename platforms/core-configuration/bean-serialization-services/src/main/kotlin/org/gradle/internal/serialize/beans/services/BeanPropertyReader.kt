@@ -28,7 +28,6 @@ import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ModelObject
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils
 import java.lang.reflect.Field
 
 
@@ -95,21 +94,20 @@ class BeanPropertyReader(
 
     private
     fun ReadContext.set(bean: Any, field: Field, value: Any?) {
-        val type = field.type
-        if (isAssignableTo(type, value)) {
+        try {
             field.set(bean, value)
-        } else if (value != null) {
-            logPropertyProblem("deserialize") {
-                text("value ")
-                reference(value.toString())
-                text(" is not assignable to ")
-                reference(type)
-            }
+        } catch (_: Exception) {
+            logNotAssignable(value, field)
         }
     }
 
     private
-    fun isAssignableTo(type: Class<*>, value: Any?) =
-        type.isInstance(value) ||
-            type.isPrimitive && AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(type).isInstance(value)
+    fun ReadContext.logNotAssignable(value: Any?, field: Field) {
+        logPropertyProblem("deserialize") {
+            text("value ")
+            reference(value.toString())
+            text(" is not assignable to ")
+            reference(field.type)
+        }
+    }
 }
