@@ -16,10 +16,14 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -303,67 +307,31 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Override
-    public T setStandardInput(InputStream inputStream) {
-        execSpec.setStandardInput(inputStream);
-        return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
-    public InputStream getStandardInput() {
+    @ReplacesEagerProperty(adapter = StandardInputAdapter.class)
+    public Property<InputStream> getStandardInput() {
         return execSpec.getStandardInput();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public T setStandardOutput(OutputStream outputStream) {
-        execSpec.setStandardOutput(outputStream);
-        return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty(unreported = true)
-    public OutputStream getStandardOutput() {
+    @ReplacesEagerProperty(adapter = StandardOutputAdapter.class)
+    public Property<OutputStream> getStandardOutput() {
         return execSpec.getStandardOutput();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public T setErrorOutput(OutputStream outputStream) {
-        execSpec.setErrorOutput(outputStream);
-        return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not because it's a stream", unreported = true)
-    public OutputStream getErrorOutput() {
+    @ReplacesEagerProperty(adapter = ErrorOutputAdapter.class)
+    public Property<OutputStream> getErrorOutput() {
         return execSpec.getErrorOutput();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public T setIgnoreExitValue(boolean ignoreExitValue) {
-        execSpec.setIgnoreExitValue(ignoreExitValue);
-        return taskType.cast(this);
     }
 
     /**
@@ -371,9 +339,20 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Input
     @Override
-    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
-    public boolean isIgnoreExitValue() {
-        return execSpec.isIgnoreExitValue();
+    @ReplacesEagerProperty(adapter = IgnoreExitValueAdapter.class)
+    public Property<Boolean> getIgnoreExitValue() {
+        return execSpec.getIgnoreExitValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsIgnoreExitValue() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreExitValue()", "getIgnoreExitValue()");
+        return getIgnoreExitValue();
     }
 
     /**
@@ -385,5 +364,53 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Internal
     public Provider<ExecResult> getExecutionResult() {
         return execResult;
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class IgnoreExitValueAdapter {
+        @SuppressWarnings("rawtypes")
+        @BytecodeUpgrade
+        static AbstractExecTask setIgnoreExitValue(AbstractExecTask task, boolean value) {
+            ((BaseExecSpec) task).getIgnoreExitValue().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class StandardInputAdapter {
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @BytecodeUpgrade
+        static AbstractExecTask setStandardInput(AbstractExecTask task, InputStream inputStream) {
+            task.getStandardInput().set(inputStream);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class StandardOutputAdapter {
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @BytecodeUpgrade
+        static AbstractExecTask setStandardOutput(AbstractExecTask task, OutputStream outputStream) {
+            task.getStandardOutput().set(outputStream);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class ErrorOutputAdapter {
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @BytecodeUpgrade
+        static AbstractExecTask setErrorOutput(AbstractExecTask task, OutputStream outputStream) {
+            task.getErrorOutput().set(outputStream);
+            return task;
+        }
     }
 }
