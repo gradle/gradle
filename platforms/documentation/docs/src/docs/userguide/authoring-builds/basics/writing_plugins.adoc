@@ -129,14 +129,14 @@ They allow you to define a set of conventions for a project, and then apply thos
 The example above has been re-written as a convention plugin as a Kotlin script called `MyConventionPlugin.kt` and stored in `buildSrc`:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyConventionPlugin.kt[]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
 ====
 
 The plugin can be given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin-3]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin-3]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
 ====
 
 The `gradlePlugin{}` block defines the plugins being built by the project.

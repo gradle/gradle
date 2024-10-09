@@ -5,7 +5,7 @@ function postProcessCodeBlocks() {
   //  3) There is exactly 1 small set of languages to choose from. This does not allow for multiple language preferences. For example, users cannot prefer both Kotlin and ZSH.
   //  4) Only 1 sample of each language can exist in the same collection.
 
-  var GRADLE_DSLs = ["groovy", "kotlin"];
+  var GRADLE_DSLs = ["kotlin", "groovy"];
   var preferredBuildScriptLanguage = initPreferredBuildScriptLanguage();
 
   // Ensure preferred DSL is valid, defaulting to Kotlin DSL
