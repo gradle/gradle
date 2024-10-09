@@ -9,7 +9,7 @@ import java.net.URI
 
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
-    jvmVersion = JavaLanguageVersion.of(11)
+    jvmVersion = JavaLanguageVersion.of(17)
     jvmVendor = "adoptium"
 }
 
