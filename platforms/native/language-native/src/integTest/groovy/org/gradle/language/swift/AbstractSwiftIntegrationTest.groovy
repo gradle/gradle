@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.Swift5
+import org.gradle.nativeplatform.fixtures.app.Swift6
 import org.gradle.util.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -127,6 +128,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     @Override
     SourceElement getSwift5Component() {
         return new Swift5('project')
+    }
+
+    @Override
+    SourceElement getSwift6Component() {
+        return new Swift6('project')
     }
 
     @Override
