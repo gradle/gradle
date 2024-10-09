@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,23 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-class Swift5Test extends XCTestSourceFileElement {
-    Swift5Test() {
-        super("Swift5Test")
+class Swift6Test extends XCTestSourceFileElement {
+    Swift6Test() {
+        super("Swift6Test")
     }
 
     @Override
     List<XCTestCaseElement> getTestCases() {
         return [
-            testCase("testRawStrings",
-            '''XCTAssertEqual(getRawString(), "Raw string are ones with \\"quotes\\", backslash (\\\\), but can do special string interpolation (42)")'''),
-            testCase("testCodeWasCompiledWithSwift5Compiler",
-                """#if swift(>=6.0)
-                        XCTFail("Compilation unit compiled with Swift 6+ instead of Swift 5.x");
-                    #elseif swift(>=5.0)
+            testCase("testDrinking",
+            '''XCTAssertEqual(doDrinking(), "Drinking coffee and Drinking water")'''),
+            testCase("testCodeWasCompiledWithSwift6Compiler",
+                """#if swift(>=7.0)
+                        XCTFail("Compilation unit compiled with Swift 7+ instead of Swift 6.x");
+                    #elseif swift(>=6.0)
                         // Do nothing
                     #else
-                        XCTFail("Compilation unit compiled with Swift 4- instead of Swift 5.x");
+                        XCTFail("Compilation unit compiled with Swift 5- instead of Swift 6.x");
                     #endif
                 """)
         ]
