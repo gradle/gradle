@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.GUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -448,7 +449,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+        new DefaultExecHandleBuilder(TestUtil.objectFactory(), TestFiles.pathToFileResolver(), executor, buildCancellationToken)
             .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
             .setTimeout(20000) //sanity timeout
             .workingDir(tmpDir.getTestDirectory())

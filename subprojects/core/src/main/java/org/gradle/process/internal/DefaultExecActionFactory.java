@@ -140,7 +140,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecAction(objectFactory, fileResolver, executor, buildCancellationToken);
     }
 
     @Override
@@ -150,7 +150,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
+        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
         if (forkOptions.getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
         }
@@ -164,7 +164,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        JavaForkOptionsInternal copy = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
+        JavaForkOptionsInternal copy = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
         options.copyTo(copy);
         return new ImmutableJavaForkOptions(copy);
     }
@@ -180,7 +180,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecHandleBuilder(objectFactory, fileResolver, executor, buildCancellationToken);
     }
 
     @Override
@@ -336,7 +336,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public ExecAction newDecoratedExecAction() {
-            DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver, executor, buildCancellationToken);
+            DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, objectFactory, fileResolver, executor, buildCancellationToken);
             ExecHandleListener listener = getExecHandleListener();
             if (listener != null) {
                 execAction.listener(listener);
@@ -369,7 +369,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         @Override
         public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
             JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory, javaDebugOptions);
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
             return forkOptions;
         }

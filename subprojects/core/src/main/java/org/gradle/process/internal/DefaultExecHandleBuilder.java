@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
@@ -33,12 +34,12 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
-        this(fileResolver, executor, new DefaultBuildCancellationToken());
+    public DefaultExecHandleBuilder(ObjectFactory objectFactory, PathToFileResolver fileResolver, Executor executor) {
+        this(objectFactory, fileResolver, executor, new DefaultBuildCancellationToken());
     }
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
-        super(fileResolver, executor, buildCancellationToken);
+    public DefaultExecHandleBuilder(ObjectFactory objectFactory, PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        super(objectFactory, fileResolver, executor, buildCancellationToken);
     }
 
     @Override

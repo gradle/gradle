@@ -25,6 +25,7 @@ import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaDebugOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -43,8 +44,12 @@ class DefaultJavaForkOptionsTest extends Specification {
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private DefaultJavaForkOptions options
 
+    private DefaultJavaForkOptions createJavaForkOptions() {
+        new DefaultJavaForkOptions(TestUtil.objectFactory(), resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
+    }
+
     def setup() {
-        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
+        options = createJavaForkOptions()
     }
 
     def "provides correct default values"() {
@@ -330,7 +335,6 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
@@ -341,7 +345,6 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "allJvmArgs includes bootstrapClasspath"() {
         when:
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
         options.bootstrapClasspath(files)
 
         then:
@@ -352,7 +355,6 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory, new DefaultJavaDebugOptions())
         options.bootstrapClasspath(files[0])
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 

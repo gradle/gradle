@@ -15,7 +15,12 @@
  */
 package org.gradle.process.internal;
 
-import com.google.common.collect.Maps;
+import org.gradle.api.internal.provider.DefaultMapProperty;
+import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.views.MapPropertyMapView;
+import org.gradle.api.internal.provider.views.NullReplacingMapView;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ProcessForkOptions;
 
@@ -27,10 +32,26 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
     private Object executable;
     private File workingDir;
-    private Map<String, Object> environment;
+    private final Map<String, Object> environment;
 
+    public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        this(objectFactory.mapProperty(String.class, Object.class), resolver);
+    }
+
+    /**
+     * Do not use. This is only here to keep binary compatibility with the Kotlin Plugin.
+     * @param resolver the resolver
+     * @see <a href="https://github.com/JetBrains/kotlin/blob/120b4d48847f9658542b70646875e4950d89fb5f/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/testing/KotlinJsTest.kt#L155">KotlinJsTest</a>.
+     * @deprecated use {@link DefaultProcessForkOptions#DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)}.
+     */
+    @Deprecated
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
+        this(new DefaultMapProperty<>(PropertyHost.NO_OP, String.class, Object.class), resolver);
+    }
+
+    private DefaultProcessForkOptions(MapProperty<String, Object> environment, PathToFileResolver resolver) {
         this.resolver = resolver;
+        this.environment = new NullReplacingMapView<>(new MapPropertyMapView<>(environment.value(getInheritableEnvironment())));
     }
 
     @Override
@@ -80,9 +101,6 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public Map<String, Object> getEnvironment() {
-        if (environment == null) {
-            setEnvironment(getInheritableEnvironment());
-        }
         return environment;
     }
 
@@ -104,18 +122,19 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     @Override
     public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment = Maps.newHashMap(environmentVariables);
+        environment.clear();
+        environment.putAll(environmentVariables);
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        getEnvironment().put(name, value);
+        environment.put(name, value);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        getEnvironment().putAll(environmentVariables);
+        environment.putAll(environmentVariables);
         return this;
     }
 
@@ -126,4 +145,5 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         target.setEnvironment(getEnvironment());
         return this;
     }
+
 }

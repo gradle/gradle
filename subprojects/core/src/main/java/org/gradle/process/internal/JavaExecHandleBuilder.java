@@ -80,7 +80,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         @Nullable JavaModuleDetector javaModuleDetector,
         JavaForkOptionsInternal javaOptions
     ) {
-        super(fileResolver, executor, buildCancellationToken);
+        super(objectFactory, fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;

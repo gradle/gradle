@@ -400,6 +400,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30790")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/30790")
     def "#task task inherits environment variables of build process"() {
         given:
         def shellScript = ShellScript.builder()

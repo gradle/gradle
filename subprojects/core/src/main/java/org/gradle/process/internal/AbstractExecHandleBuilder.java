@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
@@ -44,8 +45,8 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     protected boolean daemon;
     private final Executor executor;
 
-    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
-        super(fileResolver);
+    AbstractExecHandleBuilder(ObjectFactory objectFactory, PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        super(objectFactory, fileResolver);
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
         streamsSpec.setStandardOutput(SafeStreams.systemOut());
