@@ -27,7 +27,6 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
@@ -318,15 +317,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
             );
         }
 
-        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry &&
-            hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
         LogLevel logLevel = loggingConfiguration.getLogLevel();
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
-        if (hasCompileError && isLessThanInfo) {
-            context.appendResolution(output ->
-                runWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
-            );
-        } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
+        if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
                 output.text("Run with ");
                 if (isLessThanInfo) {

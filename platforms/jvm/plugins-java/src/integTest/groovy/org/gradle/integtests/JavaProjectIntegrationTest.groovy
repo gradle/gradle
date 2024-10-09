@@ -15,6 +15,8 @@
  */
 
 package org.gradle.integtests
+
+import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -34,7 +36,8 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
-        failure.assertHasCause("Compilation failed; see the compiler output below.")
+        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
+        failure.assertHasResolution(CompilationFailedException.RESOLUTION_MESSAGE)
     }
 
     @Test
@@ -47,7 +50,8 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
         failure.assertHasDescription("Execution failed for task ':compileTestJava'.")
-        failure.assertHasCause("Compilation failed; see the compiler output below.")
+        failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
+        failure.assertHasResolution(CompilationFailedException.RESOLUTION_MESSAGE)
     }
 
     @Test

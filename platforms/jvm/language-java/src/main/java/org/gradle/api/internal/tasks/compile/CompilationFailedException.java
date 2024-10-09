@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 
 import javax.annotation.Nullable;
@@ -27,8 +29,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure {
+public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure, ResolutionProvider {
 
+    public static final String RESOLUTION_MESSAGE = "Check you code and dependencies to fix the compilation error(s)";
     public static final String COMPILATION_FAILED_DETAILS_ABOVE = "Compilation failed; see the compiler error output for details.";
     public static final String COMPILATION_FAILED_DETAILS_BELOW = "Compilation failed; see the compiler output below.";
 
@@ -78,5 +81,10 @@ public class CompilationFailedException extends RuntimeException implements Comp
     @Override
     public Collection<Problem> getProblems() {
         return reportedProblems;
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return ImmutableList.of(RESOLUTION_MESSAGE);
     }
 }
