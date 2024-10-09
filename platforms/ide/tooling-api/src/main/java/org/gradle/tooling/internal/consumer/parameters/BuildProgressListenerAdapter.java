@@ -69,7 +69,6 @@ import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
-import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
@@ -81,7 +80,6 @@ import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
-import org.gradle.tooling.events.problems.internal.DefaultFailureContainer;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
@@ -594,7 +592,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toLocations(basicProblemDetails.getLocations()),
                 toSolutions(basicProblemDetails.getSolutions()),
                 toAdditionalData(basicProblemDetails.getAdditionalData()),
-                toFailureContainer(basicProblemDetails)
+                toFailure(basicProblemDetails)
             );
         } else if (details instanceof InternalProblemAggregationDetailsV2) {
             InternalProblemAggregationDetailsV2 problemAggregationDetails = (InternalProblemAggregationDetailsV2) details;
@@ -624,7 +622,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toLocations(basicProblemDetails.getLocations()),
                 toSolutions(basicProblemDetails.getSolutions()),
                 toAdditionalData(basicProblemDetails.getAdditionalData()),
-                toFailureContainer(basicProblemDetails)
+                toFailure(basicProblemDetails.getFailure())
             );
         } else if (details instanceof InternalProblemAggregationDetailsVersion3) {
             InternalProblemAggregationDetailsVersion3 problemAggregationDetails = (InternalProblemAggregationDetailsVersion3) details;
@@ -646,7 +644,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toLocations(details.getLocations()),
             toSolutions(details.getSolutions()),
             toAdditionalData(details.getAdditionalData()),
-            toFailureContainer(details.getFailure())
+            toFailure(details.getFailure())
         );
     }
 
@@ -824,24 +822,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
-    private static FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {
-        if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
-            return new DefaultFailureContainer(null);
-        }
-        return toFailureContainer(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
-    }
-
-    private static FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetailsVersion3 problemDetails) {
-        return toFailureContainer(problemDetails == null ? null : problemDetails.getFailure());
-    }
-
-    private static FailureContainer toFailureContainer(@Nullable InternalFailure failure) {
-        if (failure == null) {
-            return new DefaultFailureContainer(null);
-        }
-        return new DefaultFailureContainer(toFailure(failure));
-    }
-
     private static ProblemDefinition toProblemDefinition(InternalProblemDefinition problemDefinition) {
         return new DefaultProblemDefinition(
             toProblemId(problemDefinition.getId()),
@@ -888,11 +868,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
-        return new DefaultContextualLabel(contextualLabel == null ? null : contextualLabel.getContextualLabel());
+        return contextualLabel == null ? null :  new DefaultContextualLabel(contextualLabel.getContextualLabel());
     }
 
     private static ContextualLabel toContextualLabel(@Nullable String contextualLabel) {
-        return new DefaultContextualLabel(contextualLabel);
+        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel);
     }
 
     private static Severity toProblemSeverity(InternalSeverity severity) {
@@ -923,7 +903,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static DocumentationLink toDocumentationLink(@Nullable InternalDocumentationLink link) {
-        return link == null ? new DefaultDocumentationLink(null) : new DefaultDocumentationLink(link.getUrl());
+        return link == null || link.getUrl() == null ? null : new DefaultDocumentationLink(link.getUrl());
     }
 
     private static List<Solution> toSolutions(List<InternalSolution> solutions) {
@@ -938,7 +918,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (details != null) {
             return new DefaultDetails(details.getDetails());
         }
-        return new DefaultDetails(null);
+        return null;
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {
@@ -1099,6 +1079,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             failures.add(toFailure(cause));
         }
         return failures;
+    }
+
+    private static Failure toFailure(InternalBasicProblemDetails problemDetails) {
+        if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
+            return null;
+        }
+        return toFailure(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
     }
 
     private static Failure toFailure(InternalFailure origFailure) {
