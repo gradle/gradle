@@ -263,8 +263,8 @@ val Project.maxTestDistributionRemoteExecutors: Int?
 val Project.maxTestDistributionLocalExecutors: Int?
     get() = gradleProperty(MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS).orNull?.toInt()
 
-val Project.toolchainInstallationPaths: String?
-    get() = gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY).orNull
+val Project.toolchainInstallationPaths: Provider<String>
+    get() = gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY)
 
 val Project.flakyTestStrategy: FlakyTestStrategy
     get() = gradleProperty(FLAKY_TEST).let {
