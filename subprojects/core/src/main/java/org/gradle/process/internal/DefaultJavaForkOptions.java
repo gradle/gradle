@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
@@ -38,7 +39,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Inject
     public DefaultJavaForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
-        super(objectFactory, resolver);
+        super(objectFactory, resolver, CURRENT_ENVIRONMENT.map(SerializableLambdas.transformer(Jvm::getInheritableEnvironmentVariables)));
         options = new JvmOptions(fileCollectionFactory, debugOptions);
     }
 
@@ -202,12 +203,6 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         action.execute(options.getDebugOptions());
-    }
-
-    @Override
-    protected Map<String, ?> getInheritableEnvironment() {
-        // Filter out any environment variables that should not be inherited.
-        return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
     }
 
     @Override

@@ -17,10 +17,12 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.provider.DefaultMapProperty;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.provider.views.MapPropertyMapView;
 import org.gradle.api.internal.provider.views.NullReplacingMapView;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ProcessForkOptions;
 
@@ -29,13 +31,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
+    // TODO(mlopatkin) this provider is a good candidate for CC deduplication
+    protected static final Provider<Map<String, String>> CURRENT_ENVIRONMENT = Providers.changing(System::getenv);
+
     protected final PathToFileResolver resolver;
     private Object executable;
     private File workingDir;
     private final Map<String, Object> environment;
 
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
-        this(objectFactory.mapProperty(String.class, Object.class), resolver);
+        this(objectFactory, resolver, CURRENT_ENVIRONMENT);
+    }
+
+    protected DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver, Provider<Map<String, String>> inheritableEnvironment) {
+        this(objectFactory.mapProperty(String.class, Object.class).value(inheritableEnvironment), resolver);
     }
 
     /**
@@ -46,12 +55,12 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
      */
     @Deprecated
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
-        this(new DefaultMapProperty<>(PropertyHost.NO_OP, String.class, Object.class), resolver);
+        this(new DefaultMapProperty<>(PropertyHost.NO_OP, String.class, Object.class).value(CURRENT_ENVIRONMENT), resolver);
     }
 
     private DefaultProcessForkOptions(MapProperty<String, Object> environment, PathToFileResolver resolver) {
         this.resolver = resolver;
-        this.environment = new NullReplacingMapView<>(new MapPropertyMapView<>(environment.value(getInheritableEnvironment())));
+        this.environment = new NullReplacingMapView<>(new MapPropertyMapView<>(environment));
     }
 
     @Override
@@ -102,10 +111,6 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public Map<String, Object> getEnvironment() {
         return environment;
-    }
-
-    protected Map<String, ?> getInheritableEnvironment() {
-        return System.getenv();
     }
 
     public Map<String, String> getActualEnvironment() {

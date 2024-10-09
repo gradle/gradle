@@ -18,7 +18,11 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.ShellScript
+import org.gradle.process.TestJavaMain2
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -285,6 +289,49 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":run"
+    }
+
+    @Requires(
+        value = IntegTestPreconditions.IsEmbeddedExecutor,
+        reason = "Sets up environment variables for the daemon that are filtered when the daemon is spawned by a proper client")
+    def "java process doesn't inherit ignored environment variables"() {
+        given:
+        def script = ShellScript.builder()
+            .printEnvironmentVariableIfPresent("JAVA_MAIN_CLASS_000")
+            .printEnvironmentVariableIfPresent("JAVA_MAIN_CLASS_001")
+            .printEnvironmentVariableIfPresent("JAVA_MAIN_CLASS_999")
+            .writeTo(testDirectory, "exec")
+
+        def testClasspath = TestJavaMain2.classLocation
+        def testClass = TestJavaMain2.class.name
+
+        buildFile.clear()
+        buildFile """
+            task run(type: JavaExec) {
+                classpath("${TextUtil.escapeString(testClasspath)}")
+                mainClass = "$testClass"
+                args(${ShellScript.cmdToVarargLiterals(script.commandLine)})
+                environment("JAVA_MAIN_CLASS_999", "foo")
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(JAVA_MAIN_CLASS_000: "bar")
+        run "run"
+
+        then:
+        outputDoesNotContain("JAVA_MAIN_CLASS_000=")
+        outputDoesNotContain("JAVA_MAIN_CLASS_001=")
+        outputContains("JAVA_MAIN_CLASS_999=foo")
+
+        when:
+        executer.withEnvironmentVars(JAVA_MAIN_CLASS_001: "bar")
+        run "run"
+
+        then:
+        outputDoesNotContain("JAVA_MAIN_CLASS_000=")
+        outputDoesNotContain("JAVA_MAIN_CLASS_001=")
+        outputContains("JAVA_MAIN_CLASS_999=foo")
     }
 
     private void assertOutputFileIs(String text) {
