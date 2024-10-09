@@ -54,7 +54,7 @@ The first time you run a particular set of tasks, there will be no entry in the 
 1. Run init scripts.
 2. Run the settings script for the build, applying any requested settings plugins.
 3. Configure and build the `buildSrc` project, if present.
-4. Run the builds scripts for the build, applying any requested project plugins.
+4. Run the build scripts for the build, applying any requested project plugins.
 5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
 
 Following the configuration phase, Gradle writes a snapshot of the task graph to a new configuration cache entry, for later Gradle invocations.
