@@ -40,6 +40,8 @@ public class DefaultFileHasher implements FileHasher {
         }
         try {
             return streamHasher.hash(inputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'", file), e);
         } finally {
             try {
                 inputStream.close();
