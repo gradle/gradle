@@ -157,10 +157,7 @@ allprojects {
 a|
 ----
 plugins {
-    id("org.barfuin.gradle.taskinfo") version "2.1.0"
-}
-repositories {
-    mavenCentral()
+    id("my-convention.gradle.taskinfo")
 }
 ----
 
