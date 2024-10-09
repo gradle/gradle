@@ -31,7 +31,7 @@ import java.util.Optional;
 
 public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure, ResolutionProvider {
 
-    public static final String RESOLUTION_MESSAGE = "Check you code and dependencies to fix the compilation error(s)";
+    public static final String RESOLUTION_MESSAGE = "Check your code and dependencies to fix the compilation error(s)";
     public static final String COMPILATION_FAILED_DETAILS_ABOVE = "Compilation failed; see the compiler error output for details.";
     public static final String COMPILATION_FAILED_DETAILS_BELOW = "Compilation failed; see the compiler output below.";
 
