@@ -24,8 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.nativeplatform.MachineArchitecture.X86
@@ -304,7 +302,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
         def appDebugRuntime = appDebugMetadata.variant("debugRuntime")
         appDebugRuntime.dependencies.size() == 2
-        appDebugRuntime.dependencies.collect { it.coords } == [ 'some.group:logger:1.2', 'some.group:greeter:1.2' ]
+        appDebugRuntime.dependencies.collect { it.coords } == ['some.group:logger:1.2', 'some.group:greeter:1.2']
 
         def appReleaseModule = mavenRepo.module('some.group', 'app_release', '1.2')
         appReleaseModule.assertPublished()
@@ -468,8 +466,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    // macOS can only build 64-bit under 10.14+
-    @Requires(UnitTestPreconditions.NotMacOs)
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
@@ -543,7 +539,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
     @Override
     Map<String, String> getVariantFileInformation(String linkage, String module, String variantModuleNameWithVersion) {
-        return [ name: executableName(module), url: executableName(variantModuleNameWithVersion), extension: executableExtension ]
+        return [name: executableName(module), url: executableName(variantModuleNameWithVersion), extension: executableExtension]
     }
 
     @Override

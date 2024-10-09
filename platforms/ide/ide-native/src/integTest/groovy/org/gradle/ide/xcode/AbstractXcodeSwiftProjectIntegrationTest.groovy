@@ -22,6 +22,7 @@ import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.Swift5
+import org.gradle.nativeplatform.fixtures.app.Swift6
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 
 abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
@@ -51,6 +52,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         swift3Component | SwiftVersion.SWIFT3
         swift4Component | SwiftVersion.SWIFT4
         swift5Component | SwiftVersion.SWIFT5
+        swift6Component | SwiftVersion.SWIFT6
     }
 
     @ToBeFixedForConfigurationCache
@@ -77,9 +79,9 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         swift3Component | SwiftVersion.SWIFT3
         swift4Component | SwiftVersion.SWIFT4
         swift5Component | SwiftVersion.SWIFT5
+        swift6Component | SwiftVersion.SWIFT6
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for unbuildable swift component with #sourceCompatibility source compatibility"() {
         given:
         makeSingleProject()
@@ -106,6 +108,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         "SwiftVersion.SWIFT3" | "3.0"
         "SwiftVersion.SWIFT4" | "4.0"
         "SwiftVersion.SWIFT5" | "5.0"
+        "SwiftVersion.SWIFT6" | "6.0"
     }
 
     SwiftSourceElement getSwift3Component() {
@@ -118,6 +121,10 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
 
     SwiftSourceElement getSwift5Component() {
         return new Swift5(rootProjectName);
+    }
+
+    SwiftSourceElement getSwift6Component() {
+        return new Swift6(rootProjectName);
     }
 
     void assertHasSwiftVersion(SwiftVersion expectedSwiftVersion, List<ProjectFile.PBXTarget> targets) {

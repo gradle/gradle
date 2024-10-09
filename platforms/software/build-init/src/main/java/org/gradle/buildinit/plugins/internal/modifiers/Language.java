@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
+import java.util.Locale;
+
 public enum Language {
     // These are in display order
     JAVA("Java"),
@@ -30,7 +32,7 @@ public enum Language {
     private final String extension;
 
     Language(String displayName) {
-        this(displayName.toLowerCase(), displayName, displayName.toLowerCase());
+        this(displayName.toLowerCase(Locale.ROOT), displayName, displayName.toLowerCase(Locale.ROOT));
     }
 
     Language(String name, String displayName, String extension) {

@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -26,8 +25,8 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-@Requires(UnitTestPreconditions.NotMacOsM1) // M1 Macs need modern Xcode to compile aarch64 binaries
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@Requires(value = UnitTestPreconditions.HasXCTest, reason = "Runs tests")
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -35,7 +34,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APPLICATION_TEST_CLASS = "GreeterTests.swift"
     public static final String LINUX_MAIN_DOT_SWIFT = "LinuxMain.swift"
 
-    private final AvailableToolChains.InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+    private final AvailableToolChains.InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 
     def setup() {
         swiftcToolChain.initialiseEnvironment()
@@ -48,7 +47,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--dsl', scriptDsl.id)
@@ -73,7 +71,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
@@ -98,7 +95,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "source generation is skipped when swift sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/swift/main.swift") << """
@@ -113,7 +109,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             @testable import App
 
             class HolaTests: XCTestCase {
-                public static var allTests = [
+                public static let allTests = [
                     ("testGreeting", testGreeting),
                 ]
 
@@ -155,6 +151,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     ExecutableFixture executable(String path) {
-        AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC).executable(targetDir.file(path))
+        AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER).executable(targetDir.file(path))
     }
 }

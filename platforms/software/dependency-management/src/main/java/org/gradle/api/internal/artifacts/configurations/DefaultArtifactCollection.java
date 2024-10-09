@@ -49,7 +49,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
             Set<Throwable> failures = visitor.getFailures();
 
             if (!lenient) {
-                resolutionHost.rethrowFailure("artifacts", failures);
+                resolutionHost.rethrowFailuresAndReportProblems("artifacts", failures);
             }
             return new ArtifactSetResult(artifactResults, failures);
         });

@@ -19,6 +19,8 @@ package org.gradle.internal.work;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
+
 class DefaultSynchronizer implements Synchronizer {
     private final WorkerLeaseService workerLeaseService;
     private Thread owner;
@@ -47,6 +49,7 @@ class DefaultSynchronizer implements Synchronizer {
         }
     }
 
+    @Nullable
     private Thread takeOwnership() {
         final Thread currentThread = Thread.currentThread();
         if (!workerLeaseService.isWorkerThread()) {

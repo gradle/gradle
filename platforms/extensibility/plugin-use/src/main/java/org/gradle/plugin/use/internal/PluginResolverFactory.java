@@ -67,7 +67,6 @@ public class PluginResolverFactory {
      * <p>
      * The plugins will be searched in a chain from the first to the last until a plugin is found.
      * So, order matters.
-     * <p>
      * <ol>
      *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>

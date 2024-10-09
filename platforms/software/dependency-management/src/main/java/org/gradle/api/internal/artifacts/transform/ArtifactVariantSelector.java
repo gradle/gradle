@@ -45,7 +45,7 @@ public interface ArtifactVariantSelector {
         ResolvedArtifactSet asTransformed(
             ResolvedVariant sourceVariant,
             VariantDefinition variantDefinition,
-            TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
+            TransformUpstreamDependenciesResolver dependenciesResolver,
             TransformedVariantFactory transformedVariantFactory
         );
     }

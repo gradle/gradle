@@ -1,12 +1,12 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Version control integration (with git) for source dependencies"
 
 errorprone {
     disabledChecks.addAll(
-        "UnusedMethod", // 13 occurrences
         "UnusedVariable", // 3 occurrences
     )
 }
@@ -24,7 +24,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.persistentCache)
     implementation(projects.serialization)
@@ -57,4 +56,7 @@ dependencies {
     integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

@@ -100,7 +100,11 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         succeeds('test')

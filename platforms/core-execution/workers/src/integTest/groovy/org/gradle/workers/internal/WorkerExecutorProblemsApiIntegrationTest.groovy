@@ -78,7 +78,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     Exception wrappedException = new Exception("Wrapped cause");
                     // Create and report a problem
                     // This needs to be Java 6 compatible, as we are in a worker
-                     getProblems().forNamespace("org.example.plugin").reporting(problem -> problem
+                     getProblems().getReporter().reporting(problem -> problem
                             .id("type", "label")
                             .stackLocation()
                             .withException(new RuntimeException("Exception message", wrappedException))

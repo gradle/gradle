@@ -12,7 +12,8 @@ import static gradlebuild.basics.BuildParamsKt.shouldRunBrokenForConfigurationCa
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
 
 plugins {
-    id 'gradlebuild.internal.java'
+    id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
+    id("gradlebuild.jvm-library")
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.jvm.convert'
     id 'gradlebuild.documentation'
@@ -76,8 +77,11 @@ dependencies {
 }
 
 asciidoctorj {
-    version = '2.5.11'
+    version = '2.5.13'
     modules.pdf.version '2.3.10'
+    // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
+    // TODO: tables are not handled properly in pdfs
+    fatalWarnings = ["^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*"]
 }
 
 tasks.withType(AsciidoctorTask).configureEach { task ->
@@ -707,10 +711,6 @@ tasks.named("docsTest") { task ->
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             def testsForUnsupportedFeatures = [
-                "building-cpp-applications_groovy_build.sample",
-                "building-cpp-applications_kotlin_build.sample",
-                "building-cpp-libraries_groovy_build.sample",
-                "building-cpp-libraries_kotlin_build.sample",
                 "snippet-ant-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget.sample",
                 "snippet-ant-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget.sample",
                 "snippet-ant-depends-on-ant-target_groovy_dependsOnAntTarget.sample",
@@ -806,10 +806,8 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-catalogs-toml-simple_kotlin_sanityCheck.sample",
                 "snippet-dependency-management-catalogs-toml-simple_groovy_resolve.sample",
                 "snippet-dependency-management-catalogs-toml-simple_kotlin_resolve.sample",
-                "snippet-dependency-management-introduction-core-dependencies_groovy_sanityCheck.samples",
-                "snippet-dependency-management-introduction-core-dependencies_kotlin_sanityCheck.samples",
-                "snippet-dependency-management-introduction-core-dependencies_groovy_dependencyIntroReport",
-                "snippet-dependency-management-introduction-core-dependencies_kotlin_dependencyIntroReport",
+                "snippet-dependency-management-catalogs-platforms_groovy_sanityCheck.sample",
+                "snippet-dependency-management-catalogs-platforms_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

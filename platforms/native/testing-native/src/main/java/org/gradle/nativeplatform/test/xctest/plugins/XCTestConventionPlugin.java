@@ -246,11 +246,11 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
             if (binary.getTargetMachine().getOperatingSystemFamily().isLinux()) {
                 TaskProvider<Sync> renameLinuxMainTask = project.getTasks().register("renameLinuxMain", Sync.class, task -> {
                     task.from(binary.getSwiftSource());
-                    task.into(project.provider(() -> task.getTemporaryDir()));
+                    task.into(project.getLayout().getBuildDirectory().dir("linuxMain"));
                     task.include("LinuxMain.swift");
-                    task.rename(it -> "main.swift");
+                    task.rename(".*", "main.swift");
                 });
-                compile.getSource().from(project.files(renameLinuxMainTask).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
+                compile.getSource().from(project.files(renameLinuxMainTask.map(Sync::getDestinationDir)).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
             }
         }
     }

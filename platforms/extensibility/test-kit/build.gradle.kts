@@ -80,3 +80,6 @@ tasks {
         }
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

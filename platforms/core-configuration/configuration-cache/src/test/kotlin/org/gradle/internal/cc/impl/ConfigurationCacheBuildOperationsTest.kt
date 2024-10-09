@@ -51,7 +51,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // when:
         buildOperationRunner.withStoreOperation("key") {
-            StoreResult(stateFile, null)
+            StoreResult(listOf(stateFile), null)
         }
 
         // then:
@@ -75,7 +75,7 @@ class ConfigurationCacheBuildOperationsTest {
 
         // when:
         buildOperationRunner.withLoadOperation {
-            LoadResult(stateFile, UUID.randomUUID().toString()) to Unit
+            LoadResult(listOf(stateFile), UUID.randomUUID().toString()) to Unit
         }
 
         // then:

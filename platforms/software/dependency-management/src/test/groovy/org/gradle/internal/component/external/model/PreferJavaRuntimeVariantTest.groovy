@@ -18,12 +18,17 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.attributes.MultipleCandidatesResult
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class PreferJavaRuntimeVariantTest extends Specification {
 
-    final PreferJavaRuntimeVariant schema = new PreferJavaRuntimeVariant(TestUtil.objectInstantiator())
+    final ImmutableAttributesSchema schema = new PreferJavaRuntimeVariant(
+        TestUtil.objectInstantiator(),
+        AttributeTestUtil.services().getSchemaFactory()
+    ).getSchema()
 
     def "should prefer the runtime variant if the consumer doesn't express any preference and that runtime is in the candidates"() {
         given:

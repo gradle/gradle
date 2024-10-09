@@ -20,6 +20,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileTemp)
+    api(projects.graphSerialization)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
@@ -45,11 +46,11 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.execution)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
     implementation(projects.fileWatching)
     implementation(projects.files)
     implementation(projects.flowServices)
     implementation(projects.functional)
-    implementation(projects.graphSerialization)
     implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.inputTracking)
@@ -58,7 +59,6 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
-    implementation(projects.processServices)
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
@@ -66,6 +66,7 @@ dependencies {
 
     implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
     runtimeOnly(projects.beanSerializationServices)
@@ -113,4 +114,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

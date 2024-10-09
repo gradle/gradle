@@ -21,23 +21,22 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
 
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory())
+    def matcher = newMatcher()
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
 
-    def highest = Attribute.of("highest", String)
-    def middle = Attribute.of("middle", String)
-    def lowest = Attribute.of("lowest", String)
+    static Attribute<String> highest = Attribute.of("highest", String)
+    static Attribute<String> middle = Attribute.of("middle", String)
+    static Attribute<String> lowest = Attribute.of("lowest", String)
     // This has no precedence
-    def additional = Attribute.of("usage", String)
+    static Attribute<String> additional = Attribute.of("usage", String)
 
     static class CompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override
@@ -69,24 +68,23 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         }
     }
 
-    def setup() {
-        schema.attributeDisambiguationPrecedence(highest, middle, lowest)
-        schema.attribute(highest).with {
-            compatibilityRules.add(CompatibilityRule)
-            disambiguationRules.add(DisambiguationRule)
+    static AttributeMatcher newMatcher() {
+        def schema = AttributeTestUtil.immutableSchema {
+            attributeDisambiguationPrecedence(highest, middle, lowest)
+            attribute(highest).compatibilityRules.add(CompatibilityRule)
+            attribute(highest).disambiguationRules.add(DisambiguationRule)
+
+            attribute(middle).compatibilityRules.add(CompatibilityRule)
+            attribute(middle).disambiguationRules.add(DisambiguationRule)
+
+            attribute(lowest).compatibilityRules.add(CompatibilityRule)
+            attribute(lowest).disambiguationRules.add(DisambiguationRule)
+
+            attribute(additional).compatibilityRules.add(CompatibilityRule)
+            attribute(additional).disambiguationRules.add(DisambiguationRule)
         }
-        schema.attribute(middle).with {
-            compatibilityRules.add(CompatibilityRule)
-            disambiguationRules.add(DisambiguationRule)
-        }
-        schema.attribute(lowest).with {
-            compatibilityRules.add(CompatibilityRule)
-            disambiguationRules.add(DisambiguationRule)
-        }
-        schema.attribute(additional).with {
-            compatibilityRules.add(CompatibilityRule)
-            disambiguationRules.add(DisambiguationRule)
-        }
+
+        return AttributeTestUtil.services().getMatcher(schema, ImmutableAttributesSchema.EMPTY)
     }
 
     def "when precedence is known, disambiguates by ordered elimination"() {
@@ -98,13 +96,13 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def candidate6 = candidate("compatible", "compatible", "compatible")
         def requested = requested("requested", "requested","requested")
         expect:
-        schema.matcher().matchMultipleCandidates([candidate1], requested, explanationBuilder) == [candidate1]
-        schema.matcher().matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate1]
-        schema.matcher().matchMultipleCandidates([candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate2]
-        schema.matcher().matchMultipleCandidates([candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate3]
-        schema.matcher().matchMultipleCandidates([candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate4]
-        schema.matcher().matchMultipleCandidates([candidate5, candidate6], requested, explanationBuilder) == [candidate5]
-        schema.matcher().matchMultipleCandidates([candidate6], requested, explanationBuilder) == [candidate6]
+        matcher.matchMultipleCandidates([candidate1], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2, candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate2]
+        matcher.matchMultipleCandidates([candidate3, candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate3]
+        matcher.matchMultipleCandidates([candidate4, candidate5, candidate6], requested, explanationBuilder) == [candidate4]
+        matcher.matchMultipleCandidates([candidate5, candidate6], requested, explanationBuilder) == [candidate5]
+        matcher.matchMultipleCandidates([candidate6], requested, explanationBuilder) == [candidate6]
     }
 
     def "disambiguates extra attributes in precedence order"() {
@@ -115,9 +113,9 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def requested = AttributeTestUtil.attributes("unknown": "unknown")
 
         expect:
-        schema.matcher().matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
-        schema.matcher().matchMultipleCandidates([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate2]
-        schema.matcher().matchMultipleCandidates([candidate3, candidate4], requested, explanationBuilder) == [candidate3]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate1]
+        matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested, explanationBuilder) == [candidate2]
+        matcher.matchMultipleCandidates([candidate3, candidate4], requested, explanationBuilder) == [candidate3]
     }
 
     private static ImmutableAttributes requested(String highestValue, String middleValue, String lowestValue) {

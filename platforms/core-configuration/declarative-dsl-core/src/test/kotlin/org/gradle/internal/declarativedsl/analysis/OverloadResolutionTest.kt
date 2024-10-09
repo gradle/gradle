@@ -21,11 +21,11 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin.FunctionInvocationOrigin
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-object OverloadResolutionTest {
+class OverloadResolutionTest {
     @Test
     fun `function overloads with and without configure lambda are disambiguated`() {
         val schema = schemaFromTypes(MyTopLevelReceiver::class, listOf(MyTopLevelReceiver::class))

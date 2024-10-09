@@ -22,10 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires([
-    UnitTestPreconditions.CanInstallExecutable,
-    UnitTestPreconditions.NotMacOs
-])
+@Requires(UnitTestPreconditions.CanInstallExecutable)
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 
@@ -60,7 +57,6 @@ model {
         run "assemble"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can link to a prebuilt header-only library with api linkage"() {
         given:
         app.alternateLibrarySources*.writeToDir(file("src/main"))
@@ -91,7 +87,6 @@ model {
         installation("build/install/main").exec().out == app.alternateLibraryOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "can link to a prebuilt library with static and shared linkage"() {
         given:
         preBuildLibrary()
@@ -152,7 +147,6 @@ model {
         installation("build/install/mainStatic").exec().out == app.englishOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "searches all prebuilt library repositories"() {
         given:
         preBuildLibrary()
@@ -194,7 +188,6 @@ model {
         installation("build/install/main").exec().out == app.frenchOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "locates prebuilt library in another project"() {
         given:
         app.executable.writeSources(file("projectA/src/main"))

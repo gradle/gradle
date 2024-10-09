@@ -20,16 +20,16 @@ import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.extensions.core.setSingletonProperty
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.isolation.IsolatedActionDeserializer
 import org.gradle.internal.cc.impl.isolation.IsolatedActionSerializer
 import org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph
-import org.gradle.internal.serialize.graph.IsolateOwner
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.code.UserCodeApplicationContext
-import org.gradle.internal.extensions.core.peekSingletonProperty
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 
@@ -54,7 +54,7 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
     val afterProject = mutableListOf<IsolatedProjectAction>()
 
     private
-    var eagerBeforeProject : EagerBeforeProject? = null
+    var eagerBeforeProject: EagerBeforeProject? = null
 
     override fun beforeProject(action: IsolatedProjectAction) {
         // TODO:isolated encode Application instances as part of the Environment to avoid waste
@@ -140,11 +140,11 @@ class EagerBeforeProject(
 
     override fun execute(target: Project) {
         // Execute only if project just loaded
-        if (target.peekSingletonProperty<IsolatedProjectActionsState>() != null) return
+        if (target.getLifecycleActionsState() != null) return
 
         val actions = isolatedActions(gradle, isolated)
         val state = IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject)
-        target.setSingletonProperty(state)
+        target.setLifecycleActionsState(state)
         executeAll(actions.beforeProject, target)
     }
 }
@@ -163,31 +163,31 @@ class IsolatedProjectEvaluationListener(
 ) : ProjectEvaluationListener {
 
     override fun beforeEvaluate(project: Project) =
-        when (val state = project.peekSingletonProperty<IsolatedProjectActionsState>()) {
+        when (val state = project.getLifecycleActionsState()) {
             null -> {
                 val actions = isolatedActions(gradle, isolated)
 
                 // preserve isolate semantics between `beforeProject` and `afterProject`
-                project.setSingletonProperty(IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject))
+                project.setLifecycleActionsState(IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject))
                 executeAll(actions.beforeProject, project)
             }
 
             // beforeProject was executed eagerly
             is IsolatedProjectActionsState.BeforeProjectExecuted -> {
                 // preserve isolate semantics between `beforeProject` and `afterProject`
-                project.setSingletonProperty(IsolatedProjectActionsState.beforeProjectExecuted(state.afterProject))
+                project.setLifecycleActionsState(IsolatedProjectActionsState.beforeProjectExecuted(state.afterProject))
             }
 
             else -> error("Unexpected isolated actions state $state")
         }
 
     override fun afterEvaluate(project: Project, state: ProjectState) {
-        val actionsState = project.peekSingletonProperty<IsolatedProjectActionsState>()
+        val actionsState = project.getLifecycleActionsState()
 
         require(actionsState is IsolatedProjectActionsState.BeforeProjectExecuted) {
             "afterEvaluate action cannot execute before beforeEvaluate"
         }
-        project.setSingletonProperty(IsolatedProjectActionsState.afterProjectExecuted())
+        project.setLifecycleActionsState(IsolatedProjectActionsState.afterProjectExecuted())
         executeAll(actionsState.afterProject, project)
     }
 }
@@ -208,4 +208,12 @@ fun isolatedActions(
 ) = IsolateOwners.OwnerGradle(gradle).let { owner ->
     IsolatedActionDeserializer(owner, owner.serviceOf(), owner.serviceOf())
         .deserialize(isolated)
+}
+
+private
+fun Project.getLifecycleActionsState() = uncheckedCast<ProjectInternal>().lifecycleActionsState
+
+private
+fun Project.setLifecycleActionsState(state: IsolatedProjectActionsState?) {
+    uncheckedCast<ProjectInternal>().setLifecycleActionsState(state)
 }

@@ -268,14 +268,14 @@ val thisExtensions =
     "(this as ${ExtensionAware::class.java.name}).extensions"
 
 
-@Suppress("deprecation")
+@Suppress("DEPRECATION")
 private
 val thisConvention =
     "((this as? Project)?.convention ?: (this as ${org.gradle.api.internal.HasConvention::class.java.name}).convention)"
 
 
 internal
-data class AccessorNameSpec(val original: String) {
+class AccessorNameSpec private constructor(val original: String) {
 
     val kotlinIdentifier
         get() = original
@@ -283,6 +283,45 @@ data class AccessorNameSpec(val original: String) {
     val stringLiteral by unsafeLazy {
         stringLiteralFor(original)
     }
+
+    companion object {
+        /**
+         * Create a new [AccessorNameSpec], if [original] is valid.
+         * Else, return `null`.
+         */
+        internal
+        fun createOrNull(original: String): AccessorNameSpec? =
+            if (isLegalAccessorName(original)) AccessorNameSpec(original)
+            else null
+
+        private
+        fun isLegalAccessorName(name: String): Boolean =
+            isKotlinIdentifier("`$name`")
+                && name.indexOfAny(invalidNameChars) < 0
+
+        private
+        val invalidNameChars = charArrayOf('.', '/', '\\')
+
+        private
+        fun isKotlinIdentifier(candidate: String): Boolean =
+            KotlinLexer().run {
+                start(candidate)
+                tokenStart == 0
+                    && tokenEnd == candidate.length
+                    && tokenType == KtTokens.IDENTIFIER
+            }
+    }
+
+    override fun toString(): String = "AccessorNameSpec(original=$original)"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as AccessorNameSpec
+        return original == other.original
+    }
+
+    override fun hashCode(): Int = original.hashCode()
 }
 
 
@@ -305,44 +344,22 @@ fun escapeStringTemplateDollarSign(string: String) =
 
 
 private
-fun accessorNameSpec(originalName: String) =
-    AccessorNameSpec(originalName)
+fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>): TypedAccessorSpec? {
+    val accessorName = AccessorNameSpec.createOrNull(schemaEntry.name) ?: return null
+    return when (schemaEntry.target) {
+        is TypeAccessibility.Accessible ->
+            TypedAccessorSpec(schemaEntry.target, accessorName, schemaEntry.type)
 
-
-internal
-fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>) =
-    schemaEntry.takeIf { isLegalAccessorName(it.name) }?.target?.run {
-        when (this) {
-            is TypeAccessibility.Accessible ->
-                TypedAccessorSpec(this, accessorNameSpec(schemaEntry.name), schemaEntry.type)
-            is TypeAccessibility.Inaccessible ->
-                null
-        }
+        is TypeAccessibility.Inaccessible ->
+            null
     }
+}
 
 
 private
 fun documentInaccessibilityReasons(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String =
-    "`${name.kotlinIdentifier}` is not accessible in a type safe way because:\n${typeAccess.reasons.joinToString("\n") { reason ->
-        "         * - ${reason.explanation}"
-    }}"
-
-
-internal
-fun isLegalAccessorName(name: String): Boolean =
-    isKotlinIdentifier("`$name`")
-        && name.indexOfAny(invalidNameChars) < 0
-
-
-private
-val invalidNameChars = charArrayOf('.', '/', '\\')
-
-
-private
-fun isKotlinIdentifier(candidate: String): Boolean =
-    KotlinLexer().run {
-        start(candidate)
-        tokenStart == 0
-            && tokenEnd == candidate.length
-            && tokenType == KtTokens.IDENTIFIER
-    }
+    "`${name.kotlinIdentifier}` is not accessible in a type safe way because:\n${
+        typeAccess.reasons.joinToString("\n") { reason ->
+            "         * - ${reason.explanation}"
+        }
+    }"

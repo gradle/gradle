@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
@@ -36,7 +35,9 @@ import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -62,6 +63,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.Collection;
 
 /**
@@ -81,11 +83,13 @@ public class ExternalModuleComponentResolverFactory {
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final CalculatedValueFactory calculatedValueFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
 
+    @Inject
     public ExternalModuleComponentResolverFactory(
         ModuleRepositoryCacheProvider cacheProvider,
         StartParameterResolutionOverride startParameterResolutionOverride,
@@ -99,6 +103,7 @@ public class ExternalModuleComponentResolverFactory {
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         CalculatedValueFactory calculatedValueFactory,
         ImmutableAttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
     ) {
         this.cacheProvider = cacheProvider;
@@ -113,6 +118,7 @@ public class ExternalModuleComponentResolverFactory {
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
@@ -126,14 +132,14 @@ public class ExternalModuleComponentResolverFactory {
         boolean dependencyVerificationEnabled,
         CachePolicy cachePolicy,
         AttributeContainer consumerAttributes,
-        AttributesSchema consumerSchema
+        ImmutableAttributesSchema consumerSchema
     ) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
+        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerAttributes, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -211,14 +217,15 @@ public class ExternalModuleComponentResolverFactory {
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             VersionParser versionParser,
             AttributeContainer consumerAttributes,
-            AttributesSchema attributesSchema,
+            ImmutableAttributesSchema attributesSchema,
             ImmutableAttributesFactory attributesFactory,
+            AttributeSchemaServices attributeSchemaServices,
             ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
             CalculatedValueFactory calculatedValueFactory,
             CachePolicy cachePolicy
         ) {
-            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
+            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, attributeSchemaServices, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
         }
 
         public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository) {

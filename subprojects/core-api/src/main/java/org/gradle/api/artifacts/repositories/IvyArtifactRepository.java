@@ -102,7 +102,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * <p>
      * Recognised values are as follows:
      * </p>
-     * <h4>'gradle'</h4>
+     * <h2>'gradle'</h2>
      * <p>
      * A Repository Layout that applies the following patterns:
      * </p>
@@ -110,7 +110,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *     <li>Artifacts: <code>$baseUri/{@value #GRADLE_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value #GRADLE_IVY_PATTERN}</code></li>
      * </ul>
-     * <h4>'maven'</h4>
+     * <h2>'maven'</h2>
      * <p>
      * A Repository Layout that applies the following patterns:
      * </p>
@@ -121,7 +121,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * <p>
      * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
      * </p>
-     * <h4>'ivy'</h4>
+     * <h2>'ivy'</h2>
      * <p>
      * A Repository Layout that applies the following patterns:
      * </p>

@@ -24,6 +24,8 @@ import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
+import java.util.concurrent.atomic.AtomicReference
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertNotNull
@@ -74,5 +76,12 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.verbose)
         assertFalse(compileOptions.fork)
         assertTrue(compileOptions.parameters)
+    }
+
+    @Test
+    void "forkOptions closure"() {
+        AtomicReference<ForkOptions> forkOptions = new AtomicReference<ForkOptions>()
+        compileOptions.forkOptions(forkOptions::set)
+        assertEquals(compileOptions.forkOptions, forkOptions.get())
     }
 }

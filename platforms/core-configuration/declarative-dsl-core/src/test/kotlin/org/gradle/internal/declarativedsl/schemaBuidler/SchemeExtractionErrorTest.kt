@@ -19,14 +19,14 @@ package org.gradle.internal.declarativedsl.schemaBuidler
 import org.gradle.api.provider.ListProperty
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
+import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
-import kotlin.test.Test
-import kotlin.test.assertFailsWith
+import org.junit.Test
 
 
-object SchemeExtractionErrorTest {
+class SchemeExtractionErrorTest {
 
     @Test
     fun `data type ref conversion of getter return type fails`() {

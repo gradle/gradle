@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -25,13 +24,13 @@ import org.gradle.nativeplatform.fixtures.app.MainWithXCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift6WithSwift5XCTest
 
 import static org.junit.Assume.assumeTrue
 
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
     // TODO: This test can be generalized so it's not opinionated on Swift 4.x but could also work on Swift 5.x
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForConfigurationCache
     def "take swift source compatibility from tested component"() {
         given:
         makeSingleProject()
@@ -60,7 +59,6 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
-    @ToBeFixedForConfigurationCache
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
         assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)
@@ -72,12 +70,14 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
             ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.${xctestSourceCompatibility.name()}
 
             task verifyBinariesSwiftVersion {
+                def testComponentVersions = provider { ${testedComponentDsl}.binaries.get().collect { it.targetPlatform.sourceCompatibility } }
+                def componentVersions = provider { ${componentUnderTestDsl}.binaries.get().collect { it.targetPlatform.sourceCompatibility } }
                 doLast {
-                    ${testedComponentDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${componentSourceCompatibility.name()}
+                    testComponentVersions.get().each {
+                        assert it == SwiftVersion.${componentSourceCompatibility.name()}
                     }
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${xctestSourceCompatibility.name()}
+                    componentVersions.get().each {
+                        assert it == SwiftVersion.${xctestSourceCompatibility.name()}
                     }
                 }
             }
@@ -97,11 +97,12 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         new Swift3WithSwift4XCTest('project') | SwiftVersion.SWIFT3          | SwiftVersion.SWIFT4
         new Swift4WithSwift3XCTest('project') | SwiftVersion.SWIFT4          | SwiftVersion.SWIFT3
         new Swift5WithSwift4XCTest('project') | SwiftVersion.SWIFT5          | SwiftVersion.SWIFT4
+        new Swift6WithSwift5XCTest('project') | SwiftVersion.SWIFT6          | SwiftVersion.SWIFT5
     }
 
     void assumeSwiftCompilerSupportsLanguageVersion(SwiftVersion swiftVersion) {
         assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
-        assumeTrue((toolChain.version.major == 5 && swiftVersion.version in [5, 4]) || (toolChain.version.major == 4 && swiftVersion.version in [4, 3]) || (toolChain.version.major == 3 && swiftVersion.version == 3))
+        assumeTrue((toolChain.version.major == 6 && swiftVersion.version in [6, 5]) || (toolChain.version.major == 5 && swiftVersion.version in [5, 4]) || (toolChain.version.major == 4 && swiftVersion.version in [4, 3]) || (toolChain.version.major == 3 && swiftVersion.version == 3))
     }
 
     abstract String getTestedComponentDsl()

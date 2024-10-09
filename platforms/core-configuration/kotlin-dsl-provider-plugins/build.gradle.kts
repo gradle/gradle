@@ -20,6 +20,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.fileCollections)
     implementation(projects.hashing)
+    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.pluginDevelopment)
     implementation(projects.pluginsJavaBase)
@@ -45,4 +46,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

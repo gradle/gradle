@@ -21,7 +21,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -29,7 +28,6 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -41,7 +39,7 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     @Override
-    public ArtifactSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure, Optional<AttributesSchemaInternal> schema) {
+    public ArtifactSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure) {
         String message = buildFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION), suggestReviewAlgorithm());
         return new ArtifactSelectionException(message, failure, resolutions);

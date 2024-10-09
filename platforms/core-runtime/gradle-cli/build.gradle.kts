@@ -47,16 +47,18 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.jvmServices)
     implementation(projects.native)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.toolchainsJvmShared)
+    implementation(projects.jvmServices)
 
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

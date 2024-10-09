@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.gradle.api.internal.artifacts.AnonymousModule
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
@@ -24,12 +25,12 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -38,7 +39,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider) {
         getModule() >> new AnonymousModule()
     }
-    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
+    ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
         create(_, _, _, _, _, _) >> { args ->
             Mock(LocalVariantGraphResolveMetadata)
@@ -54,10 +55,11 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
             Stub(ComponentIdGenerator),
             configurationMetadataBuilder,
             TestUtil.calculatedValueContainerFactory()
-        )
+        ),
+        AttributeTestUtil.services().getSchemaFactory()
     )
 
-    def builder = builderFactory.create(RootScriptDomainObjectContext.INSTANCE, configurationsProvider, metaDataProvider, EmptySchema.INSTANCE)
+    def builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, AttributeTestUtil.mutableSchema())
 
     def "caches root component resolve state and metadata"() {
         configurationsProvider.findByName('conf') >> resolvable()

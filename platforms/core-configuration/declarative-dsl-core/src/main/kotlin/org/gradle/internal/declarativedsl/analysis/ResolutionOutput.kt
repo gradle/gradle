@@ -8,6 +8,7 @@ import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
@@ -17,7 +18,7 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.Null
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 
 
 // TODO: report failures to resolve with potential candidates that could not work
@@ -90,6 +91,19 @@ sealed interface ObjectOrigin {
             get() = literal
 
         override fun toString(): String = "${literal.value.let { if (it is String) "\"$it\"" else it }}"
+    }
+
+    data class EnumConstantOrigin(val type: EnumClass, val namedReference: NamedReference) : ObjectOrigin {
+        override val originElement: LanguageTreeElement
+            get() = namedReference
+
+        val entryName: String
+            get() = namedReference.name
+
+        val javaTypeName: String
+            get() = type.javaTypeName
+
+        override fun toString(): String = "(enum $javaTypeName.$entryName)"
     }
 
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
@@ -230,7 +244,7 @@ sealed interface ObjectOrigin {
         }
     }
 
-    data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
+    data class External(val key: ExternalObjectProviderKey, override val originElement: NamedReference) : ObjectOrigin {
         override fun toString(): String = "${key.objectType}"
     }
 }

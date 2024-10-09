@@ -173,7 +173,16 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 i = skipStackTrace(lines, i);
             } else if (line.matches(".*\\s+deprecated.*")) {
                 if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
-                    throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                    StringBuilder message = new StringBuilder(String.format("%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
+                    if (expectedDeprecationWarnings.isEmpty() && maybeExpectedDeprecationWarnings.isEmpty()) {
+                        message.append(String.format("%nNo deprecation warnings were expected at this point."));
+                    } else {
+                        message.append(String.format("%nExpected deprecation warnings:"));
+                        expectedDeprecationWarnings.forEach(warning -> message.append(String.format("%n - %s", warning)));
+                        maybeExpectedDeprecationWarnings.forEach(warning -> message.append(String.format("%n - (optional) %s", warning)));
+                    }
+                    message.append(String.format("%n=====%n%s%n=====%n", output));
+                    throw new AssertionError(message.toString());
                 }
                 expectedGenericDeprecationWarnings--;
                 // skip over stack trace

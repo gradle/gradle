@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.query;
 
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.component.Artifact;
@@ -24,6 +25,11 @@ import java.util.Collection;
 
 /**
  * A builder to construct a query that can resolve selected software artifacts of the specified components.
+ * <p>
+ * This is a legacy API and is in maintenance mode. In future versions of Gradle,
+ * this API will be deprecated and removed. New code should not use this API. Prefer
+ * {@link ArtifactView.ViewConfiguration#withVariantReselection()} for resolving
+ * sources and javadoc.
  *
  * <pre class='autoTested'>
  * plugins {

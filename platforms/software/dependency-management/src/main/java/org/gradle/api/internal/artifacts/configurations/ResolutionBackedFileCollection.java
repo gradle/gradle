@@ -58,7 +58,10 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
         FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
         selected.visitDependencies(collectingContext);
         if (!lenient) {
-            resolutionHost.mapFailure("dependencies", collectingContext.getFailures()).ifPresent(context::visitFailure);
+            resolutionHost.consolidateFailures("dependencies", collectingContext.getFailures()).ifPresent(consolidatedFailure -> {
+                resolutionHost.reportProblems(consolidatedFailure);
+                context.visitFailure(consolidatedFailure);
+            });
         }
     }
 
@@ -81,7 +84,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
      */
     private void maybeThrowResolutionFailures(ResolvedFileCollectionVisitor collectingVisitor) {
         if (!lenient) {
-            resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
+            resolutionHost.rethrowFailuresAndReportProblems("files", collectingVisitor.getFailures());
         }
     }
 

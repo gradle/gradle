@@ -150,9 +150,9 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def groovyVersion = GroovySystem.version
         def kotlinVersion = getGradleKotlinVersion()
         def groovyModules = ["groovy-${groovyVersion}.jar", "groovy-ant-${groovyVersion}.jar", "groovy-astbuilder-${groovyVersion}.jar", "groovy-console-${groovyVersion}.jar", "groovy-datetime-${groovyVersion}.jar", "groovy-dateutil-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar", "groovy-json-${groovyVersion}.jar", "groovy-nio-${groovyVersion}.jar", "groovy-sql-${groovyVersion}.jar", "groovy-templates-${groovyVersion}.jar", "groovy-test-${groovyVersion}.jar", "groovy-xml-${groovyVersion}.jar", "javaparser-core-3.17.0.jar"]
-        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-reflect-${kotlinVersion}.jar, kotlin-stdlib-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
+        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-stdlib-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
         def expectedGradleApiIds = { id ->
-            "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it + " ($id)" }).join(", ")}, kotlin-reflect-${kotlinVersion}.jar ($id), kotlin-stdlib-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
+            "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it + " ($id)" }).join(", ")}, kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
         }
         outputContains("gradleApi() files: [$expectedGradleApiFiles]")
         outputContains("gradleApi() ids: [${expectedGradleApiIds("Gradle API")}]")

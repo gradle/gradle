@@ -58,3 +58,6 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/java/**")
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

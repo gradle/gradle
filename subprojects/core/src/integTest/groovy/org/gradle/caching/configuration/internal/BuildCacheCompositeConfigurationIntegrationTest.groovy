@@ -111,9 +111,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         and:
         if (isNotConfigCache()) {
-            outputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+            outputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, remove unused entries = after 7 days)."
         }
-        outputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+        outputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, remove unused entries = after 7 days)."
 
         and:
         def expectedCacheDirs = [":": mainCache.cacheDir]

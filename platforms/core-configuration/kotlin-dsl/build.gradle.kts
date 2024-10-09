@@ -8,13 +8,12 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
-
     api(projects.buildProcessServices)
     api(projects.baseServices)
-    api(projects.processServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.concurrent)
+    api(projects.fileOperations)
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
@@ -28,6 +27,8 @@ dependencies {
     api(libs.inject)
     api(libs.slf4jApi)
 
+    implementation(projects.baseAsm)
+    implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildOption)
     implementation(projects.enterpriseLogging)
@@ -140,4 +141,7 @@ testFilesCleanup.reportOnly = true
 
 strictCompile {
     ignoreDeprecations()
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

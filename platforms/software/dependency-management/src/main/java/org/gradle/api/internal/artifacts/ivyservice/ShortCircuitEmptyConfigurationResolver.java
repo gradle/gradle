@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -53,9 +54,14 @@ import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
+    private final AttributeDesugaring attributeDesugaring;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate) {
+    public ShortCircuitEmptyConfigurationResolver(
+        ConfigurationResolver delegate,
+        AttributeDesugaring attributeDesugaring
+    ) {
         this.delegate = delegate;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
@@ -104,12 +110,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         );
     }
 
-    private static VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
+    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
         RootComponentMetadataBuilder.RootComponentState root = resolveContext.toRootComponent();
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
             root.getModuleVersionIdentifier(),
             root.getComponentIdentifier(),
-            resolveContext.getAttributes().asImmutable()
+            resolveContext.getAttributes().asImmutable(),
+            resolveContext.getName(),
+            attributeDesugaring
         );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
@@ -179,7 +187,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<File> getFiles() {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+                .withAdvice("Use a lenient ArtifactView instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+                .nagUser();
+
             return Collections.emptySet();
         }
 

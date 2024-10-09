@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -33,6 +34,7 @@ import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+@LocalOnly(because = "Multiple choices for a Java version cause the tests to fail as the Java version is not deterministic") // https://github.com/gradle/gradle-private/issues/4498
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests
@@ -56,7 +58,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         if (configureToolchain == "without") {
             jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         } else {
-            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
             if (configureToolchain == "with java plugin") {
                 configureJavaPluginToolchainVersion(jdkMetadata)
@@ -290,6 +292,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def task = ":compileJava"
 
         when:
+        if (option == "java home") {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
@@ -297,6 +302,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
 
         when:
+        if (option == "java home" && GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
@@ -565,7 +573,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
-        failureHasCause("Compilation failed; see the compiler error output for details.")
+        failureHasCause("Compilation failed; see the compiler output below.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }

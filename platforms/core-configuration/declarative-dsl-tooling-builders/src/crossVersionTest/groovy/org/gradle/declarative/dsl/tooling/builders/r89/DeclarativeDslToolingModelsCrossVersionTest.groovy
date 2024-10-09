@@ -37,8 +37,8 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
-@TargetGradleVersion(">=8.9")
-@ToolingApiVersion('>=8.9')
+@TargetGradleVersion(">=8.11")
+@ToolingApiVersion('>=8.11')
 class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 
     def setup() {
@@ -64,7 +64,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         model != null
 
         def schema = model.getProjectSchema()
-        !schema.dataClassesByFqName.isEmpty()
+        !schema.dataClassTypesByFqName.isEmpty()
     }
 
     def 'model is obtained without configuring the project'() {
@@ -105,7 +105,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         !topLevelFunctions.find { it.contains("simpleName=testSoftwareType") }
     }
 
-    @TargetGradleVersion(">=8.10")
     def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
         given:
         withSoftwareTypePlugins().prepareToExecute()

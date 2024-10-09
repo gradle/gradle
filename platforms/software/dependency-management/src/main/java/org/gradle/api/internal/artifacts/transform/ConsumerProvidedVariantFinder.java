@@ -19,17 +19,21 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.collections.ImmutableFilteredList;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
  * Finds all the variants that can be created from a given set of producer variants using
@@ -48,11 +52,19 @@ public class ConsumerProvidedVariantFinder {
     public ConsumerProvidedVariantFinder(
         VariantTransformRegistry variantTransforms,
         AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory
+        ImmutableAttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices
     ) {
         this.variantTransforms = variantTransforms;
         this.attributesFactory = attributesFactory;
-        this.matcher = new CachingAttributeMatcher(schema.matcher());
+        this.matcher = new CachingAttributeMatcher(() -> {
+            // TODO: This is incorrect. We fail to merge the consumer schema with the producer schema
+            // and therefore we miss producer rules when matching transforms.
+            // Instead, this class should be refactored to accept a matcher as a parameter,
+            // where the matcher has already been created with the consumer and producer schema.
+            ImmutableAttributesSchema immutable = attributeSchemaServices.getSchemaFactory().create(schema);
+            return attributeSchemaServices.getMatcher(immutable, ImmutableAttributesSchema.EMPTY);
+        });
         this.transformCache = new TransformCache(this::doFindTransformedVariants);
     }
 
@@ -238,7 +250,7 @@ public class ConsumerProvidedVariantFinder {
             public CacheKey(List<ImmutableAttributes> variantAttributes, ImmutableAttributes requested) {
                 this.variantAttributes = variantAttributes;
                 this.requested = requested;
-                this.hashCode = variantAttributes.hashCode() ^ requested.hashCode();
+                this.hashCode = 31 * variantAttributes.hashCode() + requested.hashCode();
             }
 
             @Override
@@ -264,15 +276,18 @@ public class ConsumerProvidedVariantFinder {
      * Caches calls to {@link AttributeMatcher#isMatchingCandidate(ImmutableAttributes, ImmutableAttributes)}
      */
     private static class CachingAttributeMatcher {
-        private final AttributeMatcher matcher;
+        private final Lazy<AttributeMatcher> matcher;
         private final ConcurrentHashMap<CacheKey, Boolean> cache = new ConcurrentHashMap<>();
 
-        public CachingAttributeMatcher(AttributeMatcher matcher) {
-            this.matcher = matcher;
+        public CachingAttributeMatcher(Supplier<AttributeMatcher> matcher) {
+            // We need this lazy so that we only "lock in" the attributes as immutable
+            // only after the first time we request a transform chain. This is ugly
+            // TODO: Create a single instance of ConsumerProvidedVariantFinder per matcher
+            this.matcher = Lazy.locking().of(matcher);
         }
 
         public boolean isMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested) {
-            return cache.computeIfAbsent(new CacheKey(candidate, requested), key -> matcher.isMatchingCandidate(key.candidate, key.requested));
+            return cache.computeIfAbsent(new CacheKey(candidate, requested), key -> matcher.get().isMatchingCandidate(key.candidate, key.requested));
         }
 
         private static class CacheKey {
@@ -283,7 +298,7 @@ public class ConsumerProvidedVariantFinder {
             public CacheKey(ImmutableAttributes candidate, ImmutableAttributes requested) {
                 this.candidate = candidate;
                 this.requested = requested;
-                this.hashCode = candidate.hashCode() ^ requested.hashCode();
+                this.hashCode = 31 * candidate.hashCode() + requested.hashCode();
             }
 
             @Override

@@ -45,4 +45,4 @@ BUILD SUCCESSFUL in 1s
 ====
 
 For more information, see link:{userManualPath}/more_about_tasks.html[Authoring Tasks reference chapter].
-Additionally, see the link:{userManualPath}/incremental_build.html[Incremental Build] chapter and its link:{userManualPath}/incremental_build.html#sec:task_input_using_classpath_annotations[Using dependency resolution results] section.
+Additionally, see the link:{userManualPath}/programmatic_dependency_resolution.html[Dependency Resolution APIs] chapter.

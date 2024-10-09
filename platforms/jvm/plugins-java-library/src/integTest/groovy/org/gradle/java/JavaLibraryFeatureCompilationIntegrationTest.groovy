@@ -18,6 +18,7 @@ package org.gradle.java
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -90,6 +91,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         true                      | "myFeatureImplementation"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
     def "Java Library can depend on feature of component [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -205,6 +207,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Property dynamic lookup")
     def "main component doesn't expose dependencies from feature [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
@@ -688,6 +691,52 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         expect:
         succeeds("verifyConfigurations")
+    }
+
+    def "can depend on a feature using requireFeature"() {
+        settingsFile << """
+            include("other")
+        """
+
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                create("foo")
+            }
+
+            java {
+                registerFeature("foo") {
+                    usingSourceSet(sourceSets.foo)
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(":other")) {
+                    capabilities {
+                        requireFeature("foo")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    assert files*.name == ["other-foo.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
     }
 
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {

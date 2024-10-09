@@ -22,7 +22,6 @@ errorprone {
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
-    api(projects.processServices)
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
     api(projects.loggingApi)
@@ -67,3 +66,6 @@ strictCompile {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

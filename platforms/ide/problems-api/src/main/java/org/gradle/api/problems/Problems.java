@@ -37,11 +37,9 @@ public interface Problems {
 
     /**
      * Return a problem reporter associated with a plugin.
-     * <p>
-     * The namespace provides separation for identical problems emitted from different components (Gradle core and third-party plugins).
      *
      * @return The problem reporter.
-     * @since 8.6
+     * @since 8.11
      */
-    ProblemReporter forNamespace(String namespace);
+    ProblemReporter getReporter();
 }

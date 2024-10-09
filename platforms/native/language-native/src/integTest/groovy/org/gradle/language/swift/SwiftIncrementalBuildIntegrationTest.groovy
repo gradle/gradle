@@ -31,14 +31,14 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions.NotMacOs
-import org.gradle.util.internal.VersionNumber
+import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Issue
 
-// See https://github.com/gradle/dev-infrastructure/issues/538
-@Requires(NotMacOs)
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"
@@ -122,6 +122,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(assembleAppAndLibTasks, ":assemble")
     }
 
+    @Requires(UnitTestPreconditions.MacOs)
+    @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalSwiftStaleCompileOutputApp()
@@ -148,7 +150,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
-        if (toolchainUnderTest.version.major == 5) {
+        if (toolchainUnderTest.version.major >= 5) {
             outputs.recompiledClasses('renamed-sum')
         } else {
             outputs.recompiledClasses('greeter', 'renamed-sum', 'main')
@@ -183,7 +185,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
-        if (toolchainUnderTest.version.major == 5) {
+        if (toolchainUnderTest.version.major >= 5) {
             outputs.recompiledClasses('renamed-sum')
         } else {
             outputs.recompiledClasses('greeter', 'renamed-sum')
@@ -237,6 +239,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @Requires(UnitTestPreconditions.MacOs)
+    @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale installed executable and library file when all source files for executable are removed"() {
         createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
@@ -265,11 +269,11 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         }
 
         then:
-        file("app/build/obj/main/debug").assertHasDescendants(expectedIntermediateDescendants(app.application.original))
+        file("app/build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.application.original))
         installation("app/build/install/main/debug").assertInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        outputDirectory.assertHasDescendants(expectedIntermediateDescendants(app.library.original))
+        outputDirectory.assertContainsDescendants(expectedIntermediateDescendants(app.library.original))
 
         when:
         app.library.applyChangesToProject(file('greeter'))
@@ -288,9 +292,11 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         outputs.noneRecompiled()
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectedIntermediateDescendants(app.library.alternate))
+        file("greeter/build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.library.alternate))
     }
 
+    @Requires(UnitTestPreconditions.MacOs)
+    @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale executable file when all source files are removed"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalSwiftStaleLinkOutputApp()
@@ -305,7 +311,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
 
-        file("build/obj/main/debug").assertHasDescendants(expectedIntermediateDescendants(app.original))
+        file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.original))
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").assertInstalled()
 
@@ -323,6 +329,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         installation("build/install/main/debug").assertNotInstalled()
     }
 
+    @Requires(UnitTestPreconditions.MacOs)
+    @Issue("https://github.com/gradle/gradle-native/issues/1117")
     def "removes stale library file when all source files are removed"() {
         def lib = new IncrementalSwiftStaleLinkOutputLib()
         settingsFile << "rootProject.name = 'greeter'"
@@ -340,7 +348,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         sharedLibrary("build/lib/main/debug/Greeter").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectedIntermediateDescendants(lib.original))
+        file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(lib.original))
 
         when:
         lib.applyChangesToProject(testDirectory)
@@ -364,23 +372,10 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         for (SourceFile sourceFile : sourceElement.getFiles()) {
             def swiftFile = file("src", sourceSetName, sourceFile.path, sourceFile.name)
             result.add(objectFileFor(swiftFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
-            result.add(swiftmoduleFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
-            result.add(swiftdocFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
-
-            if (toolChain.version >= VersionNumber.parse("5.3")) {
-                // Seems to be introduced by 5.3:
-                // https://github.com/bazelbuild/rules_swift/issues/496
-                result.add(swiftsourceinfoFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
-            }
-
             result.add(dependFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftDepsFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
         }
-        if (toolChain.version >= VersionNumber.parse("4.2")) {
-            result.add("module.swiftdeps~moduleonly")
-        }
 
-        result.add("module.swiftdeps")
         result.add("output-file-map.json")
         return result
     }

@@ -19,7 +19,6 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -29,7 +28,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application"() {
         given:
         buildFile << """
@@ -62,7 +60,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         project.products.children[0].path == exe("build/install/main/debug/lib/app").absolutePath
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application with multiple architecture"() {
         given:
         buildFile << """
@@ -121,7 +118,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         project.products.children[0].path == exe("build/install/main/debug/x86-64/lib/app").absolutePath
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ library"() {
         given:
         buildFile << """
@@ -156,7 +152,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         project.products.children[0].path == sharedLib("build/lib/main/debug/app").absolutePath
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ library with multiple architecture"() {
         given:
         buildFile << """
@@ -216,7 +211,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when C++ executable product doesn't have test configured"() {
         useXcodebuildTool()
 
@@ -260,7 +254,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when C++ library doesn't have test configured"() {
         useXcodebuildTool()
 
@@ -304,7 +297,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "can build C++ executable from Xcode"() {
         useXcodebuildTool()
         def app = new CppApp()
@@ -347,11 +339,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires([
-        UnitTestPreconditions.HasXCode,
-        UnitTestPreconditions.NotMacOsM1
-    ])
-    @ToBeFixedForConfigurationCache
     def "can build C++ executable from Xcode with multiple architecture"() {
         useXcodebuildTool()
         def app = new CppApp()
@@ -398,7 +385,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "can build C++ library from Xcode"() {
         useXcodebuildTool()
         def lib = new CppLib()
@@ -441,11 +427,6 @@ apply plugin: 'cpp-library'
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires([
-        UnitTestPreconditions.HasXCode,
-        UnitTestPreconditions.NotMacOsM1
-    ])
-    @ToBeFixedForConfigurationCache
     def "can build C++ library from Xcode with multiple architecture"() {
         useXcodebuildTool()
         def lib = new CppLib()
@@ -491,7 +472,6 @@ apply plugin: 'cpp-library'
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
 
-    @ToBeFixedForConfigurationCache
     def "adds new source files in the project"() {
         given:
         buildFile << """
@@ -516,7 +496,6 @@ apply plugin: 'cpp-library'
             .assertHasChildren(['new.cpp'] + app.sources.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "removes deleted source files from the project"() {
         given:
         buildFile << """
@@ -542,7 +521,6 @@ apply plugin: 'cpp-library'
             .assertHasChildren(app.sources.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes source files in a non-default location in C++ executable project"() {
         given:
         buildFile << """
@@ -567,7 +545,6 @@ apply plugin: 'cpp-library'
         rootXcodeProject.projectFile.headers.assertHasChildren(app.headers.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes source files in a non-default location in C++ library project"() {
         given:
         buildFile << """
@@ -595,7 +572,6 @@ apply plugin: 'cpp-library'
         rootXcodeProject.projectFile.headers.assertHasChildren(lib.headers.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "honors changes to application output locations"() {
         given:
         buildFile << """
@@ -626,7 +602,6 @@ apply plugin: 'cpp-library'
         project.products.children[0].path == exe("output/install/main/debug/lib/test_app").absolutePath
     }
 
-    @ToBeFixedForConfigurationCache
     def "honors changes to library output locations"() {
         given:
         buildFile << """
