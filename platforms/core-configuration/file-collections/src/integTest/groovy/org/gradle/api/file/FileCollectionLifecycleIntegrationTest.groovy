@@ -56,6 +56,44 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         "@OutputFiles" | _
     }
 
+    def "task #annotation configurable file collection is implicitly finalized when task starts execution"() {
+        executer.requireOwnGradleUserHomeDir("temp")
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                $propertyInit
+
+                ${annotation}
+                $getter
+
+                @TaskAction
+                void go() {
+                    println "value: " + prop.files
+                }
+            }
+
+            task show(type: SomeTask) {
+                def layout = project.layout
+                prop.setFrom([layout.projectDir.file("in.txt")])
+                doFirst {
+                    prop.setFrom([layout.projectDir.file("other.txt")])
+                }
+            }
+        """
+
+        when:
+        fails("show")
+
+        then:
+        failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
+
+        where:
+        annotation     | getter                                                      | propertyInit
+        "@InputFiles"  | "abstract ConfigurableFileCollection getProp()"             | ""
+        "@OutputFiles" | "abstract ConfigurableFileCollection getProp()"             | ""
+        "@InputFiles"  | "ConfigurableFileCollection getProp() { return this.prop }" | "private final ConfigurableFileCollection prop = project.objects.fileCollection()"
+        "@OutputFiles" | "ConfigurableFileCollection getProp() { return this.prop }" | "private final ConfigurableFileCollection prop = project.objects.fileCollection()"
+    }
+
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
         buildFile """
             def files = objects.fileCollection()
