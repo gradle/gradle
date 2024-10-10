@@ -181,6 +181,7 @@ afterEvaluate {
 
                 @TaskAction
                 void go() {
+                    println("value: " + prop.get().join(", "))
                     outputFile.get().asFile.text = prop.get()
                 }
             }
@@ -189,18 +190,21 @@ afterEvaluate {
                 prop = ["value 1"]
                 outputFile = layout.buildDirectory.file("out.txt")
                 doFirst {
-                    prop.set(["broken"])
+                    def list = new ArrayList(prop.get())
+                    list.add("value 3")
+                    prop = list
                 }
             }
 
             afterEvaluate {
-                thing.prop = ["value 2"]
+                thing.prop.addAll(["value 2"])
             }
         """
 
         expect:
         executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
         succeeds("thing")
+        outputContains("value: value 1, value 2, value 3")
     }
 
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")

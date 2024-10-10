@@ -120,6 +120,7 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         expect:
         executer.expectDeprecationWarningWithPattern("Changing property value of task ':show' property 'prop' at execution time. This behavior has been deprecated.*")
         succeeds("show")
+        outputContains("value: " + file("other." + fileMethod))
 
         where:
         annotation         | propertyType          | fileMethod

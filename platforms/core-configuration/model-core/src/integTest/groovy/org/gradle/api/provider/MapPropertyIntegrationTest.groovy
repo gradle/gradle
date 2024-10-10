@@ -210,6 +210,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void go() {
+                    println("value: " + prop.get().sort())
                     outputFile.get().asFile.text = prop.get()
                 }
             }
@@ -218,12 +219,14 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 prop = ['key1': 'value1']
                 outputFile = layout.buildDirectory.file('out.txt')
                 doFirst {
-                    prop.set(['ignoredKey': 'ignoredValue'])
+                    def map = new HashMap<>(prop.get())
+                    map.put('key3', 'value3')
+                    prop = map
                 }
             }
 
             afterEvaluate {
-                thing.prop = ['key2': 'value2']
+                thing.prop.putAll(['key2': 'value2'])
             }
 
             '''.stripIndent()
@@ -231,6 +234,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
         succeeds('thing')
+        outputContains("value: [key1:value1, key2:value2, key3:value3]")
     }
 
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")

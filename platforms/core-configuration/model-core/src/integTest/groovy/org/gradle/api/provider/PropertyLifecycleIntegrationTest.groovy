@@ -156,6 +156,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void go() {
+                    println("value: " + prop.get())
                     outputFile.get().asFile.text = prop.get()
                 }
             }
@@ -164,7 +165,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
                 prop = "value 1"
                 outputFile = layout.buildDirectory.file("out.txt")
                 doFirst {
-                    prop.set("broken")
+                    prop = "value 3"
                 }
             }
 
@@ -176,6 +177,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
         succeeds("thing")
+        outputContains("value: value 3")
     }
 
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
