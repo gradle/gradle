@@ -1,5 +1,5 @@
 plugins {
-    id 'application'
+    id("application")
 }
 
 repositories {
