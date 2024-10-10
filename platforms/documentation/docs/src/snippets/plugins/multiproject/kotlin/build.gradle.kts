@@ -8,15 +8,11 @@ plugins {
 
 allprojects {
     // Apply the common 'java' plugin to all projects (including the root)
-    plugins {
-        id("java")
-    }
+    plugins.apply("java")
 }
 
 subprojects {
-    plugins {
-        // Apply the 'java-library' plugin to all subprojects (excluding the root)
-        id("java-library")
-    }
+    // Apply the 'java-library' plugin to all subprojects (excluding the root)
+    plugins.apply("java-library")
 }
 // end::plugins-on-subprojects[]
