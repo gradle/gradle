@@ -26,7 +26,7 @@ abstract class CreateFileTask : DefaultTask() {
 }
 // end::file[]
 
-tasks.register("createFileTask", CreateFileTask) {
+tasks.register<CreateFileTask>("createFileTask") {
     group = "custom"
     description = "Create myfile.txt in the current directory"
 }
@@ -43,7 +43,7 @@ abstract class CreateFileTask : DefaultTask() {
     }
 }
 
-tasks.register("createFileTask", CreateFileTask)
+tasks.register<CreateFileTask>("createFileTask")
 // end::register[]
  */
 

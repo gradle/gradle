@@ -10,7 +10,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.yaml:snakeyaml:1.19' // The library's classpath dependency
-        classpath 'com.github.johnrengelman.shadow:shadow-gradle-plugin:6.1.0' // The legacy version of Shadow Plugin that needs buildscript
+        classpath 'com.github.johnrengelman:shadow:8.1.1' // The legacy version of Shadow Plugin that needs buildscript
     }
 }
 

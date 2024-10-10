@@ -15,7 +15,7 @@ abstract class CreateFileTask : DefaultTask() {
     }
 }
 
-tasks.register("createMyFileTaskInConventionPlugin", CreateFileTask::class) {
+tasks.register<CreateFileTask>("createMyFileTaskInConventionPlugin") {
     group = "from my convention plugin"
     description = "Create myfile.txt in the current directory"
     fileText.set("HELLO FROM MY CONVENTION PLUGIN")

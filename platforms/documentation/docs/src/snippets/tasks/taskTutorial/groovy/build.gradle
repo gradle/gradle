@@ -19,7 +19,7 @@ tasks.register('hello') {
 // end::task[]
 
 // tag::copy[]
-tasks.register('copyTas'", Copy) {
+tasks.register('copyTask', Copy) {
     from("source")
     into("target")
     include("*.war")
