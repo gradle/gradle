@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure, ResolutionProvider {
 
@@ -85,6 +86,14 @@ public class CompilationFailedException extends RuntimeException implements Comp
 
     @Override
     public List<String> getResolutions() {
-        return ImmutableList.of(RESOLUTION_MESSAGE);
+        if (reportedProblems.isEmpty()) {
+            return ImmutableList.of(RESOLUTION_MESSAGE);
+        } else {
+            return reportedProblems.stream()
+                .map(Problem::getSolutions)
+                .flatMap(List::stream)
+                .filter(solution -> !solution.isEmpty())
+                .collect(Collectors.toList());
+        }
     }
 }
