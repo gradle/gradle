@@ -32,6 +32,8 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.process.ExecOperations
 import org.gradle.util.GradleVersion
 import java.io.ByteArrayOutputStream
@@ -60,6 +62,7 @@ val oldWrapperMissingErrorRegex = """\Qjava.io.FileNotFoundException:\E.*/distri
 abstract class BuildCommitDistribution @Inject internal constructor(
     private val fsOps: FileSystemOperations,
     private val execOps: ExecOperations,
+    private val javaToolchainService: JavaToolchainService
 ) : DefaultTask() {
     @get:Internal
     abstract val releasedVersionsFile: RegularFileProperty
@@ -112,8 +115,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     @Suppress("SpreadOperator")
     private
     fun runDistributionBuild(checkoutDir: File, os: OutputStream) {
+        val cmdArgs = getBuildCommands()
+        println("Building commit distribution with command: ${cmdArgs.joinToString(" ")}")
         execOps.exec {
-            commandLine(*getBuildCommands())
+            commandLine(*cmdArgs)
             workingDir = checkoutDir
             standardOutput = os
             errorOutput = os
@@ -135,6 +140,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
         val output = ByteArrayOutputStream()
         try {
             runDistributionBuild(checkoutDir, output)
+            println("Building commit distribution succeeded:\n$output")
         } catch (e: Exception) {
             val outputString = output.toByteArray().decodeToString()
             if (failedBecauseOldWrapperMissing(outputString)) {
@@ -162,6 +168,11 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     }
 
     private
+    fun getJavaHomeFor(version: Int): String {
+        return javaToolchainService.launcherFor { languageVersion.set(JavaLanguageVersion.of(version)) }.get().metadata.installationPath.asFile.absolutePath
+    }
+
+    private
     fun getBuildCommands(): Array<String> {
         val mirrorInitScript = temporaryDir.resolve("mirroring-init-script.gradle")
         BuildCommitDistribution::class.java.getResource("/mirroring-init-script.gradle")?.let { mirrorInitScript.writeText(it.readText()) }
@@ -177,6 +188,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             ":distributions-full:binDistributionZip",
             ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
+            "-Porg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
             "-PbuildCommitDistribution=true"
         )
 
