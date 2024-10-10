@@ -92,6 +92,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static org.gradle.api.internal.GeneratedSubclasses.isGeneratedType;
 
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
@@ -186,6 +187,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
+        if (isGeneratedType(type)) {
+            throw new IllegalArgumentException(String.format("'%s' is already generated.", type));
+        }
+
         GeneratedClassImpl generatedClass = generatedClasses.getIfPresent(type);
         if (generatedClass == null) {
             // It is possible that multiple threads will execute this branch concurrently, when the type is missing. However, the contract for `get()` below will ensure that
