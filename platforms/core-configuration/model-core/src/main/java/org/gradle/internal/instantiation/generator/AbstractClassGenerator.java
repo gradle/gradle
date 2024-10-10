@@ -179,7 +179,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return roleHandler;
     }
 
-    private <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
+    private static <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
         return new TypeToken<Provider<T>>() {
         }.where(new TypeParameter<T>() {
         }, providerType);
@@ -370,10 +370,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return false;
         }
         // Ignore irrelevant synthetic metaClass field injected by the Groovy compiler
-        if (instanceFields.size() == 1 && isSyntheticMetaClassField(instanceFields.get(0))) {
-            return false;
-        }
-        return true;
+        return instanceFields.size() != 1
+            || !isSyntheticMetaClassField(instanceFields.get(0));
     }
 
     private boolean isSyntheticMetaClassField(Field field) {
@@ -783,7 +781,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ClassGenerationHandler {
-         // used in subclasses
+        // used in subclasses
         void startType(Class<?> type) {
         }
 
@@ -1000,9 +998,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     hasExtensionAwareImplementation = true;
                     return true;
                 }
-                if (property.getName().equals("conventionMapping") || property.getName().equals("convention")) {
-                    return true;
-                }
+                return property.getName().equals("conventionMapping")
+                    || property.getName().equals("convention");
             }
 
             return false;
