@@ -1,3 +1,12 @@
+plugins {
+    id("application")
+    id("org.jetbrains.dokka") version "1.9.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
 // tag::app[]
 repeat(4) { counter ->
     tasks.register("task$counter") {
@@ -21,7 +30,7 @@ tasks.register("hello") {
 // end::hello[]
 
 // tag::dokka[]
-tasks.named("dokkaHtml") {
+tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml") {
     outputDirectory.set(buildDir.resolve("dokka"))
 }
 // end::dokka[]
