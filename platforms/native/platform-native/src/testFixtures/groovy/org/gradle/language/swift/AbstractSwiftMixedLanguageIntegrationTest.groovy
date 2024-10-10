@@ -35,10 +35,7 @@ import static org.junit.Assume.assumeTrue
 class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec {
     public static final String SHARED = "SHARED"
     public static final String STATIC = "STATIC"
-
-    def getSwiftToolChain() {
-        return AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
-    }
+    def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
     def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
 
     def setup() {

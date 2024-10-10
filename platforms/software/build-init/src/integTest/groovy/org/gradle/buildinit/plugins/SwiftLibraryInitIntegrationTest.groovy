@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -35,7 +35,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "HelloTests.swift"
     public static final String LINUX_MAIN_DOT_SWIFT = "LinuxMain.swift"
 
-    private final InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+    private final InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
 
     def setup() {
         swiftcToolChain.initialiseEnvironment()
@@ -109,7 +109,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
             import XCTest
             @testable import Lib
             class HolaTests: XCTestCase {
-                public static let allTests = [
+                public static var allTests = [
                     ("testGreeting", testGreeting),
                 ]
 
@@ -151,6 +151,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     SharedLibraryFixture library(String path) {
-        AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER).sharedLibrary(targetDir.file(path))
+        AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC).sharedLibrary(targetDir.file(path))
     }
 }

@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @Requires(value = UnitTestPreconditions.HasXCTest, reason = "Runs tests")
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -34,7 +34,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APPLICATION_TEST_CLASS = "GreeterTests.swift"
     public static final String LINUX_MAIN_DOT_SWIFT = "LinuxMain.swift"
 
-    private final AvailableToolChains.InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+    private final AvailableToolChains.InstalledToolChain swiftcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
 
     def setup() {
         swiftcToolChain.initialiseEnvironment()
@@ -109,7 +109,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
             @testable import App
 
             class HolaTests: XCTestCase {
-                public static let allTests = [
+                public static var allTests = [
                     ("testGreeting", testGreeting),
                 ]
 
@@ -151,6 +151,6 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     ExecutableFixture executable(String path) {
-        AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER).executable(targetDir.file(path))
+        AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC).executable(targetDir.file(path))
     }
 }
