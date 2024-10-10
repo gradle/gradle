@@ -21,7 +21,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ShellScript
@@ -439,7 +438,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30790")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/30790")
     def "#task task can add to inherited environment variables"() {
         given:
         def shellScript = ShellScript.builder()
@@ -528,7 +526,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30790")
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/30790")
     def "#task task can remove inherited environment variables"() {
         given:
         def shellScript = ShellScript.builder()
