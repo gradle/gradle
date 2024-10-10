@@ -1,7 +1,7 @@
 import XCTest
 
 class SomeOtherTest: XCTestCase {
-    public static let allTests = [
+    public static var allTests = [
         ("testQuickUiCheck", testQuickUiCheck),
         ("testQuickServerCheck", testQuickServerCheck)
     ]

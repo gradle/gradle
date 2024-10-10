@@ -1,7 +1,7 @@
 import XCTest
 
 class UtilTest: XCTestCase {
-    public static let allTests = [
+    public static var allTests = [
         ("testOk", testOk)
     ]
     func testOk() {

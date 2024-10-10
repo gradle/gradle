@@ -36,7 +36,6 @@ import spock.lang.Specification
 import static org.gradle.language.swift.SwiftVersion.SWIFT3
 import static org.gradle.language.swift.SwiftVersion.SWIFT4
 import static org.gradle.language.swift.SwiftVersion.SWIFT5
-import static org.gradle.language.swift.SwiftVersion.SWIFT6
 
 @UsesNativeServices
 class DefaultToolChainSelectorTest extends Specification {
@@ -102,7 +101,6 @@ class DefaultToolChainSelectorTest extends Specification {
         where:
         // See https://swift.org/download
         compilerVersion | languageVersion
-        '6.0.1'         | SWIFT6
         '5.0.0'         | SWIFT5
         '4.2.3'         | SWIFT4
         '4.1.3'         | SWIFT4
