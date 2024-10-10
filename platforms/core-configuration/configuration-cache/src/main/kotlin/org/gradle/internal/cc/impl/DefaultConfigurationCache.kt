@@ -540,7 +540,7 @@ class DefaultConfigurationCache internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String
     ): CloseableWriteContext {
-        val (context, codecs) = cacheIO.writeContextFor(stateType, outputStream, profile)
+        val (context, codecs) = cacheIO.writeContextFor("cacheFingerprintWriteContext", stateType, outputStream, profile)
         return context.apply {
             push(isolateOwnerHost, codecs.fingerprintTypesCodec())
         }
