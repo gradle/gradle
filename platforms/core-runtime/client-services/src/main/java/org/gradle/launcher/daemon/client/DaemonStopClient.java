@@ -16,10 +16,13 @@
 
 package org.gradle.launcher.daemon.client;
 
+import com.google.common.base.Throwables;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Pair;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
@@ -29,11 +32,20 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * <p>To stop a daemon:</p>
@@ -108,14 +120,14 @@ public class DaemonStopClient {
         LOGGER.lifecycle("Stopping Daemon(s)");
 
         //iterate and stop all daemons
-        int numStopped = 0;
+        List<Long> stoppedPids = new ArrayList<>();
         while (connection != null && !timer.hasExpired()) {
             try {
                 seen.add(connection.getDaemon().getUid());
                 LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
                 boolean stopped = stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
                 if (stopped) {
-                    numStopped++;
+                    stoppedPids.add(connection.getDaemon().getPid());
                 }
             } finally {
                 connection.stop();
@@ -123,12 +135,47 @@ public class DaemonStopClient {
             connection = connector.maybeConnect(spec);
         }
 
-        if (numStopped > 0) {
-            LOGGER.lifecycle(numStopped + " Daemon" + ((numStopped > 1) ? "s" : "") + " stopped");
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+            waitForPidsToExit(stoppedPids, timer);
+        } else {
+            throw new IllegalStateException("Java 9 or later is required to stop daemons");
+        }
+
+        if (!stoppedPids.isEmpty()) {
+            LOGGER.lifecycle(stoppedPids.size() + " Daemon" + ((stoppedPids.size() > 1) ? "s" : "") + " stopped");
         }
 
         if (connection != null) {
             throw new GradleException(String.format("Timeout waiting for all daemons to stop. Waited %s.", timer.getElapsed()));
+        }
+    }
+
+    private static void waitForPidsToExit(List<Long> stoppedPids, CountdownTimer timer) {
+        try {
+            Class<?> processHandleClass = Class.forName("java.lang.ProcessHandle");
+            MethodHandle ofMethod = MethodHandles.lookup().findStatic(processHandleClass, "of", MethodType.methodType(Optional.class, long.class));
+            MethodHandle onExitMethod = MethodHandles.lookup().findVirtual(processHandleClass, "onExit", MethodType.methodType(CompletableFuture.class));
+
+            List<Pair<?, CompletableFuture<?>>> stoppedProcesses = new ArrayList<>();
+            for (Long pid : stoppedPids) {
+                Optional<?> processHandle = (Optional<?>) ofMethod.invoke(pid);
+                if (processHandle.isPresent()) {
+                    stoppedProcesses.add(Pair.of(processHandle.get(), (CompletableFuture<?>) onExitMethod.invoke(processHandle.get())));
+                }
+            }
+            CompletableFuture<Void> waitForPids = CompletableFuture.allOf(
+                stoppedProcesses.stream().map(Pair::right).toArray(CompletableFuture[]::new)
+            );
+            try {
+                waitForPids.get(timer.getRemainingMillis(), TimeUnit.MILLISECONDS);
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (TimeoutException e) {
+                LOGGER.lifecycle("Timeout waiting for daemon processes to exit");
+            }
+        } catch (Throwable e) {
+            Throwables.throwIfUnchecked(e);
+            throw new RuntimeException(e);
         }
     }
 }
