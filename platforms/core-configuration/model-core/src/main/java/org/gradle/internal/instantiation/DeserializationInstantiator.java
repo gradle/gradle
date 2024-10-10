@@ -23,7 +23,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
  */
 public interface DeserializationInstantiator {
     /**
-     * Creates an instance of the given type without invoking its constructor. Invokes the constructor of the given base class.
+     * Creates an instance of the {@link #getGeneratedType(Class) generated subtype} of type without invoking its constructor. Invokes the constructor of the given base class.
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
      */
@@ -32,5 +32,5 @@ public interface DeserializationInstantiator {
     /**
      * Returns the generated type for the given implementation type.
      */
-    <T> Class<? extends T> getDeserializedType(Class<T> implType);
+    <T> Class<? extends T> getGeneratedType(Class<T> implType);
 }

@@ -90,7 +90,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         }
 
         @Override
-        public <T> Class<? extends T> getDeserializedType(Class<T> implType) {
+        public <T> Class<? extends T> getGeneratedType(Class<T> implType) {
             return classGenerator.generate(implType).getGeneratedClass();
         }
 

@@ -48,7 +48,7 @@ class DefaultClassDecoder(
         val name = readString()
         val classLoader = decodeClassLoader()
         val newType = classForName(name, classLoader ?: gradleRuntimeClassLoader)
-        val actualType = if (isGenerated) instantiator.getDeserializedType(newType) else newType
+        val actualType = if (isGenerated) instantiator.getGeneratedType(newType) else newType
         classes.putInstance(id, actualType)
         return actualType
     }
