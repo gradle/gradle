@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.classpath.ClassPath
@@ -76,9 +77,12 @@ class DefaultClassEncoder(
         } else {
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
-            val className = type.name
+            // TODO:configuration-cache - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
+            val originalType = GeneratedSubclasses.unpack(type)
+            writeBoolean(originalType !== type)
+            val className = originalType.name
             writeString(className)
-            val classLoader = type.classLoader
+            val classLoader = originalType.classLoader
             if (!writeClassLoaderScopeOf(classLoader) && classLoader != null) {
                 // Ensure class can be found in the Gradle runtime classloader since its original classloader could not be encoded.
                 ensureClassCanBeFoundInGradleRuntimeClassLoader(className, classLoader)
