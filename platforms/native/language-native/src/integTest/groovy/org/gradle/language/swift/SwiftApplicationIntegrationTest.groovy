@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryAndOptionalFeat
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingApp
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest implements SwiftTaskNames {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary(String variant) {
