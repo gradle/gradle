@@ -91,7 +91,7 @@ include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
 include::more_about_tasks.adoc[leveloffset=+2]
 include::controlling_task_execution.adoc[leveloffset=+2]
 include::organizing_tasks.adoc[leveloffset=+2]
-include::implementing_custom_tasks.adoc[leveloffset=+2]
+//include::implementing_custom_tasks.adoc[leveloffset=+2]
 include::lazy_configuration.adoc[leveloffset=+2]
 include::worker_api.adoc[leveloffset=+2]
 include::custom_tasks.adoc[leveloffset=+2]
@@ -246,3 +246,4 @@ include::kotlin_dsl.adoc[leveloffset=+2]
 == **LICENSE INFORMATION**
 
 include::licenses.adoc[leveloffset=+2]
+
