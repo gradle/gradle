@@ -24,6 +24,7 @@ import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class MapCollectors {
@@ -161,9 +162,15 @@ public class MapCollectors {
     public static class EntriesFromMap<K, V> implements MapCollector<K, V> {
 
         private final Map<? extends K, ? extends V> entries;
+        private final SideEffect<? super Map<? extends K, ? extends V>> sideEffect;
 
         public EntriesFromMap(Map<? extends K, ? extends V> entries) {
+            this(entries, null);
+        }
+
+        public EntriesFromMap(Map<? extends K, ? extends V> entries, @Nullable SideEffect<? super Map<? extends K, ? extends V>> sideEffect) {
             this.entries = entries;
+            this.sideEffect = sideEffect;
         }
 
         @Override
@@ -179,7 +186,11 @@ public class MapCollectors {
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collector.addAll(entries.entrySet(), dest);
+            if (sideEffect != null) {
+                collector.addAll(Value.withSideEffect(entries, sideEffect).get().entrySet(), dest);
+            } else {
+                collector.addAll(entries.entrySet(), dest);
+            }
             return Value.present();
         }
 
@@ -191,7 +202,11 @@ public class MapCollectors {
 
         @Override
         public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.execute(ExecutionTimeValue.fixedValue(entries));
+            if (sideEffect != null) {
+                sources.execute(ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect));
+            } else {
+                sources.execute(ExecutionTimeValue.fixedValue(entries));
+            }
         }
 
         @Override

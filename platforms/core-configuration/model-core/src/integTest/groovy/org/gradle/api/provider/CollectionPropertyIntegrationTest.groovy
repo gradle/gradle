@@ -190,9 +190,7 @@ afterEvaluate {
                 prop = ["value 1"]
                 outputFile = layout.buildDirectory.file("out.txt")
                 doFirst {
-                    def list = new ArrayList(prop.get())
-                    list.add("value 3")
-                    prop = list
+                    prop.add("value 3")
                 }
             }
 

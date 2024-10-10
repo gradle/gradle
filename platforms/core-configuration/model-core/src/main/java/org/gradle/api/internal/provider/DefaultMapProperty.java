@@ -161,7 +161,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (entries == null) {
             unsetValueAndDefault();
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
+            setSupplier(new CollectingSupplier(new EntriesFromMap<>(entries), false));
         }
     }
 
@@ -309,7 +309,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider)));
@@ -344,7 +344,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     protected MapSupplier<K, V> finalValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -491,7 +491,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class FixedSupplier<K, V> implements MapSupplier<K, V> {
+    private class FixedSupplier implements MapSupplier<K, V> {
         private final Map<K, V> entries;
         private final SideEffect<? super Map<K, V>> sideEffect;
 
@@ -517,7 +517,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            throw new UnsupportedOperationException();
+            MapCollector<K, V> left = new EntriesFromMap<>(entries, Cast.uncheckedCast(sideEffect));
+            PlusCollector<K, V> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
