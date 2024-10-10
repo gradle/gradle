@@ -231,7 +231,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<T, C> asCollectingProvider = Cast.uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(asCollectingProvider)));
@@ -310,7 +310,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     protected CollectionSupplier<T, C> finalValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -429,7 +429,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private static class FixedSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    private class FixedSupplier implements CollectionSupplier<T, C> {
         private final C value;
         private final SideEffect<? super C> sideEffect;
 
@@ -455,7 +455,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            throw new UnsupportedOperationException();
+            Collector<T> left = new ElementsFromCollection<>(value, Cast.uncheckedCast(sideEffect));
+            PlusCollector<T> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override

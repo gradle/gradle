@@ -26,7 +26,6 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.util.Arrays;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
@@ -183,9 +182,15 @@ public class Collectors {
 
     public static class ElementsFromCollection<T> implements Collector<T> {
         private final Iterable<? extends T> value;
+        private final SideEffect<? super Iterable<? extends T>> sideEffect;
 
         public ElementsFromCollection(Iterable<? extends T> value) {
+            this(value, null);
+        }
+
+        public ElementsFromCollection(Iterable<? extends T> value, @Nullable SideEffect<? super Iterable<? extends T>> sideEffect) {
             this.value = value;
+            this.sideEffect = sideEffect;
         }
 
         @Override
@@ -201,13 +206,21 @@ public class Collectors {
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
-            collector.addAll(value, collection);
+            if (sideEffect != null) {
+                collector.addAll(Value.withSideEffect(value, sideEffect).get(), collection);
+            } else {
+                collector.addAll(value, collection);
+            }
             return Value.present();
         }
 
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            visitor.execute(ExecutionTimeValue.fixedValue(value));
+            if (sideEffect != null) {
+                visitor.execute(ExecutionTimeValue.fixedValue(value).withSideEffect(sideEffect));
+            } else {
+                visitor.execute(ExecutionTimeValue.fixedValue(value));
+            }
         }
 
         @Override
@@ -227,13 +240,13 @@ public class Collectors {
 
             // We're fine with having weak contract of Iterable/Collection.equals.
             @SuppressWarnings("UndefinedEquals")
-            boolean result = Objects.equal(value, that.value);
-            return result;
+            boolean valuesEqual = Objects.equal(value, that.value);
+            return valuesEqual && Objects.equal(sideEffect, that.sideEffect);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(value);
+            return Objects.hashCode(value, sideEffect);
         }
 
         @Override

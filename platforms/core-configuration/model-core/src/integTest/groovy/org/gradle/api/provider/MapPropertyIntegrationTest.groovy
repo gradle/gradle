@@ -219,9 +219,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 prop = ['key1': 'value1']
                 outputFile = layout.buildDirectory.file('out.txt')
                 doFirst {
-                    def map = new HashMap<>(prop.get())
-                    map.put('key3', 'value3')
-                    prop = map
+                    prop.put('key3', 'value3')
                 }
             }
 
