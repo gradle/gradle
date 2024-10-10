@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftUnexportMainSymbolIntegrationTest extends AbstractUnexportMainSymbolIntegrationTest {
     @Override
