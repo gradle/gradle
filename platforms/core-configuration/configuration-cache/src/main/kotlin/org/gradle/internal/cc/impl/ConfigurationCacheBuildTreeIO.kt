@@ -24,6 +24,10 @@ import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.SharedObjectDecoder
+import org.gradle.internal.serialize.graph.SharedObjectEncoder
+import org.gradle.internal.serialize.graph.InlineSharedObjectDecoder
+import org.gradle.internal.serialize.graph.InlineSharedObjectEncoder
 import org.gradle.internal.serialize.graph.InlineStringDecoder
 import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.MutableReadContext
@@ -67,23 +71,28 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
      * @param profile the unique name associated with the output stream for debugging space usage issues
      */
     fun writeContextFor(
+        name: String,
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String,
         stringEncoder: StringEncoder = InlineStringEncoder,
+        sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder,
     ): Pair<CloseableWriteContext, Codecs>
 
     fun <R> withReadContextFor(
         stateFile: ConfigurationCacheStateFile,
         stringDecoder: StringDecoder = InlineStringDecoder,
+        sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R =
-        withReadContextFor(stateFile.stateType, stateFile::inputStream, stringDecoder, readOperation)
+        withReadContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::inputStream, stringDecoder, sharedObjectDecoder, readOperation)
 
     fun <R> withReadContextFor(
+        name: String,
         stateType: StateType,
         inputStream: () -> InputStream,
         stringDecoder: StringDecoder = InlineStringDecoder,
+        sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder,
         readOperation: suspend MutableReadContext.(Codecs) -> R
     ): R
 
@@ -97,15 +106,18 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         stateFile: ConfigurationCacheStateFile,
         profile: () -> String,
         stringEncoder: StringEncoder,
+        sharedObjectEncoder: SharedObjectEncoder,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        withWriteContextFor(stateFile.stateType, stateFile::outputStream, profile, stringEncoder, writeOperation)
+        withWriteContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::outputStream, profile, stringEncoder, sharedObjectEncoder, writeOperation)
 
     fun <R> withWriteContextFor(
+        name: String,
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String,
         stringEncoder: StringEncoder,
+        sharedObjectEncoder: SharedObjectEncoder,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R
 }
