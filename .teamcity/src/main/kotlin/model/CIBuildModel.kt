@@ -11,6 +11,7 @@ import common.VersionedSettingsBranch
 import common.toCapitalized
 import configurations.BuildDistributions
 import configurations.CheckLinks
+import configurations.CheckTeamCityKotlinDSL
 import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
@@ -80,6 +81,7 @@ data class CIBuildModel(
                 SpecificBuild.Gradleception,
                 SpecificBuild.GradleceptionWithGroovy4,
                 SpecificBuild.CheckLinks,
+                SpecificBuild.CheckTeamCityKotlinDSL,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.SantaTrackerSmokeTests,
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
@@ -398,6 +400,11 @@ enum class SpecificBuild {
     CheckLinks {
         override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return CheckLinks(model, stage)
+        }
+    },
+    CheckTeamCityKotlinDSL {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
+            return CheckTeamCityKotlinDSL(model, stage)
         }
     },
     TestPerformanceTest {
