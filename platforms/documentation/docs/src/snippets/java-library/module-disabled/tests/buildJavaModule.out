@@ -23,5 +23,5 @@ Execution failed for task ':compileJava'.
   2 errors
 
 * Try:
-> Run with --info option to get more log output.
+> Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
