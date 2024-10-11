@@ -114,25 +114,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
+            !solutions.empty
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
+            !solutions.empty
         }
         verifyAll(receivedProblem(2)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
-            solutions.empty
+            !solutions.empty
         }
         verifyAll(receivedProblem(3)) {
             assertLocations(it, true)
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel =='\';\' expected'
+            !solutions.empty
         }
 
         result.error.contains("4 errors\n")
@@ -295,7 +298,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             severity == Severity.ERROR
             fqid == 'compilation:java:compiler-err-warnings-and-werror'
             contextualLabel =='warnings found and -Werror specified'
-            solutions.empty
+            !solutions.empty
             additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
         }
 
