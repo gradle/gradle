@@ -48,15 +48,28 @@ image::userguide-ides.png[]
 
 You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
 
-== Education
-The **<<about_manual.adoc#about_manual,Gradle User Manual>>** is the official documentation for the Gradle Build Tool.
+== Releases
 
-* **Getting Started Tutorial** — <<getting_started_eng.adoc#introduction,Learn Gradle basics>> and the benefits of building your App with Gradle.
+Information on Gradle releases and how to install Gradle is found on the <<installation.adoc#installation,Installation page>>.
+
+== User Manual
+The Gradle User Manual is the official documentation for the Gradle Build Tool:
+
+* **<<getting_started_eng.adoc#introduction,Running Gradle Builds>>** — Learn how to use Gradle with your project.
+* **<<getting_started_dev.adoc#dev_introduction,Authoring Gradle Builds>>** — Learn how to develop tasks and plugins to customize your build.
+* **<<getting_started_dep_man.adoc#dependency_management_in_gradle,Working with Dependencies>>** — Learn how to add dependencies to your build.
+* **<<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>>** — Learn how to use Gradle with your Java project.
+* **<<performance.adoc#performance_gradle,Optimizing Builds>>** — Learn how to use caches and other tools to optimize your build.
+
+== Education
+
 * **Training Courses** — Head over to the link:https://gradle.org/courses/[courses page] to sign up for free Gradle training.
 
 == Support
 * **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
 * **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
+
+
 
 == Licenses
 [.legalnotice]
