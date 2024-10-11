@@ -739,58 +739,56 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     /**
-     * A fixed value collector that decorates {@link EntriesFromMap} with a side effect.
+     * A fixed value collector, similar to {@link EntriesFromMap} but with a side effect.
      */
     private static class FixedValueCollector<K, V> implements MapCollector<K, V> {
         @Nullable
         private final SideEffect<? super Map<K, V>> sideEffect;
-        private final Map<K, V> value;
-        private final EntriesFromMap<K, V> delegate;
+        private final Map<K, V> entries;
 
-        private FixedValueCollector(Map<K, V> value, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
-            this.value = value;
+        private FixedValueCollector(Map<K, V> entries, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
+            this.entries = entries;
             this.sideEffect = sideEffect;
-            this.delegate = new EntriesFromMap<>(value);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> result = delegate.collectEntries(consumer, collector, dest);
-            if (sideEffect == null) {
-                return result;
-            }
-            return result.withSideEffect(unused -> sideEffect.execute(value));
+            collector.addAll(entries.entrySet(), dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(entries, sideEffect))
+                : Value.present();
         }
 
         @Override
         public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            return delegate.collectKeys(consumer, collector, dest);
+            collector.addAll(entries.keySet(), dest);
+            return Value.present();
         }
 
         @Override
         public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            delegate.calculateExecutionTimeValue(executionTimeValue -> visitor.execute(executionTimeValue.withSideEffect(Cast.uncheckedCast(sideEffect))));
+            visitor.execute(ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect));
         }
 
         @Override
         public MapCollector<K, V> absentIgnoring() {
-            // Always present
+            // always present
             return this;
         }
 
         @Override
         public ValueProducer getProducer() {
-            return delegate.getProducer();
+            return ValueProducer.unknown();
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return delegate.calculatePresence(consumer);
+            return true;
         }
 
         @Override
         public String toString() {
-            return delegate.toString();
+            return entries.toString();
         }
     }
 
