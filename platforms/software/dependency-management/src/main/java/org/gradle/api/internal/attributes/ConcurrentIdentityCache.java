@@ -31,7 +31,17 @@ class ConcurrentIdentityCache<K, V> {
     private final Map<IdentityKey<K>, V> map = new ConcurrentHashMap<>();
 
     public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-        return map.computeIfAbsent(new IdentityKey<>(key), k -> mappingFunction.apply(k.value));
+
+        IdentityKey<K> wrappedKey = new IdentityKey<>(key);
+
+        // First attempt to fetch the value from the map without locking
+        V result = map.get(wrappedKey);
+        if (result != null) {
+            return result;
+        }
+
+        // If it is not found, compute the value atomically
+        return map.computeIfAbsent(wrappedKey, k -> mappingFunction.apply(k.value));
     }
 
     private static class IdentityKey<T> {
