@@ -21,7 +21,7 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
-    def "UPGRADED task #annotation configurable file collection is NOT implicitly finalized when task starts execution"() {
+    def "UPGRADED task #annotation configurable file collection is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
         executer.requireOwnGradleUserHomeDir("temp")
         buildFile << """
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty

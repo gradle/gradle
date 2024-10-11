@@ -166,7 +166,9 @@ public abstract class ValueState<S> {
      */
     public abstract S setToConventionIfUnset(S value);
 
-    public abstract void warnOnUpgradedPropertyChanges();
+    public abstract void markAsUpgradedPropertyValue();
+
+    public abstract boolean isUpgradedPropertyValue();
 
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
@@ -175,7 +177,7 @@ public abstract class ValueState<S> {
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
         private boolean disallowUnsafeRead;
-        private boolean warnOnUpgradedPropertyChanges;
+        private boolean isUpgradedPropertyValue;
         private S convention;
 
         public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
@@ -223,7 +225,7 @@ public abstract class ValueState<S> {
         public void beforeMutate(Describable displayName) {
             if (disallowChanges) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
-            } else if (warnOnUpgradedPropertyChanges) {
+            } else if (isUpgradedPropertyValue()) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
                     .startingWithGradle9("changing property value of " + shownDisplayName + " at execution time is deprecated and will fail in Gradle 10")
@@ -283,8 +285,13 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void warnOnUpgradedPropertyChanges() {
-            warnOnUpgradedPropertyChanges = true;
+        public void markAsUpgradedPropertyValue() {
+            isUpgradedPropertyValue = true;
+        }
+
+        @Override
+        public boolean isUpgradedPropertyValue() {
+            return isUpgradedPropertyValue;
         }
 
         @Override
@@ -435,8 +442,13 @@ public abstract class ValueState<S> {
         }
 
         @Override
-        public void warnOnUpgradedPropertyChanges() {
-            // Finalized already so nothing to warn about
+        public void markAsUpgradedPropertyValue() {
+            // No special behaviour is needed for already finalized values, so let's ignore
+        }
+
+        @Override
+        public boolean isUpgradedPropertyValue() {
+            return false;
         }
 
         @Override

@@ -141,15 +141,17 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void implicitFinalizeValue() {
-        // Property prevents reads *and* mutations,
-        // however CFCs only want automatic finalization on query,
-        // so we do not #disallowChanges().
-        valueState.finalizeOnNextGet();
+        if (!valueState.isUpgradedPropertyValue()) {
+            // Property prevents reads *and* mutations,
+            // however CFCs only want automatic finalization on query,
+            // so we do not #disallowChanges().
+            valueState.finalizeOnNextGet();
+        }
     }
 
     @Override
-    public void warnOnUpgradedPropertyChanges() {
-        valueState.warnOnUpgradedPropertyChanges();
+    public void markAsUpgradedProperty() {
+        valueState.markAsUpgradedPropertyValue();
     }
 
     @Override

@@ -195,7 +195,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
-    def "UPGRADED task @Input property is NOT implicitly finalized when task starts execution"() {
+    def "UPGRADED task @Input property is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
         given:
         buildFile << '''
             import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty

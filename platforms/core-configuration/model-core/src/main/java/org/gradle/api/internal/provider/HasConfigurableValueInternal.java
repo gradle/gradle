@@ -28,5 +28,5 @@ public interface HasConfigurableValueInternal extends HasConfigurableValue {
     /**
      * Used for Provider API migration to not finalize values but only warn on changes to the value of this object.
      */
-    void warnOnUpgradedPropertyChanges();
+    void markAsUpgradedProperty();
 }

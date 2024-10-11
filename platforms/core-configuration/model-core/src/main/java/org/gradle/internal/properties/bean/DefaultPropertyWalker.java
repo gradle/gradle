@@ -106,7 +106,6 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         private final Supplier<Object> cachedInvoker;
         private final Class<?> declaredType;
-        private final boolean isUpgradedProperty;
 
         public CachedPropertyValue(
             Supplier<Object> supplier,
@@ -114,8 +113,15 @@ public class DefaultPropertyWalker implements PropertyWalker {
             boolean isUpgradedProperty
         ) {
             this.declaredType = declaredType;
-            this.cachedInvoker = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(supplier::get));
-            this.isUpgradedProperty = isUpgradedProperty;
+            this.cachedInvoker = Suppliers.memoize(() -> {
+                Object value = DeprecationLogger.whileDisabled(supplier::get);
+                if (isUpgradedProperty && isConfigurable()) {
+                    // Upgraded properties should not be finalized to simplify migration.
+                    // This behaviour should be removed with Gradle 10.
+                    ((HasConfigurableValueInternal) value).markAsUpgradedProperty();
+                }
+                return value;
+            });
         }
 
         @Override
@@ -138,13 +144,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
         public void maybeFinalizeValue() {
             if (isConfigurable()) {
                 Object value = cachedInvoker.get();
-                if (isUpgradedProperty) {
-                    // Upgraded properties should not be finalized to simplify migration.
-                    // This behaviour should be removed with Gradle 10.
-                    ((HasConfigurableValueInternal) value).warnOnUpgradedPropertyChanges();
-                } else {
-                    ((HasConfigurableValueInternal) value).implicitFinalizeValue();
-                }
+                ((HasConfigurableValueInternal) value).implicitFinalizeValue();
             }
         }
 
