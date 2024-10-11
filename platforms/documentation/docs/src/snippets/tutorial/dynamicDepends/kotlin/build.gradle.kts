@@ -30,7 +30,7 @@ tasks.register("hello") {
 // end::hello[]
 
 // tag::dokka[]
-tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml") {
-    outputDirectory.set(buildDir.resolve("dokka"))
+tasks.dokkaHtml.configure {
+    outputDirectory.set(buildDir)
 }
 // end::dokka[]

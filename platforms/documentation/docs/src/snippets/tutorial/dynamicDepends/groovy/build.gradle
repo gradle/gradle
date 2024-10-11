@@ -1,7 +1,6 @@
 plugins {
     id 'application'
     id 'org.jetbrains.dokka' version "1.9.0"
-
 }
 
 repositories {
@@ -31,7 +30,7 @@ tasks.register('hello') {
 // end::hello[]
 
 // tag::dokka[]
-tasks.named("dokkaHtml", org.jetbrains.dokka.gradle.DokkaTask) {
-    outputDirectory = buildDir.resolve("dokka")
+tasks.named("dokkaHtml") {
+    outputDirectory.set(buildDir)
 }
 // end::dokka[]
