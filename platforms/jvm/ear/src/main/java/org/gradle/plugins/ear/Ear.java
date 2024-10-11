@@ -206,7 +206,7 @@ public abstract class Ear extends Jar {
      * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Nested property")
+    @NotToBeReplacedByLazyProperty(because = "Read-only CopySpec property")
     public CopySpec getLib() {
         return ((CopySpecInternal) lib).addChild();
     }
@@ -260,7 +260,7 @@ public abstract class Ear extends Jar {
      * The deployment descriptor configuration.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Nested property")
+    @NotToBeReplacedByLazyProperty(because = "Nested like property")
     public DeploymentDescriptor getDeploymentDescriptor() {
         return deploymentDescriptor;
     }
