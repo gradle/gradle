@@ -626,57 +626,55 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     /**
-     * A fixed value collector that decorates {@link ElementsFromCollection} with a side effect.
+     * A fixed value collector, similar to {@link ElementsFromCollection} but with a side effect.
      */
     private static class FixedValueCollector<T, C extends Collection<T>> implements Collector<T> {
         @Nullable
         private final SideEffect<? super C> sideEffect;
-        private final C value;
-        private final ElementsFromCollection<T> delegate;
+        private final C collection;
 
-        private FixedValueCollector(C value, @Nullable SideEffect<? super C> sideEffect) {
-            this.value = value;
+        private FixedValueCollector(C collection, @Nullable SideEffect<? super C> sideEffect) {
+            this.collection = collection;
             this.sideEffect = sideEffect;
-            this.delegate = new ElementsFromCollection<>(value);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<Void> result = delegate.collectEntries(consumer, collector, dest);
-            if (sideEffect == null) {
-                return result;
-            }
-            return result.withSideEffect((SideEffect<Void>) unused -> sideEffect.execute(value));
+            collector.addAll(collection, dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(collection, sideEffect))
+                : Value.present();
         }
 
         @Override
         public int size() {
-            return delegate.size();
+            return collection.size();
         }
 
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            delegate.calculateExecutionTimeValue(executionTimeValue -> visitor.execute(executionTimeValue.withSideEffect(Cast.uncheckedCast(sideEffect))));
+            visitor.execute(ExecutionTimeValue.fixedValue(collection).withSideEffect(sideEffect));
         }
 
         @Override
         public Collector<T> absentIgnoring() {
-            return delegate.absentIgnoring();
+            // always present
+            return this;
         }
 
         @Override
         public ValueProducer getProducer() {
-            return delegate.getProducer();
+            return ValueProducer.unknown();
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return delegate.calculatePresence(consumer);
+            return true;
         }
 
         @Override
         public String toString() {
-            return delegate.toString();
+            return collection.toString();
         }
     }
 
