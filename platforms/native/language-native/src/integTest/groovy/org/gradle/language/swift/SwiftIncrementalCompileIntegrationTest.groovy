@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.junit.Assume
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {

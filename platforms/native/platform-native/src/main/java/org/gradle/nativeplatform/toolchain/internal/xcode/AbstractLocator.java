@@ -42,11 +42,6 @@ public abstract class AbstractLocator {
                 execAction.workingDir(System.getProperty("user.dir"));
                 execAction.args(getXcrunFlags());
 
-                String sdkroot = System.getenv("SDKROOT");
-                if (sdkroot != null) {
-                    execAction.environment("SDKROOT", sdkroot);
-                }
-
                 String developerDir = System.getenv("DEVELOPER_DIR");
                 if (developerDir != null) {
                     execAction.environment("DEVELOPER_DIR", developerDir);
