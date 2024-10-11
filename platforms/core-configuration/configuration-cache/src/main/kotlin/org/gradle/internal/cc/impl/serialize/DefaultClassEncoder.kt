@@ -18,12 +18,14 @@ package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.ClassLoaderRole
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIdentities
 
 
@@ -70,7 +72,7 @@ class DefaultClassEncoder(
     private
     val scopes = WriteIdentities()
 
-    override fun Encoder.encodeClass(type: Class<*>) {
+    override fun WriteContext.encodeClass(type: Class<*>) {
         val id = classes.getId(type)
         if (id != null) {
             writeSmallInt(id)
@@ -90,7 +92,7 @@ class DefaultClassEncoder(
         }
     }
 
-    override fun Encoder.encodeClassLoader(classLoader: ClassLoader?) {
+    override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) {
         writeClassLoaderScopeOf(classLoader)
     }
 
@@ -138,16 +140,24 @@ class DefaultClassEncoder(
     }
 
     private
-    fun ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
+    fun WriteContext.ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
         try {
             classForName(className, gradleRuntimeClassLoader)
         } catch (e: ClassNotFoundException) {
-            throw ConfigurationCacheError(
-                "Class '${className}' cannot be encoded because ${describeClassLoader(originalClassLoader)} could not be encoded " +
-                    "and the class is not available through the default class loader.\n" +
-                    scopeLookup.describeKnownClassLoaders() +
-                    "Please report this error, run './gradlew --stop' and try again.",
-                e
+            onProblem(
+                PropertyProblem(
+                    trace,
+                    StructuredMessage.build {
+                        text("Class ")
+                        reference(className)
+                        text(" cannot be encoded because ")
+                        text(describeClassLoader(originalClassLoader))
+                        text(" could not be encoded and the class is not available through the default class loader.\n")
+                        text(scopeLookup.describeKnownClassLoaders())
+                        text("Please report this error, run './gradlew --stop' and try again.")
+                    },
+                    e
+                )
             )
         }
     }
