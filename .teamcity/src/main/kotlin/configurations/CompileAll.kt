@@ -28,6 +28,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType
 
     artifactRules = """$artifactRules
         platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+        build/reports/configuration-cache/**/configuration-cache-report.html
     """.trimIndent()
 }) {
     companion object {
