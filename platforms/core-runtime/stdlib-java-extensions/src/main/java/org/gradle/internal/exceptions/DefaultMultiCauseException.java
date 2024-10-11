@@ -18,6 +18,7 @@ package org.gradle.internal.exceptions;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -30,7 +31,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class DefaultMultiCauseException extends GradleException implements MultiCauseException, NonGradleCauseExceptionsHolder {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
+    @Nullable
     private transient Factory<String> messageFactory;
+    @Nullable
     private String message;
 
     public DefaultMultiCauseException(String message) {
@@ -106,7 +109,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     public synchronized Throwable initCause(Throwable throwable) {
         causes.clear();
         causes.add(throwable);
-        return null;
+        return this;
     }
 
     public void initCauses(Iterable<? extends Throwable> causes) {
@@ -117,6 +120,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     @Override
+    @Nullable
     public synchronized Throwable getCause() {
         if (hideCause.get()) {
             return null;
@@ -168,6 +172,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     @Override
+    @Nullable
     public String getMessage() {
         if (messageFactory != null) {
             message = messageFactory.create();

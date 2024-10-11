@@ -335,26 +335,25 @@ public abstract class CollectionUtils {
     }
 
     public static <E> List<E> compact(List<E> list) {
-        boolean foundAtLeastOneNull = false;
         List<E> compacted = null;
         int i = 0;
 
         for (E element : list) {
             if (element == null) {
-                if (!foundAtLeastOneNull) {
+                if (compacted == null) {
+                    // This is the first null element we've found, have to allocate a compacted list.
                     compacted = new ArrayList<E>(list.size());
                     if (i > 0) {
                         compacted.addAll(list.subList(0, i));
                     }
                 }
-                foundAtLeastOneNull = true;
-            } else if (foundAtLeastOneNull) {
+            } else if (compacted != null) {
                 compacted.add(element);
             }
             ++i;
         }
 
-        return foundAtLeastOneNull ? compacted : list;
+        return compacted != null ? compacted : list;
     }
 
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
@@ -518,7 +517,10 @@ public abstract class CollectionUtils {
      * @return The joined string
      */
     public static String join(String separator, Object[] objects) {
-        return join(separator, objects == null ? null : Arrays.asList(objects));
+        if (objects == null) {
+            throw new NullPointerException("The 'objects' cannot be null");
+        }
+        return join(separator, Arrays.asList(objects));
     }
 
     /**
@@ -617,6 +619,7 @@ public abstract class CollectionUtils {
                     }
 
                     @Override
+                    @Nullable
                     public T next() {
                         return delegate.next().create();
                     }
