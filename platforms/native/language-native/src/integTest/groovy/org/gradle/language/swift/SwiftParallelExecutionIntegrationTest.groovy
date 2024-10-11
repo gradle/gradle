@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegrationTest {
     def app = new SwiftApp()

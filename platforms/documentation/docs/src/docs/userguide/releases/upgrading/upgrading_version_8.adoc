@@ -75,14 +75,6 @@ This change impacts:
 - Project selection
 - Configuration selection in dependency report tasks
 
-==== Swift SDK selection
-
-To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
-Gradle also introduces the ability to directly influence the selected SDK by setting the `SDKROOT` environment variable as documented in the `xcrun` man page.
-Gradle also forwards the `DEVELOPER_DIR` environment variable to `xcrun` as it used to before.
-To view the `xcrun` man page, run `man xcrun` in the terminal.
-If Gradle selects an unexpected SDK, specify the desired SDK using the `SDKROOT` environment variable.
-
 === Deprecations
 
 [[deprecated_fork_options_java_home]]

@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
 
