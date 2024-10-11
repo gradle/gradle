@@ -1,6 +1,7 @@
 import groovy.lang.GroovySystem
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
+import net.ltgt.gradle.nullaway.nullaway
 import org.gradle.util.internal.VersionNumber
 
 /*
@@ -24,49 +25,76 @@ plugins {
     id("checkstyle")
     id("codenarc")
     id("net.ltgt.errorprone")
+    id("net.ltgt.nullaway")
 }
 
 open class ErrorProneProjectExtension(
-    val disabledChecks: ListProperty<String>
+    val disabledChecks: ListProperty<String>,
+    val nullawayEnabled: Property<Boolean>
 )
 
 open class ErrorProneSourceSetExtension(
     val enabled: Property<Boolean>
 )
 
-val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>("errorprone", project.objects.listProperty<String>())
-errorproneExtension.disabledChecks.addAll(
-    // DISCUSS
-    "EnumOrdinal", // This violation is ubiquitous, though most are benign.
-    "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
-    "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
+val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
+    "errorprone",
+    objects.listProperty<String>(),
+    objects.property<Boolean>()
+).apply {
+    disabledChecks.addAll(
+        // DISCUSS
+        "EnumOrdinal", // This violation is ubiquitous, though most are benign.
+        "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
+        "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
 
-    // NEVER
-    "MissingSummary", // We have another mechanism to check Javadocs on public API
-    "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
-    "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
-    "JavaUtilDate", // We are fine with using Date
-    "StringSplitter", // We are fine with using String.split() as is
-)
+        // NEVER
+        "MissingSummary", // We have another mechanism to check Javadocs on public API
+        "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
+        "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
+        "JavaUtilDate", // We are fine with using Date
+        "StringSplitter", // We are fine with using String.split() as is
+    )
+
+    nullawayEnabled.convention(false)
+}
+
+nullaway {
+    annotatedPackages.add("org.gradle")
+}
 
 project.plugins.withType<JavaBasePlugin> {
     project.extensions.getByName<SourceSetContainer>("sourceSets").configureEach {
-        val extension = this.extensions.create<ErrorProneSourceSetExtension>("errorprone", project.objects.property<Boolean>())
-        // Enable it only for the main source set by default, as incremental Groovy
-        // joint-compilation doesn't work with the Error Prone annotation processor
-        extension.enabled.convention(this.name == "main")
+        val extension = this.extensions.create<ErrorProneSourceSetExtension>(
+            "errorprone",
+            project.objects.property<Boolean>()
+        ).apply {
+            // Enable it only for the main source set by default, as incremental Groovy
+            // joint-compilation doesn't work with the Error Prone annotation processor
+            enabled.convention(name == "main")
+        }
 
-        project.dependencies.addProvider(
-            annotationProcessorConfigurationName,
-            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.29.0" }
-        )
+        @Suppress("UnstableApiUsage")
+        fun addErrorProneDependency(dep: String) {
+            project.dependencies.addProvider(
+                annotationProcessorConfigurationName,
+                extension.enabled.filter { it }.map { dep }
+            )
+        }
+
+        addErrorProneDependency("com.google.errorprone:error_prone_core:2.29.0")
+        addErrorProneDependency("com.uber.nullaway:nullaway:0.11.3")
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
                 isEnabled = extension.enabled
-                checks.set(errorproneExtension.disabledChecks.map {
+                checks = errorproneExtension.disabledChecks.map {
                     it.associateWith { CheckSeverity.OFF }
-                })
+                }
+
+                nullaway {
+                    severity = errorproneExtension.nullawayEnabled.map { if (it) CheckSeverity.ERROR else CheckSeverity.OFF }
+                }
             }
         }
     }
