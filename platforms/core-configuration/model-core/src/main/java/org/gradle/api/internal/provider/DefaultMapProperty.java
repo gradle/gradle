@@ -517,7 +517,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            MapCollector<K, V> left = new EntriesFromMap<>(entries, Cast.uncheckedCast(sideEffect));
+            MapCollector<K, V> left = new FixedValueCollector<>(entries, sideEffect);
             PlusCollector<K, V> newCollector = new PlusCollector<>(left, collector);
             return new CollectingSupplier(newCollector);
         }
@@ -735,6 +735,62 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
             addCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
+        }
+    }
+
+    /**
+     * A fixed value collector that decorates {@link EntriesFromMap} with a side effect.
+     */
+    private static class FixedValueCollector<K, V> implements MapCollector<K, V> {
+        @Nullable
+        private final SideEffect<? super Map<K, V>> sideEffect;
+        private final Map<K, V> value;
+        private final EntriesFromMap<K, V> delegate;
+
+        private FixedValueCollector(Map<K, V> value, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
+            this.value = value;
+            this.sideEffect = sideEffect;
+            this.delegate = new EntriesFromMap<>(value);
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> result = delegate.collectEntries(consumer, collector, dest);
+            if (sideEffect == null) {
+                return result;
+            }
+            return result.withSideEffect(unused -> sideEffect.execute(value));
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            return delegate.collectKeys(consumer, collector, dest);
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            delegate.calculateExecutionTimeValue(executionTimeValue -> visitor.execute(executionTimeValue.withSideEffect(Cast.uncheckedCast(sideEffect))));
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            // Always present
+            return this;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return delegate.getProducer();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return delegate.calculatePresence(consumer);
+        }
+
+        @Override
+        public String toString() {
+            return delegate.toString();
         }
     }
 
