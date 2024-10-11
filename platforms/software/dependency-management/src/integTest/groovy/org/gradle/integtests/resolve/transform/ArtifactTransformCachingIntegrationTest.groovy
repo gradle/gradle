@@ -1927,7 +1927,7 @@ resultsFile:
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
-    def "can disable storing to build-cache with experimental property"() {
+    def "can disable storing to build cache with experimental property"() {
         given:
         buildFile << declareAttributes() << withExternalLibDependency("lib1") << """
             @CacheableTransform
@@ -1983,7 +1983,7 @@ resultsFile:
         """
 
         when:
-        executer.requireOwnGradleUserHomeDir("Test checks existence of build-cache entries")
+        executer.requireOwnGradleUserHomeDir("Test checks existence of build cache entries")
         executer.withArguments("--build-cache", "--info", "-Dorg.gradle.internal.transform-caching-disabled=${transformsDisabled}")
         succeeds ":lib:resolve"
 
