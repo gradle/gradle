@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.temp;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
@@ -35,7 +36,7 @@ public final class TempFiles {
      * @see File#createTempFile(String, String, File)
      */
     @CheckReturnValue
-    static File createTempFile(String prefix, String suffix, File directory) throws IOException {
+    static File createTempFile(@Nullable String prefix, @Nullable String suffix, File directory) throws IOException {
         if (directory == null) {
             throw new NullPointerException("The `directory` argument must not be null as this will default to the system temporary directory");
         }
