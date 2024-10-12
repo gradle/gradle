@@ -18,6 +18,7 @@ package org.gradle.internal.service;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -67,6 +68,7 @@ public interface ServiceRegistry extends ServiceLookup {
      * @throws ServiceLookupException On failure to lookup the specified service.
      */
     @Override
+    @Nullable
     Object find(Type serviceType) throws ServiceLookupException;
 
     /**
@@ -108,6 +110,7 @@ public interface ServiceRegistry extends ServiceLookup {
         }
 
         @Override
+        @Nullable
         public Object find(Type serviceType) throws ServiceLookupException {
             return null;
         }
