@@ -24,6 +24,8 @@ description = "Contains the Application plugin, and its supporting classes.  Thi
 dependencies {
     api(projects.core)
     api(projects.coreApi)
+    api(projects.pluginsJavaBase)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jsr305)
@@ -37,9 +39,7 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
-    implementation(projects.pluginsJavaBase)
     implementation(projects.processServices)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 

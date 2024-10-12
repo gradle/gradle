@@ -31,6 +31,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
@@ -298,6 +299,7 @@ public class ProviderConnection {
         if (standardInput == null) {
             standardInput = SafeStreams.emptyInput();
         }
+        CompositeStoppable stoppable = new CompositeStoppable();
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
@@ -306,9 +308,11 @@ public class ProviderConnection {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
+            stoppable.add(clientServices);
+            stoppable.add(requestSpecificLogging);
             executor = clientServices.get(DaemonClient.class);
         }
-        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager);
+        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executor), loggingManager, stoppable);
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
