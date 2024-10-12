@@ -21,7 +21,9 @@ import javax.annotation.Nullable;
 public final class OperationFinishEvent {
     private final long startTime;
     private final long endTime;
+    @Nullable
     private final Throwable failure;
+    @Nullable
     private final Object result;
 
     public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
