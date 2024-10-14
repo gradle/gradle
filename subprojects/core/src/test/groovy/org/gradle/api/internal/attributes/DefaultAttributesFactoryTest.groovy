@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.internal.attributes.immutable.TestsImmutableAttributes
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import spock.lang.Specification
 
 /**
