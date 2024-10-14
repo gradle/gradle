@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -39,8 +40,8 @@ trait TestsInitProjectSpecsViaPlugin {
                         maven {
                             url '${mavenRepo.uri}'
                         }
-                        google() // For AGP, needed by D-G prototype
-                        gradlePluginPortal()
+                        ${RepoScriptBlockUtil.googleRepositoryDefinition()} // For AGP, needed by D-G prototype
+                        ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                     }
                 }
             }
