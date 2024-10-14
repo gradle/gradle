@@ -58,7 +58,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -405,7 +404,6 @@ public class IvyComponentParser {
 
     private static class ArtifactKey {
 
-        private final File file;
         private final String name;
         private final String extension;
         private final String type;
@@ -413,7 +411,6 @@ public class IvyComponentParser {
         private final String classifier;
 
         public ArtifactKey(PublishArtifact artifact) {
-            this.file = artifact.getFile();
             this.name = artifact.getName();
             this.extension = artifact.getExtension();
             this.type = artifact.getType();
@@ -429,12 +426,12 @@ public class IvyComponentParser {
                 return false;
             }
             ArtifactKey that = (ArtifactKey) o;
-            return Objects.equals(file, that.file) && Objects.equals(name, that.name) && Objects.equals(extension, that.extension) && Objects.equals(type, that.type) && Objects.equals(classifier, that.classifier);
+            return Objects.equals(name, that.name) && Objects.equals(extension, that.extension) && Objects.equals(type, that.type) && Objects.equals(classifier, that.classifier);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(file, name, extension, type, classifier);
+            return Objects.hash(name, extension, type, classifier);
         }
     }
 }
