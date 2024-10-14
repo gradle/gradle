@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -37,10 +38,10 @@ import java.util.function.Function;
  * Builds {@link LocalVariantGraphResolveMetadata} instances from {@link ConfigurationInternal}s, while
  * caching intermediary dependency and exclude state.
  */
-@ServiceScope(Scope.Global.class)
-public interface LocalVariantMetadataBuilder {
+@ServiceScope(Scope.BuildTree.class)
+public interface LocalVariantGraphResolveStateBuilder {
 
-    LocalVariantGraphResolveMetadata create(
+    LocalVariantGraphResolveState create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
@@ -55,9 +56,9 @@ public interface LocalVariantMetadataBuilder {
      * (resolvable and consumable), these conversions do not need to be executed multiple times.
      */
     class DependencyCache {
-        private final Map<String, DefaultLocalVariantMetadataBuilder.DependencyState> cache = new HashMap<>();
+        private final Map<String, DefaultLocalVariantGraphResolveStateBuilder.DependencyState> cache = new HashMap<>();
 
-        public DefaultLocalVariantMetadataBuilder.DependencyState computeIfAbsent(
+        public DefaultLocalVariantGraphResolveStateBuilder.DependencyState computeIfAbsent(
             ConfigurationInternal configuration,
             Function<ConfigurationInternal, DependencyState> factory
         ) {

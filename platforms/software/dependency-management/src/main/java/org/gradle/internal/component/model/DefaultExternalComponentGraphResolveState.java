@@ -145,6 +145,16 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         }
 
         @Override
+        public List<? extends DependencyMetadata> getDependencies() {
+            return configuration.getDependencies();
+        }
+
+        @Override
+        public List<? extends ExcludeMetadata> getExcludes() {
+            return configuration.getExcludes();
+        }
+
+        @Override
         public ConfigurationGraphResolveMetadata getMetadata() {
             return configuration;
         }

@@ -20,12 +20,16 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
+import java.util.List;
+
 /**
- * State for a component variant that is used to perform dependency graph resolution.
- *
- * <p>This does not include any information about the artifacts of the variant, which are generally not required during graph resolution.</p>
+ * State for a variant of a component, intended for use during graph resolution.
+ * <p>
+ * This state type manages expensive operations required to resolve a variant. These include
+ * managing dependencies and artifacts, which may not be easily available from the metadata.
  */
 public interface VariantGraphResolveState extends HasAttributes {
+
     /**
      * A unique id for this variant within the current build tree. Note that this id is not stable across Gradle invocations.
      */
@@ -39,6 +43,16 @@ public interface VariantGraphResolveState extends HasAttributes {
     ImmutableCapabilities getCapabilities();
 
     VariantGraphResolveMetadata getMetadata();
+
+    /**
+     * Get the dependencies of this variant.
+     */
+    List<? extends DependencyMetadata> getDependencies();
+
+    /**
+     * Get the exclusions to apply to the dependencies and artifacts of this variant.
+     */
+    List<? extends ExcludeMetadata> getExcludes();
 
     /**
      * Returns the state required to select and resolve artifacts for this variant. Does not

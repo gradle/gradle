@@ -372,7 +372,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
      * the size of the graph to avoid maps resizing.
      */
     private static int estimateGraphSize(VariantGraphResolveState rootVariant) {
-        int numDependencies = rootVariant.getMetadata().getDependencies().size();
+        int numDependencies = rootVariant.getDependencies().size();
 
         // TODO #24641: Why are the numbers and operations here the way they are?
         //  Are they up-to-date? We should be able to test if these values are still optimal.

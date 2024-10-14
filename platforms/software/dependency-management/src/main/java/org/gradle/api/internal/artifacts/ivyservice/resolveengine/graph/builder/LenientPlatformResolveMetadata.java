@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ExternalVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -38,7 +39,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -116,7 +116,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
-    public List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
+    public List<? extends ExternalVariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         return Collections.emptyList();
     }
 

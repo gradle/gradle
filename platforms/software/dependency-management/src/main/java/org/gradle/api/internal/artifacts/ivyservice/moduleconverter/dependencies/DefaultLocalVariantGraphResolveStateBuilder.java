@@ -36,12 +36,15 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata;
+import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -58,20 +61,24 @@ import java.util.HashSet;
  * {@link ConfigurationInternal}. Utilizes caching to prevent unnecessary duplicate conversions
  * between DSL and internal metadata types.
  */
-public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataBuilder {
+public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariantGraphResolveStateBuilder {
+
+    private final ComponentIdGenerator idGenerator;
     private final DependencyMetadataFactory dependencyMetadataFactory;
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public DefaultLocalVariantMetadataBuilder(
+    public DefaultLocalVariantGraphResolveStateBuilder(
+        ComponentIdGenerator idGenerator,
         DependencyMetadataFactory dependencyMetadataFactory,
         ExcludeRuleConverter excludeRuleConverter
     ) {
+        this.idGenerator = idGenerator;
         this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
     @Override
-    public LocalVariantGraphResolveMetadata create(
+    public LocalVariantGraphResolveState create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
@@ -92,19 +99,19 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
         ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
 
-        // Collect all sub-variants.
-        ImmutableSet.Builder<LocalVariantMetadata> variantsBuilder = ImmutableSet.builder();
+        // Collect all artifact sets.
+        ImmutableSet.Builder<LocalVariantMetadata> artifactSets = ImmutableSet.builder();
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
+                artifactSets.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                variantsBuilder.add(new LocalVariantMetadata(configurationName + "-" + name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
+                artifactSets.add(new LocalVariantMetadata(configurationName + "-" + name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
             }
         });
 
@@ -113,20 +120,25 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
         // hierarchy will not change anymore and all configurations in the hierarchy
         // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-        CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata> dependencies =
+        CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> dependencies =
             getConfigurationDependencyState(description, hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
 
-        return new DefaultLocalVariantGraphResolveMetadata(
+        LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
             configurationName,
-            description,
-            componentId,
             configuration.isTransitive(),
             attributes,
             capabilities,
-            configuration.isDeprecatedForConsumption(),
+            configuration.isDeprecatedForConsumption()
+        );
+
+        return new DefaultLocalVariantGraphResolveState(
+            idGenerator.nextVariantId(),
+            componentId,
+            metadata,
+            idGenerator,
+            calculatedValueContainerFactory,
             dependencies,
-            variantsBuilder.build(),
-            calculatedValueContainerFactory
+            artifactSets.build()
         );
     }
 
@@ -155,7 +167,7 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
     /**
      * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    private CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata> getConfigurationDependencyState(
+    private CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> getConfigurationDependencyState(
         String description,
         ImmutableSet<String> hierarchy,
         ImmutableAttributes attributes,
@@ -179,7 +191,7 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
             });
 
             DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());
-            return new DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata(
+            return new DefaultLocalVariantGraphResolveState.VariantDependencyMetadata(
                 maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
             );
         }));
