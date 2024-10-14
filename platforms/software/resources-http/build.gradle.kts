@@ -19,7 +19,6 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
-    implementation(projects.modelCore)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
