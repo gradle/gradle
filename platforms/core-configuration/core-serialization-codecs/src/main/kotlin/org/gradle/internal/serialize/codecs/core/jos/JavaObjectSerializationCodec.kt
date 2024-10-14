@@ -242,7 +242,7 @@ inline fun ReadContext.decodingBeanWithId(id: Int, decode: (Any, Class<*>, BeanS
     val beanType = readClass()
     return withBeanTrace(beanType) {
         val beanStateReader = beanStateReaderFor(beanType)
-        beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
+        beanStateReader.run { newBeanWithId(id) }.also { bean ->
             decode(bean, beanType, beanStateReader)
         }
     }

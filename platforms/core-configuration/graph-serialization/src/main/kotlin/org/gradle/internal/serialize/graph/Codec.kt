@@ -57,6 +57,8 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
+    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+
     fun writeClass(type: Class<*>)
 
     /**
@@ -103,6 +105,8 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     var immediateMode: Boolean // TODO:configuration-cache prevent StackOverflowErrors when crossing protocols
 
     suspend fun read(): Any?
+
+    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 
@@ -163,6 +167,9 @@ interface IsolateContext {
     fun onProblem(problem: PropertyProblem)
 
     fun onError(error: Exception, message: StructuredMessageBuilder)
+
+    val name: String
+        get() = this::class.simpleName!!
 }
 
 
@@ -344,7 +351,7 @@ suspend fun ReadContext.decodeBean(): Any {
     val beanType = readClass()
     return withBeanTrace(beanType) {
         beanStateReaderFor(beanType).run {
-            newBean(false).also {
+            newBean().also {
                 readStateOf(it)
             }
         }
@@ -359,12 +366,12 @@ interface BeanStateWriter {
 
 interface BeanStateReader {
 
-    fun ReadContext.newBeanWithId(generated: Boolean, id: Int) =
-        newBean(generated).also {
+    fun ReadContext.newBeanWithId(id: Int) =
+        newBean().also {
             isolate.identities.putInstance(id, it)
         }
 
-    fun ReadContext.newBean(generated: Boolean): Any
+    fun ReadContext.newBean(): Any
 
     suspend fun ReadContext.readStateOf(bean: Any)
 }

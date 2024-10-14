@@ -84,10 +84,10 @@ val gradlebuildJava = extensions.create<UnitTestAndCompileExtension>("gradlebuil
     usesJdkInternals.convention(false)
 }
 
-// Use the Java 11 compiler, when possible, to perform compilation.
-// This does not mean we target Java 11 bytecode. The target bytecode
+// Use the Java 17 compiler, when possible, to perform compilation.
+// This does not mean we target Java 17 bytecode. The target bytecode
 // is controlled by the `gradlebuildJava.targetVersion` property.
-configureDefaultToolchain(11)
+configureDefaultToolchain(17)
 enforceCompatibility(gradlebuildJava)
 
 removeTeamcityTempProperty()

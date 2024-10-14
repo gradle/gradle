@@ -3,7 +3,7 @@ import XCTest
 @testable import ${moduleName.groovyString}
 
 class HelloTests: XCTestCase {
-    public static let allTests = [
+    public static var allTests = [
         ("testGreeting", testGreeting),
     ]
 

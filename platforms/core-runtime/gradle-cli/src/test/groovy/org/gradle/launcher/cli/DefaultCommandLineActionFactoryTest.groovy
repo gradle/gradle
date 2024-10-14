@@ -80,6 +80,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         _ * loggingServices.get(StyledTextOutputFactory) >> textOutputFactory
         StyledTextOutput textOutput = new StreamingStyledTextOutput(outputs.stdErrPrintStream)
         _ * textOutputFactory.create(_, _) >> textOutput
+
+        tmpDir.file("settings.gradle").touch() // To prevent layout from detecting files from gradle/gradle build
     }
 
     def "delegates to each action factory to configure the command-line parser and create the action"() {
@@ -279,7 +281,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "displays version message"() {
         when:
-        def commandLineExecution = factory.convert(options)
+        def commandLineExecution = factory.convert(options + ["-p${tmpDir.getTestDirectory()}".toString()])
         commandLineExecution.execute(executionListener)
 
         then:
@@ -297,7 +299,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "displays version message and continues build"() {
         when:
-        def commandLineExecution = factory.convert(options)
+        def commandLineExecution = factory.convert(options + ["-p${tmpDir.getTestDirectory()}".toString()])
         commandLineExecution.execute(executionListener)
 
         then:

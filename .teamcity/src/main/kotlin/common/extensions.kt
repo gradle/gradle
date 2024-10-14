@@ -108,7 +108,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports
         build/reports/dependency-verification/** => dependency-verification-reports
-        build/reports/problems/*/problem-report.html => problem-reports
+        build/reports/problems/problems-report.html
     """.trimIndent()
 
     paramsForBuildToolBuild(buildJvm, os, arch)

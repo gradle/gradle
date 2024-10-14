@@ -12,13 +12,13 @@ jdks:
     vendor: "oracle"
     version: "8u401"
     sha256: 19684fccd7ff32a8400e952a643f0049449a772ef63b8037d5b917cbd137d173
-  - params: [ "env.JAVA_HOME", "linux.java11.openjdk.64bit" ]
+  - param: "linux.java11.openjdk.64bit"
     os: linux
     arch: amd64
     vendor: "temurin"
     version: "jdk-11.0.23+9"
     sha256: 23e47ea7a3015be3240f21185fd902adebdcf76530757c9b482c7eb5bd3417c2
-  - param: "linux.java17.openjdk.64bit"
+  - params: [ "env.JAVA_HOME", "linux.java17.openjdk.64bit" ]
     os: linux
     arch: amd64
     vendor: "temurin"
@@ -42,13 +42,13 @@ jdks:
     vendor: "temurin"
     version: "jdk8u422-b05"
     sha256: af98a839ec238106078bd360af9e405dc6665c05ee837178ed13b92193681923
-  - params: [ "env.JAVA_HOME", "linux.java11.openjdk.aarch64" ]
+  - param: "linux.java11.openjdk.aarch64"
     os: linux
     arch: aarch64
     vendor: "temurin"
     version: "jdk-11.0.24+8"
     sha256: 04e21301fedc76841fb03929ac6cacfbbda30b5693acfd515a8f34d4a0cdeb28
-  - param: "linux.java17.openjdk.aarch64"
+  - params: [ "env.JAVA_HOME", "linux.java17.openjdk.aarch64" ]
     os: linux
     arch: aarch64
     vendor: "temurin"
@@ -66,13 +66,13 @@ jdks:
     vendor: "temurin"
     version: "jdk8u392-b08"
     sha256: 68711e896d0c40cd5accc06112a188c493658f9194a23fe8f8b6695394d9acf7
-  - params: [ "env.JAVA_HOME", "windows.java11.openjdk.64bit" ]
+  - param: "windows.java11.openjdk.64bit"
     os: windows
     arch: amd64
     vendor: "temurin"
     version: "jdk-11.0.23+9"
     sha256: d7a9f8ceee9a5785dcbbcbec20a07b1366efec59ba652ef7e03f6f7d10f52b85
-  - param: "windows.java17.openjdk.64bit"
+  - params: [ "env.JAVA_HOME", "windows.java17.openjdk.64bit" ]
     os: windows
     arch: amd64
     vendor: "temurin"
@@ -96,13 +96,13 @@ jdks:
     vendor: "temurin"
     version: "jdk8u412-b08"
     sha256: fd62491f7634c1cbed7557d6b21db7ef4818fbc0e63e678110d9d92cbea4ad8c
-  - params: [ "env.JAVA_HOME", "macos.java11.openjdk.64bit" ]
+  - param: "macos.java11.openjdk.64bit"
     os: macos
     arch: amd64
     vendor: "temurin"
     version: "jdk-11.0.23+9"
     sha256: 4dbd21d9a0311d321f5886eda50c3086026ed61d02e1a85f7b8c2e9ad557bf03
-  - param: "macos.java17.openjdk.64bit"
+  - params: [ "env.JAVA_HOME", "macos.java17.openjdk.64bit" ]
     os: macos
     arch: amd64
     vendor: "temurin"
@@ -119,13 +119,13 @@ jdks:
     arch: aarch64
     vendor: "zulu"
     version: "zulu8.78.0.19-ca-jdk8.0.412"
-  - params: [ "env.JAVA_HOME", "macos.java11.openjdk.aarch64" ]
+  - param: "macos.java11.openjdk.aarch64"
     os: macos
     arch: aarch64
     vendor: "temurin"
     version: "jdk-11.0.23+9"
     sha256: 49122443bdeab2c9f468bd400f58f85a9ea462846faa79084fd6fd786d9b492d
-  - param: "macos.java17.openjdk.aarch64"
+  - params: [ "env.JAVA_HOME", "macos.java17.openjdk.aarch64" ]
     os: macos
     arch: aarch64
     vendor: "temurin"

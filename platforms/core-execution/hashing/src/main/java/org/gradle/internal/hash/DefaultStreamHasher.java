@@ -16,7 +16,6 @@
 package org.gradle.internal.hash;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,12 +29,8 @@ public class DefaultStreamHasher implements StreamHasher {
     private final Queue<byte[]> buffers = new ArrayBlockingQueue<byte[]>(16);
 
     @Override
-    public HashCode hash(InputStream inputStream) {
-        try {
-            return doHash(inputStream, ByteStreams.nullOutputStream());
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
-        }
+    public HashCode hash(InputStream inputStream) throws IOException {
+        return doHash(inputStream, ByteStreams.nullOutputStream());
     }
 
     @Override
