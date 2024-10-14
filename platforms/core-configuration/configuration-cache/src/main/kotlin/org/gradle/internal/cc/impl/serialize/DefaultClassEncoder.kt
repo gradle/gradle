@@ -37,11 +37,6 @@ interface ScopeLookup {
 
 
 internal
-fun ScopeLookup.describeKnownClassLoaders() =
-    "These are the known class loaders:\n${knownClassLoaders.joinToString("\n") { "\t- $it" }}\n"
-
-
-internal
 data class ClassLoaderScopeSpec(
     val parent: ClassLoaderScopeSpec?,
     val name: String,
@@ -154,9 +149,8 @@ class DefaultClassEncoder(
                         text(describeClassLoader(originalClassLoader))
                         text(" could not be encoded and the class is not available through the default class loader.\n")
                         text(scopeLookup.describeKnownClassLoaders())
-                        text("Please report this error, run './gradlew --stop' and try again.")
+                        text("\nPlease report this error, run './gradlew --stop' and try again.")
                     },
-                    e
                 )
             )
         }
@@ -171,4 +165,11 @@ class DefaultClassEncoder(
             writeBinary(hashCode.toByteArray())
         }
     }
+}
+
+
+internal
+fun ScopeLookup.describeKnownClassLoaders(): String = knownClassLoaders.let { classLoaders ->
+    if (classLoaders.isEmpty()) "No class loaders are currently known."
+    else "These are the known class loaders:\n${classLoaders.joinToString("\n") { "\t- $it" }}"
 }
