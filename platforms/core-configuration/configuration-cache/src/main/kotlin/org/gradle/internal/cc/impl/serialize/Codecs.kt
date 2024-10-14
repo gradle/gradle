@@ -38,6 +38,7 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.OrdinalGroupFactory
@@ -68,6 +69,7 @@ import org.gradle.internal.serialize.codecs.core.FileTreeCodec
 import org.gradle.internal.serialize.codecs.core.FileValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
+import org.gradle.internal.serialize.codecs.core.ImmutableValueObjectCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.IntersectionPatternSetCodec
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
@@ -177,7 +179,8 @@ class Codecs(
     transformStepNodeFactory: TransformStepNodeFactory,
     val parallelStore: Boolean = true,
     val parallelLoad: Boolean = true,
-    problems: InternalProblems
+    problems: InternalProblems,
+    val enableSingletonCaching: Boolean = true
 ) {
     private
     val userTypesBindings: Bindings
@@ -206,6 +209,8 @@ class Codecs(
 
             groovyCodecs()
             bind(SerializedLambdaParametersCheckingCodec)
+
+            bind(ImmutableValueObjectCodec)
 
             // Dependency management types
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
