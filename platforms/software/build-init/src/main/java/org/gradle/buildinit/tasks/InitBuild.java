@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
@@ -59,7 +60,6 @@ import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
@@ -346,7 +346,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private InitProjectGenerator createGenerator(InitProjectConfig config) {
         Class<? extends InitProjectGenerator> generator = projectSpecRegistry.getGeneratorForSpec(config.getProjectSpec());
-        return getInstantiator().newInstance(generator);
+        return getObjectFactory().newInstance(generator);
     }
 
     private void doStandardProjectGeneration(UserInputHandler inputHandler) {
@@ -713,5 +713,5 @@ public abstract class InitBuild extends DefaultTask {
     protected abstract ProjectLayout getLayout();
 
     @Inject
-    protected abstract Instantiator getInstantiator();
+    protected abstract ObjectFactory getObjectFactory();
 }
