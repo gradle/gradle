@@ -82,7 +82,8 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("sum", SummingTask) {
                 Map<String, Provider<RegularFile>> numberFiles =
                     router.getProjectModels(router.key("numberFile", RegularFile), allprojects.collect { it.path })
-                numbers = files(numberFiles.values())
+                // TODO: number = files(...) eagerly evaluates the providers inside the collection
+                numbers.from(files(numberFiles.values()))
                 output = layout.buildDirectory.file("sum.txt")
             }
         """
@@ -192,4 +193,78 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Tags after build finished: {:=tag-root, :a=null, :b=tag-b}")
     }
+
+    def "validating overlapping task outputs"() {
+        // For all the tasks scheduled in the invocation, validate that none of their output file locations intersect
+        // And report which tasks do have overlapping outputs
+
+        createDirs("sub")
+        settingsFile """
+            rootProject.name = "root"
+            include(":sub")
+
+
+            abstract class NumberTask extends DefaultTask {
+                @Input abstract Property<Integer> getNumber()
+                @OutputFile abstract RegularFileProperty getOutput()
+                @TaskAction run() { output.get().asFile.text = number.get().toString() }
+            }
+
+            gradle.beforeProject { Project project ->
+                def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
+
+                def task = project.tasks.register("number", NumberTask) {
+                    number = project.name.length()
+                    output = project.isolated.rootProject.projectDirectory.file("build/out.txt")
+                }
+
+                Provider<List<RegularFile>> taskOutputs = task.flatMap { it.output }.map { [it] }
+                router.postModel(router.key("taskOutputs", List<RegularFile>), router.work(taskOutputs))
+            }
+        """
+
+        buildFile """
+            abstract class CheckOverlaps extends DefaultTask {
+                @InputFiles abstract ConfigurableFileCollection getCandidates()
+                @TaskAction run() {
+                    List<RegularFile> files = candidates.files.toList()
+                    println("Checking files \$files")
+                    Set<RegularFile> overlaps = []
+                    for (i in 0..< files.size()) {
+                      for (j in (i+1)..< files.size()) {
+                        def f1 = files[i].asFile
+                        def f2 = files[j].asFile
+                        if (f1 == f2) {
+                            overlaps += f1
+                        }
+                      }
+                    }
+                    println("Found \${overlaps.size()} task output overlaps (checked \${files.size()} files)")
+                    overlaps.each {
+                        println("- '\$it'")
+                    }
+                }
+            }
+
+            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
+                project.tasks.register("overlapsCheck", CheckOverlaps) {
+                    Map<String, Provider<List<RegularFile>>> models =
+                        router.getProjectModels(router.key("taskOutputs", List<RegularFile>), allprojects.collect { it.path })
+                    println("Models: \$models")
+                    candidates.from(files(models.values().flatten()))
+            }
+        """
+
+        when:
+        run "number", "overlapsCheck"
+
+        then:
+        executed(":number", ":sub:number", ":overlapsCheck")
+
+        and:
+        outputContains("Found 1 task output overlaps (checked 1 files)")
+        file("build/out.txt").text == "3"
+    }
+
+
 }
