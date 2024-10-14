@@ -25,12 +25,40 @@ class ConfigurationCacheCustomClassLoaderErrorIntegrationTest extends AbstractCo
             file('custom.jar')
         )
         buildFile << '''
-            def foo = new URLClassLoader(new URL[]{file('custom.jar').toURI().toURL()})
-                .loadClass('Foo')
-                .getConstructor()
-                .newInstance()
+            abstract class CustomClassLoaderService implements BuildService<Parameters>, AutoCloseable {
+
+                interface Parameters extends BuildServiceParameters {
+                    RegularFileProperty getCustomJar()
+                }
+
+                private URLClassLoader classLoader
+
+                ClassLoader getCustomClassLoader() {
+                    if (classLoader == null) {
+                        classLoader = new URLClassLoader(new URL[]{
+                            parameters.customJar.asFile.get().toURI().toURL()
+                        })
+                    }
+                    return classLoader
+                }
+
+                @Override void close() {
+                    classLoader?.close()
+                }
+            }
+
+            def service = gradle.sharedServices.registerIfAbsent('customClassLoader', CustomClassLoaderService) {
+                parameters {
+                    customJar = file('custom.jar')
+                }
+            }
 
             tasks.register('fail') {
+                def foo = service.get()
+                    .customClassLoader
+                    .loadClass('Foo')
+                    .getConstructor()
+                    .newInstance()
                 doLast { println(foo) }
             }
         '''
