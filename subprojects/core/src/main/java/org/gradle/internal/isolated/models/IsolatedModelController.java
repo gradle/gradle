@@ -35,9 +35,14 @@ public class IsolatedModelController {
         workByKey.put(workKey, work);
     }
 
-    @SuppressWarnings({"unchecked", "unused"})
+    @SuppressWarnings("unused")
     public <T> Provider<T> obtain(IsolatedModelScope consumerScope, IsolatedModelKey<T> key, IsolatedModelScope producerScope) {
         Key<T> workKey = new Key<>(producerScope, key);
+        return Providers.of(workKey).flatMap(this::doObtain);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Provider<T> doObtain(Key<T> workKey) {
         IsolatedModelWork<?> work = workByKey.get(workKey);
         Provider<?> provider = work == null ? Providers.notDefined() : work.prepare();
         return (Provider<T>) provider;
@@ -71,6 +76,14 @@ public class IsolatedModelController {
             int result = producerScope.hashCode();
             result = 31 * result + key.hashCode();
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Key{" +
+                "producerScope=" + producerScope +
+                ", key=" + key +
+                '}';
         }
     }
 }
