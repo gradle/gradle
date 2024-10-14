@@ -13,10 +13,10 @@
 // limitations under the License.
 
 [[viewing-debugging-dependencies]]
-[[sec:debugging-build-scans]]
 = View and Debug Dependencies
 
 Gradle provides tooling to navigate dependency graphs and mitigate link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell].
+[[sec:debugging-build-scans]]
 Users can render the full graph of dependencies as well as identify the selection reason and origin for a dependency.
 Dependencies can originate through build script declared dependencies or transitive dependencies.
 You can visualize dependencies with:
