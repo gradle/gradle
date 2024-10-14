@@ -7,8 +7,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
-  build-and-check:
+  check-links:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
