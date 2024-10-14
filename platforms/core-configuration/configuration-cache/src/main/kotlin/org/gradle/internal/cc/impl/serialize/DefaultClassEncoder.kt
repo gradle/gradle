@@ -151,6 +151,7 @@ class DefaultClassEncoder(
                         text(scopeLookup.describeKnownClassLoaders())
                         text("\nPlease report this error, run './gradlew --stop' and try again.")
                     },
+                    exception = e
                 )
             )
         }
