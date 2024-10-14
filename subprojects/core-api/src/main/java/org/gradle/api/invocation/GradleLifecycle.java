@@ -38,6 +38,7 @@ public interface GradleLifecycle {
      * @see IsolatedAction for the requirements to isolated actions
      * @since 8.8
      */
+    @Deprecated
     @Incubating
     void beforeProject(IsolatedAction<? super Project> action);
 
@@ -48,6 +49,7 @@ public interface GradleLifecycle {
      * @see IsolatedAction for the requirements to isolated actions
      * @since 8.8
      */
+    @Deprecated
     @Incubating
     void afterProject(IsolatedAction<? super Project> action);
 }
