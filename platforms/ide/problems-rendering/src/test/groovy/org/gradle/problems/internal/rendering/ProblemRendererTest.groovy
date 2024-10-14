@@ -16,11 +16,11 @@
 
 package org.gradle.problems.internal.rendering
 
+import org.gradle.api.problems.GeneralDataSpec
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.DefaultProblemGroup
-import org.gradle.api.problems.internal.GeneralDataSpec
 import spock.lang.Specification
 
 class ProblemRendererTest extends Specification {

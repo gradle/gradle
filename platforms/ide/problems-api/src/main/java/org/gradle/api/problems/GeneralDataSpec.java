@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
 /**
  * Specifies configuration options when creating a new GeneralData instance.
