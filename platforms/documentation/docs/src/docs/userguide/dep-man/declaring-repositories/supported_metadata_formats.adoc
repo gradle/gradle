@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring-repositories]]
+[[metadata-formats]]
 = Metadata Formats
 
 Dependency metadata refers to the information associated with a dependency that describes its characteristics, relationships, and requirements.
