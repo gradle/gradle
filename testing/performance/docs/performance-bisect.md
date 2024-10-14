@@ -3,7 +3,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Tracking down performance regressions with `git bisect`](#tracking-down-performance-regressions-with-git-bisect)
-  - [Identify the test which caused the regression](#identify-the-test-which-caused-the-regression)
+  - [Identify the test that caused the regression](#identify-the-test-that-caused-the-regression)
   - [Modify test for regression search](#modify-test-for-regression-search)
   - [Perform the search](#perform-the-search)
   - [Verify the results](#verify-the-results)
