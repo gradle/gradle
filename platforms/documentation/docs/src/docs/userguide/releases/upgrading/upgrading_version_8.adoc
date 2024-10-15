@@ -35,6 +35,15 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.12]]
+== Upgrading from 8.11 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.0.21
+
+The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.21[Kotlin 2.0.21].
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
