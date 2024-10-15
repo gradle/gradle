@@ -53,7 +53,34 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="build-authoring"></a>
+### Build authoring improvements
 
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+
+#### `DependencyConstraintHandler` now has `addProvider` methods
+
+The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the 
+[`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
+
+```kotlin
+dependencies {
+    constraints {
+        // Existing API:
+        add("implementation", provider { "org.foo:bar:1.0" })
+        add("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+        // New methods:
+        addProvider("implementation", provider { "org.foo:bar:1.0" })
+        addProvider("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+    }
+}
+```
+
+This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
