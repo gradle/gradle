@@ -2,7 +2,6 @@ import groovy.lang.GroovySystem
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 import org.gradle.util.internal.VersionNumber
-import java.util.stream.Collectors
 
 /*
  * Copyright 2022 the original author or authors.

@@ -387,6 +387,33 @@ Other common scenarios are less clear cut and may have better solutions. For exa
 
 If you're unsure whether to create a custom source set or not, then go ahead and do so. It should be straightforward and if it's not, then it's probably not the right tool for the job.
 
+[[sec:java_compiling_errors]]
+=== Debugging compiling errors
+
+Gradle provides detailed reporting for compilation failures.
+
+If a compilation task fails, the summary of errors is displayed in the following locations:
+
+- The task's output, providing immediate context for the error.
+- The "What went wrong" summary at the bottom of the build output, consolidated with all other failures for easy reference.
+
+[source,text]
+----
+* What went wrong:
+Execution failed for task ':project1:compileJava'.
+> Compilation failed; see the compiler output below.
+Java compilation warning
+  sample-project/src/main/java/Problem1.java:6: warning: [cast] redundant cast to String
+          var warning = (String)"warning";
+                        ^
+Java compilation error
+  sample-project/src/main/java/Problem2.java:6: error: incompatible types: int cannot be converted to String
+          String a = 1;
+                     ^
+----
+
+This reporting feature works with the `—continue` flag.
+
 [[sec:java_resources]]
 == Managing resources
 
@@ -450,7 +477,6 @@ This JAR is also automatically built by the `assemble` task.
 Furthermore, the plugin can be configured to provide the `javadocJar` and `sourcesJar` tasks to package Javadoc and source code if so desired.
 If a publishing plugin is used, these tasks will automatically run during publishing or can be called directly.
 
-.Configure a project to publish Javadoc and sources
 ====
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
 include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
@@ -458,7 +484,6 @@ include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[
 
 If you want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
 
-.Creating a Java uber or fat JAR
 ====
 include::sample[dir="snippets/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
 include::sample[dir="snippets/files/archivesWithJavaPlugin/groovy",files="build.gradle[tags=create-uber-jar-example]"]
@@ -477,7 +502,6 @@ You can use one of the publishing plugins to publish the JARs created by a Java 
 
 Each instance of the `Jar`, `War` and `Ear` tasks has a `manifest` property that allows you to customize the _MANIFEST.MF_ file that goes into the corresponding archive. The following example demonstrates how to set attributes in the JAR's manifest:
 
-.Customization of MANIFEST.MF
 ====
 include::sample[dir="snippets/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
 include::sample[dir="snippets/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
@@ -487,7 +511,6 @@ See link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] for 
 
 You can also create standalone instances of `Manifest`. One reason for doing so is to share manifest information between JARs. The following example demonstrates how to share common attributes between JARs:
 
-.Creating a manifest object.
 ====
 include::sample[dir="snippets/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
 include::sample[dir="snippets/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
@@ -495,7 +518,6 @@ include::sample[dir="snippets/tutorial/manifest/groovy",files="build.gradle[tags
 
 Another option available to you is to merge manifests into a single `Manifest` object. Those source manifests can take the form of a text for or another `Manifest` object. In the following example, the source manifests are all text files except for `sharedManifest`, which is the `Manifest` object from the previous example:
 
-.Separate MANIFEST.MF for a particular archive
 ====
 include::sample[dir="snippets/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
 include::sample[dir="snippets/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
@@ -505,7 +527,6 @@ Manifests are merged in the order they are declared in the `from` statement. If 
 
 Speaking of `writeTo()`, you can use that to easily write a manifest to disk at any time, like so:
 
-.Saving a MANIFEST.MF to disk
 ====
 include::sample[dir="snippets/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
 include::sample[dir="snippets/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
@@ -520,7 +541,6 @@ See link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJ
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 
-.Using a custom doclet with Javadoc
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=using-custom-doclet]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=using-custom-doclet]"]
@@ -530,7 +550,6 @@ You don't have to create a configuration for this, but it's an elegant way to ha
 
 You might also want to create your own Javadoc tasks, for example to generate API docs for the tests:
 
-.Defining a custom Javadoc task
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=defining-custom-javadoc-task]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=defining-custom-javadoc-task]"]
@@ -580,7 +599,6 @@ See the plugin's chapter for more details, but here's a quick summary of what yo
 
 You can see a basic example of building a Java application in the corresponding link:../samples/sample_building_java_applications.html[sample].
 
-
 [[sec:building_java_webapps]]
 == Building Java web applications
 
@@ -620,7 +638,6 @@ As a consequence, we strongly recommend you not to publish libraries compiled wi
 
 To enable Java link:https://openjdk.java.net/jeps/12[preview features] for compilation, test execution and runtime, you can use the following DSL snippet:
 
-.Enabling Java feature preview
 ====
 include::sample[dir="snippets/java/preview/kotlin",files="build.gradle.kts[tags=enabling-feature-preview]"]
 include::sample[dir="snippets/java/preview/groovy",files="build.gradle[tags=enabling-feature-preview]"]
@@ -640,7 +657,6 @@ The plugins automatically apply support for compiling Java code and can be furth
 These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in the `java` folder of a source set).
 You can change this default behavior by adjusting the classpath of the involved compile tasks as shown in the following example:
 
-.Changing the classpath of compile tasks
 ====
 include::sample[dir="snippets/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
 include::sample[dir="snippets/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]

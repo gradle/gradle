@@ -106,7 +106,7 @@ task retrieve(type: Sync) {
         expectModuleServed(repo2NonUnique)
 
         and: "We resolve dependencies"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Snapshots are downloaded"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
@@ -166,7 +166,7 @@ task retrieve(type: Sync) {
         repo2ProjectB.artifact.expectGet()
 
         and: "We resolve dependencies"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Snapshots are downloaded"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0-SNAPSHOT.jar')
@@ -210,7 +210,7 @@ task retrieve(type: Sync) {
         classifierArtifact.expectGet()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT-tests.jar')
@@ -218,7 +218,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Everything is up to date"
         skipped ':retrieve'
@@ -249,7 +249,7 @@ task retrieve(type: Sync) {
         expectModuleServed(nonUniqueVersionModule)
 
         and: "We resolve dependencies"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Snapshots are downloaded"
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
@@ -268,7 +268,7 @@ task retrieve(type: Sync) {
         expectChangedArtifactServed(nonUniqueVersionModule)
 
         and: "Resolve dependencies again"
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
@@ -306,7 +306,7 @@ task retrieve(type: Sync) {
         expectModuleServed(nonUniqueVersionModule)
 
         then:
-        run 'retrieve'
+        runRetrieveTask()
 
         when: "Change the snapshot artifacts directly: do not change the pom"
         uniqueVersionModule.artifactFile << 'more content'
@@ -318,7 +318,7 @@ task retrieve(type: Sync) {
         server.resetExpectations()
 
         then: "Resolve dependencies again"
-        run 'retrieve'
+        runRetrieveTask()
     }
 
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
@@ -350,7 +350,7 @@ task retrieve(type: Sync) {
         expectModuleServed(nonUniqueVersionModule)
 
         and: "We resolve dependencies"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Snapshots are downloaded"
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
@@ -365,7 +365,7 @@ task retrieve(type: Sync) {
         server.resetExpectations()
 
         and: "Resolve dependencies again, with cached versions"
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs/unique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(uniqueJarSnapshot)
@@ -377,7 +377,7 @@ task retrieve(type: Sync) {
 
         and: "Resolve dependencies with cache expired"
         executer.withArguments("-PnoTimeout")
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants('unique-1.0-SNAPSHOT.jar', 'nonunique-1.0-SNAPSHOT.jar')
@@ -469,7 +469,7 @@ task retrieve(type: Sync) {
         expectModuleServed(module)
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
@@ -481,7 +481,7 @@ task retrieve(type: Sync) {
 
         // Retrieve again with zero timeout should check for updated snapshot
         and:
-        def result = run 'retrieve'
+        def result = runRetrieveTask()
 
         then:
         result.assertTaskSkipped(':retrieve')
@@ -529,7 +529,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         expectModuleServed(module)
 
         then:
-        run 'retrieve'
+        runRetrieveTask()
 
         and:
         file('build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
@@ -605,6 +605,11 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         downloadedJarFile.assertIsCopyOf(module.artifactFile)
     }
 
+    def runRetrieveTask() {
+        executer.withArgument("--no-problems-report")
+        run 'retrieve'
+    }
+
     @Issue("GRADLE-3017")
     def "resolves changed metadata in snapshot dependency"() {
         given:
@@ -644,7 +649,7 @@ task retrieve(type: Sync) {
         projectB1.artifact.expectGet()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
@@ -654,7 +659,7 @@ task retrieve(type: Sync) {
         projectA = projectA.dependsOn('group', 'projectB', '2.0').publish()
 
         and: "Resolve with caching"
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Gets original ProjectA metadata from cache"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0.jar')
@@ -678,14 +683,14 @@ task retrieve(type: Sync) {
 
         and:
         executer.withArguments("-PbypassCache")
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Gets updated metadata"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
 
         when: "Resolve with caching"
         server.resetExpectations()
-        run 'retrieve'
+        runRetrieveTask()
 
         then: "Gets updated metadata from cache"
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
@@ -726,7 +731,7 @@ Required by:
         expectModuleServed(projectA)
 
         then:
-        succeeds 'retrieve'
+        runRetrieveTask()
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
@@ -754,6 +759,7 @@ task retrieve(type: Sync) {
         projectA.artifact.expectGetMissing()
 
         then:
+        executer.withArgument("--no-problems-report")
         fails 'retrieve'
 
         and:
@@ -765,6 +771,7 @@ Searched in the following locations:
         server.resetExpectations()
 
         then:
+        executer.withArgument("--no-problems-report")
         fails 'retrieve'
 
         and:
@@ -793,6 +800,7 @@ task retrieve(type: Sync) {
         metaData.expectGetBroken()
 
         then:
+        executer.withArgument("--no-problems-report")
         fails 'retrieve'
 
         and:
@@ -805,7 +813,7 @@ task retrieve(type: Sync) {
         expectModuleServed(projectA)
 
         then:
-        succeeds 'retrieve'
+        runRetrieveTask()
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
@@ -837,14 +845,14 @@ task retrieve(type: Sync) {
         published.artifact.expectGet()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
 
         when:
         server.resetExpectations()
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
@@ -873,13 +881,13 @@ task retrieve(type: Sync) {
 """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
@@ -906,7 +914,7 @@ task retrieve(type: Sync) {
         expectModuleServed(projectA)
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
@@ -936,7 +944,7 @@ task retrieve(type: Sync) {
         projectA.artifact.expectGet()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-${timestamp1}.jar")
@@ -957,7 +965,7 @@ dependencies {
         projectA.artifact.expectGet()
 
         and:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-${timestamp2}.jar")
@@ -972,7 +980,7 @@ dependencies {
     compile "group:projectA:1.0"
 }
 """
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         file('libs').assertHasDescendants("projectA-1.0.jar")
@@ -997,6 +1005,7 @@ task retrieve(type: Sync) {
         published.missing()
 
         and:
+        executer.withArgument("--no-problems-report")
         fails('retrieve')
 
         then:

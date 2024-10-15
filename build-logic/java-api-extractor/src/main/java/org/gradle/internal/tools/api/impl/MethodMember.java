@@ -22,6 +22,7 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -29,6 +30,7 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
     private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING = Ordering.<String>natural().lexicographical();
     private final SortedSet<String> exceptions = new TreeSet<>();
     private final SortedSet<AnnotationMember> parameterAnnotations = new TreeSet<>();
+    private AnnotationValue<?> annotationDefaultValue;
 
     public MethodMember(int access, String name, String typeDesc, String signature, String[] exceptions) {
         super(access, name, signature, typeDesc);
@@ -47,6 +49,14 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
 
     public void addParameterAnnotation(ParameterAnnotationMember parameterAnnotationMember) {
         parameterAnnotations.add(parameterAnnotationMember);
+    }
+
+    public Optional<AnnotationValue<?>> getAnnotationDefaultValue() {
+        return Optional.ofNullable(annotationDefaultValue);
+    }
+
+    public void setAnnotationDefaultValue(AnnotationValue<?> annotationDefaultValue) {
+        this.annotationDefaultValue = annotationDefaultValue;
     }
 
     @Override

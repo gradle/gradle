@@ -16,16 +16,13 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepHeadersApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepModuleMapApp
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
-@Requires(UnitTestPreconditions.NotMacOs)
+@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    @ToBeFixedForConfigurationCache
     def "relinks but does not recompile when c++ sources change"() {
         def app = new IncrementalSwiftModifyCppDepApp()
         createDirs("app", "cppGreeter")
@@ -75,7 +72,6 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
-    @ToBeFixedForConfigurationCache
     def "recompiles when c++ headers change"() {
         def app = new IncrementalSwiftModifyCppDepHeadersApp()
         createDirs("app", "cppGreeter")
@@ -125,7 +121,6 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
-    @ToBeFixedForConfigurationCache
     def "regenerates module map and recompiles swift app when headers change"() {
         def app = new IncrementalSwiftModifyCppDepModuleMapApp()
         createDirs("app", "cppGreeter")

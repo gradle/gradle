@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -26,7 +27,6 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
@@ -65,12 +65,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * Reports the build exception, if any.
  */
+@NonNullApi
 public class BuildExceptionReporter implements Action<Throwable> {
     private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
 
+    @NonNullApi
     private enum ExceptionStyle {
         NONE, FULL
     }
@@ -315,15 +317,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
             );
         }
 
-        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry &&
-            hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
         LogLevel logLevel = loggingConfiguration.getLogLevel();
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
-        if (hasCompileError && isLessThanInfo) {
-            context.appendResolution(output ->
-                runWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
-            );
-        } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
+        if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
                 output.text("Run with ");
                 if (isLessThanInfo) {
@@ -414,6 +410,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    @NonNullApi
     private static class FailureDetails {
         Throwable failure;
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
@@ -451,6 +448,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
+    @NonNullApi
     private class ContextImpl implements FailureResolutionAware.Context {
         private final BufferingStyledTextOutput resolution;
 

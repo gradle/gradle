@@ -16,7 +16,8 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLoggerApi
@@ -28,10 +29,12 @@ import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import spock.lang.Ignore
 
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
+@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {
         createDirs("app", "cppGreeter")
         settingsFile << "include 'app', 'cppGreeter'"
@@ -73,7 +76,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can compile and link against a c++ library with both static and shared linkages"() {
         createDirs("app", "cppGreeter")
         settingsFile << "include 'app', 'cppGreeter'"
@@ -105,7 +107,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "can compile and link against a library with a dependency on a #linkage.toLowerCase() c++ library"() {
         createDirs("app", "greeter", "cppGreeter")
         settingsFile << "include 'app', 'greeter', 'cppGreeter'"
@@ -163,7 +164,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library with a dependency on another c++ library"() {
         createDirs("app", "greeter", "cppGreeter", "logger")
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
@@ -215,7 +215,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can compile and link against a c++ library with an api dependency on another c++ library"() {
         createDirs("app", "greeter", "cppGreeter", "logger")
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
@@ -256,7 +255,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "declaring a dependency on a c++ library without public headers does not fail"() {
         createDirs("app", "cppGreeter")
         settingsFile << "include 'app', 'cppGreeter'"

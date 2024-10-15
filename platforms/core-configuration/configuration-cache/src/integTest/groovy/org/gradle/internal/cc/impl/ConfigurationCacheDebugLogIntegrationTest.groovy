@@ -66,17 +66,23 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
         events.contains([profile: "build ':' state", type: "O", frame: "Work Graph"])
 
         and: "state frame events are logged"
-        events.contains([profile: "build ':' state", type: "O", frame: ":ok"])
-        events.contains([profile: "build ':' state", type: "C", frame: ":ok"])
-        events.contains([profile: "build ':' state", type: "O", frame: ":sub:ok"])
-        events.contains([profile: "build ':' state", type: "C", frame: ":sub:ok"])
+        events.contains([profile: "child ':' state", type: "O", frame: ":ok"])
+        events.contains([profile: "child ':' state", type: "C", frame: ":ok"])
+        events.contains([profile: "child ':sub' state", type: "O", frame: ":sub:ok"])
+        events.contains([profile: "child ':sub' state", type: "C", frame: ":sub:ok"])
 
         and: "task type frame follows task path frame follows LocalTaskNode frame"
-        def firstTaskNodeIndex = events.findIndexOf { it.frame == LocalTaskNode.name }
-        firstTaskNodeIndex > 0
-        events[firstTaskNodeIndex] == [profile: "build ':' state", type: "O", frame: LocalTaskNode.name]
-        events[firstTaskNodeIndex + 1] == [profile: "build ':' state", type: "O", frame: ":ok"]
-        events[firstTaskNodeIndex + 2] == [profile: "build ':' state", type: "O", frame: DefaultTask.name]
+        ["child ':' state", "child ':sub' state"].each {profile ->
+            def firstTaskNodeIndex = events.findIndexOf { it.profile == profile && it.frame == LocalTaskNode.name }
+            firstTaskNodeIndex > 0
+            events[firstTaskNodeIndex] == [profile: "$profile", type: "O", frame: LocalTaskNode.name]
+
+            def secondTaskNodeIndex = events.findIndexOf {it.profile == profile && it.type == "O" && it.frame == ":ok" }
+            firstTaskNodeIndex < secondTaskNodeIndex
+
+            def thirdTaskNodeIndex = events.findIndexOf {it.profile == profile && it.type == "O" && it.frame == DefaultTask.name }
+            secondTaskNodeIndex < thirdTaskNodeIndex
+        }
 
         where:
         enablement << CCDebugEnablement.values()

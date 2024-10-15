@@ -28,8 +28,8 @@ import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
 
 /**
  * An immutable hash code. Must be 4-255 bytes long.
- * <p>
- * <h3>Memory considerations</h3>
+ *
+ * <h2>Memory considerations</h2>
  * <p>
  * Hashes by default are stored in {@link ByteArrayBackedHashCode a byte array}.
  * For a 128-bit hash this results in 64 bytes of memory used for each {@code HashCode}.

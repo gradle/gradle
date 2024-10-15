@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classpath.intercept.FilterableCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import java.lang.reflect.InvocationTargetException;

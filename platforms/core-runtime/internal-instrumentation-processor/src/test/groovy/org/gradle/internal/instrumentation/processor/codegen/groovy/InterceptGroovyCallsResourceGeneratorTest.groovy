@@ -60,7 +60,7 @@ class InterceptGroovyCallsResourceGeneratorTest extends InstrumentationCodeGenTe
         then:
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
-            .generatedFile(CLASS_OUTPUT, "META-INF/services/org.gradle.internal.classpath.intercept.FilterableCallInterceptor")
+            .generatedFile(CLASS_OUTPUT, "META-INF/services/org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor")
             .contentsAsString(StandardCharsets.UTF_8)
             .isEqualTo([
                 "my.InterceptorDeclaration_GroovyBytecodeImpl\$FileInputStreamConstructorCallInterceptor",

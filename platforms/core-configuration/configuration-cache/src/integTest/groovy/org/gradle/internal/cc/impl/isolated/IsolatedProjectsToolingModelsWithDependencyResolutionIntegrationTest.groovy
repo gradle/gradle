@@ -47,7 +47,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -66,7 +66,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -83,7 +83,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("a/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -122,7 +122,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -140,7 +140,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -158,7 +158,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
                 implementation(project(":b"))
             }
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -178,7 +178,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -194,7 +194,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("a/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -235,7 +235,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -253,7 +253,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -271,7 +271,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
                 implementation(project(":b"))
             }
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -291,7 +291,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -307,7 +307,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("a/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -351,7 +351,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -369,7 +369,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -384,7 +384,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         when:
         file("a/build.gradle").replace('implementation(project(":b"))', "")
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -403,7 +403,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -419,7 +419,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("a/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -463,7 +463,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -481,7 +481,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -497,7 +497,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("c/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -516,7 +516,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -532,7 +532,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("b/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -583,7 +583,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -602,7 +602,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -621,7 +621,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
                 implementation(project(":d"))
             }
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -671,7 +671,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -698,7 +698,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:
@@ -723,7 +723,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         file("a/build.gradle") << """
             // some change
         """
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
 
         then:

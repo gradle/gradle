@@ -42,9 +42,21 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
+/**
+ * A declared dependency, potentially transformed based on a substitution.
+ */
 class DependencyState {
+
+    /**
+     * The original requested component, before substitution.
+     */
     private final ComponentSelector requested;
+
+    /**
+     * The declared dependency this state is based off of, after substitution.
+     */
     private final DependencyMetadata dependency;
+
     private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final int hashCode;

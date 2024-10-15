@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for building Groovy projects"
@@ -8,16 +9,17 @@ errorprone {
     disabledChecks.addAll(
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
     api(projects.serviceProvider)
+    api(projects.baseServices)
     api(projects.buildOption)
     api(projects.coreApi)
     api(projects.core)
     api(projects.files)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.jvmServices)
     api(projects.languageJava)
@@ -33,11 +35,9 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.baseServices)
     implementation(projects.fileCollections)
     implementation(projects.logging)
     implementation(projects.loggingApi)
@@ -82,4 +82,7 @@ tasks.withType<Test>().configureEach {
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

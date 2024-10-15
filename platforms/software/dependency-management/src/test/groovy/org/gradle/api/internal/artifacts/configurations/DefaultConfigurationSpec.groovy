@@ -33,12 +33,12 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
@@ -57,12 +57,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Factories
@@ -533,7 +537,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Mock(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
+        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -724,15 +728,15 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Roles should be copied without modification.
+        // This is not desired behavior. Role should be same as detached configuration.
         copy.canBeDeclared
         copy.canBeResolved
         copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
         copy.deprecatedForConsumption
-        copy.deprecatedForResolution
-        copy.deprecatedForDeclarationAgainst
+        !copy.deprecatedForResolution
+        !copy.deprecatedForDeclarationAgainst
 
         where:
         baseRole << [
@@ -756,15 +760,15 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def copy = configuration.copy()
 
         then:
-        // This is not desired behavior. Roles and deprecations should be copied without modification.
+        // This is not desired behavior. Role should be same as detached configuration.
         copy.canBeDeclared
         copy.canBeResolved
         copy.canBeConsumed
         copy.declarationAlternatives == []
         copy.resolutionAlternatives == []
         copy.roleAtCreation.consumptionDeprecated
-        copy.roleAtCreation.resolutionDeprecated
-        copy.roleAtCreation.declarationAgainstDeprecated
+        !copy.roleAtCreation.resolutionDeprecated
+        !copy.roleAtCreation.declarationAgainstDeprecated
     }
 
     def "can copy with spec"() {
@@ -1042,9 +1046,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def resolvedComponentResult = Mock(ResolvedComponentResult)
-        Supplier<ResolvedComponentResult> rootSource = () -> resolvedComponentResult
-        def result = new MinimalResolutionResult(rootSource, ImmutableAttributes.EMPTY)
+        def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
+        Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
+        def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
@@ -1745,13 +1749,13 @@ All Artifacts:
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
@@ -1769,7 +1773,7 @@ All Artifacts:
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -1781,7 +1785,7 @@ All Artifacts:
     }
 
     private visitedArtifacts(Set<File> files = []) {
-        Stub(VisitedArtifactSet) {
+        Mock(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(files)
         }
     }
@@ -1817,10 +1821,18 @@ All Artifacts:
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
         def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
-        _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
-        _ * domainObjectContext.projectPath(_) >> { String p -> Path.path(projectPath).child(p) }
-        _ * domainObjectContext.buildPath >> Path.path(buildPath)
-        _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        def project = Path.path(projectPath)
+        def buildTreePath = build.append(Path.path(projectPath))
+        _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
+        _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
+        _ * domainObjectContext.buildPath >> build
+        _ * domainObjectContext.projectIdentity >> new ProjectIdentity(
+            new DefaultBuildIdentifier(build),
+            buildTreePath,
+            project,
+            project.name ?: "foo"
+        )
+        _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,
@@ -1845,7 +1857,8 @@ All Artifacts:
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory()
+            TestFiles.taskDependencyFactory(),
+            new DefaultProblems([new NoOpProblemEmitter()])
         )
     }
 

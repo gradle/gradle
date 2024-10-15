@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -25,16 +26,16 @@ import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
+import org.gradle.internal.declarativedsl.assertIs
 
 
-object PropertyTest {
+class PropertyTest {
     @Test
     fun `read-only property cannot be written`() {
         val result = schema().resolve("x = y")
@@ -61,7 +62,7 @@ object PropertyTest {
             propertyExtractor = testPropertyContributor(expectedName, typeOf<Int>()) + testPropertyContributor(expectedName, typeOf<String>())
         )
 
-        val property = schema.dataClassesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!!.properties.single()
+        val property = (schema.dataClassTypesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!! as DataClass).properties.single()
         assertEquals(expectedName, property.name)
         assertEquals(DataTypeInternal.DefaultIntDataType.ref, property.valueType)
     }

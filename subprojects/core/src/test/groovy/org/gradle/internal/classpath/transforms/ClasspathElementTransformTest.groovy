@@ -19,7 +19,7 @@ package org.gradle.internal.classpath.transforms
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Pair
-import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.model.internal.asm.AsmConstants
 import org.gradle.internal.classloader.TransformReplacer
 import org.gradle.internal.classpath.ClassData
 import org.gradle.internal.classpath.ClasspathBuilder
@@ -343,7 +343,7 @@ class ClasspathElementTransformTest extends Specification {
     }
 
     private File transform(TransformFactoryType factory, File original, File target) {
-        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer(), gradleCoreInstrumentingRegistry).transform(target)
+        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer()).transform(target)
         return target
     }
 

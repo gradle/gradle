@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -33,8 +33,6 @@ import java.lang.annotation.RetentionPolicy
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 
 class InspectionSchemeFactoryTest extends Specification {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     def handler1 = handler(Thing1)
     def handler2 = handler(Thing2)
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
@@ -63,7 +61,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
         metadata.visitValidationFailures(null, validationContext)
 
         then:
@@ -89,7 +87,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
         metadata.visitValidationFailures(null, validationContext)
 
         then:

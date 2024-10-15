@@ -19,13 +19,10 @@ package org.gradle.api.tasks
 import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -68,11 +65,10 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         executed(":bp:t")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fails when build path is not unique"() {
         given:
-        settingsFile << "rootProject.name = 'parent'"
-        buildFile << """
+        settingsFile "rootProject.name = 'parent'"
+        buildFile """
             task b1(type:GradleBuild) {
                 tasks = ["t"]
                 buildName = 'bp'
@@ -80,6 +76,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
             task b2(type:GradleBuild) {
                 tasks = ["t"]
                 buildName = 'bp'
+                mustRunAfter ":b1"
             }
             task t
         """

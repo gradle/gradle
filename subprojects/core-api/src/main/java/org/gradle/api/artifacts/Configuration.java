@@ -328,8 +328,11 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     FileCollection fileCollection(Dependency... dependencies);
 
     /**
-     * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
-     * a {@link ResolvedConfiguration} that may be used to determine information about the resolve (including errors).
+     * Returns a {@link ResolvedConfiguration}, a legacy view of the results of dependency resolution.
+     * <strong>Avoid this method for new code</strong>. Prefer accessing resolution outputs via
+     * {@link #getIncoming()}. This API will be deprecated and removed in future Gradle versions.
+     * <p>
+     * See {@link ResolvedConfiguration} for details on why this API should not be used.
      *
      * @implSpec Usage: This method should only be called on resolvable configurations and should fail if
      * called on a configuration that does not permit this usage.  It should warn if called on a configuration that has
@@ -575,11 +578,12 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Set<Configuration> getAll();
 
     /**
-     * Returns the incoming dependencies of this configuration.
+     * Returns a {@link ResolvableDependencies} instance, exposing the results of dependency resolution.
+     * This method is the primary way to consume dependency resolution outputs.
      *
      * @implSpec Usage: This method should only be called on consumable and resolvable configurations, but will not warn if used otherwise.
      *
-     * @return The incoming dependencies of this configuration. Never {@code null}.
+     * @return An object that exposes the results of dependency resolution.
      */
     ResolvableDependencies getIncoming();
 

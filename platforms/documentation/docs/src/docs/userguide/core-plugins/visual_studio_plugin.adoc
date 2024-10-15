@@ -15,8 +15,6 @@
 [[visual_studio_plugin]]
 = Visual Studio
 
-WARNING: The Visual Studio Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Visual Studio Plugin generate files that are used by the https://visualstudio.microsoft.com/[Visual Studio IDE], thus making it possible to open the solution into Visual Studio (`File` - `Open` - `Project/Solution...`).
 
 What exactly the `visual-studio` plugin generates depends on which other plugins are used:

@@ -18,4 +18,5 @@ plugins {
     id("gradlebuild.java-library")
     id("gradlebuild.distribution-module")
     id("gradlebuild.distribution.api")
+    id("gradlebuild.instrumented-java-project")
 }

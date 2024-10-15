@@ -16,21 +16,19 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-import org.junit.Assume
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@Requires(UnitTestPreconditions.HasXCTest)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
-    def setup() {
-        // TODO: Temporarily disable XCTests with Swift3 on macOS
-        Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
-    }
-
     @Override
     protected void writeTests() {
         settingsFile << "rootProject.name = '${passingTestFixture.projectName}'"

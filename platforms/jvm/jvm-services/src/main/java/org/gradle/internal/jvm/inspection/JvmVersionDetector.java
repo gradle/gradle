@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Probes a JVM installation to determine the Java version it provides.
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope({ Scope.Global.class, Scope.UserHome.class })
 public interface JvmVersionDetector {
     /**
      * Probes the Java version for the given JVM installation.

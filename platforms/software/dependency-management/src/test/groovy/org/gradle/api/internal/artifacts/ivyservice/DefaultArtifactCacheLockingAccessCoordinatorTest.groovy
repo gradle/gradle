@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
+import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
@@ -48,12 +50,13 @@ class DefaultArtifactCacheLockingAccessCoordinatorTest extends Specification {
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getDownloadedResources() >> Stub(CacheResourceConfigurationInternal) {
             //noinspection UnnecessaryQualifiedReference
-            getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
+            getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
         }
     }
+    def cacheCleanupStrategyFactory = new DefaultCacheCleanupStrategyFactory(new TestBuildOperationRunner())
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new WritableArtifactCacheLockingAccessCoordinator(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations)
+    def cacheLockingManager = new WritableArtifactCacheLockingAccessCoordinator(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations, cacheCleanupStrategyFactory)
 
     def "cleans up resources"() {
         given:

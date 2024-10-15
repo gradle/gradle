@@ -172,11 +172,11 @@ class ConfigurationCacheKeyTest {
                 startParameter,
                 DefaultInternalOptions(mapOf()),
                 DefaultBuildModelParameters(
+                    requiresToolingModels = false,
                     parallelProjectExecution = false,
                     configureOnDemand = false,
                     configurationCache = true,
                     isolatedProjects = startParameter.isolatedProjects.get(),
-                    requiresBuildModel = false,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,

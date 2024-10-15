@@ -20,6 +20,7 @@ dependencies {
     }
     api(projects.buildCacheBase)
     api(projects.buildOperations)
+    api(projects.buildOperationsTrace)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -95,12 +96,10 @@ dependencies {
     implementation(projects.io)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.platformJvm)
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.buildProcessServices)
     implementation(projects.gradleCli)
     implementation(projects.launcher)
@@ -219,4 +218,7 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         properties["versions"] = versions.get()
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

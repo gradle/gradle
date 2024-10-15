@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -54,7 +55,7 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
         !dependencyMetaData.changing
         !dependencyMetaData.force
-        dependencyMetaData.selector == new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), ImmutableAttributes.EMPTY, [])
+        dependencyMetaData.selector == new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), ImmutableAttributes.EMPTY, ImmutableSet.of())
         projectDependency == dependencyMetaData.source
 
         where:

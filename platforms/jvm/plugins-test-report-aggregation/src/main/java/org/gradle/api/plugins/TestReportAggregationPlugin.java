@@ -42,6 +42,8 @@ import org.gradle.testing.base.plugins.TestingBasePlugin;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 /**
  * Adds configurations to for resolving variants containing test execution results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
  * tasks to collect test results for each named test-suite.
@@ -90,7 +92,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 Callable<FileCollection> testResults = () ->
                     testResultsConf.getIncoming().artifactView(view -> {
                         view.withVariantReselection();
-                        view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                        view.componentFilter(spec(id -> id instanceof ProjectComponentIdentifier));
                         view.attributes(attributes -> {
                             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
                             attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));

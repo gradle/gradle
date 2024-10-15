@@ -27,6 +27,8 @@ dependencies {
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.kotlinDsl)
+    testFixturesImplementation(projects.toolingApi)
     testFixturesImplementation(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.persistentCache)
@@ -41,3 +43,6 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

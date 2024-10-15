@@ -25,6 +25,8 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
@@ -52,11 +54,15 @@ class ImmutableAttributesCodec(
 ) : Codec<ImmutableAttributes> {
 
     override suspend fun WriteContext.encode(value: ImmutableAttributes) {
-        writeAttributes(value)
+        encodePreservingSharedIdentityOf(value) {
+            writeAttributes(it)
+        }
     }
 
     override suspend fun ReadContext.decode(): ImmutableAttributes =
-        readAttributesUsing(attributesFactory, managedFactories).asImmutable()
+        decodePreservingSharedIdentity {
+            readAttributesUsing(attributesFactory, managedFactories).asImmutable()
+        }
 }
 
 

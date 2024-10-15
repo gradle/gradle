@@ -23,6 +23,7 @@ public class TestContainer extends AbstractNamedDomainObjectContainer<TestObject
         super(TestObject.class, instantiator, new DynamicPropertyNamer(), CollectionCallbackActionDecorator.NOOP);
     }
 
+    @Override
     protected TestObject doCreate(String name) {
         Instantiator instantiator = getInstantiator();
         TestObject testObject = new TestObject(instantiator);

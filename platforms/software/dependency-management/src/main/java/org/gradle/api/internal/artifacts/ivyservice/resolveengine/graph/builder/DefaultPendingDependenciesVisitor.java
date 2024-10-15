@@ -31,7 +31,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
     }
 
     @Override
-    public PendingState maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
+    public PendingState maybeAddAsPendingDependency(NodeState sourceNode, DependencyState dependencyState) {
         ModuleIdentifier key = dependencyState.getModuleIdentifier();
         boolean isConstraint = dependencyState.getDependency().isConstraint();
         if (!isConstraint) {
@@ -52,7 +52,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
         }
 
         // No hard dependency, queue up pending dependency in case we see a hard dependency later.
-        module.registerConstraintProvider(node);
+        module.registerConstraintProvider(sourceNode);
         return PendingState.PENDING;
     }
 

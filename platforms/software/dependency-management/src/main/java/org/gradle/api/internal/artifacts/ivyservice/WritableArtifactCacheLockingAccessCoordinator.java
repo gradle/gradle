@@ -17,9 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
-import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -48,21 +47,14 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
             ArtifactCacheMetadata cacheMetaData,
             FileAccessTimeJournal fileAccessTimeJournal,
             UsedGradleVersions usedGradleVersions,
-            CacheConfigurationsInternal cacheConfigurations
-                                               ) {
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         cache = unscopedCacheBuilderFactory
                 .cache(cacheMetaData.getCacheDir())
                 .withDisplayName("artifact cache")
                 .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
-                .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))
+                .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
                 .open();
-    }
-
-    private CacheCleanupStrategy createCacheCleanupStrategy(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
-        return DefaultCacheCleanupStrategy.from(
-            createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations),
-            cacheConfigurations.getCleanupFrequency()::get
-        );
     }
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
@@ -84,7 +76,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
     private Supplier<Long> getMaxAgeTimestamp(CacheConfigurationsInternal cacheConfigurations) {
         Integer maxAgeProperty = Integer.getInteger("org.gradle.internal.cleanup.external.max.age");
         if (maxAgeProperty == null) {
-            return cacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThanAsSupplier();
+            return cacheConfigurations.getDownloadedResources().getEntryRetentionTimestampSupplier();
         } else {
             return TimestampSuppliers.daysAgo(maxAgeProperty);
         }

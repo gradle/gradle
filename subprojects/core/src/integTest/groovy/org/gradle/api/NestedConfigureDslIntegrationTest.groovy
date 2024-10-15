@@ -26,7 +26,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class NestedConfigureDslIntegrationTest extends AbstractIntegrationSpec {
     def "can configure object using configure closure"() {
@@ -213,7 +212,6 @@ assert repositories.empty
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cannot reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
         buildFile << """
 configurations {
@@ -231,7 +229,7 @@ assert repositories.size() == 1
         errorOutput.contains("Could not find method maven() for arguments")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time through configuration container")
     def "cannot reference script level configure method from async closure in named container configure closure when that closure would fail with MME if applied to a new element"() {
         buildFile << """
 plugins {

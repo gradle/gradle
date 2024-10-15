@@ -25,6 +25,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
@@ -95,7 +96,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         target(new Intel32Architecture());
         target(new Intel64Architecture());
-        target(new OsxArm64Architecture());
+        target(new Arm64Architecture());
         configInsertLocation = 0;
     }
 
@@ -329,17 +330,24 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
     }
 
-    private static class OsxArm64Architecture implements TargetPlatformConfiguration {
+    private static class Arm64Architecture implements TargetPlatformConfiguration {
         @Override
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
-                && targetPlatform.getOperatingSystem().isMacOsX()
+                    && (targetPlatform.getOperatingSystem().isMacOsX()
+                        || (targetPlatform.getOperatingSystem().isLinux() && DefaultNativePlatform.getCurrentArchitecture().isArm64()))
                 && targetPlatform.getArchitecture().isArm();
         }
 
         @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            final String[] compilerArgs = new String[]{"-arch", "arm64"};
+            boolean isMacOsX = gccToolChain.getPlatform().getOperatingSystem().isMacOsX();
+            String[] compilerArgs;
+            if (isMacOsX) {
+                compilerArgs= new String[]{"-arch", "arm64"};
+            } else {
+                compilerArgs = new String[]{"-march=native"};
+            }
             Action<List<String>> architectureArgs = new Action<List<String>>() {
                 @Override
                 public void execute(List<String> args) {

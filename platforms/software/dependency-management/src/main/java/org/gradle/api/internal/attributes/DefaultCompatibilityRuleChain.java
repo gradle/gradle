@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T>, CompatibilityRule<T> {
+public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T> {
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = new ArrayList<>();
     private final Instantiator instantiator;
     private final IsolatableFactory isolatableFactory;
@@ -65,19 +65,8 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
             instantiator, new ExceptionHandler<>(rule)));
     }
 
-    @Override
-    public void execute(CompatibilityCheckResult<T> result) {
-        for (Action<? super CompatibilityCheckDetails<T>> rule : rules) {
-            rule.execute(result);
-            if (result.hasResult()) {
-                return;
-            }
-        }
-    }
-
-    @Override
-    public boolean doesSomething() {
-        return !rules.isEmpty();
+    public List<Action<? super CompatibilityCheckDetails<T>>> getRules() {
+        return rules;
     }
 
     private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {

@@ -268,11 +268,11 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                     binaries {
                         first {
                             sources()
-                            tasks(nodeValue: "[]")
+                            tasks(nodeValue: "Task collection")
                         }
                         second {
                             sources()
-                            tasks(nodeValue: "[]")
+                            tasks(nodeValue: "Task collection")
                         }
 
                     }

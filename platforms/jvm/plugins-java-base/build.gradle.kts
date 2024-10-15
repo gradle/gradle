@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Contains a basic JVM plugin used to compile, test, and assemble Java source; often applied by other JVM plugins (though named java-base, jvm-base would be a more proper name)."
@@ -43,8 +44,9 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.fileCollections)
+    implementation(projects.fileOperations)
+    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.reporting)
@@ -71,3 +73,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

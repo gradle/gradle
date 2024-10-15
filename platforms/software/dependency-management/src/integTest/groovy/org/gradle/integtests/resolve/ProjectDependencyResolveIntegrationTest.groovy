@@ -810,4 +810,22 @@ project(':b') {
         "project(':')"       | "root project :"         | ":outgoingVariants"
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
     }
+
+    def "getDependencyProject is deprecated"() {
+        buildFile << """
+            configurations {
+                dependencyScope("foo")
+            }
+
+            dependencies {
+                foo(project)
+            }
+
+            configurations.foo.dependencies.iterator().next().getDependencyProject()
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The ProjectDependency.getDependencyProject() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_get_dependency_project")
+        succeeds("help")
+    }
 }

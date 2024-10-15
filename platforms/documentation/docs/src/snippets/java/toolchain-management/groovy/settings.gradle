@@ -37,7 +37,7 @@ abstract class MadeUpPlugin implements Plugin<Settings> {
     protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
 
     void apply(Settings settings) {
-        settings.getPlugins().apply("jvm-toolchain-management")
+        settings.getPluginManager().apply("jvm-toolchain-management")
 
         JavaToolchainResolverRegistry registry = getToolchainResolverRegistry()
         registry.register(MadeUpResolver.class)

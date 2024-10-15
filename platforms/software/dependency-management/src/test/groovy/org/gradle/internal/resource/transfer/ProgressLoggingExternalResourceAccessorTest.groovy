@@ -52,6 +52,25 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         0 * action._
     }
 
+    def "returns null when resource is missing"() {
+        metaData.wasMissing() >> true
+        expectReadBuildOperation(0, true)
+
+        when:
+        def result = accessor.withContent(location, false, action)
+
+        then:
+        result == null
+
+        and:
+        1 * delegate.withContent(location, false, _) >> { location, revalidate, action ->
+            action.execute(null, metaData)
+        }
+
+        and:
+        0 * action._
+    }
+
     def "reads empty content"() {
         setup:
         expectReadBuildOperation(0)
@@ -198,7 +217,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         1 * context.setResult({ it instanceof ExternalResourceReadMetadataBuildOperationType.Result })
     }
 
-    def expectReadBuildOperation(long bytesRead) {
+    def expectReadBuildOperation(long bytesRead, missing = false) {
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation action ->
             def descriptor = action.description().build()
             assert descriptor.name == "Download https://location/thing.jar"
@@ -211,6 +230,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         }
         1 * context.setResult(_) >> { ExternalResourceReadBuildOperationType.Result opResult ->
             assert opResult.bytesRead == bytesRead
+            assert opResult.missing == missing
         }
     }
 

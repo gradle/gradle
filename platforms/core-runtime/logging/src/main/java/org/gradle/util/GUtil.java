@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -378,12 +379,11 @@ public class GUtil {
     /**
      * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -&gt; CAMEL_CASE
      */
-    @SuppressWarnings("StringCaseLocaleUsage")
     public static String toConstant(CharSequence string) {
         if (string == null) {
             return null;
         }
-        return toWords(string, '_').toUpperCase();
+        return toWords(string, '_').toUpperCase(Locale.ROOT);
     }
 
     /**
@@ -393,7 +393,6 @@ public class GUtil {
         return toWords(string, ' ');
     }
 
-    @SuppressWarnings("StringCaseLocaleUsage")
     public static String toWords(CharSequence string, char separator) {
         if (string == null) {
             return null;
@@ -411,7 +410,7 @@ public class GUtil {
             if (builder.length() > 0) {
                 builder.append(separator);
             }
-            String group1 = matcher.group(1).toLowerCase();
+            String group1 = matcher.group(1).toLowerCase(Locale.ROOT);
             String group2 = matcher.group(2);
             if (group2.length() == 0) {
                 builder.append(group1);

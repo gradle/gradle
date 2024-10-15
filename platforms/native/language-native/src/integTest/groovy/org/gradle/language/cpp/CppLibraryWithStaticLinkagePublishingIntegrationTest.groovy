@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -25,7 +24,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
-    @ToBeFixedForConfigurationCache
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
         assert !lib.publicHeaders.files.empty
@@ -129,7 +127,6 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         releaseRuntime.files.empty
     }
 
-    @ToBeFixedForConfigurationCache
     def "correct variant of published library is selected when resolving"() {
         def app = new CppAppWithLibraryAndOptionalFeature()
 

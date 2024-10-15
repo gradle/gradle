@@ -67,7 +67,7 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
     @Override
-    public Collection<Result> readRequest(ExecutableElement input) {
+    public Collection<Result> readRequest(ExecutableElement input, ReadRequestContext context) {
         if (input.getKind() != ElementKind.METHOD) {
             return emptyList();
         }

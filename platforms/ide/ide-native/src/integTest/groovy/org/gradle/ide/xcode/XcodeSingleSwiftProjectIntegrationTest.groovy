@@ -19,7 +19,6 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
@@ -33,7 +32,6 @@ import spock.lang.Ignore
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for Swift application"() {
         requireSwiftToolChain()
 
@@ -67,7 +65,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for Swift library"() {
         requireSwiftToolChain()
 
@@ -100,7 +97,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for Swift static library"() {
         requireSwiftToolChain()
 
@@ -135,7 +131,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "can build Swift static library from xcode"() {
         useXcodebuildTool()
         def lib = new SwiftLib()
@@ -177,7 +172,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         releaseBinary.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for Swift application with xctest"() {
         requireSwiftToolChain()
 
@@ -215,7 +209,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for Swift library and xctest"() {
         requireSwiftToolChain()
 
@@ -253,7 +246,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when Swift application product doesn't have test configured"() {
         useXcodebuildTool()
 
@@ -297,7 +289,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when Swift library doesn't have test configured"() {
         useXcodebuildTool()
 
@@ -331,7 +322,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can configure test only when xctest plugin is applied"() {
         useXcodebuildTool()
@@ -371,7 +361,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
@@ -402,7 +391,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can run tests for Swift application from xcode"() {
         useXcodebuildTool()
@@ -435,7 +423,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift application from xcode"() {
         useXcodebuildTool()
@@ -480,7 +467,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift application from xcode with multiple operating systems"() {
         useXcodebuildTool()
@@ -529,7 +515,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     def "produces reasonable message when xcode uses outdated xcode configuration"() {
         useXcodebuildTool()
         def app = new SwiftApp()
@@ -553,7 +538,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can clean from xcode"() {
         useXcodebuildTool()
@@ -586,7 +570,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift library from xcode"() {
         useXcodebuildTool()
@@ -631,7 +614,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(UnitTestPreconditions.HasXCode)
-    @ToBeFixedForConfigurationCache
     @Ignore("https://github.com/gradle/gradle-native-private/issues/273")
     def "can build Swift library from xcode with multiple operating systems"() {
         useXcodebuildTool()
@@ -678,7 +660,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
 
-    @ToBeFixedForConfigurationCache
     def "adds new source files in the project"() {
         requireSwiftToolChain()
 
@@ -704,7 +685,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "removes deleted source files from the project"() {
         requireSwiftToolChain()
 
@@ -731,7 +711,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes source files in a non-default location in Swift application project"() {
         requireSwiftToolChain()
 
@@ -754,7 +733,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.projectFile.sources.assertHasChildren(app.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "includes source files in a non-default location in Swift library project"() {
         requireSwiftToolChain()
 
@@ -777,7 +755,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         rootXcodeProject.projectFile.sources.assertHasChildren(lib.files*.name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "honors changes to executable output file locations"() {
         requireSwiftToolChain()
 
@@ -809,7 +786,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         project.products.children[0].path == exe("output/install/main/debug/lib/TestApp").absolutePath
     }
 
-    @ToBeFixedForConfigurationCache
     def "honors changes to library output file locations"() {
         requireSwiftToolChain()
 

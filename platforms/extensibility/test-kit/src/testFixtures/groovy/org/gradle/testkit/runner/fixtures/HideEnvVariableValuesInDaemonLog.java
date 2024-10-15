@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the feature that hides env variable values in daemon log to avoid leaking credentials.
  *
- * @see {@link org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment}
+ * @see org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})

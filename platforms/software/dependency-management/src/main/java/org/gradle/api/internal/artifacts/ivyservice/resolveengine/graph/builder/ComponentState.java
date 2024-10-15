@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -31,8 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.Pair;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
@@ -62,7 +61,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();
-    private final DefaultImmutableCapability implicitCapability;
     private final int hashCode;
 
     private volatile ComponentGraphResolveState resolveState;
@@ -77,14 +75,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+    ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(id);
-        this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
+        this.hashCode = 31 * id.hashCode() ^ Long.hashCode(resultId);
     }
 
     @Override
@@ -98,7 +95,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public Long getResultId() {
+    public long getResultId() {
         return resultId;
     }
 
@@ -317,7 +314,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public List<ComponentState> getDependents() {
-        List<ComponentState> incoming = Lists.newArrayListWithCapacity(nodes.size());
+        List<ComponentState> incoming = new ArrayList<>(nodes.size());
         for (NodeState node : nodes) {
             for (EdgeState dependencyEdge : node.getIncomingEdges()) {
                 incoming.add(dependencyEdge.getFrom().getComponent());
@@ -329,7 +326,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public Collection<? extends ModuleVersionIdentifier> getAllVersions() {
         Collection<ComponentState> moduleVersions = module.getAllVersions();
-        List<ModuleVersionIdentifier> out = Lists.newArrayListWithCapacity(moduleVersions.size());
+        List<ModuleVersionIdentifier> out = new ArrayList<>(moduleVersions.size());
         for (ComponentState moduleVersion : moduleVersions) {
             out.add(moduleVersion.id);
         }
@@ -453,14 +450,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    Capability getImplicitCapability() {
-        return implicitCapability;
+    CapabilityInternal getImplicitCapability() {
+        return resolveState.getDefaultCapability();
     }
 
     @Nullable
     Capability findCapability(String group, String name) {
         if (id.getGroup().equals(group) && id.getName().equals(name)) {
-            return implicitCapability;
+            return getImplicitCapability();
         }
         return null;
     }

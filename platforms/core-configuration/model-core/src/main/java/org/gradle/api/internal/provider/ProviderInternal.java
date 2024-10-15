@@ -37,7 +37,7 @@ import java.util.function.BiFunction;
  *
  * <p>In other words, a provider does not provide a value, it provides a value whose content is in a particular state. This is discussed in more detail below.</p>
  *
- * <h1>The provider value</h1>
+ * <h2>The provider value</h2>
  *
  * <p>The value of a provider may be:</p>
  *
@@ -70,7 +70,7 @@ import java.util.function.BiFunction;
  * fixed once the task has executed. It would become an error to query a provider whose value is still "changing".
  * </p>
  *
- * <h1>The value content</h1>
+ * <h2>The value content</h2>
  *
  * <p>Each provider guarantees that the content of the value is in some particular state when the provider is queried.
  * Currently there are only two states that the various provider implementations can guarantee:

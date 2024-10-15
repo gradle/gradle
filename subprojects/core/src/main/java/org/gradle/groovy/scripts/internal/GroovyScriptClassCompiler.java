@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassPath;
@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -44,6 +45,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
@@ -80,6 +82,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy;
+    private final GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry;
+    private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public GroovyScriptClassCompiler(
         ScriptCompilationHandler scriptCompilationHandler,
@@ -89,7 +93,9 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         ImmutableWorkspaceProvider workspaceProvider,
-        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
+        GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+        PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -99,6 +105,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         this.inputFingerprinter = inputFingerprinter;
         this.workspaceProvider = workspaceProvider;
         this.transformFactoryForLegacy = transformFactoryForLegacy;
+        this.gradleCoreTypeRegistry = gradleCoreTypeRegistry;
+        this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
     }
 
     @Override
@@ -131,7 +139,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         Object target,
         String templateId,
         HashCode sourceHashCode,
-        RemappingScriptSource source,
+        RemappingScriptSource remappedSource,
         ClassLoader classLoader,
         CompileOperation<?> operation,
         Action<? super ClassNode> verifier,
@@ -141,7 +149,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             templateId,
             sourceHashCode,
             classLoader,
-            source,
+            remappedSource,
             operation,
             verifier,
             scriptBaseClass,
@@ -150,7 +158,9 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             fileCollectionFactory,
             inputFingerprinter,
             transformFactoryForLegacy,
-            scriptCompilationHandler
+            scriptCompilationHandler,
+            gradleCoreTypeRegistry,
+            propertyUpgradeReportConfig
         );
         return getExecutionEngine(target)
             .createRequest(unitOfWork)
@@ -161,11 +171,11 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
     /**
      * We want to use build cache for script compilation, but build cache might not be available yet with early execution engine.
-     * Thus settings and init scripts are not using build cache for now.<br/><br/>
-     *
+     * Thus settings and init scripts are not using build cache for now.
+     * <p>
      * When we compile project build scripts, build cache is available, but we need to query execution engine with build cache support
-     * from the project services directly to use it.<br/><br/>
-     *
+     * from the project services directly to use it.
+     * <p>
      * TODO: Remove this and just inject execution engine once we unify execution engines in https://github.com/gradle/gradle/issues/27249
      */
     private ExecutionEngine getExecutionEngine(Object target) {
@@ -222,7 +232,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             String templateId,
             HashCode sourceHashCode,
             ClassLoader classLoader,
-            RemappingScriptSource source,
+            RemappingScriptSource remappedSource,
             CompileOperation<?> operation,
             Action<? super ClassNode> verifier,
             Class<? extends Script> scriptBaseClass,
@@ -231,14 +241,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy,
-            ScriptCompilationHandler scriptCompilationHandler
+            ScriptCompilationHandler scriptCompilationHandler,
+            GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry,
+            PropertyUpgradeReportConfig propertyUpgradeReportConfig
         ) {
-            super(workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy);
+            super(remappedSource.getSource(), workspaceProvider, fileCollectionFactory, inputFingerprinter, transformFactoryForLegacy, gradleCoreTypeRegistry, propertyUpgradeReportConfig);
             this.templateId = templateId;
             this.sourceHashCode = sourceHashCode;
             this.classLoader = classLoader;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-            this.source = source;
+            this.source = remappedSource;
             this.operation = operation;
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
@@ -255,6 +267,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
+            super.visitIdentityInputs(visitor);
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
             visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
@@ -270,7 +283,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         @Override
         public Object loadAlreadyProducedOutput(File workspace) {
-            File instrumentedJar = checkNotNull((File) super.loadAlreadyProducedOutput(workspace));
+            Output output = (Output) super.loadAlreadyProducedOutput(workspace);
+            File instrumentedJar = checkNotNull(output).getInstrumentedOutput();
             File metadataDir = metadataDir(workspace);
             return new GroovyScriptCompilationOutput(instrumentedJar, metadataDir);
         }

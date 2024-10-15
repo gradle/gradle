@@ -19,8 +19,12 @@ package org.gradle.language.swift
 import org.gradle.language.AbstractNativeProductionComponentDependenciesIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import spock.lang.Ignore
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
+@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftApplicationDependenciesIntegrationTest extends AbstractNativeProductionComponentDependenciesIntegrationTest {
     @Override
     protected void makeComponentWithLibrary() {
@@ -43,7 +47,7 @@ class SwiftApplicationDependenciesIntegrationTest extends AbstractNativeProducti
 
         file('lib/build.gradle') << """
             apply plugin: 'swift-library'
-            
+
             group = 'org.gradle.test'
             version = '1.0'
         """

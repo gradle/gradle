@@ -18,6 +18,8 @@ style:
     active: false
   SerialVersionUIDInSerializableClass:
     active: false
+  UnusedImports:
+    active: true
 
 complexity:
   LargeClass:

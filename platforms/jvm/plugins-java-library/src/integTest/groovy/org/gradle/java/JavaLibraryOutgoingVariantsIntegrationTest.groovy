@@ -18,9 +18,11 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import java.util.stream.Collectors
 
+@ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
 class JavaLibraryOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         def repo = mavenRepo

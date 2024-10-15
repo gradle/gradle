@@ -50,9 +50,10 @@ class GradlePropertiesGeneratorTest extends Specification {
         propertiesFile.file
         propertiesFile.text.contains('org.gradle.parallel=true')
         propertiesFile.text.contains('org.gradle.caching=true')
+        propertiesFile.text.contains('org.gradle.configuration-cache=true')
     }
 
-    def "doesn't generate gradle.properties file if not incubating"() {
+    def "generates gradle.properties file with CC only if not incubating"() {
         setup:
         def generator = new GradlePropertiesGenerator()
         settings.isUseIncubatingAPIs() >> false
@@ -61,6 +62,9 @@ class GradlePropertiesGeneratorTest extends Specification {
         generator.generate(settings, null)
 
         then:
-        !propertiesFile.file
+        propertiesFile.file
+        !propertiesFile.text.contains('org.gradle.parallel=')
+        !propertiesFile.text.contains('org.gradle.caching=')
+        propertiesFile.text.contains('org.gradle.configuration-cache=true')
     }
 }
