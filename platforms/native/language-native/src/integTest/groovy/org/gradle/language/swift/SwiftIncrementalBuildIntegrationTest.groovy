@@ -33,9 +33,11 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
+@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"

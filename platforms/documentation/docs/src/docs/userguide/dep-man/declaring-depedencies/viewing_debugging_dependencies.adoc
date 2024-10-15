@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[viewing-debugging-dependencies]]
-[[sec:debugging-build-scans]]
 = Viewing Dependencies
 
 Gradle offers tools to navigate the results of dependency management, allowing you to more precisely understand how and why Gradle resolves dependencies.
 You can render a full dependency graph, identify the origin of a given dependency, and see why specific versions were selected.
 Dependencies can come from build script declarations or transitive relationships.
 
+[[sec:debugging-build-scans]]
 To visualize dependencies, you can use:
 
 - The `dependencies` task

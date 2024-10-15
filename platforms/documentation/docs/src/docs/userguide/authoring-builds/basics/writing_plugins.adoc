@@ -19,37 +19,43 @@ If Gradle or the Gradle community does not offer the specific capabilities your 
 
 Additionally, if you find yourself duplicating build logic across subprojects and need a better way to organize it, custom plugins can help.
 
-== Custom plugin
+== Script plugin
 
 A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 
 To create a "hello world" *plugin*:
 
-[source,kotlin]
-----
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-abstract class SamplePlugin : Plugin<Project> { // <1>
-    override fun apply(project: Project) {      // <2>
-        project.tasks.create("SampleTask") {
-            println("Hello world!")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin-1]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin-1]"]
+====
 <1> Extend the `org.gradle.api.Plugin` interface.
 <2> Override the `apply` method.
 
 === 1. Extend the `org.gradle.api.Plugin` interface
 Create a class that extends the `Plugin` interface.
 
-[source,kotlin]
+====
+=====
+.build.gradle.kts
+[source, kotlin]
 ----
 abstract class MyCreateFilePlugin : Plugin<Project> {
     override fun apply() {}
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+class SamplePlugin implements Plugin<Project> {
+    void apply(Project project) {}
+}
+----
+=====
+====
 
 === 2. Override the `apply` method
 Add tasks and other logic in the `apply()` method.
@@ -59,33 +65,10 @@ This adds the `SampleTask` to your project.
 
 You can then apply the plugin in your build script:
 
-.build.gradle.kts
-[source,kotlin]
-----
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-plugins {
-    application
-}
-
-//
-// More build script logic
-//
-
-abstract class SamplePlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.tasks.register("createFileTask") {
-            val fileText = "HELLO FROM MY PLUGIN"
-            val myFile = File("myfile.txt")
-            myFile.createNewFile()
-            myFile.writeText(fileText)
-        }
-    }
-}
-
-apply<SamplePlugin>()   // <1>
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin-1]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin-1]"]
+====
 <1> Apply the `SamplePlugin`.
 
 Note that this is a simple hello-world example and does not reflect best practices.
@@ -117,51 +100,24 @@ Let's take a look at an example with the following structure:
 
 Our `my-create-file-plugin.gradle.kts` file contains the following code:
 
-.buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts
-[source,kotlin]
-----
-abstract class CreateFileTask : DefaultTask() {
-    @get:Input
-    abstract val fileText: Property<String>
-
-    @Input
-    val fileName = "myfile.txt"
-
-    @OutputFile
-    val myFile: File = File(fileName)
-
-    @TaskAction
-    fun action() {
-        myFile.createNewFile()
-        myFile.writeText(fileText.get())
-    }
-}
-
-tasks.register("createFileTask", CreateFileTask::class) {
-    group = "from my plugin"
-    description = "Create myfile.txt in the current directory"
-    fileText.set("HELLO FROM MY PLUGIN")
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/src/main/groovy/my-create-file-plugin.gradle[]"]
+====
 
 And the `buildSrc` build file contains the following:
 
-.buildSrc/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    `kotlin-dsl`
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[]"]
+====
 
 The pre-compiled script can now be applied in the `build.gradle(.kts`) file of any subproject:
 
-[source,kotlin]
-----
-plugins {
-    id("my-create-file-plugin")  // Apply the plugin
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
+====
 
 The `createFileTask` task from the plugin is now available in your subproject.
 
@@ -172,60 +128,16 @@ They allow you to define a set of conventions for a project, and then apply thos
 
 The example above has been re-written as a convention plugin as a Kotlin script called `MyConventionPlugin.kt` and stored in `buildSrc`:
 
-.buildSrc/src/main/kotlin/MyConventionPlugin.kt
-[source,kotlin]
-----
-import org.gradle.api.DefaultTask
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import java.io.File
-
-abstract class CreateFileTask : DefaultTask() {
-    @get:Input
-    abstract val fileText: Property<String>
-
-    @Input
-    val fileName = project.rootDir.toString() + "/myfile.txt"
-
-    @OutputFile
-    val myFile: File = File(fileName)
-
-    @TaskAction
-    fun action() {
-        myFile.createNewFile()
-        myFile.writeText(fileText.get())
-    }
-}
-
-class MyConventionPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.tasks.register("createFileTask", CreateFileTask::class.java) {
-            group = "from my plugin"
-            description = "Create myfile.txt in the current directory"
-            fileText.set("HELLO FROM MY PLUGIN")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
+====
 
 The plugin can be given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
 
-.buildSrc/build.gradle.kts
-[source,kotlin]
-----
-gradlePlugin {
-    plugins {
-        create("my-convention-plugin") {
-            id = "my-convention-plugin"
-            implementationClass = "MyConventionPlugin"
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
+====
 
 The `gradlePlugin{}` block defines the plugins being built by the project.
 With the newly created `id`, the plugin can be applied in other build scripts accordingly:

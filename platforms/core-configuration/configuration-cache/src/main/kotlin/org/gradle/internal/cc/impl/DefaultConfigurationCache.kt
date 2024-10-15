@@ -382,7 +382,7 @@ class DefaultConfigurationCache internal constructor(
                     checkFingerprint(entryDetails, layout)
                 }
             }
-        }
+        }.value
     }
 
     private
@@ -432,27 +432,33 @@ class DefaultConfigurationCache internal constructor(
         }
 
         buildOperationRunner.withStoreOperation(cacheKey.string) {
-            store.useForStore { layout ->
+            val stateStoreResult = store.useForStore { layout ->
                 try {
                     val stateFile = layout.fileFor(stateType)
                     action(stateFile)
                     val storeFailure = problems.queryFailure()
-                    StoreResult(stateFile.stateFile.file, storeFailure)
+                    storeFailure
                 } catch (error: Exception) {
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
                     throw error
                 }
             }
+
+            val storeFailure = stateStoreResult.value
+            StoreResult(stateStoreResult.accessedFiles, storeFailure)
         }
 
         crossConfigurationTimeBarrier()
     }
 
     private
+    data class LoadResultMetadata(val originInvocationId: String? = null)
+
+    private
     fun loadModel(): Any {
         return loadFromCache(StateType.Model) { stateFile ->
-            LoadResult(stateFile.stateFile.file) to cacheIO.readModelFrom(stateFile)
+            LoadResultMetadata() to cacheIO.readModelFrom(stateFile)
         }
     }
 
@@ -460,12 +466,12 @@ class DefaultConfigurationCache internal constructor(
     fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
             val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
-            LoadResult(stateFile.stateFile.file, buildInvocationId) to workGraph
+            LoadResultMetadata(buildInvocationId) to workGraph
         }
     }
 
     private
-    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResult, T>): T {
+    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResultMetadata, T>): T {
         prepareConfigurationTimeBarrier()
 
         // No need to record the `ClassLoaderScope` tree
@@ -473,7 +479,9 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         val result = buildOperationRunner.withLoadOperation {
-            store.useForStateLoad(stateType, action)
+            val storeLoadResult = store.useForStateLoad(stateType, action)
+            val (intermediateLoadResult, actionResult) = storeLoadResult.value
+            LoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
         crossConfigurationTimeBarrier()
         return result
@@ -532,7 +540,7 @@ class DefaultConfigurationCache internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String
     ): CloseableWriteContext {
-        val (context, codecs) = cacheIO.writeContextFor(stateType, outputStream, profile)
+        val (context, codecs) = cacheIO.writeContextFor("cacheFingerprintWriteContext", stateType, outputStream, profile)
         return context.apply {
             push(isolateOwnerHost, codecs.fingerprintTypesCodec())
         }

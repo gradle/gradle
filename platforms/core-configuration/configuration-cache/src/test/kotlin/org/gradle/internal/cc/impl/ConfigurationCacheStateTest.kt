@@ -29,13 +29,13 @@ class ConfigurationCacheStateTest {
 
     @Test
     fun `can obtain a work state file`() {
-        val workStateFile = ConfigurationCacheRepository.ReadableLayout(testDirectoryProvider.testDirectory).fileFor(StateType.Work)
+        val workStateFile = ConfigurationCacheRepository.ReadableLayout(testDirectoryProvider.testDirectory, {}).fileFor(StateType.Work)
         assertStateFileName("work.bin", workStateFile)
     }
 
     @Test
     fun `can obtain related state file from a work state file`() {
-        val workStateFile = ConfigurationCacheRepository.ReadableLayout(testDirectoryProvider.testDirectory).fileFor(StateType.Work)
+        val workStateFile = ConfigurationCacheRepository.ReadableLayout(testDirectoryProvider.testDirectory, {}).fileFor(StateType.Work)
         assertRelatedStateFileName(workStateFile, "_.work.bin", Path.path(":"))
         assertRelatedStateFileName(workStateFile, "_.work.bin", Path.ROOT)
         assertRelatedStateFileName(workStateFile, "_foo.work.bin", Path.path(":foo"))

@@ -166,11 +166,15 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.severity(mapKindToSeverity(diagnostic.getKind()));
+        Severity severity = mapKindToSeverity(diagnostic.getKind());
+        spec.severity(severity);
         addId(spec, diagnostic);
         addFormattedMessage(spec, diagnostic);
         addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
+        if (severity == Severity.ERROR) {
+            spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
+        }
     }
 
     private static void addId(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {

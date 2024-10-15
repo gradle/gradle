@@ -19,8 +19,8 @@ package org.gradle.performance.experiment.declarativedsl
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import org.gradle.performance.mutator.RetryingClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.AbstractCleanupMutator
-import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -47,7 +47,7 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
         runner.minimumBaseVersion = MINIMUM_BASE_VERSION
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
-            new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+            new RetryingClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         runner.addBuildMutator { invocationSettings ->
             new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
