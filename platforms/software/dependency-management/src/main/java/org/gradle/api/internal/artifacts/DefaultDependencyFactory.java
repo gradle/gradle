@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -50,7 +50,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ObjectFactory objectFactory;
     private final ProjectDependencyFactory projectDependencyFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
     public DefaultDependencyFactory(
         Instantiator instantiator,
@@ -59,7 +59,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         NotationParser<Object, Capability> capabilityNotationParser,
         ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
-        ImmutableAttributesFactory attributesFactory
+        AttributesFactory attributesFactory
     ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;

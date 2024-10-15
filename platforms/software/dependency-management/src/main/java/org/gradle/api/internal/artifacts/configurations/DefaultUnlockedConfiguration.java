@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -58,7 +58,7 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,

@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class DefaultImmutableAttributes implements ImmutableAttributes, AttributeValue<Object> {
+final class DefaultImmutableAttributesContainer implements ImmutableAttributes, AttributeValue<Object> {
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
     // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
@@ -41,15 +41,15 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     final Attribute<?> attribute;
     final Isolatable<?> value;
-    private final ImmutableMap<Attribute<?>, DefaultImmutableAttributes> hierarchy;
-    private final ImmutableMap<String, DefaultImmutableAttributes> hierarchyByName;
+    private final ImmutableMap<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy;
+    private final ImmutableMap<String, DefaultImmutableAttributesContainer> hierarchyByName;
     private final int hashCode;
 
     // Optimize for the single entry case, makes findEntry faster
     private final String singleEntryName;
-    private final DefaultImmutableAttributes singleEntryValue;
+    private final DefaultImmutableAttributesContainer singleEntryValue;
 
-    DefaultImmutableAttributes() {
+    DefaultImmutableAttributesContainer() {
         this.attribute = null;
         this.value = null;
         this.hashCode = 0;
@@ -59,14 +59,14 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         this.singleEntryValue = null;
     }
 
-    DefaultImmutableAttributes(DefaultImmutableAttributes parent, Attribute<?> key, Isolatable<?> value) {
+    DefaultImmutableAttributesContainer(DefaultImmutableAttributesContainer parent, Attribute<?> key, Isolatable<?> value) {
         this.attribute = key;
         this.value = value;
-        Map<Attribute<?>, DefaultImmutableAttributes> hierarchy = new LinkedHashMap<>();
+        Map<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy = new LinkedHashMap<>();
         hierarchy.putAll(parent.hierarchy);
         hierarchy.put(attribute, this);
         this.hierarchy = ImmutableMap.copyOf(hierarchy);
-        Map<String, DefaultImmutableAttributes> hierarchyByName = new LinkedHashMap<>();
+        Map<String, DefaultImmutableAttributesContainer> hierarchyByName = new LinkedHashMap<>();
         hierarchyByName.putAll(parent.hierarchyByName);
         hierarchyByName.put(attribute.getName(), this);
         this.hierarchyByName = ImmutableMap.copyOf(hierarchyByName);
@@ -75,7 +75,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         hashCode = 31 * hashCode + value.hashCode();
         this.hashCode = hashCode;
         if (hierarchyByName.size() == 1) {
-            Map.Entry<String, DefaultImmutableAttributes> entry = hierarchyByName.entrySet().iterator().next();
+            Map.Entry<String, DefaultImmutableAttributesContainer> entry = hierarchyByName.entrySet().iterator().next();
             singleEntryName = entry.getKey();
             singleEntryValue = entry.getValue();
         } else {
@@ -93,13 +93,13 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
             return false;
         }
 
-        DefaultImmutableAttributes that = (DefaultImmutableAttributes) o;
+        DefaultImmutableAttributesContainer that = (DefaultImmutableAttributesContainer) o;
 
         if (hierarchy.size() != that.hierarchy.size()) {
             return false;
         }
 
-        for (Map.Entry<Attribute<?>, DefaultImmutableAttributes> entry : hierarchy.entrySet()) {
+        for (Map.Entry<Attribute<?>, DefaultImmutableAttributesContainer> entry : hierarchy.entrySet()) {
             if (!entry.getValue().value.isolate().equals(that.getAttribute(entry.getKey()))) {
                 return false;
             }
@@ -135,7 +135,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Nullable
     protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
-        DefaultImmutableAttributes attributes = hierarchy.get(key);
+        DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
         return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
 
@@ -144,7 +144,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
      */
     @Override
     public <T> AttributeValue<T> findEntry(Attribute<T> key) {
-        DefaultImmutableAttributes attributes = hierarchy.get(key);
+        DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
         return Cast.uncheckedNonnullCast(attributes == null ? MISSING : attributes);
     }
 
@@ -158,7 +158,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
             // The identity check is intentional here, do not replace with .equals()
             return singleEntryValue;
         }
-        DefaultImmutableAttributes attributes = hierarchyByName.get(name);
+        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(name);
         return attributes == null ? MISSING : attributes;
     }
 
@@ -265,7 +265,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(ATTRIBUTE_NAME_COMPARATOR);
-        for (Map.Entry<Attribute<?>, DefaultImmutableAttributes> entry : hierarchy.entrySet()) {
+        for (Map.Entry<Attribute<?>, DefaultImmutableAttributesContainer> entry : hierarchy.entrySet()) {
             sorted.put(entry.getKey(), entry.getValue().value.isolate());
         }
         return sorted.toString();

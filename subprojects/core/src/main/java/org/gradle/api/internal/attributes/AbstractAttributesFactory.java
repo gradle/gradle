@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 
@@ -25,13 +26,11 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.google.common.cache.LoadingCache;
-
 /**
- * Abstract base implementation of {@link ImmutableAttributesFactory}, that memoizes {@link #fromMap(Map)}
+ * Abstract base implementation of {@link AttributesFactory}, that memoizes {@link #fromMap(Map)}
  * conversions to improve performance.
  */
-public abstract class AbstractAttributesFactory implements ImmutableAttributesFactory {
+public abstract class AbstractAttributesFactory implements AttributesFactory {
     private final LoadingCache<Map<Attribute<?>, ?>, ImmutableAttributes> conversionCache  = CacheBuilder.newBuilder()
         .maximumSize(1000)
         .expireAfterWrite(Duration.ofMinutes(10))

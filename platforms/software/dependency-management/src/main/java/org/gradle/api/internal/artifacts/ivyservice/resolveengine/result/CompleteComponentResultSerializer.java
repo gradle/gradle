@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -58,12 +58,12 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     public CompleteComponentResultSerializer(
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        ImmutableAttributesFactory immutableAttributesFactory,
+        AttributesFactory attributesFactory,
         NamedObjectInstantiator namedObjectInstantiator
     ) {
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
-        this.attributeContainerSerializer = new DesugaringAttributeContainerSerializer(immutableAttributesFactory, namedObjectInstantiator);
+        this.attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
         this.componentIdSerializer = new ComponentIdentifierSerializer();
         this.capabilitySerializer = new ListSerializer<>(new CapabilitySerializer());
     }
