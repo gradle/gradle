@@ -559,13 +559,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         if (Modifier.isStatic(method.getModifiers())) {
-            validateNotAnnotatedForMethod(MethodKind.STATIC, method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForStaticMethod(method, annotations.keySet(), validationContext);
             return;
         }
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType != null) {
-            validateNotAnnotatedForMethod(MethodKind.PROPERTY, method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForPropertyGetter(method, annotations.keySet(), validationContext);
             return;
         }
 
@@ -655,7 +655,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static final String IGNORED_ANNOTATIONS_ON_PROPERTY = "IGNORED_ANNOTATIONS_ON_PROPERTY";
 
-    private static void validateNotAnnotatedForMethod(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+    private static void validateNotAnnotatedForPropertyGetter(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
@@ -663,7 +663,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
-                            methodKind.getDisplayName(), method.getName(),
+                            MethodKind.PROPERTY.getDisplayName(), method.getName(),
                             simpleAnnotationNames(annotationTypes.stream())
                         )
                     )
@@ -672,6 +672,27 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .details("Non-property annotations are ignored if they are placed on a property getter")
                     .solution("Remove the annotations")
                     .solution("Rename the method")
+            );
+        }
+    }
+
+    private static void validateNotAnnotatedForStaticMethod(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (!annotationTypes.isEmpty()) {
+            validationContext.visitTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            MethodKind.STATIC.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Non-property annotations are ignored if they are placed on a static method")
+                    .solution("Remove the annotations")
+                    .solution("Make the method non-static")
             );
         }
     }

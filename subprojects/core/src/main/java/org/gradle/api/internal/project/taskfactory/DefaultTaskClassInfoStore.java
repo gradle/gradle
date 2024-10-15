@@ -33,7 +33,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.work.InputChanges;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -73,11 +72,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
             // TODO These validations should be done as validation in TaskActionAnnotationHandler and surfaced as problems
             Class<?> declaringClass = methodMetadata.getMethod().getDeclaringClass();
-            if (Modifier.isStatic(methodMetadata.getMethod().getModifiers())) {
-                throw new GradleException(String.format("Cannot use @TaskAction annotation on static method %s.%s().",
-                    declaringClass.getSimpleName(), methodMetadata.getMethodName()));
-            }
-
             final Class<?>[] parameterTypes = methodMetadata.getMethod().getParameterTypes();
             if (parameterTypes.length > 1) {
                 throw new GradleException(String.format(

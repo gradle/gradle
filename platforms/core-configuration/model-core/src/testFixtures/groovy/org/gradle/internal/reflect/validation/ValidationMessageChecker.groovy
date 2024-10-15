@@ -48,6 +48,15 @@ trait ValidationMessageChecker {
             .render()
     }
 
+    String cannotUseStaticMethod(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(SimpleMessage, 'ignored_annotations_on_property', spec)
+        config.description("should not be annotated with: @TaskAction")
+            .reason("Non-property annotations are ignored if they are placed on a static method")
+            .solution("Remove the annotations")
+            .solution("Make the method non-static")
+            .render()
+    }
+
     String missingNonConfigurableValueMessage(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(SimpleMessage, 'value_not_set', spec)
         config.description("doesn't have a configured value")
@@ -81,6 +90,19 @@ trait ValidationMessageChecker {
             .reason("Non-property annotations are ignored if they are placed on a property getter")
             .solution("Remove the annotations")
             .solution("Rename the method")
+    }
+
+    String staticMethodShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ShouldNotBeAnnotated config = staticMethodShouldNotBeAnnotatedConfig(spec)
+        config.render()
+    }
+
+    ShouldNotBeAnnotated staticMethodShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
+        config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
+            .reason("Non-property annotations are ignored if they are placed on a static method")
+            .solution("Remove the annotations")
+            .solution("Make the method non-static")
     }
 
     String fieldShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {

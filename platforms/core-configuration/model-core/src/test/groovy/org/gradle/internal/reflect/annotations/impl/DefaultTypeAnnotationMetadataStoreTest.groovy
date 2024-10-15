@@ -959,7 +959,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertMethods TypeWithAnnotatedGetterMethods, [:], [
             strict(fieldShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('field').method('anything').annotation('Foo').includeLink() }),
             strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('property').method('getSomething').annotation('Foo').includeLink() }),
-            strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('static method').method('getStatic').annotation('Bar').includeLink() }),
+            strict(staticMethodShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('static method').method('getStatic').annotation('Bar').includeLink() }),
             strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('property').method('isSomethingElse').annotation('Bar').includeLink() }),
             strict(propertyShouldNotBeAnnotatedMessage { type(TypeWithAnnotatedGetterMethods.canonicalName).kind('property').method('setSomething').annotation('Foo').includeLink() }),
         ]

@@ -222,11 +222,25 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         where:
         type                                  | failureMessage
-//        TaskWithStaticMethod                  | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
         TaskWithMultiParamAction              | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
         TaskWithSingleParamAction             | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
         TaskWithOverloadedInputChangesActions | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedInputChangesActions.doStuff()"
         TaskWithMultipleInputChangesActions   | "Cannot have multiple @TaskAction methods accepting an InputChanges parameter."
+    }
+
+    def "validation fails for task with static task action method"() {
+        when:
+        def task = expectTaskCreated(TaskWithStaticMethod)
+        execute(task)
+
+        then:
+        def e = thrown WorkValidationException
+        def expectedMessage = cannotUseStaticMethod {
+            method('staticAction()')
+                .kind("static")
+                .includeLink()
+        }
+        validateException(task, e, expectedMessage)
     }
 
     def "works for #type.simpleName"() {
