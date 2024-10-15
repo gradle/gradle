@@ -1,6 +1,8 @@
 package promotion
 
 import common.BuildToolBuildJvm
+import common.OpenJdk11
+import common.OpenJdk17
 import common.OpenJdk8
 import common.Os
 import common.VersionedSettingsBranch
@@ -45,6 +47,8 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
         param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
         // https://github.com/gradle/gradle-private/issues/4504
         param("env.JDK8", javaHome(OpenJdk8, Os.LINUX))
+        param("env.JDK11", javaHome(OpenJdk11, Os.LINUX))
+        param("env.JDK17", javaHome(OpenJdk17, Os.LINUX))
         param("env.ORG_GRADLE_PROJECT_artifactoryUserName", "%gradle.internal.repository.build-tool.publish.username%")
         password("env.ORG_GRADLE_PROJECT_infrastructureEmailPwd", "%infrastructureEmailPwd%")
         param("env.ORG_GRADLE_PROJECT_sdkmanKey", "8ed1a771bc236c287ad93c699bfdd2d7")
