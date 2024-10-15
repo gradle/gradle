@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalLabel;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
-
-@NonNullApi
-public interface InternalProblemAggregation {
-
-    InternalProblemCategory getCategory();
-
-    InternalLabel getLabel();
+interface ProblemsSummaryProgressDetails {
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,12 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
-import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 
-import javax.annotation.Nullable;
-import java.util.List;
+import java.io.Serializable;
 
 @NonNullApi
-public interface InternalProblemAggregationVersion2 extends InternalProblemAggregation {
+public interface InternalProblemSummary extends Serializable {
+    InternalProblemId getProblemId();
 
-    @Nullable
-    InternalDocumentationLink getDocumentationLink();
-
-    InternalSeverity getSeverity();
-
-    List<InternalProblemContextDetails> getProblemContextDetails();
+    Integer getCount();
 }

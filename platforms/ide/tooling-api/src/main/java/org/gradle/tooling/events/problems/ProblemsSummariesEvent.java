@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events.problems;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
+import org.gradle.api.Incubating;
 
-import java.util.List;
-
-@NonNullApi
-public interface InternalProblemAggregationVersion3 extends InternalProblemDetailsVersion2 {
-
-    InternalProblemDefinition getProblemDefinition();
-
-    List<InternalProblemContextDetails> getProblemContextDetails();
+/**
+ * The Event capturing all problems summaries
+ *
+ * @since 8.12
+ */
+@Incubating
+public interface ProblemsSummariesEvent extends ProblemEvent {
+    /**
+     * Get problems summaries
+     *
+     * @since 8.12
+     */
+    ProblemsSummaries getProblemsSummaries();
 }
