@@ -150,7 +150,7 @@ There are three main use cases for creating custom configurations:
 
 1. **API/Implementation Separation:** Create custom configurations to separate API dependencies (exposed to consumers) from implementation dependencies (used internally during compilation or runtime).
 - You might create an `api` configuration for libraries that consumers will depend on, and an `implementation` configuration for libraries that are only needed internally. The `api` configuration is typically consumed by downstream projects, while `implementation` dependencies are hidden from consumers but used internally.
-- This separation ensures that your project maintains clean boundaries between its API and internal dependencies.
+- This separation ensures that your project maintains clean boundaries between its public API and strictly internal mechanisms.
 
 2. **Resolvable Configuration from Dependency Configuration**: Create a custom resolvable configuration to resolve specific sets of dependencies, like classpaths, at various build stages.
 - You might create a `compileClasspath` configuration that resolves only the dependencies needed to compile your project. Similarly, you could create a `runtimeClasspath` configuration to resolve the dependencies needed to run the project at runtime.
@@ -164,7 +164,7 @@ There are three main use cases for creating custom configurations:
 
 Several incubating factory methods—`resolvable()`, `consumable()`, and `dependencyScope()`—within the link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html[`ConfigurationContainer`] API can be used to simplify the creation of configurations with specific roles.
 
-These methods help users avoid manually setting various configuration flags, streamlining the process and ensuring consistency:
+These methods help build authors document the purpose of a configuration and avoid manually setting various configuration flags, streamlining the process and ensuring consistency:
 
 - **`resolvable()`**: Creates a configuration intended for resolving dependencies. This means the configuration can be used to resolve dependencies but not consumed by other projects.
 - **`consumable()`**: Creates a configuration meant to be consumed by other projects but not used to resolve dependencies itself.

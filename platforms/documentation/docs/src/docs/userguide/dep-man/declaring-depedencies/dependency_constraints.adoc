@@ -29,16 +29,18 @@ include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="
 include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
 ====
 
-In general, a dependency is considered either a **direct** dependency, or a **transitive** dependency:
+In general, dependencies are categorized as either *direct* or *transitive*:
 
-- *Direct dependencies* are _directly required by a component_.
-- *Transitive dependencies* are dependencies that a component needs, but only because another direct or transitive dependency needs them.
+- *Direct dependencies* are those explicitly specified within a component's build or metadata.
+- *Transitive dependencies* are not directly specified; they are pulled in automatically as dependencies of the direct dependencies.
+
+A component may require both direct and transitive dependencies to compile or run.
 
 == Declaring constraints alongside direct dependencies
 
-**Dependency constraints** allow you to define the version or version range for declared dependencies.
+**Dependency constraints** allow you to define the version or version range for a specific declared dependency.
 
-This is the preferred method for applying constraints across all dependencies within a configuration.
+This is the preferred method for managing the version of a component across multiple configurations or projects.
 
 When Gradle resolves a module version, it considers all relevant factors, including <<rich_versions.adoc#rich-version-constraints,rich versions>>, transitive dependencies, and dependency constraints for that module.
 The highest version that meets all the conditions is selected.

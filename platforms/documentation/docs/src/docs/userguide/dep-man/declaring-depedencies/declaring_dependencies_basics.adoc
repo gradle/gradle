@@ -38,12 +38,9 @@ include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="buil
 Gradle offers multiple notations for declaring module dependencies, including string notation and map notation.
 
 - **String Notation:** Simplifies dependency declaration by combining the group, name, and version into a single string.
-- **Map Notation:** Allows for a more detailed specification, enabling the definition of all properties.
+- **Map Notation:** Allows for specifying each part of the coordinates separately.
 
-For advanced configurations, such as making a dependency transitive, you can use closures alongside these notations.
-
-Refer to the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] class in the API documentation for more examples and details.
-Additionally, explore the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] class to understand the full range of properties and configuration methods available.
+For advanced configurations, such as enforcing strict versions, you can also provide a closure when alongside these notations.
 
 [[sub:project_dependencies]]
 === 2. Project dependencies
@@ -60,12 +57,10 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 ====
 
 Gradle uses the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[`project()`] function to define a project dependency.
-This function takes the path to the target project within the build.
-The path is typically defined using a colon (`:`) to separate different levels of the project hierarchy.
+This function takes the relative path to the target project within the build.
+The path is typically defined using a colon (`:`) to separate different levels of the project structure.
 
 Project dependencies are automatically resolved such that the dependent project is always built before the project that depends on it.
-
-Refer to the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] class in the API documentation for more examples and details on how to configure project dependencies within a multi-project build.
 
 [[sec:type-safe-project-accessors]]
 ==== Type-safe project dependencies
@@ -90,7 +85,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSaf
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
 ====
 
-With this API, incorrect dependencies in Kotlin DSL scripts trigger compilation errors, helping you avoid missed updates.
+With this API, incorrectly specified projects in Kotlin DSL scripts trigger compilation errors, helping you avoid missed updates.
 
 Project accessors are based on project paths.
 For instance, the path `:commons:utils:some:lib` becomes `projects.commons.utils.some.lib`, while kebab-case (`some-lib`) and snake-case (`some_lib`) are converted to camel case: `projects.someLib`.
@@ -99,6 +94,7 @@ For instance, the path `:commons:utils:some:lib` becomes `projects.commons.utils
 === 3. File dependencies
 
 File dependencies allow you to include external JARs or other files directly into your project by referencing their file paths.
+File dependencies also allow you to add a set of files directly to a configuration without using a repository.
 
 NOTE: File dependencies are generally discouraged.
 Instead, prefer declaring dependencies on an external repository, or if necessary, declaring a maven or ivy repository using a `file://` URL.
@@ -139,10 +135,6 @@ repositories {
 }
 ----
 
-For more details on working with file dependencies, refer to the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] and `ProjectLayout` classes in the Gradle API documentation.
-
-File dependencies also allow you to add a set of files directly to a configuration without using a repository.
-
 To add files as dependencies, pass a <<working_with_files.adoc#sec:file_collections,file collection>> to the configuration:
 
 ====
@@ -153,8 +145,8 @@ include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="buil
 Note that file dependencies are not included in the published dependency descriptor for your project.
 However, they are available in transitive dependencies within the same build, meaning they can be used within the current build but not outside it.
 
-You can specify which tasks produce the files for a file dependency.
-This is useful when files are generated during the build process:
+You should specify which tasks produce the files for a file dependency.
+Otherwise, the necessary tasks might not run when you depend on them transitively from another project:
 
 ====
 include::sample[dir="snippets/artifacts/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
@@ -205,7 +197,7 @@ include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradl
 [[sec:documenting-dependencies]]
 == Documenting dependencies
 
-When declaring a dependency or a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, you can provide a custom reason to clarify why the dependency is included.
+When declaring a dependency or a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, you can provide a reason to clarify why the dependency is included.
 This helps make your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> easier to interpret:
 
 ====

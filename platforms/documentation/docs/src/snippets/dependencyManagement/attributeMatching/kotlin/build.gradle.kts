@@ -15,14 +15,14 @@ dependencies {
 // tag::concrete-classpath[]
 configurations {
     // declare a resolvable configuration that is going to resolve the compile classpath of the application
-    compileClasspath {
-        isCanBeConsumed = false
-        isCanBeDeclared = false
+    resolvable("compileClasspath") {
+        //isCanBeConsumed = false
+        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // end::concrete-classpath[]
     // declare a resolvable configuration that is going to resolve the runtime classpath of the application
-    runtimeClasspath {
+    create("runtimeClasspath") {
         isCanBeConsumed = false
         isCanBeDeclared = false
         extendsFrom(implementation)
@@ -34,9 +34,9 @@ configurations {
 // tag::setup-configurations[]
 configurations {
     // a consumable configuration meant for consumers that need the API of this component
-    create("exposedApi") {
-        isCanBeResolved = false
-        isCanBeDeclared = false
+    consumable("exposedApi") {
+        //isCanBeResolved = false
+        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // end::setup-configurations[]

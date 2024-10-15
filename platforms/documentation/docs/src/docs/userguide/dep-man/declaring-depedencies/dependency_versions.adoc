@@ -69,8 +69,8 @@ Declaring a version as `+`, without any prefix, will include any version.
 [source,kotlin]
 ----
 dependencies {
-    implementation("org.springframework:spring-core:1.1") // This is a higher version than 1.a
-    implementation("org.springframework:spring-core:1.a") // This is a lower version than 1.1
+    implementation("org.springframework:spring-core:1.1") // This is a newer version than 1.a
+    implementation("org.springframework:spring-core:1.a") // This is a older version than 1.1
 }
 ----
 
