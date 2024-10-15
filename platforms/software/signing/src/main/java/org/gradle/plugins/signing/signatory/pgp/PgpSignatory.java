@@ -29,7 +29,6 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
-import org.gradle.security.internal.SecuritySupport;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,10 +38,6 @@ import java.io.OutputStream;
  * PGP signatory from PGP key and password.
  */
 public class PgpSignatory extends SignatorySupport {
-
-    static {
-        SecuritySupport.assertInitialized();
-    }
 
     private final String name;
     private final PGPSecretKey secretKey;
