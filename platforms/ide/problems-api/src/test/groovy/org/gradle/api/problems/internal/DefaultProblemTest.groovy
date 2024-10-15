@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems.internal
 
-import com.google.common.collect.HashMultimap
+
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
@@ -70,7 +70,7 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemEmitter)
-        def problemReporter = new DefaultProblemReporter([emitter], null, CurrentBuildOperationRef.instance(), HashMultimap.create(), new AdditionalDataBuilderFactory())
+        def problemReporter = new DefaultProblemReporter([emitter], null, CurrentBuildOperationRef.instance(), new DefaultBuildSessionProblemContainer(), new AdditionalDataBuilderFactory())
         def problem = createTestProblem(Severity.WARNING)
         def builder = problem.toBuilder()
         def newProblem = builder

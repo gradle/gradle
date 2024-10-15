@@ -125,6 +125,7 @@ public class ProviderMigrationArchitectureTest {
         .that(are(mutable_public_API_properties))
         .and().doNotHaveRawReturnType(TextResource.class)
         .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
+        .and(not(declaredIn(resideInAPackage("org.gradle.tooling.."))))
         .should(haveProviderReturnType()));
 
     @ArchTest

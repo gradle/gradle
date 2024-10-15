@@ -433,6 +433,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
             .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
             .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
+            .put(InternalBuildProgressListener.ROOT, OperationType.ROOT)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;
@@ -490,6 +491,11 @@ public class ProviderConnection {
                     // Some types were split out of 'generic' type in 7.3, so include these when an older consumer requests 'generic'
                     if (operationTypes.contains(OperationType.GENERIC)) {
                         operationTypes.add(OperationType.FILE_DOWNLOAD);
+                    }
+                }
+                if (consumerVersion.compareTo(GradleVersion.version("8.12")) < 0) {
+                    if (operationTypes.contains(OperationType.GENERIC)) {
+                        operationTypes.add(OperationType.ROOT);
                     }
                 }
                 return operationTypes;

@@ -21,11 +21,13 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents.Operation
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.util.GradleVersion
 
+@ToolingApiVersion("<8.12")
 class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """

@@ -20,11 +20,14 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskProgressEvent
@@ -181,6 +184,57 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.failed == [test]
     }
 
+    def " all events have been delivered before operation fails"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     Thread.sleep(100);  // sleep for a moment to ensure test duration is > 0 (due to limited clock resolution)
+                     throw new RuntimeException("broken", new RuntimeException("nope"));
+                }
+            }
+        """
+
+        when:
+        def resultHandler = new ResultHandler() {
+            long last
+
+            @Override
+            void onComplete(Object result) {
+                this.last = System.nanoTime()
+            }
+
+            @Override
+            void onFailure(GradleConnectionException failure) {
+                this.last = System.nanoTime()
+            }
+        }
+        def progressListener = new org.gradle.tooling.events.ProgressListener() {
+
+            long last
+
+            @Override
+            void statusChanged(ProgressEvent event) {
+                this.last = System.nanoTime()
+            }
+        }
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addProgressListener(progressListener).run(resultHandler)
+        }
+
+        then:
+        resultHandler.last > progressListener.last
+    }
+
     @TargetGradleVersion(">=3.0 <3.6")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
@@ -307,7 +361,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         """
     }
 
-    def "task operations have a build operation as parent iff build listener is attached"() {
+    @ToolingApiVersion("<8.12")
+    def "task operations have a build operation as parent iff build listener is attached  (Tooling API client < 8.12)"() {
         given:
         goodCode()
 
@@ -316,6 +371,33 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
+        }
+
+        then: 'the parent of the task events is the root build operation'
+        def runTasks = events.operation("Run tasks")
+        events.tasks.every { it.descriptor.parent == runTasks.descriptor }
+
+        when: 'listening to task progress events when no build operation listener is attached'
+        events.clear()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().withArguments('--rerun-tasks').forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
+        }
+
+        then: 'the parent of the task events is null'
+        events.tasks.every { it.descriptor.parent == null }
+    }
+
+    @ToolingApiVersion(">=8.12")
+    def "task operations have a build operation as parent iff build listener is attached (Tooling API client >= 8.12)"() {
+        given:
+        goodCode()
+
+        when: 'listening to task progress events and build operation listener is attached'
+        def events = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TASK, OperationType.ROOT)).run()
         }
 
         then: 'the parent of the task events is the root build operation'

@@ -317,4 +317,13 @@ public interface LongRunningOperation {
      * @since 2.1
      */
     LongRunningOperation withCancellationToken(CancellationToken cancellationToken);
+
+    /**
+     * Adds more detailed information about the build failure to the {@link GradleConnectionException} that provides insights into the reasons for the failure, making it easier to diagnose and fix issues.
+     *
+     * @return this
+     * @since 8.12
+     */
+    @Incubating
+    LongRunningOperation withDetailedFailure();
 }

@@ -86,7 +86,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
                 T result = connection.run(buildAction, operationParameters);
                 return result;
             }
-        }, new ResultHandlerAdapter<T>(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+        }, new ResultHandlerAdapter<T>(handler, createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
             @Override
             public String getConnectionFailureMessage(Throwable throwable) {
                 return String.format("Could not run build action using %s.", connection.getDisplayName());

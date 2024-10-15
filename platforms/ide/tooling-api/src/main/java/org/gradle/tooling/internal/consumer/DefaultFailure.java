@@ -23,7 +23,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
-public final class DefaultFailure implements Failure {
+public class DefaultFailure implements Failure {
 
     private final String message;
     private final String description;

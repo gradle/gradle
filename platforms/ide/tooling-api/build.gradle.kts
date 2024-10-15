@@ -38,7 +38,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.guava)
+    api(libs.guava) // TODO (donat) move this to implementation once we have a proper replacement
 
     api(libs.jsr305)
     api(projects.baseServices)

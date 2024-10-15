@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.problems.internal.BuildSessionProblemContainer;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
@@ -135,7 +136,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter
+            ValueSnapshotter valueSnapshotter,
+            BuildSessionProblemContainer problemContainer
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -162,7 +164,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
                             new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
                             buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
-                            buildOperationNotificationValve))));
+                            buildOperationNotificationValve,
+                            problemContainer))));
         }
 
         @Provides

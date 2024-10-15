@@ -16,9 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
@@ -32,43 +29,39 @@ public class DefaultProblems implements InternalProblems {
 
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final BuildSessionProblemContainer buildSessionProblemContainer;
     private final Collection<ProblemEmitter> emitter;
     private final InternalProblemReporter internalReporter;
-    private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
 
     public DefaultProblems(Collection<ProblemEmitter> emitter, CurrentBuildOperationRef currentBuildOperationRef) {
-        this(emitter, null, currentBuildOperationRef);
+        this(emitter, null, currentBuildOperationRef, new DefaultBuildSessionProblemContainer());
     }
 
     public DefaultProblems(Collection<ProblemEmitter> emitter) {
-        this(emitter, null, CurrentBuildOperationRef.instance());
+        this(emitter, null, CurrentBuildOperationRef.instance(), new DefaultBuildSessionProblemContainer());
     }
 
-    public DefaultProblems(Collection<ProblemEmitter> emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(Collection<ProblemEmitter> emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef, BuildSessionProblemContainer buildSessionProblemContainer) {
         this.emitter = emitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        internalReporter = createReporter(emitter, problemStream, problemsForThrowables);
+        this.buildSessionProblemContainer = buildSessionProblemContainer;
+        internalReporter = createReporter(emitter, problemStream, buildSessionProblemContainer);
     }
 
     @Override
     public ProblemReporter getReporter() {
-        return createReporter(emitter, problemStream, problemsForThrowables);
+        return createReporter(emitter, problemStream, buildSessionProblemContainer);
     }
 
-    private DefaultProblemReporter createReporter(Collection<ProblemEmitter> emitter, ProblemStream problemStream, Multimap<Throwable, Problem> problems) {
-        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, problems, additionalDataBuilderFactory);
+    private DefaultProblemReporter createReporter(Collection<ProblemEmitter> emitter, ProblemStream problemStream, BuildSessionProblemContainer buildSessionProblemContainer) {
+        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, buildSessionProblemContainer, additionalDataBuilderFactory);
     }
 
     @Override
     public InternalProblemReporter getInternalReporter() {
         return internalReporter;
-    }
-
-    @Override
-    public Multimap<Throwable, Problem> getProblemsForThrowables() {
-        return problemsForThrowables;
     }
 
     @Override

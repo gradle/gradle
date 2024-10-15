@@ -13,6 +13,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.messaging)
     api(projects.toolingApi)
+    api(projects.problemsApi)
 
     implementation(projects.modelCore)
 

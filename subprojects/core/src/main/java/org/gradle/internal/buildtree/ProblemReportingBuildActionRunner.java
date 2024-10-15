@@ -47,7 +47,6 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         RootProjectBuildDirCollectingListener rootProjectBuildDirListener = getRootProjectBuildDirCollectingListener(buildController);
         Result result = delegate.run(action, buildController);
-
         File rootProjectBuildDir = rootProjectBuildDirListener.rootProjectBuildDir;
         List<Throwable> failures = reportProblems(rootProjectBuildDir);
         return result.addFailures(failures);

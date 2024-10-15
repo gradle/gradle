@@ -21,7 +21,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 
 public class ProblemsProgressEventEmitterHolder {
-    private static InternalProblems problemsService = new DefaultProblems(ImmutableList.<ProblemEmitter>of(new NoOpProblemEmitter()), null, CurrentBuildOperationRef.instance());
+    private static InternalProblems problemsService = new DefaultProblems(ImmutableList.<ProblemEmitter>of(new NoOpProblemEmitter()), null, CurrentBuildOperationRef.instance(), null);
 
     public static void init(InternalProblems problemsService) {
         ProblemsProgressEventEmitterHolder.problemsService = problemsService;

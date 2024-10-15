@@ -18,6 +18,7 @@ package org.gradle.problems.internal.services;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.problems.internal.BuildSessionProblemContainer;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
@@ -46,9 +47,10 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
         ProblemStream problemStream,
-        Collection<ProblemEmitter> problemEmitters
+        Collection<ProblemEmitter> problemEmitters,
+        BuildSessionProblemContainer buildSessionProblemContainer
     ) {
-        return new DefaultProblems(problemEmitters, problemStream, CurrentBuildOperationRef.instance());
+        return new DefaultProblems(problemEmitters, problemStream, CurrentBuildOperationRef.instance(), buildSessionProblemContainer);
     }
 
     @Provides

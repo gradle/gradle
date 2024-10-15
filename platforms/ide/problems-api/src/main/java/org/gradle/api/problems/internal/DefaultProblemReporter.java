@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -30,20 +29,20 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final Collection<ProblemEmitter> emitters;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final Multimap<Throwable, Problem> problems;
+    private final BuildSessionProblemContainer problemContainer;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
     public DefaultProblemReporter(
         Collection<ProblemEmitter> emitters,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
-        Multimap<Throwable, Problem> problems,
+        BuildSessionProblemContainer problemContainer,
         AdditionalDataBuilderFactory additionalDataBuilderFactory
     ) {
         this.emitters = emitters;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        this.problems = problems;
+        this.problemContainer = problemContainer;
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
     }
 
@@ -69,7 +68,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     private RuntimeException throwError(Throwable exception, Problem problem) {
         report(problem);
-        problems.put(exception, problem);
+        problemContainer.onProblem(exception, problem);
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
@@ -94,10 +93,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem) {
-        Throwable exception = problem.getException();
-        if(exception != null) {
-            problems.put(exception, problem);
-        }
         OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
             report(problem, id);
@@ -115,6 +110,10 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
+        Throwable exception = problem.getException();
+        if (exception != null) {
+            problemContainer.onProblem(exception, problem);
+        }
         // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be a replaced with a future problem listener feature.
         for (ProblemEmitter emitter : emitters) {
             emitter.emit(problem, id);

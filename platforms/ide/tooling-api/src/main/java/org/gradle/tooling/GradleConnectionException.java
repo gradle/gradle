@@ -15,17 +15,47 @@
  */
 package org.gradle.tooling;
 
+import com.google.common.base.Supplier;
+import org.gradle.api.Incubating;
+
+import java.util.List;
+
 /**
  * Thrown when there is some problem using a Gradle connection.
  *
  * @since 1.0-milestone-3
  */
 public class GradleConnectionException extends RuntimeException {
+
+    private Supplier<List<Failure>> failures;
+
     public GradleConnectionException(String message) {
         super(message);
     }
 
     public GradleConnectionException(String message, Throwable throwable) {
         super(message, throwable);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @since 8.12
+     */
+    @Incubating
+    public GradleConnectionException(String message, Throwable failure, Supplier<List<Failure>> failures) {
+        super(message, failure);
+        this.failures = failures;
+    }
+
+    /**
+     * The list of failures that occurred during the build.
+     *
+     * @return the failures
+     * @since 8.12
+     */
+    @Incubating
+    public List<Failure> getFailures() {
+        return failures.get();
     }
 }

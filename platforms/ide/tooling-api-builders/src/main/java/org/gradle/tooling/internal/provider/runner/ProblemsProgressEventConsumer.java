@@ -109,15 +109,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     private InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId),
-            new DefaultProblemDetails(
-                toInternalDefinition(problem.getDefinition()),
-                toInternalDetails(problem.getDetails()),
-                toInternalContextualLabel(problem.getContextualLabel()),
-                toInternalLocations(problem.getLocations()),
-                toInternalSolutions(problem.getSolutions()),
-                toInternalAdditionalData(problem.getAdditionalData()),
-                toInternalFailure(problem.getException())
-            )
+            createDefaultProblemDetails(problem)
         );
     }
 
@@ -133,6 +125,18 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return new DefaultProblemDescriptor(
             operationIdentifierSupplier.get(),
             parentBuildOperationId);
+    }
+
+    static DefaultProblemDetails createDefaultProblemDetails(Problem problem) {
+        return new DefaultProblemDetails(
+            toInternalDefinition(problem.getDefinition()),
+            toInternalDetails(problem.getDetails()),
+            toInternalContextualLabel(problem.getContextualLabel()),
+            toInternalLocations(problem.getLocations()),
+            toInternalSolutions(problem.getSolutions()),
+            toInternalAdditionalData(problem.getAdditionalData()),
+            toInternalFailure(problem.getException())
+        );
     }
 
     private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {

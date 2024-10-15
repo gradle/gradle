@@ -31,7 +31,7 @@ public interface ProblemAwareFailure {
      * Returns a collection of problems that are specific to this exception.
      *
      * @return a collection of problems
-     * @since 8.10
+     * @since 8.11
      */
     Collection<Problem> getProblems();
 }

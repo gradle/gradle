@@ -49,7 +49,7 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.functional)
     implementation(projects.io)
-    implementation(projects.problemsApi)
+    api(projects.problemsApi) // TODO (donat) investigate why api dependency is needed
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.fileTemp)
     implementation(projects.processServices)
