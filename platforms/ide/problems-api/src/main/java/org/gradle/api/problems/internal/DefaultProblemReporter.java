@@ -54,15 +54,15 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         report(problemBuilder.build());
     }
 
-    @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec)  {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
-        spec.execute(problemBuilder);
-        Problem problem = problemBuilder.build();
-        Throwable exception = problem.getException();
+@Override
+public RuntimeException throwing(Action<ProblemSpec> spec)  {
+    DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+    spec.execute(problemBuilder);
+    Problem problem = problemBuilder.build();
+    Throwable exception = problem.getException();
     if (exception == null) {
-        // Provide a default exception with meaningful message
-        exception = new IllegalStateException("An exception must be specified for the problem");
+        String message = problem.getContextualLabel() != null ? problem.getContextualLabel() : problem.getId().getDisplayName();
+        exception = new IllegalStateException(message);
     }
     return throwError(exception, problem);
 }
