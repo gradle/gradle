@@ -169,6 +169,47 @@ class ErrorParsingTest {
     }
 
     @Test
+    fun `infix function calls`() {
+        val code = """
+            id("plugin") version "7.0"
+            id("plugin") version("8.0")
+            f(1) g "string" h true i 2L j 3.apply(4)
+            f("a") g("b")
+        """.trimIndent()
+
+        val expected = """
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 0..26, line/column: 1/1..1/27, file: test,
+                    erroneousSource = indexes: 13..20, line/column: 1/14..1/21, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 27..54, line/column: 2/1..2/28, file: test,
+                    erroneousSource = indexes: 40..47, line/column: 2/14..2/21, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 55..95, line/column: 3/1..3/41, file: test,
+                    erroneousSource = indexes: 83..84, line/column: 3/29..3/30, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 96..109, line/column: 4/1..4/14, file: test,
+                    erroneousSource = indexes: 103..104, line/column: 4/8..4/9, file: test
+                )
+            )""".trimIndent()
+        ParseTestUtil.parse(code).assert(expected)
+    }
+
+    @Test
     fun `missing parenthesis in one of a series of assignments`() {
         val code = """
             a = 1
@@ -703,77 +744,77 @@ class ErrorParsingTest {
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 8..21, line/column: 1/9..1/22, file: test,
-                    erroneousSource = indexes: 8..21, line/column: 1/9..1/22, file: test
+                    erroneousSource = indexes: 13..15, line/column: 1/14..1/16, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 34..47, line/column: 2/13..2/26, file: test,
-                    erroneousSource = indexes: 34..47, line/column: 2/13..2/26, file: test
+                    erroneousSource = indexes: 39..41, line/column: 2/18..2/20, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 59..65, line/column: 3/12..3/18, file: test,
-                    erroneousSource = indexes: 59..65, line/column: 3/12..3/18, file: test
+                    erroneousSource = indexes: 61..63, line/column: 3/14..3/16, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 79..85, line/column: 4/14..4/20, file: test,
-                    erroneousSource = indexes: 79..85, line/column: 4/14..4/20, file: test
+                    erroneousSource = indexes: 81..83, line/column: 4/16..4/18, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 101..108, line/column: 5/16..5/23, file: test,
-                    erroneousSource = indexes: 101..108, line/column: 5/16..5/23, file: test
+                    erroneousSource = indexes: 103..106, line/column: 5/18..5/21, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 126..133, line/column: 6/18..6/25, file: test,
-                    erroneousSource = indexes: 126..133, line/column: 6/18..6/25, file: test
+                    erroneousSource = indexes: 128..131, line/column: 6/20..6/23, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 144..149, line/column: 7/11..7/16, file: test,
-                    erroneousSource = indexes: 144..149, line/column: 7/11..7/16, file: test
+                    erroneousSource = indexes: 146..147, line/column: 7/13..7/14, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 159..164, line/column: 8/10..8/15, file: test,
-                    erroneousSource = indexes: 159..164, line/column: 8/10..8/15, file: test
+                    erroneousSource = indexes: 161..162, line/column: 8/12..8/13, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 184..190, line/column: 9/20..9/26, file: test,
-                    erroneousSource = indexes: 184..190, line/column: 9/20..9/26, file: test
+                    erroneousSource = indexes: 186..188, line/column: 9/22..9/24, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 209..215, line/column: 10/19..10/25, file: test,
-                    erroneousSource = indexes: 209..215, line/column: 10/19..10/25, file: test
+                    erroneousSource = indexes: 211..213, line/column: 10/21..10/23, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 224..250, line/column: 11/9..11/35, file: test,
-                    erroneousSource = indexes: 224..250, line/column: 11/9..11/35, file: test
+                    erroneousSource = indexes: 239..241, line/column: 11/24..11/26, file: test
                 )
             )""".trimIndent()
         results.assert(expected)
