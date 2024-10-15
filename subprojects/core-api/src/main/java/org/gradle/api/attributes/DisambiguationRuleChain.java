@@ -41,7 +41,7 @@ public interface DisambiguationRuleChain<T> {
      * <p>Adds an arbitrary disambiguation rule to the chain.</p>
      * <p>A disambiguation rule can select the best match from a list of candidates.</p>
      *
-     * <p>A rule <i>can</i> express an preference by calling the @{link {@link MultipleCandidatesDetails#closestMatch(Object)}
+     * <p>A rule <i>can</i> express an preference by calling the {@link MultipleCandidatesDetails#closestMatch(Object)}
      * method to tell that a candidate is the best one.</p>
      *
      * <p>It is not mandatory for a rule to choose, and it is not an error to select multiple candidates.</p>
