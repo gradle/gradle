@@ -62,6 +62,9 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.scopes.CoreBuildSessionServices;
+import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
@@ -112,6 +115,12 @@ public abstract class InitBuild extends DefaultTask {
 
         getLogger().lifecycle("LOADING IN CONSTRUCTOR");
         loadProjectSpecRegistry();
+
+        ProjectScopeServices.ScopeHolder scopeHolder = getServices().get(ProjectScopeServices.ScopeHolder.class);
+        scopeHolder.setClassLoaderScope(((ProjectInternal) getProject()).getClassLoaderScope());
+
+        BuildScopeServices.ScopeHolder scopeHolderBuild = getServices().get(BuildScopeServices.ScopeHolder.class);
+        scopeHolderBuild.setClassLoaderScope(((ProjectInternal) getProject()).getClassLoaderScope());
     }
 
     private void loadProjectSpecRegistry() {
@@ -155,6 +164,16 @@ public abstract class InitBuild extends DefaultTask {
 
         classLoaders.put("project - plugin manager", projectInternal.getPluginManager().getClass().getClassLoader());
         classLoaders.put("gradle - plugin manager", gradle.getPluginManager().getClass().getClassLoader());
+
+        ProjectScopeServices.ScopeHolder scopeHolder = getServices().get(ProjectScopeServices.ScopeHolder.class);
+        if (scopeHolder.getClassLoaderScope() != null) {
+            classLoaders.put("from project scope holder - local", scopeHolder.getClassLoaderScope().getLocalClassLoader());
+        }
+
+        BuildScopeServices.ScopeHolder scopeHolderBuild = getServices().get(BuildScopeServices.ScopeHolder.class);
+        if (scopeHolderBuild.getClassLoaderScope() != null) {
+            classLoaders.put("from build session scope holder - local", scopeHolderBuild.getClassLoaderScope().getLocalClassLoader());
+        }
 
         // Have to load in the constructor to ensure specs are present with run in CC tests
         InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(classLoaders, getLogger());
