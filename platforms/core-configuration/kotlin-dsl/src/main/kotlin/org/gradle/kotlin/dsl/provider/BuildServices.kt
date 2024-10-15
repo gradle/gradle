@@ -35,7 +35,6 @@ import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
-import org.gradle.internal.hash.ChecksumService
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.scripts.ScriptExecutionListener
