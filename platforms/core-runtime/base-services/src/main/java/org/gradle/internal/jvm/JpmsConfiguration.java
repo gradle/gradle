@@ -16,8 +16,6 @@
 
 package org.gradle.internal.jvm;
 
-import org.gradle.api.NonNullApi;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +27,6 @@ import java.util.List;
  * a warning they can do nothing about. On Java 16+, strong encapsulation of JDK internals is
  * enforced and not having the explicit permissions for reflective accesses will result in runtime exceptions.
  */
-@NonNullApi
 public class JpmsConfiguration {
 
     public static final List<String> GROOVY_JPMS_ARGS = Collections.unmodifiableList(Arrays.asList(
@@ -44,14 +41,15 @@ public class JpmsConfiguration {
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
     static {
-        List<String> gradleDaemonJvmArgs = new ArrayList<String>();
-        gradleDaemonJvmArgs.addAll(GROOVY_JPMS_ARGS);
+        List<String> gradleDaemonJvmArgs = new ArrayList<String>(GROOVY_JPMS_ARGS);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
+            "--add-opens=java.base/java.util=ALL-UNNAMED", // for overriding environment variables
             "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
             "--add-opens=java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
             "--add-opens=java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
-            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED" // serialized from org.gradle.internal.file.StatStatistics$Collector
+            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED", // serialized from org.gradle.internal.file.StatStatistics$Collector
+            "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED" // serialized from IvyDescriptorFileGenerator.Model
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 

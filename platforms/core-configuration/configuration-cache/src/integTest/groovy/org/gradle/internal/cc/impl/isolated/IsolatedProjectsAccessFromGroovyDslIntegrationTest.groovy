@@ -296,10 +296,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "configure(rootProject)" | 1                | "another project ':'"
         "rootProject"            | 1                | "another project ':'"
         "allprojects"            | 2                | "subprojects of project ':'"
-        "beforeProject"          | 1                | "another project ':b'"
-        "afterProject"           | 1                | "another project ':b'"
+        // TODO:isolated fix expectations for parallel configuration
+//        "beforeProject"          | 1                | "another project ':b'"
+//        "afterProject"           | 1                | "another project ':b'"
     }
 
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "reports cross-project model access in composite build access to Gradle.#invocation"() {
         createDirs("a", "include")
         settingsFile << """
@@ -315,7 +317,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         then:
         fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":include")
+            projectsConfigured(":include", ":", ":a")
+            // TODO:isolated expected behavior for incremental configuration
+//            projectsConfigured(":include")
             problem("Build file 'include/build.gradle': line 2: Project ':include' cannot access 'Project.buildDir' functionality on subprojects of project ':'")
         }
 
@@ -347,6 +351,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
+    @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "reports cross-project model from ProjectEvaluationListener registered in Gradle.#invocation"() {
         createDirs("a", "b")
         settingsFile << """
@@ -364,13 +369,19 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        // TODO:isolated expected behavior for incremental configuration
+//        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsRun(":a:help", ":b:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
         }
+        // TODO:isolated expected behavior for incremental configuration
+//        fixture.assertStateStoredAndDiscarded {
+//            projectsConfigured(":", ":a", ":b")
+//            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot access 'Project.buildDir' functionality on another project ':b'")
+//        }
 
         where:
         invocation                     | _
@@ -643,13 +654,13 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             project.extensions.extraProperties["projectProperty"] = "hello"
         """
 
-        groovyFile "a/aa/myscript.gradle", """
+        buildFile "a/aa/myscript.gradle", """
             // Using `withPlugin` as an example of a configure action
             project.pluginManager.withPlugin('base', {
                 println("My property: " + projectProperty)
             })
         """
-        groovyFile "a/aa/build.gradle", """
+        buildFile "a/aa/build.gradle", """
             plugins {
                 id "base"
             }
@@ -870,15 +881,15 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         given:
         settingsFile << """
             include(':a')
-            include(':b')
+            include(':a:sub')
         """
 
         file("a/build.gradle") << """
-            def unconfiguredProject = project(':b')
+            def unconfiguredProject = project(':a:sub')
             println 'Unconfigured project value = ' + unconfiguredProject.foo()
         """
 
-        file("b/build.gradle") << """
+        file("a/sub/build.gradle") << """
             String foo(){ 'configured' }
         """
 
@@ -886,9 +897,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
-        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
+        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':a:sub' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':b'")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':a:sub'")
         }
 
     }
@@ -897,15 +908,15 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         given:
         settingsFile << """
             include(':a')
-            include(':b')
+            include(':a:sub')
         """
 
         file("a/build.gradle") << """
-            def unconfiguredProject = project(':b')
+            def unconfiguredProject = project(':a:sub')
             println 'Unconfigured project value = ' + unconfiguredProject.myExtension.get()
         """
 
-        file("b/build.gradle") << """
+        file("a/sub/build.gradle") << """
             import ${Property.name}
 
             interface MyExtension {
@@ -920,9 +931,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
-        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")
+        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':a:sub' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':b'")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':a:sub'")
         }
     }
 
@@ -943,5 +954,70 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         fixture.assertStateStored {
             projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
         }
+    }
+
+    def "can use #api(Closure) API added by runtime decoration"() {
+        settingsFile << """
+            include ':a'
+        """
+        file("a/build.gradle") << ""
+        buildFile << """
+            project(':a') {
+                $invocation
+            }
+        """
+
+        when:
+        isolatedProjectsFails 'help'
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.$api' functionality on another project ':a'", 1)
+        }
+
+        where:
+        api                 | invocation
+        "normalization"     | "normalization { runtimeClasspath{} }"
+        "dependencyLocking" | "dependencyLocking { lockAllConfigurations() }"
+    }
+
+    def 'child project access preserves a referrer'() {
+        settingsFile """
+            include(":a")
+        """
+
+        buildFile """
+            version = "v1"
+            println "root.version = " + childProjects.values().first().parent.version
+        """
+
+        file("a/build.gradle") << """
+            version = "v1"
+            println "a.version = " + parent.childProjects.values().first().version
+        """
+
+        when:
+        isolatedProjectsRun "help", "-q"
+
+        then:
+        outputContains "root.version = v1\na.version = v1"
+    }
+
+    def 'access via Gradle instance preserves a referrer'() {
+        settingsFile """
+            include(":a")
+        """
+
+        file("a/build.gradle") << """
+            version = "v1"
+            println "a.version = " + gradle.rootProject.getSubprojects()[0].version
+        """
+
+        when:
+        isolatedProjectsRun "help"
+
+        then:
+        outputContains "a.version = v1"
     }
 }

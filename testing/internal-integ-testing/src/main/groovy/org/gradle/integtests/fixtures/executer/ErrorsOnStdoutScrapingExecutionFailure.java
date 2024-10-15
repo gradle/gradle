@@ -16,11 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.hamcrest.Matcher;
-
-import java.util.function.Consumer;
-
-public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapingExecutionResult implements ExecutionFailure {
+public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapingExecutionResult implements DelegatingExecutionFailure {
     private final ExecutionFailure delegate;
 
     public ErrorsOnStdoutScrapingExecutionFailure(ExecutionFailure delegate) {
@@ -29,96 +25,12 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure getDelegate() {
+        return delegate;
+    }
+
+    @Override
     public ExecutionFailure getIgnoreBuildSrc() {
         return new ErrorsOnStdoutScrapingExecutionFailure(delegate.getIgnoreBuildSrc());
-    }
-
-    @Override
-    public ExecutionFailure assertHasLineNumber(int lineNumber) {
-        delegate.assertHasLineNumber(lineNumber);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasFileName(String filename) {
-        delegate.assertHasFileName(filename);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasFailures(int count) {
-        delegate.assertHasFailures(count);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasCause(String description) {
-        delegate.assertHasCause(description);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
-        delegate.assertThatCause(matcher);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasDescription(String context) {
-        delegate.assertHasDescription(context);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
-        delegate.assertThatDescription(matcher);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertThatAllDescriptions(Matcher<? super String> matcher) {
-        delegate.assertThatDescription(matcher);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasFailure(String description, Consumer<? super Failure> action) {
-        delegate.assertHasFailure(description, action);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasResolutions(String... resolutions) {
-        delegate.assertHasResolutions(resolutions);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasResolution(String resolution) {
-        delegate.assertHasResolution(resolution);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasNoCause(String description) {
-        delegate.assertHasNoCause(description);
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasNoCause() {
-        delegate.assertHasNoCause();
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertTestsFailed() {
-        delegate.assertTestsFailed();
-        return this;
-    }
-
-    @Override
-    public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
-        return delegate.assertResolutionFailure(configurationPath);
     }
 }

@@ -241,7 +241,7 @@ public class Install {
                 "Distribution Url: %s%n" +
                 "Download Location: %s%n" +
                 "Expected checksum: '%s'%n" +
-                "Actual checksum: '%s'%n" +
+                "Actual checksum:   '%s'%n" +
                 "Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions. If your build uses a custom distribution, see with its provider.",
             sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum);
         throw new RuntimeException(message);

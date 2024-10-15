@@ -20,6 +20,7 @@ import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.DocumentChecks
+import org.gradle.internal.declarativedsl.analysis.AnalyzedStatementUtils.produceIsAnalyzedNodeContainer
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
@@ -72,8 +73,9 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
         val documentResolutionContainer = resolutionContainer(evaluationSchema.analysisSchema, parseAndResolveResult.resolutionTrace, document)
 
         val checkFeatures = step.features.filterIsInstance<DocumentChecks>()
+        val isAnalyzedNodeContainer = produceIsAnalyzedNodeContainer(document.languageTreeMappingContainer, parseAndResolveResult.languageModel.topLevelBlock, evaluationSchema.analysisStatementFilter)
         val checkResults = stepContext.supportedDocumentChecks.filter { checkFeatures.any(it::shouldHandleFeature) }
-            .flatMap { it.detectFailures(document, documentResolutionContainer) }
+            .flatMap { it.detectFailures(document, documentResolutionContainer, isAnalyzedNodeContainer) }
 
         if (checkResults.isNotEmpty()) {
             failureReasons += DocumentCheckFailures(checkResults)

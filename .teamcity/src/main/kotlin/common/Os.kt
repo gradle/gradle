@@ -29,7 +29,7 @@ enum class Os(
     val jprofilerHome: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
     val perfTestJavaVendor: JvmVendor = JvmVendor.openjdk,
-    val buildJavaVersion: JvmVersion = JvmVersion.java11,
+    val buildJavaVersion: JvmVersion = BuildToolBuildJvm.version,
     val perfTestJavaVersion: JvmVersion = JvmVersion.java17,
     val defaultArch: Arch = Arch.AMD64
 ) {
@@ -64,7 +64,7 @@ enum class Os(
                     DefaultJvm(JvmVersion.java11, JvmVendor.openjdk),
                     DefaultJvm(JvmVersion.java17, JvmVendor.openjdk),
                     DefaultJvm(JvmVersion.java21, JvmVendor.openjdk),
-                    DefaultJvm(JvmVersion.java22, JvmVendor.openjdk),
+                    DefaultJvm(JvmVersion.java23, JvmVendor.openjdk),
                 )
 
             arch == Arch.AARCH64 && this == MACOS ->
@@ -73,7 +73,7 @@ enum class Os(
                     DefaultJvm(JvmVersion.java11, JvmVendor.openjdk),
                     DefaultJvm(JvmVersion.java17, JvmVendor.openjdk),
                     DefaultJvm(JvmVersion.java21, JvmVendor.openjdk),
-                    DefaultJvm(JvmVersion.java22, JvmVendor.openjdk),
+                    DefaultJvm(JvmVersion.java23, JvmVendor.openjdk),
                 )
 
             else ->
@@ -82,7 +82,7 @@ enum class Os(
                     DefaultJvm(JvmVersion.java11, JvmVendor.openjdk),
                     DefaultJvm(JvmVersion.java17, JvmVendor.openjdk),
                     DefaultJvm(JvmVersion.java21, JvmVendor.openjdk),
-                    DefaultJvm(JvmVersion.java22, JvmVendor.openjdk),
+                    DefaultJvm(JvmVersion.java23, JvmVendor.openjdk),
                 )
         }.joinToString(",") { javaHome(it, this, arch) }
         return """"-Porg.gradle.java.installations.paths=$paths""""

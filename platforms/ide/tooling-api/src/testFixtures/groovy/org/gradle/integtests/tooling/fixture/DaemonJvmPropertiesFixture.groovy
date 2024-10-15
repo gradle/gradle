@@ -32,14 +32,11 @@ trait DaemonJvmPropertiesFixture {
         return potentialJavaHome
     }
 
-    def setup() {
-        System.clearProperty("org.gradle.java.installations.paths")
-        requireDaemons()
-    }
-
     void withInstallations(File... jdks) {
         file("gradle.properties").writeProperties(
-            "org.gradle.java.installations.auto-detect": "false",
+            // We hard-code these strings since this file needs to be loaded
+            // in the target distributions' classloaders, and the classes that
+            // contain these properties may not exist in older versions
             "org.gradle.java.installations.paths": jdks.collect { it.canonicalPath }.join(",")
         )
     }
@@ -66,6 +63,7 @@ trait DaemonJvmPropertiesFixture {
         properties.put("toolchainVersion", version)
         buildPropertiesFile.writeProperties(properties)
         assertJvmCriteria(version)
+        requireDaemons()
     }
 
     TestFile getBuildPropertiesFile() {

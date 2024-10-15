@@ -1211,7 +1211,7 @@ task b(dependsOn: a)
     @Issue("https://github.com/gradle/gradle/issues/2180")
     def "fileTrees can be used as output files"() {
         given:
-        buildScript """
+        buildFile """
             task myTask {
                 inputs.file file('input.txt')
                 outputs.files fileTree(dir: 'build', include: 'output.txt')
@@ -1398,7 +1398,7 @@ task b(dependsOn: a)
 
     @Issue("https://github.com/gradle/gradle/issues/7923")
     def "task is not up-to-date when the implementation of a named #actionMethodName action changes"() {
-        buildScript """
+        buildFile """
             tasks.register('myTask') {
                 outputs.dir(layout.buildDirectory.dir('myDir'))
                 ${actionMethodName}('myAction') { println("printing from action") }

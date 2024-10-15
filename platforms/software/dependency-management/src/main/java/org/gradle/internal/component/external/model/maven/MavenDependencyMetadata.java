@@ -17,8 +17,8 @@
 package org.gradle.internal.component.external.model.maven;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ExternalModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -62,7 +62,7 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema
+        ImmutableAttributesSchema consumerSchema
     ) {
         VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
         return new GraphVariantSelectionResult(Collections.singletonList(selected), false);

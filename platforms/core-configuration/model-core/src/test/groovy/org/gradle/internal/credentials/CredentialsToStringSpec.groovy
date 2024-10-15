@@ -16,6 +16,7 @@
 
 package org.gradle.internal.credentials
 
+import org.gradle.util.TestCredentialUtil
 import spock.lang.Specification
 
 class CredentialsToStringSpec extends Specification {
@@ -31,24 +32,14 @@ class CredentialsToStringSpec extends Specification {
     }
 
     private static DefaultAwsCredentials makeAwsCredentials(String secretValue) {
-        def credentials = new DefaultAwsCredentials()
-        credentials.setAccessKey(secretValue)
-        credentials.setSecretKey(secretValue)
-        credentials.setSessionToken(secretValue)
-        return credentials
+        return TestCredentialUtil.defaultAwsCredentials(secretValue)
     }
 
     private static DefaultPasswordCredentials makePasswordCredentials(String secretValue) {
-        def credentials = new DefaultPasswordCredentials()
-        credentials.setUsername(UUID.randomUUID().toString())
-        credentials.setPassword(secretValue)
-        return credentials
+        return TestCredentialUtil.defaultPasswordCredentials(UUID.randomUUID().toString(), secretValue)
     }
 
     private static DefaultHttpHeaderCredentials makeHttpHeaderCredentials(String secretValue) {
-        def credentials = new DefaultHttpHeaderCredentials()
-        credentials.setName(UUID.randomUUID().toString())
-        credentials.setValue(secretValue)
-        return credentials
+        return TestCredentialUtil.defaultHttpHeaderCredentials(UUID.randomUUID().toString(), secretValue)
     }
 }

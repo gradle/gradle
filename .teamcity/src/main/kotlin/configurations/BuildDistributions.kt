@@ -1,10 +1,12 @@
 package configurations
 
 import common.Os.LINUX
+import common.buildScanTagParam
+import common.getBuildScanCustomValueParam
 import model.CIBuildModel
 import model.Stage
 
-class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
+class BuildDistributions(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType(os = LINUX, stage = stage, init = {
     id("${model.projectId}_BuildDistributions")
     name = "Build Distributions"
     description = "Creation and verification of the distribution and documentation"
@@ -13,9 +15,13 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
         model,
         this,
         "packageBuild",
-        extraParameters = buildScanTag("BuildDistributions") +
-            " -PtestJavaVersion=${LINUX.buildJavaVersion.major}" +
-            " -Porg.gradle.java.installations.auto-download=false"
+        extraParameters =
+        listOf(
+            stage.getBuildScanCustomValueParam(),
+            buildScanTagParam("BuildDistributions"),
+            "-PtestJavaVersion=${LINUX.buildJavaVersion.major}",
+            "-Porg.gradle.java.installations.auto-download=false"
+        ).joinToString(" ")
     )
 
     features {

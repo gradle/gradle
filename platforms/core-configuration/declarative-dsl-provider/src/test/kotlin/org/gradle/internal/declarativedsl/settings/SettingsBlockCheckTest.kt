@@ -17,8 +17,10 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.internal.declarativedsl.analysis.AnalyzedStatementUtils
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
@@ -124,11 +126,12 @@ class SettingsBlockCheckTest {
             .trace
         val document = languageModel.toDocument()
         val resolution = resolutionContainer(analysisSchema, trace, document)
-        return documentChecks.flatMap { it.detectFailures(document, resolution) }
+        val isAnalyzedDocumentNode = AnalyzedStatementUtils.produceIsAnalyzedNodeContainer(document.languageTreeMappingContainer, languageModel.topLevelBlock, analysisStatementFilter)
+        return documentChecks.flatMap { it.detectFailures(document, resolution, isAnalyzedDocumentNode) }
     }
 
     private
-    val documentChecks = listOf(SettingsBlocksCheck)
+    val documentChecks = listOf(SettingsBlocksCheck, UnsupportedSyntaxFeatureCheck)
 
     private
     val pluginManagementSchema = pluginManagementEvaluationSchema()

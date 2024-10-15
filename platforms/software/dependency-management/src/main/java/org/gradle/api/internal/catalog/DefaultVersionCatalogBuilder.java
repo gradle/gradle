@@ -84,7 +84,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.U
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
@@ -217,7 +217,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return builder.
             id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }
 
@@ -393,7 +393,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                     throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().create(builder ->
                         configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
                             .details("Prefix for dependency shouldn't be equal to '" + prefix + "'")
-                            .solution("Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
+                            .solution("Use a different alias which prefix is not equal to " + quotedOxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
                 }
             }
         }
@@ -418,7 +418,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
     @Nonnull
     public static String getExcludedNames(Collection<String> reservedNames) {
-        String namesOrName = oxfordListOf(reservedNames, "or");
+        String namesOrName = quotedOxfordListOf(reservedNames, "or");
         if (reservedNames.size() == 1) {
             return namesOrName;
         }
@@ -486,7 +486,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                         .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {
-                        configurator.solution("Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
+                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
                     }
                 }));
             } else {
@@ -515,7 +515,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                         .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {
-                        configurator.solution("Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
+                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
                     }
                 }));
             } else {

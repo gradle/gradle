@@ -21,9 +21,8 @@ import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
-import org.gradle.internal.declarativedsl.dom.DocumentResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved
-import org.gradle.internal.declarativedsl.dom.UnresolvedBase
+import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
@@ -50,7 +49,7 @@ object SettingsBlocksCheck : DocumentCheck {
         PLUGIN_MANAGEMENT, PLUGINS
     }
 
-    override fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer): List<DocumentCheckFailure> {
+    override fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer, isAnalyzedNode: NodeData<Boolean>): List<DocumentCheckFailure> {
         val outOfOrderNodes = mutableListOf<DocumentNode>()
         val duplicates = mutableListOf<DocumentNode>()
 
@@ -60,7 +59,7 @@ object SettingsBlocksCheck : DocumentCheck {
             val specialBlockKind = isSpecialBlock(node, resolutionContainer)
             when {
                 /** In the "plugins" step, the pluginManagement { ... } block is not resolved and is fine to appear above plugins { ... }; don't report it. */
-                isUnresolvedPluginManagementNode(node, resolutionContainer) -> Unit
+                !isAnalyzedNode.data(node) && isPluginManagementNode(node) -> Unit
 
                 specialBlockKind != null -> when (seenBlock) {
                     null -> seenBlock = specialBlockKind
@@ -114,12 +113,9 @@ object SettingsBlocksCheck : DocumentCheck {
             }
 
     private
-    fun isUnresolvedPluginManagementNode(documentNode: DocumentNode, documentResolutionContainer: DocumentResolutionContainer): Boolean =
+    fun isPluginManagementNode(documentNode: DocumentNode): Boolean =
         documentNode is ElementNode &&
-            documentNode.name == Settings::pluginManagement.name &&
-            with(documentResolutionContainer.data(documentNode)) {
-                this is DocumentResolution.ElementResolution.ElementNotResolved && this.reasons == listOf(UnresolvedBase)
-            }
+            documentNode.name == Settings::pluginManagement.name
 
     private
     fun isResolvedPluginsNode(resolvedDocumentNode: DocumentNode, documentResolutionContainer: DocumentResolutionContainer): Boolean =

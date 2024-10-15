@@ -33,8 +33,6 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.util.TestUtil.instantiatorFactory
-
 class DefaultIsolatableFactoryTest extends Specification {
 
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
@@ -414,12 +412,12 @@ class DefaultIsolatableFactoryTest extends Specification {
     }
 
     def "creates isolated managed interface"() {
-        def instantiator = instantiatorFactory().inject()
+        def instantiator = TestUtil.instantiatorFactory().inject()
         def original = instantiator.newInstance(BeanInterface)
         original.prop1 = "a"
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> instantiatorFactory().managedFactory
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
 
         expect:
         def isolated = isolatableFactory.isolate(original)
@@ -430,12 +428,12 @@ class DefaultIsolatableFactoryTest extends Specification {
     }
 
     def "creates isolated managed abstract class"() {
-        def instantiator = instantiatorFactory().inject()
+        def instantiator = TestUtil.instantiatorFactory().inject()
         def original = instantiator.newInstance(AbstractBean)
         original.prop1 = "a"
 
         given:
-        _ * managedFactoryRegistry.lookup(_) >> instantiatorFactory().managedFactory
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
 
         expect:
         def isolated = isolatableFactory.isolate(original)

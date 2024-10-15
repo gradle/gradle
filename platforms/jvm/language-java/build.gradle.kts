@@ -1,8 +1,13 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
+
+gradlebuildJava {
+    usesJdkInternals = true
+}
 
 errorprone {
     disabledChecks.addAll(
@@ -12,9 +17,6 @@ errorprone {
         "InvalidInlineTag", // 3 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 3 occurrences
-        "OperatorPrecedence", // 2 occurrences
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
@@ -29,6 +31,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
     api(projects.languageJvm)
@@ -52,14 +55,17 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
+    implementation(projects.jvmServices)
+    implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.toolingApi)
+    implementation(projects.problemsRendering)
 
     api(libs.slf4jApi)
     implementation(libs.commonsLang)
@@ -107,12 +113,6 @@ tasks.withType<Test>().configureEach {
     }
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.release = null
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
-}
-
 strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
@@ -124,3 +124,19 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+
+tasks.javadoc {
+    // This project accesses JDK internals.
+    // We would ideally add --add-exports flags for the required packages, however
+    // due to limitations in the javadoc modeling API, we cannot specify multiple
+    // flags for the same key.
+    // Instead, we disable failure on javadoc errors.
+    isFailOnError = false
+    options {
+        this as StandardJavadocDocletOptions
+        addBooleanOption("quiet", true)
+    }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

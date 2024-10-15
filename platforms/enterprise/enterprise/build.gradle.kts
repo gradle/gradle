@@ -10,10 +10,6 @@ errorprone {
     )
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}
-
 dependencies {
     api(projects.buildOperations)
     api(projects.baseServices)
@@ -32,7 +28,6 @@ dependencies {
     api(projects.snapshots)
     api(projects.testingJvm)
     api(projects.time)
-    api(projects.problemsApi)
 
     api(libs.inject)
     api(libs.jsr305)
@@ -42,7 +37,6 @@ dependencies {
     implementation(projects.files)
     implementation(projects.hashing)
     implementation(projects.logging)
-    implementation(projects.processServices)
     implementation(projects.serialization)
     implementation(projects.testingBase)
 
@@ -53,6 +47,7 @@ dependencies {
     }
 
     testImplementation(projects.resources)
+    testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.internalIntegTesting)

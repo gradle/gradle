@@ -122,6 +122,7 @@ object EvaluationFailureMessageGenerator {
         is ErrorReason.UnresolvedFunctionCallSignature -> "unresolved function call signature for '${errorReason.functionCall.name}'"
         ErrorReason.AccessOnCurrentReceiverOnlyViolation -> "this member can only be accessed on a current receiver"
         is ErrorReason.NonReadableProperty -> "property cannot be used as a value: '${errorReason.property.name}'"
+        is ErrorReason.OpaqueArgumentForIdentityParameter -> "opaque identity argument: ${errorReason.parameter.name} = ${errorReason.argument.originElement.sourceData.text()}"
     }
 
     private
@@ -147,6 +148,7 @@ object EvaluationFailureMessageGenerator {
         DocumentCheckFailureReason.PluginsBlockOrderViolated -> "illegal content before 'plugins', which can only be preceded by 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginManagementBlock -> "duplicate 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginsBlock -> "duplicate 'plugins'"
+        is DocumentCheckFailureReason.UnsupportedSyntaxInDocument -> "unsupported syntax (${reason.cause})"
     }
 
     private

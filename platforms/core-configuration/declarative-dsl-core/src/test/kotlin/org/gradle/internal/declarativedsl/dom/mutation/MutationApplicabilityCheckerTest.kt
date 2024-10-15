@@ -21,20 +21,19 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.AddConfiguringBlockIfAbsent
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
+import org.junit.jupiter.api.Assertions.fail
 
 
 internal
-object MutationApplicabilityCheckerTest {
+class MutationApplicabilityCheckerTest {
 
     @Test
     fun `detects applicability of element addition`() {
@@ -64,21 +63,19 @@ object MutationApplicabilityCheckerTest {
         )
     }
 
-
-    // TODO: drop this test in favor of the one below once the behavior changes
     @Test
-    fun `detects applicability of a set property mutation -- this variation asserts current behavior -- set-property-value mutation does not add new nodes`() {
+    fun `detects applicability of a set property mutation`() {
         val doc = documentWithResolution(
             schema, ParseTestUtil.parse(
                 """
-                nested {
-                    x = 1
-                    f {
+                    nested {
                         x = 1
                         f {
+                            x = 1
+                            f {
+                            }
                         }
                     }
-                }
                 """.trimIndent()
             )
         )
@@ -89,39 +86,9 @@ object MutationApplicabilityCheckerTest {
             setOf(
                 MutationApplicability.AffectedNode(doc.document.elementNamed("nested").propertyNamed("x")),
                 MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested").elementNamed("f").elementNamed("f")),
             ), result.toSet()
         )
-    }
-
-
-    @Test
-    fun `detects applicability of a set property mutation -- this variation fails until set property value can insert nodes`() {
-        assertFails {
-            val doc = documentWithResolution(
-                schema, ParseTestUtil.parse(
-                    """
-                    nested {
-                        x = 1
-                        f {
-                            x = 1
-                            f {
-                            }
-                        }
-                    }
-                    """.trimIndent()
-                )
-            )
-
-            val result = MutationApplicabilityChecker(schema, doc).checkApplicability(setX)
-
-            assertEquals(
-                setOf(
-                    MutationApplicability.AffectedNode(doc.document.elementNamed("nested").propertyNamed("x")),
-                    MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
-                    MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested").elementNamed("f").elementNamed("f")),
-                ), result.toSet()
-            )
-        }
     }
 
     @Test
@@ -200,13 +167,31 @@ object MutationApplicabilityCheckerTest {
 
         val setXResult = MutationApplicabilityChecker(schema, doc).checkApplicability(setX)
 
-        // TODO: once set-property mutation learns to add nodes, fix the expected set
         assertEquals(
             setOf(
                 MutationApplicability.AffectedNode(doc.document.elementNamed("nested").elementNamed("f").propertyNamed("x")),
+                // For now, the planner will think that 'x = "foo"' does not match the property because of type mismatch:
+                MutationApplicability.ScopeWithoutAffectedNodes(doc.document.elementNamed("nested")),
             ),
             setXResult.toSet()
         )
+    }
+
+    @Test
+    fun `reports no applicability and does not fail on incompatible mutations`() {
+        val incompatibleMutation = object : MutationDefinition {
+            override val id: String = "com.example.incompatible"
+            override val name: String = "Incompatible"
+            override val description: String = "This mutation is not compatible with any schema and throws an exception on planning"
+            override val parameters: List<MutationParameter<*>> = emptyList()
+
+            override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = false
+
+            override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+                fail("tried to define the mutation sequence for an incompatible mutation!")
+        }
+
+        assertEquals(emptyList<MutationApplicability>(), MutationApplicabilityChecker(schema, documentWithResolution(schema, ParseTestUtil.parse(""))).checkApplicability(incompatibleMutation))
     }
 
     private
@@ -227,7 +212,7 @@ val setX = object : MutationDefinition {
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = listOf(
         ModelMutationRequest(
             ScopeLocation.inAnyScope(),
-            ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!), ifPresentBehavior = Ignore)
+            ModelMutation.SetPropertyValue(projectAnalysisSchema.propertyFor(Nested::x), NewValueNodeProvider.Constant(valueFromString("2")!!))
         )
     )
 }

@@ -24,7 +24,7 @@ enum class JvmCategory(
     // Oracle doesn't provide zip JDK distribution for Windows anymore, we avoid using it
     MIN_VERSION_WINDOWS_MAC(JvmVendor.openjdk, JvmVersion.java8),
     MAX_LTS_VERSION(JvmVendor.openjdk, JvmVersion.java21),
-    MAX_VERSION(JvmVendor.openjdk, JvmVersion.java22),
+    MAX_VERSION(JvmVendor.openjdk, JvmVersion.java23),
     SANTA_TRACKER_SMOKE_TEST_VERSION(JvmVendor.openjdk, JvmVersion.java17),
-    EXPERIMENTAL_VERSION(JvmVendor.openjdk, JvmVersion.java22)
+    EXPERIMENTAL_VERSION(JvmVendor.openjdk, JvmVersion.java23)
 }

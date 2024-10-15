@@ -89,7 +89,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         withSettingsPluginInBuildLogic()
 
         createDir('build-logic') {
-            groovyFile file('build.gradle'), '''
+            buildFile file('build.gradle'), '''
                 plugins {
                     id 'java'
                     id 'java-gradle-plugin'
@@ -163,20 +163,19 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
             subprojects { println("lifecycle: <root>.subprojects '\${it.path}'") }
         """
 
-        groovyFile "a/build.gradle", """
+        buildFile "a/build.gradle", """
             println("lifecycle: <evaluating> " + project)
         """
 
         when:
-        succeeds("help")
+        succeeds("help", "-q")
 
         then:
-        def lifecycleOutput = output.readLines().findAll { it.startsWith("lifecycle: ") }.join("\n")
-        lifecycleOutput == """
+        outputContains """
+lifecycle: gradle.lifecycle.beforeProject ':'
 lifecycle: gradle.allprojects ':'
 lifecycle: gradle.allprojects ':a'
 lifecycle: gradle.beforeProject ':'
-lifecycle: gradle.lifecycle.beforeProject ':'
 lifecycle: <evaluating> ':'
 lifecycle: <root>.subprojects ':a'
 lifecycle: gradle.afterProject ':'

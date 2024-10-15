@@ -11,7 +11,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
-import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.JsonBasedGradleSubprojectProvider
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -58,6 +57,7 @@ class ApplyDefaultConfigurationTest {
     fun setUp() {
         val stepsCapturer = slot<BuildSteps.() -> Unit>()
         every { buildType.steps } returns steps
+        every { buildType.stage } returns buildModel.stages[2]
         every {
             buildType.steps(capture(stepsCapturer))
         } answers {
@@ -79,7 +79,7 @@ class ApplyDefaultConfigurationTest {
             ),
             steps.items.map(BuildStep::name)
         )
-        assertEquals(expectedRunnerParam(), getGradleStep("GRADLE_RUNNER").gradleParams)
+        assertEquals(expectedRunnerParam(), steps.getGradleStep("GRADLE_RUNNER").gradleParams)
     }
 
     @ParameterizedTest
@@ -138,22 +138,19 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun verifyGradleRunnerParams(extraParameters: String, expectedDaemonParam: String, os: Os = Os.LINUX) {
-        assertEquals(BuildStep.ExecutionMode.DEFAULT, getGradleStep("GRADLE_RUNNER").executionMode)
+        assertEquals(BuildStep.ExecutionMode.DEFAULT, steps.getGradleStep("GRADLE_RUNNER").executionMode)
 
-        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters, os), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
+        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters, os), steps.getGradleStep("GRADLE_RUNNER").gradleParams)
+        assertEquals("clean myTask", steps.getGradleStep("GRADLE_RUNNER").tasks)
     }
-
-    private
-    fun getGradleStep(stepName: String) = steps.items.find { it.name == stepName }!! as GradleBuildStep
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "", os: Os = Os.LINUX): String {
         val linuxPaths =
-            "-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java22.openjdk.64bit%"
+            "-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java23.openjdk.64bit%"
         val windowsPaths =
-            "-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java22.openjdk.64bit%"
+            "-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java23.openjdk.64bit%"
         val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
-        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% $pluginPortalUrlOverride -s --no-configuration-cache %additional.gradle.parameters% $daemon --continue $extraParameters \"-Dscan.tag.Check\" \"-Dscan.tag.\" -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false -Porg.gradle.java.installations.auto-detect=false"
+        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% $pluginPortalUrlOverride -s --no-configuration-cache %additional.gradle.parameters% $daemon --continue $extraParameters -Dscan.tag.Check -Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false -Porg.gradle.java.installations.auto-detect=false"
     }
 }

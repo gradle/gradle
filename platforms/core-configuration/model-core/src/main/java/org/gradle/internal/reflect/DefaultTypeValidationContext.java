@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -32,21 +33,20 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
-
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
     private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
-        return new DefaultTypeValidationContext(rootType, cacheable);
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
+        return new DefaultTypeValidationContext(rootType, cacheable, problems);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems) {
-        return new DefaultTypeValidationContext(null, reportCacheabilityProblems);
+    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, InternalProblems problems) {
+        return new DefaultTypeValidationContext(null, reportCacheabilityProblems, problems);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
-        super(rootType, Optional::empty);
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
+        super(rootType, Optional::empty, problems);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
@@ -59,7 +59,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     @Override
     protected void recordProblem(Problem problem) {
-        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is already fixed on master
             return;
         }
         problems.add(problem);

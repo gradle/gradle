@@ -78,7 +78,7 @@ class PerformanceTestBuildTypeTest {
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java22.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java23.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
@@ -91,15 +91,16 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "\"-Dscan.tag.PerformanceTest\""
+            "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-Dscan.tag.PerformanceTest"
         )
 
         assertEquals(
             (
                 listOf(
                     "clean",
-                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:largeTestProjectPerformanceTest",
+                    ":performance:smallTestProjectPerformanceTest",
                     "extraParameters"
                 ) + expectedRunnerParams
                 ).joinToString(" "),
@@ -143,7 +144,7 @@ class PerformanceTestBuildTypeTest {
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java22.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java23.openjdk.64bit%\"",
             "-Porg.gradle.performance.branchName=\"%teamcity.build.branch%\"",
             "-Porg.gradle.performance.db.url=\"%performance.db.url%\"",
             "-Porg.gradle.performance.db.username=\"%performance.db.username%\"",
@@ -156,15 +157,16 @@ class PerformanceTestBuildTypeTest {
             "%additional.gradle.parameters%",
             "--daemon",
             "--continue",
-            "\"-Dscan.tag.PerformanceTest\""
+            "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+            "-Dscan.tag.PerformanceTest"
         )
 
         assertEquals(
             (
                 listOf(
                     "clean",
-                    ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
-                    ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                    ":performance:largeTestProjectPerformanceTest",
+                    ":performance:smallTestProjectPerformanceTest",
                     "extraParameters"
                 ) + expectedRunnerParams
                 ).joinToString(" "),

@@ -100,12 +100,15 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file("build")
             }
         """
+        executer.withArgument("--no-problems-report")
         succeeds "incrementalTask", "-PexpectIncremental=false"
 
         file("src/input-change.txt") << "input"
+        executer.withArgument("--no-problems-report")
         fails "incrementalTask", "-PexpectIncremental=true", "-PmodifyOutputs=$modifyOutputs", "-Pfail"
 
         expect:
+        executer.withArgument("--no-problems-report")
         succeeds "incrementalTask", "-PexpectIncremental=$incremental"
 
         where:

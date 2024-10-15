@@ -49,7 +49,6 @@ sealed interface DocumentResolution {
             data class ContainerElementResolved(
                 override val elementType: DataType,
                 override val elementFactoryFunction: SchemaMemberFunction,
-                val isKeyArguments: Boolean
             ) : SuccessfulElementResolution
         }
 
@@ -63,6 +62,11 @@ sealed interface DocumentResolution {
 
     sealed interface ValueNodeResolution : DocumentResolution {
         data class LiteralValueResolved(val value: Any) : ValueNodeResolution, SuccessfulResolution
+
+        sealed interface NamedReferenceResolution : ValueNodeResolution {
+            data class NamedReferenceResolved(val referenceName: String) : NamedReferenceResolution, SuccessfulResolution
+            data class NamedReferenceNotResolved(override val reasons: List<NamedReferenceNotResolvedReason>) : NamedReferenceResolution, UnsuccessfulResolution
+        }
 
         sealed interface ValueFactoryResolution : ValueNodeResolution {
             data class ValueFactoryResolved(val function: SchemaFunction) : ValueFactoryResolution, SuccessfulResolution

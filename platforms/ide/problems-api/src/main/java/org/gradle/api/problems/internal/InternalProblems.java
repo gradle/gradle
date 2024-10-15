@@ -23,11 +23,12 @@ public interface InternalProblems extends Problems {
 
     /**
      * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
-     * <p>
      *
      * @return The reporter.
      */
     InternalProblemReporter getInternalReporter();
 
     Multimap<Throwable, Problem> getProblemsForThrowables();
+
+    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
 }

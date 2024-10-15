@@ -47,7 +47,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        task << ['libA0:buildDependentsLibA0', 'project432:buildDependentsExternalComponent111']
+        task << ['libA0:buildDependentsLibA00', 'project432:buildDependentsExternalComponent111']
     }
 
     @RunFor([

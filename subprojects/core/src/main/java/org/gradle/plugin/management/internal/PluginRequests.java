@@ -22,6 +22,7 @@ import java.util.List;
 
 public interface PluginRequests extends Iterable<PluginRequestInternal> {
 
+    @SuppressWarnings("ClassInitializationDeadlock")
     PluginRequests EMPTY = new EmptyPluginRequests();
 
     boolean isEmpty();

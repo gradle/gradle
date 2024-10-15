@@ -40,7 +40,7 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 }
 
 
-internal
+private
 fun Encoder.writeDefaultClassPath(classPath: ClassPath) {
     writeCollection(classPath.asFiles) {
         writeFile(it)
@@ -48,7 +48,7 @@ fun Encoder.writeDefaultClassPath(classPath: ClassPath) {
 }
 
 
-internal
+private
 fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath) {
     writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
         writeFile(it.first)
@@ -68,7 +68,7 @@ fun Decoder.readClassPath(): ClassPath {
 }
 
 
-internal
+private
 fun Decoder.readDefaultClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = DefaultClassPath.builderWithExactSize(size)
@@ -79,7 +79,7 @@ fun Decoder.readDefaultClassPath(): ClassPath {
 }
 
 
-internal
+private
 fun Decoder.readTransformedClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = TransformedClassPath.builderWithExactSize(size)

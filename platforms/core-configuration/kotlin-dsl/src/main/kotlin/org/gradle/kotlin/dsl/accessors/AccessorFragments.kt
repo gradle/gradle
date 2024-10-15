@@ -18,9 +18,12 @@ package org.gradle.kotlin.dsl.accessors
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmType
+import kotlinx.metadata.KmTypeProjection
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
+import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -55,6 +58,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Type
 
 
 internal
@@ -64,8 +68,68 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForConvention -> fragmentsForConvention(accessor)
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
+    is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
+    is Accessor.ForContainerElementFactory -> fragmentsForContainerElementFactory(accessor)
 }
 
+private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerElementFactory): Fragments = accessor.run {
+    val elementFactoryName = accessor.spec.name.original
+    val className = "${accessor.spec.name.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val (kotlinElementType, _) = accessibleTypesFor(accessor.spec.elementType)
+    val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
+    val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString
+
+    className to sequenceOf(
+        AccessorFragment(
+            source = elementFactoryName.run {
+                """
+                    /**
+                     * Registers or configures a new "$elementFactoryName" element in a named domain object container of [$elementTypeKotlinString].
+                     */
+                    @${Incubating::class.simpleName}
+                    fun ${accessor.spec.receiverType.type.kotlinString}.`$elementFactoryName`(
+                        name: String,
+                        configure: Action<in $elementTypeKotlinString>
+                    ) {
+                        if (name in names) {
+                            named(name, configure)
+                        } else {
+                            register(name, configure)
+                        }
+                    }
+                """.trimIndent()
+            },
+            bytecode = {
+                publicStaticMethod(signature, annotations = {
+                    visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
+                }) {
+                    ALOAD(0)
+                    ALOAD(1)
+                    ALOAD(2)
+                    invokeRuntime("maybeRegister", signature.desc)
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
+                    receiverType = kotlinReceiverType,
+                    valueParameters = listOf(
+                        newValueParameterOf("name", KotlinType.string),
+                        newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinElementType)))
+                    ),
+                    returnType = KotlinType.unit,
+                    name = elementFactoryName,
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                elementFactoryName,
+                "(L$jvmReceiverType;Ljava/lang/String;Lorg/gradle/api/Action;)V"
+            )
+        )
+    )
+}
 
 @Suppress("LongMethod")
 private
@@ -838,6 +902,51 @@ fun fragmentsForConvention(accessor: Accessor.ForConvention): Fragments {
             signature = JvmMethodSignature(
                 propertyName,
                 "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+            )
+        )
+    )
+}
+
+
+private
+fun fragmentsForModelDefault(
+    accessor: Accessor.ForModelDefault
+): Fragments {
+
+    val accessorSpec = accessor.spec
+    val className = internalNameForAccessorClassOf(accessorSpec)
+    val (accessibleReceiverType, name, modelType) = accessorSpec
+    val softwareTypeName = name.kotlinIdentifier
+    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
+
+    return className to sequenceOf(
+        AccessorFragment(
+            source = modelDefaultAccessor(accessorSpec),
+            bytecode = {
+                publicStaticMethod(signature) {
+                    ALOAD(0)
+                    LDC(softwareTypeName)
+                    LDC(jvmPublicType)
+                    ALOAD(1)
+                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    receiverType = receiverType,
+                    returnType = KotlinType.unit,
+                    name = softwareTypeName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
+                    ),
+                    signature = signature
+                )
+            },
+            signature = JvmMethodSignature(
+                name.kotlinIdentifier,
+                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
             )
         )
     )

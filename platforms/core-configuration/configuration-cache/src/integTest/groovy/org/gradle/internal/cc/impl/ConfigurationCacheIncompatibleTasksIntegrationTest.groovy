@@ -17,6 +17,8 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
@@ -24,7 +26,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
     def "reports incompatible task serialization error and discards cache entry when task is scheduled"() {
         given:
         withBrokenSerializableType()
-        addTasksWithProblems('new BrokenSerializable()')
+        addIncompatibleTasksWithProblems('new BrokenSerializable()')
 
         when:
         configurationCacheRun("declared")
@@ -86,7 +88,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
     }
 
     def "reports incompatible task serialization and execution problems and discards cache entry when task is scheduled"() {
-        addTasksWithProblems()
+        addIncompatibleTasksWithProblems()
 
         when:
         configurationCacheRun("declared")
@@ -105,7 +107,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
     def "incompatible task problems are not subtracted from max-problems"() {
         given:
-        addTasksWithProblems()
+        addIncompatibleTasksWithProblems()
 
         when:
         configurationCacheRun "declared", "$MAX_PROBLEMS_SYS_PROP=1"
@@ -117,7 +119,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
     def "incompatible task problems are not subtracted from max-problems but problems from tasks that are not marked incompatible are"() {
         given:
-        addTasksWithProblems()
+        addIncompatibleTasksWithProblems()
 
         when:
         configurationCacheFails "declared", "notDeclared", "$MAX_PROBLEMS_SYS_PROP=2", WARN_PROBLEMS_CLI_OPT
@@ -137,7 +139,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
     def "problems in tasks that are not marked incompatible are treated as failures when incompatible tasks are also scheduled"() {
         given:
-        addTasksWithProblems()
+        addIncompatibleTasksWithProblems()
 
         when:
         configurationCacheFails("declared", "notDeclared")
@@ -155,7 +157,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
     }
 
     def "discards cache entry when incompatible task scheduled but no problems generated"() {
-        addTasksWithoutProblems()
+        addIncompatibleTaskWithoutProblems()
 
         when:
         configurationCacheRun("declared")
@@ -177,7 +179,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
     }
 
     def "can force storing cache entry by treating problems as warnings"() {
-        addTasksWithProblems()
+        addIncompatibleTasksWithProblems()
 
         when:
         configurationCacheRunLenient("declared")
@@ -203,7 +205,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
     }
 
     def "can force storing cache entry by treating problems as warnings when incompatible task is scheduled but has no problems"() {
-        addTasksWithoutProblems()
+        addIncompatibleTaskWithoutProblems()
 
         when:
         configurationCacheRunLenient("declared")
@@ -219,6 +221,204 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         then:
         result.assertTasksExecuted(":declared")
         fixture.assertStateLoaded()
+    }
+
+    def "tasks that access project through #providerChain emit no problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            tasks.register("reliesOnSerialization") { task ->
+                dependsOn "declared"
+                def projectProvider = $providerChain
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("reliesOnSerialization")
+
+        then:
+        result.assertTasksExecuted(":declared", ":reliesOnSerialization")
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+
+        where:
+        providerChain                               || _
+        "provider { task.project.name }"            || _
+        "provider { task.project }.map { it.name }" || _
+    }
+
+    def "tasks that access project at execution time emit problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            tasks.register("incompatible") {
+                dependsOn "declared"
+                doLast { task ->
+                    println task.project.name
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("incompatible")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            problem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through provider created at execution time emit problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                dependsOn "declared"
+                def providerFactory = providers
+                doLast { task ->
+                    def projectProvider = providerFactory.provider { task.project.name }
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid tracking all providers created at execution time.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards")
+        configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through indirect provider created at execution time emit problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                dependsOn "declared"
+                def valueProvider = providers.provider { "value" }
+                doLast { task ->
+                    println valueProvider.map { it + task.project.name }.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid tracking all providers created at execution time.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards")
+        configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through mapped changing provider emit problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            tasks.register("bypassesSafeguards") { task ->
+                dependsOn "declared"
+                def projectProvider = providers.systemProperty("some.property").map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid checking if the provider has fixed execution time value.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards", "-Dsome.property=value")
+        configurationCacheRun("bypassesSafeguards", "-Dsome.property=value")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @ToBeImplemented
+    def "tasks that access project through mapped changing value source provider emit problems when incompatible task is present"() {
+        given:
+        addIncompatibleTaskWithoutProblems()
+        buildFile """
+            import org.gradle.api.provider.*
+
+            abstract class ChangingSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override
+                 String obtain(){
+                    return "some string"
+                }
+            }
+
+            tasks.register("bypassesSafeguards") { task ->
+                dependsOn "declared"
+                def projectProvider = providers.of(ChangingSource) {}.map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        // We allow false negative to avoid checking if the provider has fixed execution time value.
+        // A desired assertion is configurationCacheFails("bypassesSafeguards")
+        configurationCacheRun("bypassesSafeguards")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30043")
+    def "can resolve project dependencies at execution time"() {
+        given:
+        settingsFile """
+            include(":other")
+        """
+
+        buildFile "other/build.gradle", '''
+            plugins { id("java") }
+        '''
+
+        buildFile '''
+            plugins { id("java") }
+
+            dependencies { implementation(project(':other')) }
+
+            abstract class TaskWithRuntimeClasspath extends DefaultTask {
+                @Classpath FileCollection getTaskClasspath() { project.configurations.runtimeClasspath }
+
+                @TaskAction void doIt() {
+                    println("Running incompatible task")
+                }
+            }
+
+            tasks.register("reportedlyIncompatible", TaskWithRuntimeClasspath) {
+                notCompatibleWithConfigurationCache("declaring myself as not compatible")
+            }
+        '''
+
+        when:
+        configurationCacheRun("reportedlyIncompatible")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+        }
     }
 
     private void assertStateStoredAndDiscardedForDeclaredTask(int line) {
@@ -237,7 +437,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         }
     }
 
-    private addTasksWithoutProblems() {
+    private addIncompatibleTaskWithoutProblems() {
         buildFile """
             tasks.register('declared') {
                 notCompatibleWithConfigurationCache("not really")
@@ -247,7 +447,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         """
     }
 
-    private addTasksWithProblems(String brokenFieldValue = 'project.configurations') {
+    private addIncompatibleTasksWithProblems(String brokenFieldValue = 'project.configurations') {
         buildFile """
             class Broken extends DefaultTask {
                 // Serialization time problem

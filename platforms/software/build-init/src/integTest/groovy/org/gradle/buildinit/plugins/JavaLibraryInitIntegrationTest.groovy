@@ -92,7 +92,11 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         succeeds('test')

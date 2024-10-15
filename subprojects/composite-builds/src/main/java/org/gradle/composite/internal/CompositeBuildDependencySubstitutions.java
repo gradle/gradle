@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
@@ -28,6 +29,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Pair;
@@ -64,12 +66,12 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         ComponentSelector requested = dependencySubstitution.getTarget();
         if (requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) requested;
-            ProjectComponentIdentifier replacement = getReplacementFor(selector);
+            ProjectComponentIdentifierInternal replacement = getReplacementFor(selector);
             if (replacement != null) {
-                ProjectComponentSelector targetProject = DefaultProjectComponentSelector.newSelector(
-                    replacement,
+                ProjectComponentSelector targetProject = new DefaultProjectComponentSelector(
+                    replacement.getProjectIdentity(),
                     ((AttributeContainerInternal)requested.getAttributes()).asImmutable(),
-                    requested.getRequestedCapabilities()
+                    ImmutableSet.copyOf(requested.getCapabilitySelectors())
                 );
                 dependencySubstitution.useTarget(
                     targetProject,
@@ -79,7 +81,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
     }
 
     @Nullable
-    private ProjectComponentIdentifier getReplacementFor(ModuleComponentSelector selector) {
+    private ProjectComponentIdentifierInternal getReplacementFor(ModuleComponentSelector selector) {
         ModuleIdentifier candidateId = selector.getModuleIdentifier();
         Collection<ProjectComponentIdentifier> providingProjects = replacementMap.get(candidateId);
         if (providingProjects.isEmpty()) {
@@ -89,7 +91,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         if (providingProjects.size() == 1) {
             ProjectComponentIdentifier match = providingProjects.iterator().next();
             LOGGER.info("Found project '{}' as substitute for module '{}'.", match, candidateId);
-            return match;
+            return (ProjectComponentIdentifierInternal) match;
         }
         throw new ModuleVersionResolveException(selector, () -> {
             SortedSet<String> sortedProjects =

@@ -20,8 +20,11 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 abstract class AbstractWrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -51,8 +54,7 @@ task hello {
         settingsFile << "rootProject.name = 'wrapper'"
         version(wrapperVersion).withTasks('wrapper').run()
 
-        def executer = wrapperExecuter(wrapperVersion)
-        executer
+        wrapperExecuter(executionVersion)
     }
 
     private GradleExecuter wrapperExecuter(GradleDistribution wrapper) {
@@ -75,6 +77,7 @@ task hello {
         // Use isolated daemons in order to verify that using the installed distro works, and so that the daemons aren't visible to other tests, because
         // the installed distro is deleted at the end of this test
         executer.requireIsolatedDaemons()
+        executer.usingExecutable('gradlew')
         return executer
     }
 }

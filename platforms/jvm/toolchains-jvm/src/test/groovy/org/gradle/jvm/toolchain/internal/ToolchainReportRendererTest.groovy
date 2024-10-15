@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.logging.text.TestStyledTextOutput
@@ -58,12 +58,15 @@ class ToolchainReportRendererTest extends Specification {
     def "jdk is rendered properly"() {
         given:
         File javaHome = new File(temporaryFolder, "javahome").tap { mkdirs() }
-        def metadata = JvmInstallationMetadata.from(
-            javaHome,
-            "1.8.0", "adoptopenjdk",
-            "runtimeName", "1.8.0-b01",
-            "jvmName", "25.292-b01", "jvmVendor",
-            "myArch"
+        def metadata = new JvmMetadataWithAddedCapabilities(
+            JvmInstallationMetadata.from(
+                javaHome,
+                "1.8.0", "adoptopenjdk",
+                "runtimeName", "1.8.0-b01",
+                "jvmName", "25.292-b01", "jvmVendor",
+                "myArch"
+            ),
+            JavaInstallationCapability.JDK_CAPABILITIES
         )
         installation.source >> "SourceSupplier"
 

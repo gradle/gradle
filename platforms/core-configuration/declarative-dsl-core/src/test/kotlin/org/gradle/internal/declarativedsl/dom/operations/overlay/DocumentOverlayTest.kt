@@ -30,12 +30,11 @@ import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.Test
 
 
-internal
-object DocumentOverlayTest {
+class DocumentOverlayTest {
     @Test
     fun `properties are combined in the result`() {
         val underlay = resolvedDocument(
@@ -199,6 +198,66 @@ object DocumentOverlayTest {
         )
     }
 
+    @Test
+    fun `configuring blocks with identity keys get merged based on the key`() {
+        val underlay = resolvedDocument(
+            """
+            configuringById(2) {
+                a = 2
+            }
+            configuringById(1) {
+                a = 1
+            }
+            configuringById(3) {
+                a = 3
+            }
+            """.trimIndent()
+        )
+
+        val overlay = resolvedDocument(
+            """
+            configuringById(1) {
+                b = 1
+            }
+            configuringById(2) {
+                b = 2
+            }
+            configuringById(4) {
+                b = 4
+            }
+            """.trimIndent()
+        )
+
+        // TODO: this test asserts the order of the result element that follows from the rule:
+        //       "the elements missing in the overlay go first, then the merged ones".
+        //       However, a more natural result order might be with keys ordered as: 2, 1, 3, 4
+        overlayResolvedDocuments(underlay, overlay).document.assertMergeResult(
+            """
+            element(configuringById, [literal(3)], content.size = 1)
+                literal(3)
+                property(a, literal(3))
+                    literal(3)
+            element(configuringById, [literal(1)], content.size = 2)
+                literal(1)
+                property(a, literal(1))
+                    literal(1)
+                property(b, literal(1))
+                    literal(1)
+            element(configuringById, [literal(2)], content.size = 2)
+                literal(2)
+                property(a, literal(2))
+                    literal(2)
+                property(b, literal(2))
+                    literal(2)
+            element(configuringById, [literal(4)], content.size = 1)
+                literal(4)
+                property(b, literal(4))
+                    literal(4)
+
+            """.trimIndent(),
+        )
+    }
+
 
     @Test
     fun `the overlay shows where the elements come from`() {
@@ -266,14 +325,14 @@ object DocumentOverlayTest {
                 * element(unresolved4, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved4, [], content.size = 0))
             * element(configuring, [], content.size = 7) -> MergedElements(underlayElement=element(configuring, [], content.size = 4), overlayElement=element(configuring, [], content.size = 4))
                 * element(unresolved2, [], content.size = 0) -> FromUnderlay(documentNode=element(unresolved2, [], content.size = 0))
-                * error(UnsupportedKotlinFeature(unsupportedConstruct=UnsupportedConstruct(potentialElementSource=LightTreeSourceData(test:164..170), erroneousSource=LightTreeSourceData(test:164..170), languageFeature=PrefixExpression))) -> FromUnderlay(documentNode=error(UnsupportedKotlinFeature(unsupportedConstruct=UnsupportedConstruct(potentialElementSource=LightTreeSourceData(test:164..170), erroneousSource=LightTreeSourceData(test:164..170), languageFeature=PrefixExpression))))
+                * error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:164..170), erroneousSource=LightTreeSourceData(test:164..170), message=Unsupported operation in unary expression: !))) -> FromUnderlay(documentNode=error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:164..170), erroneousSource=LightTreeSourceData(test:164..170), message=Unsupported operation in unary expression: !))))
                 * error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:171..185), erroneousSource=LightTreeSourceData(test:171..185), message=Unexpected tokens (use ';' to separate expressions on the same line)))) -> FromUnderlay(documentNode=error(SyntaxError(parsingError=ParsingError(potentialElementSource=LightTreeSourceData(test:171..185), erroneousSource=LightTreeSourceData(test:171..185), message=Unexpected tokens (use ';' to separate expressions on the same line)))))
                 * property(a, literal(33)) -> ShadowedProperty(underlayProperty=property(a, literal(3)), overlayProperty=property(a, literal(33)))
                     - literal(33) -> FromOverlay(documentNode=property(a, literal(33)))
                 * property(b, literal(6)) -> FromOverlay(documentNode=property(b, literal(6)))
                     - literal(6) -> FromOverlay(documentNode=property(b, literal(6)))
                 * element(unresolved5, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved5, [], content.size = 0))
-                * error(UnsupportedSyntax(cause=UnsupportedPropertyAccess)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=UnsupportedPropertyAccess)))
+                * error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)) -> FromOverlay(documentNode=error(UnsupportedSyntax(cause=NamedReferenceWithExplicitReceiver)))
             * element(unresolved6, [], content.size = 0) -> FromOverlay(documentNode=element(unresolved6, [], content.size = 0))
 
             """.trimIndent(),
@@ -410,6 +469,9 @@ object DocumentOverlayTest {
         @Configuring
         fun configuring(configure: NestedReceiver.() -> Unit)
 
+        @Configuring
+        fun configuringById(id: Int, configure: NestedReceiver.() -> Unit)
+
         @Adding
         fun adding(someValue: Int, configure: NestedReceiver.() -> Unit): NestedReceiver
 
@@ -442,5 +504,7 @@ object DocumentOverlayTest {
         is DocumentResolution.ValueNodeResolution.LiteralValueResolved -> "literal"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved -> "valueFactory"
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryNotResolved -> "valueFactoryNotResolved"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceResolved -> "namedReference"
+        is DocumentResolution.ValueNodeResolution.NamedReferenceResolution.NamedReferenceNotResolved -> "namedReferenceNotResolved"
     }
 }

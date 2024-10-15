@@ -1,0 +1,10 @@
+// tag::plugin[]
+plugins {
+    id 'java-library'
+    alias(libs.plugins.versions)
+}
+// end::plugin[]
+
+dependencies {
+    api libs.bundles.groovy
+}

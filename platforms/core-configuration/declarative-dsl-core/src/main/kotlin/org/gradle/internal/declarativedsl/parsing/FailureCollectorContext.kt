@@ -42,7 +42,7 @@ class FailureCollectorContext {
         return result
     }
 
-    interface CheckBarrierContext {
+    class CheckBarrierContext {
 
         fun <T : LanguageTreeElement> checked(result: CheckedResult<ElementResult<T>>): T {
             val value = result.value
@@ -66,14 +66,14 @@ class FailureCollectorContext {
 
     fun <T : LanguageTreeElement> elementIfNoFailures(evaluate: CheckBarrierContext.() -> ElementResult<T>): ElementResult<T> =
         when (currentFailures.size) {
-            0 -> evaluate(object : CheckBarrierContext {})
+            0 -> evaluate(CheckBarrierContext())
             1 -> currentFailures.single()
             else -> MultipleFailuresResult(currentFailures.flatMap { if (it is MultipleFailuresResult) it.failures else listOf(it as SingleFailureResult) })
         }
 
     fun <T> syntacticIfNoFailures(evaluate: CheckBarrierContext.() -> SyntacticResult<T>): SyntacticResult<T> =
         when (currentFailures.size) {
-            0 -> evaluate(object : CheckBarrierContext {})
+            0 -> evaluate(CheckBarrierContext())
             1 -> currentFailures.single()
             else -> MultipleFailuresResult(currentFailures.flatMap { if (it is MultipleFailuresResult) it.failures else listOf(it as SingleFailureResult) })
         }

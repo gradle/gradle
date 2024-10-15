@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath.transforms;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.ArrayUtils;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
@@ -27,15 +28,18 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
@@ -51,7 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
@@ -82,6 +86,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     @SuppressWarnings("deprecation")
     private static final String GROOVY_INDY_INTERFACE_V7_TYPE = getType(org.codehaus.groovy.vmplugin.v7.IndyInterface.class).getInternalName();
     private static final String GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE);
+    private static final String INSTRUMENTED_GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE, STRING_TYPE);
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
@@ -89,6 +94,8 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final AdhocInterceptors ADHOC_INTERCEPTORS = new AdhocInterceptors();
 
     private final JvmBytecodeInterceptorSet externalInterceptors;
+    private final MethodInterceptionListener methodInterceptionListener;
+    private final InstrumentationMetadata instrumentationMetadata;
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -97,11 +104,17 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(INSTRUMENTATION_ONLY);
+        this(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
     }
 
-    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter) {
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, InstrumentationTypeRegistry typeRegistry) {
+        this(interceptorFilter, typeRegistry, MethodInterceptionListener.NO_OP);
+    }
+
+    public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter, InstrumentationTypeRegistry typeRegistry, MethodInterceptionListener methodInterceptionListener) {
         this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorFilter);
+        this.methodInterceptionListener = methodInterceptionListener;
+        this.instrumentationMetadata = (type, superType) -> typeRegistry.getSuperTypes(type).contains(superType);
     }
 
     private BytecodeInterceptorFilter interceptorFilter() {
@@ -115,7 +128,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
         // TODO(mlopatkin) can we reuse interceptors in a bigger scope, not per class, but per artifact?
-        List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(classData);
+        List<JvmBytecodeCallInterceptor> interceptors = buildInterceptors(instrumentationMetadata);
         if (interceptorFilter().matches(ADHOC_INTERCEPTORS)) {
             interceptors = ImmutableList.<JvmBytecodeCallInterceptor>builderWithExpectedSize(interceptors.size() + 1).add(ADHOC_INTERCEPTORS).addAll(interceptors).build();
         }
@@ -127,7 +140,8 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ),
                 classData,
                 interceptors,
-                interceptorFilter()
+                interceptorFilter(),
+                methodInterceptionListener
             )
         );
     }
@@ -148,22 +162,37 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final BytecodeInterceptorFilter interceptorFilter;
 
         private final Map<Handle, BridgeMethod> bridgeMethods = new LinkedHashMap<>();
+        private final MethodInterceptionListener methodInterceptionListener;
         private int nextBridgeMethodIndex;
 
         private String className;
+        private String sourceFileName;
         private boolean hasGroovyCallSites;
 
-        public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, List<JvmBytecodeCallInterceptor> interceptors, BytecodeInterceptorFilter interceptorFilter) {
+        public InstrumentingVisitor(
+            ClassVisitor visitor,
+            ClassData classData,
+            List<JvmBytecodeCallInterceptor> interceptors,
+            BytecodeInterceptorFilter interceptorFilter,
+            MethodInterceptionListener methodInterceptionListener
+        ) {
             super(ASM_LEVEL, visitor);
             this.classData = classData;
             this.interceptors = interceptors;
             this.interceptorFilter = interceptorFilter;
+            this.methodInterceptionListener = methodInterceptionListener;
         }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             this.className = name;
+        }
+
+        @Override
+        public void visitSource(String source, String debug) {
+            this.sourceFileName = source;
+            super.visitSource(source, debug);
         }
 
         @Override
@@ -178,7 +207,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, interceptors, interceptorFilter);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
         }
 
         @Override
@@ -268,20 +297,29 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Lazy<MethodNode> asNode;
         private final Collection<JvmBytecodeCallInterceptor> interceptors;
         private final BytecodeInterceptorFilter interceptorFilter;
+        private final MethodInterceptionListener methodInterceptionListener;
+        private final String sourceFileName;
+        private int methodInsLineNumber;
 
         public InstrumentingMethodVisitor(
             InstrumentingVisitor owner,
             MethodVisitor methodVisitor,
-            Lazy<MethodNode> asNode,
-            Collection<JvmBytecodeCallInterceptor> interceptors,
-            BytecodeInterceptorFilter interceptorFilter
+            Lazy<MethodNode> asNode
         ) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.sourceFileName = owner.sourceFileName;
             this.asNode = asNode;
-            this.interceptors = interceptors;
-            this.interceptorFilter = interceptorFilter;
+            this.interceptors = owner.interceptors;
+            this.interceptorFilter = owner.interceptorFilter;
+            this.methodInterceptionListener = owner.methodInterceptionListener;
+        }
+
+        @Override
+        public void visitLineNumber(int line, Label start) {
+            methodInsLineNumber = line;
+            super.visitLineNumber(line, start);
         }
 
         @Override
@@ -292,6 +330,15 @@ public class InstrumentingClassTransform implements ClassTransform {
 
             for (JvmBytecodeCallInterceptor interceptor : interceptors) {
                 if (interceptor.visitMethodInsn(this, className, opcode, owner, name, descriptor, isInterface, asNode)) {
+                    methodInterceptionListener.onInterceptedMethodInstruction(
+                        interceptor.getType(),
+                        sourceFileName,
+                        className,
+                        owner,
+                        name,
+                        descriptor,
+                        methodInsLineNumber
+                    );
                     return;
                 }
             }
@@ -309,30 +356,21 @@ public class InstrumentingClassTransform implements ClassTransform {
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
             if (isGroovyIndyCallsite(bootstrapMethodHandle)) {
+                // Handle for org.gradle.internal.classpath.Instrumented.bootstrap() method
                 Handle interceptor = new Handle(
                     H_INVOKESTATIC,
                     INSTRUMENTED_TYPE.getInternalName(),
-                    getBoostrapMethodName(interceptorFilter),
-                    GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
+                    "bootstrap",
+                    INSTRUMENTED_GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
                     false
                 );
+                bootstrapMethodArguments = ArrayUtils.add(bootstrapMethodArguments, interceptorFilter.name());
                 super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
             } else {
                 for (int i = 0; i < bootstrapMethodArguments.length; i++) {
                     bootstrapMethodArguments[i] = maybeInstrumentBootstrapArgument(bootstrapMethodArguments[i]);
                 }
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
-            }
-        }
-
-        private static String getBoostrapMethodName(BytecodeInterceptorFilter interceptorFilter) {
-            switch (interceptorFilter) {
-                case INSTRUMENTATION_ONLY:
-                    return "bootstrapInstrumentationOnly";
-                case ALL:
-                    return "bootstrapAll";
-                default:
-                    throw new UnsupportedOperationException("Unknown interceptor request: " + interceptorFilter);
             }
         }
 

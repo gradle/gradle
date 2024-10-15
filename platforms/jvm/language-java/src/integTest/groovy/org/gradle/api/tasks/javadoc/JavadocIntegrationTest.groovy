@@ -256,51 +256,6 @@ Joe!""")
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/1484")
-    def "can use various multi-value options"() {
-        buildFile << """
-            apply plugin: 'java'
-
-            javadoc {
-                options {
-                    addMultilineStringsOption("addMultilineStringsOption").setValue([
-                        "a",
-                        "b",
-                        "c"
-                    ])
-                    addStringsOption("addStringsOption", " ").setValue([
-                        "a",
-                        "b",
-                        "c"
-                    ])
-                    addMultilineMultiValueOption("addMultilineMultiValueOption").setValue([
-                        [ "a" ],
-                        [ "b", "c" ]
-                    ])
-                }
-            }
-        """
-        writeSourceFile()
-        expect:
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            executer.expectDeprecationWarnings(2)
-        } else {
-            executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
-        }
-        fails("javadoc") // we're using unsupported options to verify that we do the right thing
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
-            "-addMultilineStringsOption 'b'\n" +
-            "-addMultilineStringsOption 'c'"))
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineMultiValueOption \n" +
-            "'a' \n" +
-            "-addMultilineMultiValueOption \n" +
-            "'b' 'c' "))
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/1502")
     def "can pass Jflags to javadoc"() {
         buildFile << """
@@ -656,6 +611,61 @@ Joe!""")
         then:
         file("build/docs/javadoc/pkg/Foo.html").assertExists()
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
+    }
+
+    def "isVerbose is deprecated"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                print("Javadoc is verbose: " + isVerbose())
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.isVerbose() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().isVerbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+        outputContains("Javadoc is verbose: false")
+    }
+
+    def "setVerbose(true) is deprecated"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                setVerbose(true)
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(true) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().verbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+    }
+
+    def "setVerbose(false) is deprecated with additional details"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                setVerbose(false)
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(false) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Passing false to this method does nothing. You may want to call getOptions().quiet(). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
     }
 
     private TestFile writeSourceFile() {

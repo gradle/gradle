@@ -56,7 +56,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         def init = executer.gradleUserHomeDir.file("init.d/init.gradle") << """
         """
         addSettingsListener()
-        buildScript """
+        buildFile """
             task t
         """
 
@@ -76,7 +76,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     def "can emit notifications from start of build"() {
         when:
         addSettingsListener()
-        buildScript """
+        buildFile """
             task t
         """
 
@@ -121,7 +121,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         file("a/settings.gradle") << ""
         file("settings.gradle") << "includeBuild 'a'"
         addSettingsListener()
-        buildScript """
+        buildFile """
             task t {
                 dependsOn gradle.includedBuild("a").task(":t")
             }
@@ -244,7 +244,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
             }
         """
         settingsFile << "rootProject.name = 'parent'"
-        buildScript """
+        buildFile """
             task t(type: GradleBuild) {
                 tasks = ["o"]
             }

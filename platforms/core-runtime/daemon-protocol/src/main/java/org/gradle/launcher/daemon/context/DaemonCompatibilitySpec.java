@@ -66,7 +66,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     private boolean jvmCompatible(DaemonContext potentialContext) {
         DaemonJvmCriteria criteria = desiredContext.getJvmCriteria();
         if (criteria instanceof DaemonJvmCriteria.Spec) {
-            return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(potentialContext.getJavaVersion());
+            return ((DaemonJvmCriteria.Spec) criteria).isCompatibleWith(potentialContext.getJavaVersion(), potentialContext.getJavaVendor());
         }
         try {
             File potentialJavaHome = potentialContext.getJavaHome();

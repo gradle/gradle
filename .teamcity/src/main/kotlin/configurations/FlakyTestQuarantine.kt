@@ -5,10 +5,12 @@ import common.BuildToolBuildJvm
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyDefaultSettings
+import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
+import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.BuildStep
@@ -16,8 +18,9 @@ import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 import model.StageName
+import model.TestType
 
-class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : BaseGradleBuildType(stage = stage, init = {
+class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch = Arch.AMD64) : OsAwareBaseGradleBuildType(os = os, stage = stage, init = {
     id("${model.projectId}_FlakyQuarantine_${os.asName()}_${arch.asName()}")
     name = "Flaky Test Quarantine - ${os.asName()} ${arch.asName()}"
     description = "Run all flaky tests skipped multiple times"
@@ -46,7 +49,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
     }
 
     testsWithOs.forEachIndexed { index, testCoverage ->
-        val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
+        val extraParameters = functionalTestExtraParameters(listOf("FlakyTestQuarantine"), os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
                 listOf(
@@ -59,12 +62,14 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                 ) +
                 listOf(extraParameters) +
                 functionalTestParameters(os, arch) +
-                listOf(buildScanTag(functionalTestTag))
+                listOf(buildScanTagParam(functionalTestTag), stage.getBuildScanCustomValueParam())
             ).joinToString(separator = " ")
         steps {
             gradleWrapper {
                 name = "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
-                tasks = "${if (index == 0) "clean " else ""}${testCoverage.testType.name}Test"
+                val testTaskName =
+                    if (testCoverage.testType == TestType.isolatedProjects) "isolatedProjectsIntegTest" else "${testCoverage.testType.name}Test"
+                tasks = "${if (index == 0) "clean " else ""}$testTaskName"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }

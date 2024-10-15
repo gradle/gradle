@@ -34,7 +34,7 @@ data class ParsedLightTree(
 )
 
 
-fun parse(@Language("kts") code: String): ParsedLightTree {
+fun parse(@Language("dcl") code: String): ParsedLightTree {
     val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code)
     return ParsedLightTree(
         KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
@@ -55,7 +55,7 @@ fun main() {
 
 
 private
-fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Triple<String, Int, Int> {
+fun wrapScriptIntoClassInitializerBlock(@Language("dcl") code: String): Triple<String, Int, Int> {
     val packageStatements = mutableListOf<String>()
     val importStatements = mutableListOf<String>()
     val codeStatements = mutableListOf<String>()

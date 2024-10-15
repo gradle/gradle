@@ -558,7 +558,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
     }
 
     def "reports unbound parameters for rules on applied RuleSource"() {
-        buildScript '''
+        buildFile '''
             class UnboundRuleSource extends RuleSource {
                 @Mutate
                 void unboundRule(String string, Integer integer, @Path("some.inner.path") String withPath) {

@@ -180,8 +180,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         void flushOutput() {
         }
 
-         // Used in subclasses
-        void maybeFlushOutput(@SuppressWarnings("UnusedVariable") long timestamp) {
+        void maybeFlushOutput(long timestamp) {
         }
     }
 

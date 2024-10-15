@@ -17,10 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +39,6 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasLineNumber(3)
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "produces reasonable error message when taskGraph.whenReady action fails"() {
         buildFile << """
     def action = {
@@ -82,19 +78,19 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces reasonable error when Gradle.allprojects action fails"() {
-        def initScript = initScript """
-allprojects {
-    throw new RuntimeException("broken")
-}
-"""
+        initScriptFile """
+            allprojects {
+                throw new RuntimeException("broken")
+            }
+        """
         when:
-        executer.usingInitScript(initScript)
+        executer.usingInitScript(initScriptFile)
         fails "a"
 
         then:
         failure.assertHasDescription("broken")
                 .assertHasNoCause()
-                .assertHasFileName("Initialization script '$initScript'")
+                .assertHasFileName("Initialization script '$initScriptFile'")
                 .assertHasLineNumber(3)
     }
 

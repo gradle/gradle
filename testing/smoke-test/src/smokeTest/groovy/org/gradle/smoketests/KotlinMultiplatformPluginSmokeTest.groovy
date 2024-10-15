@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
@@ -57,7 +58,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
             .expectDeprecationWarningIf(
-                kotlinVersionNumber >= VersionNumber.parse('1.9.22'),
+                kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
                 "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
                 "https://youtrack.jetbrains.com/issue/KT-67110"
             )

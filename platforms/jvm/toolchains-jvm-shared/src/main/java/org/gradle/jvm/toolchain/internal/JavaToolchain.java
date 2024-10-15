@@ -30,10 +30,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
-    static JavaLanguageVersion getJavaLanguageVersion(JvmInstallationMetadata metadata) {
-        return JavaLanguageVersion.of(metadata.getLanguageVersion().getMajorVersion());
-    }
-
     private final Directory javaHome;
     private final JavaLanguageVersion javaVersion;
     private final JvmInstallationMetadata metadata;
@@ -47,7 +43,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         boolean isFallbackToolchain
     ) {
         this.javaHome = fileFactory.dir(metadata.getJavaHome().toFile());
-        this.javaVersion = getJavaLanguageVersion(metadata);
+        this.javaVersion = JavaLanguageVersion.of(metadata.getJavaMajorVersion());
         this.metadata = metadata;
         this.input = input;
         this.isFallbackToolchain = isFallbackToolchain;

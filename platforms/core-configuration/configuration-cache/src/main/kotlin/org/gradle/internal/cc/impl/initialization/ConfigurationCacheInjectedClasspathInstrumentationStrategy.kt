@@ -21,13 +21,13 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
 class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
     private val problems: ProblemsListener
 ) : AbstractInjectedClasspathInstrumentationStrategy() {
-    override fun whenThirdPartyAgentPresent(): CachedClasspathTransformer.StandardTransform {
+    override fun whenThirdPartyAgentPresent(): TransformMode {
         // Report a problem and instrument anyway
         problems.onProblem(
             PropertyProblem(
@@ -36,6 +36,6 @@ class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
                 documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
             )
         )
-        return CachedClasspathTransformer.StandardTransform.BuildLogic
+        return TransformMode.BUILD_LOGIC
     }
 }

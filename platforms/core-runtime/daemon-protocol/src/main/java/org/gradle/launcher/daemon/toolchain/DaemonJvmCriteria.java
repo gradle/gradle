@@ -102,7 +102,7 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return String.format("'%s' (from %s)", getJavaHome().getAbsolutePath(), source.description);
+            return String.format("%s (from %s)", getJavaHome().getAbsolutePath(), source.description);
         }
     }
 
@@ -137,12 +137,11 @@ public interface DaemonJvmCriteria {
             if (javaVersionMajor == null) {
                 return false;
             }
-            return isCompatibleWith(JavaLanguageVersion.of(javaVersionMajor));
+            return isCompatibleWith(JavaLanguageVersion.of(javaVersionMajor), other.getVendor());
         }
 
-        public boolean isCompatibleWith(JavaLanguageVersion javaVersion) {
-            // TODO: Implement comparisons for vendorSpec and jvmImplementation
-            return javaVersion.equals(getJavaVersion()); // && vendorSpec.matches() && jvmImplementation == other.jvmImplementation;
+        public boolean isCompatibleWith(JavaLanguageVersion javaVersion, String javaVendor) {
+            return javaVersion.equals(getJavaVersion()) && vendorSpec.matches(javaVendor);
         }
 
         @Override
@@ -152,8 +151,7 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            // TODO: Include vendor and implementation
-            return String.format("Compatible with Java %s (from %s)", getJavaVersion(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
+            return String.format("Compatible with Java %s, %s (from %s)", getJavaVersion(), getVendorSpec(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
         }
     }
 }

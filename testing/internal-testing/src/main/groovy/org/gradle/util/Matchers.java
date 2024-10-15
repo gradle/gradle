@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import org.gradle.internal.SystemProperties;
 import org.hamcrest.BaseMatcher;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
@@ -211,6 +212,10 @@ public class Matchers {
                 description.appendText(" (normalize line separators)");
             }
         };
+    }
+
+    public static Matcher<String> containsNormalizedString(String substring) {
+        return normalizedLineSeparators(CoreMatchers.containsString(substring));
     }
 
 }

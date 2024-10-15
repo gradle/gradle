@@ -35,7 +35,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         inputFile.text = 'This is the input'
         cacheOriginInputFile.text = 'And this is not'
 
-        buildScript """
+        buildFile """
             apply plugin: 'base'
 
             import org.gradle.api.*

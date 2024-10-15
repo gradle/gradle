@@ -21,7 +21,7 @@ public interface StandardOutputRedirector {
     /**
      * Starts redirection of System.out and System.err to the listener attached to
      * {@link #redirectStandardErrorTo(OutputListener)} and
-     * {@link #redirectStandardOutputTo(OutputListener)
+     * {@link #redirectStandardOutputTo(OutputListener)}
      */
     void start();
 

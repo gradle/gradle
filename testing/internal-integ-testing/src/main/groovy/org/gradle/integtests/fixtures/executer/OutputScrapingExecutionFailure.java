@@ -185,12 +185,6 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertHasCause(String description) {
-        assertThatCause(startsWith(description));
-        return this;
-    }
-
-    @Override
     public ExecutionFailure assertThatCause(Matcher<? super String> matcher) {
         Set<String> seen = new LinkedHashSet<>();
         for (Problem problem : problems) {
@@ -245,12 +239,6 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertHasDescription(String context) {
-        assertThatDescription(startsWith(context));
-        return this;
-    }
-
-    @Override
     public ExecutionFailure assertThatDescription(Matcher<? super String> matcher) {
         assertHasFailure(matcher, f -> {
         });
@@ -290,17 +278,6 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             seen.add(problem.description);
         }
         failureOnUnexpectedOutput(String.format("No matching failure description found\nExpected: A failure description which is %s\n     but: failure descriptions were %s", matcher, seen));
-    }
-
-    @Override
-    public ExecutionFailure assertTestsFailed() {
-        new DetailedExecutionFailure(this).assertTestsFailed();
-        return this;
-    }
-
-    @Override
-    public DependencyResolutionFailure assertResolutionFailure(String configurationPath) {
-        return new DependencyResolutionFailure(this, configurationPath);
     }
 
     @Override

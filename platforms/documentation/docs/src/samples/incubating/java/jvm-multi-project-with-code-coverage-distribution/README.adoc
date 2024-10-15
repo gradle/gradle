@@ -16,7 +16,7 @@ The `application` project requires no additional configuration if the `jvm-test-
 <1> Apply the `jacoco-report-aggregation` plugin
 <2> Optional: make JaCoCo aggregate report generation part of the 'check' lifecycle phase
 
-The report aggregation logic does not automatically inspect all subprojects for coverage data to aggregate.  Instead, the direct and transitive <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> of the distribution project's runtime classpath are selected for potential aggregation.
+The report aggregation logic does not automatically inspect all subprojects for coverage data to aggregate.  Instead, the direct and transitive <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependencies>> of the distribution project's runtime classpath are selected for potential aggregation.
 
 For the default test suite named 'test', no additional configuration is necessary.  The aggregated reports and their backing tasks of type `JacocoReport` are synthesized based on the test suites existing in the `application` project.  Test suites having identical `testType` properties will be aggregated.
 

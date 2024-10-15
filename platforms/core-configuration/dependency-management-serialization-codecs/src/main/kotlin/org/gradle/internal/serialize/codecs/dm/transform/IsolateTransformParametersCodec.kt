@@ -21,7 +21,8 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.transform.DefaultTransform
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -37,7 +38,8 @@ class IsolateTransformParametersCodec(
     val buildOperationRunner: BuildOperationRunner,
     val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     val fileCollectionFactory: FileCollectionFactory,
-    val documentationRegistry: DocumentationRegistry
+    val documentationRegistry: DocumentationRegistry,
+    val problems: InternalProblems
 ) : Codec<DefaultTransform.IsolateTransformParameters> {
     override suspend fun WriteContext.encode(value: DefaultTransform.IsolateTransformParameters) {
         write(value.parameterObject)
@@ -54,12 +56,13 @@ class IsolateTransformParametersCodec(
             parameterObject,
             implementationClass,
             cacheable,
-            RootScriptDomainObjectContext.INSTANCE,
+            StandaloneDomainObjectContext.ANONYMOUS,
             parameterScheme.inspectionScheme.propertyWalker,
             isolatableFactory,
             buildOperationRunner,
             classLoaderHierarchyHasher,
-            fileCollectionFactory
+            fileCollectionFactory,
+            problems
         )
     }
 }

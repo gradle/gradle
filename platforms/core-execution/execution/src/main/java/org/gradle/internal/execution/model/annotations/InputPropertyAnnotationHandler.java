@@ -27,8 +27,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
 
@@ -40,13 +40,14 @@ import java.util.Locale;
 import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
     public static final String VALIDATION_PROBLEMS = "validation_problems";
 
     public InputPropertyAnnotationHandler() {
-        super(Input.class, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        super(Input.class, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Override
@@ -82,7 +83,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .details("Properties of primitive type cannot be optional")
                     .severity(Severity.ERROR)
                     .solution("Remove the @Optional annotation")
-                    .solution("Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
+                    .solution("Use the " + AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
             );
         }
     }

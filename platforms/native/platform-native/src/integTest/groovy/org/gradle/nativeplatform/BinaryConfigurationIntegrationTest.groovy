@@ -31,7 +31,6 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
@@ -68,7 +67,6 @@ model {
         executable.exec().out == "Hello!"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """
@@ -111,7 +109,6 @@ model {
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
@@ -215,7 +212,6 @@ model {
 
     @Issue("GRADLE-2973")
     @Requires(IntegTestPreconditions.IsParallelExecutor)
-    @ToBeFixedForConfigurationCache
     def "releases cache lock when compilation fails with --parallel"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:
@@ -244,7 +240,6 @@ subprojects {
         failure.assertThatCause(CoreMatchers.not(CoreMatchers.containsString("Could not stop")))
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure output file for binaries"() {
         given:
         def app = new CppHelloWorldApp()
@@ -288,7 +283,6 @@ model {
     @Issue("https://github.com/gradle/gradle-native/issues/368")
     @RequiresInstalledToolChain(VISUALCPP)
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "can configure output file for shared library on MSVC"() {
         given:
         def app = new CppHelloWorldApp()
@@ -328,7 +322,6 @@ model {
     }
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
-    @ToBeFixedForConfigurationCache
     def "can link to #linkage library binary with custom output file"() {
         given:
         def app = new CppHelloWorldApp()

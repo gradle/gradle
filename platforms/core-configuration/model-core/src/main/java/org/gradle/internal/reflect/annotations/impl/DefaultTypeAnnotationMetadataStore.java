@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -295,7 +296,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 metadataBuilder.getter.getName()
                             )
                         )
-                        .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(REDUNDANT_GETTERS)))
+                        .documentedAt(userManual("validation_problems", REDUNDANT_GETTERS.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
                         .details("Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
                         .solution("Remove one of the getters")
@@ -361,7 +362,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                     simpleAnnotationNames(fieldAnnotations.keySet().stream())
                                 )
                             )
-                            .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(IGNORED_ANNOTATIONS_ON_FIELD)))
+                            .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_FIELD.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
                             .details("Annotations on fields are only used if there's a corresponding getter for the field")
                             .solution("Add a getter for field '" + fieldName + "'")
@@ -448,7 +449,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .forProperty(propertyName)
                     .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "Private property with wrong annotation", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
-                    .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)))
+                    .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
                     .details("Annotations on private getters are ignored")
                     .solution("Make the getter public")
@@ -471,7 +472,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .forProperty(propertyName)
                     .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "Mutable type with setter", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("of mutable type '%s' is writable", setterType.getName()))
-                    .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(MUTABLE_TYPE_WITH_SETTER)))
+                    .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
                     .details("Properties of type '" + setterType.getName() + "' are already mutable")
                     .solution("Remove the '" + setterMethod.getName() + "' method")
@@ -512,7 +513,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             simpleAnnotationNames(annotationTypes.stream())
                         )
                     )
-                    .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(IGNORED_ANNOTATIONS_ON_METHOD)))
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
                     .details("Input/Output annotations are ignored if they are placed on something else than a getter")
                     .solution("Remove the annotations")
@@ -619,7 +620,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                             .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
                                     )
                                 )
-                                .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)))
+                                .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                                 .severity(ERROR)
                                 .details("A property is ignored but also has input annotations")
                                 .solution("Remove the input annotations")
@@ -677,7 +678,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 simpleAnnotationNames(annotationsForCategory.stream().map(Annotation::annotationType))
                             )
                         )
-                        .documentedAt(userManual("validation_problems", TextUtil.toLowerCaseLocaleSafe(CONFLICTING_ANNOTATIONS)))
+                        .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
                         .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
                         .solution("Choose between one of the conflicting annotations")

@@ -38,9 +38,8 @@ interface SourceDistributionProvider {
 class SourceDistributionResolver(private val project: Project) : SourceDistributionProvider {
 
     companion object {
-        val artifactType = Attribute.of("artifactType", String::class.java)
+        val artifactType: Attribute<String> = Attribute.of("artifactType", String::class.java)
         const val ZIP_TYPE = "zip"
-        const val UNZIPPED_DISTRIBUTION_TYPE = "unzipped-distribution"
         const val SOURCE_DIRECTORY = "src-directory"
     }
 
@@ -61,12 +60,8 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun registerTransforms() {
-        registerTransform<UnzipDistribution> {
-            from.attribute(artifactType, ZIP_TYPE)
-            to.attribute(artifactType, UNZIPPED_DISTRIBUTION_TYPE)
-        }
         registerTransform<FindGradleSources> {
-            from.attribute(artifactType, UNZIPPED_DISTRIBUTION_TYPE)
+            from.attribute(artifactType, ZIP_TYPE)
             to.attribute(artifactType, SOURCE_DIRECTORY)
         }
     }
@@ -143,6 +138,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
                 // source distributions beginning from the previous major version.
                 "${previous(major)}.0"
             }
+
             else -> {
                 // Otherwise include source distributions beginning from the previous minor version only.
                 "$major.${previous(minor)}"

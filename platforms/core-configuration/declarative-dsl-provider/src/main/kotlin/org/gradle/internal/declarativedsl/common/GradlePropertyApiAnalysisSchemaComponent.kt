@@ -110,9 +110,8 @@ class PropertyReturnTypeDiscovery(
     private val propertyExtractor: PropertyExtractor
 ) : TypeDiscovery {
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        propertyExtractor.extractProperties(kClass).flatMapTo(mutableSetOf()) {
-            val valueType = propertyValueType(it.originalReturnType).classifier as? KClass<*>
-            valueType?.let(::withAllPotentiallyDeclarativeSupertypes) ?: emptyList()
+        propertyExtractor.extractProperties(kClass).mapNotNullTo(mutableSetOf()) {
+            propertyValueType(it.originalReturnType).classifier as? KClass<*>
         }
 }
 

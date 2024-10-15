@@ -93,8 +93,7 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
 
             @Override
             public Void run(ConsumerConnection connection) {
-                Void sink = connection.run(Void.class, operationParameters);
-                return sink;
+                return connection.run(Void.class, operationParameters);
             }
         }, new ResultHandlerAdapter(handler));
     }

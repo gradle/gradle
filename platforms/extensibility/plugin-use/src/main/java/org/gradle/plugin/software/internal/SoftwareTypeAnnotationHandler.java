@@ -41,7 +41,7 @@ public class SoftwareTypeAnnotationHandler extends AbstractPropertyAnnotationHan
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType ->
-            visitor.visitSoftwareTypeProperty(propertyName, value, softwareType)
+            visitor.visitSoftwareTypeProperty(propertyName, value, propertyMetadata.getDeclaredType().getRawType(), softwareType)
         );
     }
 

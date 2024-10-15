@@ -17,7 +17,6 @@
 package org.gradle.declarative.dsl.tooling.builders
 
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
@@ -30,12 +29,11 @@ import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSche
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
-import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
 
-class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : ToolingModelBuilder, BuildScopeModelBuilder {
+class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : BuildScopeModelBuilder {
 
     override fun create(target: BuildState): Any {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
@@ -72,10 +70,6 @@ class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTy
 
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"
-
-    override fun buildAll(modelName: String, project: Project): Any {
-        error("model should be built before the configuration phase")
-    }
 }
 
 

@@ -283,7 +283,7 @@ include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=
 [[sec:java_plugin_and_dependency_management]]
 == Dependency management
 
-The Java plugin adds a number of <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>> to your project, as shown below.
+The Java plugin adds a number of <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configurations>> to your project, as shown below.
 Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
 
 [[tab:configurations]]

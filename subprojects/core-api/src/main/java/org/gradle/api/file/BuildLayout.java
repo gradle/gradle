@@ -33,7 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.5
  */
 @Incubating
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.Settings.class)
 public interface BuildLayout {
     /**
      * Returns the settings directory.

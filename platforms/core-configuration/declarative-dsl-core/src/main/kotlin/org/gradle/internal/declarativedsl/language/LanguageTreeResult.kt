@@ -86,6 +86,7 @@ sealed interface UnsupportedLanguageFeature {
     data object ExplicitVariableType : UnsupportedLanguageFeature
     data object StarImport : UnsupportedLanguageFeature
     data object RenamingImport : UnsupportedLanguageFeature
+    data object StringTemplates : UnsupportedLanguageFeature
     data object AnnotationUsage : UnsupportedLanguageFeature
     data object LoopStatement : UnsupportedLanguageFeature
     data object ConditionalExpression : UnsupportedLanguageFeature
@@ -110,9 +111,11 @@ sealed interface UnsupportedLanguageFeature {
     data object InvalidLanguageConstruct : UnsupportedLanguageFeature
     data object PrefixExpression : UnsupportedLanguageFeature
     data object UnsupportedOperationInBinaryExpression : UnsupportedLanguageFeature
-
+    data object UnsignedType : UnsupportedLanguageFeature
     data object SafeNavigation : UnsupportedLanguageFeature
-
+    data object ThisWithLabelQualifier : UnsupportedLanguageFeature
     data object Reflection : UnsupportedLanguageFeature
     data object TodoNotCoveredYet : UnsupportedLanguageFeature
+    data object UnsupportedSimpleIdentifier : UnsupportedLanguageFeature
+    data object InfixFunctionCall : UnsupportedLanguageFeature
 }

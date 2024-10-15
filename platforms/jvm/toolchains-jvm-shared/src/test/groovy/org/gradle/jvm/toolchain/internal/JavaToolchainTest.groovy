@@ -24,8 +24,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import spock.lang.Specification
 
-import java.nio.file.Paths
-
 class JavaToolchainTest extends Specification {
     def "java version is reported as specified in metadata"() {
         given:
@@ -52,10 +50,11 @@ class JavaToolchainTest extends Specification {
 
     def "installation metadata identifies whether it is a #description JVM"() {
         def javaHome = new File(javaHomePath).absolutePath
-        def metadata = Mock(JvmInstallationMetadata) {
-            getJavaHome() >> Paths.get(javaHome)
-            getLanguageVersion() >> Jvm.current().javaVersion
-        }
+        def metadata = JvmInstallationMetadata.from(
+            new File(javaHome),
+            Jvm.current().javaVersion.majorVersion,
+            "", "", "", "", "", "", ""
+        )
 
         when:
         def javaToolchain = new JavaToolchain(metadata, TestFiles.fileFactory(), Stub(JavaToolchainInput), false)

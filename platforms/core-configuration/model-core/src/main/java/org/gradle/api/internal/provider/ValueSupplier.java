@@ -53,6 +53,7 @@ public interface ValueSupplier {
     /**
      * Carries information about the producer of a value.
      */
+    @SuppressWarnings("ClassInitializationDeadlock")
     interface ValueProducer extends TaskDependencyContainer {
         NoProducer NO_PRODUCER = new NoProducer();
         UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
@@ -673,6 +674,7 @@ public interface ValueSupplier {
      *
      * @see ProviderInternal for a discussion of these states.
      */
+    @SuppressWarnings("ClassInitializationDeadlock")
     abstract class ExecutionTimeValue<T> {
         private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
 

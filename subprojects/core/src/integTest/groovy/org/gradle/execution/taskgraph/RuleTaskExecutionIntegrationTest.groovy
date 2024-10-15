@@ -126,7 +126,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     def "tasks added via task container and not explicitly required but executed are self closed"() {
         given:
-        buildScript """
+        buildFile """
             ${ruleBasedTasks()}
 
             class Rules extends RuleSource {
@@ -168,7 +168,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
-        buildScript """
+        buildFile """
             project(':a') {
                 apply type: ProjectARules
             }
@@ -204,7 +204,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can use getTasksByName() to get task defined in rules only script plugin after configuration"() {
         when:
-        buildScript """
+        buildFile """
             apply from: "fooTask.gradle"
             task check {
                 doLast {
@@ -225,7 +225,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     def "can use getTasksByName() to get task defined in rules only script plugin during configuration"() {
         when:
-        buildScript """
+        buildFile """
             apply from: "fooTask.gradle"
             task check {
               def fooTasks = getTasksByName("foo", false).size()

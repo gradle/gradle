@@ -5,6 +5,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
@@ -13,14 +14,15 @@ import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.Function
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.asChainOrNull
 
 
 interface FunctionCallResolver {
     fun doResolveFunctionCall(
         context: AnalysisContext,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        expectedType: DataTypeRef?
     ): ObjectOrigin.FunctionOrigin?
 
     data class FunctionResolutionAndBinding(
@@ -45,13 +47,14 @@ class FunctionCallResolverImpl(
 
     override fun doResolveFunctionCall(
         context: AnalysisContext,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        expectedType: DataTypeRef?
     ): ObjectOrigin.FunctionOrigin? = with(context) {
         val argResolutions = lazy {
             var hasErrors = false
             val result = buildMap<FunctionArgument.ValueArgument, ObjectOrigin> {
                 functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>().forEach {
-                    val resolution = expressionResolver.doResolveExpression(context, it.expr)
+                    val resolution = expressionResolver.doResolveExpression(context, it.expr, null)
                     if (resolution == null) {
                         hasErrors = true
                     } else {
@@ -94,7 +97,7 @@ class FunctionCallResolverImpl(
 
         1 -> {
             val resolution = overloads.single()
-            doProduceAndHandleFunctionResult(resolution, argResolutions.value, functionCall, resolution.receiver)
+            doProduceAndHandleFunctionResultOrNull(resolution, argResolutions.value, functionCall, resolution.receiver)
         }
 
         else -> {
@@ -114,7 +117,7 @@ class FunctionCallResolverImpl(
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             when (functionCall.receiver) {
                 is Expr -> {
-                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver)
+                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver, null)
                     if (receiver != null) {
                         addAll(findMemberFunction(receiver, functionCall, argResolutions.value))
                     } else {
@@ -146,27 +149,38 @@ class FunctionCallResolverImpl(
     }
 
     private
-    fun AnalysisContext.doProduceAndHandleFunctionResult(
+    fun AnalysisContext.doProduceAndHandleFunctionResultOrNull(
         function: FunctionResolutionAndBinding,
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
-    ): ObjectOrigin.FunctionOrigin {
+    ): ObjectOrigin.FunctionOrigin? {
         val newFunctionCallId = nextCallId()
         val valueBinding = function.binding.toValueBinding(argResolutions, functionCall.args.lastOrNull() is FunctionArgument.Lambda)
         val semantics = function.schemaFunction.semantics
 
         checkBuilderSemantics(semantics, receiver, function)
 
-        val result: ObjectOrigin.FunctionOrigin = invocationResultObjectOrigin(
+        val result: ObjectOrigin.FunctionInvocationOrigin = invocationResultObjectOrigin(
             semantics, function, functionCall, valueBinding, newFunctionCallId
         )
+
+        if (!doCheckParameterSemantics(result, functionCall)) {
+            return null
+        }
 
         doRecordSemanticsSideEffects(functionCall, semantics, receiver, result, function, argResolutions)
         doAnalyzeAndCheckConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId, valueBinding)
 
         return result
     }
+
+    private fun AnalysisContext.doCheckParameterSemantics(functionOrigin: ObjectOrigin.FunctionInvocationOrigin, functionCall: FunctionCall): Boolean =
+        if (functionOrigin.function.semantics is FunctionSemantics.AccessAndConfigure) {
+            functionOrigin.parameterBindings.bindingMap.all { (param, arg) ->
+                checkIdentityKeyParameterSemantics(functionCall, param, arg)
+            }
+        } else true
 
     private
     fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
@@ -228,13 +242,31 @@ class FunctionCallResolverImpl(
             else -> AssignmentMethod.AsConstructed
         }
         function.binding.binding.forEach { (param, arg) ->
-            val paramSemantics = param.semantics
-            if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
-                val property = paramSemantics.dataProperty
-                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod, call)
+            val argumentOrigin = argResolutions.getValue(arg)
+
+            when (val paramSemantics = param.semantics) {
+                is ParameterSemantics.StoreValueInProperty -> {
+                    val property = paramSemantics.dataProperty
+                    recordAssignment(PropertyReferenceResolution(result, property), argumentOrigin, assignmentMethod, call)
+                }
+
+                is ParameterSemantics.IdentityKey -> {
+                    paramSemantics.basedOnProperty?.let { property ->
+                        recordAssignment(PropertyReferenceResolution(result, property), argumentOrigin, assignmentMethod, call)
+                    }
+                }
+
+                is ParameterSemantics.Unknown -> Unit
             }
         }
     }
+
+    private fun AnalysisContext.checkIdentityKeyParameterSemantics(functionCall: FunctionCall, parameter: DataParameter, argumentOrigin: ObjectOrigin): Boolean =
+        if (argumentOrigin !is ObjectOrigin.ConstantOrigin) {
+            errorCollector.collect(ResolutionError(functionCall, ErrorReason.OpaqueArgumentForIdentityParameter(functionCall, parameter, argumentOrigin)))
+            false
+        } else true
+
 
     private
     fun checkBuilderSemantics(
@@ -288,7 +320,6 @@ class FunctionCallResolverImpl(
         newOperationId: OperationId
     ): ObjectOrigin.AccessAndConfigureReceiver {
         require(function.receiver != null)
-        require(functionCall.args.all { it is FunctionArgument.Lambda })
         return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newOperationId, semantics.accessor)
     }
 
@@ -327,8 +358,8 @@ class FunctionCallResolverImpl(
         val receiver = functionCall.receiver
 
         // TODO: extension functions are not supported now; so it's either an FQN function reference or imported one
-        if (receiver is PropertyAccess && receiver.asChainOrNull() != null || receiver == null) {
-            val packageNameParts = (receiver as? PropertyAccess)?.asChainOrNull()?.nameParts.orEmpty()
+        if (receiver is NamedReference && receiver.asChainOrNull() != null || receiver == null) {
+            val packageNameParts = (receiver as? NamedReference)?.asChainOrNull()?.nameParts.orEmpty()
             val candidates = buildList {
                 val fqn = DefaultFqName(packageNameParts.joinToString("."), functionCall.name)
                 schema.externalFunctionsByFqName[fqn]?.let { add(it) }
@@ -377,14 +408,14 @@ class FunctionCallResolverImpl(
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
                 val fqn = DefaultFqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
-                val typeByFqn = schema.dataClassesByFqName[fqn]
+                val typeByFqn = schema.dataClassTypesByFqName[fqn]
                 if (typeByFqn != null) {
                     add(typeByFqn)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
-                    val maybeType = schema.dataClassesByFqName[importedName]
+                    val maybeType = schema.dataClassTypesByFqName[importedName]
                     if (maybeType != null) {
                         add(maybeType)
                     }

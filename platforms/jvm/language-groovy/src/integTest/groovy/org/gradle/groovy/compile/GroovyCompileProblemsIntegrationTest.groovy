@@ -32,7 +32,7 @@ class GroovyCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "when doing a join compilation java problems are formatted the same as a standalone compication"() {
+    def "when doing a join compilation java problems are formatted the same as a standalone compilation"() {
         given:
         file("src/main/groovy/JavaThing.java") << """\
             public class JavaThing {
@@ -50,8 +50,8 @@ class GroovyCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         // If the joint compilation is working correctly, we should exercise the JdkJavaCompiler and we should have detailed problems events
         verifyAll(receivedProblem(0)) {
-            fqid == 'compilation:java:java-compilation-error'
-            details == "';' expected"
+            fqid == 'compilation:java:compiler-err-expected'
+            contextualLabel == "';' expected"
         }
 
         // We also check if the error counting also works,

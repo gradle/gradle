@@ -19,7 +19,7 @@ package org.gradle.internal.service;
 /**
  * Marker interface for reflection-based service declaration and registration.
  *
- * <h3>Declaring statically</h3>
+ * <h2>Declaring statically</h2>
  * You can declare services and factories by adding methods to the implementation of this interface.
  * <p>
  * The service-declaring methods are
@@ -66,7 +66,6 @@ package org.gradle.internal.service;
  * <p>
  * On top of the basic case of injecting dependencies, more advanced use-cases are also supported:
  * decoration, aggregation, owner registry injection.
- * <p>
  * <pre><code class="language-java">
  * &#64;Provides
  * protected MyService createMyService(
@@ -102,7 +101,6 @@ package org.gradle.internal.service;
  * <b>Owner dependency.</b>
  * When the parameter is of type {@link ServiceRegistry}, it will receive an instance of registry that owns the service.
  * See {@code ServiceRegistry ownerServiceRegistry} in the example.
- * <p>
  *
  * <h3>Service lookup order</h3>
  *
@@ -119,6 +117,20 @@ package org.gradle.internal.service;
  * </ol>
  *
  * The <em>decorator</em> declarations skip the own services, and start the lookup in the parents.
+ *
+ * <h3>Service visibility</h3>
+ *
+ * By default, all registered services are visible to all consumers, both via injection and lookup.
+ *
+ * <h4>Private services</h4>
+ *
+ * Using {@link PrivateService} annotation the services can be made <em>private</em> to the registration provider that declares them.
+ * <p>
+ * A private service is visible only within the same <em>registration provider</em>.
+ * It is not visible to other registration providers in the same registry or to other registries.
+ * <p>
+ * The lookup for private services will fail if no other service can fulfil the lookup request.
+ * The private services are also not collected as part of the <em>aggregated</em> injection.
  *
  * <h3>Service lifetime</h3>
  *

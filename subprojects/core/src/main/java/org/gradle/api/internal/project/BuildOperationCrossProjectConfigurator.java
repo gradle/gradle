@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -29,10 +28,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Collections;
 
-public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
+public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
     private final BuildOperationRunner buildOperationRunner;
-    private final MutationGuard mutationGuard = new DefaultMutationGuard();
+    private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
     public BuildOperationCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
         this.buildOperationRunner = buildOperationRunner;
@@ -66,14 +65,14 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         project.getOwner().applyToMutableState(p -> buildOperationRunner.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, mutationGuard.withMutationEnabled(configureAction));
+                Actions.with(project, lazyGuard.wrapEagerAction(configureAction));
             }
         }));
     }
 
     @Override
-    public MutationGuard getMutationGuard() {
-        return mutationGuard;
+    public MutationGuard getLazyBehaviorGuard() {
+        return lazyGuard;
     }
 
     private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("allprojects");

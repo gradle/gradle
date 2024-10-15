@@ -17,33 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.exceptions.Contextual
-import org.gradle.internal.exceptions.DefaultMultiCauseException
-
-
-/**
- * Marker interface for exception handling.
- */
-internal
-interface ConfigurationCacheThrowable
-
-
-/**
- * State might be corrupted and should be discarded.
- */
-@Contextual
-class ConfigurationCacheError internal constructor(
-    error: String,
-    cause: Throwable? = null
-) : ConfigurationCacheThrowable, Exception(error, cause)
-
-
-@Contextual
-sealed class ConfigurationCacheException protected constructor(
-    message: () -> String,
-    causes: Iterable<Throwable>
-) : DefaultMultiCauseException(message, causes), ConfigurationCacheThrowable
-
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheException
 
 open class ConfigurationCacheProblemsException : ConfigurationCacheException {
 

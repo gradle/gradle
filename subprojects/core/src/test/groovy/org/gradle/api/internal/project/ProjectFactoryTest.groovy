@@ -46,7 +46,7 @@ class ProjectFactoryTest extends Specification {
     def owner = Stub(BuildState)
     def projectState = Stub(ProjectState)
     def scriptResolution = Stub(ProjectScopedScriptResolution) {
-        resolveScriptsForProject(_, _) >> { p, a -> a.get() }
+        resolveScriptsForProject(_, _, _, _) >> { identityPath, buildPath, projectPath, action -> action.get() }
     }
     def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), scriptResolution)
     def rootProjectScope = Mock(ClassLoaderScope)

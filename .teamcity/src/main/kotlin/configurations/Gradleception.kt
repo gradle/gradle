@@ -3,10 +3,12 @@ package configurations
 import common.BuildToolBuildJvm
 import common.Jvm
 import common.Os
+import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.customGradle
 import common.dependsOn
 import common.functionalTestParameters
+import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.requiresNotEc2Agent
 import common.requiresNotSharedHost
@@ -28,7 +30,7 @@ class Gradleception(
     buildJvm: Jvm,
     jvmDescription: String,
     bundleGroovy4: Boolean = false,
-) : BaseGradleBuildType(stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
     val idParts = mutableListOf<String>()
     val labels = mutableListOf<String>()
     val descriptionParts = mutableListOf<String>()
@@ -62,10 +64,6 @@ class Gradleception(
         requiresNotSharedHost()
     }
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
-
     dependencies {
         // If SanityCheck fails, Gradleception will definitely fail because the last build step is also sanityCheck
         dependsOn(RelativeId(SanityCheck.buildTypeId(model)))
@@ -82,9 +80,10 @@ class Gradleception(
      */
     val dogfoodTimestamp1 = "19800101010101+0000"
     val dogfoodTimestamp2 = "19800202020202+0000"
-    val buildScanTagForType = buildScanTag("Gradleception")
-    val buildScanTagForGroovy4 = buildScanTag("Groovy4")
-    val buildScanTags = if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
+    val buildScanTagForType = buildScanTagParam("Gradleception")
+    val buildScanTagForGroovy4 = buildScanTagParam("Groovy4")
+    val buildScanTags =
+        if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
     val extraSysProp = mutableListOf<String>()
     if (bundleGroovy4) {
         extraSysProp += "-DbundleGroovy4=true"
@@ -92,18 +91,38 @@ class Gradleception(
     if (buildJvm.version != BuildToolBuildJvm.version) {
         extraSysProp += "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
     }
-    val defaultParameters = (buildToolGradleParameters() + buildScanTags + extraSysProp + functionalTestParameters(Os.LINUX)).joinToString(separator = " ")
+    val defaultParameters =
+        (buildToolGradleParameters() + buildScanTags + extraSysProp + functionalTestParameters(Os.LINUX)).joinToString(
+            separator = " "
+        )
 
     params {
         // Override the default commit id so the build steps produce reproducible distribution
         param("env.BUILD_COMMIT_ID", "HEAD")
     }
 
+    if (buildJvm.version != BuildToolBuildJvm.version) {
+        steps.gradleWrapper {
+            name = "UPDATE_DAEMON_JVM_CRITERIA_FILE"
+            tasks = "updateDaemonJvm --jvm-version=${buildJvm.version.major}"
+            gradleParams = defaultParameters
+        }
+    }
+
     applyDefaults(
         model,
         this,
         ":distributions-full:install",
-        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType ${extraSysProp.joinToString(separator = " ")}",
+        extraParameters =
+        (
+            listOf(
+                stage.getBuildScanCustomValueParam(),
+                "-Pgradle_installPath=dogfood-first-for-hash",
+                "-PignoreIncomingBuildReceipt=true",
+                "-PbuildTimestamp=$dogfoodTimestamp1",
+                buildScanTagForType,
+            ) + extraSysProp
+            ).joinToString(" "),
         buildJvm = buildJvm,
         extraSteps = {
             script {
@@ -118,19 +137,21 @@ class Gradleception(
             gradleWrapper {
                 name = "BUILD_GRADLE_DISTRIBUTION"
                 tasks = "clean :distributions-full:install"
-                gradleParams = "-Pgradle_installPath=dogfood-first -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $defaultParameters"
+                gradleParams =
+                    "-Pgradle_installPath=dogfood-first -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $defaultParameters"
             }
 
             localGradle {
                 name = "BUILD_WITH_BUILT_GRADLE"
                 tasks = "clean :distributions-full:install"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
-                gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
+                gradleParams =
+                    "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
             }
 
             localGradle {
                 name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                tasks = "clean sanityCheck test -PflakyTests=exclude " + if (bundleGroovy4) "--dry-run" else ""
+                tasks = "clean sanityCheck test -PflakyTests=exclude"
                 gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                 gradleParams = defaultParameters
             }

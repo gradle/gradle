@@ -147,7 +147,6 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @since 7.6
      */
-    @Incubating
     public Property<String> getWebsite() {
         return website;
     }
@@ -157,7 +156,6 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @since 7.6
      */
-    @Incubating
     public Property<String> getVcsUrl() {
         return vcsUrl;
     }

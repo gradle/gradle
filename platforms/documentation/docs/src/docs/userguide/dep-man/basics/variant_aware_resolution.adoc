@@ -1,0 +1,108 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[variant_aware_resolution]]
+= 7. Variant Aware Dependency Resolution
+
+In Gradle, dependency resolution is often thought of from the standpoint of a *consumer* and a *producer*.
+The *consumer* declares dependencies and performs dependency resolution, while *producers* satisfy those dependencies by exposing *variants*.
+
+Gradle's resolution engine follows a dynamic approach to dependency resolution called *variant-aware resolution*, where the consumer defines requirements using **attributes**, which are matched with the attributes declared by the producer.
+
+Variant-aware resolution allows Gradle to automatically select the correct *variant* from a producer without the consumer explicitly specifying which one to use.
+
+For instance, if you're working with different architectures (like `arm64` and `i386`), Gradle can choose the appropriate version of a library (`myLib`) for each architecture:
+
+1. The *producer*, `myLib`, exposes variants (`arm64Elements`, `i386Elements`) with specific *attributes* (e.g., `ArchType.ARM64`, `ArchType.I386`).
+2. The *consumer*, `myApp`, specifies the required *attributes* (e.g., `ArchType.ARM64`) in its resolvable configuration (`runtimeClasspath`).
+3. If the *consumer*, `myApp`, requires dependencies for the `arm64` architecture, Gradle will automatically pick the `arm64Elements` *variant* from the `myLib` *producer* and use its corresponding *artifact*.
+
+== A coded example
+
+Consider a Java library where you create a new *variant* called `instrumentedJars` and want to ensure it’s selected for testing:
+
+1. *Producer Project*: Creates a specialized `instrumentedJars` *variant* marked with specific attributes.
+2. *Consumer Project*: Configured to request the `instrumented-jar` *attribute* for testing.
+
+Let's look at the build files of the producer and consumer.
+
+== The producer side
+
+=== 1. Create an instrumented JAR:
+
+Our Java library has a task called `instrumentedJar` which produces a JAR file.
+We expect other projects to consume this JAR file.
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=declare-task]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-task]"]
+====
+
+=== 2. Create a custom outgoing configuration:
+
+We want our instrumented classes to be used when executing tests, so we need to define proper *attributes* on our *variant*.
+We create a new configuration named `instrumentedJars`.
+This configuration:
+
+- Can be consumed by other projects.
+- Cannot be resolved (i.e., it’s meant to be used as an output, not an input).
+- Has specific *attributes*, including `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` set to "instrumented-jar", which explains what the *variant* contains.
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=declare-outgoing-configuration]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
+====
+
+=== 3. Attach the Artifact:
+
+The `instrumentedJar` task’s output is added to the `instrumentedJars` configuration as an *artifact*.
+When this variant is included in a dependency graph, this artifact will be resolved during artifact resolution.
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact]"]
+====
+
+What we have done here is that we have added a _new_ *variant*, which can be used _at runtime_, but contains instrumented classes instead of the normal classes.
+However, it now means that for runtime, the consumer has to choose between two variants:
+
+1. `runtimeElements`, the regular variant offered by the `java-library` plugin
+2. `instrumentedJars`, the variant we have created
+
+== The consumer side
+
+=== 1. Add dependencies:
+
+First, on the consumer side, like any other project, we define the Java library as a dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=test_dependency]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=test_dependency]"]
+====
+
+At this point, Gradle will still select the default `runtimeElements` *variant* for your dependencies.
+This is because the `testRuntimeClasspath` configuration is requesting *artifacts* with the `jar` library elements *attribute*, while the producer defines the `instrumentedJars` *variant* with a different *attribute*.
+
+=== 2. Adjust the requested attributes:
+
+The `testRuntimeClasspath` configuration is modified to ask for "instrumented-jar" versions of the dependencies.
+This means that when Gradle resolves dependencies for this configuration, it will prefer JAR files that are marked as "instrumented":
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=ask-for-instrumented-classes]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=ask-for-instrumented-classes]"]
+====
+
+By following these steps, Gradle will intelligently select the correct *variants* based on the configuration and *attributes*, while also handling cases where specialized *variants* are not available.
+

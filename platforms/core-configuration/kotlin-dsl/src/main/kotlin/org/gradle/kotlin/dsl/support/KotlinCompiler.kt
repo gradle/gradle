@@ -24,7 +24,6 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
 import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -58,7 +57,7 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
-import org.jetbrains.kotlin.config.JvmTarget.JVM_21
+import org.jetbrains.kotlin.config.JvmTarget.JVM_22
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
@@ -359,7 +358,7 @@ class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 private
 fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
     CompilerConfiguration().apply {
-        put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
         put(JDK_HOME, File(System.getProperty("java.home")))
         put(IR, true)
@@ -376,7 +375,7 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
     // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 21
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JVM_21
+        else JVM_22
 }
 
 
@@ -388,7 +387,7 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
         AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
         AnalysisFlags.allowUnstableDependencies to true,
-        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
+        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ALL,
     ),
     specificFeatures = mapOf(
         LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED,

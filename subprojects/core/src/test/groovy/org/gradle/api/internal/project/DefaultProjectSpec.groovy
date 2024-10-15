@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -41,6 +42,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
@@ -49,6 +51,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -152,36 +155,42 @@ class DefaultProjectSpec extends Specification {
         rootProject.path == ":"
         rootProject.buildTreePath == ':'
         rootProject.identityPath == Path.ROOT
+        rootProject.projectIdentity == rootProject.owner.identity
 
         child1.toString() == "project ':child1'"
         child1.displayName == "project ':child1'"
         child1.path == ":child1"
         child1.buildTreePath == ":child1"
         child1.identityPath == Path.path(":child1")
+        child1.projectIdentity == child1.owner.identity
 
         child2.toString() == "project ':child1:child2'"
         child2.displayName == "project ':child1:child2'"
         child2.path == ":child1:child2"
         child2.buildTreePath == ":child1:child2"
         child2.identityPath == Path.path(":child1:child2")
+        child2.projectIdentity == child2.owner.identity
 
         nestedRootProject.toString() == "project ':nested'"
         nestedRootProject.displayName == "project ':nested'"
         nestedRootProject.path == ":"
         nestedRootProject.buildTreePath == ":nested"
         nestedRootProject.identityPath == Path.path(":nested")
+        nestedRootProject.projectIdentity == nestedRootProject.owner.identity
 
         nestedChild1.toString() == "project ':nested:child1'"
         nestedChild1.displayName == "project ':nested:child1'"
         nestedChild1.path == ":child1"
         nestedChild1.buildTreePath == ":nested:child1"
         nestedChild1.identityPath == Path.path(":nested:child1")
+        nestedChild1.projectIdentity == nestedChild1.owner.identity
 
         nestedChild2.toString() == "project ':nested:child1:child2'"
         nestedChild2.displayName == "project ':nested:child1:child2'"
         nestedChild2.path == ":child1:child2"
         nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
+        nestedChild2.projectIdentity == nestedChild2.owner.identity
     }
 
     def "isolated project view preserves the path and build tree path"() {
@@ -245,11 +254,14 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
         serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
         serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
-        serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator))
+        serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator) {
+            getLazyBehaviorGuard() >> Mock(MutationGuard)
+        })
         serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
         serviceRegistry.add(FileResolver, Stub(FileResolver))
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
+        serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.addProvider(new ServiceRegistrationProvider() {
@@ -276,6 +288,7 @@ class DefaultProjectSpec extends Specification {
         def container = Mock(ProjectState)
         _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
         _ * container.identityPath >> (parent == null ? build.identityPath : build.identityPath.append(parent.projectPath).child(name))
+        _ * container.owner >> Mock(BuildState)
 
         def descriptor = Mock(ProjectDescriptor) {
             getName() >> name
@@ -284,7 +297,7 @@ class DefaultProjectSpec extends Specification {
         }
 
         def scriptResolution = Stub(ProjectScopedScriptResolution) {
-            resolveScriptsForProject(_, _) >> { p, a -> a.get() }
+            resolveScriptsForProject(_, _, _, _) >> { identityPath, buildPath, projectPath, action -> action.get() }
         }
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)

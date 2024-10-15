@@ -24,21 +24,24 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.IncubationLogger
 import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCacheStartParameter(
+class ConfigurationCacheStartParameter internal constructor(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
-    private val modelParameters: BuildModelParameters
+    private val modelParameters: BuildModelParameters,
+    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
 
     /**
@@ -49,12 +52,12 @@ class ConfigurationCacheStartParameter(
      * Another key benefit is that this eliminates discrepancies in behavior between cache hits and misses.
      *
      * We disable load-after-store when tooling model builders are involved.
-     * This is because the builders are executed after the tasks (if any) in a build action,
+     * This is because the builders can be executed after the tasks (if any) in a build action,
      * and these builders may access project state as well as the task state.
      * Doing load-after-store would have discarded the project state and isolated the task state,
      * providing the builders with an incomplete view of the build.
      */
-    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
+    val loadAfterStore: Boolean = !modelParameters.isRequiresToolingModels && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
 
     val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
 
@@ -64,12 +67,57 @@ class ConfigurationCacheStartParameter(
      */
     val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
 
+    /**
+     * Whether strings stored to the configuration cache should be deduplicated
+     * in order to save space on disk and to use less memory on a cache hit.
+     *
+     * The default is `true`.
+     */
+    val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
+
+    /**
+     * Whether shareable objects in the configuration cache should be shared
+     * in order to save space on disk and to use less memory on a cache hit.
+     *
+     * The default is `true`.
+     */
+    val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
+
+    /**
+     * Whether configuration cache storing/loading should be done in parallel.
+     *
+     * Same as [StartParameterInternal.configurationCacheParallel].
+     *
+     * @see StartParameterInternal.configurationCacheParallel
+     */
+    val isParallelCache: Boolean by lazy {
+        startParameter.isConfigurationCacheParallel.also { enabled ->
+            if (enabled) {
+                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
+            }
+        }
+    }
+
+    /**
+     * Whether configuration should be stored in parallel.
+     *
+     * The default is the value of [isParallelCache].
+     */
+    val isParallelStore = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
+
+    /**
+     * Whether configuration should be loaded in parallel.
+     *
+     * The default is `true`.
+     */
+    val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel
-        get() = modelParameters.configurationCacheLogLevel
+        get() = loggingParameters.logLevel
 
     val isIgnoreInputsInTaskGraphSerialization: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization

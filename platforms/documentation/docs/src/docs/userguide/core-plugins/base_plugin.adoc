@@ -54,7 +54,7 @@ Removes the <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> o
 [[sec:base_plugin_configurations]]
 == Dependency management
 
-The Base Plugin adds no <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations for dependencies>>, but it does add the following configurations:
+The Base Plugin adds no <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configurations for dependencies>>, but it does add the following configurations:
 
 `default`::
 A fallback configuration used when dependency resolution is performed without request attributes.

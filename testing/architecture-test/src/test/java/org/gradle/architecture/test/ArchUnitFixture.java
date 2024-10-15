@@ -86,7 +86,8 @@ public interface ArchUnitFixture {
         "org.gradle.internal.serialize.graph..",
         "org.gradle.kotlin..",
         "org.gradle.internal.declarativedsl..",
-        "org.gradle.declarative.dsl.."
+        "org.gradle.declarative.dsl..",
+        "org.gradle.problems.internal.impl.."
     ).as("classes written in Java or Groovy");
 
     DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {
@@ -118,9 +119,17 @@ public interface ArchUnitFixture {
         return new GradlePublicApi();
     }
 
+    static DescribedPredicate<JavaClass> gradleMaintainedExternalDependency() {
+        return resideInAnyPackage(
+            "net.rubygrapefruit..",
+            "org.gradle.fileevents..")
+            .as("Gradle-maintained external dependency");
+    }
+
     static DescribedPredicate<JavaClass> gradleInternalApi() {
         return resideInAnyPackage("org.gradle..")
             .and(not(gradlePublicApi()))
+            .and(not(gradleMaintainedExternalDependency()))
             .as("Gradle Internal API");
     }
 
@@ -136,6 +145,7 @@ public interface ArchUnitFixture {
     static DescribedPredicate<JavaClass> inGradleInternalApiPackages() {
         return resideInAnyPackage("org.gradle..")
             .and(not(inGradlePublicApiPackages()))
+            .and(not(gradleMaintainedExternalDependency()))
             .and(not(inTestFixturePackages()))
             .as("in Gradle internal API packages");
     }

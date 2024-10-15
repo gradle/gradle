@@ -27,12 +27,13 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 @ServiceScope(Scope.BuildSession.class)
-public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
+public class DefaultImmutableAttributesFactory extends AbstractAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
@@ -43,8 +44,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         this.isolatableFactory = isolatableFactory;
         this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
-        this.children = new HashMap<>();
-        this.children.put(root, new ArrayList<DefaultImmutableAttributes>());
+        this.children = new ConcurrentHashMap<>();
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
     }
 
@@ -77,7 +77,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         return concat(node, key, isolate(value));
     }
 
-    private <T> Isolatable<T> isolate(@Nullable T value) {
+    public <T> Isolatable<T> isolate(@Nullable T value) {
         if (value instanceof String) {
             return Cast.uncheckedNonnullCast(new CoercingStringValueSnapshot((String) value, instantiator));
         } else {
@@ -94,22 +94,33 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         }
     }
 
-    ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, @Nullable Isolatable<?> value) {
-        synchronized (this) {
-            List<DefaultImmutableAttributes> nodeChildren = children.computeIfAbsent(node, k -> new ArrayList<>());
-            for (DefaultImmutableAttributes child : nodeChildren) {
-                if (child.attribute.equals(key) && child.value.equals(value)) {
-                    return child;
+    ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+
+        // We use an atomic reference to capture the result, as we cannot return it from
+        // `compute`, which handles locking and concurrent access to the node child cache.
+        AtomicReference<ImmutableAttributes> result = new AtomicReference<>();
+
+        children.compute(node, (k, nodeChildren) -> {
+            if (nodeChildren != null) {
+                // Find if someone already tried to concat this value to this node
+                for (DefaultImmutableAttributes child : nodeChildren) {
+                    if (child.attribute.equals(key) && child.value.equals(value)) {
+                        result.set(child);
+                        return nodeChildren;
+                    }
                 }
+            } else {
+                nodeChildren = new ArrayList<>();
             }
+
+            // Nobody has tried to concat this value yet
             DefaultImmutableAttributes child = new DefaultImmutableAttributes((DefaultImmutableAttributes) node, key, value);
             nodeChildren.add(child);
-            return child;
-        }
-    }
+            result.set(child);
+            return nodeChildren;
+        });
 
-    public ImmutableAttributes getRoot() {
-        return root;
+        return result.get();
     }
 
     @Override

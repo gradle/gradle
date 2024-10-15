@@ -102,7 +102,11 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")

@@ -102,7 +102,7 @@ abstract class AbstractTaskSubclassingBinaryCompatibilityCrossVersionSpec extend
 
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.name.replace(".", "_"), it.name] }
         def apiDepConf = "implementation"
-        if (targetVersion < GradleVersion.version("7.0-rc-1")) {
+        if (targetVersion < GradleVersion.version("6.0")) {
             apiDepConf = "compile"
         }
         def groovyDepConf
@@ -157,7 +157,7 @@ apply plugin: SomePlugin
         file("someDir").createDir()
 
         def apiDepConf = "implementation"
-        if (targetVersion < GradleVersion.version("7.0-rc-1")) {
+        if (targetVersion < GradleVersion.version("6.0")) {
             apiDepConf = "compile"
         }
         def groovyDepConf

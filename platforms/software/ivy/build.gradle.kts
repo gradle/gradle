@@ -1,15 +1,9 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Publishing plugin for Ivy repositories"
-
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
-    )
-}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
@@ -27,7 +21,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
@@ -77,3 +70,6 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

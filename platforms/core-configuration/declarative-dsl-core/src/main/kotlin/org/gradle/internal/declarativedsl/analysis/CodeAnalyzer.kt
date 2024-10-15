@@ -22,11 +22,14 @@ class CodeAnalyzerImpl(
         elements: List<DataStatement>
     ) {
         for (element in elements) {
-            if (analysisStatementFilter.shouldAnalyzeStatement(element, context.currentScopes)) {
+            if (analysisStatementFilter.shouldAnalyzeStatement(element, context.isTopLevelScope)) {
                 doResolveStatement(context, element)
             }
         }
     }
+
+    private val AnalysisContextView.isTopLevelScope get() =
+        currentScopes.last().receiver is ObjectOrigin.TopLevelReceiver
 
     private
     fun doResolveStatement(context: AnalysisContext, statement: DataStatement) {

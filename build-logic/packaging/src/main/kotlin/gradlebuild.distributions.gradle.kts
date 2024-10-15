@@ -29,7 +29,6 @@ import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.C
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinExtensionsForGradleApi
-import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
@@ -83,10 +82,10 @@ pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules t
 val agentsRuntimeOnly by bucket()
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 
-coreRuntimeOnly.withDependencies {
-    // use 'withDependencies' to not attempt to find platform project during script compilation
-    add(project.dependencies.create(dependencies.platform(project(":distributions-dependencies"))))
-}
+// Use lazy API to not attempt to find platform project during script compilation
+coreRuntimeOnly.dependencies.addLater(provider {
+    dependencies.platform(dependencies.create(project(":distributions-dependencies")))
+})
 
 // Configurations to resolve dependencies
 val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -207,9 +206,6 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
-
-    @Suppress("DEPRECATION")
-    ownModuleName = "gradle-kotlin-dsl-extensions"
 }
 
 val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
@@ -339,9 +335,9 @@ fun startScriptResolver(defaultDependency: String) =
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
+        dependencies.addLater(provider {
+            project.dependencies.create(project(defaultDependency))
+        })
     }
 
 fun sourcesResolver(extends: List<Configuration>) =
@@ -367,9 +363,9 @@ fun docsResolver(defaultDependency: String) =
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
-        withDependencies {
-            add(project.dependencies.create(project(defaultDependency)))
-        }
+        dependencies.addLater(provider {
+            project.dependencies.create(project(defaultDependency))
+        })
     }
 
 fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, vararg artifacts: Any) =

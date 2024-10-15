@@ -19,22 +19,25 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.util.GradleVersion;
 
 public class GradlePluginVariantsSupport {
 
-    public static void configureSchema(AttributesSchemaInternal attributesSchema) {
+    public static void configureSchema(AttributesSchema attributesSchema) {
         AttributeMatchingStrategy<GradlePluginApiVersion> strategy = attributesSchema.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         strategy.getCompatibilityRules().add(TargetGradleVersionCompatibilityRule.class);
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
+    }
 
-        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
-        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
+    public static void configureFailureHandler(ResolutionFailureHandler handler)  {
+        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
+        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
     }
 
     public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {

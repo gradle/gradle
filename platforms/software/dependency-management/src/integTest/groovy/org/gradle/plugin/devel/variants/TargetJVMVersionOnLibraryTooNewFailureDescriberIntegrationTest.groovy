@@ -64,7 +64,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
          project :consumer
       > Dependency resolution is looking for a library compatible with JVM runtime version $currentJava, but 'project :producer' is only compatible with JVM runtime version $tooHighJava or newer.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
-        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $tooHighJava.")
+        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $currentJava.")
     }
 
     def 'JVM version too low even if other non-Library category variants available uses standard error message for non-plugin'() {
@@ -115,6 +115,6 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
          project :consumer
       > Dependency resolution is looking for a library compatible with JVM runtime version $currentJava, but 'project :producer' is only compatible with JVM runtime version $tooHighJava or newer.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
-        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $tooHighJava.")
+        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $currentJava.")
     }
 }

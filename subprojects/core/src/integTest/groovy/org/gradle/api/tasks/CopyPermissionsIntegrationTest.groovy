@@ -412,7 +412,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     def "permissions block overrides mode"() {
         given:
         withSourceFiles("r--------")
-        buildScript '''
+        buildFile '''
             task (copy, type:Copy) {
                from 'files'
                into 'dest'
@@ -438,7 +438,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     def "permissions block sets sensible defaults"() {
         given:
         withSourceFiles("r--------")
-        buildScript '''
+        buildFile '''
             task (copy, type:Copy) {
                from 'files'
                into 'dest'
@@ -459,7 +459,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     def "permissions block can customize permissions (Groovy DSL)"() {
         given:
         withSourceFiles("r--------")
-        buildScript '''
+        buildFile '''
             task (copy, type:Copy) {
                from 'files'
                into 'dest'
@@ -521,7 +521,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     def "permissions can be created via factory (#description)"(String description, String setting) {
         given:
         withSourceFiles("r--------")
-        buildScript """
+        buildFile """
             def p = project.services.get(FileSystemOperations).directoryPermissions {
                 user {
                     write = false

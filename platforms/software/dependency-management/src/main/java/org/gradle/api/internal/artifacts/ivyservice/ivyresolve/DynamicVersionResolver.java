@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -106,7 +105,7 @@ public class DynamicVersionResolver {
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<>();
 
-        List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
+        List<RepositoryResolveState> resolveStates = new ArrayList<>(repositories.size());
         for (ModuleComponentRepository<ModuleComponentGraphResolveState> repository : repositories) {
             resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy));
         }
@@ -278,6 +277,11 @@ public class DynamicVersionResolver {
         }
 
         private ImmutableAttributes buildAttributes(AttributeContainer consumerAttributes, ImmutableAttributesFactory attributesFactory) {
+            // TODO: There is a bug here were we do not consider attributes coming from dependency constraints
+            // when determining the effective attributes for dynamic version selection. This means attributes directly declared
+            // on the configuration or on the dependency being resolved are considered, but not attributes coming from
+            // a constraint targeting the dependency being resolved. This is unusual, as we do consider constraint attributes
+            // when selecting variants.
             ImmutableAttributes immutableConsumerAttributes = ((AttributeContainerInternal) consumerAttributes).asImmutable();
             ImmutableAttributes dependencyAttributes = ((AttributeContainerInternal) dependency.getSelector().getAttributes()).asImmutable();
             return attributesFactory.concat(immutableConsumerAttributes, dependencyAttributes);

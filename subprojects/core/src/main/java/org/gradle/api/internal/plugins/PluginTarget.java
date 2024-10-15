@@ -38,4 +38,5 @@ public interface PluginTarget {
 
     void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass);
 
+    default void applyModelDefaults(Plugin<?> plugin) { }
 }

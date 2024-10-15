@@ -34,7 +34,6 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -113,7 +112,6 @@ public class ProviderConnection {
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
 
-    private final JvmVersionDetector jvmVersionDetector;
     private GradleVersion consumerVersion;
 
     public ProviderConnection(
@@ -122,7 +120,6 @@ public class ProviderConnection {
         DaemonClientFactory daemonClientFactory,
         BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
-        JvmVersionDetector jvmVersionDetector,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader
@@ -135,7 +132,6 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
-        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -364,7 +360,6 @@ public class ProviderConnection {
             daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
         }
 
-        daemonParams.applyDefaultsFromJvmCriteria(jvmVersionDetector);
         DaemonRequestContext requestContext = daemonParams.toRequestContext();
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {

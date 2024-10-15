@@ -16,15 +16,17 @@
 
 package org.gradle.internal.cc.impl.inputs.process.instrument
 
+import groovy.transform.SelfType
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 /**
  * A set of helpers to generate a Groovy plugin with provided code in buildSrc and apply it to the project under test.
  * The trait is intended to be mixed into something that extends {@link org.gradle.integtests.fixtures.AbstractIntegrationSpec}.
  */
+@SelfType(AbstractIntegrationSpec)
 trait DynamicGroovyPluginMixin {
     void withPluginCode(String imports, String codeUnderTest, boolean enableIndy) {
         file("buildSrc/src/main/groovy/SomePlugin.groovy") << """
@@ -48,12 +50,10 @@ trait DynamicGroovyPluginMixin {
         }
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
         """)
     }
 
     abstract TestFile file(Object... path)
-
-    abstract TestFile buildScript(@GroovyBuildScriptLanguage String script)
 }

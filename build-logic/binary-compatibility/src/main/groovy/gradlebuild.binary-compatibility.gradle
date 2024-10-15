@@ -64,7 +64,7 @@ def DOCUMENTATION_ATTRIBUTE = objects.named(Category, Category.DOCUMENTATION)
 def SOURCES_ATTRIBUTE = objects.named(DocsType, "gradle-source-folders")
 
 configurations {
-    baseline
+    def baseline = baseline {}
     baselineClasspath {
         extendsFrom baseline
         attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
@@ -177,7 +177,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         apiSourceFolders,
         baseVersion.get(),
         mainApiChangesJsonFile.asFile,
-        rootProject.layout.projectDirectory,
+        project.isolated.rootProject.projectDirectory,
         currentUpgradedPropertiesFile.get().asFile,
         baselineUpgradedPropertiesFile.get().asFile
     )

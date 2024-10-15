@@ -17,9 +17,9 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.GradleException
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
@@ -32,6 +32,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
 import org.gradle.platform.Architecture
 import org.gradle.platform.BuildPlatform
+import org.gradle.platform.OperatingSystem
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -39,7 +40,8 @@ import spock.lang.Specification
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVADOC_TOOL
+import static org.gradle.internal.jvm.inspection.JavaInstallationCapability.JAVA_COMPILER
 
 class JavaToolchainQueryServiceTest extends Specification {
 
@@ -152,6 +154,49 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.get().vendor == "IBM"
     }
 
+    def "uses jdk if requested via capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre.hs-adpt", "7.9.jre", "7.7.jre", "14.0.2+12.jre", "8.0.1.jdk"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        def toolchain = queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        toolchain.languageVersion == JavaLanguageVersion.of(8)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.jdk")
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
+    }
+
+    def "fails when no jdk is present and requested capabilities = #capabilities"() {
+        given:
+        def queryService = setupInstallations(["8.0.jre", "8.0.242.jre", "7.9.jre", "7.7.jre", "14.0.2+12.jre"])
+
+        when:
+        def filter = createSpec()
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+
+        queryService.findMatchingToolchain(filter, capabilities).get()
+
+        then:
+        def e = thrown(NoToolchainAvailableException)
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=8, vendor=any vendor, implementation=vendor-specific} for LINUX on x86_64."
+
+        where:
+        capabilities << [
+            EnumSet.of(JAVA_COMPILER),
+            EnumSet.of(JAVADOC_TOOL),
+            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+        ]
+    }
+
     def "ignores invalid toolchains when finding a matching one"() {
         given:
         def queryService = setupInstallations(["8.0", "8.0.242.hs-adpt", "8.0.broken"])
@@ -178,7 +223,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any vendor, implementation=vendor-specific} for LINUX on x86_64."
         e.cause.message == "Configured toolchain download repositories can't match requested specification"
     }
 
@@ -452,20 +497,29 @@ class JavaToolchainQueryServiceTest extends Specification {
             return JvmInstallationMetadata.failure(location, "errorMessage")
         }
 
-        Mock(JvmInstallationMetadata) {
-            getLanguageVersion() >> JavaVersion.toVersion(languageVersion)
-            getJavaHome() >> location.absoluteFile.toPath()
-            getJavaVersion() >> languageVersion.replace("zzz", "999")
-            isValidInstallation() >> true
-            getVendor() >> JvmVendor.fromString(vendor)
-            hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { JvmInstallationMetadata.JavaInstallationCapability capability ->
-                if (capability == J9_VIRTUAL_MACHINE) {
-                    String name = location.name
-                    return name.contains("j9")
-                }
-                return false
-            }
+        String jvmName = ""
+        if (location.name.contains("j9")) {
+            jvmName = "J9"
         }
+
+        def additionalCapabilities = location.name.contains("jdk")
+            ? JavaInstallationCapability.JDK_CAPABILITIES
+            : Collections.<JavaInstallationCapability> emptySet()
+
+        new JvmMetadataWithAddedCapabilities(
+            JvmInstallationMetadata.from(
+                location.absoluteFile,
+                languageVersion.replace("zzz", "999"),
+                vendor,
+                "",
+                "",
+                jvmName,
+                "",
+                "",
+                ""
+            ),
+            additionalCapabilities
+        )
     }
 
     private def createInstallationRegistry(
@@ -498,8 +552,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     ) {
         def buildPlatform = new BuildPlatform() {
             @Override
-            org.gradle.platform.OperatingSystem getOperatingSystem() {
-                return org.gradle.platform.OperatingSystem.LINUX
+            OperatingSystem getOperatingSystem() {
+                return OperatingSystem.LINUX
             }
 
             @Override

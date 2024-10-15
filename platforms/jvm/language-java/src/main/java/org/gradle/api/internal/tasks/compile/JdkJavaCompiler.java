@@ -71,12 +71,17 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         try {
             task = createCompileTask(spec, result);
         } catch (RuntimeException ex) {
-            throw problemsService.getInternalReporter().rethrowing(ex, builder -> buildProblemFrom(ex, builder));
+            throw problemsService.getInternalReporter().throwing(builder -> {
+                buildProblemFrom(ex, builder);
+            });
         }
         boolean success = task.call();
-        diagnosticToProblemListener.printDiagnosticCounts();
+        String diagnosticCounts = diagnosticToProblemListener.diagnosticCounts();
+        if (!"".equals(diagnosticCounts)) {
+            System.err.println(diagnosticCounts);
+        }
         if (!success) {
-            throw new CompilationFailedException(result);
+            throw new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems(), diagnosticCounts);
         }
         return result;
     }
@@ -124,12 +129,29 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return false;
     }
 
-    private void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
+    private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
         spec.severity(Severity.ERROR);
         spec.id("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
-        spec.details(ex.getLocalizedMessage());
+        spec.contextualLabel(ex.getLocalizedMessage());
         spec.withException(ex);
     }
 
+    public static boolean canBeUsed() {
+        try {
+            // Our goal is to check if the class is instantiable
+            // Class loading alone doesn't generate an exception
+            new Context();
+        } catch (IllegalAccessError e) {
+            LOGGER.debug("Expected failure when checking class presence: {}", e.getMessage());
+            return false;
+        } catch (Throwable throwable) {
+            // We don't expect any other exception
+            // Regardless, to make this as robust as possible, we handle it
+            LOGGER.debug("Unexpected failure when checking class presence: {}", throwable.getMessage());
+            return false;
+        }
+
+        return true;
+    }
 
 }

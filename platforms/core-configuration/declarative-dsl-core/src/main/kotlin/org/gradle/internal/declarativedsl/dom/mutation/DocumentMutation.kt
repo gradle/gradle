@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode
+import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 
 
 sealed interface CallMutation {
@@ -36,9 +37,9 @@ sealed interface DocumentMutation {
         val targetNode: DocumentNode
 
         data class RemoveNode(override val targetNode: DocumentNode) : DocumentNodeTargetedMutation
-        data class ReplaceNode(override val targetNode: DocumentNode, val replaceWithNode: () -> DocumentNode) : DocumentNodeTargetedMutation
-        data class InsertNodesAfterNode(override val targetNode: DocumentNode, val nodes: () -> List<DocumentNode>) : DocumentNodeTargetedMutation
-        data class InsertNodesBeforeNode(override val targetNode: DocumentNode, val nodes: () -> List<DocumentNode>) : DocumentNodeTargetedMutation
+        data class ReplaceNode(override val targetNode: DocumentNode, val replaceWithNodes: () -> NewDocumentNodes) : DocumentNodeTargetedMutation
+        data class InsertNodesAfterNode(override val targetNode: DocumentNode, val nodes: () -> NewDocumentNodes) : DocumentNodeTargetedMutation
+        data class InsertNodesBeforeNode(override val targetNode: DocumentNode, val nodes: () -> NewDocumentNodes) : DocumentNodeTargetedMutation
 
         sealed interface PropertyNodeMutation : DocumentNodeTargetedMutation {
             override val targetNode: DocumentNode.PropertyNode
@@ -52,8 +53,8 @@ sealed interface DocumentMutation {
             data class ElementNodeCallMutation(override val targetNode: DocumentNode.ElementNode, override val callMutation: CallMutation) : ElementNodeMutation, HasCallMutation
 
             // These might be needed when [targetNode] does not have any children; for now, these are comment-hostile.
-            data class AddChildrenToEndOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: () -> List<DocumentNode>) : ElementNodeMutation
-            data class AddChildrenToStartOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: () -> List<DocumentNode>) : ElementNodeMutation
+            data class AddChildrenToEndOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: () -> NewDocumentNodes) : ElementNodeMutation
+            data class AddChildrenToStartOfBlock(override val targetNode: DocumentNode.ElementNode, val nodes: () -> NewDocumentNodes) : ElementNodeMutation
         }
     }
 

@@ -16,12 +16,12 @@
 
 package org.gradle.internal.cc.impl.initialization
 
-import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
 class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
-    override fun whenThirdPartyAgentPresent(): CachedClasspathTransformer.StandardTransform {
+    override fun whenThirdPartyAgentPresent(): TransformMode {
         // For now, disable the instrumentation
-        return CachedClasspathTransformer.StandardTransform.None
+        return TransformMode.NONE
     }
 }

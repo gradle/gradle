@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -806,6 +807,123 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 //                }
 //            }
 //        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29872")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven") // Http server fixtures do not support publishing
+    def "attribute compatibility rules are applied when checking for mutual variant compatibility within a component when the producer attributes are desugared"() {
+
+        def common = """
+            interface Foo extends Named {}
+            def foo = Attribute.of("attr", Foo)
+        """
+
+        // Publish producer to local repo
+        // The published GMM will have desugared attributes.
+        file("producer/settings.gradle") << "rootProject.name = 'producer'"
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+                id("maven-publish")
+            }
+
+            ${common}
+
+            group = "org"
+            version = "1.0"
+
+            configurations {
+                consumable("first") {
+                    attributes.attribute(foo, objects.named(Foo, "first"))
+                }
+                consumable("second") {
+                    attributes.attribute(foo, objects.named(Foo, "second"))
+                    outgoing.capability("special:special:1.0")
+                }
+            }
+
+            def factory = project.services.get(SoftwareComponentFactory)
+            def comp = factory.adhoc("comp")
+            comp.addVariantsFromConfiguration(configurations.first) {}
+            comp.addVariantsFromConfiguration(configurations.second) {}
+
+            publishing {
+                ${mavenTestRepository()}
+                publications {
+                    maven(MavenPublication) {
+                        from(comp)
+                    }
+                }
+            }
+        """
+        executer.inDirectory(file("producer"))
+        succeeds(":publish")
+
+        // Consume the published component using the rich attributes
+        buildFile << """
+            ${common}
+            ${mavenTestRepository()}
+
+            class FooCompatibilityRule implements AttributeCompatibilityRule<Foo> {
+                @Override
+                public void execute(CompatibilityCheckDetails<Foo> details) {
+                    details.compatible()
+                }
+            }
+
+            dependencies {
+                attributesSchema {
+                    if (${applyRule}) {
+                        attribute(foo).compatibilityRules.add(FooCompatibilityRule)
+                    }
+                }
+
+                conf("org:producer:1.0")
+                conf("org:producer:1.0") {
+                    capabilities {
+                        requireCapability("special:special:1.0")
+                    }
+                }
+            }
+        """
+
+        executer.inDirectory(file())
+
+        when:
+        repositoryInteractions {
+            id('org:producer:1.0') {
+                expectGetMetadata()
+            }
+        }
+
+        if (applyRule) {
+            succeeds 'checkDeps'
+        } else {
+            fails 'checkDeps'
+        }
+
+        then:
+        if (applyRule) {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module('org:producer:1.0') {
+                        variant('first', ['org.gradle.status': 'release', attr: 'first'])
+                        noArtifacts()
+                    }
+                    module('org:producer:1.0') {
+                        variant('second', ['org.gradle.status': 'release', attr: 'second'])
+                        noArtifacts()
+                    }
+                }
+            }
+        } else {
+            failure.assertHasCause("""Multiple incompatible variants of org:producer:1.0 were selected:
+   - Variant first has attributes {attr=first, org.gradle.status=release}
+   - Variant second has attributes {attr=second, org.gradle.status=release}""")
+        }
+
+        where:
+        applyRule << [true, false]
     }
 
     static Closure<String> defaultStatus() {

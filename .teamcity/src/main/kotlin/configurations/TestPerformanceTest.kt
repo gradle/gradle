@@ -29,7 +29,7 @@ import jetbrains.buildServer.configs.kotlin.BuildSteps
 import model.CIBuildModel
 import model.Stage
 
-class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage, init = {
+class TestPerformanceTest(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage, init = {
     val os = Os.LINUX
     val buildTypeThis = this
     val testProject = "smallJavaMultiProject"

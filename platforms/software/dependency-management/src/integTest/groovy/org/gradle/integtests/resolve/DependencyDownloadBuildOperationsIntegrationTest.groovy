@@ -64,8 +64,10 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps.size() == 2
         downloadOps[0].details.location == m.pom.uri.toString()
         downloadOps[0].result.bytesRead == m.pom.file.length()
+        !downloadOps[0].result.missing
         downloadOps[1].details.location == m.artifact.uri.toString()
         downloadOps[1].result.bytesRead == m.artifact.file.length()
+        !downloadOps[0].result.missing
 
         // TODO - should have an event for graph resolution as well
 
@@ -153,8 +155,10 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps.size() == 4
         downloadOps[0].details.location == missing.rootMetaData.uri.toString()
         downloadOps[0].result.bytesRead == 0
+        downloadOps[0].result.missing
         downloadOps[1].details.location == m.rootMetaData.uri.toString()
         downloadOps[1].result.bytesRead == 0
+        downloadOps[1].result.missing
         downloadOps[2].details.location == m.pom.uri.toString()
         downloadOps[2].result.bytesRead == m.pom.file.length()
         downloadOps[3].details.location == m.artifact.uri.toString()
@@ -189,10 +193,12 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def downloadOps2 = buildOperations.all(ExternalResourceReadBuildOperationType)
         downloadOps2.size() == 2
-        downloadOps[0].details.location == missing.rootMetaData.uri.toString()
-        downloadOps[0].result.bytesRead == 0
-        downloadOps[1].details.location == m.rootMetaData.uri.toString()
-        downloadOps[1].result.bytesRead == 0
+        downloadOps2[0].details.location == missing.rootMetaData.uri.toString()
+        downloadOps2[0].result.bytesRead == 0
+        downloadOps2[0].result.missing
+        downloadOps2[1].details.location == m.rootMetaData.uri.toString()
+        downloadOps2[1].result.bytesRead == 0
+        downloadOps2[1].result.missing
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
@@ -245,10 +251,13 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps.size() == 3
         downloadOps[0].details.location == m.rootMetaData.uri.toString()
         downloadOps[0].result.bytesRead == 0
+        downloadOps[0].result.missing
         downloadOps[1].details.location == m.pom.uri.toString()
         downloadOps[1].result.bytesRead == m.pom.file.length()
+        !downloadOps[1].result.missing
         downloadOps[2].details.location == m.artifact.uri.toString()
         downloadOps[2].result.bytesRead == m.artifact.file.length()
+        !downloadOps[2].result.missing
 
         def listOps = buildOperations.all(ExternalResourceListBuildOperationType)
         listOps.size() == 1
@@ -279,6 +288,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps2.size() == 1
         downloadOps2[0].details.location == m.rootMetaData.uri.toString()
         downloadOps2[0].result.bytesRead == 0
+        downloadOps2[0].result.missing
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
@@ -324,8 +334,10 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         downloadOps.size() == 2
         downloadOps[0].details.location == m.pom.uri.toString()
         downloadOps[0].result.bytesRead == m.pom.file.length()
+        !downloadOps[0].result.missing
         downloadOps[1].details.location == m.artifact.uri.toString()
         downloadOps[1].result.bytesRead == m.artifact.file.length()
+        !downloadOps[1].result.missing
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 3

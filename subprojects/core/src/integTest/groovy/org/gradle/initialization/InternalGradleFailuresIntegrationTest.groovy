@@ -26,7 +26,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
         executer.requireDaemon()
 
-        buildScript """
+        buildFile """
             task hello() {
                 doLast {
                     println "Hello Gradle!"

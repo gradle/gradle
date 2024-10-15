@@ -15,23 +15,22 @@
  */
 package org.gradle.internal.resource.transport.http.ntlm
 
-import org.gradle.api.credentials.PasswordCredentials
+
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
 public class NTLMCredentialsTest extends Specification {
-    PasswordCredentials credentials = Mock()
 
     @Rule
     public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "uses domain when encoded in username"() {
-        credentials.username >> "domain\\username"
-        credentials.password >> "password"
+        def username = "domain\\username"
+        def password = "password"
 
         when:
-        def ntlmCredentials = new NTLMCredentials(credentials)
+        def ntlmCredentials = new NTLMCredentials(username, password)
 
         then:
         ntlmCredentials.domain == 'DOMAIN'
@@ -40,11 +39,11 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses domain when encoded in username with forward slash"() {
-        credentials.username >> "domain/username"
-        credentials.password >> "password"
+        def username = "domain/username"
+        def password = "password"
 
         when:
-        def ntlmCredentials = new NTLMCredentials(credentials)
+        def ntlmCredentials = new NTLMCredentials(username, password)
 
         then:
         ntlmCredentials.domain == 'DOMAIN'
@@ -53,11 +52,11 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses default domain when not encoded in username"() {
-        credentials.username >> "username"
-        credentials.password >> "password"
+        def username = "username"
+        def password = "password"
 
         when:
-        def ntlmCredentials = new NTLMCredentials(credentials)
+        def ntlmCredentials = new NTLMCredentials(username, password)
 
         then:
         ntlmCredentials.domain == ''
@@ -67,11 +66,11 @@ public class NTLMCredentialsTest extends Specification {
 
     def "uses system property for domain when not encoded in username"() {
         System.setProperty("http.auth.ntlm.domain", "domain")
-        credentials.username >> "username"
-        credentials.password >> "password"
+        def username = "username"
+        def password = "password"
 
         when:
-        def ntlmCredentials = new NTLMCredentials(credentials)
+        def ntlmCredentials = new NTLMCredentials(username, password)
 
         then:
         ntlmCredentials.domain == 'DOMAIN'
@@ -80,11 +79,11 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses truncated hostname for workstation"() {
-        credentials.username >> "username"
-        credentials.password >> "password"
+        def username = "username"
+        def password = "password"
 
         when:
-        def ntlmCredentials = new NTLMCredentials(credentials) {
+        def ntlmCredentials = new NTLMCredentials(username, password) {
             protected String getHostName() {
                 return "hostname.domain.org"
             }
@@ -95,10 +94,10 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "null username passed"() {
-        credentials.username >> null
-        credentials.password >> "password"
+        def username = null
+        def password = "password"
         when:
-        def ntlmCredentials = new NTLMCredentials(credentials)
+        def ntlmCredentials = new NTLMCredentials(username, password)
         then:
         def ex = thrown(NullPointerException)
         ex.message == 'Username must not be null!'

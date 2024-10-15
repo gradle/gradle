@@ -46,7 +46,7 @@ class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends Abstra
             }
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
         """)
 
@@ -111,7 +111,7 @@ class SystemPropertyInstrumentationInDynamicGroovyIntegrationTest extends Abstra
             }
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
         """)
 

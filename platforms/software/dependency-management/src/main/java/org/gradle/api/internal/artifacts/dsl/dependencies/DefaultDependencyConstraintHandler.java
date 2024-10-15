@@ -136,6 +136,26 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     @Override
+    public <T> void addProvider(String configurationName, Provider<T> dependencyNotation) {
+        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation, null);
+    }
+
+    @Override
+    public <T> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation, configureAction);
+    }
+
+    @Override
+    public <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation) {
+        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation.asProvider(), null);
+    }
+
+    @Override
+    public <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
+        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation.asProvider(), configureAction);
+    }
+
+    @Override
     public DependencyConstraint create(Object dependencyNotation) {
         return doCreate(dependencyNotation, null);
     }

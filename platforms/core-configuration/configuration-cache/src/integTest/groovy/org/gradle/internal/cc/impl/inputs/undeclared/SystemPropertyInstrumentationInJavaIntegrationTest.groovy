@@ -38,7 +38,7 @@ class SystemPropertyInstrumentationInJavaIntegrationTest extends AbstractConfigu
             }
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
         """)
 
@@ -80,7 +80,7 @@ class SystemPropertyInstrumentationInJavaIntegrationTest extends AbstractConfigu
             }
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
 
              tasks.register("printProperty") {

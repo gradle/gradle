@@ -19,7 +19,6 @@ package org.gradle.internal.jvm;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
@@ -36,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-@NonNullApi
 public class Jvm implements JavaInfo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
@@ -395,4 +393,13 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
+    @Nullable
+    public String getVendor() {
+        for (String vendorProperty : VENDOR_PROPERTIES) {
+            if (System.getProperties().containsKey(vendorProperty) && !System.getProperty(vendorProperty).isEmpty()) {
+                return System.getProperty(vendorProperty);
+            }
+        }
+        return null;
+    }
 }

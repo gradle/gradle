@@ -344,15 +344,25 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
 ====
 
-== Changing configuration dependencies prior to resolution
+== Lazily influencing resolved dependencies
 
-At times, a plugin may want to modify the dependencies of a configuration before it is resolved.
-The `withDependencies` method permits dependencies to be added, removed or modified programmatically.
+At times, a plugin may want to influence dependencies of a configuration lazily. Use cases include:
 
-.Modifying dependencies on a configuration
+- Adding a dependency to a configuration based on some condition.
+- Setting a preferred version of a dependency if the user has not specified a version.
+
+Consider the following examples that demonstrate these use cases.
+
+.Lazily adding a dependency to a configuration based on some condition
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=configuration-lazy-add-dependency]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=configuration-lazy-add-dependency]"]
+====
+
+.Preferring a default version of a dependency if the user has not specified a version
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=preferred-version-constraints]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=preferred-version-constraints]"]
 ====
 
 [[sec:configuration_defaults]]
@@ -384,7 +394,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 Gradle exposes an API to declare what a repository may or may not contain.
 This feature offers a fine grained control on which repository serve which artifacts, which can be one way of controlling the source of dependencies.
 
-Head over to <<declaring_repositories.adoc#sec:repository-content-filtering,the section on repository content filtering>> to know more about this feature.
+Head over to <<declaring_repositories_adv.adoc#sec:repository-content-filtering,the section on repository content filtering>> to know more about this feature.
 
 [[sec:ivy_dynamic_resolve_mode]]
 == Enabling Ivy dynamic resolve mode

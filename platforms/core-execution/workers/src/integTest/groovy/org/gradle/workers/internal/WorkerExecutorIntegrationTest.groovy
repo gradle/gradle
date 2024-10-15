@@ -855,11 +855,11 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
 
         and:
-        settingsScript """
+        settingsFile """
             includeBuild 'ext-lib'
             includeBuild 'build-logic'
         """
-        buildScript "plugins { id 'my-plugin' }"
+        buildFile "plugins { id 'my-plugin' }"
 
         when:
         succeeds 'buildEnvironment'

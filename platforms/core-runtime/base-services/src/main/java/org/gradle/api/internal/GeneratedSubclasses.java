@@ -24,14 +24,22 @@ public class GeneratedSubclasses {
     }
 
     public static Class<?> unpack(Class<?> type) {
-        if (GeneratedSubclass.class.isAssignableFrom(type)) {
-            try {
-                return (Class<?>) type.getMethod("generatedFrom").invoke(null);
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+        if (isGeneratedType(type)) {
+            return unpackOrFail(type);
         }
         return type;
+    }
+
+    public static boolean isGeneratedType(Class<?> type) {
+        return GeneratedSubclass.class.isAssignableFrom(type);
+    }
+
+    public static Class<?> unpackOrFail(Class<?> type) {
+        try {
+            return (Class<?>) type.getMethod("generatedFrom").invoke(null);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public static Class<?> unpackType(Object object) {

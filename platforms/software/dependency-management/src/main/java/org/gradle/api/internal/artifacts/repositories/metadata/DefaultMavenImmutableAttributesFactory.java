@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.attributes.AbstractAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAttributesFactory {
+public class DefaultMavenImmutableAttributesFactory extends AbstractAttributesFactory implements MavenImmutableAttributesFactory {
     private final ImmutableAttributesFactory delegate;
     private final NamedObjectInstantiator objectInstantiator;
     private final Map<List<Object>, ImmutableAttributes> concatCache = new ConcurrentHashMap<>();

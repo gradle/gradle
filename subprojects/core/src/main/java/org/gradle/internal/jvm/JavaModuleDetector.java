@@ -18,13 +18,13 @@ package org.gradle.internal.jvm;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,9 +36,6 @@ import java.util.zip.ZipEntry;
 
 @ServiceScope(Scope.UserHome.class)
 public class JavaModuleDetector {
-
-    private final Spec<? super File> classpathFilter = this::isNotModule;
-    private final Spec<? super File> modulePathFilter = this::isModule;
 
     private static final String MODULE_INFO_SOURCE_FILE = "module-info.java";
     private static final String MODULE_INFO_CLASS_FILE = "module-info.class";
@@ -59,35 +56,35 @@ public class JavaModuleDetector {
         return inferClasspath(inferModulePath, fileCollectionFactory.fixed(classpath));
     }
 
-    public FileCollection inferClasspath(boolean inferModulePath, FileCollection classpath) {
+    public FileCollection inferClasspath(boolean inferModulePath, @Nullable FileCollection classpath) {
         if (classpath == null) {
             return FileCollectionFactory.empty();
         }
         if (!inferModulePath) {
             return classpath;
         }
-        return classpath.filter(classpathFilter);
+        return classpath.filter(this::isNotModule);
     }
 
     public FileCollection inferModulePath(boolean inferModulePath, Collection<File> classpath) {
         return inferModulePath(inferModulePath, fileCollectionFactory.fixed(classpath));
     }
 
-    public FileCollection inferModulePath(boolean inferModulePath, FileCollection classpath) {
+    public FileCollection inferModulePath(boolean inferModulePath, @Nullable FileCollection classpath) {
         if (classpath == null) {
             return FileCollectionFactory.empty();
         }
         if (!inferModulePath) {
             return FileCollectionFactory.empty();
         }
-        return classpath.filter(modulePathFilter);
+        return classpath.filter(this::isModule);
     }
 
     public boolean isModule(boolean inferModulePath, FileCollection files) {
         if (!inferModulePath) {
             return false;
         }
-        for(File file : files.getFiles()) {
+        for (File file : files.getFiles()) {
             if (isModule(file)) {
                 return true;
             }
@@ -143,16 +140,16 @@ public class JavaModuleDetector {
             }
         }
 
-        private boolean isJarFile(File file) {
+        private static boolean isJarFile(File file) {
             return file.getName().endsWith(".jar");
         }
 
-        private boolean isModuleFolder(File folder) {
+        private static boolean isModuleFolder(File folder) {
             return new File(folder, MODULE_INFO_CLASS_FILE).exists();
         }
 
-        private boolean isModuleJar(File jarFile) {
-            try (JarInputStream jarStream =  new JarInputStream(new FileInputStream(jarFile))) {
+        private static boolean isModuleJar(File jarFile) {
+            try (JarInputStream jarStream = new JarInputStream(new FileInputStream(jarFile))) {
                 if (containsAutomaticModuleName(jarStream)) {
                     return true;
                 }
@@ -173,16 +170,17 @@ public class JavaModuleDetector {
             return false;
         }
 
-        private boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
+        private static boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
             Manifest manifest = jarStream.getManifest();
-            return manifest !=null && Boolean.parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE_ATTRIBUTE));
+            return manifest != null && Boolean.parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE_ATTRIBUTE));
         }
 
-        private boolean containsAutomaticModuleName(JarInputStream jarStream) {
+        private static boolean containsAutomaticModuleName(JarInputStream jarStream) {
             return getAutomaticModuleName(jarStream.getManifest()) != null;
         }
 
-        private String getAutomaticModuleName(Manifest manifest) {
+        @Nullable
+        private static String getAutomaticModuleName(@Nullable Manifest manifest) {
             if (manifest == null) {
                 return null;
             }

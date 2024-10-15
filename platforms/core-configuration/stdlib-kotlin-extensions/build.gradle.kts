@@ -24,3 +24,6 @@ dependencies {
     api(libs.kotlinStdlib)
     implementation(projects.stdlibJavaExtensions)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

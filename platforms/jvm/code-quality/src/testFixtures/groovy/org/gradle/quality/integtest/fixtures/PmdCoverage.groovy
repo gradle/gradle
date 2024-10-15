@@ -28,10 +28,12 @@ class PmdCoverage {
     private final static Set<String> ALL = [PmdPlugin.DEFAULT_PMD_VERSION, '5.0.5', '5.1.1', '5.3.3', '6.0.0', '6.13.0', '7.0.0'].asImmutable()
 
     static Set<String> getSupportedVersionsByJdk() {
-        if (JavaVersion.current() <= JavaVersion.VERSION_21) {
-            ALL
-        } else {
-            VersionCoverage.versionsAtLeast(ALL, '7.0.0')
+        if (JavaVersion.current() >= JavaVersion.VERSION_23) {
+            return []
         }
+        if (JavaVersion.current() >= JavaVersion.VERSION_22) {
+            return VersionCoverage.versionsAtLeast(ALL, '7.0.0')
+        }
+        return ALL
     }
 }

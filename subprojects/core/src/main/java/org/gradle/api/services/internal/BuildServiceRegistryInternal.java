@@ -40,10 +40,6 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     /**
      * Same as #register(name, implementationType, parameters, maxUsages), but conditional.
      *
-     * @param name
-     * @param implementationType
-     * @param parameters
-     * @param maxUsages
      * @return the registered or already existing provider
      */
     BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);

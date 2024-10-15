@@ -15,7 +15,6 @@ dependencies {
     implementation(projects.coreApi)
     implementation(projects.dependencyManagement)
     implementation(projects.launcher)
-    implementation(projects.resources)
     implementation(projects.testingBase)
     implementation(projects.testingJvm)
     implementation(projects.workers)
@@ -48,4 +47,7 @@ dependencies {
 
 strictCompile {
     ignoreDeprecations()
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

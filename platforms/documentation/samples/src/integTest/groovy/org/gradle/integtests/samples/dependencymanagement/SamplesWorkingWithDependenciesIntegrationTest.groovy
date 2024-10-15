@@ -34,7 +34,6 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
     }
 
     @UsesSample("dependencyManagement/workingWithDependencies-iterateDependencies")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -50,7 +49,6 @@ commons-codec:commons-codec:1.7""")
     }
 
     @UsesSample("dependencyManagement/workingWithDependencies-iterateArtifacts")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can iterate over artifacts resolved for a module with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -97,7 +95,6 @@ commons-codec:commons-codec:1.7""")
     }
 
     @UsesSample("dependencyManagement/workingWithDependencies-accessMetadataArtifact")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can accessing a module's metadata artifact with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

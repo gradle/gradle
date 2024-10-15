@@ -47,7 +47,7 @@ class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfi
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
 
-        buildScript("""
+        buildFile("""
             apply plugin: SomePlugin
         """)
 

@@ -33,7 +33,7 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
 import static org.objectweb.asm.Type.getMethodDescriptor;

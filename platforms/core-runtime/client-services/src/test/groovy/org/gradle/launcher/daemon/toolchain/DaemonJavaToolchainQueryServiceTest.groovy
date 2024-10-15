@@ -35,7 +35,6 @@ import spock.lang.Specification
 import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
-import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE
 
 class DaemonJavaToolchainQueryServiceTest extends Specification {
 
@@ -162,7 +161,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         toolchain.javaHome.toString() == systemSpecificAbsolutePath("/path/1.8.2")
     }
 
-    def "fails with expected exception if no toolchain matches"() {
+    def "fails with expected exception if no toolchain matches with version"() {
         given:
         def queryService = createQueryServiceWithInstallations(["8", "9", "10"])
 
@@ -172,7 +171,21 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching the Daemon JVM defined requirements: Compatible with Java 12 (from gradle/gradle-daemon-jvm.properties)."
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 12, any vendor (from gradle/gradle-daemon-jvm.properties)."
+        e.cause == null
+    }
+
+    def "fails with expected exception if no toolchain matches with version and vendor"() {
+        given:
+        def queryService = createQueryServiceWithInstallations(["8", "9", "10"])
+
+        when:
+        def filter = createSpec(JavaLanguageVersion.of(12), JvmVendorSpec.AMAZON)
+        queryService.findMatchingToolchain(filter)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 12, Amazon Corretto (from gradle/gradle-daemon-jvm.properties)."
         e.cause == null
     }
 
@@ -223,20 +236,22 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
             return JvmInstallationMetadata.failure(location, "errorMessage")
         }
 
-        Mock(JvmInstallationMetadata) {
-            getLanguageVersion() >> JavaVersion.toVersion(languageVersion)
-            getJavaHome() >> location.absoluteFile.toPath()
-            getJavaVersion() >> languageVersion.replace("zzz", "999")
-            isValidInstallation() >> true
-            getVendor() >> JvmVendor.fromString(vendor)
-            hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { JvmInstallationMetadata.JavaInstallationCapability capability ->
-                if (capability == J9_VIRTUAL_MACHINE) {
-                    String name = location.name
-                    return name.contains("j9")
-                }
-                return false
-            }
+        String jvmName = ""
+        if (location.name.contains("j9")) {
+            jvmName = "J9"
         }
+
+        JvmInstallationMetadata.from(
+            location.absoluteFile,
+            languageVersion.replace("zzz", "999"),
+            vendor,
+            "",
+            "",
+            jvmName,
+            "",
+            "",
+            ""
+        )
     }
 
     private def versionRange(int begin, int end) {

@@ -31,13 +31,13 @@ import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
-import org.gradle.internal.classpath.intercept.InterceptScope;
-import org.gradle.internal.classpath.intercept.Invocation;
-import org.gradle.internal.classpath.intercept.InvocationImpl;
-import org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor;
-import org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
+import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
+import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
 import org.gradle.internal.metaobject.InstrumentedMetaClass;
 
 import javax.annotation.Nullable;
@@ -246,6 +246,13 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
     }
 
+    @Override
+    public synchronized void initialize() {
+        this.adaptee.initialize();
+        // Adaptee can override our metaclass, restore the entry to us.
+        registry.setMetaClass(theClass, this);
+    }
+
     //region implementations delegating to adaptee
     @Override
     public MetaClass getAdaptee() {
@@ -255,11 +262,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     @Override
     public void setAdaptee(MetaClass metaClass) {
         adaptee = metaClass;
-    }
-
-    @Override
-    public synchronized void initialize() {
-        this.adaptee.initialize();
     }
 
     @Override

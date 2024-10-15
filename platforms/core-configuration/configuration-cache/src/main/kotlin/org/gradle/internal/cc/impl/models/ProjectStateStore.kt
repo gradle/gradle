@@ -81,7 +81,7 @@ abstract class ProjectStateStore<K, V>(
     fun restoreFromCacheEntry(entryDetails: Map<K, BlockAddress>, checkedFingerprint: CheckedFingerprint.ProjectsInvalid) {
         for (entry in entryDetails) {
             val identityPath = projectPathForKey(entry.key)
-            if (identityPath == null || !checkedFingerprint.invalidProjects.contains(identityPath)) {
+            if (identityPath == null || identityPath !in checkedFingerprint.invalidProjects) {
                 // Can reuse the value
                 previousValues[entry.key] = entry.value
             }

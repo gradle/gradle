@@ -268,7 +268,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     @Override
                     public Collection<Configuration> call() {
                         SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        List<Configuration> sourceSetsConfigurations = Lists.newArrayListWithCapacity(sourceSets.size() * 2);
+                        List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
                         ConfigurationContainer configurations = project.getConfigurations();
                         for (SourceSet sourceSet : sourceSets) {
                             sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));

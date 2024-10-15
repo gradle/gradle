@@ -18,8 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
@@ -45,7 +46,7 @@ class RootNode extends NodeState implements RootGraphNode {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        return getMetadata().getFiles();
+        return getResolveState().getFiles();
     }
 
     @Override
@@ -70,6 +71,11 @@ class RootNode extends NodeState implements RootGraphNode {
 
     @Override
     public void deselect() {
+    }
+
+    @Override
+    public LocalVariantGraphResolveState getResolveState() {
+        return (LocalVariantGraphResolveState) super.getResolveState();
     }
 
     @Override

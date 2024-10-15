@@ -64,7 +64,7 @@ public class WorkerDaemonStarter {
             builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
         }
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        forkOptions.getJavaForkOptions().copyTo(javaCommand);
+        forkOptions.copyTo(javaCommand);
         builder.registerArgumentSerializer(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
         MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();

@@ -16,14 +16,17 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.problems.Severity.ERROR
+import static org.junit.Assume.assumeTrue
 
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
@@ -57,6 +60,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     @UnsupportedWithConfigurationCache
     def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
         given:
+        // SourceSetsTask has been deprecated in 8.8 and will be removed in AGP 9.0
+        assumeTrue(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("8.8.0"))
+
+        and:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:
@@ -237,7 +244,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """
-        appBuildFile << androidPluginConfiguration(appPackage)
+        appBuildFile << androidPluginConfiguration(appPackage, agpVersion)
         appBuildFile << activityDependency()
         appBuildFile << """
             dependencies {
@@ -251,7 +258,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         libraryBuildFile << """
             apply plugin: 'com.android.library'
         """
-        libraryBuildFile << androidPluginConfiguration(libPackage)
+        libraryBuildFile << androidPluginConfiguration(libPackage, agpVersion)
         libraryBuildFile << activityDependency()
 
         return {
@@ -325,10 +332,21 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             </LinearLayout>'''.stripIndent()
     }
 
-    def androidPluginConfiguration(String appPackage) {
+    def androidPluginConfiguration(String appPackage, String agpVersion) {
+
+        JavaVersion targetJvm = JavaVersion.current()
+
+        VersionNumber agp = VersionNumber.parse(agpVersion)
+        if (agp < VersionNumber.parse("8.2.1") && JavaVersion.current() >= JavaVersion.VERSION_21) {
+            // Bug in AGP that prevents targeting bytecode version > Java 8.
+            // This only occurs when compiling with JDK > 21
+            // See https://issuetracker.google.com/issues/294137077
+            targetJvm = JavaVersion.VERSION_1_8
+        }
+
         """
             android {
-                compileSdkVersion 22
+                compileSdkVersion 30
                 buildToolsVersion "${TestedVersions.androidTools}"
 
                 namespace "${appPackage}"
@@ -339,8 +357,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                     versionName "1.0"
                 }
                 compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_1_8
-                    targetCompatibility JavaVersion.VERSION_1_8
+                    sourceCompatibility JavaVersion.${targetJvm.name()}
+                    targetCompatibility JavaVersion.${targetJvm.name()}
                 }
                 buildTypes {
                     release {

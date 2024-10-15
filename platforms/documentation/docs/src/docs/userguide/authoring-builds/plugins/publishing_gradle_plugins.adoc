@@ -49,6 +49,9 @@ All the plugin requires is that the `gradle.publish.key` and `gradle.publish.sec
 
 If you are concerned about placing your credentials in `gradle.properties`, check out the https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin] or the https://plugins.gradle.org/plugin/nu.studer.credentials[Gradle Credentials plugin].
 
+Alternatively, you can provide the API key via `GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET` environment variables.
+This approach might be useful for CI/CD pipelines.
+
 [[plugin-publishing-plugin]]
 == Adding the {publishplugin}
 

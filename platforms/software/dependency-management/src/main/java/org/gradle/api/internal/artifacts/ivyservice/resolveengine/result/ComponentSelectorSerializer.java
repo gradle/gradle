@@ -16,20 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.VersionConstraint;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -41,11 +38,10 @@ import org.gradle.util.Path;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A serializer for {@link ComponentSelector} that is not thread-safe and not reusable.
@@ -54,10 +50,14 @@ import java.util.Map;
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
     private final OptimizingAttributeContainerSerializer attributeContainerSerializer;
     private final BuildIdentifierSerializer buildIdentifierSerializer;
+    private final CapabilitySelectorSerializer capabilitySelectorSerializer;
+    private final ModuleComponentSelectorSerializer moduleComponentSelectorSerializer;
 
-    public ComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer) {
+    public ComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer) {
         this.attributeContainerSerializer = new OptimizingAttributeContainerSerializer(attributeContainerSerializer);
         this.buildIdentifierSerializer = new BuildIdentifierSerializer();
+        this.capabilitySelectorSerializer = capabilitySelectorSerializer;
+        this.moduleComponentSelectorSerializer = new ModuleComponentSelectorSerializer(this.attributeContainerSerializer, capabilitySelectorSerializer);
     }
 
     void reset() {
@@ -71,23 +71,31 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         if (Implementation.ROOT_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             String projectName = decoder.readString();
-            return new DefaultProjectComponentSelector(buildIdentifier, Path.ROOT, Path.ROOT, projectName, readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
         } else if (Implementation.ROOT_BUILD_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, projectPath, projectPath, projectPath.getName(), readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, projectPath, projectPath, projectPath.getName());
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
         } else if (Implementation.OTHER_BUILD_ROOT_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path identityPath = Path.path(decoder.readString());
             String projectName = decoder.readString();
-            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, Path.ROOT, projectName, readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, identityPath, Path.ROOT, projectName);
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
         } else if (Implementation.OTHER_BUILD_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path identityPath = Path.path(decoder.readString());
             Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, projectPath, projectPath.getName(), readAttributes(decoder), readCapabilities(decoder));
+            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, identityPath, projectPath, projectPath.getName());
+            ImmutableAttributes attributes = readAttributes(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
         } else if (Implementation.MODULE.getId() == id) {
-            return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), readVersionConstraint(decoder), readAttributes(decoder), readCapabilities(decoder));
+            return moduleComponentSelectorSerializer.read(decoder);
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
@@ -99,37 +107,22 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         return attributeContainerSerializer.read(decoder);
     }
 
-    ImmutableVersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
-        String requires = decoder.readString();
-        String prefers = decoder.readString();
-        String strictly = decoder.readString();
-        int rejectCount = decoder.readSmallInt();
-        List<String> rejects = Lists.newArrayListWithCapacity(rejectCount);
-        for (int i = 0; i < rejectCount; i++) {
-            rejects.add(decoder.readString());
-        }
-        String branch = decoder.readNullableString();
-        return new DefaultImmutableVersionConstraint(prefers, requires, strictly, rejects, branch);
-    }
-
-    private List<Capability> readCapabilities(Decoder decoder) throws IOException {
+    private ImmutableSet<CapabilitySelector> readCapabilitySelectors(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         if (size == 0) {
-            return Collections.emptyList();
+            return ImmutableSet.of();
         }
-        ImmutableList.Builder<Capability> builder = ImmutableList.builderWithExpectedSize(size);
+        ImmutableSet.Builder<CapabilitySelector> builder = ImmutableSet.builderWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
-            builder.add(new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
+            builder.add(capabilitySelectorSerializer.read(decoder));
         }
         return builder.build();
     }
 
-    private void writeCapabilities(Encoder encoder, Collection<Capability> capabilities) throws IOException {
-        encoder.writeSmallInt(capabilities.size());
-        for (Capability capability : capabilities) {
-            encoder.writeString(capability.getGroup());
-            encoder.writeString(capability.getName());
-            encoder.writeNullableString(capability.getVersion());
+    private void writeCapabilitySelectors(Encoder encoder, Set<CapabilitySelector> capabilitySelectors) throws IOException {
+        encoder.writeSmallInt(capabilitySelectors.size());
+        for (CapabilitySelector capabilitySelector : capabilitySelectors) {
+            capabilitySelectorSerializer.write(encoder, capabilitySelector);
         }
     }
 
@@ -144,39 +137,33 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         encoder.writeByte(implementation.getId());
 
         if (implementation == Implementation.MODULE) {
-            ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) value;
-            encoder.writeString(moduleComponentSelector.getGroup());
-            encoder.writeString(moduleComponentSelector.getModule());
-            VersionConstraint versionConstraint = moduleComponentSelector.getVersionConstraint();
-            writeVersionConstraint(encoder, versionConstraint);
-            writeAttributes(encoder, moduleComponentSelector.getAttributes());
-            writeCapabilities(encoder, moduleComponentSelector.getRequestedCapabilities());
+            moduleComponentSelectorSerializer.write(encoder, (ModuleComponentSelector) value);
         } else if (implementation == Implementation.ROOT_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
-            encoder.writeString(projectComponentSelector.getProjectName());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
+            encoder.writeString(projectComponentSelector.getProjectIdentity().getProjectName());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
+            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
         } else if (implementation == Implementation.ROOT_BUILD_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getProjectPath());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
+            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
         } else if (implementation == Implementation.OTHER_BUILD_ROOT_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
-            encoder.writeString(projectComponentSelector.getProjectName());
+            encoder.writeString(projectComponentSelector.getProjectIdentity().getProjectName());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
+            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
         } else if (implementation == Implementation.OTHER_BUILD_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
+            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
             encoder.writeString(projectComponentSelector.getProjectPath());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilities(encoder, projectComponentSelector.getRequestedCapabilities());
+            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
         } else if (implementation == Implementation.LIBRARY) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) value;
             encoder.writeString(libraryComponentSelector.getProjectPath());
@@ -191,18 +178,6 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         attributeContainerSerializer.write(encoder, attributes);
     }
 
-    private void writeVersionConstraint(Encoder encoder, VersionConstraint versionConstraint) throws IOException {
-        encoder.writeString(versionConstraint.getRequiredVersion());
-        encoder.writeString(versionConstraint.getPreferredVersion());
-        encoder.writeString(versionConstraint.getStrictVersion());
-        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
-        encoder.writeSmallInt(rejectedVersions.size());
-        for (String rejectedVersion : rejectedVersions) {
-            encoder.writeString(rejectedVersion);
-        }
-        encoder.writeNullableString(versionConstraint.getBranch());
-    }
-
     private ComponentSelectorSerializer.Implementation resolveImplementation(ComponentSelector value) {
         Implementation implementation;
 
@@ -211,7 +186,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         } else if (value instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             // Special case some common combinations of names and paths
-            boolean isARootProject = projectComponentSelector.projectPath().equals(Path.ROOT);
+            boolean isARootProject = projectComponentSelector.getProjectIdentity().getProjectPath().equals(Path.ROOT);
             if (projectComponentSelector.getIdentityPath().equals(Path.ROOT) && isARootProject) {
                 return Implementation.ROOT_PROJECT;
             }
@@ -219,10 +194,12 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
                 return Implementation.OTHER_BUILD_ROOT_PROJECT;
             }
             // For non-root project, project name must be the last element of the project path
-            if (!projectComponentSelector.getProjectName().equals(projectComponentSelector.projectPath().getName())) {
-                throw new IllegalArgumentException("Unexpected name for project " + projectComponentSelector.projectPath() + ". Expected: " + projectComponentSelector.projectPath().getName() + ", found: " + projectComponentSelector.getProjectName());
+            Path projectPath = projectComponentSelector.getProjectIdentity().getProjectPath();
+            String projectName = projectComponentSelector.getProjectIdentity().getProjectName();
+            if (!projectName.equals(projectPath.getName())) {
+                throw new IllegalArgumentException("Unexpected name for project " + projectPath + ". Expected: " + projectPath.getName() + ", found: " + projectName);
             }
-            if (projectComponentSelector.getIdentityPath().equals(projectComponentSelector.projectPath())) {
+            if (projectComponentSelector.getIdentityPath().equals(projectPath)) {
                 return Implementation.ROOT_BUILD_PROJECT;
             }
             return Implementation.OTHER_BUILD_PROJECT;

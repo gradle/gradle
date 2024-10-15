@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -23,10 +24,10 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
+import org.gradle.configurationcache.withFingerprintCheckOperations
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
 import org.gradle.initialization.GradlePropertiesController
-import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
@@ -43,18 +44,20 @@ import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.cc.impl.models.IntermediateModelController
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.encryption.EncryptionService
+import org.gradle.internal.extensions.core.get
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.serialize.graph.DefaultWriteContext
+import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
@@ -87,19 +90,9 @@ class DefaultConfigurationCache internal constructor(
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor
+    private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
+    private val deferredRootBuildGradle: DeferredRootBuildGradle
 ) : BuildTreeConfigurationCache, Stoppable {
-
-    interface Host : HostServiceProvider {
-
-        val currentBuild: VintageGradleBuild
-
-        fun createBuild(settingsFile: File?): ConfigurationCacheBuild
-
-        fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
-
-        fun <T> factory(serviceType: Class<T>): Factory<T>
-    }
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -109,7 +102,10 @@ class DefaultConfigurationCache internal constructor(
     var cacheEntryRequiresCommit = false
 
     private
-    lateinit var host: Host
+    val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
+
+    private
+    val isolateOwnerHost: IsolateOwner by lazy { IsolateOwners.OwnerHost(host) }
 
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
@@ -121,13 +117,16 @@ class DefaultConfigurationCache internal constructor(
     val store by storeDelegate
 
     private
-    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(host, cacheIO, store) }
+    val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
     private
-    val lazyIntermediateModels = lazy { IntermediateModelController(host, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(isolateOwnerHost, cacheIO, store) }
 
     private
-    val lazyProjectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
+    val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+
+    private
+    val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
 
     private
     val buildTreeModelSideEffects
@@ -142,9 +141,6 @@ class DefaultConfigurationCache internal constructor(
         get() = lazyProjectMetadata.value
 
     private
-    val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
-
-    private
     val gradlePropertiesController: GradlePropertiesController
         get() = host.service()
 
@@ -157,10 +153,6 @@ class DefaultConfigurationCache internal constructor(
         problems.action(cacheAction, cacheActionDescription)
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
-    }
-
-    override fun attachRootBuild(host: Host) {
-        this.host = host
     }
 
     override fun loadOrScheduleRequestedTasks(
@@ -221,8 +213,8 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
+    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentityPath?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+        return intermediateModels.loadOrCreateIntermediateModel(project, modelName, parameter, creator)
     }
 
     // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
@@ -248,7 +240,11 @@ class DefaultConfigurationCache internal constructor(
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
-        scopeRegistryListener.dispose()
+        try {
+            cacheFingerprintController.stop()
+        } finally {
+            scopeRegistryListener.dispose()
+        }
     }
 
     private
@@ -338,7 +334,7 @@ class DefaultConfigurationCache internal constructor(
                     val description = formatBootstrapSummary(
                         "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                        checkedFingerprint.reason.render()
+                        checkedFingerprint.firstReason.render()
                     )
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.UPDATE to description
@@ -369,7 +365,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun CompositeStoppable.addIfInitialized(closeable: Lazy<*>) {
         if (closeable.isInitialized()) {
-            add(closeable.value)
+            add(closeable.value!!)
         }
     }
 
@@ -378,13 +374,15 @@ class DefaultConfigurationCache internal constructor(
         return store.useForStateLoad { layout ->
             val entryFile = layout.fileFor(StateType.Entry)
             val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-            if (entryDetails == null) {
-                // No entry file -> treat the entry as empty/missing/invalid
-                CheckedFingerprint.NotFound
-            } else {
-                checkFingerprint(entryDetails, layout)
+            buildOperationRunner.withFingerprintCheckOperations {
+                if (entryDetails == null) {
+                    // No entry file -> treat the entry as empty/missing/invalid
+                    CheckedFingerprint.NotFound
+                } else {
+                    checkFingerprint(entryDetails, layout)
+                }
             }
-        }
+        }.value
     }
 
     private
@@ -419,9 +417,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveWorkGraph() {
-        saveToCache(
-            stateType = StateType.Work,
-        ) { stateFile -> writeConfigurationCacheState(stateFile) }
+        saveToCache(stateType = StateType.Work) { stateFile ->
+            writeConfigurationCacheState(stateFile)
+        }
     }
 
     private
@@ -434,27 +432,33 @@ class DefaultConfigurationCache internal constructor(
         }
 
         buildOperationRunner.withStoreOperation(cacheKey.string) {
-            store.useForStore { layout ->
+            val stateStoreResult = store.useForStore { layout ->
                 try {
                     val stateFile = layout.fileFor(stateType)
                     action(stateFile)
                     val storeFailure = problems.queryFailure()
-                    StoreResult(stateFile.stateFile.file, storeFailure)
-                } catch (error: ConfigurationCacheError) {
+                    storeFailure
+                } catch (error: Exception) {
                     // Invalidate state on serialization errors
                     problems.failingBuildDueToSerializationError()
                     throw error
                 }
             }
+
+            val storeFailure = stateStoreResult.value
+            StoreResult(stateStoreResult.accessedFiles, storeFailure)
         }
 
         crossConfigurationTimeBarrier()
     }
 
     private
+    data class LoadResultMetadata(val originInvocationId: String? = null)
+
+    private
     fun loadModel(): Any {
         return loadFromCache(StateType.Model) { stateFile ->
-            LoadResult(stateFile.stateFile.file) to cacheIO.readModelFrom(stateFile)
+            LoadResultMetadata() to cacheIO.readModelFrom(stateFile)
         }
     }
 
@@ -462,12 +466,12 @@ class DefaultConfigurationCache internal constructor(
     fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
             val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
-            LoadResult(stateFile.stateFile.file, buildInvocationId) to workGraph
+            LoadResultMetadata(buildInvocationId) to workGraph
         }
     }
 
     private
-    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResult, T>): T {
+    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResultMetadata, T>): T {
         prepareConfigurationTimeBarrier()
 
         // No need to record the `ClassLoaderScope` tree
@@ -475,7 +479,9 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         val result = buildOperationRunner.withLoadOperation {
-            store.useForStateLoad(stateType, action)
+            val storeLoadResult = store.useForStateLoad(stateType, action)
+            val (intermediateLoadResult, actionResult) = storeLoadResult.value
+            LoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
         crossConfigurationTimeBarrier()
         return result
@@ -495,9 +501,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
-            cacheIO.writeRootBuildStateTo(stateFile)
-        }
+        cacheIO.writeRootBuildStateTo(stateFile)
 
     private
     fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
@@ -518,7 +522,7 @@ class DefaultConfigurationCache internal constructor(
             store.assignSpoolFile(StateType.BuildFingerprint),
             store.assignSpoolFile(StateType.ProjectFingerprint)
         ) { stateFile ->
-            cacheFingerprintWriterContextFor(stateFile.stateType, stateFile.file::outputStream) {
+            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
                 profileNameFor(stateFile)
             }
         }
@@ -531,14 +535,14 @@ class DefaultConfigurationCache internal constructor(
         }.drop(1)
 
     private
-    fun cacheFingerprintWriterContextFor(
+    fun cacheFingerprintWriteContextFor(
         stateType: StateType,
         outputStream: () -> OutputStream,
         profile: () -> String
-    ): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(stateType, outputStream, profile)
+    ): CloseableWriteContext {
+        val (context, codecs) = cacheIO.writeContextFor("cacheFingerprintWriteContext", stateType, outputStream, profile)
         return context.apply {
-            push(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec())
+            push(isolateOwnerHost, codecs.fingerprintTypesCodec())
         }
     }
 
@@ -607,9 +611,11 @@ class DefaultConfigurationCache internal constructor(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
-        cacheIO.withReadContextFor(fingerprintFile.stateType, fingerprintFile::inputStream) { codecs ->
-            withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
+        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
+            withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
+                    override val buildPath: Path
+                        get() = host.service<GradleInternal>().identityPath
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
                     override val gradleProperties: GradleProperties

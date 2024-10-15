@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.daemon.client
 
-
 import org.gradle.api.internal.specs.ExplainingSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.ConnectCompletion
@@ -75,7 +75,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startBusyDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, JavaLanguageVersion.current(), javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, JavaLanguageVersion.current(), Jvm.current().vendor, javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
         return new DaemonStartupInfo(daemonNum.toString(), Mock(), Mock());
@@ -83,7 +83,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startIdleDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, JavaLanguageVersion.current(), javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, JavaLanguageVersion.current(), Jvm.current().vendor, javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Idle))
     }

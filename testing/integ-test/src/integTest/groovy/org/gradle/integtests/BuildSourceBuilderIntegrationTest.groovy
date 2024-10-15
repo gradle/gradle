@@ -40,7 +40,7 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
-        initScript """
+        initScriptFile """
             import ${BuildOperationListenerManager.name}
             import ${BuildOperationListener.name}
             import ${BuildOperationDescriptor.name}

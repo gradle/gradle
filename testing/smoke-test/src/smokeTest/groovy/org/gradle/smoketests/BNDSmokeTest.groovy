@@ -72,9 +72,7 @@ public class Example {
 """
 
         when:
-        runner("jar")
-            .forwardOutput()
-            .build()
+        runner("jar").build()
 
         then: "version numbers exist in the manifest"
         assertJarManifestContains("Import-Package", "org.apache.commons.lang3;version=\"$calculatedCommonsVersionRange\"")
@@ -154,9 +152,7 @@ public class MyUtil {
 """
 
         when:
-        runner(":jar")
-            .forwardOutput()
-            .build()
+        runner(":jar").build()
 
         then: "version numbers exist in the manifest"
         assertJarManifestContains("Import-Package", "com.example.util;version=\"$calculatedDirectVersionRange\"")
@@ -236,9 +232,7 @@ public class Util {
 """
 
         when:
-        runner("jar")
-                .forwardOutput()
-                .build()
+        runner("jar").build()
 
         then: "version numbers exist in the manifest"
         assertJarManifestContains("Import-Package", "com.example.util;version=\"$calculatedDirectVersionRange\"")
@@ -344,9 +338,7 @@ public class MyUtil {
 """
 
         expect:
-        runner(":resolve")
-                .forwardOutput()
-                .build()
+        runner(":resolve").build()
     }
 
     @ToBeFixedForConfigurationCache(because = "Bndrun task does not support configuration cache")
@@ -415,9 +407,7 @@ Bundle-Activator: com.example.Activator
 """
 
         expect:
-        def result = runner(":run")
-                .forwardOutput()
-                .build()
+        def result = runner(":run").build()
 
         assert result.getOutput().contains("Example project ran.")
     }

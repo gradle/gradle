@@ -89,10 +89,12 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
     attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
     isCanBeResolved = true
     isCanBeConsumed = false
-    withDependencies {
-        this.add(project.dependencies.create(project))
-        this.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
-    }
+    dependencies.addAllLater(provider {
+        listOf(
+            project.dependencies.create(project),
+            project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies")))
+        )
+    })
 }
 
 fun addShadedJarTask(): TaskProvider<ShadedJar> {

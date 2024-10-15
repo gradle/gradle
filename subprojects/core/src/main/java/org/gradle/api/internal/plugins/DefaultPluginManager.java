@@ -29,7 +29,6 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.code.DefaultUserCodeSource;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -68,9 +67,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private final Action<? super Plugin> onAddition;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory, Action<? super Plugin> onAddition) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
@@ -78,11 +76,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, callbackDecorator);
         this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.onAddition = onAddition;
-    }
-
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        this(pluginRegistry, instantiator, target, buildOperationRunner, userCodeApplicationContext, callbackDecorator, domainObjectCollectionFactory, Actions.doNothing());
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -201,7 +194,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             // plugins.withType() callbacks waiting to build on what the plugin did
             instances.put(pluginClass, pluginInstance);
             pluginContainer.pluginAdded(pluginInstance);
-            onAddition.execute(pluginInstance);
+
+            // Apply any build-level model defaults for the target
+            target.applyModelDefaults(pluginInstance);
         } else {
             target.applyRules(pluginId, pluginClass);
         }

@@ -554,7 +554,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         given:
         def configurationCache = newConfigurationCacheFixture()
 
-        buildScript("""
+        buildFile("""
             ${constantServiceImpl("ConstantBuildService", "constant")}
             def serviceProvider = gradle.sharedServices.registerIfAbsent("constant", ConstantBuildService) {}
 
@@ -621,7 +621,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
     @Issue("https://github.com/gradle/gradle/issues/22337")
     def "build service cannot be used in ValueSource if it is obtained at configuration time"() {
         given:
-        buildScript("""
+        buildFile("""
             ${constantServiceImpl("ConstantBuildService", "constant")}
 
             ${convertingValueSourceImpl("ConvertingValueSource", "ConstantBuildService", "String", "parameters.input.get().value")}
@@ -650,7 +650,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         given:
         def configurationCache = newConfigurationCacheFixture()
 
-        buildScript("""
+        buildFile("""
             ${constantServiceImpl("ConstantBuildService", "constant")}
 
             ${convertingValueSourceImpl("ConvertingValueSource", "ConstantBuildService", "String", "parameters.input.get().value")}
@@ -736,13 +736,13 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             """
         }
 
-        settingsScript("""
+        settingsFile """
             includeBuild("included-build")
-        """)
+        """
 
-        buildScript("""
+        buildFile """
             tasks.register("check") {}
-        """)
+        """
 
         when:
         configurationCacheRun "check"

@@ -63,7 +63,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         executer.requireDaemon().requireIsolatedDaemons()
         boolean java9orAbove = JavaVersion.current().java9Compatible
 
-        buildScript """
+        buildFile """
             import java.lang.management.ManagementFactory
             import java.lang.management.MemoryMXBean
 

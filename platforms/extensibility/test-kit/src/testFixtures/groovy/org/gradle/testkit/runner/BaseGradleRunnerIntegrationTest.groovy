@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
@@ -31,6 +32,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
@@ -84,7 +86,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties(
         (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath,
-        (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
+        (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath,
+        (LoggingConfigurationBuildOptions.WarningsOption.GRADLE_PROPERTY): WarningMode.All.name()
     )
 
     boolean requireIsolatedTestKitDir

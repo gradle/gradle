@@ -46,9 +46,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest",
-        "CppLibraryPluginIntegrationTest",
-        "CppApplicationPluginIntegrationTest",
-        "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])
     void "can apply plugin unqualified"() {
@@ -64,6 +61,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         applyPlugin()
 
         when:
+        executer.withArgument("--no-problems-report")
         run "tasks"
 
         then:
@@ -76,9 +74,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest",
-        "CppLibraryPluginIntegrationTest",
-        "CppApplicationPluginIntegrationTest",
-        "XcodePluginIntegrationTest",
         "IdeaPluginGoodBehaviourTest"
     ])
     def "plugin can build with empty project"() {

@@ -157,14 +157,16 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.print(
 
 internal
 fun FlyweightCapableTreeStructure<LighterASTNode>.children(
-    node: LighterASTNode
+    node: LighterASTNode,
+    filter: (LighterASTNode) -> Boolean = { true }
 ): List<LighterASTNode> {
     val ref = Ref<Array<LighterASTNode?>>()
     getChildren(node, ref)
     return ref.get()
         .filterNotNull()
         .filter { it.isUseful }
-} // TODO: any usages that need to be checked for parsing errors?
+        .filter { filter(it) }
+}
 
 
 internal
@@ -181,6 +183,55 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapp
 internal
 val LighterASTNode.asText: String
     get() = this.toString()
+
+
+internal
+val LighterASTNode.unescapedValue: String
+    get() {
+        val escape = this.asText
+        return escapedStringToCharacter(escape)?.toString()
+            ?: escape.replace("\\", "").replace("u", "\\u")
+    }
+
+fun escapedStringToCharacter(text: String): Char? {
+    assert(text.isNotEmpty() && text[0] == '\\') {
+        "Only escaped sequences must be passed to this routine: $text"
+    }
+
+    // Escape
+    val escape = text.substring(1) // strip the slash
+    when (escape.length) {
+        0 -> {
+            // bare slash
+            return null
+        }
+        1 -> {
+            // one-char escape
+            return when (escape[0]) {
+                't' -> '\t'
+                'b' -> '\b'
+                'n' -> '\n'
+                'r' -> '\r'
+                '\'' -> '\''
+                '\"' -> '\"'
+                '\\' -> '\\'
+                '$' -> '$'
+                else -> null
+            }
+        }
+        5 -> {
+            // unicode escape
+            if (escape[0] == 'u') {
+                val intValue = escape.substring(1).toIntOrNull(16)
+                // If error occurs it will be reported below
+                if (intValue != null) {
+                    return intValue.toChar()
+                }
+            }
+        }
+    }
+    return null
+}
 
 
 internal

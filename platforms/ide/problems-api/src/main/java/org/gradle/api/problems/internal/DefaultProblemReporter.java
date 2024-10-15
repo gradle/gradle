@@ -23,38 +23,43 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
 
+import java.util.Collection;
+
 public class DefaultProblemReporter implements InternalProblemReporter {
 
-    private final ProblemEmitter emitter;
+    private final Collection<ProblemEmitter> emitters;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Multimap<Throwable, Problem> problems;
+    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
     public DefaultProblemReporter(
-        ProblemEmitter emitter,
+        Collection<ProblemEmitter> emitters,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
-        Multimap<Throwable, Problem> problems
+        Multimap<Throwable, Problem> problems,
+        AdditionalDataBuilderFactory additionalDataBuilderFactory
     ) {
-        this.emitter = emitter;
+        this.emitters = emitters;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problems = problems;
+        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
     }
 
     @Override
     public void reporting(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
+    public RuntimeException throwing(Action<ProblemSpec> spec)  {
+        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
-        RuntimeException exception = problem.getException();
+        Throwable exception = problem.getException();
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");
         } else {
@@ -62,23 +67,19 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         }
     }
 
-    private RuntimeException throwError(RuntimeException exception, Problem problem) {
+    private RuntimeException throwError(Throwable exception, Problem problem) {
         report(problem);
         problems.put(exception, problem);
-        throw exception;
-    }
-
-    @Override
-    public RuntimeException rethrowing(RuntimeException e, Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream);
-        spec.execute(problemBuilder);
-        problemBuilder.withException(e);
-        throw throwError(e, problemBuilder.build());
+        if (exception instanceof RuntimeException) {
+            return (RuntimeException) exception;
+        } else {
+            throw new RuntimeException(exception);
+        }
     }
 
     @Override
     public Problem create(Action<InternalProblemSpec> action) {
-        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream);
+        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
     }
@@ -93,7 +94,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem) {
-        RuntimeException exception = problem.getException();
+        Throwable exception = problem.getException();
         if(exception != null) {
             problems.put(exception, problem);
         }
@@ -114,6 +115,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        emitter.emit(problem, id);
+        // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be a replaced with a future problem listener feature.
+        for (ProblemEmitter emitter : emitters) {
+            emitter.emit(problem, id);
+        }
     }
 }

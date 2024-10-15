@@ -55,6 +55,8 @@ fun <T> IsolateContext.ownerService(serviceType: Class<T>) =
 
 fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
+    override fun toString(): String = "reentrant $codec"
+
     var encodeCall: EncodeFrame<T>? = null
 
     var decodeCall: DecodeFrame<T?>? = null
@@ -66,7 +68,7 @@ fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
                 encodeLoop(coroutineContext)
             }
 
-            else -> suspendCoroutine<Unit> { k ->
+            else -> suspendCoroutine { k ->
                 encodeCall = EncodeFrame(value, k)
             }
         }
@@ -211,7 +213,7 @@ suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapInto(factory: (Int) 
 
 suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T, size: Int) {
     @Suppress("unchecked_cast")
-    for (i in 0 until size) {
+    repeat(size) {
         val key = read() as K
         val value = read() as V
         items[key] = value
@@ -257,7 +259,7 @@ inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: 
 
 inline fun Decoder.readCollection(readElement: () -> Unit) {
     val size = readSmallInt()
-    for (i in 0 until size) {
+    repeat(size) {
         readElement()
     }
 }
@@ -266,11 +268,19 @@ inline fun Decoder.readCollection(readElement: () -> Unit) {
 inline fun <T, C : MutableCollection<T>> Decoder.readCollectionInto(
     containerForSize: (Int) -> C,
     readElement: () -> T
+): C = buildCollection(containerForSize) {
+    add(readElement())
+}
+
+
+inline fun <T, C> Decoder.buildCollection(
+    containerForSize: (Int) -> C,
+    readElement: C.() -> T
 ): C {
     val size = readSmallInt()
     val container = containerForSize(size)
-    for (i in 0 until size) {
-        container.add(readElement())
+    repeat(size) {
+        container.readElement()
     }
     return container
 }

@@ -73,7 +73,6 @@ public class PomReader implements PomParent {
     private static final String GROUP_ID = "groupId";
     private static final String ARTIFACT_ID = "artifactId";
     private static final String VERSION = "version";
-    private static final String DESCRIPTION = "description";
     private static final String PARENT = "parent";
     private static final String SCOPE = "scope";
     private static final String CLASSIFIER = "classifier";
@@ -373,9 +372,9 @@ public class PomReader implements PomParent {
             String relocGroupId = getFirstChildText(relocation, GROUP_ID);
             String relocArtId = getFirstChildText(relocation, ARTIFACT_ID);
             String relocVersion = getFirstChildText(relocation, VERSION);
-            relocGroupId = relocGroupId == null ? getGroupId() : relocGroupId;
-            relocArtId = relocArtId == null ? getArtifactId() : relocArtId;
-            relocVersion = relocVersion == null ? getVersion() : relocVersion;
+            relocGroupId = relocGroupId == null ? getGroupId() : replaceProps(relocGroupId);
+            relocArtId = relocArtId == null ? getArtifactId() : replaceProps(relocArtId);
+            relocVersion = relocVersion == null ? getVersion() : replaceProps(relocVersion);
             return DefaultModuleVersionIdentifier.newId(relocGroupId, relocArtId, relocVersion);
         }
     }

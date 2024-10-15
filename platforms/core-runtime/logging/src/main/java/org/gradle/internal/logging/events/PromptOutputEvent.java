@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * Requests that the client present the given prompt to the user and return the user's response as a single line of text.
  *
- * The response is delivered to the {@link UserInputReader} service.
+ * The response is delivered to the {@link org.gradle.api.internal.tasks.userinput.UserInputReader} service.
  */
 public abstract class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
     public PromptOutputEvent(long timestamp) {

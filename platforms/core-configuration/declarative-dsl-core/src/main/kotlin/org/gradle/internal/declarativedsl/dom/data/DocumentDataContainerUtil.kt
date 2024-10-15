@@ -53,7 +53,15 @@ fun <D, C> C.collectToMap(document: DeclarativeDocument): Map<DeclarativeDocumen
 
                 is DeclarativeDocument.DocumentNode.ErrorNode,
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> Unit
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> Unit
             }
         }
         document.content.forEach(::visit)
+    }
+
+fun <V> nodeDataOf(dataProvider: (DeclarativeDocument.DocumentNode) -> V): NodeData<V> =
+    object : NodeData<V> {
+        override fun data(node: DeclarativeDocument.DocumentNode.ElementNode): V = dataProvider(node)
+        override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): V = dataProvider(node)
+        override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): V = dataProvider(node)
     }

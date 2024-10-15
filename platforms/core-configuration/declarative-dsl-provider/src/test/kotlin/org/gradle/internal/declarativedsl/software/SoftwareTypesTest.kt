@@ -21,9 +21,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
-import org.gradle.plugin.software.internal.Convention
+import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.junit.Assert.assertFalse
@@ -41,25 +42,27 @@ class SoftwareTypesTest {
                     override fun getModelPublicType(): Class<out Subtype> = Subtype::class.java
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
-                    override fun addConvention(rule: Convention<*>) = Unit
-                    override fun getConventions(): List<Convention<*>> = emptyList()
+                    override fun addModelDefault(rule: ModelDefault<*>) = Unit
+                    override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
                 }).associateBy { it.softwareType }
             )
         }
 
         val schemaForSettings = buildEvaluationSchema(TopLevel::class, analyzeEverything) {
+            gradleDslGeneralSchema()
             softwareTypesConventions(TopLevel::class, registryMock)
         }
 
         val schemaForProject = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) {
+            gradleDslGeneralSchema()
             softwareTypesWithPluginApplication(TopLevel::class, registryMock)
         }
 
         listOf(schemaForSettings, schemaForProject).forEach { schema ->
-            assertTrue(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
 
-            assertFalse(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
-            assertFalse(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
+            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
+            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
         }
     }
 

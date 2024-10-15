@@ -8,6 +8,7 @@ Include only their name, impactful features should be called out separately belo
 
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
+
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
@@ -52,20 +53,34 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="config-cache"></a>
-### Configuration cache improvements
+<a name="build-authoring"></a>
+### Build authoring improvements
 
-The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-nothing that affects the build configuration has changed.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-#### Report improvements
+#### `DependencyConstraintHandler` now has `addProvider` methods
 
-TBD:
-- Incompatible tasks tab
-- Copy experience
-- Invalidation reason
+The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the 
+[`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
 
+```kotlin
+dependencies {
+    constraints {
+        // Existing API:
+        add("implementation", provider { "org.foo:bar:1.0" })
+        add("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+        // New methods:
+        addProvider("implementation", provider { "org.foo:bar:1.0" })
+        addProvider("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+    }
+}
+```
+
+This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

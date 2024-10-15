@@ -173,16 +173,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
         setUpAgentIfNeeded(testType, executer)
-        disableIfNeeded(testType, executer)
     }
-
-
-internal
-fun IntegrationTest.disableIfNeeded(testType: TestType, executer: String) {
-    if (testType == TestType.INTEGRATION && executer == "isolatedProjects") {
-        isEnabled = false
-    }
-}
 
 
 private
@@ -195,8 +186,9 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
     }
 
     val integTestUseAgentSysPropName = "org.gradle.integtest.agent.allowed"
-    if (project.hasProperty(integTestUseAgentSysPropName)) {
-        val shouldUseAgent = (project.property(integTestUseAgentSysPropName) as? String).toBoolean()
+    val integtestAgentAllowed = project.providers.gradleProperty(integTestUseAgentSysPropName);
+    if (integtestAgentAllowed.isPresent) {
+        val shouldUseAgent = integtestAgentAllowed.get().toBoolean()
         systemProperties[integTestUseAgentSysPropName] = shouldUseAgent.toString()
     }
 }
@@ -205,16 +197,19 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
 private
 fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
-    if (project.hasProperty("org.gradle.integtest.debug")) {
+    val integtestDebug = project.providers.gradleProperty("org.gradle.integtest.debug")
+    if (integtestDebug.isPresent) {
         systemProperties["org.gradle.integtest.debug"] = "true"
         testLogging.showStandardStreams = true
     }
     // TODO Move magic property out
-    if (project.hasProperty("org.gradle.integtest.verbose")) {
+    val integtestVerbose = project.providers.gradleProperty("org.gradle.integtest.verbose")
+    if (integtestVerbose.isPresent) {
         testLogging.showStandardStreams = true
     }
     // TODO Move magic property out
-    if (project.hasProperty("org.gradle.integtest.launcher.debug")) {
+    val integtestLauncherDebug = project.providers.gradleProperty("org.gradle.integtest.launcher.debug")
+    if (integtestLauncherDebug.isPresent) {
         systemProperties["org.gradle.integtest.launcher.debug"] = "true"
     }
 }
@@ -223,8 +218,9 @@ fun IntegrationTest.addDebugProperties() {
 fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
-    if (project.hasProperty("testVersions")) {
-        systemProperties[integTestVersionsSysProp] = project.property("testVersions")
+    val testVersions = project.providers.gradleProperty("testVersions")
+    if (testVersions.isPresent) {
+        systemProperties[integTestVersionsSysProp] = testVersions.get()
     } else {
         systemProperties[integTestVersionsSysProp] = defaultVersions
     }

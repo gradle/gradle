@@ -22,13 +22,13 @@ import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.StoringInterpretationSchemaBuilder
-import org.gradle.internal.declarativedsl.evaluator.conventions.DeclarativeSoftwareTypeConventionHandler
+import org.gradle.internal.declarativedsl.evaluator.defaults.DeclarativeModelDefaultsHandler
 import org.gradle.internal.declarativedsl.evaluator.defaultDeclarativeScriptEvaluator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.plugin.software.internal.SoftwareTypeConventionHandler
+import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import java.io.File
 
@@ -56,8 +56,8 @@ object BuildServices : ServiceRegistrationProvider {
     @Provides
     fun createSoftwareTypeConventionHandler(
         softwareTypeRegistry: SoftwareTypeRegistry
-    ): SoftwareTypeConventionHandler {
-        return DeclarativeSoftwareTypeConventionHandler(softwareTypeRegistry)
+    ): ModelDefaultsHandler {
+        return DeclarativeModelDefaultsHandler(softwareTypeRegistry)
     }
 
     private

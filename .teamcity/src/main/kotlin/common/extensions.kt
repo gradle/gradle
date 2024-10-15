@@ -20,8 +20,6 @@ import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
 import configurations.FunctionalTest
 import configurations.branchesFilterExcluding
-import configurations.buildScanCustomValue
-import configurations.buildScanTag
 import configurations.checkCleanDirUnixLike
 import configurations.checkCleanDirWindows
 import configurations.enablePullRequestFeature
@@ -108,7 +106,9 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
+        testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports
         build/reports/dependency-verification/** => dependency-verification-reports
+        build/reports/problems/problems-report.html
     """.trimIndent()
 
     paramsForBuildToolBuild(buildJvm, os, arch)
@@ -247,7 +247,13 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
-fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
+fun functionalTestExtraParameters(
+    buildScanTags: List<String>,
+    os: Os,
+    arch: Arch,
+    testJvmVersion: String,
+    testJvmVendor: String
+): String {
     val buildScanValues = mapOf(
         "coverageOs" to os.name.lowercase(),
         "coverageArch" to arch.name.lowercase(),
@@ -259,8 +265,8 @@ fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, test
             "-PtestJavaVersion=$testJvmVersion",
             "-PtestJavaVendor=$testJvmVendor"
         ) +
-            listOf(buildScanTag(buildScanTag)) +
-            buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+            buildScanTags.map { buildScanTagParam(it) } +
+            buildScanValues.map { buildScanCustomValueParam(it.key, it.value) }
         ).filter { it.isNotBlank() }.joinToString(separator = " ")
 }
 

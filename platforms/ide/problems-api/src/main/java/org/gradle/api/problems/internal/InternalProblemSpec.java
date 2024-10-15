@@ -82,9 +82,6 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemSpec pluginLocation(String pluginId);
-
-    @Override
     InternalProblemSpec stackLocation();
 
     @Override
@@ -94,7 +91,7 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec solution(String solution);
 
     @Override
-    InternalProblemSpec withException(RuntimeException e);
+    InternalProblemSpec withException(Throwable t);
 
     @Override
     InternalProblemSpec severity(Severity severity);

@@ -32,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -121,7 +122,7 @@ public class DependencyVerificationsXmlWriter {
             return;
         }
         writer.startElement(KEYRING_FORMAT);
-        writer.write(String.valueOf(keyRingFormat).toLowerCase());
+        writer.write(String.valueOf(keyRingFormat).toLowerCase(Locale.ROOT));
         writer.endElement();
     }
 

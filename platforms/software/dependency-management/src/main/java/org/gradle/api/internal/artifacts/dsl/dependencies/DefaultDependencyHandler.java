@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.MutableVersionConstraint;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -56,8 +55,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -68,7 +65,7 @@ import javax.inject.Inject;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME;
 
 public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
@@ -392,16 +389,10 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     @Override
     public Dependency testFixtures(Object notation) {
         Dependency testFixturesDependency = create(notation);
-        if (testFixturesDependency instanceof ProjectDependency) {
-            ProjectDependency projectDependency = (ProjectDependency) testFixturesDependency;
-            projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
-        } else if (testFixturesDependency instanceof ModuleDependency) {
+        if (testFixturesDependency instanceof ModuleDependency) {
             // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(
-                moduleDependency.getGroup(),
-                moduleDependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX,
-                null)));
+            moduleDependency.capabilities(c -> c.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME));
         }
         return testFixturesDependency;
     }
@@ -423,7 +414,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     /**
-     * Implemented here instead as a default method of DependencyHandler like most of other methods with `Provider<MinimalExternalModuleDependency>` argument
+     * Implemented here instead as a default method of DependencyHandler like most of other methods with {@code Provider<MinimalExternalModuleDependency>} argument
      * since we don't want to expose enforcedPlatform on many places since we might deprecate enforcedPlatform in the future
      *
      * @param dependencyProvider the dependency provider
@@ -474,7 +465,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
         @Override
         public void testFixtures() {
-            this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new DefaultImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+            this.capabilitiesMutator = capabilities -> capabilities.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME);
         }
 
         @Override

@@ -25,12 +25,7 @@ class IsolatedProjectsGradleExecuter extends DaemonGradleExecuter {
     static final List<String> ISOLATED_PROJECTS_ARGS = [
         "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true",
         "-D${StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
-        "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
     ].collect { it.toString() }
-
-    static boolean testWithLoadAfterStore() {
-        return !Boolean.getBoolean("org.gradle.configuration-cache.internal.test-disable-load-after-store")
-    }
 
     IsolatedProjectsGradleExecuter(
         GradleDistribution distribution,

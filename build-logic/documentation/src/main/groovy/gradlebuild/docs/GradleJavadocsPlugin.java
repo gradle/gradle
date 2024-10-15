@@ -85,9 +85,26 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
                 "<script>hljs.highlightAll();</script>" +
-                "<script type=\"text/javascript\">const themeToggleBtn = document.querySelector('.theme-toggle');const theme = localStorage.getItem('theme');theme && document.body.classList.add(theme);const handleThemeToggle = () => {document.body.classList.toggle('dark-mode');if (document.body.classList.contains('dark-mode')) {localStorage.setItem('theme', 'dark-mode');} else {localStorage.removeItem('theme');}};themeToggleBtn.addEventListener('click', handleThemeToggle);</script>");
-
-            options.addBooleanOption("html5", true);
+                "<script type=\"text/javascript\">" +
+                "const btn = document.querySelector('.theme-toggle');" +
+                "const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');" +
+                "const currentTheme = localStorage.getItem('theme');" +
+                "if (currentTheme == 'dark') {" +
+                "    document.body.classList.toggle('dark-theme');" +
+                "} else if (currentTheme == 'light') {" +
+                "    document.body.classList.toggle('light-theme');" +
+                "}" +
+                "btn.addEventListener('click', function () {" +
+                "   if (prefersDarkScheme.matches) {" +
+                "        document.body.classList.toggle('light-theme');" +
+                "        var theme = document.body.classList.contains('light-theme')? 'light' : 'dark';" +
+                "    } else {" +
+                "        document.body.classList.toggle('dark-theme');" +
+                "        var theme = document.body.classList.contains('dark-theme')? 'dark' : 'light';" +
+                "    }" +
+                "    localStorage.setItem('theme', theme);" +
+                "});</script>"
+            );
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");

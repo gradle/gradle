@@ -16,12 +16,14 @@
 
 package org.gradle.internal.operations.logging
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
@@ -36,6 +38,7 @@ import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -389,6 +392,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForIsolatedProjects(because = "Different amount of events for IP mode")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4454")
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -424,12 +428,19 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .flatten()
             .with { it as List<BuildOperationRecord.Progress> }
             .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
+        // Ignore deprecations, these are checked by the testing infrastructure.
+            .findAll { it.details.get("category") != LoggingDeprecatedFeatureHandler.class.name }
 
-        // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
-        // when configuration cache is enabled also "Configuration cache entry reused."
-        def expectedEvents = GradleContextualExecuter.configCache ? 15 : 14
+        assert progressOutputEvents.size() == getNumberOfExpectedEvents()
+    }
 
-        assert progressOutputEvents.size() == expectedEvents
+    def int getNumberOfExpectedEvents() {
+        // when a java version older than 17 is used, there is an addtional event complaining about the too old java version
+        def javaWarningOffset = JavaVersion.current().majorVersion.toInteger() >= 17 ? 0 : 1
+        // when configuration cache is enabled also "Configuration cache entry reused." and "Parallel Configuration Cache is an incubating feature."
+        def configCacheOffset = GradleContextualExecuter.configCache ? 2 : 0
+        // 13 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed"
+        return 14 + javaWarningOffset + configCacheOffset
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {

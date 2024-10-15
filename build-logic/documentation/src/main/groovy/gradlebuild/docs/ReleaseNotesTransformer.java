@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -94,6 +95,42 @@ public class ReleaseNotesTransformer extends FilterReader {
         rewritten = rewritten.replaceAll("GRADLE-\\d+", "<a href=\"https://issues.gradle.org/browse/$0\">$0</a>");
         // Turn Gradle Github issue numbers into issue links
         rewritten = rewritten.replaceAll("(gradle/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
+        
+        // Replace YouTube references by embedded videos, ?si= attribute is a must
+        // E.g. @youtube(Summary,UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&start=371)@ => https://www.youtube.com/embed/UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&amp;start=371"
+        // "&rel=0" is also force-injected to prevent video recommendations from other channels
+        rewritten = rewritten.replaceAll("\\@youtube\\(([a-zA-Z\\-_]+)\\,([^\\s<]+)\\)\\@", 
+"<details> \n" +
+"  <summary>📺 Watch the $1</summary> \n" +
+"  <div class=\"youtube-video\"> \n" +
+"    <div class=\"youtube-player\"> \n" +
+"        <iframe src=\"https://www.youtube.com/embed/$2&rel=0\" title=\"YouTube video player\"  \n" +
+"          frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" \n" +
+"          referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen> \n" +
+"        </iframe> \n" +
+"    </div> \n" +
+"  </div> \n" +
+"</details>");
+
+        // Same for the Wistia-hosted videos
+        rewritten = rewritten.replaceAll("\\@wistia\\(([a-zA-Z\\-_]+)\\,([^\\s<]+)\\)\\@", 
+"<details> \n" +
+"  <summary>📺 Watch the $1</summary> \n" +
+"  <div class=\"wistia-video\"> \n" +
+"    <div class=\"wistia-player\"> \n" +
+"      <script src=\"https://fast.wistia.com/embed/medias/$2.jsonp\" async></script> \n" +
+"      <script src=\"https://fast.wistia.com/assets/external/E-v1.js\" async></script> \n" +
+"        <div class=\"wistia_responsive_padding\" style=\"padding:55.94% 0 0 0;position:relative;\"> \n" +
+"           <div class=\"wistia_responsive_wrapper\" style=\"height:100%;left:0;position:absolute;top:0;width:100%;\"> \n" +
+"             <div class=\"wistia_embed wistia_async_$2 seo=true videoFoam=true\" style=\"height:100%;position:relative;width:100%\"> \n" +
+"              <div class=\"wistia_swatch\" style=\"height:100%;left:0;opacity:0;overflow:hidden;position:absolute;top:0;transition:opacity 200ms;width:100%;\"> \n" +
+"                <img src=\"https://fast.wistia.com/embed/medias/$2/swatch\" style=\"filter:blur(5px);height:100%;object-fit:contain;width:100%;\" alt=\"$1\" aria-hidden=\"true\" onload=\"this.parentNode.style.opacity=1;\" /> \n" +
+"        </div></div></div></div> \n" +
+"    </div> \n" +
+"  </div> \n" +
+"</details>");
+
+
         document.body().html(rewritten);
 
         return new StringReader(document.toString());
@@ -175,7 +212,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     private void addAnchorsForHeadings(Document document) {
         // add anchors for all of the headings
         for (Element heading : document.body().select("h2,h3,h4")) {
-            String anchorName = heading.text().toLowerCase().replaceAll(" ", "-");
+            String anchorName = heading.text().toLowerCase(Locale.ROOT).replaceAll(" ", "-");
             heading.attr("id", anchorName);
         }
     }

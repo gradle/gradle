@@ -29,6 +29,11 @@ public interface Problem {
      */
     ProblemDefinition getDefinition();
 
+    /**
+     * Declares a short, but context-dependent message for this problem.
+     *
+     * @return the contextual label, or null if not available.
+     */
     @Nullable
     String getContextualLabel();
 
@@ -55,7 +60,7 @@ public interface Problem {
      * The exception that caused the problem.
      */
     @Nullable
-    RuntimeException getException();
+    Throwable getException();
 
     /**
      * Additional data attached to the problem.
@@ -68,5 +73,5 @@ public interface Problem {
     /**
      * Returns a problem builder with fields initialized with values from this instance.
      */
-    InternalProblemBuilder toBuilder();
+    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory);
 }

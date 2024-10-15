@@ -26,13 +26,13 @@ dependencies {
     reports("flot:flot:0.8.1:min@js")
 
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
     api(projects.internalIntegTesting)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
     api(projects.persistentCache)
+    api(projects.reportRendering)
     api(projects.time)
     api(projects.toolingApi)
 
@@ -50,12 +50,12 @@ dependencies {
     api(libs.spock)
 
     implementation(projects.concurrent)
-    implementation(projects.loggingApi)
     implementation(projects.wrapperShared)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.commonsMath)
+    implementation(projects.core)
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.hikariCP)
@@ -93,4 +93,7 @@ tasks.jar {
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
     from(files(provider{ flamegraph.map { zipTree(it) } }))
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

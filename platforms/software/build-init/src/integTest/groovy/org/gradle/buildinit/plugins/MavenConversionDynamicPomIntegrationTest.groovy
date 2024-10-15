@@ -72,6 +72,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
@@ -98,6 +101,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
@@ -124,6 +130,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
@@ -138,7 +147,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         // if the source and target are different, we can't actually compile because javac requires them to be the same
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
         if (source.isCompatibleWith(JavaVersion.VERSION_22)) {
-            failure.assertHasCause("error: specified target release 1.8 is too old for the specified source release 22")
+            failure.assertHasCause("error: specified target release 1.8 is too old for the specified source release ${source.majorVersion}")
         } else {
             // May or may not be part of the failure cause (varies by javac version)
             errorOutput.contains("source release ${source} requires target release ${source}")
@@ -156,6 +165,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)

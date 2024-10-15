@@ -16,9 +16,146 @@
 
 package org.gradle.internal.cc.impl
 
+
 import spock.lang.Issue
 
 class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    def "tasks that access project through #providerChain emit no problems"() {
+        given:
+        buildFile """
+            tasks.register("reliesOnSerialization") { task ->
+                def projectProvider = $providerChain
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("reliesOnSerialization")
+
+        then:
+        result.assertTasksExecuted(":reliesOnSerialization")
+
+        where:
+        providerChain                               || _
+        "provider { task.project.name }"            || _
+        "provider { task.project }.map { it.name }" || _
+    }
+
+    def "tasks that access project at execution time emit problems"() {
+        given:
+        buildFile """
+            tasks.register("incompatible") {
+                doLast { task ->
+                    println task.project.name
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("incompatible")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblemsWithStackTraceCount(1)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    def "tasks that access project through provider created at execution time emit problems"() {
+        given:
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                 def providerFactory = providers
+                doLast { task ->
+                    def projectProvider = providerFactory.provider { task.project.name }
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("bypassesSafeguards")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblemsWithStackTraceCount(1)
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    def "tasks that access project through indirect provider created at execution time emit problems"() {
+        given:
+        buildFile """
+            tasks.register("bypassesSafeguards") {
+                def valueProvider = providers.provider { "value" }
+                doLast { task ->
+                    println valueProvider.map { it + task.project.name }.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("bypassesSafeguards")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblemsWithStackTraceCount(1)
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    def "tasks that access project through mapped changing provider emit problems"() {
+        given:
+        buildFile """
+            tasks.register("bypassesSafeguards") { task ->
+                def projectProvider = providers.systemProperty("some.property").map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("bypassesSafeguards", "-Dsome.property=value")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblemsWithStackTraceCount(1)
+            withProblem("Build file 'build.gradle': line 3: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
+    def "tasks that access project through mapped changing value source provider emit problems"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+
+            abstract class ChangingSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override
+                 String obtain(){
+                    return "some string"
+                }
+            }
+
+            tasks.register("bypassesSafeguards") { task ->
+                def projectProvider = providers.of(ChangingSource) {}.map { it + task.project.name }
+                doLast {
+                    println projectProvider.get()
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails("bypassesSafeguards")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblemsWithStackTraceCount(1)
+            withProblem("Build file 'build.gradle': line 12: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/24411")
     def "task marked not compatible may cause configuration of other tasks without failing build"() {
@@ -164,5 +301,46 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         then:
         result.assertTasksExecuted ':b', ':a'
+    }
+
+    def "clean task is scheduled correctly in the presence of finalizers with dependencies"() {
+        given:
+        buildFile '''
+            plugins {
+                id 'java'
+            }
+
+            abstract class TaskReader extends DefaultTask {
+                @InputFile abstract RegularFileProperty getFile()
+                @TaskAction def action() {}
+            }
+
+            abstract class TaskWriter extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getFile()
+                @TaskAction def action() {
+                    file.get().asFile.text = "foo"
+                }
+            }
+
+            tasks.register("a", DefaultTask) {
+                finalizedBy("b")
+            }
+
+            def taskWriter = tasks.register("c", TaskWriter) {
+                file = project.layout.buildDirectory.file("output.txt")
+            }
+
+            tasks.register("b", TaskReader) {
+                file = taskWriter.get().file
+            }
+        '''
+
+        when:
+        2.times {
+            configurationCacheRun 'clean', 'a'
+        }
+
+        then:
+        file('build/output.txt').text == 'foo'
     }
 }

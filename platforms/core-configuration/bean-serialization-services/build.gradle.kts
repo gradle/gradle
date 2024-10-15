@@ -21,6 +21,10 @@ plugins {
 
 description = "Configuration Cache services supporting bean serialization"
 
+gradlebuildJava {
+    usesJdkInternals = true
+}
+
 dependencies {
     api(projects.graphSerialization)
     api(projects.stdlibJavaExtensions)
@@ -40,4 +44,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.guava)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

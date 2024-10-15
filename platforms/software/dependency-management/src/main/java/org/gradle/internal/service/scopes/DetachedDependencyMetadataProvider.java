@@ -16,14 +16,14 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 /**
  * Represents the root component identity of a detached configuration.
+ * <p>
+ * <strong>The goal is to make the following statements true by adding a "RootComponentIdentifier",
+ * however this was not done to avoid introducing further complexity during a regression fix.</strong>
  * <p>
  * The root component of a detached configuration is adhoc and contains only that configuration.
  * For this reason, the root component of the detached configuration cannot declare the same
@@ -36,58 +36,14 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 public class DetachedDependencyMetadataProvider implements DependencyMetaDataProvider {
 
     private final DependencyMetaDataProvider delegate;
-    private final String suffix;
 
-    public DetachedDependencyMetadataProvider(
-        DependencyMetaDataProvider delegate,
-        String suffix
-    ) {
+    public DetachedDependencyMetadataProvider(DependencyMetaDataProvider delegate) {
         this.delegate = delegate;
-        this.suffix = suffix;
     }
 
     @Override
     public Module getModule() {
-        Module module = delegate.getModule();
-
-        return new DetachedModule(suffix, module);
+        return delegate.getModule();
     }
 
-    private static class DetachedModule implements Module {
-        private final Module module;
-        private final String suffix;
-
-        public DetachedModule(String suffix, Module module) {
-            this.module = module;
-            this.suffix = suffix;
-        }
-
-        @Override
-        public ComponentIdentifier getComponentId() {
-            return new DefaultModuleComponentIdentifier(
-                DefaultModuleIdentifier.newId(getGroup(), getName()),
-                getVersion()
-            );
-        }
-
-        @Override
-        public String getGroup() {
-            return module.getGroup();
-        }
-
-        @Override
-        public String getName() {
-            return module.getVersion() + "-" + suffix;
-        }
-
-        @Override
-        public String getVersion() {
-            return module.getVersion();
-        }
-
-        @Override
-        public String getStatus() {
-            return module.getStatus();
-        }
-    }
-}
+ }

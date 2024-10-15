@@ -29,6 +29,8 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.RenderingUtils;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
@@ -232,9 +234,23 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         return detector.getMetadata(InstallationLocation.autoProvisioned(javaHome, "provisioned toolchain"));
     }
 
+    private static final String JDK_CAPABILITIES_DISPLAY = JavaInstallationCapability.JDK_CAPABILITIES.stream()
+            .map(cap -> "the " + cap.toDisplayName())
+            .collect(RenderingUtils.oxfordJoin("and"));
+
+    /**
+     * Validates that the metadata of the provisioned JDK matches the specification. This also requires {@link JavaInstallationCapability#JDK_CAPABILITIES} to be present.
+     *
+     * @param spec the specification to validate against
+     * @param uri the URI of the JDK archive
+     * @param metadata the metadata of the provisioned JDK
+     */
     private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
-        if (!new JvmInstallationMetadataMatcher(spec).test(metadata)) {
-            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + ".");
+        if (!new JvmInstallationMetadataMatcher(spec, JavaInstallationCapability.JDK_CAPABILITIES).test(metadata)) {
+            // Log the metadata for debugging purposes
+            LOGGER.info("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {} and capabilities {}", uri, spec.getDisplayName(), metadata, metadata.getCapabilities());
+            // Make a readable version of the capabilities for the
+            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must have " + JDK_CAPABILITIES_DISPLAY + ".");
         }
     }
 
@@ -243,10 +259,10 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         if (vendor == null || vendor.isEmpty()) {
             vendor = metadata.getVendor().getRawVendor();
         }
-        String version = metadata.getLanguageVersion().getMajorVersion();
+        int version = metadata.getJavaMajorVersion();
         String architecture = metadata.getArchitecture();
         String os = OperatingSystem.current().getFamilyName();
-        return String.format("%s-%s-%s-%s", vendor, version, architecture, os)
+        return String.format("%s-%d-%s-%s", vendor, version, architecture, os)
                 .replaceAll("[^a-zA-Z0-9\\-]", "_")
                 .toLowerCase(Locale.ROOT) + ".2";
     }

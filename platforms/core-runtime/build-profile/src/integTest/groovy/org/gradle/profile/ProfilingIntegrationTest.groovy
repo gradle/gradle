@@ -71,7 +71,7 @@ allprojects {
         def pluginJar = file("plugin.jar")
         pluginBuilder.publishTo(executer, pluginJar)
 
-        initScript """
+        initScriptFile """
             initscript {
                 dependencies {
                     classpath files("${pluginJar.name}")

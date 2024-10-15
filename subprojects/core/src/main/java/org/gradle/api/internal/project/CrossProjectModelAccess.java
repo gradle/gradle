@@ -75,6 +75,7 @@ public interface CrossProjectModelAccess {
     /**
      * Provides an implementation of a tracker that handles the usages of TaskDependency API in the context
      * of the current project. The tracker checks that the usages for possible violation of cross-project model access restriction.
+     *
      * @param referrerProject The project providing the context.
      */
     @Nullable

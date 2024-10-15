@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 
@@ -34,7 +35,8 @@ public class JavaCompileExecutableUtils {
         }
 
         ForkOptions forkOptions = task.getOptions().getForkOptions();
-        File customJavaHome = forkOptions.getJavaHome();
+        @SuppressWarnings("deprecation")
+        File customJavaHome = DeprecationLogger.whileDisabled(forkOptions::getJavaHome);
         if (customJavaHome != null) {
             return SpecificInstallationToolchainSpec.fromJavaHome(objectFactory, customJavaHome);
         }

@@ -106,7 +106,7 @@ format.version = "1.1"
     private Model parse(Path path) {
         def supplier = Stub(Supplier)
         def problemEmitter = Stub(NoOpProblemEmitter)
-        def problems = new DefaultProblems(problemEmitter)
+        def problems = new DefaultProblems([problemEmitter])
         def builder = new DefaultVersionCatalogBuilder(
             "libs",
             Interners.newStrongInterner(),

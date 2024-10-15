@@ -364,7 +364,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             """
         }
 
-        buildScript("""
+        buildFile("""
             buildscript {
                 dependencies {
                     classpath "org.gradle.test:mrjar:1.+"
@@ -405,7 +405,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("JAR = 11")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "class with #lambdaCount lambdas can be instrumented"() {
         given:
         createDir("buildSrc/src/main/java") {
@@ -430,10 +429,24 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 """)
             }
         }
-        buildScript("""
+        buildFile("""
             abstract class LambdaTask extends DefaultTask {
                 @Input
                 abstract ListProperty<Runnable> getMyActions()
+
+                @Input
+                abstract Property<Class<?>> getActionClass()
+
+                @TaskAction
+                def printLambdaCount() {
+                    println("generated method count = \${getDeserializeMethodsCount(actionClass.get())}")
+                }
+
+                def getDeserializeMethodsCount(Class<?> cls) {
+                    return Arrays.stream(cls.getDeclaredMethods()).filter {
+                        it.name.startsWith('\$deserializeLambda')
+                    }.count()
+                }
 
                 @TaskAction
                 def runMyActions() {
@@ -443,18 +456,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 }
             }
 
-            def getDeserializeMethodsCount(Class<?> cls) {
-                return Arrays.stream(cls.getDeclaredMethods()).filter {
-                    it.name.startsWith('\$deserializeLambda')
-                }.count()
-            }
-
             tasks.register("lambda", LambdaTask) {
                 myActions = new ManyLambdas().createLotsOfLambdas()
-
-                doFirst {
-                    println("generated method count = \${getDeserializeMethodsCount(ManyLambdas)}")
-                }
+                actionClass = ManyLambdas
             }
         """)
 
@@ -504,9 +508,9 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
         """}
 
-        settingsScript("""
+        settingsFile """
             include "reproducible", "current"
-        """)
+        """
 
         file("reproducible/build.gradle").text = subprojectSource(reproducibleJar)
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)

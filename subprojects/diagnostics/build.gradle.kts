@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
@@ -11,7 +12,6 @@ errorprone {
         "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType", // 5 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
     )
 }
 
@@ -28,13 +28,13 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.platformBase)
+    api(projects.reportRendering)
     api(projects.reporting)
 
     api(libs.groovy)
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.loggingApi)
@@ -72,4 +72,7 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

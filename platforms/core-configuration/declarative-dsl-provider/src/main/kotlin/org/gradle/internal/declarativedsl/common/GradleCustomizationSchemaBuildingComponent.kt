@@ -25,6 +25,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
+import org.gradle.internal.declarativedsl.ndoc.namedDomainObjectContainers
 
 
 /**
@@ -33,6 +34,8 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
  * The features are:
  * * importing properties using the [org.gradle.api.provider.Property] API,
  * * importing types from functions that return or configure custom types.
+ * * for every type included in the schema, importing all supertypes that might potentially be declarative.
+ * * support for [org.gradle.api.NamedDomainObjectContainer]: configuring functions from properties, and element factories.
  *
  * If object conversion is supported by the schema, also brings the basic DCL conversion capabilities
  * for resolving properties and member functions, see [conversionSupport]
@@ -46,9 +49,13 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
 
     registerAnalysisSchemaComponent(TypeDiscoveryFromRestrictedFunctions())
 
+    registerAnalysisSchemaComponent(SupertypeTypeDiscovery())
+
     ifConversionSupported {
         registerObjectConversionComponent(conversionSupport)
     }
+
+    namedDomainObjectContainers()
 }
 
 

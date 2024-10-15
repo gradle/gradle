@@ -235,14 +235,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             processConfiguration.getForkOptions().copyTo(forkOptions);
             forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
-            ClassPath isolatedFromChanges = classpathTransformer.transform(DefaultClassPath.of(processConfiguration.getClasspath()), CachedClasspathTransformer.StandardTransform.None);
+            ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(processConfiguration.getClasspath()));
             builder.javaForkOptions(forkOptions)
                 .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
 
             return new ForkedWorkerRequirement(baseDir, projectCacheDir.getDir(), builder.build());
         } else if (configuration instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderConfiguration = (ClassLoaderWorkerSpec) configuration;
-            ClassPath isolatedFromChanges = classpathTransformer.transform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()), CachedClasspathTransformer.StandardTransform.None);
+            ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()));
             return new IsolatedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
         } else {
             return new FixedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), Thread.currentThread().getContextClassLoader());

@@ -129,7 +129,7 @@ class TestKeyStore {
     void configureIncorrectServerCert(GradleExecuter executer) {
         // intentionally use wrong trust store
         def args = getTrustStoreSettings()
-            .tap { it["javax.net.ssl.trustStore"] = keyStore.path }
+            .tap { it["javax.net.ssl.trustStore"] = this.keyStore.path }
             .collect { "-D${it.key}=${it.value}".toString() }
         if (GradleContextualExecuter.embedded) {
             args.each {

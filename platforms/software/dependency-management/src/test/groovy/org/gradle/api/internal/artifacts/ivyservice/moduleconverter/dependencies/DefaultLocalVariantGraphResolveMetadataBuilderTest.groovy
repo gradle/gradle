@@ -27,7 +27,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.DetachedConfigurationsProvider
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
@@ -35,18 +36,22 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 /**
- * Tests {@link DefaultLocalVariantMetadataBuilder}
+ * Tests {@link DefaultLocalVariantGraphResolveStateBuilder}
  */
 class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     def dependencyMetadataFactory = Mock(DependencyMetadataFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
-    def converter = new DefaultLocalVariantMetadataBuilder(dependencyMetadataFactory, excludeRuleConverter)
+    def converter = new DefaultLocalVariantGraphResolveStateBuilder(
+        new ComponentIdGenerator(),
+        dependencyMetadataFactory,
+        excludeRuleConverter
+    )
 
     def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
     def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
-    def cache = new LocalVariantMetadataBuilder.DependencyCache();
+    def cache = new LocalVariantGraphResolveStateBuilder.DependencyCache();
     def configurationsProvider = new DetachedConfigurationsProvider()
     def componentId = Mock(ComponentIdentifier)
 
@@ -163,6 +168,6 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     }
 
     def create() {
-        return converter.create(configuration, configurationsProvider, componentId, cache, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
+        return converter.create(configuration, configurationsProvider, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
     }
 }

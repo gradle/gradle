@@ -15,8 +15,24 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Action;
+public interface DisambiguationRule<T> {
 
-public interface DisambiguationRule<T> extends Action<MultipleCandidatesResult<T>> {
+    /* private */ DisambiguationRule<Object> DO_NOTHING = new DisambiguationRule<Object>() {
+        @Override
+        public boolean doesSomething() {
+            return false;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesResult<Object> t) { }
+    };
+
+    @SuppressWarnings("unchecked")
+    static <E> DisambiguationRule<E> doNothing() {
+        return (DisambiguationRule<E>) DO_NOTHING;
+    }
+
     boolean doesSomething();
+
+    void execute(MultipleCandidatesResult<T> t);
 }

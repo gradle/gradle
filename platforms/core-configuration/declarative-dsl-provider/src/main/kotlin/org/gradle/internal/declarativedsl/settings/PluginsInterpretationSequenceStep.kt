@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep.StepIdentifier
@@ -28,6 +29,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultStepIdentifier
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
@@ -60,14 +62,14 @@ class PluginsInterpretationSequenceStep(
     override fun getTopLevelReceiverFromTarget(target: Any) = PluginsTopLevelReceiver()
 
     override val features: Set<InterpretationStepFeature>
-        get() = setOf(SettingsBlocksCheck.feature)
+        get() = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)
 
     override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
         val pluginRequests = resultReceiver.plugins.specs.map {
             DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null)
         }
         with(getTargetServices()) {
-            val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
+            val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, StandaloneDomainObjectContext.forScript(scriptSource))
             val pluginManager = get(PluginManagerInternal::class.java)
             val pluginApplicator = get(PluginRequestApplicator::class.java)
             pluginApplicator.applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, pluginManager, targetScope)

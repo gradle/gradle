@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -70,7 +70,7 @@ public interface ExternalComponentResolveMetadata extends HasAttributes {
     /**
      * Returns the schema used by this component.
      */
-    AttributesSchemaInternal getAttributesSchema();
+    ImmutableAttributesSchema getAttributesSchema();
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.

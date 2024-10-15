@@ -342,11 +342,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return () -> {
-                Hasher hasher = Hashing.sha1().newHasher();
-                identityInputs.values().forEach(s -> s.appendToHasher(hasher));
-                return hasher.hash().toString();
-            };
+            Hasher hasher = Hashing.sha1().newHasher();
+            identityInputs.values().forEach(s -> s.appendToHasher(hasher));
+            String identity = hasher.hash().toString();
+            return () -> identity;
         }
 
         @Override
@@ -435,6 +434,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
+        }
+
+        @Override
+        public void visitRegularInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputFileValueSupplier(
                     classPath,

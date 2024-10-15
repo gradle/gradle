@@ -20,7 +20,10 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.gradle.internal.Cast;
 import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.process.internal.CurrentProcess;
+import org.gradle.process.internal.JvmOptions;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +37,9 @@ public class InitialPropertiesConverter {
     }
 
     public InitialProperties convert(ParsedCommandLine commandLine) {
-        Map<String, String> requestedSystemProperties = systemPropertiesCommandLineConverter.convert(commandLine, new HashMap<>());
+        final JvmOptions currentProcessJvmOptions = new CurrentProcess(null).getJvmOptions();
+        Map<String, String> target = Cast.uncheckedCast(new HashMap<>(currentProcessJvmOptions.getImmutableSystemProperties()));
+        Map<String, String> requestedSystemProperties = systemPropertiesCommandLineConverter.convert(commandLine, target);
 
         return new InitialProperties() {
             @Override

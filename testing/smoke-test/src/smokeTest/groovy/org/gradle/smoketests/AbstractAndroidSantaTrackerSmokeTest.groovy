@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -61,15 +60,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-            expectFilteredFileCollectionDeprecationWarning()
         }.build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-            if (GradleContextualExecuter.notConfigCache) {
-                expectFilteredFileCollectionDeprecationWarning()
-            }
         }.build()
     }
 
@@ -88,13 +83,15 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
             "-DagpVersion=$agpVersion",
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
+            "-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}",
             "--stacktrace"
         ] + tasks.toList()
 
         def runner = agpRunner(agpVersion, *runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
-            .forwardOutput()
+            .withJdkWarningChecksDisabled() // Kapt seems to be accessing JDK internals. See KT-49187
+
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments(
                 "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",

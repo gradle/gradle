@@ -30,10 +30,11 @@ The Gradle Daemon reduces build times by:
 * Benefiting from continuous runtime optimization in the JVM
 * <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
 
-[[understanding_wrapper]]
+[[understanding_daemon]]
 == Understanding the Daemon
 
 The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
+[[understanding_wrapper]]
 The Wrapper is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
 Communication between the client and the Daemon happens via a local socket connection.
 
@@ -175,10 +176,12 @@ To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daem
 
 NOTE: Daemon JVM discovery and criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
 
-By default, the Gradle daemon runs on the same JVM installation that started the build.
+By default, the Gradle daemon runs with the same JVM installation that started the build.
 Gradle defaults to the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
 
-Alternatively, you could specify a different JVM installation for the build using the <<build_environment.adoc#sec:gradle_configuration_properties,`org.gradle.java.home` Gradle property>> or programmatically through the Tooling API.
+Alternatively, a different JVM installation can be specified for the build using the <<build_environment.adoc#sec:gradle_configuration_properties,`org.gradle.java.home` Gradle property>> or programmatically through the Tooling API.
+
+If Daemon JVM criteria is available, it takes precedence over `JAVA_HOME` and `org.gradle.java.home`.
 
 Building on the <<toolchains.adoc#toolchains,toolchain feature>>, you can now use declarative criteria to specify the JVM requirements for the build.
 
@@ -214,25 +217,35 @@ toolchainVersion=17
 ----
 ====
 
-The same properties file can be produced without configuring the task in the build script, and using a command-line argument instead:
+The same properties file can be produced without configuring the task in the build script. Using just a command-line argument:
 
 ----
 $ ./gradlew updateDaemonJvm --jvm-version=17
 ----
 
-If you run the task without any arguments, and the properties file does not exist, then the JVM used by the daemon will provide the version value.
+If you run the task without any arguments, and the properties file does not exist, then the version of the current JVM used by the daemon will be used.
 
-NOTE: Currently, Gradle only supports the major JVM version as a criterion.
-Support for other toolchains criteria will be added in a future release.
+NOTE: Gradle only supports the major JVM version and JVM vendor as a criterion.
+Support for other criteria may be added in a future release.
 
-On the next execution of Gradle, the launcher will use this file to locate a compatible JVM installation and start the daemon with it.
+On the next execution of the build, the Gradle client will use this file to locate a compatible JVM installation and start the daemon with it.
+
+==== Specifying a JVM vendor
+
+Like the JVM version, the JVM vendor can be used as criteria to select a compatible JVM installation for the build. When no JVM vendor is specified, Gradle will consider all vendors compatible.
+
+By default, running `updateDaemonJvm` to create the `gradle-daemon-jvm.properties` file will not generate a JVM vendor criterion. You must either explicitly specify a JVM vendor for the `updateDaemonJvm` task in the build script or pass a JVM vendor on the command-line with `--jvm-vendor=<value>`.
+
+Gradle recognizes a small number of JVM vendor strings as special and equivalent. For example, "Adoptium" and "Temurin" are considered the same vendor. You can see the list of special vendors by running `gradle help --task updateDaemonJvm`.
+
+If the JVM vendor you specify is not treated as a special value, Gradle considers the value as an exact match. For example, to match the vendor "My Custom JVM", the vendor criterion must be "My Custom JVM".
 
 === Daemon JVM discovery
 
 To locate a compatible JVM installation, Gradle re-uses the mechanism provided by the <<toolchains.adoc#toolchains,Java Toolchains>> feature.
 This feature is used to locate a JVM installation that matches the criteria specified in the `gradle/gradle-daemon-jvm.properties` file.
 
-NOTE: Currently, the _daemon JVM discovery_ does not support auto-provisioning of new JVM installations.
+NOTE: The _daemon JVM discovery process_ does not support auto-provisioning of new JVM installations.
 This will be added in a future release.
 
 [[sec:tools_and_ides]]

@@ -38,6 +38,8 @@ class OtoolBinaryInfo implements BinaryInfo {
                 return Architectures.forInput("x86")
             case "X86_64":
                 return Architectures.forInput("x86_64")
+            case "ARM64":
+                return Architectures.forInput("AARCH64")
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

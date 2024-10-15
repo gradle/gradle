@@ -403,6 +403,16 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter noDeprecationChecks();
 
     /**
+     * Disable automatic Java version deprecation warning filtering.
+     * <p>
+     * By default, the executor will ignore all deprecation warnings related to running a build
+     * on a Java version that will no longer be supported in future versions of Gradle. In most
+     * cases we do not care about this warning, but when we want to explicitly test that a build
+     * does emit this warning, we disable this filter.
+     */
+    GradleExecuter disableDaemonJavaVersionDeprecationFiltering();
+
+    /**
      * Disable crash daemon checks
      */
     GradleExecuter noDaemonCrashChecks();

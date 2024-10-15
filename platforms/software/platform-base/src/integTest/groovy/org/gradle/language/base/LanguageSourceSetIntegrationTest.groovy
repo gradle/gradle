@@ -45,7 +45,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create a top level LSS with a rule"() {
-        buildScript """
+        buildFile """
         ${registerCustomLanguage()}
 
         ${addPrintSourceDirTask()}

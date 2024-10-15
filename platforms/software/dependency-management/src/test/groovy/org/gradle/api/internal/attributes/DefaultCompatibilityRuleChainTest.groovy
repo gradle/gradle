@@ -61,7 +61,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
         ruleChain.add(CompatibilityRule)
 
         when:
-        ruleChain.execute(details)
+        ruleChain.rules.first().execute(details)
 
         then:
         1 * details.consumerValue >> "value1"
@@ -76,7 +76,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
         ruleChain.add(CompatibilityRuleWithParams) { it.params("p1") }
 
         when:
-        ruleChain.execute(details)
+        ruleChain.rules.first().execute(details)
 
         then:
         1 * details.consumerValue >> "value1"
@@ -102,7 +102,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
         ruleChain.add(BrokenRule)
 
         when:
-        ruleChain.execute(details)
+        ruleChain.rules.first().execute(details)
 
         then:
         def e = thrown(AttributeMatchException)
@@ -131,7 +131,7 @@ class DefaultCompatibilityRuleChainTest extends Specification {
         ruleChain.add(CannotCreateRule)
 
         when:
-        ruleChain.execute(details)
+        ruleChain.rules.first().execute(details)
 
         then:
         def e = thrown(AttributeMatchException)

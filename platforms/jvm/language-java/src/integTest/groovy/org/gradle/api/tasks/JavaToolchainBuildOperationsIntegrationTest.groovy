@@ -56,7 +56,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         if (configureToolchain == "without") {
             jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         } else {
-            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
             if (configureToolchain == "with java plugin") {
                 configureJavaPluginToolchainVersion(jdkMetadata)
@@ -117,7 +117,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
         def task = ":myToolchainTask"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildFile << """
             abstract class ToolchainTask extends DefaultTask {
@@ -290,6 +290,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def task = ":compileJava"
 
         when:
+        if (option == "java home") {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
@@ -297,6 +300,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
 
         when:
+        if (option == "java home" && GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
@@ -552,7 +558,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'compileJava' task"() {
         def task = ":compileJava"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -565,7 +571,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
-        failureHasCause("Compilation failed; see the compiler error output for details.")
+        failureHasCause("Compilation failed; see the compiler output below.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }
@@ -573,7 +579,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'test' task"() {
         def task = ":test"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -596,7 +602,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'javadoc' task"() {
         def task = ":javadoc"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 

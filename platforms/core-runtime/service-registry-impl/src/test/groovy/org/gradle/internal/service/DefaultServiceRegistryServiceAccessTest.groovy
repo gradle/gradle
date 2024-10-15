@@ -299,8 +299,8 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         def cause = e.cause
         cause instanceof ServiceLookupException
         withoutTestClassName(cause.message).contains('Multiple services of type Integer available in TestRegistry:')
-        withoutTestClassName(cause.message).contains('- Service Integer at <anonymous>.create1()')
-        withoutTestClassName(cause.message).contains('- Service Integer at <anonymous>.create2()')
+        withoutTestClassName(cause.message).contains('- Service Integer via <anonymous>.create1()')
+        withoutTestClassName(cause.message).contains('- Service Integer via <anonymous>.create2()')
     }
 
     private interface TestService {

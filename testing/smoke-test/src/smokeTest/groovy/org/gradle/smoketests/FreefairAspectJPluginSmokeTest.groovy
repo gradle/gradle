@@ -72,9 +72,7 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         expect:
-        runner('check')
-            .forwardOutput()
-            .build()
+        runner('check').build()
     }
 
     @Override

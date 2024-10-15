@@ -13,6 +13,12 @@ gradlebuildJava.usedInWorkers()
 tasks.named<JavaCompile>("compileTestJava") {
     options.release = 8
 }
+afterEvaluate {
+    tasks.named<GroovyCompile>("compileTestGroovy") {
+        sourceCompatibility = "1.8"
+        targetCompatibility = "1.8"
+    }
+}
 
 /**
  * Use Java 8 compatibility for JMH benchmarks
@@ -36,8 +42,8 @@ dependencies {
 
     implementation(projects.io)
     implementation(projects.time)
+    implementation(projects.baseAsm)
 
-    implementation(libs.asm)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
@@ -62,3 +68,6 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

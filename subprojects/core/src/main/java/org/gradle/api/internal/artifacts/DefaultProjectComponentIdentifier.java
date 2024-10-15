@@ -15,70 +15,60 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
 
-import java.util.Objects;
-
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifierInternal {
-    private final BuildIdentifier buildIdentifier;
-    private final Path projectPath;
-    private final Path identityPath;
-    private final String projectName;
-    private String displayName;
 
+    private final ProjectIdentity projectIdentity;
+
+    public DefaultProjectComponentIdentifier(ProjectIdentity projectIdentity) {
+        this.projectIdentity = projectIdentity;
+    }
+
+    /**
+     * Prefer {@link #DefaultProjectComponentIdentifier(ProjectIdentity)}.
+     */
+    @VisibleForTesting
     public DefaultProjectComponentIdentifier(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName) {
-        assert buildIdentifier != null : "build cannot be null";
-        assert identityPath != null : "identity path cannot be null";
-        assert projectPath != null : "project path cannot be null";
-        assert projectName != null : "project name cannot be null";
-        this.identityPath = identityPath;
-        this.projectName = projectName;
-        this.buildIdentifier = buildIdentifier;
-        this.projectPath = projectPath;
+        this(new ProjectIdentity(buildIdentifier, identityPath, projectPath, projectName));
+    }
+
+    @Override
+    public ProjectIdentity getProjectIdentity() {
+        return projectIdentity;
     }
 
     @Override
     public String getDisplayName() {
-        String prefix;
-        if (Objects.equals(identityPath, Path.ROOT)) {
-            prefix =  "root project";
-        } else {
-            prefix = "project";
-        }
-        if (displayName == null) {
-            displayName = prefix + " " + identityPath.getPath();
-        }
-        return displayName;
+        return projectIdentity.getDisplayName();
     }
 
     @Override
     public BuildIdentifier getBuild() {
-        return buildIdentifier;
+        return projectIdentity.getBuildIdentifier();
     }
 
     @Override
     public Path getIdentityPath() {
-        return identityPath;
+        return projectIdentity.getBuildTreePath();
     }
 
     @Override
     public String getProjectPath() {
-        return projectPath.getPath();
-    }
-
-    public Path projectPath() {
-        return projectPath;
+        return projectIdentity.getProjectPath().getPath();
     }
 
     @Override
     public String getBuildTreePath() {
-        return identityPath.getPath();
+        return projectIdentity.getBuildTreePath().getPath();
     }
 
     @Override
     public String getProjectName() {
-        return projectName;
+        return projectIdentity.getProjectName();
     }
 
     @Override
@@ -91,12 +81,12 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         }
 
         DefaultProjectComponentIdentifier that = (DefaultProjectComponentIdentifier) o;
-        return identityPath.equals(that.identityPath);
+        return projectIdentity.equals(that.projectIdentity);
     }
 
     @Override
     public int hashCode() {
-        return identityPath.hashCode();
+        return projectIdentity.hashCode();
     }
 
     @Override

@@ -88,4 +88,5 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     default void include(String projectPath) {
         include(new String[] {projectPath});
     }
+
 }

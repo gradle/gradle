@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling.r88
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DaemonJvmCompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -29,6 +31,7 @@ class DaemonJvmCompatibilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=8.8")
+    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable])
     def "can run a build with Java 21 followed by another build with a different version"() {
         given:
         def jdk21 = AvailableJavaHomes.getJdk21()

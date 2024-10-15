@@ -118,6 +118,14 @@ public final class EvaluationContext {
     }
 
     /**
+     * Returns the "topmost" evaluation owner or null if nothing is being evaluated right now.
+     */
+    @Nullable
+    public EvaluationOwner getOwner() {
+        return getContext().getOwner();
+    }
+
+    /**
      * Runs the {@code evaluation} with the {@code owner} being marked as "evaluating".
      * If the owner is already being evaluated, throws {@link CircularEvaluationException}.
      *

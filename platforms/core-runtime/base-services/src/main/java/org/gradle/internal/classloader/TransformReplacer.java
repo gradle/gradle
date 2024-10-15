@@ -19,9 +19,9 @@ package org.gradle.internal.classloader;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.model.internal.asm.AsmConstants;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -156,9 +156,8 @@ public class TransformReplacer implements Closeable {
     }
 
     private static class Loader implements Closeable {
-          // used in subclasses
         @Nullable
-        public byte[] loadTransformedClass(@SuppressWarnings("UnusedVariable") String className) throws IOException {
+        public byte[] loadTransformedClass(String className) throws IOException {
             return null;
         }
 

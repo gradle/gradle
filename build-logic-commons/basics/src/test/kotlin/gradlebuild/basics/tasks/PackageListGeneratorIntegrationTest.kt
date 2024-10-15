@@ -32,7 +32,13 @@ class PackageListGeneratorIntegrationTest {
 
     companion object {
         private
-        val EXPECTED_PACKAGE_LIST = listOf("com/acme", "com/foo/internal", "javax/servlet/http")
+        val EXPECTED_PACKAGE_LIST = listOf(
+            "com/acme",
+            "com/foo/internal",
+            "javax/servlet/http",
+            "org/gradle/fileevents"
+        )
+
         private
         val DEFAULT_EXCLUDES_FOR_TEST = listOf(
             "org/gradle",
@@ -52,13 +58,17 @@ class PackageListGeneratorIntegrationTest {
             "org/xml/sax",
             "sun/misc"
         )
+
+        val DEFAULT_INCLUDES_FOR_TEST = listOf(
+            "org/gradle/fileevents"
+        )
     }
 
     @TempDir
     lateinit var projectDir: Path
 
     private
-    val implementation = PackageListGenerator.Implementation(DEFAULT_EXCLUDES_FOR_TEST)
+    val implementation = PackageListGenerator.Implementation(DEFAULT_EXCLUDES_FOR_TEST, DEFAULT_INCLUDES_FOR_TEST)
 
     private
     fun getRelocatedPackages(files: Sequence<Path>): List<String> = mutableListOf<String>().apply {

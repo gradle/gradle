@@ -18,10 +18,11 @@ package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
 import org.gradle.internal.configuration.problems.PropertyKind
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -42,7 +43,7 @@ interface DecodingProvider<T> {
 }
 
 
-interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
+interface WriteContext : MutableIsolateContext, Encoder {
 
     val tracer: Tracer?
 
@@ -56,8 +57,29 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
+    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+
     fun writeClass(type: Class<*>)
+
+    /**
+     * @see ClassEncoder.encodeClassLoader
+     */
+    fun writeClassLoader(classLoader: ClassLoader?) = Unit
 }
+
+
+interface CloseableWriteContext : WriteContext, AutoCloseable
+
+
+fun <I, R> CloseableWriteContext.writeWith(
+    argument: I,
+    writeOperation: suspend WriteContext.(I) -> R
+): R =
+    useToRun {
+        runWriteOperation {
+            writeOperation(argument)
+        }
+    }
 
 
 interface Tracer {
@@ -74,8 +96,6 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     override val isolate: ReadIsolate
 
-    val classLoader: ClassLoader
-
     fun beanStateReaderFor(beanType: Class<*>): BeanStateReader
 
     /**
@@ -86,7 +106,14 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     suspend fun read(): Any?
 
+    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
+
     fun readClass(): Class<*>
+
+    /**
+     * @see ClassDecoder.decodeClassLoader
+     */
+    fun readClassLoader(): ClassLoader? = null
 
     /**
      * Defers the given [action] until all objects have been read.
@@ -95,6 +122,30 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     fun <T : Any> getSingletonProperty(propertyType: Class<T>): T
 }
+
+
+interface MutableReadContext : ReadContext {
+    /**
+     * Sets a client specific property value that can be queried via [getSingletonProperty].
+     */
+    fun <T : Any> setSingletonProperty(singletonProperty: T)
+}
+
+
+interface CloseableReadContext : MutableReadContext, AutoCloseable {
+    fun finish()
+
+}
+
+
+fun <I, R> CloseableReadContext.readWith(argument: I, readOperation: suspend MutableReadContext.(I) -> R) =
+    useToRun {
+        runReadOperation {
+            readOperation(argument)
+        }.also {
+            finish()
+        }
+    }
 
 
 inline
@@ -116,6 +167,9 @@ interface IsolateContext {
     fun onProblem(problem: PropertyProblem)
 
     fun onError(error: Exception, message: StructuredMessageBuilder)
+
+    val name: String
+        get() = this::class.simpleName!!
 }
 
 
@@ -297,7 +351,7 @@ suspend fun ReadContext.decodeBean(): Any {
     val beanType = readClass()
     return withBeanTrace(beanType) {
         beanStateReaderFor(beanType).run {
-            newBean(false).also {
+            newBean().also {
                 readStateOf(it)
             }
         }
@@ -312,12 +366,12 @@ interface BeanStateWriter {
 
 interface BeanStateReader {
 
-    fun ReadContext.newBeanWithId(generated: Boolean, id: Int) =
-        newBean(generated).also {
+    fun ReadContext.newBeanWithId(id: Int) =
+        newBean().also {
             isolate.identities.putInstance(id, it)
         }
 
-    fun ReadContext.newBean(generated: Boolean): Any
+    fun ReadContext.newBean(): Any
 
     suspend fun ReadContext.readStateOf(bean: Any)
 }

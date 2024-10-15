@@ -16,17 +16,24 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.util.Matchers.containsNormalizedString;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,6 +42,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class StandardJavadocDocletOptionsTest {
+    @Rule
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
     private StandardJavadocDocletOptions options;
 
@@ -443,6 +452,28 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentNoComment() {
         assertEquals(options, options.noComment());
         assertTrue(options.isNoComment());
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/1484")
+    public void emitsVariousMultiValuedOptionsCorrectly() throws IOException {
+        options.addMultilineStringsOption("addMultilineStringsOption").setValue(Arrays.asList("a", "b", "c"));
+        options.addStringsOption("addStringsOption", " ").setValue(Arrays.asList("a", "b", "c"));
+        options.addMultilineMultiValueOption("addMultilineMultiValueOption").setValue(Arrays.asList(Collections.singletonList("a"), Arrays.asList("b", "c")));
+
+        TestFile optionsFile = temporaryFolder.file("javadoc.options");
+        options.write(optionsFile);
+
+        optionsFile.assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
+            "-addMultilineStringsOption 'b'\n" +
+            "-addMultilineStringsOption 'c'"));
+
+        optionsFile.assertContents(containsNormalizedString("-addStringsOption 'a b c'"));
+
+        optionsFile.assertContents(containsNormalizedString("-addMultilineMultiValueOption \n" +
+            "'a' \n" +
+            "-addMultilineMultiValueOption \n" +
+            "'b' 'c' "));
     }
 
     @After

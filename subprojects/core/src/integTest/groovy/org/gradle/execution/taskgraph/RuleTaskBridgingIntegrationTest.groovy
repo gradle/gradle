@@ -664,7 +664,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     def "only tasks of specified type are created when tasks with type are declared as dependency"() {
         when:
-        buildScript """
+        buildFile """
             ${ruleBasedTasks()}
 
             model {

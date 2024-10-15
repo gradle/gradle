@@ -22,7 +22,8 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
-import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.IfPresentBehavior.Ignore
+import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.AddConfiguringBlockIfAbsent
+import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.SetPropertyValue
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -32,32 +33,36 @@ import org.gradle.internal.declarativedsl.schemaUtils.findTypeFor
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
+import org.junit.jupiter.api.Assertions.fail
 
 
-object MutationAsTextRunnerTest {
+class MutationAsTextRunnerTest {
 
     @Test
     fun `can run a mutation from a mutation definition`() {
-        val languageTree = ParseTestUtil.parse(
-            """
-            nestedOne {
-                x = 0
-                // I can comment this
-                nestedTwo {
-                    y = 0
+        val document = documentWithResolution(
+            schema.analysisSchema,
+            ParseTestUtil.parse(
+                """
+                nestedOne {
+                    x = 0
+                    // I can comment this
+                    nestedTwo {
+                        y = 0
+                    }
                 }
-            }
-            """.trimIndent()
+                """.trimIndent()
+            )
         )
-        val document = documentWithResolution(schema.analysisSchema, languageTree, DefaultOperationGenerationId.finalEvaluation, analyzeEverything)
 
         val result = runner.runMutation(
-            mutationDefinition,
+            xyMutationDefinition,
             mutationArguments {
-                argument(mutationDefinition.xParam, 1)
-                argument(mutationDefinition.yParam, 2)
+                argument(xyMutationDefinition.xParam, 1)
+                argument(xyMutationDefinition.yParam, 2)
             },
             TextMutationApplicationTarget(document, schema)
         )
@@ -76,20 +81,93 @@ object MutationAsTextRunnerTest {
         )
     }
 
+    @Test
+    fun `can run a multi-step mutation in which later steps rely on the earlier steps`() {
+        val document = documentWithResolution(
+            schema.analysisSchema,
+            ParseTestUtil.parse(
+                """
+                nestedOne {
+                }
+                nestedAnotherOne {
+                }
+                """.trimIndent()
+            )
+        )
+
+        val result = runner.runMutation(
+            nestedTwoNestedThreeMutationDefinition,
+            mutationArguments { },
+            TextMutationApplicationTarget(document, schema)
+        )
+        assertEquals(
+            """
+            nestedOne {
+                nestedTwo {
+                    nestedThree { }
+                }
+            }
+            nestedAnotherOne {
+                nestedTwo {
+                    nestedThree { }
+                }
+            }
+
+            """.trimIndent(),
+            (result.stepResults.last() as ModelMutationStepResult.ModelMutationStepApplied).newDocumentText
+        )
+    }
+
+    @Test
+    fun `reports step failures`() {
+        val document = documentWithResolution(schema.analysisSchema, ParseTestUtil.parse("/* empty document, no nested receiver */"))
+
+        val args = mutationArguments {
+            argument(xyMutationDefinition.xParam, 1)
+            argument(xyMutationDefinition.yParam, 2)
+        }
+        val result = runner.runMutation(xyMutationDefinition, args, TextMutationApplicationTarget(document, schema))
+
+        assertTrue { MutationRunIssue.HasStepFailure in result.issues }
+        assertEquals(2, result.stepResults.size)
+        assertTrue { result.stepResults.all { it is ModelMutationStepResult.ModelMutationFailed } }
+    }
+
+    @Test
+    fun `reports incompatible mutations`() {
+        val document = documentWithResolution(schema.analysisSchema, ParseTestUtil.parse(""))
+
+        val incompatibleMutation = object : MutationDefinition {
+            override val id: String = "com.example.incompatible"
+            override val name: String = "Incompatible"
+            override val description: String = "This mutation is not compatible with any schema and throws an exception on planning"
+            override val parameters: List<MutationParameter<*>> = emptyList()
+
+            override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = false
+
+            override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> =
+                fail("tried to define the mutation sequence for an incompatible mutation!")
+        }
+
+        val result = runner.runMutation(incompatibleMutation, mutationArguments { }, TextMutationApplicationTarget(document, schema))
+
+        assertTrue { MutationRunIssue.IncompatibleMutation in result.issues }
+    }
+
     private
     val runner = MutationAsTextRunner()
 }
 
 
 private
-val mutationDefinition = object : MutationDefinition {
+val xyMutationDefinition = object : MutationDefinition {
     val xParam = MutationParameter("x", "new value for x", MutationParameterKind.IntParameter)
     val yParam = MutationParameter("y", "new value for y", MutationParameterKind.IntParameter)
 
-    override val id: String = "com.example.mutation"
-    override val name: String = "Example mutation"
+    override val id: String = "com.example.mutation.xy"
+    override val name: String = "Set x and y"
     override val description: String = "Set the new values for x and y based on the parameters"
-    override val parameters: List<MutationParameter<*>> = emptyList()
+    override val parameters: List<MutationParameter<*>> = listOf(xParam, yParam)
 
     override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = with(projectAnalysisSchema) {
         findTypeFor<TopLevelReceiverForMutations>() != null &&
@@ -98,7 +176,6 @@ val mutationDefinition = object : MutationDefinition {
             findPropertyFor(NestedTwo::y) != null
     }
 
-
     override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = with(projectAnalysisSchema) {
         val nestedOneX = propertyFor(NestedOne::x)
         val nestedTwoY = propertyFor(NestedTwo::y)
@@ -106,12 +183,39 @@ val mutationDefinition = object : MutationDefinition {
         listOf(
             ModelMutationRequest(
                 ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()),
-                ModelMutation.SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! }, Ignore)
+                SetPropertyValue(nestedOneX, NewValueNodeProvider.ArgumentBased { valueFromString(it[xParam].toString())!! })
             ),
             ModelMutationRequest(
                 ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()).inObjectsConfiguredBy(functionFor(NestedOne::nestedTwo)),
-                ModelMutation.SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! }, Ignore)
+                SetPropertyValue(nestedTwoY, NewValueNodeProvider.ArgumentBased { valueFromString(it[yParam].toString())!! })
             )
+        )
+    }
+}
+
+
+private
+val nestedTwoNestedThreeMutationDefinition = object : MutationDefinition {
+    override val id: String = "com.example.mutation.nestedTwoY"
+    override val name: String = "Ensure nestedTwo { nestedThree { } }"
+    override val description: String = "Add nestedTwo { } if it is absent and then nestedThree { } in it"
+    override val parameters: List<MutationParameter<*>> = emptyList()
+
+    override fun isCompatibleWithSchema(projectAnalysisSchema: AnalysisSchema): Boolean = true
+
+    override fun defineModelMutationSequence(projectAnalysisSchema: AnalysisSchema): List<ModelMutationRequest> = with(projectAnalysisSchema) {
+        val nestedTwo = functionFor(NestedOne::nestedTwo)
+        val nestedTwoNestedThree = functionFor(NestedTwo::nestedThree)
+
+        listOf(
+            ModelMutationRequest(
+                ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()),
+                AddConfiguringBlockIfAbsent(nestedTwo)
+            ),
+            ModelMutationRequest(
+                ScopeLocation.fromTopLevel().inObjectsOfType(typeFor<NestedOne>()).inObjectsConfiguredBy(nestedTwo),
+                AddConfiguringBlockIfAbsent(nestedTwoNestedThree)
+            ),
         )
     }
 }
@@ -129,6 +233,9 @@ internal
 interface TopLevelReceiverForMutations {
     @Configuring
     fun nestedOne(configure: NestedOne.() -> Unit)
+
+    @Configuring
+    fun nestedAnotherOne(configure: NestedOne.() -> Unit)
 }
 
 
@@ -146,4 +253,14 @@ internal
 interface NestedTwo {
     @get:Restricted
     var y: Int
+
+    @Configuring
+    fun nestedThree(configure: NestedTwo.() -> Unit)
+}
+
+
+internal
+interface NestedThree {
+    @get:Restricted
+    var z: Int
 }

@@ -30,6 +30,7 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution.ErrorResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.LiteralValueResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.NamedReferenceResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.dom.data.NodeDataContainer
 import org.gradle.internal.declarativedsl.dom.data.ValueData
@@ -123,8 +124,9 @@ class DocumentOverlayContext(
         override fun data(node: ElementNode): OverlayNodeOrigin.OverlayElementOrigin = overlayElementOrigin.getValue(node)
         override fun data(node: PropertyNode): OverlayNodeOrigin.OverlayPropertyOrigin = overlayPropertyOrigin.getValue(node)
         override fun data(node: ErrorNode): OverlayNodeOrigin.OverlayErrorOrigin = overlayErrorOrigin.getValue(node)
-        override fun data(value: ValueNode.ValueFactoryNode): OverlayValueOrigin = overlayValueOrigin.getValue(value)
-        override fun data(value: ValueNode.LiteralValueNode): OverlayValueOrigin = overlayValueOrigin.getValue(value)
+        override fun data(node: ValueNode.ValueFactoryNode): OverlayValueOrigin = overlayValueOrigin.getValue(node)
+        override fun data(node: ValueNode.LiteralValueNode): OverlayValueOrigin = overlayValueOrigin.getValue(node)
+        override fun data(node: ValueNode.NamedReferenceNode): OverlayValueOrigin = overlayValueOrigin.getValue(node)
     }
 
     fun mergeRecursively(
@@ -233,7 +235,8 @@ class DocumentOverlayContext(
         overlayValueOrigin[value] = origin
         when (value) {
             is ValueNode.ValueFactoryNode -> value.values.forEach { recordValueOriginRecursively(it, origin) }
-            is ValueNode.LiteralValueNode -> Unit
+            is ValueNode.LiteralValueNode,
+            is ValueNode.NamedReferenceNode -> Unit
         }
     }
 
@@ -264,7 +267,8 @@ class DocumentOverlayContext(
          */
         data class CanMergeBlock(
             val functionName: String,
-            val configuredTypeName: FqName
+            val configuredTypeName: FqName,
+            val identityValues: List<Any?>
         ) : MergeKey
     }
 
@@ -287,12 +291,12 @@ fun resolutionContainerMergeKeyMapper(
 ) = DocumentOverlayContext.MergeKeyMapper { node ->
     when (val nodeResolution = resolutionContainer.data(node)) {
         is ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
-            // TODO: this will need adjustment once access-and-configure semantics get replaced with ensure-exists-and-configure with literal key arguments
             DocumentOverlayContext.MergeKey.CannotMerge
 
         is ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved -> {
             val name = (node as ElementNode).name
-            DocumentOverlayContext.MergeKey.CanMergeBlock(name, nodeResolution.elementType.name)
+            val identityValues = node.elementValues.map { if (it is ValueNode.LiteralValueNode) it.value else null }
+            DocumentOverlayContext.MergeKey.CanMergeBlock(name, nodeResolution.elementType.name, identityValues)
         }
 
         is PropertyResolution.PropertyAssignmentResolved ->
@@ -313,5 +317,5 @@ class OverlayResolutionContainer(
 ) : DocumentResolutionContainer,
     NodeDataContainer<DocumentNodeResolution, ElementResolution, PropertyResolution, ErrorResolution> by
     OverlayRoutedNodeDataContainer(overlayOriginContainer, underlay, overlay),
-    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved> by
+    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved, NamedReferenceResolution> by
     OverlayRoutedValueDataContainer(overlayOriginContainer, underlay, overlay)

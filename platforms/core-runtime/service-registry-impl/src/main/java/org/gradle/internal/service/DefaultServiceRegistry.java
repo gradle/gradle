@@ -26,7 +26,6 @@ import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -758,6 +757,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
+        public String getDisplayName() {
+            return format("Service", serviceTypes);
+        }
+
+        @Override
         public String toString() {
             return getDisplayName();
         }
@@ -993,7 +997,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static class FactoryMethodService extends FactoryService {
 
-        private final ServiceMethod method;
+        @Nullable
+        private ServiceMethod method;
         @Nullable
         private Object target;
 
@@ -1015,21 +1020,29 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         public String getDisplayName() {
-            return "Service " + format(method.getServiceType()) + " at " + format(method.getOwner()) + "." + method.getName() + "()";
+            if (method == null) {
+                return super.getDisplayName();
+            }
+
+            return format("Service", serviceTypes) + " via " + format(method.getOwner()) + "." + method.getName() + "()";
         }
 
         @Override
         protected Type[] getParameterTypes() {
-            return method.getParameterTypes();
+            return getMethod().getParameterTypes();
         }
 
-        private Member getFactory() {
-            return method.getMethod();
+        private ServiceMethod getMethod() {
+            ServiceMethod method = this.method;
+            if (method == null) {
+                throw new IllegalStateException("Method is no longer available for the instance of " + format("service", serviceTypes));
+            }
+            return method;
         }
 
         @Override
         protected String getFactoryDisplayName() {
-            return String.format("method %s.%s()", format(getFactory().getDeclaringClass()), getFactory().getName());
+            return String.format("method %s.%s()", format(getMethod().getOwner()), getMethod().getName());
         }
 
         @Override
@@ -1039,6 +1052,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
 
             Object result;
+            ServiceMethod method = getMethod();
             try {
                 result = method.invoke(target, params);
             } catch (Exception e) {
@@ -1049,18 +1063,21 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                     e);
             }
 
-            try {
-                if (result == null) {
-                    throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s() as this method returned null.",
-                        format("type", serviceTypes),
-                        method.getOwner().getSimpleName(),
-                        method.getName()));
-                }
-                return result;
-            } finally {
-                // Can discard the state required to create instance
-                target = null;
+            if (result == null) {
+                throw new ServiceCreationException(String.format("Could not create service of %s using %s.%s() as this method returned null.",
+                    format("type", serviceTypes),
+                    method.getOwner().getSimpleName(),
+                    method.getName()));
             }
+            return result;
+        }
+
+        @Override
+        protected Object createServiceInstance() {
+            Object result = super.createServiceInstance();
+            this.target = null;
+            this.method = null;
+            return result;
         }
     }
 
@@ -1082,7 +1099,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static class ConstructorService extends FactoryService {
-        private final Constructor<?> constructor;
+        @Nullable
+        private Constructor<?> constructor;
 
         private ConstructorService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken token, Class<?> serviceType) {
             this(owner, accessScope, token, serviceType, serviceType);
@@ -1110,22 +1128,34 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         protected Type[] getParameterTypes() {
-            return constructor.getGenericParameterTypes();
+            return getConstructor().getGenericParameterTypes();
         }
 
-        private Member getFactory() {
-            return constructor;
+        @Override
+        protected Object createServiceInstance() {
+            Object result = super.createServiceInstance();
+            this.constructor = null;
+            return result;
+        }
+
+        @Override
+        public String getDisplayName() {
+            if (constructor == null) {
+                return super.getDisplayName();
+            }
+
+            return format("Service", serviceTypes) + " via " + format(getConstructor().getDeclaringClass()) + " constructor";
         }
 
         @Override
         protected String getFactoryDisplayName() {
-            return String.format("%s constructor", format(getFactory().getDeclaringClass()));
+            return String.format("%s constructor", format(getConstructor().getDeclaringClass()));
         }
 
         @Override
         protected Object invokeMethod(Object[] params) {
             try {
-                return constructor.newInstance(params);
+                return getConstructor().newInstance(params);
             } catch (InvocationTargetException e) {
                 throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", serviceTypes)), e.getCause());
             } catch (Exception e) {
@@ -1133,9 +1163,12 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
         }
 
-        @Override
-        public String getDisplayName() {
-            return format("Service", serviceTypes);
+        private Constructor<?> getConstructor() {
+            Constructor<?> constructor = this.constructor;
+            if (constructor == null) {
+                throw new IllegalStateException("Constructor is no longer available for the instance of " + format("service", serviceTypes));
+            }
+            return constructor;
         }
     }
 

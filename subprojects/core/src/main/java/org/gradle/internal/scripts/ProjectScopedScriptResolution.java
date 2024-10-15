@@ -26,10 +26,10 @@ import java.util.function.Supplier;
 public interface ProjectScopedScriptResolution {
     ProjectScopedScriptResolution NO_OP = new ProjectScopedScriptResolution() {
         @Override
-        public <T> T resolveScriptsForProject(Path identityPath, Supplier<T> action) {
+        public <T> T resolveScriptsForProject(Path identityPath, Path buildPath, Path projectPath, Supplier<T> action) {
             return action.get();
         }
     };
 
-    <T> T resolveScriptsForProject(Path identityPath, Supplier<T> action);
+    <T> T resolveScriptsForProject(Path identityPath, Path buildPath, Path projectPath, Supplier<T> action);
 }

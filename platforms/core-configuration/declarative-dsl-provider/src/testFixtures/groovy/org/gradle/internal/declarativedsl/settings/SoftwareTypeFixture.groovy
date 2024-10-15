@@ -41,6 +41,14 @@ trait SoftwareTypeFixture {
         )
     }
 
+    PluginBuilder withSoftwareTypePluginWithNdoc() {
+        return withSoftwareTypePlugins(
+            softwareTypeExtensionWithNdoc,
+            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtension", null, "SoftwareTypeImplPlugin", "testSoftwareType", ""),
+            settingsPluginThatRegistersSoftwareType
+        )
+    }
+
     PluginBuilder withSoftwareTypePluginWithMismatchedModelTypes() {
         def pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
@@ -133,7 +141,7 @@ trait SoftwareTypeFixture {
         )
     }
 
-    PluginBuilder withSettingsPluginThatConfiguresSoftwareTypeConventions() {
+    PluginBuilder withSettingsPluginThatConfiguresModelDefaults() {
         return withSoftwareTypePlugins(
             softwareTypeExtension,
             projectPluginThatProvidesSoftwareType,
@@ -206,6 +214,55 @@ trait SoftwareTypeFixture {
             }
         """
     }
+
+    static String getSoftwareTypeExtensionWithNdoc() {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            import org.gradle.api.Named;
+            import org.gradle.api.NamedDomainObjectContainer;
+            import org.gradle.api.provider.Property;
+
+            import java.util.stream.Collectors;
+
+            public abstract class TestSoftwareTypeExtension {
+                public abstract NamedDomainObjectContainer<Foo> getFoos();
+
+                public abstract static class Foo implements Named {
+                    private String name;
+
+                    public Foo(String name) {
+                        this.name = name;
+                    }
+
+                    @Override
+                    public String getName() {
+                        return name;
+                    }
+
+                    @Restricted
+                    public abstract Property<Integer> getX();
+
+                    @Restricted
+                    public abstract Property<Integer> getY();
+
+                    @Override
+                    public String toString() {
+                        return "Foo(name = " + name + ", x = " + getX().get() + ", y = " + getY().get() + ")";
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return getFoos().stream().map(Foo::toString).collect(Collectors.joining(", "));
+                }
+            }
+
+        """
+    }
+
 
     static String getPublicModelType() {
         return """
@@ -324,6 +381,8 @@ trait SoftwareTypeFixture {
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+                    target.getExtensions().add("${softwareType}", extension);
+
                     ${conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {

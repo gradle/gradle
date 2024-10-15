@@ -5,8 +5,13 @@ import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
-import java.net.URL
+import java.net.URI
 
+
+tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
+    jvmVersion = JavaLanguageVersion.of(17)
+    jvmVendor = "adoptium"
+}
 
 tasks.withType<UpdateReleasedVersions>().configureEach {
     releasedVersionsFile = releasedVersionsFile()
@@ -22,7 +27,7 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersions") {
 
 tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") {
     currentReleasedVersion = project.provider {
-        val jsonText = URL("https://services.gradle.org/versions/nightly").readText()
+        val jsonText = URI("https://services.gradle.org/versions/nightly").toURL().readText()
         println(jsonText)
         val versionInfo = Gson().fromJson(jsonText, VersionBuildTimeInfo::class.java)
         ReleasedVersion(versionInfo.version, versionInfo.buildTime)

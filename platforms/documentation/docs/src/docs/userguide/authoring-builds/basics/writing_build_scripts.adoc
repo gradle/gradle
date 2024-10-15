@@ -134,7 +134,7 @@ This object is called a _lambda_ in Kotlin or a _closure_ in Groovy.
 Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
 It is the short form for:
 
-[source]
+[source,text]
 ----
 plugins(function() {
     id("plugin")
@@ -153,78 +153,14 @@ Gradle executes the script line by line, top to bottom.
 Let's take a look at an example and break it down:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {                                                               // <1>
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("application")
-}
-
-repositories {                                                          // <2>
-    mavenCentral()
-}
-
-dependencies {                                                          // <3>
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("com.google.guava:guava:32.1.1-jre")
-}
-
-application {                                                           // <4>
-    mainClass = "com.example.Main"
-}
-
-tasks.named<Test>("test") {                                             // <5>
-    useJUnitPlatform()
-}
-----
-<1> Apply plugins to the build.
-<2> Define the locations where dependencies can be found.
-<3> Add dependencies.
-<4> Set properties.
-<5> Register and configure tasks.
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {                                                               // <1>
-    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
-    id 'application'
-}
-
-repositories {                                                          // <2>
-    mavenCentral()
-}
-
-dependencies {                                                          // <3>
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.google.guava:guava:32.1.1-jre'
-}
-
-application {                                                           // <4>
-    mainClass = 'com.example.Main'
-}
-
-tasks.named('test') {                                                   // <5>
-    useJUnitPlatform()
-}
-----
-<1> Apply plugins to the build.
-<2> Define the locations where dependencies can be found.
-<3> Add dependencies.
-<4> Set properties.
-<5> Register and configure tasks.
-=====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[]"]
 ====
+<1> Apply plugins to the build.
+<2> Define the locations where dependencies can be found.
+<3> Add dependencies.
+<4> Set properties.
+<5> Register and configure tasks.
 
 === 1. Apply plugins to the build
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configurations.
@@ -233,13 +169,10 @@ Plugins can be applied using the `PluginDependenciesSpec` plugins script block.
 
 The plugins block is preferred:
 
-[source]
-----
-plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("application")
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=plugins]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=plugins]"]
+====
 
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
@@ -254,13 +187,10 @@ Dependencies include plugins, libraries, or components that Gradle must download
 The build script lets Gradle know where to look for the binaries of the dependencies.
 More than one location can be provided:
 
-[source]
-----
-repositories {
-    mavenCentral()
-    google()
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=repo]"]
+====
 
 In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
 
@@ -269,17 +199,15 @@ In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbra
 A project generally has a number of dependencies it needs to do its work.
 These dependencies are often libraries of precompiled classes that are imported in the project's source code.
 
-Dependencies are managed via <<dependency_management_terminology.adoc#sub:terminology_configuration,configurations>> and are retrieved from repositories.
+Dependencies are managed via <<glossary.adoc#sub:terminology_configuration,configurations>> and are retrieved from repositories.
 
 Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
 Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
 
-[source]
-----
-dependencies {
-    implementation("com.google.guava:guava:32.1.1-jre")
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=dep]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=dep]"]
+====
 
 In the example, the application code uses Google's `guava` libraries.
 Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
@@ -292,12 +220,10 @@ The link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] object has an as
 
 In the example, the `application` plugin added an `application` property, which is used to detail the main class of our Java application:
 
-[source]
-----
-application {
-    mainClass = "com.example.Main"
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=app]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=app]"]
+====
 
 === 5. Register and configure tasks
 
@@ -309,69 +235,53 @@ While tasks are typically defined in plugins, you may need to register or config
 
 You can register tasks in a project using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register(java.lang.String)`] method:
 
-[source]
-----
-tasks.register<Zip>("zip-reports") {
-    from 'Reports/'
-    include '*'
-    archiveName 'Reports.zip'
-    destinationDir(file('/dir'))
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=task]"]
+====
 
-You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*:
+You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*.
 
-[source]
+[source,kotlin]
 ----
-tasks.create<Zip>("zip-reports") {
-    from 'Reports/'
-    include '*'
-    archiveName 'Reports.zip'
-    destinationDir(file('/dir'))
-}
+tasks.create<Zip>("zip-reports") { }
 ----
 
 TIP: `register()`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create()`.
 
 You can locate a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
-[source]
-----
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=test]"]
+====
 
 The example below configures the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] task to automatically generate HTML documentation from Java code:
 
-[source]
-----
-tasks.named("javadoc").configure {
-    exclude 'app/Internal*.java'
-    exclude 'app/internal/*'
-    exclude 'app/internal/*'
-}
-----
+====
+include::sample[dir="snippets/plugins/simple/kotlin/sub-project-a", files="build.gradle.kts[tags=doc]"]
+include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build.gradle[tags=doc]"]
+====
 
 == Build Scripting
 
 A build script is made up of zero or more statements and script blocks:
 
-[source]
+[source,text]
 ----
 println(project.layout.projectDirectory);
 ----
 
 Statements can include method calls, property assignments, and local variable definitions:
 
-[source]
+[source,text]
 ----
 version = '1.0.0.GA'
 ----
 
 A script block is a method call which takes a closure/lambda as a parameter:
 
-[source]
+[source,text]
 ----
 configurations {
 }
@@ -379,7 +289,7 @@ configurations {
 
 The closure/lambda configures some delegate object as it executes:
 
-[source]
+[source,text]
 ----
 repositories {
     google()
@@ -513,7 +423,6 @@ As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionExc
 
 Gradle implicitly adds the following imports to each script:
 
-.Gradle default imports
 [source,groovy]
 ----
 include::default-imports.txt[]

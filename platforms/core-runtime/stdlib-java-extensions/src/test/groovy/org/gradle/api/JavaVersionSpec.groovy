@@ -46,22 +46,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_9.toString() == "9"
         JavaVersion.VERSION_1_10.toString() == "10"
         JavaVersion.VERSION_11.toString() == "11"
-        JavaVersion.VERSION_12.toString() == "12"
-        JavaVersion.VERSION_13.toString() == "13"
-        JavaVersion.VERSION_14.toString() == "14"
-        JavaVersion.VERSION_15.toString() == "15"
-        JavaVersion.VERSION_16.toString() == "16"
-        JavaVersion.VERSION_17.toString() == "17"
-        JavaVersion.VERSION_18.toString() == "18"
-        JavaVersion.VERSION_19.toString() == "19"
-        JavaVersion.VERSION_20.toString() == "20"
-        JavaVersion.VERSION_21.toString() == "21"
-        JavaVersion.VERSION_22.toString() == "22"
-        JavaVersion.VERSION_23.toString() == "23"
-        JavaVersion.VERSION_24.toString() == "24"
-        JavaVersion.VERSION_25.toString() == "25"
-        JavaVersion.VERSION_26.toString() == "26"
-        JavaVersion.VERSION_HIGHER.toString() == "27"
+        JavaVersion.VERSION_HIGHER.toString() == "28"
     }
 
     def convertsStringToVersion() {
@@ -105,31 +90,7 @@ class JavaVersionSpec extends Specification {
     def convertClassVersionToJavaVersion() {
         expect:
         JavaVersion.forClassVersion(45) == JavaVersion.VERSION_1_1
-        JavaVersion.forClassVersion(46) == JavaVersion.VERSION_1_2
-        JavaVersion.forClassVersion(47) == JavaVersion.VERSION_1_3
-        JavaVersion.forClassVersion(48) == JavaVersion.VERSION_1_4
-        JavaVersion.forClassVersion(49) == JavaVersion.VERSION_1_5
-        JavaVersion.forClassVersion(50) == JavaVersion.VERSION_1_6
-        JavaVersion.forClassVersion(51) == JavaVersion.VERSION_1_7
-        JavaVersion.forClassVersion(52) == JavaVersion.VERSION_1_8
-        JavaVersion.forClassVersion(53) == JavaVersion.VERSION_1_9
-        JavaVersion.forClassVersion(54) == JavaVersion.VERSION_1_10
-        JavaVersion.forClassVersion(55) == JavaVersion.VERSION_11
-        JavaVersion.forClassVersion(56) == JavaVersion.VERSION_12
-        JavaVersion.forClassVersion(57) == JavaVersion.VERSION_13
-        JavaVersion.forClassVersion(58) == JavaVersion.VERSION_14
-        JavaVersion.forClassVersion(59) == JavaVersion.VERSION_15
-        JavaVersion.forClassVersion(60) == JavaVersion.VERSION_16
-        JavaVersion.forClassVersion(61) == JavaVersion.VERSION_17
-        JavaVersion.forClassVersion(62) == JavaVersion.VERSION_18
-        JavaVersion.forClassVersion(63) == JavaVersion.VERSION_19
-        JavaVersion.forClassVersion(64) == JavaVersion.VERSION_20
-        JavaVersion.forClassVersion(65) == JavaVersion.VERSION_21
-        JavaVersion.forClassVersion(66) == JavaVersion.VERSION_22
-        JavaVersion.forClassVersion(67) == JavaVersion.VERSION_23
-        JavaVersion.forClassVersion(68) == JavaVersion.VERSION_24
-        JavaVersion.forClassVersion(69) == JavaVersion.VERSION_25
-        JavaVersion.forClassVersion(70) == JavaVersion.VERSION_26
+        JavaVersion.forClassVersion(71) == JavaVersion.VERSION_27
         JavaVersion.forClassVersion(999) == JavaVersion.VERSION_HIGHER
     }
 

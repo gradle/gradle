@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.graph
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import java.util.IdentityHashMap
 
@@ -25,7 +26,7 @@ class WriteIdentities {
     private
     val instanceIds = IdentityHashMap<Any, Int>()
 
-    fun getId(instance: Any) = instanceIds[instance]
+    fun getId(instance: Any): Int? = instanceIds[instance]
 
     fun putInstance(instance: Any): Int {
         val id = instanceIds.size
@@ -38,9 +39,9 @@ class WriteIdentities {
 class ReadIdentities {
 
     private
-    val instanceIds = HashMap<Int, Any>()
+    val instanceIds = Int2ObjectOpenHashMap<Any>()
 
-    fun getInstance(id: Int) = instanceIds[id]
+    fun getInstance(id: Int): Any? = instanceIds[id]
 
     fun putInstance(id: Int, instance: Any) {
         instanceIds[id] = instance

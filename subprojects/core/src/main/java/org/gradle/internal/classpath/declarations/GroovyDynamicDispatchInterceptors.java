@@ -22,11 +22,11 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
-import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
-import org.gradle.internal.classpath.intercept.InterceptScope;
-import org.gradle.internal.classpath.intercept.InvocationImpl;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
@@ -82,12 +82,31 @@ public class GroovyDynamicDispatchInterceptors {
         if (interceptor != null) {
             Object[] args = new Object[]{messageArgument};
             interceptor.intercept(new InvocationImpl<>(receiver, args, () -> {
-                ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+                callInstrumentedSetProperty(messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
                 return null;
             }), consumer);
         } else {
-            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+            callInstrumentedSetProperty(messageArgument, senderClass, receiver, messageName, consumer, interceptorFilter);
         }
+    }
+
+    private static void callInstrumentedSetProperty(
+        Object messageArgument,
+        Class<?> senderClass,
+        Object receiver,
+        String messageName,
+        String consumer,
+        BytecodeInterceptorFilter interceptorFilter
+    ) throws Throwable {
+        if (!ClosureCallInterceptorResolver.of(interceptorFilter).isAwareOfCallSiteName(messageName)) {
+            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+            return;
+        }
+        InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
+        withEntryPoint(consumer, messageName, SET_PROPERTY, () -> {
+            ScriptBytecodeAdapter.setProperty(messageArgument, senderClass, receiver, messageName);
+            return null;
+        });
     }
 
     @InterceptJvmCalls

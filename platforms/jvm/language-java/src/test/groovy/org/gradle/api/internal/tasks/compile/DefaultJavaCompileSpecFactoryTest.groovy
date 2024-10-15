@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,15 @@ import spock.lang.Specification
 class DefaultJavaCompileSpecFactoryTest extends Specification {
 
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchain"() {
+        given:
         CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable ? Jvm.current().javacExecutable.absolutePath : null
 
-        def javaToolchain = null
-        if (toolchain != null) {
-            def isCurrent = toolchain == "current"
-            javaToolchain = Mock(JavaToolchain)
-            javaToolchain.installationPath >> TestFiles.fileFactory().dir(Jvm.current().javaHome)
-            javaToolchain.isCurrentJvm() >> isCurrent
-            javaToolchain.languageVersion >> JavaLanguageVersion.of(isCurrent ? "8" : toolchain)
+        def javaToolchain = Mock(JavaToolchain) {
+            getInstallationPath() >> TestFiles.fileFactory().dir(Jvm.current().javaHome)
+            isCurrentJvm() >> (toolchain == null)
+            getLanguageVersion() >> JavaLanguageVersion.of(toolchain ?: "8")
         }
 
         when:
@@ -50,16 +48,14 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 
         where:
+        // Where the toolchain == null, we use the current JVM
         fork  | executable | toolchain | implementsForking | implementsCommandLine
         false | false      | null      | false             | false
-        false | false      | "current" | false             | false
         false | false      | "11"      | true              | false
         // Below Java 8 toolchain compiler always runs via command-line
         false | false      | "7"       | false             | true
-
         true  | false      | null      | true              | false
         true  | true       | null      | false             | true
-        true  | true       | "current" | false             | true
         true  | true       | "11"      | false             | true
     }
 

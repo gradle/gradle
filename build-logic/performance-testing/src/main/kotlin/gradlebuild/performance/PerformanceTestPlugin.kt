@@ -22,9 +22,11 @@ import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.defaultPerformanceBaselines
+import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
+import gradlebuild.basics.performanceChannel
 import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceTestVerbose
@@ -43,6 +45,7 @@ import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.ProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.TemplateProjectGeneratorTask
 import gradlebuild.performance.tasks.BuildCommitDistribution
+import gradlebuild.performance.tasks.DefaultCommandExecutor
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
@@ -174,7 +177,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<TemplateProjectGeneratorTask>().configureEach {
-            sharedTemplateDirectory = project(":internal-performance-testing").file("src/templates")
+            sharedTemplateDirectory = project(":internal-performance-testing").isolated.projectDirectory.file("src/templates").asFile
         }
     }
 
@@ -193,7 +196,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             reportDir = project.layout.buildDirectory.dir(this@configureEach.name)
             databaseParameters = project.propertiesForPerformanceDb
             branchName = buildBranch
-            channel.convention(branchName.map { "commits-$it" })
+            channel = project.performanceChannel.orElse(branchName.map { "commits-$it" })
             val prefix = channel.map { channelName ->
                 val osIndependentPrefix = if (channelName.startsWith("flakiness-detection")) {
                     "flakiness-detection"
@@ -236,7 +239,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
             inputs.file(performanceScenarioJson.absolutePath)
             inputs.file(tmpPerformanceScenarioJson.absolutePath)
-            project.toolchainInstallationPaths?.apply {
+            project.toolchainInstallationPaths.orNull?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
             }
         }
@@ -249,8 +252,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             classpath = performanceSourceSet.runtimeClasspath
             maxParallelForks = 1
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
+            systemProperty("org.gradle.performance.develocity.plugin.infoDir", projectDir.absolutePath)
 
-            project.toolchainInstallationPaths?.apply {
+            project.toolchainInstallationPaths.orNull?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
             }
 
@@ -317,9 +321,10 @@ class PerformanceTestPlugin : Plugin<Project> {
         // extension.baselines -> determineBaselines.configuredBaselines
         // determineBaselines.determinedBaselines -> performanceTest.baselines
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
-        val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
+        val commandExecutor = objects.newInstance<DefaultCommandExecutor>()
+        val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false, commandExecutor)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
-        val buildCommitDistributionsDir = project.rootProject.layout.buildDirectory.dir("commit-distributions")
+        val buildCommitDistributionsDir = project.getBuildEnvironmentExtension().rootProjectBuildDir.dir("commit-distributions")
 
         determineBaselines.configure {
             configuredBaselines = extension.baselines
@@ -403,7 +408,7 @@ class PerformanceTestExtension(
         registeredPerformanceTests.add(
             createPerformanceTest("${testProject}PerformanceAdHocTest", generatorTask) {
                 description = "Runs ad-hoc performance tests on $testProject - can be used locally"
-                channel = "adhoc"
+                channel.set("adhoc")
                 outputs.doNotCacheIf("Is adhoc performance test") { true }
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
@@ -417,7 +422,7 @@ class PerformanceTestExtension(
         registeredPerformanceTests.add(
             createPerformanceTest("${testProject}PerformanceTest", generatorTask) {
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
-                channel = "commits$channelSuffix"
+                channel.set("commits$channelSuffix")
 
                 extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 1
 
@@ -446,6 +451,7 @@ class PerformanceTestExtension(
             reportDir = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestReportsDir}").get().asFile
             resultsJson = project.layout.buildDirectory.file("${this.name}/${Config.performanceTestResultsJson}").get().asFile
             addDatabaseParameters(project.propertiesForPerformanceDb)
+            channel = project.performanceChannel
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 

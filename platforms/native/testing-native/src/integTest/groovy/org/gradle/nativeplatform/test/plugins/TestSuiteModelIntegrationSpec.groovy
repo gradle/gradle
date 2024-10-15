@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "setup"() {
-        buildScript """
+        buildFile """
             apply type: NativeBinariesTestPlugin
 
             interface CustomTestSuite extends TestSuiteSpec {}
@@ -268,11 +268,11 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
                     binaries {
                         first {
                             sources()
-                            tasks(nodeValue: "[]")
+                            tasks(nodeValue: "Task collection")
                         }
                         second {
                             sources()
-                            tasks(nodeValue: "[]")
+                            tasks(nodeValue: "Task collection")
                         }
 
                     }

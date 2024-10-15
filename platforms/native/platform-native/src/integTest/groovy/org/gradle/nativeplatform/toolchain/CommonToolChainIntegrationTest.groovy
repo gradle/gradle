@@ -16,14 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import spock.lang.Issue
 
 class CommonToolChainIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Issue("https://github.com/gradle/gradle-native/issues/139")
-    @ToBeFixedForConfigurationCache
     def "can rely on working directory to be project directory"() {
         def app = new CHelloWorldApp()
 
