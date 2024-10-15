@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 @ServiceScope(Scope.BuildSession.class)
-public class DefaultImmutableAttributesFactory implements ImmutableAttributesFactory {
+public class DefaultImmutableAttributesFactory extends AbstractAttributesFactory implements ImmutableAttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
@@ -77,7 +77,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         return concat(node, key, isolate(value));
     }
 
-    private <T> Isolatable<T> isolate(@Nullable T value) {
+    public <T> Isolatable<T> isolate(@Nullable T value) {
         if (value instanceof String) {
             return Cast.uncheckedNonnullCast(new CoercingStringValueSnapshot((String) value, instantiator));
         } else {
@@ -121,10 +121,6 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         });
 
         return result.get();
-    }
-
-    public ImmutableAttributes getRoot() {
-        return root;
     }
 
     @Override
