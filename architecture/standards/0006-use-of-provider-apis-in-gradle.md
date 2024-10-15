@@ -55,7 +55,42 @@ class Example {
 
 This is unnecessary because users will have trouble creating instances of `NestedType` and merging different instances of `NestedType`. It's also more awkward for users to access the properties in the nested property.
 
-#### Identity information
+If the nested type is a managed type (Gradle can generate its implementation), you can define a nested property with:
+```
+interface NestedType {
+    Property<String> getSomeProperty()
+}
+class Example {
+    @Nested
+    NestedType getNestedProperty()
+}
+```
+Otherwise, if the nested type requires an implementation class, you'll need to manage the lifecycle of it:
+```
+interface NestedType {
+    Property<String> getSomeProperty()
+    void notManaged()
+}
+abstract class DefaultNestedType implements NestedType {
+    ...
+}
+
+class Example {
+    private final NestedType nested
+    Example(ObjectFactory objects) {
+       this.nested = objects.newInstance(DefaultNestedType.class)
+    }
+
+    @Nested
+    NestedType getNestedProperty() {
+        return nested;
+    }
+}
+```
+
+You should prefer to use managed types when possible. 
+
+#### Identity information 
 
 This is an inappropriate use of lazy types:
 
@@ -257,7 +292,7 @@ String value = getSomeProperty().get()
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Consequences
 
