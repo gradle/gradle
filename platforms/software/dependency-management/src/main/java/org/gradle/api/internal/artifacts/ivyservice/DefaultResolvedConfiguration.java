@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
@@ -37,6 +38,9 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     private final ResolutionHost resolutionHost;
     private final VisitedArtifactSet visitedArtifacts;
     private final LenientConfigurationInternal configuration;
+
+    // State
+    private SelectedArtifactSet selectedArtifacts;
 
     public DefaultResolvedConfiguration(
         VisitedGraphResults graphResults,
@@ -81,7 +85,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
             .nagUser();
 
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
+        getArtifactsForThisConfiguration().visitArtifacts(visitor, false);
         resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.getFiles();
     }
@@ -125,8 +129,15 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
-        visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
+        getArtifactsForThisConfiguration().visitArtifacts(visitor, false);
         resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
+    }
+
+    private SelectedArtifactSet getArtifactsForThisConfiguration() {
+        if (selectedArtifacts == null) {
+            selectedArtifacts = visitedArtifacts.select(configuration.getImplicitSelectionSpec());
+        }
+        return selectedArtifacts;
     }
 }

@@ -49,6 +49,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversChain;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionServices;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultVisitedArtifactSet;
@@ -56,6 +57,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
@@ -102,6 +104,7 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resolve.resolver.DefaultVariantArtifactResolver;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -139,6 +142,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ExternalModuleComponentResolverFactory externalResolverFactory;
     private final ProjectDependencyResolver projectDependencyResolver;
     private final DependencyLockingProvider dependencyLockingProvider;
+    private final VariantArtifactSetCache variantArtifactSetCache;
 
     public DefaultConfigurationResolver(
         DependencyGraphResolver dependencyGraphResolver,
@@ -165,7 +169,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         List<ResolverProviderFactory> resolverFactories,
         ExternalModuleComponentResolverFactory externalResolverFactory,
         ProjectDependencyResolver projectDependencyResolver,
-        DependencyLockingProvider dependencyLockingProvider
+        DependencyLockingProvider dependencyLockingProvider,
+        VariantArtifactSetCache variantArtifactSetCache
     ) {
         this.dependencyGraphResolver = dependencyGraphResolver;
         this.repositoriesSupplier = repositoriesSupplier;
@@ -192,6 +197,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.externalResolverFactory = externalResolverFactory;
         this.projectDependencyResolver = projectDependencyResolver;
         this.dependencyLockingProvider = dependencyLockingProvider;
+        this.variantArtifactSetCache = variantArtifactSetCache;
     }
 
     @Override
@@ -206,7 +212,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ImmutableAttributesSchema consumerSchema = rootComponent.getRootComponent().getMetadata().getAttributesSchema();
 
         ComponentResolvers resolvers = getResolvers(resolveContext, Collections.emptyList(), consumerSchema);
-        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, resolvers, consumerSchema);
+        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, consumerSchema);
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
         doResolve(resolveContext, rootComponent, resolutionStrategy, resolvers, false, IS_LOCAL_EDGE, visitors);
@@ -216,8 +222,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
 
         ResolutionHost resolutionHost = resolveContext.getResolutionHost();
-        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(consumerSchema, resolveContext);
-        VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsBuilder.complete(), artifactSetResolver, artifactVariantSelector);
+        ArtifactSelectionServices artifactSelectionServices = getArtifactSelectionServicesFor(consumerSchema, resolveContext, resolvers);
+        VisitedArtifactResults artifactResults = artifactsBuilder.complete(artifactSelectionServices);
+        VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactResults, artifactSetResolver);
 
         ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
             // When resolving build dependencies, we ignore the dependencySpec, potentially capturing a greater
@@ -279,12 +286,11 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
             oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
-        graphVisitors.add(artifactVisitorFor(artifactVisitors, resolvers, consumerSchema));
+        graphVisitors.add(artifactVisitorFor(artifactVisitors, consumerSchema));
 
         doResolve(resolveContext, rootComponent, resolutionStrategy, resolvers, true, Specs.satisfyAll(), graphVisitors.build());
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
 
-        VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults legacyGraphResults = oldModelBuilder.complete();
 
@@ -314,8 +320,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             lockingVisitor.writeLocks();
         }
 
-        ArtifactVariantSelector artifactVariantSelector = artifactVariantSelectorFor(consumerSchema, resolveContext);
-        VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsResults, artifactSetResolver, artifactVariantSelector);
+        ArtifactSelectionServices artifactSelectionServices = getArtifactSelectionServicesFor(consumerSchema, resolveContext, resolvers);
+        VisitedArtifactResults artifactsResults = artifactsBuilder.complete(artifactSelectionServices);
+        VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsResults, artifactSetResolver);
 
         // Legacy results
         TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
@@ -326,7 +333,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             fileDependencyResults,
             transientConfigurationResultsFactory,
             artifactSetResolver,
-            artifactVariantSelector,
             getImplicitSelectionSpec(resolveContext)
         );
         ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -343,23 +349,21 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
     }
 
-    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolvers resolvers, ImmutableAttributesSchema consumerSchema) {
+    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ImmutableAttributesSchema consumerSchema) {
         return new ResolvedArtifactsGraphVisitor(
             artifactsVisitor,
             artifactTypeRegistry,
-            calculatedValueContainerFactory,
-            resolvers.getArtifactResolver(),
-            resolvedVariantCache,
-            graphVariantSelector,
-            consumerSchema
+            variantArtifactSetCache,
+            calculatedValueContainerFactory
         );
     }
 
-    private ArtifactVariantSelector artifactVariantSelectorFor(
+    private ArtifactSelectionServices getArtifactSelectionServicesFor(
         ImmutableAttributesSchema consumerSchema,
-        ResolveContext resolveContext
+        ResolveContext resolveContext,
+        ComponentResolvers resolvers
     ) {
-        return variantSelectorFactory.create(
+        ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(
             resolveContext.getResolutionHost(),
             resolveContext.getAttributes().asImmutable(),
             consumerSchema,
@@ -367,6 +371,19 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolveContext.getResolutionStrategy().getSortOrder(),
             resolveContext.getResolverResults(),
             resolveContext.getStrictResolverResults()
+        );
+
+        DefaultVariantArtifactResolver variantArtifactResolver = new DefaultVariantArtifactResolver(
+            resolvers.getArtifactResolver(),
+            artifactTypeRegistry,
+            resolvedVariantCache
+        );
+
+        return new ArtifactSelectionServices(
+            artifactVariantSelector,
+            variantArtifactResolver,
+            graphVariantSelector,
+            consumerSchema
         );
     }
 

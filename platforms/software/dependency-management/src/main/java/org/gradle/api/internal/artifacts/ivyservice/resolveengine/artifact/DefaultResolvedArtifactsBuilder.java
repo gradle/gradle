@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,7 +56,8 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
         }
     }
 
-    public VisitedArtifactResults complete() {
-        return new DefaultVisitedArtifactResults(Collections.unmodifiableList(artifactSetsById));
+    public VisitedArtifactResults complete(ArtifactSelectionServices artifactSelectionServices) {
+        // Copy to shrink the list to the actual size
+        return new DefaultVisitedArtifactResults(ImmutableList.copyOf(artifactSetsById), artifactSelectionServices);
     }
 }

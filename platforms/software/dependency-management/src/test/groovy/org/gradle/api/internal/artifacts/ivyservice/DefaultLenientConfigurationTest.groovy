@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -113,7 +112,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     private DefaultLenientConfiguration newConfiguration() {
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactVariantSelector), Mock(ArtifactSelectionSpec))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactSelectionSpec))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

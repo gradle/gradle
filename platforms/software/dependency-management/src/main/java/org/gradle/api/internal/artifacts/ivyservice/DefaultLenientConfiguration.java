@@ -39,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -69,11 +68,10 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
     private final ResolvedArtifactSetResolver artifactSetResolver;
-    private final ArtifactVariantSelector artifactVariantSelector;
     private final ArtifactSelectionSpec implicitSelectionSpec;
 
-    // Selected for the configuration
-    private SelectedArtifactResults artifactsForThisConfiguration;
+    // State
+    private SelectedArtifactResults lenientSelectedArtifacts;
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
@@ -82,7 +80,6 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         VisitedFileDependencyResults fileDependencyResults,
         TransientConfigurationResultsLoader transientConfigurationResultsLoader,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector,
         ArtifactSelectionSpec implicitSelectionSpec
     ) {
         this.resolutionHost = resolutionHost;
@@ -91,20 +88,19 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactSetResolver = artifactSetResolver;
-        this.artifactVariantSelector = artifactVariantSelector;
         this.implicitSelectionSpec = implicitSelectionSpec;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
-        if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(artifactVariantSelector, implicitSelectionSpec, true);
+        if (lenientSelectedArtifacts == null) {
+            lenientSelectedArtifacts = artifactResults.select(implicitSelectionSpec, true);
         }
-        return artifactsForThisConfiguration;
+        return lenientSelectedArtifacts;
     }
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, implicitSelectionSpec, false);
+        SelectedArtifactResults artifactResults = this.artifactResults.select(implicitSelectionSpec, false);
 
         return new SelectedArtifactSet() {
             @Override

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 
 /**
  * Selects artifacts from all visited artifacts in a graph.
@@ -28,25 +27,22 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     private final ResolutionHost resolutionHost;
     private final VisitedArtifactResults artifactsResults;
     private final ResolvedArtifactSetResolver artifactSetResolver;
-    private final ArtifactVariantSelector artifactVariantSelector;
 
     public DefaultVisitedArtifactSet(
         VisitedGraphResults graphResults,
         ResolutionHost resolutionHost,
         VisitedArtifactResults artifactsResults,
-        ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector
+        ResolvedArtifactSetResolver artifactSetResolver
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
         this.artifactsResults = artifactsResults;
         this.artifactSetResolver = artifactSetResolver;
-        this.artifactVariantSelector = artifactVariantSelector;
     }
 
     @Override
     public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
-        SelectedArtifactResults artifacts = artifactsResults.select(artifactVariantSelector, spec, false);
+        SelectedArtifactResults artifacts = artifactsResults.select(spec, false);
         return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
     }
 }
