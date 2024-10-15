@@ -60,6 +60,7 @@ import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.scopes.GradleScopeServices;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
@@ -106,9 +107,19 @@ public abstract class InitBuild extends DefaultTask {
     public InitBuild() {
         // Don't inject this in order to preserve no-args constructor binary compatibility
         projectSpecRegistry = getServices().get(InitProjectSpecRegistry.class);
+        projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);
 
-        // Have to load in the constructor to ensure specs are present with run in CC tests
-        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(((ProjectInternal) getProject()).getClassLoaderScope().getLocalClassLoader(), getLogger());
+        GradleScopeServices.ScopeHolder scopeHolderBuild = getServices().get(GradleScopeServices.ScopeHolder.class);
+        scopeHolderBuild.setClassLoaderScope(((ProjectInternal) getProject()).getClassLoaderScope());
+    }
+
+    private void loadProjectSpecRegistry() {
+        Map<String, ClassLoader> classLoaders = new LinkedHashMap<>();
+
+        GradleScopeServices.ScopeHolder scopeHolderBuild = getServices().get(GradleScopeServices.ScopeHolder.class);
+        classLoaders.put("from build session scope holder - local", Objects.requireNonNull(scopeHolderBuild.getClassLoaderScope()).getLocalClassLoader());
+
+        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(classLoaders, getLogger());
         projectSpecRegistry.register(projectSpecLoader);
     }
 
@@ -298,6 +309,9 @@ public abstract class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
+        getLogger().lifecycle("LOADING IN TASKACTION");
+        loadProjectSpecRegistry();
+
         UserInputHandler inputHandler = getEffectiveInputHandler();
         if (shouldUseInitProjectSpec(inputHandler)) {
             doInitSpecProjectGeneration(inputHandler);

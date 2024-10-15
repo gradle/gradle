@@ -21,6 +21,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -72,6 +73,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -215,5 +217,26 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     @Provides
     ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
         return ConfigurationTargetIdentifier.of(gradle);
+    }
+
+
+    @Provides
+    protected ScopeHolder createScopeHolder() {
+        return new ScopeHolder();
+    }
+
+    @ServiceScope(Scope.Gradle.class)
+    public static class ScopeHolder {
+        @Nullable
+        private ClassLoaderScope classLoaderScope;
+
+        @Nullable
+        public ClassLoaderScope getClassLoaderScope() {
+            return classLoaderScope;
+        }
+
+        public void setClassLoaderScope(@Nullable ClassLoaderScope classLoaderScope) {
+            this.classLoaderScope = classLoaderScope;
+        }
     }
 }

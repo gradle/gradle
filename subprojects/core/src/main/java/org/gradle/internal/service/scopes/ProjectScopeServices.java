@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -372,5 +373,24 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
+    }
+
+    @Provides
+    protected ScopeHolder createScopeHolder() {
+        return new ScopeHolder();
+    }
+
+    @ServiceScope(Scope.Project.class)
+    public static class ScopeHolder {
+        private ClassLoaderScope classLoaderScope;
+
+        @Nullable
+        public ClassLoaderScope getClassLoaderScope() {
+            return classLoaderScope;
+        }
+
+        public void setClassLoaderScope(ClassLoaderScope classLoaderScope) {
+            this.classLoaderScope = classLoaderScope;
+        }
     }
 }
