@@ -18,15 +18,20 @@ package org.gradle.kotlin.dsl.normalization
 
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
 import org.gradle.cache.IndexedCacheParameters
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
+import org.gradle.internal.service.PrivateService
+import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistrationProvider
 
 
 internal
-object GradleUserHomeServices {
+object GradleUserHomeServices : ServiceRegistrationProvider {
 
 
-    @Suppress("unused")
+    @Provides
     fun createClasspathSnapshotHashesCache(
         store: CrossBuildFileHashCache,
     ) =
@@ -37,4 +42,12 @@ object GradleUserHomeServices {
                 true
             )
         )
+
+    @Provides
+    @PrivateService
+    fun createCrossBuildFileHashCache(
+        cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory
+    ): CrossBuildFileHashCache =
+        CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES)
 }

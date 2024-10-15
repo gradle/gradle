@@ -125,6 +125,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
     val kotlinReflect = futureKotlin("reflect")
     val kotlinStdlib = futureKotlin("stdlib")
+    val kotlinBuildToolsImpl = futureKotlin("build-tools-impl")
     val kotlinJvmAbiGenEmbeddable = "org.jetbrains.kotlin:jvm-abi-gen-embeddable"
     val kotlinxSerializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core"
     val kotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json"
