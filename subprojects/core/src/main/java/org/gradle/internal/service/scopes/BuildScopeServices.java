@@ -43,7 +43,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.ActionBasedModelDefaultsHandler;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -231,7 +230,6 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -812,25 +810,5 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected AdditionalDataBuilderFactory createAdditionalDataBuilderFactory() {
         return new AdditionalDataBuilderFactory();
-    }
-
-
-    @Provides
-    protected ScopeHolder createScopeHolder() {
-        return new ScopeHolder();
-    }
-
-    @ServiceScope(Scope.Build.class)
-    public static class ScopeHolder {
-        private ClassLoaderScope classLoaderScope;
-
-        @Nullable
-        public ClassLoaderScope getClassLoaderScope() {
-            return classLoaderScope;
-        }
-
-        public void setClassLoaderScope(ClassLoaderScope classLoaderScope) {
-            this.classLoaderScope = classLoaderScope;
-        }
     }
 }
