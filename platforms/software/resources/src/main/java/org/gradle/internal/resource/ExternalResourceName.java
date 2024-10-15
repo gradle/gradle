@@ -229,7 +229,7 @@ public class ExternalResourceName implements Describable {
             builder.delete(index, builder.length());
         }
 
-        return encode(builder.toString(), true);
+        return builder.toString();
     }
 
     private static String encode(String path, boolean isPathSeg) {
