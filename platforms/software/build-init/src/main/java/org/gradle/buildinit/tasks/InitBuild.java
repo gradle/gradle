@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
@@ -57,6 +58,7 @@ import org.gradle.buildinit.projectspecs.InitProjectParameter;
 import org.gradle.buildinit.projectspecs.InitProjectSpec;
 import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
 import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
+import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -106,9 +108,56 @@ public abstract class InitBuild extends DefaultTask {
     public InitBuild() {
         // Don't inject this in order to preserve no-args constructor binary compatibility
         projectSpecRegistry = getServices().get(InitProjectSpecRegistry.class);
+        projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);
+
+        getLogger().lifecycle("LOADING IN CONSTRUCTOR");
+        loadProjectSpecRegistry();
+    }
+
+    private void loadProjectSpecRegistry() {
+        Map<String, ClassLoader> classLoaders = new LinkedHashMap<>();
+        ProjectInternal projectInternal = (ProjectInternal) getProject();
+//        SettingsInternal settingsInternal = (SettingsInternal) getServices().get(Settings.class);
+        GradleInternal gradle = getServices().get(GradleInternal.class);
+        ClassLoaderScopeRegistry registry = getServices().get(ClassLoaderScopeRegistry.class);
+
+        classLoaders.put("root project - local", gradle.getRootProject().getClassLoaderScope().getLocalClassLoader());
+
+        // classLoaders.put("project - local", projectInternal.getClassLoaderScope().getLocalClassLoader()); // same as above, causes error loading duplicates
+        //classLoaders.put("project - export", projectInternal.getClassLoaderScope().getExportClassLoader()); // same as above, causes error loading duplicates
+        classLoaders.put("project - base - local", projectInternal.getBaseClassLoaderScope().getLocalClassLoader());
+        classLoaders.put("project - base - export", projectInternal.getBaseClassLoaderScope().getExportClassLoader());
+
+        // No service of type Settings available in project services.
+//        classLoaders.put("settings - local", settingsInternal.getClassLoaderScope().getLocalClassLoader());
+//        classLoaders.put("settings - export", settingsInternal.getClassLoaderScope().getExportClassLoader());
+//        classLoaders.put("settings - base - local", settingsInternal.getBaseClassLoaderScope().getLocalClassLoader());
+//        classLoaders.put("settings - base - export", settingsInternal.getBaseClassLoaderScope().getExportClassLoader());
+
+        classLoaders.put("gradle - local", gradle.getClassLoaderScope().getLocalClassLoader());
+        classLoaders.put("gradle - export", gradle.getClassLoaderScope().getExportClassLoader());
+        classLoaders.put("gradle - baseProject - local", gradle.baseProjectClassLoaderScope().getLocalClassLoader());
+        classLoaders.put("gradle - baseProject - export", gradle.baseProjectClassLoaderScope().getExportClassLoader());
+
+        classLoaders.put("current thread", Thread.currentThread().getContextClassLoader());
+        classLoaders.put("task", this.getClass().getClassLoader());
+        classLoaders.put("objectFactory", this.getObjectFactory().getClass().getClassLoader());
+
+        classLoaders.put("registry - core and plugins - local", registry.getCoreAndPluginsScope().getLocalClassLoader());
+        classLoaders.put("registry - core and plugins - export", registry.getCoreAndPluginsScope().getExportClassLoader());
+        classLoaders.put("registry - core - local", registry.getCoreScope().getLocalClassLoader());
+        classLoaders.put("registry - core - export", registry.getCoreScope().getExportClassLoader());
+
+        // The plugins we care about are not applied to this project, only buildinit, wrapper, and helptasks are
+        projectInternal.getPlugins().matching(plugin -> true).forEach(plugin -> {
+            classLoaders.put("plugin - " + plugin.getClass(), plugin.getClass().getClassLoader());
+        });
+
+        classLoaders.put("project - plugin manager", projectInternal.getPluginManager().getClass().getClassLoader());
+        classLoaders.put("gradle - plugin manager", gradle.getPluginManager().getClass().getClassLoader());
 
         // Have to load in the constructor to ensure specs are present with run in CC tests
-        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(((ProjectInternal) getProject()).getClassLoaderScope().getLocalClassLoader(), getLogger());
+        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(classLoaders, getLogger());
         projectSpecRegistry.register(projectSpecLoader);
     }
 
@@ -298,6 +347,9 @@ public abstract class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
+        getLogger().lifecycle("LOADING IN TASKACTION");
+        loadProjectSpecRegistry();
+
         UserInputHandler inputHandler = getEffectiveInputHandler();
         if (shouldUseInitProjectSpec(inputHandler)) {
             doInitSpecProjectGeneration(inputHandler);
