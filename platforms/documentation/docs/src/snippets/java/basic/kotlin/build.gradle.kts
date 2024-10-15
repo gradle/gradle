@@ -63,6 +63,7 @@ dependencies {
 // end::practical-integ-test-source-set[]
 
 // tag::using-custom-doclet[]
+// tag::create-custom-doclet[]
 val asciidoclet by configurations.creating
 
 dependencies {
@@ -77,6 +78,7 @@ tasks.register("configureJavadoc") {
         }
     }
 }
+// end::create-custom-doclet[]
 
 tasks.javadoc {
     dependsOn("configureJavadoc")
