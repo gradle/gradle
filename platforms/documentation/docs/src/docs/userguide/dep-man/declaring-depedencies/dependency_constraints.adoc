@@ -38,7 +38,7 @@ A component may require both direct and transitive dependencies to compile or ru
 
 == Declaring constraints alongside direct dependencies
 
-**Dependency constraints** allow you to define the version or version range for a specific declared dependency.
+**Dependency constraints** allow you to define the version or version range for a specific dependency, _whenever that dependency is encountered during resolution_.
 
 This is the preferred method for managing the version of a component across multiple configurations or projects.
 
@@ -73,7 +73,7 @@ include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.grad
 Issues with dependency management often arise from transitive dependencies.
 Developers sometimes mistakenly address these issues by adding direct dependencies instead of handling them properly with constraints.
 
-**Dependency constraints** allow you to define the version or version range for transitive dependencies.
+**Dependency constraints** allow you to control the selection of transitive dependencies.
 
 In the following example, the version constraint for `commons-codec:1.11` applies only when `commons-codec` is brought in as a transitive dependency since it is not directly declared as a dependency in the project.
 If `commons-codec` is not pulled in transitively, the constraint has no effect:

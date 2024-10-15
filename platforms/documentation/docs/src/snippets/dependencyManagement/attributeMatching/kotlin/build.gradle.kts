@@ -22,9 +22,9 @@ configurations {
     }
 // end::concrete-classpath[]
     // declare a resolvable configuration that is going to resolve the runtime classpath of the application
-    create("runtimeClasspath") {
-        isCanBeConsumed = false
-        isCanBeDeclared = false
+    resolvable("runtimeClasspath") {
+        //isCanBeConsumed = false
+        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // tag::concrete-classpath[]
@@ -41,9 +41,9 @@ configurations {
     }
 // end::setup-configurations[]
     // a consumable configuration meant for consumers that need the implementation of this component
-    create("exposedRuntime") {
-        isCanBeResolved = false
-        isCanBeDeclared = false
+    consumable("exposedRuntime") {
+        //isCanBeResolved = false
+        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // tag::setup-configurations[]
