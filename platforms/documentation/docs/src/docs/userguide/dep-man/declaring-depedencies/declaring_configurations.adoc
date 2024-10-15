@@ -141,7 +141,7 @@ include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=create
 ====
 
 You can manage custom configurations using the `configurations` block.
-Configurations can have names and can extend each other.
+Configurations must have names and can extend each other.
 For more details, refer to the link:{groovyDslPath}/org.gradle.api.artifacts.ConfigurationContainer.html[`ConfigurationContainer`] API.
 
 NOTE: Configurations are intended to be used for a single role: declaring dependencies, performing resolution, or defining consumable variants.
@@ -152,7 +152,7 @@ There are three main use cases for creating custom configurations:
 - You might create an `api` configuration for libraries that consumers will depend on, and an `implementation` configuration for libraries that are only needed internally. The `api` configuration is typically consumed by downstream projects, while `implementation` dependencies are hidden from consumers but used internally.
 - This separation ensures that your project maintains clean boundaries between its public API and strictly internal mechanisms.
 
-2. **Resolvable Configuration from Dependency Configuration**: Create a custom resolvable configuration to resolve specific sets of dependencies, like classpaths, at various build stages.
+2. **Resolvable Configuration Creation**: Create a custom resolvable configuration to resolve specific sets of dependencies, like classpaths, at various build stages.
 - You might create a `compileClasspath` configuration that resolves only the dependencies needed to compile your project. Similarly, you could create a `runtimeClasspath` configuration to resolve the dependencies needed to run the project at runtime.
 - This allows fine-grained control over which dependencies are available during different build phases, such as compilation or testing.
 
@@ -176,9 +176,11 @@ These methods help build authors document the purpose of a configuration and avo
 Configurations can inherit from other configurations, creating an inheritance hierarchy.
 
 Configurations form an inheritance hierarchy using the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom)[`Configuration.extendsFrom(Configuration...)`] method.
-A configuration can extend any other configuration, regardless of how it is defined in the build script or plugin.
+A configuration can extend any other configuration other than a link:{kotlinDslPath}/gradle/org.gradle.api.artifacts/-configuration-container/detached-configuration[detached configuration], regardless of how it is defined in the build script or plugin.
 
-NOTE: Configurations can only extend configurations within the same project.
+TIP: Avoid extending consumable or resolvable configurations with configurations that are not consumable or resolvable, respectively.
+
+Configurations can only extend configurations within the same project.
 
 When extending a configuration, the new configuration inherits:
 
@@ -187,3 +189,5 @@ When extending a configuration, the new configuration inherits:
 * exclude rules
 * artifacts
 * capabilities
+
+The extension does *not* include attributes. It also does *not* extend consumable/resolvable/declarable status.
