@@ -31,10 +31,10 @@ class AbstractConfigurationCacheToolingApiIntegrationTest extends AbstractConfig
     }
 
     void withConfigurationCacheForModels(String... moreExecuterArgs) {
-        withConfigurationCache("-Dorg.gradle.configuration-cache.internal.tooling-models=true", *moreExecuterArgs)
+        withConfigurationCache("-Dorg.gradle.internal.configuration-cache.tooling=true", *moreExecuterArgs)
     }
 
     void withConfigurationCacheLenientForModels(String... moreExecuterArgs) {
-        withConfigurationCacheLenient("-Dorg.gradle.configuration-cache.internal.tooling-models=true", *moreExecuterArgs)
+        withConfigurationCacheLenient("-Dorg.gradle.internal.configuration-cache.tooling=true", *moreExecuterArgs)
     }
 }

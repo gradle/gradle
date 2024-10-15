@@ -76,7 +76,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
 
         private
-        val configurationCacheForModels = InternalFlag("org.gradle.configuration-cache.internal.tooling-models", false)
+        val configurationCacheToolingModels = InternalFlag("org.gradle.internal.configuration-cache.tooling", false)
 
         private
         val isolatedProjectsToolingModelsConfigureOnDemand =
@@ -143,7 +143,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return if (requirements.isCreatesModel) {
             val configureOnDemand = isolatedProjects && !requiresTasks &&
                 options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get()
-            val configurationCacheForModels = configurationCacheRequested && options.getOption(configurationCacheForModels).get()
+            val configurationCacheForModels = configurationCacheRequested && options.getOption(configurationCacheToolingModels).get()
             val configurationCache = isolatedProjects || configurationCacheForModels
             DefaultBuildModelParameters(
                 requiresToolingModels = true,
