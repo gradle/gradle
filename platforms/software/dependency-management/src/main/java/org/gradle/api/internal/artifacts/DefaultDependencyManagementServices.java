@@ -89,7 +89,6 @@ import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
-import org.gradle.api.internal.artifacts.transform.DefaultVariantSelectorFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
@@ -99,11 +98,12 @@ import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.Tran
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
+import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -292,7 +292,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
             registration.add(ConsumerProvidedVariantFinder.class);
-            registration.add(DefaultVariantSelectorFactory.class);
             registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultComponentSelectorConverter.class);
             registration.add(DefaultArtifactResolutionQueryFactory.class);
@@ -622,7 +621,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             GlobalDependencyResolutionRules metadataHandler,
             ResolutionResultsStoreFactory resolutionResultsStoreFactory,
             StartParameter startParameter,
-            VariantSelectorFactory variantSelectorFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             BuildOperationExecutor buildOperationExecutor,
             ArtifactTypeRegistry artifactTypeRegistry,
@@ -642,7 +640,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
             ProjectDependencyResolver projectDependencyResolver,
             DependencyLockingProvider dependencyLockingProvider,
-            AttributeDesugaring attributeDesugaring
+            AttributeDesugaring attributeDesugaring,
+            TransformedVariantFactory transformedVariantFactory,
+            ImmutableAttributesFactory attributesFactory,
+            DomainObjectContext domainObjectContext,
+            TaskDependencyFactory taskDependencyFactory,
+            ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+            AttributeSchemaServices attributeSchemaServices,
+            ResolutionFailureHandler resolutionFailureHandler
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 dependencyGraphResolver,
@@ -650,7 +655,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 metadataHandler,
                 resolutionResultsStoreFactory,
                 startParameter,
-                variantSelectorFactory,
                 moduleIdentifierFactory,
                 buildOperationExecutor,
                 artifactTypeRegistry,
@@ -669,7 +673,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 resolverFactories,
                 moduleDependencyResolverFactory,
                 projectDependencyResolver,
-                dependencyLockingProvider
+                dependencyLockingProvider,
+                transformedVariantFactory,
+                attributesFactory,
+                domainObjectContext,
+                taskDependencyFactory,
+                consumerProvidedVariantFinder,
+                attributeSchemaServices,
+                resolutionFailureHandler
             );
 
             return new ShortCircuitEmptyConfigurationResolver(

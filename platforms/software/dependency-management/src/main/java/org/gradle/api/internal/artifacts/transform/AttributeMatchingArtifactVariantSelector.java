@@ -43,46 +43,48 @@ import java.util.List;
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
 
     private final ImmutableAttributesSchema consumerSchema;
-    private final TransformUpstreamDependenciesResolver dependenciesResolver;
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final ImmutableAttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
-    private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
 
-    AttributeMatchingArtifactVariantSelector(
+    public AttributeMatchingArtifactVariantSelector(
         ImmutableAttributesSchema consumerSchema,
-        TransformUpstreamDependenciesResolver dependenciesResolver,
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         ImmutableAttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        TransformedVariantFactory transformedVariantFactory,
         ResolutionFailureHandler failureProcessor
     ) {
         this.consumerSchema = consumerSchema;
-        this.dependenciesResolver = dependenciesResolver;
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
-        this.transformedVariantFactory = transformedVariantFactory;
         this.failureProcessor = failureProcessor;
     }
 
     @Override
-    public ResolvedArtifactSet select(ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+    public ResolvedArtifactSet select(
+        ResolvedVariantSet producer,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants
+    ) {
         try {
-            return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
+            return doSelect(producer, requestAttributes, allowNoMatchingVariants);
         } catch (Exception t) {
             return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
-        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getSchema());
+    private ResolvedArtifactSet doSelect(
+        ResolvedVariantSet producer,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants
+    ) {
+        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
-        final List<ResolvedVariant> variants = producer.getVariants();
+        final List<ResolvedVariant> variants = producer.getCandidates();
 
-        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, explanationBuilder);
+        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, AttributeMatchingExplanationBuilder.logging());
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
@@ -94,12 +96,12 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
         // If there are multiple potential artifact transform variants, perform attribute matching to attempt to find the best.
         if (transformedVariants.size() > 1) {
-            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested, explanationBuilder);
+            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested, AttributeMatchingExplanationBuilder.logging());
         }
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolver, transformedVariantFactory);
+            return producer.transformCandidate(result.getRoot(), result.getTransformedVariantDefinition());
         }
 
         if (!transformedVariants.isEmpty()) {

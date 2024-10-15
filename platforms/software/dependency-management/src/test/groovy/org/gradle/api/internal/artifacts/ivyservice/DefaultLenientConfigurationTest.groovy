@@ -25,21 +25,20 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
     def transientConfigurationResults = Mock(TransientConfigurationResults)
     def resultsLoader = Mock(TransientConfigurationResultsLoader)
-    def artifactsResults = Stub(VisitedArtifactResults)
+    def artifactSet = Stub(VisitedArtifactSet)
     def fileDependencyResults = Stub(VisitedFileDependencyResults)
 
     def "should resolve first level dependencies in tree"() {
@@ -113,7 +112,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     private DefaultLenientConfiguration newConfiguration() {
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactVariantSelector), Mock(ArtifactSelectionSpec))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactSet, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactSelectionSpec))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

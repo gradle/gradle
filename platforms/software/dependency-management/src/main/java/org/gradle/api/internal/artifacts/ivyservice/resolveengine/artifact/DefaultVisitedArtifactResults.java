@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +32,14 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
     }
 
     @Override
-    public SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, boolean lenient) {
+    public SelectedArtifactResults select(
+        ArtifactSelectionServices consumerServices,
+        ArtifactSelectionSpec spec,
+        boolean lenient
+    ) {
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
-            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(variantSelector, spec);
+            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(consumerServices, spec);
             if (!lenient || !(resolvedArtifacts instanceof UnavailableResolvedArtifactSet)) {
                 resolvedArtifactSets.add(resolvedArtifacts);
             } else {

@@ -17,36 +17,30 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.model.GraphVariantSelector;
 
 /**
- * Selects artifacts from a set of resolved variants. This can but does not necessarily require an additional
- * round of attribute matching to select a variant containing artifacts.
+ * Selects an artifact set from a set of candidate artifact sets. Each set of candidates artifacts is
+ * provided by a variant in the dependency graph. Candidate artifact sets are selected based on
+ * attribute matching.
  *
  * This class is intentionally named similarly to {@link GraphVariantSelector}, as it has a
- * similar purpose.  An instance of {@link ResolutionFailureHandler} should be provided
- * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
- * calls to that instance.
+ * similar purpose. While the graph selector selects between variants of a component, the
+ * artifact selector selects between artifact sets of a variant.
  */
 public interface ArtifactVariantSelector {
 
     /**
-     * Selects matching artifacts from a given set of candidates.
+     * Selects a matching artifact set from a given set of candidate artifact sets.
      *
      * On failure, returns a set that forwards the failure to the {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor}.
      */
-    ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer);
+    ResolvedArtifactSet select(
+        ResolvedVariantSet candidates,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants
+    );
 
-    interface ResolvedArtifactTransformer {
-        ResolvedArtifactSet asTransformed(
-            ResolvedVariant sourceVariant,
-            VariantDefinition variantDefinition,
-            TransformUpstreamDependenciesResolver dependenciesResolver,
-            TransformedVariantFactory transformedVariantFactory
-        );
-    }
 }

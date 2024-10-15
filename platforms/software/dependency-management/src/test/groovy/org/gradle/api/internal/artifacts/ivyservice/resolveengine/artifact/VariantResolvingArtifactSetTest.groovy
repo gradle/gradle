@@ -48,6 +48,10 @@ class VariantResolvingArtifactSetTest extends Specification {
 
     def selector = Mock(ArtifactVariantSelector)
 
+    ArtifactSelectionServices services = Mock(ArtifactSelectionServices) {
+        getArtifactVariantSelector() >> selector
+    }
+
     def setup() {
         variantResolver = Mock(VariantArtifactResolver)
         component = Stub(ComponentGraphResolveState) {
@@ -78,7 +82,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         when:
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, ImmutableAttributesSchema.EMPTY, calculatedValueContainerFactory)
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { false }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
-        def selected = artifactSet.select(selector, spec)
+        def selected = artifactSet.select(services, spec)
 
         then:
         0 * selector.select(_, _, _, _)
@@ -99,14 +103,15 @@ class VariantResolvingArtifactSetTest extends Specification {
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, false, false, ResolutionStrategy.SortOrder.DEFAULT)
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency, graphSelector, ImmutableAttributesSchema.EMPTY, calculatedValueContainerFactory)
-        artifactSet.select(new ArtifactVariantSelector() {
+        services.getArtifactVariantSelector() >> new ArtifactVariantSelector() {
             @Override
-            ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ArtifactVariantSelector.ResolvedArtifactTransformer factory) {
-                assert candidates.variants.size() == 2
+            ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants) {
+                assert candidates.candidates.size() == 2
                 // select the first variant
-                return candidates.variants[0].artifacts
+                return candidates.candidates[0].artifacts
             }
-        }, spec)
+        }
+        artifactSet.select(services, spec)
 
         then:
         1 * variantResolver.resolveVariant(_, subvariant1) >> Mock(ResolvedVariant)
@@ -128,10 +133,10 @@ class VariantResolvingArtifactSetTest extends Specification {
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
-        def selected = artifactSet.select(selector, spec)
+        def selected = artifactSet.select(services, spec)
 
         then:
-        1 * selector.select(_, _, _, _) >> artifacts
+        1 * selector.select(_, _, _) >> artifacts
         _ * variantResolver.resolveVariant(_, _) >> Mock(ResolvedVariant)
         selected == artifacts
 

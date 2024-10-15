@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -54,7 +55,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -65,7 +65,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     public static final TransformDependencies NO_RESULT = new TransformDependencies() {
         @Override
         public Optional<FileCollection> getFiles() {
-            return Optional.empty();
+            return Optional.of(FileCollectionFactory.empty());
         }
     };
     public static final TransformUpstreamDependencies NO_DEPENDENCIES = new TransformUpstreamDependencies() {
@@ -78,7 +78,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public FileCollection selectedArtifacts() {
-            throw failure();
+            return FileCollectionFactory.empty();
         }
 
         @Override
@@ -140,10 +140,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
-    private static IllegalStateException failure() {
-        return new IllegalStateException("Transform does not use artifact dependencies.");
-    }
-
     @Override
     public TransformUpstreamDependencies dependenciesFor(ComponentIdentifier componentId, TransformStep transformStep) {
         if (!transformStep.requiresDependencies()) {
@@ -153,12 +149,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private FileCollectionInternal selectedArtifactsFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue(), false);
+        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue());
         return getDependencyResults(fromAttributes, dependencies);
     }
 
     private void computeDependenciesFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
-        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue(), true);
+        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue());
         FileCollectionInternal files = getDependencyResults(fromAttributes, buildDependencies);
         context.add(files);
     }
@@ -179,19 +175,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         );
     }
 
-    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, ResolverResults results, boolean strict) {
+    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, ResolverResults results) {
         ResolvedComponentResult root = results.getVisitedGraph().getResolutionResult().getRootSource().get();
         ResolvedComponentResult targetComponent = findComponent(root, componentId);
 
         if (targetComponent == null) {
-            // TODO: This is very suspicious. We should always fail here.
-            // `strict` was added because file dependencies' components are never included in the graph.
-            // We should detect this earlier and return no dependencies there to avoid `strict`.
-            if (strict) {
-                throw new AssertionError("Could not find component " + componentId + " in provided results.");
-            } else {
-                return Collections.emptySet();
-            }
+            throw new AssertionError("Could not find component " + componentId + " in provided results.");
         }
 
         Set<ComponentIdentifier> buildDependencies = new HashSet<>();

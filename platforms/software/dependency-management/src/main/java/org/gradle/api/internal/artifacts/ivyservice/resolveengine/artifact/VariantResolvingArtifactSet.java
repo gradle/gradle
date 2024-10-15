@@ -19,13 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
-import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
-import org.gradle.api.internal.artifacts.transform.VariantDefinition;
+import org.gradle.api.internal.artifacts.transform.ResolvedVariantTransformer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
@@ -93,7 +90,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
 
     @Override
     public ResolvedArtifactSet select(
-        ArtifactVariantSelector variantSelector,
+        ArtifactSelectionServices consumerServices,
         ArtifactSelectionSpec spec
     ) {
         if (!spec.getComponentFilter().isSatisfiedBy(componentId)) {
@@ -121,16 +118,11 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
                 return ResolvedArtifactSet.EMPTY;
             }
 
-            ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, variants);
-            return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed);
-        }
-    }
+            ArtifactVariantSelector artifactVariantSelector = consumerServices.getArtifactVariantSelector();
+            ResolvedVariantTransformer resolvedVariantTransformer = consumerServices.getResolvedVariantTransformer();
 
-    private ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolver dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
-        if (componentId instanceof ProjectComponentIdentifier) {
-            return transformedVariantFactory.transformedProjectArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
-        } else {
-            return transformedVariantFactory.transformedExternalArtifacts(componentId, sourceVariant, variantDefinition, dependenciesResolver);
+            ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, variants, resolvedVariantTransformer);
+            return artifactVariantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants());
         }
     }
 

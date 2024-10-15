@@ -130,7 +130,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_, _, _, _) >> { ResolvedVariantSet variants, r, a, f -> variants.variants.first() }
+        2 * selector.select(_, _, _) >> { ResolvedVariantSet variants, r, a -> variants.candidates.first() }
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
 
@@ -172,7 +172,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_, _, _, _) >> { ResolvedVariantSet variants, r, a, f -> variants.variants.first() }
+        2 * selector.select(_, _, _) >> { ResolvedVariantSet variants, r, a -> variants.candidates.first() }
         2 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
         1 * artifactVisitor.visitArtifact(_, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
