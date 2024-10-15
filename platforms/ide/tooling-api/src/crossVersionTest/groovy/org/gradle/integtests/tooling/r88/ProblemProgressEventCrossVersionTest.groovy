@@ -166,7 +166,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection {
             it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
+                .setJavaHome(jdk17?.javaHome)
                 .addProgressListener(listener)
                 .get()
         }
