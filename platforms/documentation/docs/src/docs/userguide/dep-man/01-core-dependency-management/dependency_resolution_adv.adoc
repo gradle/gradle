@@ -87,7 +87,7 @@ This flexibility comes with the price of making it hard to reason about.
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
 By default, it will select the _highest_ version. More information on version ordering
-<<single_versions#version_ordering,here>>.
+<<dependency_versions.adoc#version_ordering,here>>.
 
 As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
 
@@ -106,7 +106,7 @@ This causes an intermediate lookup for metadata, as described in <<#sec:how-grad
 [[sec:base-version-comparison]]
 === Qualifiers
 There is a caveat to comparing versions when it comes to selecting the _highest_ one.
-All the rules of <<single_versions#version_ordering,version ordering>> still apply, but the conflict resolver
+All the rules of <<dependency_versions.adoc#version_ordering,version ordering>> still apply, but the conflict resolver
 has a bias towards versions without qualifiers.
 
 The "qualifier" of a version, if it exists, is the tail end of the version string, starting at the first non-dot separator
