@@ -146,7 +146,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                     queue.addFirst(callableResult);
                 }
             } else if (resolver != null && dependency instanceof CharSequence) {
-                context.add(resolver.resolveTask(dependency.toString()));
+                context.add(resolver.resolveTask(dependency.toString()).get());
             } else if (dependency instanceof VisitBehavior) {
                 ((VisitBehavior) dependency).onVisit.accept(context);
             } else {

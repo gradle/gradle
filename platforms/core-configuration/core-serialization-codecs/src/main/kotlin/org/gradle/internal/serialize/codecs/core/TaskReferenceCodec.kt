@@ -77,7 +77,7 @@ object TaskReferenceCodec : Codec<Task> {
 
         ReferenceType.TASK_REF -> {
             val taskName = readString()
-            isolate.owner.service(TaskContainerInternal::class.java).resolveTask(taskName)
+            isolate.owner.service(TaskContainerInternal::class.java).getByPath(taskName)
         }
 
         ReferenceType.PROHIBITED -> {
