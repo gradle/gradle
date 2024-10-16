@@ -155,10 +155,5 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
             forkOptions.setWorkingDir(temporaryFolder)
             return forkOptions
         }
-
-        @Override
-        JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
-            return delegate.immutableCopy(options)
-        }
     }
 }
