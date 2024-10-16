@@ -4,6 +4,7 @@ configurations.all {
         eachDependency {
             if (requested.group == "com.example" && requested.name == "old-library") {
                 useTarget("com.example:new-library:1.0.0")
+                because("Our license only allows use of version 1")
             }
         }
     }
