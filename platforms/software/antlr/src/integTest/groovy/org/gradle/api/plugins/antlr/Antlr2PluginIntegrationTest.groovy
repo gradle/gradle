@@ -61,6 +61,22 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         assertGrammarSourceGenerated("UnpackagedGrammar")
     }
 
+    def "works using antlrTool instead of antlr"() {
+        buildFile.text = buildFile.text.replace("antlr '$antlrDependency'", "antlrTool '$antlrDependency'\n    api '$antlrDependency'")
+
+        goodGrammar()
+        goodProgram()
+
+        expect:
+        succeeds("generateGrammarSource")
+        assertAntlrVersion(2)
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
+
+        succeeds("build")
+    }
+
     private goodGrammar() {
         file("grammar-builder/src/main/antlr/TestGrammar.g") << """
             header {

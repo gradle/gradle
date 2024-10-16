@@ -10,8 +10,10 @@ repositories {
 }
 
 dependencies {
-    antlr("org.antlr:antlr:3.5.2")   // use ANTLR version 3
-    // antlr("org.antlr:antlr4:4.5") // use ANTLR version 4
+    antlrTool("org.antlr:antlr:3.5.2")     // use ANTLR version 3
+    api("org.antlr:antlr-runtime:3.5.2")
+    // antlrTool("org.antlr:antlr4:4.5")   // use ANTLR version 4
+    // api("org.antlr:antlr4-runtime:4.5")
 // end::declare-dependency[]
     testImplementation("junit:junit:4.13")
 // tag::declare-dependency[]
