@@ -1034,7 +1034,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail "compileJava"
         then:
         failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
-            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'task ':compileJava' property 'options.bootstrapClasspath'' are: '${Paths.get(bootClasspath)}'." +
             " Add the individual files to the file collection instead." +
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
