@@ -35,7 +35,7 @@ sealed interface InterpretationSchemaBuildingResult {
 sealed interface DeclarativeScriptContext {
     interface SettingsScript : DeclarativeScriptContext
 
-    object ProjectScript : DeclarativeScriptContext
+    interface ProjectScript : DeclarativeScriptContext
 
     object UnknownScript : DeclarativeScriptContext
 }
