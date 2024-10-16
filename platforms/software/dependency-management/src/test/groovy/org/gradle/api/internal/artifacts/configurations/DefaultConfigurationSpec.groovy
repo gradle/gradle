@@ -107,17 +107,17 @@ class DefaultConfigurationSpec extends Specification {
     def metaDataProvider = Mock(DependencyMetaDataProvider)
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
-    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
+    def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
     def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getAllRepositories() >> []
-        _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
+        _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
         _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
         _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
@@ -1819,7 +1819,7 @@ class DefaultConfigurationSpec extends Specification {
             TestFiles.fileCollectionFactory(),
             new TestBuildOperationRunner(),
             publishArtifactNotationParser,
-            immutableAttributesFactory,
+            attributesFactory,
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,

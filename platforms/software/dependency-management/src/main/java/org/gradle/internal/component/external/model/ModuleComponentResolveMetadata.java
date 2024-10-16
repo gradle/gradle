@@ -17,7 +17,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
@@ -76,7 +76,7 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
     ImmutableList<? extends ComponentVariant> getVariants();
 
     @Nullable
-    ImmutableAttributesFactory getAttributesFactory();
+    AttributesFactory getAttributesFactory();
 
     VariantMetadataRules getVariantMetadataRules();
 

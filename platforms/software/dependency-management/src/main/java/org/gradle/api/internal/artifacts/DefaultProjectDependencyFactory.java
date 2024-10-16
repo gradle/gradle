@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -34,7 +34,7 @@ public class DefaultProjectDependencyFactory {
     private final boolean buildProjectDependencies;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ObjectFactory objectFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProjectStateRegistry projectStateRegistry;
 
@@ -43,7 +43,7 @@ public class DefaultProjectDependencyFactory {
         boolean buildProjectDependencies,
         NotationParser<Object, Capability> capabilityNotationParser,
         ObjectFactory objectFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory,
         ProjectStateRegistry projectStateRegistry
     ) {

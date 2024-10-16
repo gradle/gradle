@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.collections.ImmutableFilteredList;
@@ -45,14 +45,14 @@ import java.util.function.Supplier;
  */
 public class ConsumerProvidedVariantFinder {
     private final VariantTransformRegistry variantTransforms;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final CachingAttributeMatcher matcher;
     private final TransformCache transformCache;
 
     public ConsumerProvidedVariantFinder(
         VariantTransformRegistry variantTransforms,
         AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices
     ) {
         this.variantTransforms = variantTransforms;

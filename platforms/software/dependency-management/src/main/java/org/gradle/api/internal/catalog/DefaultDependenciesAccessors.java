@@ -30,7 +30,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -102,7 +102,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
     private final List<DefaultVersionCatalog> models = new ArrayList<>();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
@@ -121,7 +121,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         ExecutionEngine engine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         CapabilityNotationParser capabilityNotationParser
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");

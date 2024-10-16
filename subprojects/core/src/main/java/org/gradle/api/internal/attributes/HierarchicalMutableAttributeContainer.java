@@ -33,12 +33,12 @@ import java.util.TreeMap;
  * container will override attributes in the fallback container. All mutation operations are
  * forwarded to the primary container.
  */
-public class HierarchicalAttributeContainer extends AbstractAttributeContainer {
-    private final ImmutableAttributesFactory attributesFactory;
+final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
+    private final AttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
 
-    public HierarchicalAttributeContainer(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
         this.attributesFactory = attributesFactory;
         this.fallback = fallback;
         this.primary = primary;
@@ -90,7 +90,7 @@ public class HierarchicalAttributeContainer extends AbstractAttributeContainer {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        HierarchicalAttributeContainer that = (HierarchicalAttributeContainer) o;
+        HierarchicalMutableAttributeContainer that = (HierarchicalMutableAttributeContainer) o;
         return fallback.equals(that.fallback) && primary.equals(that.primary);
     }
 

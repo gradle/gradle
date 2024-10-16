@@ -18,7 +18,7 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppApplication;
@@ -50,11 +50,11 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
 public abstract class CppApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
         this.attributesFactory = attributesFactory;

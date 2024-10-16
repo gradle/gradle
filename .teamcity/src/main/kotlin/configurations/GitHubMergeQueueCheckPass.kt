@@ -28,12 +28,14 @@ class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init 
         publishBuildStatusToGithub(model)
     }
 
-    triggers.vcs {
-        quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
-        branchFilter = """
+    if (!VersionedSettingsBranch.fromDslContext().isExperimental) {
+        triggers.vcs {
+            quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
+            branchFilter = """
 +:gh-readonly-queue/${model.branch.branchName}/*
 +:${model.branch.branchName}
 """
+        }
     }
 
     dependencies {

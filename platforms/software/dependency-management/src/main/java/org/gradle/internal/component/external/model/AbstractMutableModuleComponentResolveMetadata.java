@@ -27,8 +27,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Describables;
@@ -54,7 +54,7 @@ import static org.gradle.internal.component.external.model.ExternalComponentReso
 public abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     private static final String DEFAULT_STATUS = "integration";
 
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersionId;
@@ -74,10 +74,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private ImmutableList<? extends ComponentVariant> variants;
     private Set<VirtualComponentIdentifier> owners;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory,
-                                                            ModuleVersionIdentifier moduleVersionId,
-                                                            ModuleComponentIdentifier componentIdentifier,
-                                                            ImmutableAttributesSchema schema) {
+    protected AbstractMutableModuleComponentResolveMetadata(
+        AttributesFactory attributesFactory,
+        ModuleVersionIdentifier moduleVersionId,
+        ModuleComponentIdentifier componentIdentifier,
+        ImmutableAttributesSchema schema) {
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
@@ -106,7 +107,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
-    private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
+    private static AttributeContainerInternal defaultAttributes(AttributesFactory attributesFactory) {
         return (AttributeContainerInternal) attributesFactory.mutable().attribute(ProjectInternal.STATUS_ATTRIBUTE, DEFAULT_STATUS);
     }
 
@@ -266,7 +267,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public ImmutableAttributesFactory getAttributesFactory() {
+    public AttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
 
