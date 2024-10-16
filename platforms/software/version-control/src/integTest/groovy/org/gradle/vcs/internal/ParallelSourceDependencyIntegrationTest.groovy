@@ -75,8 +75,9 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             subprojects {
+                def projectName = project.name
                 tasks.resolve.doFirst {
-                    ${httpServer.callFromBuildUsingExpression("project.name")}
+                    ${httpServer.callFromBuildUsingExpression("projectName")}
                 }
             }
         """
