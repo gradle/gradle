@@ -46,6 +46,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
     private boolean propertyUpgradeReportEnabled;
+    private boolean enableProblemReportGeneration = true;
 
     public StartParameterInternal() {
     }
@@ -81,6 +82,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
+        p.enableProblemReportGeneration = enableProblemReportGeneration;
         return p;
     }
 
@@ -246,5 +248,13 @@ public class StartParameterInternal extends StartParameter {
 
     public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
         this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
+    }
+
+    public void enableProblemReportGeneration(boolean enableProblemReportGeneration) {
+        this.enableProblemReportGeneration = enableProblemReportGeneration;
+    }
+
+    public boolean isProblemReportGenerationEnabled() {
+        return this.enableProblemReportGeneration;
     }
 }

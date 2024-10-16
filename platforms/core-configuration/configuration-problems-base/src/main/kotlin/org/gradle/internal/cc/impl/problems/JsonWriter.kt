@@ -20,13 +20,24 @@ import com.fasterxml.jackson.core.JsonFactory
 import java.io.Writer
 
 class JsonWriter(private val writer: Writer) {
+
+    class JsonObject(val jsonWriter: JsonWriter) : AutoCloseable {
+        init {
+            jsonWriter.beginObject()
+        }
+
+        override fun close() {
+            jsonWriter.endObject()
+        }
+    }
+
     private
     val jsonGenerator = JsonFactory().createGenerator(writer)
 
     fun jsonObject(body: () -> Unit) {
-        beginObject()
-        body()
-        endObject()
+        JsonObject(this).use {
+            body()
+        }
     }
 
     fun beginObject() {

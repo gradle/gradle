@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
-    private final PathToFileResolver resolver;
+    protected final PathToFileResolver resolver;
     private Object executable;
     private File workingDir;
     private Map<String, Object> environment;

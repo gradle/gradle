@@ -319,6 +319,11 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    public ProjectInternal evaluateUnchecked() {
+        return delegate.evaluateUnchecked();
+    }
+
+    @Override
     public ProjectInternal bindAllModelRules() {
         onMutableStateAccess("bindAllModelRules");
         return delegate.bindAllModelRules();
@@ -643,21 +648,25 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Closure closure) {
         return delegate.javaexec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
         return delegate.javaexec(action);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Closure closure) {
         return delegate.exec(closure);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Action<? super ExecSpec> action) {
         return delegate.exec(action);
     }
@@ -1168,5 +1177,16 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public ConfigurationTargetIdentifier getConfigurationTargetIdentifier() {
         return delegate.getConfigurationTargetIdentifier();
+    }
+
+    @Override
+    public void setLifecycleActionsState(@Nullable Object state) {
+        delegate.setLifecycleActionsState(state);
+    }
+
+    @Nullable
+    @Override
+    public Object getLifecycleActionsState() {
+        return delegate.getLifecycleActionsState();
     }
 }

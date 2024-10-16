@@ -17,6 +17,8 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 

@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -73,7 +72,6 @@ class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/790")
-    @ToBeFixedForConfigurationCache
     def "creating visual studio multiple time gives the same result"() {
         given:
         app.writeSources(file("src/main"))
@@ -91,13 +89,13 @@ model {
         def solutionFileContent = solutionFile("app.sln").file.text
 
         then:
-        executedAndNotSkipped getExecutableTasks("main")
+        executedAndNotSkipped getExecutableTasks("main") + ":appVisualStudioSolution"
 
         when:
         run "visualStudio"
 
         then:
-        skipped getExecutableTasks("main")
+        skipped getExecutableTasks("main") + ":appVisualStudioSolution"
 
         and:
         filtersFile("mainExe.vcxproj.filters").file.text == filtersFileContent
@@ -105,7 +103,6 @@ model {
         solutionFile("app.sln").file.text == solutionFileContent
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for single executable"() {
         when:
         app.writeSources(file("src/main"))
@@ -146,7 +143,6 @@ model {
     }
 
     @Requires(IntegTestPreconditions.HasMsBuild)
-    @ToBeFixedForConfigurationCache
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/exe/main/win32/debug/main")
@@ -178,7 +174,6 @@ model {
     }
 
     @Requires(IntegTestPreconditions.HasMsBuild)
-    @ToBeFixedForConfigurationCache
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
@@ -211,7 +206,6 @@ model {
     }
 
     @Requires(IntegTestPreconditions.HasMsBuild)
-    @ToBeFixedForConfigurationCache
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
 
@@ -240,7 +234,6 @@ model {
     }
 
     @Requires(IntegTestPreconditions.HasMsBuild)
-    @ToBeFixedForConfigurationCache
     def "can clean from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable('build/exe/main/win32/debug/main')
@@ -256,6 +249,7 @@ model {
         """
 
         and:
+        executer.withArgument("--no-problems-report")
         succeeds "visualStudio"
 
         when:
@@ -278,7 +272,6 @@ model {
         file("build").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for library"() {
         when:
         app.library.writeSources(file("src/main"))
@@ -322,7 +315,6 @@ model {
         mainSolution.assertReferencesProject(dllProjectFile, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for build with an executable and library"() {
         when:
         app.executable.writeSources(file("src/main"))
@@ -367,7 +359,6 @@ model {
         mainSolution.assertReferencesProject(libProject, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio project for executable that targets multiple platforms with the same architecture"() {
         when:
         app.writeSources(file("src/main"))
@@ -393,7 +384,6 @@ model {
         mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug', 'win32Release', 'otherWin32Release', 'x64Debug', 'x64Release'] as Set
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for executable that has diamond dependency"() {
         def testApp = new ExeWithDiamondDependencyHelloWorldApp()
         testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
@@ -442,7 +432,6 @@ model {
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
     }
 
-    @ToBeFixedForConfigurationCache
     def "generate visual studio solution for executable with mixed sources"() {
         given:
         def testApp = new MixedLanguageHelloWorldApp(toolChain)
@@ -475,7 +464,6 @@ model {
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
-    @ToBeFixedForConfigurationCache
     def "generate visual studio solution for executable with windows resource files"() {
         given:
         def resourceApp = new WindowsResourceHelloWorldApp()
@@ -518,7 +506,6 @@ model {
         solutionFile("app.sln").assertHasProjects("mainExe")
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds solution for component with no source"() {
         given:
         buildFile << """
@@ -545,7 +532,6 @@ model {
         solutionFile("app.sln").assertHasProjects("mainExe")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio project includes headers co-located with sources"() {
         when:
         // Write headers so they sit with sources
@@ -575,7 +561,6 @@ model {
         assert projectFile.headerFiles == app.headerFiles.collect({"src/main/cpp/${it.name}"}).sort()
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio solution with header-only library"() {
         given:
         def app = new CppHelloWorldApp()
@@ -642,7 +627,6 @@ model {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for executable with variant conditional sources"() {
         when:
         app.writeSources(file("src/win32"))
@@ -679,7 +663,6 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio solution with pre-built library"() {
         given:
         app.writeSources(file("src/main"))
@@ -720,7 +703,6 @@ model {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio solution for executable that depends on library using precompiled header"() {
         when:
         app = new CppHelloWorldApp()
@@ -770,7 +752,6 @@ model {
         mainSolution.assertReferencesProject(dllProject, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio solution for component graph with library dependency cycle"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -840,7 +821,6 @@ model {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution where referenced projects have different configurations"() {
         when:
         app.executable.writeSources(file("src/main"))
@@ -887,7 +867,6 @@ model {
         mainSolution.assertReferencesProject(libProject, ['win32Debug':'win32Debug', 'win32Release':'win32Release', 'x64Debug':'x64Debug', 'x64Release':'x64Release', 'win32':'x64Release', 'x64':'x64Release'])
     }
 
-    @ToBeFixedForConfigurationCache
     def "only create visual studio projects for buildable binaries"() {
         when:
         app.library.writeSources(file("src/both"))
@@ -954,7 +933,6 @@ model {
         solutionFile("app.sln").assertHasProjects("bothDll", "bothLib", "staticOnlyLib")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
         given:
         app.writeSources(file("src/main"))
@@ -994,7 +972,6 @@ model {
         '-std:c++latest' | 'stdcpplatest'           | 6
     }
 
-    @ToBeFixedForConfigurationCache
     def "can detect different language standard per component for Visual Studio IntelliSense"() {
         given:
         app.writeSources(file("src/main"))
@@ -1032,7 +1009,6 @@ model {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not configure language standard when compiler flag is absent for Visual Studio IntelliSense"() {
         given:
         app.writeSources(file("src/main"))

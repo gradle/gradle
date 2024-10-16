@@ -198,7 +198,6 @@ public abstract class ScalaRuntime {
      * Determines Scala compiler jar to download.
      *
      * @param scalaVersion version of scala to download the compiler for
-     * @param scalaVersion version of scala to download the compiler for
      * @return compiler dependency to download
      */
     private DefaultExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {

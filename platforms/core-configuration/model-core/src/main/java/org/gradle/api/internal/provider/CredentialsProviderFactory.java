@@ -23,6 +23,7 @@ import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
     private final ProviderFactory providerFactory;
+    private final ObjectFactory objectFactory;
 
     private final Map<String, Provider<PasswordCredentials>> passwordProviders = new ConcurrentHashMap<>();
     private final Map<String, Provider<AwsCredentials>> awsProviders = new ConcurrentHashMap<>();
@@ -48,13 +50,17 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
     private final Set<String> missingProviderErrors = ConcurrentHashMap.newKeySet();
 
-    public CredentialsProviderFactory(ProviderFactory providerFactory) {
+    public CredentialsProviderFactory(ProviderFactory providerFactory, @Nullable ObjectFactory objectFactory) {
         this.providerFactory = providerFactory;
+        this.objectFactory = objectFactory;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
+        if (objectFactory == null) {
+            throw new UnsupportedOperationException();
+        }
 
         if (PasswordCredentials.class.isAssignableFrom(credentialsType)) {
             return (Provider<T>) passwordProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(new PasswordCredentialsProvider(id)));
@@ -118,6 +124,9 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
                 missingProperties.clear();
                 throw new MissingValueException(errorBuilder.toString());
             }
+            if (objectFactory == null) {
+                throw new UnsupportedOperationException("Cannot create credentials in this context since ObjectFactory is not available");
+            }
         }
 
         private String identityProperty(String property) {
@@ -137,7 +146,10 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             String password = getRequiredProperty("Password");
             assertRequiredValuesPresent();
 
-            return new DefaultPasswordCredentials(username, password);
+            DefaultPasswordCredentials credentials = objectFactory.newInstance(DefaultPasswordCredentials.class);
+            credentials.setUsername(username);
+            credentials.setPassword(password);
+            return credentials;
         }
     }
 
@@ -153,7 +165,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             String secretKey = getRequiredProperty("SecretKey");
             assertRequiredValuesPresent();
 
-            AwsCredentials credentials = new DefaultAwsCredentials();
+            AwsCredentials credentials = objectFactory.newInstance(DefaultAwsCredentials.class);
             credentials.setAccessKey(accessKey);
             credentials.setSecretKey(secretKey);
             credentials.setSessionToken(getOptionalProperty("SessionToken"));
@@ -173,7 +185,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             String value = getRequiredProperty("AuthHeaderValue");
             assertRequiredValuesPresent();
 
-            HttpHeaderCredentials credentials = new DefaultHttpHeaderCredentials();
+            HttpHeaderCredentials credentials = objectFactory.newInstance(DefaultHttpHeaderCredentials.class);
             credentials.setName(name);
             credentials.setValue(value);
             return credentials;

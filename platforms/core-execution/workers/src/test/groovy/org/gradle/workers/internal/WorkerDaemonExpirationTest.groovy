@@ -49,7 +49,7 @@ class WorkerDaemonExpirationTest extends Specification {
                 getJvmMemoryStatus() >> Mock(JvmMemoryStatus) {
                     getCommittedMemory() >> {
                         if (reportsMemoryUsage) {
-                            return MemoryAmount.of(forkOptions.javaForkOptions.maxHeapSize).bytes
+                            return MemoryAmount.of(forkOptions.jvmOptions.maxHeapSize).bytes
                         } else {
                             throw new IllegalStateException()
                         }

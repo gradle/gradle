@@ -15,8 +15,7 @@
  */
 package org.gradle.internal.serialize;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +32,6 @@ public class ListSerializer<T> extends AbstractCollectionSerializer<T, List<T>> 
         if (size == 0) {
             return Collections.emptyList();
         }
-        return Lists.newArrayListWithCapacity(size);
+        return new ArrayList<T>(size);
     }
 }

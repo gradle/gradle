@@ -20,9 +20,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Broke
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
@@ -40,25 +41,29 @@ import java.util.List;
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
-    private final AttributesSchemaInternal schema;
+
+    private final ImmutableAttributesSchema consumerSchema;
     private final TransformUpstreamDependenciesResolver dependenciesResolver;
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
 
     AttributeMatchingArtifactVariantSelector(
-        AttributesSchemaInternal schema,
+        ImmutableAttributesSchema consumerSchema,
         TransformUpstreamDependenciesResolver dependenciesResolver,
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
         ResolutionFailureHandler failureProcessor
     ) {
-        this.schema = schema;
+        this.consumerSchema = consumerSchema;
         this.dependenciesResolver = dependenciesResolver;
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.transformedVariantFactory = transformedVariantFactory;
         this.failureProcessor = failureProcessor;
     }
@@ -73,7 +78,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     }
 
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
-        AttributeMatcher matcher = schema.withProducer(producer.getSchema());
+        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants = producer.getVariants();
 

@@ -113,7 +113,11 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         private final String modelName;
         private final boolean parameter;
 
-        public ProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
+        public ProjectToolingScope(
+            ProjectState target,
+            String modelName,
+            boolean parameter
+        ) {
             this.target = target;
             this.modelName = modelName;
             this.parameter = parameter;

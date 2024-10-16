@@ -23,6 +23,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.files)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
@@ -41,7 +42,6 @@ dependencies {
 
     implementation(projects.loggingApi)
     implementation(projects.maven)
-    implementation(projects.processServices)
     implementation(projects.publish)
     implementation(projects.versionControl)
 

@@ -17,9 +17,9 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
@@ -33,14 +33,14 @@ public class DefaultProblemsOperationContext implements ProblemContext {
     private final List<Location> locations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-    private final FailureContainer failure;
+    private final Failure failure;
 
     public DefaultProblemsOperationContext(
         @Nullable Details details,
         List<Location> locations,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable FailureContainer failure
+        @Nullable Failure failure
     ) {
         this.details = details;
         this.locations = locations;
@@ -72,7 +72,7 @@ public class DefaultProblemsOperationContext implements ProblemContext {
 
     @Nullable
     @Override
-    public FailureContainer getFailure() {
+    public Failure getFailure() {
         return failure;
     }
 }

@@ -55,10 +55,10 @@ class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationS
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
-                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
-                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
-                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
-                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                        new File(it.forkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.jvmOptions.minHeapSize == "128m" &&
+                        it.forkOptions.jvmOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.jvmOptions.mutableSystemProperties['foo'] == "bar"
                     }
                 }
             }
@@ -116,6 +116,32 @@ class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationS
         expect:
         executer.withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
         succeeds("compileJava")
+    }
+
+    def "setting forkOptions is deprecated"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) {
+                options.setForkOptions(options.forkOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setForkOptions(ForkOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of forkOptions is unnecessary. Please use the forkOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
+
+        expect:
+        succeeds "compileJava"
+    }
+
+    def "setting debugOptions is deprecated"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) {
+                options.setDebugOptions(options.debugOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setDebugOptions(DebugOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of debugOptions is unnecessary. Please use the debugOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
+
+        expect:
+        succeeds "compileJava"
     }
 
 }

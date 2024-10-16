@@ -18,25 +18,26 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 
-import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Set;
 
 public interface AttributesSchemaInternal extends AttributesSchema {
-    /**
-     * Returns a matcher that uses the consumer rules from this schema, and the producer rules from the given schema.
-     */
-    AttributeMatcher withProducer(AttributesSchemaInternal producerSchema);
 
     /**
-     * Returns a matcher that uses the rules from this schema, and assumes the producer has the same rules.
+     * Get all configured attribute matching strategies. The returned collection
+     * reflects a live view of the configured strategies, but is unmodifiable.
+     * <p>
+     * Used to finalize this schema to its immutable counterpart.
      */
-    AttributeMatcher matcher();
+    Map<Attribute<?>, DefaultAttributeMatchingStrategy<?>> getStrategies();
 
-    CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute);
+    /**
+     * Get the configured attribute matching precedence. The returned collection
+     * reflects a live view of the configured attribute precedence, but is unmodifiable.
+     * <p>
+     * Used to finalize this schema to its immutable counterpart.
+     */
+    Set<Attribute<?>> getAttributePrecedence();
 
-    DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute);
-
-    @Nullable
-    Attribute<?> getAttributeByName(String name);
 }

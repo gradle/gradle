@@ -12,10 +12,8 @@ This project is a implementation dependency of many other testing-related subpro
 
 errorprone {
     disabledChecks.addAll(
-        "EmptyBlockTag", // 3 occurrences
         "InlineMeInliner", // 2 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
-        "OperatorPrecedence", // 1 occurrences
     )
 }
 
@@ -45,7 +43,6 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.files)
     implementation(projects.modelCore)
-    implementation(projects.processServices)
     implementation(projects.serialization)
 
     implementation(libs.ant) {

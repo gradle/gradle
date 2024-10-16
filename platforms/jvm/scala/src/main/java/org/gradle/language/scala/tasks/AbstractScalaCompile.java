@@ -100,7 +100,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     protected AbstractScalaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
         this.scalaCompileOptions = objectFactory.newInstance(ScalaCompileOptions.class);
-        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
     }
 
     /**

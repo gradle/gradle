@@ -23,6 +23,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -103,7 +104,8 @@ public abstract class SwiftBasePlugin implements Plugin<Project> {
         project.getComponents().withType(ProductionSwiftComponent.class, component -> {
             project.afterEvaluate(p -> {
                 DefaultNativeComponent componentInternal = (DefaultNativeComponent) component;
-                publicationRegistry.registerPublication((ProjectInternal) project, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get())));
+                ProjectIdentity projectIdentity = ((ProjectInternal) project).getProjectIdentity();
+                publicationRegistry.registerPublication(projectIdentity, new NativeProjectPublication(componentInternal.getDisplayName(), new SwiftPmTarget(component.getModule().get())));
             });
         });
     }

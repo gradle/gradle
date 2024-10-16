@@ -181,7 +181,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         } else {
             invoker = invocationSpec.isUseDaemon()
                 ? GradleBuildInvoker.Cli
-                : GradleBuildInvoker.Cli.withColdDaemon();
+                : GradleBuildInvoker.CliNoDaemon;
         }
 
         boolean measureGarbageCollection = experiment.isMeasureGarbageCollection()
@@ -238,7 +238,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             invocationSettings.getWarmUpCount(),
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
-            actualJvmArgs,
+            ImmutableList.of(),
             invocationSettings.getMeasuredBuildOperations()
         );
     }

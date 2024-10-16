@@ -166,7 +166,9 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
         while (true) {
             // Use a random prefix to avoid reusing test directories
             String randomPrefix = Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX);
-            if (WINDOWS_RESERVED_NAMES.matcher(randomPrefix).matches()) {
+            if (WINDOWS_RESERVED_NAMES.matcher(randomPrefix).matches() || Character.isDigit(randomPrefix.charAt(0))) {
+                // project name starting with digit may cause troubles:
+                // Cannot generate project dependency accessors because project '1mg78' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\-_])*
                 continue;
             }
             TestFile dir = root.file(getPrefix(), randomPrefix);

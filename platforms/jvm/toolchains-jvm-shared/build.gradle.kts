@@ -28,9 +28,9 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.jvmServices)
     api(projects.persistentCache)
-    api(projects.core)
 
     implementation(projects.functional)
 

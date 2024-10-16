@@ -44,10 +44,9 @@ import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.EmptySchema
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -73,7 +72,7 @@ import org.gradle.operations.dependencies.configurations.ConfigurationIdentity
 
 class LocalFileDependencyBackedArtifactSetCodec(
     private val instantiator: Instantiator,
-    private val attributesFactory: ImmutableAttributesFactory,
+    private val attributesFactory: AttributesFactory,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : Codec<LocalFileDependencyBackedArtifactSet> {
     override suspend fun WriteContext.encode(value: LocalFileDependencyBackedArtifactSet) {
@@ -213,8 +212,8 @@ class RecordingVariantSet(
         return Describables.of(source)
     }
 
-    override fun getSchema(): AttributesSchemaInternal {
-        return EmptySchema.INSTANCE
+    override fun getSchema(): ImmutableAttributesSchema {
+        return ImmutableAttributesSchema.EMPTY
     }
 
     override fun getVariants(): List<ResolvedVariant> {

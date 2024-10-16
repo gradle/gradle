@@ -56,7 +56,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         if (configureToolchain == "without") {
             jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         } else {
-            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+            jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
             if (configureToolchain == "with java plugin") {
                 configureJavaPluginToolchainVersion(jdkMetadata)
@@ -117,7 +117,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
         def task = ":myToolchainTask"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildFile << """
             abstract class ToolchainTask extends DefaultTask {
@@ -558,7 +558,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'compileJava' task"() {
         def task = ":compileJava"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -579,7 +579,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'test' task"() {
         def task = ":test"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -602,7 +602,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'javadoc' task"() {
         def task = ":javadoc"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 

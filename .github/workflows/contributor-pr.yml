@@ -16,7 +16,7 @@ concurrency:
 
 env:
   # Set the DEVELOCITY_ACCESS_KEY so that Gradle Build Scans are generated
-  DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
   # Enable debug for the `gradle-build-action` cache operations
   GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 
@@ -37,13 +37,13 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
       - id: determine-sys-prop-args
         uses: actions/github-script@v7
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
-                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us --scan')
             } else {
                 core.setOutput('sys-prop-args', '-DcacheNode=us')
             }
@@ -51,7 +51,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew compileAll --no-configuration-cache -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+      - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - uses: actions/upload-artifact@v4
         with:
           name: build-receipt.properties
@@ -73,7 +73,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
       - uses: actions/download-artifact@v4
         with:
           name: build-receipt.properties
@@ -82,7 +82,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew sanityCheck --no-configuration-cache -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -101,7 +101,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
       - uses: actions/download-artifact@v4
         with:
           name: build-receipt.properties
@@ -110,4 +110,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew ${{ matrix.bucket.tasks }} --no-configuration-cache -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}

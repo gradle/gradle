@@ -53,36 +53,34 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="config-cache"></a>
-### Configuration cache improvements
+<a name="build-authoring"></a>
+### Build authoring improvements
 
-The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-#### Parallel caching for faster loading times
+#### `DependencyConstraintHandler` now has `addProvider` methods
 
-Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
-To enable the feature in `gradle.properties`:
+The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the 
+[`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
 
-```text
-// gradle.properties
-org.gradle.configuration-cache.parallel=true
+```kotlin
+dependencies {
+    constraints {
+        // Existing API:
+        add("implementation", provider { "org.foo:bar:1.0" })
+        add("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+        // New methods:
+        addProvider("implementation", provider { "org.foo:bar:1.0" })
+        addProvider("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+    }
+}
 ```
 
-Note that this is an incubating feature and may expose concurrency issues in some builds. 
-
-See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
-
-<a name="native-plugin-improvements"></a>
-### Core plugin improvements
-
-Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
-
-#### Configuration cache compatibility for Swift and C++ plugins
-
-The [Swift](userguide/swift_application_plugin.html) and [C++](userguide/cpp_application_plugin.html) core plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible.
-
-The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/visual_studio_plugin.html) plugins are not yet compatible.
-
+This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -96,11 +94,9 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Stable Build Features API
-
-The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
-It allows checking the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
-and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 

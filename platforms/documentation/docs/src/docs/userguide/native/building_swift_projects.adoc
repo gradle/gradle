@@ -15,8 +15,6 @@
 [[building_swift_projects]]
 = Building Swift projects
 
-WARNING: The plugins described in this chapter are not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 Gradle uses a convention-over-configuration approach to building native projects.
 If you are coming from another native build system, these concepts may be unfamiliar at first, but they serve a purpose to simplify build script authoring.
 
@@ -129,7 +127,7 @@ We have only scratched the surface here, so we recommend that you read the <<cor
 
 Some common scenarios that require further reading include:
 
- * Defining a custom <<declaring_repositories.adoc#sec:repository-types,Maven-compatible>> repository
+ * Defining a custom <<supported_repository_types.adoc#repository-types,Maven-compatible>> repository
  * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies_adv.adoc#sub:project_dependencies,project as a dependency>>
  * <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies and their versions>>

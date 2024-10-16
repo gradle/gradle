@@ -22,6 +22,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.annotation.Nullable;
@@ -186,11 +187,23 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         Object coercedValue = candidateValue.coerce(attribute);
         setCandidateValue(c, a, coercedValue);
 
-        if (schema.matchValue(attribute, requestedValue, coercedValue)) {
+        if (unsafeMatchValue(attribute, requestedValue, coercedValue)) {
             return MatchResult.MATCH;
         }
         explanationBuilder.candidateAttributeDoesNotMatch(candidates.get(c), attribute, requestedValue, candidateValue);
         return MatchResult.NO_MATCH;
+    }
+
+    private boolean unsafeMatchValue(
+        Attribute<?> attribute,
+        Object requested,
+        Object candidate
+    ) {
+        return schema.matchValue(
+            Cast.uncheckedCast(attribute),
+            Cast.uncheckedCast(requested),
+            Cast.uncheckedCast(candidate)
+        );
     }
 
     private boolean longestMatchIsSuperSetOfAllOthers() {
@@ -302,7 +315,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             return;
         }
 
-        Set<Object> matches = schema.disambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
+        Set<Object> matches = unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
         if (matches != null && matches.size() < candidateValues.size()) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
@@ -313,22 +326,35 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
+    @Nullable
+    Set<Object> unsafeDisambiguate(
+        Attribute<?> attribute,
+        @Nullable Object requested,
+        Set<Object> candidates
+    ) {
+        return schema.disambiguate(
+            Cast.uncheckedCast(attribute),
+            Cast.uncheckedCast(requested),
+            Cast.uncheckedCast(candidates)
+        );
+    }
+
     /**
      * @param attribute The attribute to disambiguate.
      * @param candidates The set of candidate attribute sets to extract values from during disambiguation.
      */
-    private void disambiguateExtraAttribute(Attribute<?> attribute, BitSet candidates) {
-        Set<Object> candidateValues = getCandidateValues(candidates, c -> getCandidateValue(c, attribute));
+    private <E> void disambiguateExtraAttribute(Attribute<E> attribute, BitSet candidates) {
+        Set<E> candidateValues = getCandidateValues(candidates, c -> getCandidateValue(c, attribute));
 
         // We continue disambiguation for attributes with only one value since we may have some candidates with
         // no value for this attribute in addition to those with a value. Since we do not include `null` in the
         // candidate values, we must continue to execute the disambiguation rule in case the rule specifies a
         // default value and thus removes the candidates which do not have a value for this attribute.
-        if (candidateValues.size() < 1) {
+        if (candidateValues.isEmpty()) {
             return;
         }
 
-        Set<Object> matches = schema.disambiguate(attribute, null, candidateValues);
+        Set<E> matches = schema.disambiguate(attribute, null, candidateValues);
         if (matches != null) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
@@ -347,15 +373,15 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
      *
      * @return A new set containing all compatible values for some attribute.
      */
-    private static Set<Object> getCandidateValues(BitSet compatible, IntFunction<Object> candidateValueFetcher) {
+    private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<E> candidateValueFetcher) {
         // It's often the case that all the candidate values are the same. In this case, we avoid
         // the creation of a set, and just iterate until we find a different value. Then, only in
         // this case, we lazily initialize a set and collect all the candidate values.
-        Set<Object> candidateValues = null;
-        Object compatibleValue = null;
+        Set<E> candidateValues = null;
+        E compatibleValue = null;
         boolean first = true;
         for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
-            Object candidateValue = candidateValueFetcher.apply(c);
+            E candidateValue = candidateValueFetcher.apply(c);
             if (candidateValue == null) {
                 continue;
             }
@@ -428,7 +454,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     @Nullable
-    private Object getCandidateValue(int c, Attribute<?> attribute) {
+    private <E> E getCandidateValue(int c, Attribute<E> attribute) {
         AttributeValue<?> attributeValue = candidateAttributeSets[c].findEntry(attribute.getName());
         return attributeValue.isPresent() ? attributeValue.coerce(attribute) : null;
     }

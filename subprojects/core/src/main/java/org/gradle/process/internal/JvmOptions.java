@@ -214,6 +214,10 @@ public class JvmOptions {
         addExtraJvmArgs(arguments);
     }
 
+    public List<Object> getExtraJvmArgs() {
+        return extraJvmArgs;
+    }
+
     public void checkDebugConfiguration(Iterable<?> arguments) {
         List<String> debugArgs = collectDebugArgs(arguments);
         if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
@@ -398,12 +402,20 @@ public class JvmOptions {
     }
 
     private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
+        copyDebugOptions(debugOptions, otherOptions);
+    }
+
+    private void copyDebugOptionsFrom(JavaDebugOptions otherOptions) {
+        copyDebugOptions(otherOptions, debugOptions);
+    }
+
+    static void copyDebugOptions(JavaDebugOptions from, JavaDebugOptions to) {
         // This severs the connection between from this debugOptions to the other debugOptions
-        otherOptions.getEnabled().set(debugOptions.getEnabled().get());
-        otherOptions.getHost().set(debugOptions.getHost().getOrNull());
-        otherOptions.getPort().set(debugOptions.getPort().get());
-        otherOptions.getServer().set(debugOptions.getServer().get());
-        otherOptions.getSuspend().set(debugOptions.getSuspend().get());
+        to.getEnabled().set(from.getEnabled().get());
+        to.getHost().set(from.getHost().getOrNull());
+        to.getPort().set(from.getPort().get());
+        to.getServer().set(from.getServer().get());
+        to.getSuspend().set(from.getSuspend().get());
     }
 
     public static List<String> fromString(String input) {

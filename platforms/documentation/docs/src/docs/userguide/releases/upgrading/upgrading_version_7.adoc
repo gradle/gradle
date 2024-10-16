@@ -1413,7 +1413,7 @@ Now Gradle will also check for exclusion on the substitution result.
 ==== Version catalog
 
 Generated accessors no longer give access to the type unsafe API.
-You have to use the <<platforms.adoc#sub:type-unsafe-access-to-catalog,version catalog extension>> instead.
+You have to use the <<version_catalogs.adoc#sub:type-unsafe-access-to-catalog,version catalog extension>> instead.
 
 ==== Toolchain support in Scala
 

@@ -125,15 +125,6 @@ public interface ProblemSpec {
     ProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     /**
-     * Declares that this problem is emitted while applying a plugin.
-     *
-     * @param pluginId the ID of the applied plugin
-     * @return this
-     * @since 8.6
-     */
-    ProblemSpec pluginLocation(String pluginId);
-
-    /**
      * Declares that this problem should automatically collect the location information based on the current stack trace.
      *
      * @return this
@@ -162,11 +153,11 @@ public interface ProblemSpec {
     /**
      * The exception causing this problem.
      *
-     * @param e the exception.
+     * @param t the exception.
      * @return this
-     * @since 8.6
+     * @since 8.11
      */
-    ProblemSpec withException(RuntimeException e);
+    ProblemSpec withException(Throwable t);
 
     /**
      * Declares the severity of the problem.

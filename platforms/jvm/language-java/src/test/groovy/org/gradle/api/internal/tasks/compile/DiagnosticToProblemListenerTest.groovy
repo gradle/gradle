@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile
 
-
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblemSpec
 import spock.lang.Specification
 
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
+
+import static javax.tools.Diagnostic.NOPOS
 
 class DiagnosticToProblemListenerTest extends Specification {
 
@@ -34,15 +36,30 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def diagnosticToProblemListener = new DiagnosticToProblemListener(null, null)
 
-    def "file location is correctly reported"() {
+    def "diagnostic id is correctly reported"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
-        diagnostic.lineNumber | diagnostic.columnNumber | diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
+
+        when:
+        diagnosticToProblemListener.buildProblem(diagnostic, spec)
+
+        then:
+        1 * spec.id("dummy-code", "Java compilation error", GradleCoreProblemGroup.compilation().java())
+    }
+
+    def "file location is correctly reported"() {
+        given:
+        def diagnostic = getMockDiagnostics()
+        diagnostic.source >> Mock(JavaFileObject) {
+            name >> "SomeFile.java"
+        }
+        diagnostic.lineNumber >> NOPOS
+        diagnostic.columnNumber >> NOPOS
+        diagnostic.startPosition >> NOPOS
+        diagnostic.endPosition >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
@@ -57,20 +74,20 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def "file location, and line is correctly reported"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
         diagnostic.lineNumber >> 1
-        diagnostic.columnNumber | diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.columnNumber  >> NOPOS
+        diagnostic.startPosition >> NOPOS
+        diagnostic.endPosition >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         1 * spec.lineInFileLocation("SomeFile.java", 1)
         0 * spec.lineInFileLocation(_, _, _)
         0 * spec.lineInFileLocation(_, _, _, _)
@@ -80,21 +97,21 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def "file location, line, and column is correctly reported"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
-        diagnostic.startPosition | diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.startPosition  >> NOPOS
+        diagnostic.endPosition >> NOPOS
+        diagnostic.position >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         // With a column number, the line-only location should not be reported ...
         0 * spec.lineInFileLocation("SomeFile.java", 1)
         // ... but the line and column location should be
@@ -105,25 +122,24 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def "when only start defined, no offset or slice location is reported"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
+        diagnostic.position >> NOPOS
         // Start is defined ...
         diagnostic.startPosition >> 1
         // ... but end is not
-        diagnostic.endPosition >> Diagnostic.NOPOS
+        diagnostic.endPosition >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         // Behavior should be the same as when only line and column are defined
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         0 * spec.lineInFileLocation(_, _)
         1 * spec.lineInFileLocation("SomeFile.java", 1, 1)
         0 * spec.lineInFileLocation(_, _, _, _)
@@ -132,25 +148,24 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def "when only the end is defined, no offset or slice location is reported"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
         // Start is not defined ...
-        diagnostic.startPosition >> Diagnostic.NOPOS
+        diagnostic.startPosition >> NOPOS
         // ... but end is
         diagnostic.endPosition >> 1
+        diagnostic.position >> NOPOS
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
         // Behavior should be the same as when only line and column are defined
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         0 * spec.lineInFileLocation(_, _)
         1 * spec.lineInFileLocation("SomeFile.java", 1, 1)
         0 * spec.lineInFileLocation(_, _, _, _)
@@ -159,9 +174,7 @@ class DiagnosticToProblemListenerTest extends Specification {
 
     def "when both start, position, and end are defined, an offset location is reported"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
         diagnostic.source >> Mock(JavaFileObject) {
             name >> "SomeFile.java"
         }
@@ -178,18 +191,16 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.fileLocation("SomeFile.java")
+        0 * spec.fileLocation("SomeFile.java")
         0 * spec.lineInFileLocation(_, _)
         0 * spec.lineInFileLocation(_, _, _)
         1 * spec.lineInFileLocation("SomeFile.java", 1, 1, 10)
-        1 * spec.offsetInFileLocation("SomeFile.java", 10, 10)
+        0 * spec.offsetInFileLocation("SomeFile.java", 10, 10)
     }
 
     def "multiline diagnostic messages are composed into contextual message and details"() {
         given:
-        def diagnostic = Mock(Diagnostic)
-        diagnostic.getMessage(_) >> DIAGNOSTIC_DETAIL
-        diagnostic.kind >> Diagnostic.Kind.ERROR
+        def diagnostic = getMockDiagnostics()
 
         when:
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
@@ -199,6 +210,14 @@ class DiagnosticToProblemListenerTest extends Specification {
         1 * spec.contextualLabel("Error detail line 1")
         // The full message then repeated in the details
         1 * spec.details(DIAGNOSTIC_DETAIL)
+    }
+
+    Diagnostic<?> getMockDiagnostics() {
+        return Mock(Diagnostic) {
+            code >> "dummy.code"
+            getMessage(_) >> DIAGNOSTIC_DETAIL
+            kind >> Diagnostic.Kind.ERROR
+        }
     }
 
 }

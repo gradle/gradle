@@ -36,8 +36,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
@@ -74,15 +72,13 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     public DefaultDependencyResolutionManagement(
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
         ObjectFactory objects,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
-        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.newDetachedResolver(fileResolver, fileCollectionFactory, StandaloneDomainObjectContext.ANONYMOUS));
+        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.ANONYMOUS));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
         this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);

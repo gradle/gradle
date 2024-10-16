@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -35,18 +35,18 @@ import org.gradle.util.internal.VersionNumber
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.gradle.util.Matchers.containsText
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
         buildFile << """
             project(':app') {
+                def dir = project.layout.projectDirectory.dir("does-not-exist")
                 tasks.withType(XCTest).configureEach {
                     doFirst {
-                        workingDirectory = project.layout.projectDirectory.dir("does-not-exist")
+                        workingDirectory = dir
                     }
                 }
             }
@@ -60,14 +60,17 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("A problem occurred starting process"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
         buildFile << """
             project(':app') {
+                def buildDir = project(':hello').layout.buildDirectory
+                def ops = project.services.get(${FileSystemOperations.name})
                 tasks.withType(XCTest).configureEach {
                     doFirst {
-                        delete project(':hello').layout.buildDirectory.get()
+                        ops.delete {
+                            delete buildDir
+                        }
                     }
                 }
             }
@@ -90,7 +93,6 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails when force-unwrapping an optional results in an error"() {
         buildWithApplicationAndDependencies()
         addForceUnwrappedOptionalTest()

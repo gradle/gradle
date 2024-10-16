@@ -30,8 +30,8 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileColl
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -106,7 +106,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     // Services
     private final DomainObjectContext owner;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
 
     public DefaultTransformUpstreamDependenciesResolver(
@@ -123,7 +123,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         // Services
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory
     ) {
         this.resolutionHost = resolutionHost;

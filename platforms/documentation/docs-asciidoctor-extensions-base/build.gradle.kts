@@ -10,7 +10,6 @@ val asciiDoctorVersion = "2.5.11"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences
-        "OperatorPrecedence", // 1 occurrences
     )
 }
 

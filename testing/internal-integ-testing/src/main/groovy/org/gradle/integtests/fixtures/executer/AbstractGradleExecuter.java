@@ -100,7 +100,6 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
-import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
 import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR;
 
@@ -164,7 +163,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 120;
-    private boolean requireDaemon;
+    protected boolean requireDaemon;
     private File daemonBaseDir;
     private final List<String> buildJvmOpts = new ArrayList<>();
     private final List<String> commandLineJvmOpts = new ArrayList<>();
@@ -573,7 +572,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
             // Pass build JVM args through to daemon via system property on the launcher JVM
-            String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, input -> String.format("'%s'", input)));
+            String quotedArgs = joinAndQuoteJvmArgs(gradleInvocation.buildJvmArgs);
             gradleInvocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
         } else {
             // Have to pass build JVM args directly to launcher JVM
@@ -594,6 +593,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
+    }
+
+    protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
+        return join(" ", buildJvmArgs, input -> {
+            if (input.contains("'")) {
+                throw new IllegalArgumentException("Cannot handle JVM args containing single quotes: " + input);
+            }
+            return "'" + input + "'";
+        });
     }
 
     /**
@@ -883,6 +891,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return requireDaemon || cliDaemonArgument == DAEMON;
     }
 
+    protected boolean isSingleUseDaemonRequested() {
+        return resolveCliDaemonArgument() == NO_DAEMON && requireDaemon;
+    }
 
     public static boolean isAgentInstrumentationEnabled() {
         return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));

@@ -18,12 +18,10 @@ package org.gradle.ide.visualstudio
 
 import groovy.test.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -34,7 +32,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for project without C++ component"() {
         when:
         settingsFile << """
@@ -52,7 +49,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertHasProjects()
     }
 
-    @ToBeFixedForConfigurationCache
     def "create empty solution when component does not target current OS"() {
         when:
         settingsFile << """
@@ -78,7 +74,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertHasProjects("app")
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for single executable"() {
         when:
         app.writeSources(file("src/main"))
@@ -119,7 +114,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for single shared library"() {
         when:
         app.library.writeSources(file("src/main"))
@@ -160,7 +154,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for single static library"() {
         when:
         app.library.writeSources(file("src/main"))
@@ -202,7 +195,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @ToBeFixedForConfigurationCache
     def "create visual studio solution for single library with both static and shared linkages"() {
         when:
         app.library.writeSources(file("src/main"))
@@ -321,7 +313,6 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         debugBinaryDll.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds solution for component with no source"() {
         given:
         settingsFile << """

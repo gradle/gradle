@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
-import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblemReporter
@@ -59,7 +58,7 @@ class FlowParametersInstantiator(
         val problems = ImmutableList.builder<Problem>()
         inspection.propertyWalker.visitProperties(
             parameters,
-            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }) {
+            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }, problemsService) {
                 override fun recordProblem(problem: Problem) {
                     problems.add(problem)
                 }
@@ -91,7 +90,7 @@ class FlowParametersInstantiator(
 
     private
     val internalProblemReporter: InternalProblemReporter
-        get() = (problemsService as InternalProblems).internalReporter
+        get() = problemsService.internalReporter
 
     private
     val instantiator by lazy {
@@ -99,7 +98,7 @@ class FlowParametersInstantiator(
     }
 
     private
-    val problemsService = services.get(Problems::class.java)
+    val problemsService = services.get(InternalProblems::class.java)
 
     private
     val inspection by lazy {

@@ -40,13 +40,14 @@ import java.util.Locale;
 import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
     public static final String VALIDATION_PROBLEMS = "validation_problems";
 
     public InputPropertyAnnotationHandler() {
-        super(Input.class, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        super(Input.class, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Override

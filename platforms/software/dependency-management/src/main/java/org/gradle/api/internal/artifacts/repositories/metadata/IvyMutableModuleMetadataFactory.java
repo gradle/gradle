@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
@@ -33,6 +34,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,13 +45,14 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
     private static final ImmutableSet<String> SINGLE_DEFAULT_CONFIGURATION_NAME = ImmutableSet.of(Dependency.DEFAULT_CONFIGURATION);
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ImmutableAttributesFactory attributesFactory;
-    private final PreferJavaRuntimeVariant schema;
+    private final AttributesFactory attributesFactory;
+    private final ImmutableAttributesSchema schema;
 
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
+    @Inject
+    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributesFactory attributesFactory, PreferJavaRuntimeVariant schema) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
-        this.schema = schema;
+        this.schema = schema.getSchema();
     }
 
     public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from, List<IvyDependencyDescriptor> dependencies) {

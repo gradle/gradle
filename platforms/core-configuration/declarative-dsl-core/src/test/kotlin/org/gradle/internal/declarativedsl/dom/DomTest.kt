@@ -96,7 +96,7 @@ class DomTest {
             """
             element(myFun)[0..363]
                 property(a, literal(x)[16..18])[12..18]
-                error(UnsupportedSyntax(UnsupportedPropertyAccess)[24..28]
+                property(a, namedReference(b)[28..28])[24..28]
                 error(UnsupportedSyntax(ValueFactoryArgumentFormat)[34..47]
                 error(UnsupportedSyntax(ValueFactoryArgumentFormat)[53..77]
                 error(UnsupportedKotlinFeature(FunctionDeclaration)[92..94]
@@ -126,6 +126,8 @@ class DomTest {
                     maybeSourceData(valueNode)
 
                 is DeclarativeDocument.ValueNode.LiteralValueNode -> "literal(${valueNode.value})" + maybeSourceData(valueNode)
+
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> "namedReference(${valueNode.referenceName})" + maybeSourceData(valueNode)
             }
 
             fun visit(node: DeclarativeDocument.DocumentNode, depth: Int = 0) {

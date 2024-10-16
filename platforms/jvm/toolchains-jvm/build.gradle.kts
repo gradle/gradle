@@ -32,6 +32,7 @@ dependencies {
     api(projects.enterpriseOperations)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.jvmServices)
     api(projects.modelCore)
     api(projects.native)

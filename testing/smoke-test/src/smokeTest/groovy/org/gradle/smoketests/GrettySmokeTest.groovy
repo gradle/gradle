@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @UnsupportedWithConfigurationCache(
@@ -69,6 +70,13 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                 grettyVersion < VersionNumber.parse("4.1.0"),
                 "The org.gradle.util.VersionNumber type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
                 "https://github.com/gretty-gradle-plugin/gretty/issues/297"
+            )
+            .expectDeprecationWarning(
+                "The Project.javaexec(Closure) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_project_exec",
+                "https://github.com/gretty-gradle-plugin/gretty/issues/312"
             )
             .build()
 

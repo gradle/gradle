@@ -18,26 +18,24 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.interfaces.ArtifactSelectionFailure;
-
-import java.util.List;
+import org.gradle.internal.component.resolution.failure.transform.TransformationChainData;
 
 /**
  * An {@link ArtifactSelectionFailure} that represents the situation when multiple artifact transforms are
  * available that would satisfy an artifact selection request.
  */
 public final class AmbiguousArtifactTransformsFailure extends AbstractArtifactSelectionFailure {
-    private final ImmutableList<TransformedVariant> transformedVariants;
+    private final ImmutableList<TransformationChainData> potentialVariants;
 
-    public AmbiguousArtifactTransformsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
+    public AmbiguousArtifactTransformsFailure(ComponentIdentifier targetComponent, String targetVariant, AttributeContainerInternal requestedAttributes, ImmutableList<TransformationChainData> potentialVariants) {
         super(ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM, targetComponent, targetVariant, requestedAttributes);
-        this.transformedVariants = ImmutableList.copyOf(transformedVariants);
+        this.potentialVariants = potentialVariants;
     }
 
-    public ImmutableList<TransformedVariant> getTransformedVariants() {
-        return transformedVariants;
+    public ImmutableList<TransformationChainData> getPotentialVariants() {
+        return potentialVariants;
     }
 }

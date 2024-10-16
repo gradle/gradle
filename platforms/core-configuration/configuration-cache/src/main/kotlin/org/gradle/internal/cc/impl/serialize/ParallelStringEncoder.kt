@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * Deduplicates and encodes strings to a separate stream in a thread-safe manner.
  */
 internal
-class ParallelStringEncoder(stream: OutputStream) : StringEncoder, AutoCloseable {
+class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
 
     private
     val strings = ConcurrentHashMap<String, Int>()

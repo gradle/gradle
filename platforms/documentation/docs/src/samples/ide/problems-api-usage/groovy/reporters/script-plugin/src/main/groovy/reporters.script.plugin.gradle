@@ -7,7 +7,7 @@ interface Injected {
 
 def problems = project.objects.newInstance(Injected).getProblems()
 
-problems.forNamespace('buildscript').reporting {
+problems.getReporter().reporting {
     it.id('adhoc-script-deprecation', 'Deprecated script plugin')
         .contextualLabel("Deprecated script plugin 'demo-script-plugin'")
         .severity(Severity.WARNING)
@@ -16,7 +16,7 @@ problems.forNamespace('buildscript').reporting {
 
 tasks.register('warningTask') {
     doLast {
-        problems.forNamespace('buildscript').reporting {
+        problems.getReporter().reporting {
             it.id('adhoc-task-deprecation', 'Deprecated task')
                 .contextualLabel("Task 'warningTask' is deprecated")
                 .severity(Severity.WARNING)
@@ -27,7 +27,7 @@ tasks.register('warningTask') {
 
 tasks.register('failingTask') {
     doLast {
-        problems.forNamespace('buildscript').throwing {
+        problems.getReporter().throwing {
             it.id('broken-task', 'Task should not be called')
                 .contextualLabel("Task 'failingTask' should not be called")
                 .severity(Severity.ERROR)

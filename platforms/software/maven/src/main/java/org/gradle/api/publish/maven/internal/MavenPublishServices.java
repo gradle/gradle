@@ -45,6 +45,8 @@ public class MavenPublishServices extends AbstractGradleModuleServices {
     }
 
     private static class ComponentRegistrationAction implements ServiceRegistrationProvider {
+        @SuppressWarnings("UnusedVariable")
+        @Provides
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)

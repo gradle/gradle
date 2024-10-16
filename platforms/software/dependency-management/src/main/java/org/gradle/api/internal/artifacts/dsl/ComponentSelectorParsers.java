@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -36,7 +37,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
-import java.util.Collections;
 import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
@@ -108,7 +108,7 @@ public class ComponentSelectorParsers {
         @Override
         public void convert(Project notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
             ProjectIdentity identity = ((ProjectInternal) notation).getOwner().getIdentity();
-            result.converted(new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, Collections.emptyList()));
+            result.converted(new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, ImmutableSet.of()));
         }
     }
 }

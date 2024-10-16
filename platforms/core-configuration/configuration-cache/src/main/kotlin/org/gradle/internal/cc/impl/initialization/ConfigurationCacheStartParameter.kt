@@ -52,12 +52,12 @@ class ConfigurationCacheStartParameter internal constructor(
      * Another key benefit is that this eliminates discrepancies in behavior between cache hits and misses.
      *
      * We disable load-after-store when tooling model builders are involved.
-     * This is because the builders are executed after the tasks (if any) in a build action,
+     * This is because the builders can be executed after the tasks (if any) in a build action,
      * and these builders may access project state as well as the task state.
      * Doing load-after-store would have discarded the project state and isolated the task state,
      * providing the builders with an incomplete view of the build.
      */
-    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
+    val loadAfterStore: Boolean = !modelParameters.isRequiresToolingModels && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
 
     val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
 
@@ -74,6 +74,14 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default is `true`.
      */
     val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
+
+    /**
+     * Whether shareable objects in the configuration cache should be shared
+     * in order to save space on disk and to use less memory on a cache hit.
+     *
+     * The default is `true`.
+     */
+    val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
 
     /**
      * Whether configuration cache storing/loading should be done in parallel.

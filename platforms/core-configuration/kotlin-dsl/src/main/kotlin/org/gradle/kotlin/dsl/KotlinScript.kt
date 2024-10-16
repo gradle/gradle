@@ -298,6 +298,7 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [ExecSpec].
      * @return The result of the execution.
      */
+    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
     fun exec(configuration: Action<ExecSpec>): ExecResult
 
     /**
@@ -308,5 +309,6 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [JavaExecSpec].
      * @return The result of the execution.
      */
+    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
     fun javaexec(configuration: Action<JavaExecSpec>): ExecResult
 }

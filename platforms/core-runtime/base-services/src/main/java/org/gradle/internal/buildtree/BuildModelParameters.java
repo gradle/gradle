@@ -22,14 +22,15 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
-    boolean isParallelProjectExecution();
-
     /**
-     * Will the build model, that is the configured Gradle and Project objects, be required during the build execution?
-     *
-     * <p>When the build model is not required, certain state can be discarded or not created.
+     * True when the build action requires to build Tooling Models.
+     * <p>
+     * When true, Gradle's "build model" such Gradle and Project state cannot be discarded
+     * even after the tasks have been executed, because the Tooling Model Builders can run after tasks.
      */
-    boolean isRequiresBuildModel();
+    boolean isRequiresToolingModels();
+
+    boolean isParallelProjectExecution();
 
     boolean isConfigureOnDemand();
 

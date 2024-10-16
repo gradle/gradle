@@ -65,12 +65,12 @@ public interface FileSystemOperations {
 
     /**
      * Synchronizes the contents of a destination directory with some source directories and files.
-     * The given action is used to configure a {@link CopySpec}, which is then used to synchronize the files.
+     * The given action is used to configure a {@link SyncSpec}, which is then used to synchronize the files.
      *
-     * @param action action Action to configure the CopySpec.
+     * @param action action Action to configure the SyncSpec.
      * @return {@link WorkResult} that can be used to check if the sync did any work.
      */
-    WorkResult sync(Action<? super CopySpec> action);
+    WorkResult sync(Action<? super SyncSpec> action);
 
     /**
      * Deletes the specified files.

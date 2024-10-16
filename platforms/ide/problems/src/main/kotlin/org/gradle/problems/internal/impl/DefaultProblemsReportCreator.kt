@@ -23,7 +23,9 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
+import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.JsonSource
@@ -53,7 +55,7 @@ class DefaultProblemsReportCreator(
     private val buildNameProvider: BuildNameProvider
 ) : ProblemReportCreator {
 
-    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problem report", "problem-report")
+    private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problems report", "problems-report", false)
     private val taskNames: List<String> = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
 
@@ -72,7 +74,7 @@ class DefaultProblemsReportCreator(
                             property("totalProblemCount", problemCount.get())
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
-                            property("documentationLink", DocumentationRegistry().getDocumentationFor("problem-report"))
+                            property("documentationLink", DocumentationRegistry().getDocumentationFor("problems-report"))
                             property("documentationLinkCaption", "Problem report")
                         }
                     }
@@ -80,7 +82,7 @@ class DefaultProblemsReportCreator(
             }
         })?.let {
             val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("Problems report is available at: $url")
+            logger.warn("[Incubating] Problems report is available at: $url")
         }
     }
 
@@ -94,21 +96,14 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                val fileLocations = problem.locations.filterIsInstance<FileLocation>()
+                val fileLocations = problem.locations
                 if (fileLocations.isNotEmpty()) {
-                    property("fileLocations") {
+                    property("locations") {
                         jsonObjectList(fileLocations) { location ->
-                            property("path", location.path)
-                            if (location is LineInFileLocation) {
-                                if (location.line >= 0) {
-                                    property("line", location.line)
-                                }
-                                if (location.column >= 0) {
-                                    property("column", location.column)
-                                }
-                                if (location.length >= 0) {
-                                    property("length", location.length)
-                                }
+                            when (location) {
+                                is FileLocation -> fileLocation(location)
+                                is PluginIdLocation -> property("pluginId", location.pluginId!!)
+                                is TaskPathLocation -> property("taskPath", location.buildTreePath)
                             }
                         }
                     }
@@ -131,8 +126,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                 problem.definition.documentationLink?.let { property("documentationLink", it.url) }
                 problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
                 property("problemId") {
-                    val list = listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName)) +
-                        generateSequence(problem.definition.id.group) { it.parent }.toList().asReversed()
+                    val list = generateSequence(problem.definition.id.group) { it.parent }.toList() + listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName))
                     jsonObjectList(list) { group ->
                         property("name", group.name)
                         property("displayName", group.displayName)
@@ -150,6 +144,21 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun JsonWriter.fileLocation(location: FileLocation) {
+        property("path", location.path)
+        if (location is LineInFileLocation) {
+            if (location.line >= 0) {
+                property("line", location.line)
+            }
+            if (location.column >= 0) {
+                property("column", location.column)
+            }
+            if (location.length >= 0) {
+                property("length", location.length)
             }
         }
     }

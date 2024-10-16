@@ -66,6 +66,17 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         checkBinaryCompatible(
             v1 = {
                 withFile(
+                    "java/com/example/TaskInterface.java",
+                    """
+                        package com.example;
+
+                        public interface TaskInterface {
+                            String getSourceCompatibility();
+                            void setSourceCompatibility(String value);
+                        }
+                    """
+                )
+                withFile(
                     "java/com/example/Task.java",
                     """
                         package com.example;
@@ -93,10 +104,36 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                     """
                 )
                 withFile(
+                    "java/com/example/TaskInterface.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public interface TaskInterface {
+                            Property<String> getSourceCompatibility();
+                        }
+                    """
+                )
+                withFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
                             "containingType": "com.example.Task",
+                            "methodName": "getSourceCompatibility",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "sourceCompatibility",
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "()Ljava/lang/String;",
+                                "name": "getSourceCompatibility"
+                            }, {
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "(Ljava/lang/String;)V",
+                                "name": "setSourceCompatibility"
+                            }]
+                        },
+                        {
+                            "containingType": "com.example.TaskInterface",
                             "methodName": "getSourceCompatibility",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "sourceCompatibility",
@@ -117,7 +154,9 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
             assertHasNoError()
             assertHasAccepted(
                 "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract"),
-                "Method com.example.Task.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
+                "Method com.example.Task.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
+                "Method com.example.TaskInterface.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed"),
+                "Method com.example.TaskInterface.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
             )
         }
     }
@@ -140,6 +179,17 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
+                withFile(
+                    "java/com/example/TaskInterface.java",
+                    """
+                        package com.example;
+
+                        public interface TaskInterface {
+                            boolean isFailOnError();
+                            void setFailOnError(boolean b);
+                        }
+                    """
+                )
             },
             v2 = {
                 withFile(
@@ -157,10 +207,39 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                     """
                 )
                 withFile(
+                    "java/com/example/TaskInterface.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public interface TaskInterface {
+                            Property<Boolean> getFailOnError();
+                            default Property<Boolean> getIsFailOnError() {
+                                return getFailOnError();
+                            }
+                        }
+                    """
+                )
+                withFile(
                     "resources/upgraded-properties.json",
                     """
                         [{
                             "containingType": "com.example.Task",
+                            "methodName": "getFailOnError",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "failOnError",
+                            "replacedAccessors": [{
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "()Z",
+                                "name": "isFailOnError"
+                            }, {
+                                "binaryCompatibility": "ACCESSORS_REMOVED",
+                                "descriptor": "(Z)V",
+                                "name": "setFailOnError"
+                            }]
+                        },
+                        {
+                            "containingType": "com.example.TaskInterface",
                             "methodName": "getFailOnError",
                             "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
                             "propertyName": "failOnError",
@@ -185,7 +264,15 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 "Method com.example.Task.getIsFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class"),
                 "Method com.example.Task.getIsFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to public class"),
                 "Method com.example.Task.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
-                "Method com.example.Task.setFailOnError(boolean): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
+                "Method com.example.Task.setFailOnError(boolean): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
+
+                "Method com.example.TaskInterface.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to interface"),
+                "Method com.example.TaskInterface.getFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to interface"),
+                "Method com.example.TaskInterface.getIsFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
+                "Method com.example.TaskInterface.getIsFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
+                "Method com.example.TaskInterface.getIsFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
+                "Method com.example.TaskInterface.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
+                "Method com.example.TaskInterface.setFailOnError(boolean): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
             )
         }
     }

@@ -226,9 +226,7 @@ public class GradlePomModuleDescriptorBuilder {
 
     /**
      * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it from the dependency management section.
-     * In case the version cannot be resolved with any of these methods:
-     * - If this is a direct dependency: throw an exception of type see {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
-     * - If this is an optional dependency: return the empty version
+     * In case the version cannot be resolved with any of these methods, return the empty version
      *
      * @param dependency Dependency
      * @return Resolved dependency version

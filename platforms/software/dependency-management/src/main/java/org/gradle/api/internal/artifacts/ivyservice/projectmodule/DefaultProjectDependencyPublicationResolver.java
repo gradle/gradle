@@ -200,7 +200,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
      * with the given coordinate type.
      */
     private <T> Map<ProjectComponentPublication, T> getPublications(Path identityPath, Class<T> coordsType) {
-        Collection<ProjectComponentPublication> allPublications = publicationRegistry.getPublications(ProjectComponentPublication.class, identityPath);
+        Collection<ProjectComponentPublication> allPublications = publicationRegistry.getPublicationsForProject(ProjectComponentPublication.class, identityPath);
         Map<ProjectComponentPublication, T> publications = new LinkedHashMap<>(allPublications.size());
         for (ProjectComponentPublication publication : allPublications) {
             T coordinates = publication.getCoordinates(coordsType);

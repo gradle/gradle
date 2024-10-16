@@ -17,6 +17,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -60,12 +61,17 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(BuildLogger.class), startParameter, buildStartedTime, buildRequestMetaData);
         // Register as a 'logger' to support this being replaced by build logic.
-        buildController.beforeBuild(gradle -> gradle.useLogger(buildLogger));
+        buildController.beforeBuild(gradle -> callUseLogger(gradle, buildLogger));
 
         Result result = delegate.run(action, buildController);
 
         buildLogger.logResult(result.getBuildFailure());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
         return result;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void callUseLogger(GradleInternal gradle, BuildLogger logger) {
+        gradle.useLogger(logger);
     }
 }

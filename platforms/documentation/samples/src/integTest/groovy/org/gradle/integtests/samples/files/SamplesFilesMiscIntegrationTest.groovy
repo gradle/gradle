@@ -100,6 +100,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dslDir.file("build").createDir().file("dummy.txt").touch()
 
         when:
+        executer.withArgument("--no-problems-report")
         succeeds('myClean')
 
         then:
@@ -116,6 +117,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(dslDir)
 
         when:
+        executer.withArgument("--no-problems-report")
         succeeds('cleanTempFiles')
 
         then:

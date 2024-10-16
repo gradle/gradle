@@ -25,11 +25,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ExternalVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -42,7 +43,6 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
@@ -137,7 +137,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public AttributesSchemaInternal getAttributesSchema() {
+        public ImmutableAttributesSchema getAttributesSchema() {
             return delegate.getAttributesSchema();
         }
 
@@ -153,7 +153,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
+        public List<? extends ExternalVariantGraphResolveMetadata> getVariantsForGraphTraversal() {
             return Collections.emptyList();
         }
 

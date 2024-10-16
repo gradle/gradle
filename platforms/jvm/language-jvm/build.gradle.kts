@@ -21,7 +21,6 @@ dependencies {
     api(projects.files)
     api(projects.platformBase)
     api(projects.platformJvm)
-    api(projects.processServices)
     api(projects.workers)
 
     api(libs.groovy)

@@ -44,7 +44,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -72,6 +71,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
@@ -81,9 +81,9 @@ import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -94,6 +94,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -145,6 +146,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
@@ -218,7 +220,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean observed = false;
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ResolutionAccess resolutionAccess;
     private FileCollectionInternal intrinsicFiles;
 
@@ -238,6 +240,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private final InternalProblems problemsService;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -255,7 +258,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
@@ -267,6 +270,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
+        InternalProblems problemsService,
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
@@ -314,6 +318,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.problemsService = problemsService;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -371,6 +376,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         validateMutation(MutationType.HIERARCHY);
+        assertNotDetachedExtensionDoingExtending(extendsFrom);
         for (Configuration configuration : this.extendsFrom) {
             if (inheritedArtifacts != null) {
                 inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
@@ -393,6 +399,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
         validateMutation(MutationType.HIERARCHY);
+        assertNotDetachedExtensionDoingExtending(Arrays.asList(extendsFrom));
         for (Configuration extended : extendsFrom) {
             ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
             if (!domainObjectContext.equals(other.getDomainObjectContext())) {
@@ -1855,6 +1862,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
+    public InternalProblems getProblems() {
+        return problemsService;
+    }
+
+    private void assertNotDetachedExtensionDoingExtending(Iterable<Configuration> extendsFrom) {
+        if (isDetachedConfiguration()) {
+            String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
+                .map(c -> "'" + c.getName() + "'")
+                .collect(Collectors.joining(", "));
+            DeprecationLogger.deprecateAction(String.format("Calling extendsFrom on %s", this.getDisplayName()))
+                .withContext(String.format("Detached configurations should not extend other configurations, this was extending: %s.", summarizedExtensionTargets))
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "detached_configurations_cannot_extend")
+                .nagUser();
+        }
+    }
+
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
 
         @Override
@@ -1950,11 +1974,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private static class DefaultResolutionHost implements ResolutionHost {
-
         private final DefaultConfiguration configuration;
 
         public DefaultResolutionHost(DefaultConfiguration configuration) {
             this.configuration = configuration;
+        }
+
+        @Override
+        public InternalProblems getProblems() {
+            return configuration.getProblems();
         }
 
         @Override
@@ -1963,8 +1991,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public Optional<? extends ResolveException> mapFailure(String type, Collection<Throwable> failures) {
-            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, type, configuration.getDisplayName()));
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+            return Optional.ofNullable(configuration.exceptionMapper.mapFailures(failures, resolutionType, configuration.getDisplayName()));
         }
 
         @Override

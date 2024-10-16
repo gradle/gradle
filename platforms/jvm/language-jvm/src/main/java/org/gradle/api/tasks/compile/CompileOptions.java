@@ -246,8 +246,17 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets options for generating debugging information.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #debugOptions(Action)} instead.
      */
+    @Deprecated
     public void setDebugOptions(DebugOptions debugOptions) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "setDebugOptions(DebugOptions)")
+            .replaceWith("debugOptions(Action)")
+            .withContext("Setting a new instance of debugOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.debugOptions = debugOptions;
     }
 
@@ -290,8 +299,17 @@ public abstract class CompileOptions extends AbstractOptions {
 
     /**
      * Sets options for running the compiler in a child process.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
      */
+    @Deprecated
     public void setForkOptions(ForkOptions forkOptions) {
+        DeprecationLogger.deprecateMethod(CompileOptions.class, "setForkOptions(ForkOptions)")
+            .replaceWith("forkOptions(Action)")
+            .withContext("Setting a new instance of forkOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.forkOptions = forkOptions;
     }
 

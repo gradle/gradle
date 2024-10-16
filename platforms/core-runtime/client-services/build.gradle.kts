@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
+    implementation(projects.fileOperations)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
     implementation(projects.time)
