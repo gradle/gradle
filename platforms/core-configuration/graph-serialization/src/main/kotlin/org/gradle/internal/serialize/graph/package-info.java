@@ -46,7 +46,7 @@
  *  <p>
  *  On serialization of an object of some type, the {@link org.gradle.internal.serialize.graph.codecs.BindingsBackedCodec bindings-backed composite codec}
  *  will query all bindings to find which one knows how to encode the type at hand,
- *  by invoking {@link org.gradle.internal.serialize.graph.codecs.Binding#encodingForType(java.lang.Class)} on each binding. If a binding supports the type,
+ *  by invoking {@link org.gradle.internal.serialize.graph.codecs.Binding#encodingFor(Class)} on each binding. If a binding supports the type,
  *  it will return the proper {@link org.gradle.internal.serialize.graph.EncodingProvider} (or null, otherwise).
  *  </p><p>
  *  Deserializing is simpler: the bindings-backed composite codec reads a tag from the stored state, and then picks the binding that is associated with that tag (and consequently, that binding's decoder).
