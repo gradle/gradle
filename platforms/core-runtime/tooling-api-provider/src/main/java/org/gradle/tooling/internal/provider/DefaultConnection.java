@@ -43,6 +43,7 @@ import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSyst
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
+import org.gradle.tooling.internal.protocol.InternalPingConnection;
 import org.gradle.tooling.internal.protocol.InternalStopWhenIdleConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -69,7 +70,9 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
     ConfigurableConnection, InternalCancellableConnection, InternalParameterAcceptingConnection,
-    StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalInvalidatableVirtualFileSystemConnection, InternalStopWhenIdleConnection {
+    StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection,
+    InternalInvalidatableVirtualFileSystemConnection, InternalStopWhenIdleConnection,
+    InternalPingConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
 
@@ -208,7 +211,9 @@ public class DefaultConnection implements ConnectionVersion4,
         assertUsingSupportedJavaVersion();
 
         checkUnsupportedTapiVersion();
-        ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);
+        ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class)
+            .mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class)
+            .build(buildParameters);
 
         DeprecationLogger.reset();
         IncubationLogger.reset();
@@ -247,5 +252,11 @@ public class DefaultConnection implements ConnectionVersion4,
     public void stopWhenIdle(BuildParameters operationParameters) {
         ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         connection.stopWhenIdle(providerParameters);
+    }
+
+    @Override
+    public void ping(BuildParameters operationParameters) {
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
+        connection.ping(providerParameters);
     }
 }

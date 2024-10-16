@@ -35,6 +35,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -64,6 +65,16 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     @Provides
     DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator<UUID> idGenerator) {
         return new DaemonStopClient(connector, idGenerator);
+    }
+
+    @Provides
+    DaemonPingClient createDaemonPingClient(
+        DaemonConnector connector,
+        IdGenerator<UUID> idGenerator,
+        DaemonRequestContext daemonRequestContext
+    ) {
+        DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(daemonRequestContext);
+        return new DaemonPingClient(connector, idGenerator, matchingContextSpec);
     }
 
     @Provides

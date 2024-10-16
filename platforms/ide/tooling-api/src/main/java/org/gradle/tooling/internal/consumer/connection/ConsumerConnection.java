@@ -50,4 +50,6 @@ public interface ConsumerConnection extends Stoppable {
     void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters);
 
     void stopWhenIdle(ConsumerOperationParameters operationParameters);
+
+    void ping(ConsumerOperationParameters operationParameters);
 }

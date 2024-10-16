@@ -78,6 +78,11 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
         delegate.stopWhenIdle(operationParameters);
     }
 
+    @Override
+    public void ping(ConsumerOperationParameters operationParameters) {
+        delegate.ping(operationParameters);
+    }
+
     private void validateParameters(ConsumerOperationParameters operationParameters) {
         if (!targetVersionDetails.supportsEnvironmentVariablesCustomization()) {
             if (operationParameters.getEnvironmentVariables() != null) {

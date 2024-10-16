@@ -197,4 +197,6 @@ public interface ProjectConnection extends Closeable {
      */
     @Override
     void close();
+
+    Ping ping();
 }

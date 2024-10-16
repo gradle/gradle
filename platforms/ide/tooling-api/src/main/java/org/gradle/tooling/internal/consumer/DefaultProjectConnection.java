@@ -19,6 +19,7 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.Ping;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
@@ -46,6 +47,11 @@ class DefaultProjectConnection implements ProjectConnection {
     public void close() {
         connection.stop();
         listener.connectionClosed(this);
+    }
+
+    @Override
+    public Ping ping() {
+        return new DefaultPing(connection, this.parameters);
     }
 
     void disconnect() {
