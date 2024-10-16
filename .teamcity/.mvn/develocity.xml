@@ -1,5 +1,3 @@
-
-
 <!--
   ~ Copyright 2022 the original author or authors.
   ~
@@ -16,17 +14,13 @@
   ~ limitations under the License.
   -->
 
-<gradleEnterprise
-        xmlns="https://www.gradle.com/gradle-enterprise-maven" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="https://www.gradle.com/gradle-enterprise-maven https://www.gradle.com/schema/gradle-enterprise-maven.xsd">
+<develocity>
     <server>
         <url>https://develocity.grdev.net</url>
     </server>
-
     <buildScan>
-        <publish>ALWAYS</publish>
-        <termsOfService>
-            <url>https://gradle.com/terms-of-service</url>
-        </termsOfService>
+        <publishing>
+            <onlyIf>true</onlyIf>
+        </publishing>
     </buildScan>
-</gradleEnterprise>
+</develocity>

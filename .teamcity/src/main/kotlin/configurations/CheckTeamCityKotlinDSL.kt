@@ -21,7 +21,7 @@ class CheckTeamCityKotlinDSL(model: CIBuildModel, stage: Stage) : OsAwareBaseGra
             }
             script {
                 name = "CLEAN_M2"
-                scriptContent = checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise", exitOnFailure = false)
+                scriptContent = checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.develocity", exitOnFailure = false)
             }
         }
     }
