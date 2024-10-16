@@ -144,7 +144,7 @@ This is **not** the case: Gradle will only perform what is strictly required to 
 This _may_ involve downloading new listings, metadata files, or even artifacts, but the impact is minimal if nothing changed.
 --
 
-[[sec:component_selection_rules]]
+[[component_selection_rules]]
 == Using component selection rules
 
 Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector.
