@@ -15,70 +15,40 @@
 [[artifact_view]]
 = Artifact View
 
-Gradle splits up dependency resolution into two phases:
+Gradle divides dependency resolution into two phases:
 
-1. Graph resolution
-** Based on dependencies
-** Attributes assigned to Configuration
+1. **Graph resolution**:
+- Driven by declared dependencies
+- Uses attributes assigned to the configuration
 
-2. Artifact selection
-** Based on nodes in graph
-** Selected by matching the variant of the node
-** By default, artifacts are selected by the same attributes that built the graph
+2. **Artifact selection**:
+- Based on nodes in the dependency graph
+- Matches the variant of each node
+- Retrieves the artifact(s) for the variant
 
-A `ResolutionResult` shows the output of the graph resolution phase.
-This phase is only concerned with nodes of a dependency graph and not the artifacts (files) that those nodes expose.
+By default, artifacts are selected using the same attributes that built the graph (in phase 1).
 
-A Variant is a node of the graph.
-Variants belong to a Component.
-Dependencies are declared on variants and target other components.
+The `ResolutionResult` represents the output of the graph resolution phase, which focuses solely on the nodes in the dependency graph, not the artifacts (files) they expose.
 
-During resolution, dependencies are resolved to edges of the graph by using the request attributes declared on the configuration to select the target variant (node) of the component being depended upon.
+An `ArtifactView` operates on top of the resolved dependency graph (`ResolutionResult`).
+It queries the graph for specific artifacts, enabling artifact resolution with different attributes.
 
-An `ArtifactView` operates on top of the result of graph resolution.
-In effect, it has access to the `ResolutionResult` (the graph) and queries the graph for a specific set of artifacts.
-In general, you can think of a Configuration's `getFiles()` output to be an `artifactView` of the graph resolution using the same attributes as were used to build the graph.
+Think of a configuration's `getFiles()` output as an `ArtifactView` that uses the same attributes as the graph resolution.
+However, an explicit `ArtifactView` allows you to resolve artifacts from the graph with different attributes.
 
-However, an explicit artifact view allows you to resolve artifacts from the dependency graph using different attributes.
+For example, when resolving the `runtimeClasspath` of a Java project, the default attributes (`category=library`, `usage=java-runtime`, etc.) build the dependency graph.
+Using an `ArtifactView`, you can select artifacts from this graph with different attributes through variant reselection.
+Gradle reselects variants by running attribute matching for each node in the graph.
 
-Consider the following case:
+This is useful for tasks like requesting sources or test results for all resolved jars.
+Tools like `Jacoco` and test report aggregation use variant reselection to achieve this.
 
-I resolve the `runtimeClasspath` of a Java project.
-It uses the default attributes for that configuration (`category=library`, `usage=java-runtime`, etc.) to build a graph.
-That means each dependency uses these attributes to find out what variant in the target component to point to.
+In essence, an `ArtifactView` with variant reselection enables you to retrieve parallel variants from the graph.
+Without variant reselection, an `ArtifactView` is less impactful.
 
-Using this graph, I can select artifacts from it.
-This is what an artifact view does.
-For each node in the graph, Gradle will again run attribute matching (when using withVariantReselection).
-Gradle asks the owning component for a variant that matches these new attributes.
-So, if in the graph I have `runtimeElements` selected, I can reselect (`withVariantReselection`) the node as if different attributes were originally requested.
+== Basic usage
 
-This, for example, is very useful for doing things like requesting all sources for all resolved jars, or requesting test results for all resolved jars. In fact, jacoco and test report aggregation are built on top of variant reselection.
-
-In essence an `artifactView` (using variant reselection) allows you to select a parallel variant for each variant in a graph.
-
-Using an `artifactView` without reselection IMO is not very interesting.
-
-=====
-
-Interface:
-
-A view over the artifacts resolved for this set of dependencies. By default, the view returns all files and artifacts, but this can be restricted by component identifier or by attributes.
-
-=====
-
-What is artifact view?
-
-- Influences the artifact selection step only
-- Before withVariantReselection, a selected artifact must match attributes of both the graph and the ArtifactView
-- Using withVariantReselection, a selected artifact can come from any variants available from the component
-
-=====
-
-`ArtifactView` is a powerful API that allows you to query and filter artifacts from configurations.
-It's particularly useful when you need to handle or transform specific artifacts in a configuration, such as resolving dependencies for certain tasks.
-
-== Basic Usage
+`ArtifactView` is a powerful API that allows you to query and filter artifacts from configurations:
 
 To create and use an `ArtifactView`, follow these steps:
 
@@ -87,25 +57,37 @@ To create and use an `ArtifactView`, follow these steps:
 3. **Filter Artifacts**: Optionally filter the artifacts based on attributes.
 4. **Query Artifacts**: Use the view to obtain the artifacts.
 
-Here’s a practical example showing how to use `ArtifactView` to resolve and process JAR files from a configuration:
+This example shows how to use `ArtifactView` to resolve and process JAR files from a configuration.
 
-=== Step 1: Define a Configuration
+=== Step 1: Define a configuration
 
-```kotlin
+This creates a new configuration named `customConfiguration`:
+
+[source, kotlin]
+----
 val customConfiguration by configurations.creating
-```
+----
 
-=== Step 2: Add Dependencies to the Configuration
+=== Step 2: Add dependencies to the configuration
 
-```kotlin
+This block adds the Guava library to the `customConfiguration`:
+
+[source, kotlin]
+----
 dependencies {
     customConfiguration("com.google.guava:guava:30.1-jre")
 }
-```
+----
 
-=== Step 3: Create and Use an `ArtifactView`
+=== Step 3: Create and use an `ArtifactView`
 
-```kotlin
+In the `processArtifacts` task:
+- `artifactView {}`: This block creates an `ArtifactView` for the `customConfiguration`.
+- `view.artifacts.artifactFiles`: This retrieves the artifact files from the view.
+- `artifacts.files.forEach {}`: This loop processes each artifact file.
+
+[source, kotlin]
+----
 tasks.register("processArtifacts") {
     doLast {
         val view = configurations.customConfiguration.incoming.artifactView { viewConfiguration ->
@@ -123,56 +105,33 @@ tasks.register("processArtifacts") {
         }
     }
 }
-```
+----
 
-1. **Configuration Definition**:
-```kotlin
-val customConfiguration by configurations.creating
-```
+==  Advanced usage
 
-This creates a new configuration named `customConfiguration`.
+There are several ways to leverage Artifact Views in Gradle:
 
-2. **Adding Dependencies**:
-```kotlin
-dependencies {
-customConfiguration("com.google.guava:guava:30.1-jre")
-}
-```
+1. **Lenient Resolution**: Using `artifactView` with `lenient=true` allows you to ignore missing dependencies.
+2. **Component Filtering**: Using `artifactView` with `componentFilter` lets you exclude specific dependencies from the results.
+3. **Variant Reselection**:
+- Normally, an artifact must match both the graph's attributes and the `ArtifactView` attributes.
+- With `withVariantReselection`, you can select artifacts from any available variants within a component.
 
-This block adds the Guava library to the `customConfiguration`.
+Without variant reselection, an `artifactView` only selects among the artifact variants of the resolved graph (e.g., those added through `ConfigurationPublications.variants`).
+With reselection, it can select artifacts from adjacent variants as well.
 
-3. **Creating an `ArtifactView`**:
-```kotlin
-tasks.register("processArtifacts") {
-doLast {
-val view = configurations.customConfiguration.incoming.artifactView { viewConfiguration ->
-// Optional: Filter by attribute if needed
-// viewConfiguration.attributes.attribute(...)
-}
+For example, when resolving a configuration like `codeCoverageResultsConf` for `Jacoco`, the graph is built based on the `runtimeClasspath`, which selects the `runtimeElements` variant of each component.
+The `runtimeElements` variant usually includes a jar artifact but also has artifact sub-variants that provide class directories, which can be selected without variant reselection.
 
-           // Get the artifacts
-           val artifacts = view.artifacts.artifactFiles
+However, alongside `runtimeElements`, there are other graph variants like `sourcesElements`, which provide source files.
 
-           // Process each artifact
-           artifacts.files.forEach { file ->
-               println("Processing artifact: ${file.name}")
-               // Perform custom processing, e.g., copying or transforming
-           }
-       }
-   }
-```
+=== Step 1: Create an attribute
 
-- `artifactView {}`: This block creates an `ArtifactView` for the `customConfiguration`.
-- `view.artifacts.artifactFiles`: This retrieves the artifact files from the view.
-- `artifacts.files.forEach {}`: This loop processes each artifact file.
+Create the `customAttribute` attribute:
 
-== Advanced Usage
-
-You can further customize the `ArtifactView` by using filters and attributes:
-
-=== Filtering by Attributes
-
-```kotlin
+[source,kotlin]
+----
+// Define a custom attribute
 val customAttribute = Attribute.of("customAttribute", String::class.java)
 
 configurations {
@@ -182,19 +141,64 @@ configurations {
         }
     }
 }
+----
 
+=== Step 2: Filtering by attributes
+
+Use the custom attribute to filter artifacts in the `ArtifactView`:
+
+[source,kotlin]
+----
 tasks.register("processArtifacts") {
     doLast {
         val view = configurations.customConfiguration.incoming.artifactView { viewConfiguration ->
+            // Use the custom attribute to filter the artifacts
             viewConfiguration.attributes.attribute(customAttribute, "value")
         }
 
+        // Get the artifacts
         val artifacts = view.artifacts.artifactFiles
+
+        // Process each artifact
         artifacts.files.forEach { file ->
             println("Processing artifact: ${file.name}")
+            // Perform custom processing, e.g., copying or transforming
         }
     }
 }
-```
+----
 
-In this example, we define a custom attribute and use it to filter artifacts in the `ArtifactView`.
+== Common use case
+
+This example demonstrates how to resolve the runtime classpath, then reselect the Javadoc artifacts for each dependency:
+
+[source,groovy]
+----
+tasks.register("resolveJavadocs") {
+    doLast {
+        def javadocArtifacts = configurations.runtimeClasspath.incoming.artifactView {
+            withVariantReselection() // Enables artifact reselection for parallel variants
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME)) // Base usage
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION)) // Selecting documentation category
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC)) // Selecting Javadoc
+            }
+        }.artifacts
+
+        if (javadocArtifacts.empty) {
+            println "No Javadoc artifacts found."
+        } else {
+            javadocArtifacts.each { artifact ->
+                println "Resolved Javadoc: ${artifact.file.name}"
+            }
+        }
+    }
+}
+----
+
+1. **`withVariantReselection()`**: Enables artifact reselection to switch from the runtime elements of dependencies to their Javadoc variants.
+2. **Attributes**: The example specifies that it is looking for Javadoc artifacts by using `Category.DOCUMENTATION` and `DocsType.JAVADOC` attributes.
+3. **Printing artifacts**: If any Javadoc files are found, their names are printed out. Otherwise, it indicates that no Javadoc artifacts were resolved.
+
+This example is useful for retrieving documentation (Javadoc) for dependencies already resolved in the runtime classpath.
+You can expand it for other types of artifacts like sources or other documentation types by adjusting the attributes.
