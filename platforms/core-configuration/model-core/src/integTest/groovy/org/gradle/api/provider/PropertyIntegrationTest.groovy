@@ -185,6 +185,8 @@ task thing(type: SomeTask) {
             def custom2 = extensions.create('custom2', SomeExtension)
             custom2.source = custom1.source
 
+            custom1.source = providers.gradleProperty('ABC')
+
             tasks.register('thing', SomeTask) {
                 prop = custom2.source
             }
@@ -198,7 +200,8 @@ task thing(type: SomeTask) {
         failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
 The value of this property is derived from:
   - extension 'custom2' property 'source'
-  - extension 'custom1' property 'source'""")
+  - extension 'custom1' property 'source'
+  - Gradle property 'ABC'""")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
