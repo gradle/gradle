@@ -270,7 +270,7 @@ In the context of dependency version sorting, a `-SNAPSHOT` version is now consi
 More special version suffixes are also taken into account.
 This brings the Gradle algorithm closer to the Maven one for well-known version suffixes.
 
-Have a look at <<single_versions.adoc#single-version-declarations,the documentation>> for all the rules Gradle applies.
+Have a look at <<dependency_versions.adoc#single-version-declarations,the documentation>> for all the rules Gradle applies.
 
 ==== Removal of Play Framework plugins
 
