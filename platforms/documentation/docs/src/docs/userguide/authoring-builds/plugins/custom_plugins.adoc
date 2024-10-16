@@ -129,7 +129,7 @@ They are best used as *convention plugins* that share build logic across project
 
 To create a precompiled script plugin, you can:
 
-1. Use Gradle's Kotlin DSL - The plugin is a `.gradle.kts` file, and apply `id("kotlin-dsl")`.
+1. Use Gradle's Kotlin DSL - The plugin is a `.gradle.kts` file, and apply `` `kotlin-dsl` ``.
 2. Use Gradle's Groovy DSL - The plugin is a `.gradle` file, and apply `id("groovy-gradle-plugin")`.
 
 To apply a precompiled script plugin, you need to know its ID.
