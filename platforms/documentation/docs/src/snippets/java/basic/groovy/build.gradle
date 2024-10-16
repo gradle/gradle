@@ -61,6 +61,7 @@ dependencies {
 // end::practical-integ-test-source-set[]
 
 // tag::using-custom-doclet[]
+// tag::create-custom-doclet[]
 configurations {
     asciidoclet
 }
@@ -68,6 +69,7 @@ configurations {
 dependencies {
     asciidoclet 'org.asciidoctor:asciidoclet:1.+'
 }
+// end::create-custom-doclet[]
 
 tasks.register('configureJavadoc') {
     doLast {
@@ -77,6 +79,7 @@ tasks.register('configureJavadoc') {
         }
     }
 }
+// end::create-custom-doclet[]
 
 javadoc {
     dependsOn configureJavadoc
