@@ -26,13 +26,14 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
-    @Override
-    String getMainTask() {
-        return "installDist"
-    }
 
     def setup() {
         createSampleProjectSetup()
+    }
+
+    @Override
+    String getMainTask() {
+        return "installDist"
     }
 
     def "can generate start scripts with minimal user configuration"() {
