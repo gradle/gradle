@@ -112,7 +112,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         def returned = applicator.applyFeatureTo(target, softwareTypeImplementation)
 
         then:
-        1 * softwareType.disableExtensionRegistration() >> true
+        1 * softwareType.disableModelManagement() >> true
         _ * extensions.findByName("foo") >> foo
 
         and:
@@ -140,7 +140,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         applicator.applyFeatureTo(target, softwareTypeImplementation)
 
         then:
-        1 * softwareType.disableExtensionRegistration() >> true
+        1 * softwareType.disableModelManagement() >> true
         1 * extensions.findByName("foo") >> null
 
         and:
@@ -157,7 +157,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         and:
         def e = thrown(DefaultMultiCauseException)
         e.causes.size() == 1
-        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableExtensionRegistration' set to true, but no extension with name 'foo' was registered")}
+        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name 'foo' was registered")}
     }
 
     def "throws sensible error when registration is disabled but extension is different than the property"() {
@@ -167,7 +167,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         applicator.applyFeatureTo(target, softwareTypeImplementation)
 
         then:
-        1 * softwareType.disableExtensionRegistration() >> true
+        1 * softwareType.disableModelManagement() >> true
         1 * extensions.findByName("foo") >> new Foo()
 
         and:
@@ -184,7 +184,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         and:
         def e = thrown(DefaultMultiCauseException)
         e.causes.size() == 1
-        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableExtensionRegistration' set to true, but the extension with name 'foo' does not match the value of the property")}
+        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'foo' does not match the value of the property")}
     }
 
     private static class Foo {}

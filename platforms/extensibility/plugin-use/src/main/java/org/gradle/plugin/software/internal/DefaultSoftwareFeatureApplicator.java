@@ -114,27 +114,27 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         @Override
         public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
             T publicModelObject = Cast.uncheckedNonnullCast(value.call());
-            if (softwareType.disableExtensionRegistration()) {
+            if (softwareType.disableModelManagement()) {
                 Object extension = target.getExtensions().findByName(softwareType.name());
                 if (extension == null) {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
                             .id("extension-not-registered-for-software-type", "was not registered as an extension", GradleCoreProblemGroup.validation().property())
-                            .contextualLabel("has @SoftwareType annotation with 'disableExtensionRegistration' set to true, but no extension with name '" + softwareType.name() + "' was registered")
+                            .contextualLabel("has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name '" + softwareType.name() + "' was registered")
                             .severity(Severity.ERROR)
-                            .details("When 'disableExtensionRegistration' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
+                            .details("When 'disableModelManagement' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
                             .solution("During plugin application, register the '" + propertyName + "' property as an extension with the name '" + softwareType.name() + "'.")
-                            .solution("Set 'disableExtensionRegistration' to false or remove the parameter from the @SoftwareType annotation.")
+                            .solution("Set 'disableModelManagement' to false or remove the parameter from the @SoftwareType annotation.")
                     );
                 } else if (extension != publicModelObject) {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
                             .id("mismatched-extension-registered-for-software-type", "does not match the extension registered as '" + softwareType.name(), GradleCoreProblemGroup.validation().property())
-                            .contextualLabel("has @SoftwareType annotation with 'disableExtensionRegistration' set to true, but the extension with name '" + softwareType.name() + "' does not match the value of the property")
+                            .contextualLabel("has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name '" + softwareType.name() + "' does not match the value of the property")
                             .severity(Severity.ERROR)
-                            .details("When 'disableExtensionRegistration' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
+                            .details("When 'disableModelManagement' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
                             .solution("During plugin application, register the '" + propertyName + "' property as an extension with the name '" + softwareType.name() + "'.")
                     );
                 }

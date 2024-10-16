@@ -49,10 +49,11 @@ public @interface SoftwareType {
     Class<?> modelPublicType() default Void.class;
 
     /**
-     * By default, Gradle will automatically register an extension for the software type on the Project object.  If this is set to true, Gradle
-     * will not register the extension and the plugin will need to do so manually.
+     * By default, Gradle will automatically create an instance of the public model type and register it as an extension on the Project object.
+     * If this is set to true, Gradle will not manage the public model and the plugin will need to create the instance and register it as an
+     * extension explicitly.  If this is set to true, but the plugin does not register an extension with the correct type, an error will be thrown.
      *
      * @since 8.12
      */
-    boolean disableExtensionRegistration() default false;
+    boolean disableModelManagement() default false;
 }

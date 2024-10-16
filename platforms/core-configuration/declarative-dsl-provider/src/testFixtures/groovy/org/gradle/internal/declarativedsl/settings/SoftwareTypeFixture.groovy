@@ -443,7 +443,7 @@ trait SoftwareTypeFixture {
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
 
                 @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
-                                    .disableExtensionRegistration(true)
+                                    .disableModelManagement(true)
                                     .build()})
                 abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
 
@@ -467,7 +467,7 @@ trait SoftwareTypeFixture {
     private static class SoftwareTypeArgumentBuilder {
         String name
         String modelPublicType
-        boolean disableExtensionRegistration
+        boolean disableModelManagement
 
         static SoftwareTypeArgumentBuilder name(String name) {
             SoftwareTypeArgumentBuilder builder = new SoftwareTypeArgumentBuilder()
@@ -480,15 +480,15 @@ trait SoftwareTypeFixture {
             return this
         }
 
-        SoftwareTypeArgumentBuilder disableExtensionRegistration(boolean disableExtensionRegistration) {
-            this.disableExtensionRegistration = disableExtensionRegistration
+        SoftwareTypeArgumentBuilder disableModelManagement(boolean disableModelManagement) {
+            this.disableModelManagement = disableModelManagement
             return this
         }
 
         String build() {
             return "name=\"${name}\"" +
                 (modelPublicType ? ", modelPublicType=${modelPublicType}.class" : "") +
-                (disableExtensionRegistration ? ", disableExtensionRegistration=true" : "")
+                (disableModelManagement ? ", disableModelManagement=true" : "")
         }
     }
 
