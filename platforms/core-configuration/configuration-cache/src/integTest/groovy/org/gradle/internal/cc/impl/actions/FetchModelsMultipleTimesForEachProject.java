@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated;
+package org.gradle.internal.cc.impl.actions;
 
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-public class FailingBuildAction implements BuildAction<SomeToolingModel> {
+import java.util.ArrayList;
+import java.util.List;
+
+public class FetchModelsMultipleTimesForEachProject implements BuildAction<List<SomeToolingModel>> {
     @Override
-    public SomeToolingModel execute(BuildController controller) {
-        controller.getBuildModel();
-        throw new RuntimeException("Build action expectedly failed");
+    public List<SomeToolingModel> execute(BuildController controller) {
+        List<SomeToolingModel> result = new ArrayList<>();
+        result.addAll(new FetchCustomModelForEachProject().execute(controller));
+        result.addAll(new FetchCustomModelForEachProject().execute(controller));
+        return result;
     }
 }

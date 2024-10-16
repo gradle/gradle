@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
 
 
-class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class ConfigurationCacheToolingApiGradleLifecycleIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
 
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
         """
+        createDirs("a", "b") // avoid missing subproject directories warning
     }
 
-    def "runs lifecycle callbacks only on reconfigured projects"() {
+    def "runs all lifecycle callbacks on cache miss"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
@@ -44,11 +45,9 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
-        // Intentionally do not apply the plugin to 'b'
-        file("b/build.gradle") << ""
 
         when:
-        withIsolatedProjects()
+        withConfigurationCacheForModels()
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -56,19 +55,19 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model[0].message == "It works from project :"
         model[1].message == "It works from project :a"
 
+        and:
         fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            projectConfigured = 4
         }
 
+        and:
         outputContains("Callback before root project 'root'")
         outputContains("Callback before project ':a'")
         outputContains("Callback before project ':b'")
 
 
         when:
-        withIsolatedProjects()
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -82,7 +81,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
             myExtension.message = "updated message for root"
         """
 
-        withIsolatedProjects()
+        withConfigurationCacheForModels()
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -90,20 +89,20 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model3[0].message == "updated message for root"
         model3[1].message == "It works from project :a"
 
-        fixture.assertStateUpdated {
+        and:
+        fixture.assertStateRecreated {
             fileChanged("build.gradle")
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            modelsReused(":a", ":b", ":buildSrc")
+            projectConfigured = 4
         }
 
+        and:
         outputContains("Callback before root project 'root'")
-        outputDoesNotContain("Callback before project ':a'")
-        outputDoesNotContain("Callback before project ':b'")
+        outputContains("Callback before project ':a'")
+        outputContains("Callback before project ':b'")
 
 
         when:
-        withIsolatedProjects()
+        withConfigurationCacheForModels()
         def model4 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -117,7 +116,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
             myExtension.message = "updated message for :a"
         """
 
-        withIsolatedProjects()
+        withConfigurationCacheForModels()
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
@@ -126,17 +125,15 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model5[1].message == "updated message for :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertStateRecreated {
             fileChanged("a/build.gradle")
-            projectConfigured(":buildSrc")
-            projectConfigured(":")
-            modelsCreated(":a")
-            modelsReused(":", "b", ":buildSrc")
+            projectConfigured = 4
         }
 
+        and:
         outputContains("Callback before root project 'root'")
         outputContains("Callback before project ':a'")
-        outputDoesNotContain("Callback before project ':b'")
+        outputContains("Callback before project ':b'")
     }
 
 }

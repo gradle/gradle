@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated;
+package org.gradle.internal.cc.impl.actions;
 
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.BasicGradleProject;
-import org.gradle.tooling.model.gradle.GradleBuild;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FetchCustomModelForEachProject implements BuildAction<List<SomeToolingModel>> {
+public class FetchCustomModelForSameProjectInParallel implements BuildAction<List<SomeToolingModel>> {
+
     @Override
     public List<SomeToolingModel> execute(BuildController controller) {
-        List<SomeToolingModel> result = new ArrayList<>();
-        GradleBuild buildModel = controller.getBuildModel();
-        for (BasicGradleProject project : buildModel.getProjects()) {
-            SomeToolingModel model = controller.findModel(project, SomeToolingModel.class);
-            if (model != null) {
-                result.add(model);
-            }
+        List<FetchModelForProject> actions = new ArrayList<>();
+        for (int i = 1; i <= 2; i++) {
+            actions.add(new FetchModelForProject("nested-" + i));
         }
-        return result;
+        return controller.run(actions);
+    }
+
+    private static class FetchModelForProject implements BuildAction<SomeToolingModel> {
+
+        private final String id;
+
+        private FetchModelForProject(String id) {
+            this.id = id;
+        }
+
+        @Override
+        public SomeToolingModel execute(BuildController controller) {
+            System.out.println("Executing " + id);
+            return controller.findModel(SomeToolingModel.class);
+        }
     }
 }

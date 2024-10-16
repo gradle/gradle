@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.cc.impl.actions.FetchCustomModelForEachProject
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 
