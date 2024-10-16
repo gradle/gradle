@@ -69,7 +69,7 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == TextUtil.toPlatformLineSeparators("""The requested build type 'unknown' is not supported. Supported types:
+        e.message == TextUtil.toPlatformLineSeparators("""The requested build type: 'unknown' is not supported. Supported types:
   - 'default'
   - 'desc1'
   - 'desc2'

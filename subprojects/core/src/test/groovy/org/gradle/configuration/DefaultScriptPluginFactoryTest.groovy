@@ -40,8 +40,8 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.plugin.management.internal.PluginHandler
 import org.gradle.plugin.management.internal.PluginRequests
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import spock.lang.Specification
 
@@ -62,14 +62,14 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def loggingManager = Mock(LoggingManagerInternal)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
-    def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
+    def pluginHandler = Mock(PluginHandler)
     def compileOperationsFactory = new DefaultCompileOperationFactory(documentationRegistry)
 
     def factory = new DefaultScriptPluginFactory(
         new DefaultServiceRegistry(),
         scriptCompilerFactory,
         loggingManagerFactory,
-        autoAppliedPluginHandler,
+        pluginHandler,
         pluginRequestApplicator,
         compileOperationsFactory
     )

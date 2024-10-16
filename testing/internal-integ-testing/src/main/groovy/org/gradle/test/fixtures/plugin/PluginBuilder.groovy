@@ -73,7 +73,7 @@ class PluginBuilder {
             apply plugin: "java-gradle-plugin"
             apply plugin: "groovy"
             dependencies {
-              implementation localGroovy()
+                implementation localGroovy()
             }
             group = "${packageName}"
             version = "1.0"
@@ -232,6 +232,11 @@ class PluginBuilder {
 
     PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
         addPlugin("project.task(\"$taskName\") { doLast { println \"$message\" } }", id, className)
+        this
+    }
+
+    PluginBuilder addPluginWithCustomCode(String code, String id = "test-plugin", String className = "TestPlugin") {
+        addPlugin(code, id, className)
         this
     }
 

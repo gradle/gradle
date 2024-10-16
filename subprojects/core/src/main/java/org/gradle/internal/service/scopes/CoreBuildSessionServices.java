@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -183,5 +184,10 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         FileHasherStatistics.Collector statisticsCollector
     ) {
         return new DefaultChecksumService(stringInterner, crossBuildCache, fileSystem, inspector, statisticsCollector);
+    }
+
+    @Provides
+    protected InitProjectSpecRegistry createInitProjectRegistry() {
+        return new InitProjectSpecRegistry();
     }
 }
