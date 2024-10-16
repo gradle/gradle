@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[sec:component_metadata_rules]]
-= Using Component Metadata Rules
+= Modifying Dependency Metadata
 
 Each component pulled from a repository includes metadata, such as its group, name, version, and the various variants it provides along with their artifacts and dependencies.
 
@@ -109,7 +109,7 @@ The following variant details can be modified:
 
 Additionally, several component-level properties can be changed:
 
-- **Component Attributes**: The only meaningful attribute here is `org.gradle.status`.
+- **Component Attributes**: The only <<sec:custom_status_scheme,meaningful attribute>> here is `org.gradle.status`.
 - **Status Scheme**: Influence how the `org.gradle.status` attribute is interpreted during version selection.
 - **BelongsTo Property**: Used for <component_capabilities.adoc#sec:declaring-capabilities-external-modules,version alignment>> via virtual platforms.
 
@@ -124,7 +124,8 @@ Before using component metadata rules to adjust a module’s metadata, determine
 - **Modules with Gradle Module Metadata**: These typically have complete metadata, but issues can still occur. Only apply component metadata rules if you've clearly identified a problem with the metadata. For dependency resolution issues, first consider using [dependency constraints with rich versions](rich_versions.adoc#rich-version-constraints). If you're developing a library, note that dependency constraints are published as part of your own library’s metadata, making it easier to share the solution with consumers. In contrast, component metadata rules apply only within your own build.
 - **Modules with Traditional Metadata** (`.pom` or `ivy.xml`): These are more likely to have incomplete metadata since features like variants and dependency constraints aren’t supported in these formats. Such modules might have variants or constraints that were omitted or incorrectly defined as dependencies. In the following sections, we explore examples of OSS modules with incomplete metadata and the rules to add missing information.
 
-TIP: Ensure that the rule you create works beyond your build and still provides a correct and useful result if applied in other builds that use the affected module(s).
+As a rule of thumb, you should contemplate if the rule you are writing also works out of context of your build.
+That is, does the rule still produce a correct and useful result if applied in any other build that uses the module(s) it affects?
 
 == Fixing incorrect dependency details
 
@@ -163,10 +164,8 @@ By applying these rules, Gradle uses the enriched metadata to correctly resolve 
 
 == Making variants published as classified jars explicit
 
-In some cases, variants are published as separate files rather than being packaged together in a single jar.
-This is common when the variants are mutually exclusive, offering alternative choices rather than optional features.
-An example is found in pom-based libraries, where runtime and compile variants are distinct, and Gradle selects one depending on the task.
-A similar scenario often seen in the Java ecosystem is jars targeting different Java versions.
+In modern builds, variants are often published as separate artifacts, each represented by its own jar file.
+For example, libraries may provide distinct jars for different Java versions, ensuring that the correct version is used at runtime or compile time based on the environment.
 
 For instance, version `0.7.9` of the asynchronous programming library Quasar, published on link:https://repo1.maven.org/maven2/co/paralleluniverse/quasar-core/0.7.9[Maven Central], includes both `quasar-core-0.7.9.jar` and `quasar-core-0.7.9-jdk8.jar`.
 Publishing jars with a classifier, such as `jdk8`, is common practice in Maven repositories.
@@ -204,7 +203,7 @@ Another solution to publish multiple alternatives for the same library is the us
 Here, each new version is published twice by appending the classifier to the version instead of the jar artifact.
 In the case of Guava 28 for example, we can find a _28.0-jre_ (Java 8) and _28.0-android_ (Java 6) version on link:https://repo1.maven.org/maven2/com/google/guava/guava[Maven central].
 The advantage of using this pattern when working only with pom metadata is that both variants are discoverable through the version.
-The disadvantage is that there is no information what the different version suffixes mean semantically.
+The disadvantage is that there is no information as to what the different version suffixes mean semantically.
 So in the case of conflict, Gradle would just pick the highest version when comparing the version strings.
 
 Turning this into proper variants is a bit more tricky, as Gradle first selects a version of a module and then selects the best fitting variant.
@@ -274,7 +273,7 @@ Gradle fails to select a variant because a machine architecture needs to be chos
 
 == Making different flavors of a library available through capabilities
 
-Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes compose different jars with a different feature set.
+Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
 That is, instead of composing your flavor of the library from different feature variants, you select one of the pre-composed variants (offering everything in one jar).
 One such library is the well-known dependency injection framework Guice, published on link:https://repo1.maven.org/maven2/com/google/inject/guice/4.2.2[Maven central], which offers a complete flavor (the main jar) and a reduced variant without aspect-oriented programming support (`guice-4.2.2-no_aop.jar`).
 That second variant with a classifier is not mentioned in the pom metadata.
@@ -343,6 +342,15 @@ Gradle and Gradle Module Metadata also allow attributes to be set on the whole c
 Each of these attributes carries special semantics as they influence version selection which is done _before_ variant selection.
 While variant selection can handle <<variant_attributes.adoc#sec:declaring_attributes,any custom attribute>>, version selection only considers attributes for which specific semantics are implemented.
 At the moment, the only attribute with meaning here is `org.gradle.status`.
+
+--
+The `org.gradle.status` module attribute indicates the lifecycle status or maturity level of a module or library:
+
+1. **`integration`**: This indicates that the module is under active development and may not be stable.
+2. **`milestone`**: A module with this status is more mature than one marked as `integration`.
+3. **`release`**: This status signifies that the module is stable and officially released.
+--
+
 It is therefore recommended to only modify this attribute, if any, on the component level.
 A dedicated API `setStatus(value)` is available for this.
 To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
@@ -354,7 +362,7 @@ For example, `latest.integration` will select the highest module version regardl
 The interpretation of the status can be influenced by changing a module's _status scheme_ through the `setStatusScheme(valueList)` API.
 This concept models the different levels of maturity that a module transitions through over time with different publications.
 The default status scheme, ordered from least to most mature status, is `integration`, `milestone`, `release`.
-The `org.gradle.status` attribute must be set, to one of the values in the components status scheme.
+The `org.gradle.status` attribute must be set, to one of the values in the component's status scheme.
 Thus each component always has a status which is determined from the metadata as follows:
 
 - Gradle Module Metadata: the value that was published for the `org.gradle.status` attribute on the component
@@ -369,4 +377,4 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 ====
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
-Existing modules with the state `integration` are mapped to `nightly`.
+Existing modules with the status `integration` are mapped to `nightly`.

@@ -441,7 +441,7 @@ Be aware that this may require you to manually declare any transitive dependenci
 For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive-boolean-[Configuration.setTransitive(boolean)].
 
 [[sec:dependency_resolve_rules]]
-== 9. Dependency Resolve Rule and Other Conditionals
+== 9. Dependency Resolve Rules and Other Conditionals
 
 Dependency resolve rules are executed for each dependency as it's being resolved, providing a powerful API to modify a dependency's attributes—such as group, name, or version—before the resolution is finalized.
 
