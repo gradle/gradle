@@ -17,6 +17,7 @@
 
 Platforms are used to ensure that all dependencies in a project align with a consistent set of versions.
 
+[[sec:sharing-dep-versions-between-projects]]
 Platforms help you manage and enforce version consistency across different modules or libraries, especially when you are working with a set of related dependencies that need to be kept in sync.
 
 [[sub:using-platform-to-control-transitive-deps]]
