@@ -2450,27 +2450,35 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.debugOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.tooling.events.problems.ProblemDefinition",
+            "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
+            "acceptation": "Change in incubating API",
             "changes": [
-                "Method added to public class"
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.forkOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
+            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getAdditionalData()",
+            "acceptation": "Change in incubating API",
             "changes": [
-                "Method added to public class"
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.forkOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
+            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getContextualLabel()",
+            "acceptation": "Change in incubating API",
             "changes": [
-                "Method added to public class"
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
+            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getDetails()",
+            "acceptation": "Change in incubating API",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         }
     ]
