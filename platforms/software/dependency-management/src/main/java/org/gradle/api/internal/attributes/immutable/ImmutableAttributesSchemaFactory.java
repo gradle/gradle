@@ -108,7 +108,16 @@ public class ImmutableAttributesSchemaFactory {
      * @return The merged schema.
      */
     public ImmutableAttributesSchema concat(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
-        return mergedSchemas.computeIfAbsent(new SchemaPair(consumer, producer), pair ->
+        SchemaPair key = new SchemaPair(consumer, producer);
+
+        // First attempt to fetch the value from the map without locking
+        ImmutableAttributesSchema merged = mergedSchemas.get(key);
+        if (merged != null) {
+            return merged;
+        }
+
+        // If it is not found, compute the value atomically
+        return mergedSchemas.computeIfAbsent(key, pair ->
             create(
                 mergeStrategies(consumer, producer),
                 mergePrecedence(consumer.precedence, producer.precedence)
