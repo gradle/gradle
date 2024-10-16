@@ -24,23 +24,28 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.List;
 
+/**
+ * Wraps a local dependency metadata along with the DSL {@link Dependency} that created it.
+ * <p>
+ * This type is going away in 9.0. All features that leverage the original dependency have been deprecated.
+ * <p>
+ * When serializing this type to the configuration cache, we serialize the delegate instead of this type.
+ */
 public class DslOriginDependencyMetadataWrapper extends DelegatingDependencyMetadata implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
     private final Dependency source;
-    private final List<IvyArtifactName> artifacts;
 
     public DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, Dependency source) {
         super(delegate);
         this.delegate = delegate;
         this.source = source;
-        this.artifacts = delegate.getArtifacts();
     }
 
-    private DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, Dependency source, List<IvyArtifactName> artifacts) {
-        super(delegate);
-        this.delegate = delegate;
-        this.source = source;
-        this.artifacts = artifacts;
+    /**
+     * Exposed for CC serialization.
+     */
+    public LocalOriginDependencyMetadata getDelegate() {
+        return delegate;
     }
 
     @Override
@@ -65,7 +70,7 @@ public class DslOriginDependencyMetadataWrapper extends DelegatingDependencyMeta
 
     @Override
     public List<IvyArtifactName> getArtifacts() {
-        return artifacts;
+        return delegate.getArtifacts();
     }
 
     @Override
@@ -75,7 +80,7 @@ public class DslOriginDependencyMetadataWrapper extends DelegatingDependencyMeta
 
     @Override
     public LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
-        return new DslOriginDependencyMetadataWrapper(delegate.withTarget(target), source, artifacts);
+        return new DslOriginDependencyMetadataWrapper(delegate.withTargetAndArtifacts(target, artifacts), source);
     }
 
     @Override
