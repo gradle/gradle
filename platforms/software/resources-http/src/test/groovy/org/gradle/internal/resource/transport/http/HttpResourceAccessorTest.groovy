@@ -16,7 +16,8 @@
 
 package org.gradle.internal.resource.transport.http
 
-
+import org.apache.commons.io.IOUtils
+import org.apache.commons.lang.math.RandomUtils
 import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.gradle.api.internal.DocumentationRegistry
@@ -53,7 +54,7 @@ class HttpResourceAccessorTest extends Specification {
         def url = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes
         def resource = new ExternalResourceName(url.toURI())
         def accessor = new HttpResourceAccessor(client)
-        accessor.setRangeSize(100) // 200 bytes
+        accessor.setChunkSize(100) // 100 bytes
 
         when:
         accessor.<Void> withContent(resource, true, tempFile, (ExternalResource.ContentAction) (content) -> {
@@ -71,5 +72,39 @@ class HttpResourceAccessorTest extends Specification {
         statusLine.getStatusCode() >> 200
         response.getStatusLine() >> statusLine
         response
+    }
+
+    def "when copy from unstable input stream then partial content is saved"() {
+        given:
+        def tempFile = File.createTempFile("unstable-input-stream", ".bin", File.createTempDir("http-resource-accessor"))
+        def expectedRound = 2
+        def chunkSize = 100
+
+        def unstableInputStream = new InputStream() {
+            private int round = 0
+
+            @Override
+            int read() throws IOException {
+                return RandomUtils.nextInt(256)
+            }
+
+            @Override
+            int read(byte[] b) throws IOException {
+                if (round >= expectedRound) {
+                    throw new IOException("Oops")
+                }
+                round++
+                return super.read(b)
+            }
+        }
+
+        when:
+        try {
+            IOUtils.copy(unstableInputStream, new FileOutputStream(tempFile), chunkSize)
+        } catch (IOException ignore) {
+        }
+
+        then:
+        assert tempFile.length() == expectedRound * chunkSize
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transport.http;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.IoActions;
@@ -44,7 +43,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
 
-    private long rangeSize = 2 * 1024 * 1024;// 2 Mb
+    private int chunkSize = 8192;// 8 kb
 
     public HttpResourceAccessor(HttpClientHelper http) {
         this.http = http;
@@ -80,37 +79,20 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         }
 
         long skip = partPosition.isFile() && partPosition.exists() ? partPosition.length() : 0; // read file size from partially downloaded file
-        int round = 0;
-        Long totalBytes = null;
-        long totalReceivedBytes;
-        do {
-            long rangeStart = skip + round * rangeSize;
-            long rangeEnd = rangeStart + rangeSize - 1;
-            LOGGER.debug("Downloading partial content from bytes {} to {} on round {}", rangeStart, rangeEnd, round);
-            HttpClientResponse response = provider.get(uri, revalidate, rangeStart, rangeEnd);
-            int code = response.getStatusLine().getStatusCode();
-            if (code == HttpStatus.SC_OK) { // server does not support range request
-                return wrapResponse(location, response);
-            } else if (code == HttpStatus.SC_PARTIAL_CONTENT) { // server support range request
-
-                // example of contentRange: "bytes 0-100/5083"
-                String contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE);
-                String[] split = contentRange.replace("bytes ", "").split("/");// ["0-100", "5083"]
-                if (totalBytes == null) {
-                    totalBytes = Long.parseLong(split[1]);
-                }
-                String[] receivedRange = split[0].split("-"); // ["0", "100"]
-                totalReceivedBytes = Long.parseLong(receivedRange[1]);
-                try {
-                    IOUtils.copy(response.getContent(), new FileOutputStream(partPosition, true));
-                } catch (IOException e) {
-                    throw new ResourceException(location, String.format("Unable to save partial content from bytes %d to %d", rangeStart, rangeEnd), e);
-                }
-                round++;
-            } else {
-                throw new ResourceException(location, String.format("Unexpected response code %d when fetching bytes from %d to %d", code, rangeStart, rangeEnd));
+        LOGGER.debug("Downloading partial content from bytes {}", skip);
+        HttpClientResponse response = provider.get(uri, revalidate, skip, null);
+        int code = response.getStatusLine().getStatusCode();
+        if (code == HttpStatus.SC_OK) { // server does not support range request
+            return wrapResponse(location, response);
+        } else if (code == HttpStatus.SC_PARTIAL_CONTENT) { // server support range request
+            try {
+                IOUtils.copy(response.getContent(), new FileOutputStream(partPosition, true), chunkSize);
+            } catch (IOException e) {
+                throw new ResourceException(location, String.format("Unable to save partial content from bytes %d", skip), e);
             }
-        } while (totalReceivedBytes != totalBytes - 1);
+        } else {
+            throw new ResourceException(location, String.format("Unexpected response code %d when fetching bytes from %d", code, skip));
+        }
         return new UrlExternalResource().openResource(new ExternalResourceName(partPosition.toURI()), revalidate, partPosition);
     }
 
@@ -137,8 +119,8 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
     }
 
     @VisibleForTesting
-    void setRangeSize(long rangeSize) {
-        this.rangeSize = rangeSize;
+    void setChunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
     }
 
     private interface HttpClientResponseProvider {

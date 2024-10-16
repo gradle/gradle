@@ -126,6 +126,29 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
 //        println "content length = " + response.getHeader(HttpHeaders.CONTENT_LENGTH) // "101"
     }
 
+    def "missing range end"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        def client = new HttpClientHelper(new DocumentationRegistry(), settings)
+
+        when:
+        def source = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes at 2024-08-30
+        def response = client.performGet(source, true, 0, null)
+
+        then:
+        assert response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
+
+        def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
+        assert contentRange != null
+
+        //                          bytes 0-2025/2026
+        assert contentRange.matches("bytes 0-\\d+/\\d+")
+    }
+
     def "get invalid range"() {
         SslContextFactory sslContextFactory = new DefaultSslContextFactory()
         HttpSettings settings = DefaultHttpSettings.builder()
