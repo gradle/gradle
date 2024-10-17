@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * A {@link PluginRequest} that represents a plugin request added outside of any build script.
+ * A {@link PluginRequest} that represents a plugin request added outside any build script.
  * <p>
  * These originate from an id + version pair in the form of {@code id:version}.  These are currently
  * parsed from a system property by {@link org.gradle.plugin.management.internal.PluginHandler#getArgumentLoadedPlugins()}.
@@ -55,7 +55,7 @@ public final class ArgumentLoadedPluginRequest implements PluginRequestInternal 
 
     @Override
     public boolean isApply() {
-        return false; // We're never applying these plugins, we're just loading them
+        return true; // Argument-loaded plugins are automatically applied
     }
 
     @Nullable
@@ -72,7 +72,7 @@ public final class ArgumentLoadedPluginRequest implements PluginRequestInternal 
 
     @Override
     public String getDisplayName() {
-        return String.format("[id: '%s', version: '%s', apply: false]", id, version);
+        return String.format("[id: '%s', version: '%s', apply: %s]", id, version, isApply());
     }
 
     @Override

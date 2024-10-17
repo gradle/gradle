@@ -23,7 +23,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
@@ -55,7 +54,6 @@ import org.gradle.buildinit.projectspecs.InitProjectConfig;
 import org.gradle.buildinit.projectspecs.InitProjectGenerator;
 import org.gradle.buildinit.projectspecs.InitProjectParameter;
 import org.gradle.buildinit.projectspecs.InitProjectSpec;
-import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
 import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -106,10 +104,6 @@ public abstract class InitBuild extends DefaultTask {
     public InitBuild() {
         // Don't inject this in order to preserve no-args constructor binary compatibility
         projectSpecRegistry = getServices().get(InitProjectSpecRegistry.class);
-
-        // Have to load in the constructor to ensure specs are present with run in CC tests
-        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(((ProjectInternal) getProject()).getClassLoaderScope().getLocalClassLoader(), getLogger());
-        projectSpecRegistry.register(projectSpecLoader);
     }
 
     /**

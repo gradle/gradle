@@ -187,7 +187,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected InitProjectSpecRegistry createInitProjectRegistry() {
+    protected InitProjectSpecRegistry createInitProjectSpecRegistry() {
         return new InitProjectSpecRegistry();
     }
 }

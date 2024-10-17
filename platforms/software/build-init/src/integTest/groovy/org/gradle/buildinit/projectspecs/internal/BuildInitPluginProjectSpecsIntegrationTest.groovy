@@ -33,8 +33,12 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
     private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.13"
     private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
 
-    private static final String ARBITRARY_PLUGIN_ID = "org.barfuin.gradle.taskinfo"
-    private static final String ARBITRARY_PLUGIN_VERSION = "2.2.0"
+    // Just need an arbitrary Plugin<Settings> here, so use the Declarative Prototype.  Note that we can't use JVM, because
+    // An exception occurred applying plugin request [id: 'org.gradle.experimental.jvm-ecosystem', version: '0.1.14', apply: true]
+    //> Failed to apply plugin 'org.gradle.jvm-toolchain-management'.
+    //   > Cannot add extension with name 'jvm', as there is an extension already registered with that name.
+    private static final String ARBITRARY_PLUGIN_ID = "org.gradle.experimental.declarative-common"
+    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.14"
     private static final String ARBITRARY_PLUGIN_SPEC = "$ARBITRARY_PLUGIN_ID:$ARBITRARY_PLUGIN_VERSION"
 
     def "can specify 3rd party plugin using argument to init"() {
@@ -199,7 +203,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
 
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
-        outputDoesNotContain("MyPlugin applied.")
+        outputContains("MyPlugin applied.")
         assertLoadedSpec("First Project Type", "first-project-type")
         assertLoadedSpec("Second Project Type", "second-project-type")
 
@@ -219,7 +223,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
         assertResolvedPlugin(ARBITRARY_PLUGIN_ID, ARBITRARY_PLUGIN_VERSION)
-        outputDoesNotContain("MyPlugin applied.")
+        outputContains("MyPlugin applied.")
         assertLoadedSpec("First Project Type", "first-project-type")
         assertLoadedSpec("Second Project Type", "second-project-type")
 
@@ -238,7 +242,7 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
 
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
-        outputDoesNotContain("MyPlugin applied.")
+        outputContains("MyPlugin applied.")
         assertLoadedSpec("First Project Type", "first-project-type")
         assertLoadedSpec("Second Project Type", "second-project-type")
 
