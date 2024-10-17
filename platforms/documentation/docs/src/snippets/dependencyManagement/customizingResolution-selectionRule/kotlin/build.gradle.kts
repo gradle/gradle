@@ -46,7 +46,7 @@ dependencies {
 }
 // end::reject-version-1-1[]
 
-tasks.register("printImplConfig") {
+tasks.register("printRejectConfig") {
     val implConfig: FileCollection = configurations.getByName("runtimeClasspath")
     doLast {
         implConfig.forEach { println("Resolved: ${it.name}") }
