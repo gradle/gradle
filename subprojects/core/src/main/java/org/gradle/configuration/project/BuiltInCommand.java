@@ -38,4 +38,8 @@ public interface BuiltInCommand {
      * Does the given list of task paths reference this command?
      */
     boolean commandLineMatches(List<String> taskNames);
+
+    default boolean needsBuildDefinition() {
+        return true;
+    }
 }

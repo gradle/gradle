@@ -34,4 +34,9 @@ public class InitBuiltInCommand implements BuiltInCommand {
     public boolean commandLineMatches(List<String> taskNames) {
         return taskNames.size() > 0 && taskNames.get(0).equals("init");
     }
+
+    @Override
+    public boolean needsBuildDefinition() {
+        return false;
+    }
 }
