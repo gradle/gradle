@@ -55,16 +55,16 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec)  {
+    public RuntimeException throwing(Action<ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
         Throwable exception = problem.getException();
         if (exception == null) {
-            throw new IllegalStateException("Exception must be non-null");
-        } else {
-            throw throwError(exception, problem);
+            String message = problem.getContextualLabel() != null ? problem.getContextualLabel() : problem.getDefinition().getId().getDisplayName();
+            exception = new RuntimeException(message);
         }
+        return throwError(exception, problem);
     }
 
     private RuntimeException throwError(Throwable exception, Problem problem) {
@@ -115,7 +115,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be a replaced with a future problem listener feature.
+        // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be replaced with a future problem listener feature.
         for (ProblemEmitter emitter : emitters) {
             emitter.emit(problem, id);
         }
