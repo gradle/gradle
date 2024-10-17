@@ -53,7 +53,7 @@ class KotlinCompilerTest {
     @Test
     fun `Gradle JavaVersion greater than 22 to Kotlin JvmTarget conversion`() {
         JavaVersion.values().filter { it > JavaVersion.VERSION_22 }.forEach { javaVersion ->
-            assertThat(javaVersion.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_22))
+            assertThat(javaVersion.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_23))
         }
     }
 }

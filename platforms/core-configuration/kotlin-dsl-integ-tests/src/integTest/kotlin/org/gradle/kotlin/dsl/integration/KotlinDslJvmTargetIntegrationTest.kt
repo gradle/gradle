@@ -177,7 +177,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin compiler daemon  taking time to shut down")
-    fun `can use Java Toolchain to compile precompiled scripts on Java 23, with a warning`() {
+    fun `can use Java Toolchain to compile precompiled scripts on Java 23`() {
 
         val currentJvm = Jvm.current()
         assumeNotNull(currentJvm)
@@ -221,11 +221,10 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
-        val pluginCompile = gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
+        gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJvm(currentJvm)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
-        assertThat(pluginCompile.output, containsString("w: Inconsistent JVM-target compatibility detected for tasks 'compileJava' (23) and 'compileKotlin' (22)."))
 
         withSettingsIn("consumer", """
             pluginManagement {

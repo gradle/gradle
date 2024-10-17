@@ -17,6 +17,7 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
@@ -43,8 +44,8 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.modelCore)
     implementation(projects.normalizationJava)
-    implementation(projects.persistentCache)
     implementation(projects.resources)
+    implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
@@ -55,6 +56,10 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.groovyJson)
     implementation(libs.kotlinReflect)
+
+    runtimeOnly(libs.kotlinBuildToolsImpl) {
+        isTransitive = false
+    }
 
     implementation(libs.kotlinCompilerEmbeddable)
     api(libs.futureKotlin("script-runtime"))
