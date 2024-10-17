@@ -135,7 +135,23 @@ There are other types of configurations (such as `runtimeClasspath`, `compileCla
 It is also possible to create custom configurations.
 A custom configuration allows you to define a distinct group of dependencies that can be used for specific purposes, such as toolchains or code generation, separate from the standard configurations (e.g., `implementation`, `testImplementation`):
 
-[source,kotlin]
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+val customConfig by configurations.creating
+
+dependencies {
+    customConfig("org.example:example-lib:1.0")
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
 ----
 configurations {
     customConfig
@@ -145,6 +161,8 @@ dependencies {
     customConfig("org.example:example-lib:1.0")
 }
 ----
+=====
+====
 
 Creating a custom configuration helps manage and isolate dependencies, ensuring they are only included in the relevant classpaths and build processes.
 

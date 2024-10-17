@@ -25,7 +25,10 @@ import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.cc.impl.InputTrackingState
+import org.gradle.internal.cc.impl.Workarounds.canAccessConventions
+import org.gradle.internal.cc.impl.isSupportedListener
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsExternalProcess
@@ -34,8 +37,6 @@ import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
-import org.gradle.internal.cc.impl.Workarounds.canAccessConventions
-import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope
@@ -151,7 +152,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (isBuildSrcBuild(invocationSource)) {
+        if (isBuildSrcBuild(invocationSource) || isSupportedListener(listener)) {
             return
         }
         problems.onProblem(

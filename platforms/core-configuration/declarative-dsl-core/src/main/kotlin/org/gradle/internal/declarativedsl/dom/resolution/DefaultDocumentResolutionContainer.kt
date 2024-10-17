@@ -38,13 +38,17 @@ import org.gradle.internal.declarativedsl.dom.CrossScopeAccess
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.NamedReferenceNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.ValueNode.ValueFactoryNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ErrorResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.LiteralValueResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.NamedReferenceResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.dom.ElementNotResolvedReason
+import org.gradle.internal.declarativedsl.dom.NamedReferenceNotResolvedReason
+import org.gradle.internal.declarativedsl.dom.NonEnumValueNamedReference
 import org.gradle.internal.declarativedsl.dom.NotAssignable
 import org.gradle.internal.declarativedsl.dom.PropertyNotAssignedReason
 import org.gradle.internal.declarativedsl.dom.UnresolvedBase
@@ -74,12 +78,14 @@ fun documentWithResolution(
     strictReceiverChecks: Boolean = true
 ): DocumentWithResolution {
     val document = languageTreeResult.toDocument()
-    return DocumentWithResolution(document, resolutionContainer(
-        schema,
-        tracingCodeResolver(operationGenerationId, analysisStatementFilter).also { it.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock) }.trace,
-        document,
-        strictReceiverChecks
-    ))
+    return DocumentWithResolution(
+        document, resolutionContainer(
+            schema,
+            tracingCodeResolver(operationGenerationId, analysisStatementFilter).also { it.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock) }.trace,
+            document,
+            strictReceiverChecks
+        )
+    )
 }
 
 
@@ -91,13 +97,26 @@ internal
 class DefaultDocumentResolutionContainer(
     private val elementResolution: Map<ElementNode, ElementResolution>,
     private val propertyResolution: Map<PropertyNode, PropertyResolution>,
-    private val valueFactoryResolution: Map<ValueFactoryNode, ValueFactoryResolution>
+    private val valueFactoryResolution: Map<ValueFactoryNode, ValueFactoryResolution>,
+    private val namedReferenceResolution: Map<NamedReferenceNode, NamedReferenceResolution>
 ) : DocumentResolutionContainer {
-    override fun data(node: ElementNode): ElementResolution = elementResolution.getValue(node)
-    override fun data(node: PropertyNode): PropertyResolution = propertyResolution.getValue(node)
-    override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): ErrorResolution = ErrorResolution
-    override fun data(value: ValueFactoryNode): ValueFactoryResolution = valueFactoryResolution.getValue(value)
-    override fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): LiteralValueResolved = LiteralValueResolved(value.value)
+    override fun data(node: ElementNode): ElementResolution =
+        elementResolution.getValue(node)
+
+    override fun data(node: PropertyNode): PropertyResolution =
+        propertyResolution.getValue(node)
+
+    override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): ErrorResolution =
+        ErrorResolution
+
+    override fun data(node: ValueFactoryNode): ValueFactoryResolution =
+        valueFactoryResolution.getValue(node)
+
+    override fun data(node: DeclarativeDocument.ValueNode.LiteralValueNode): LiteralValueResolved =
+        LiteralValueResolved(node.value)
+
+    override fun data(node: NamedReferenceNode): NamedReferenceResolution =
+        namedReferenceResolution.getValue(node)
 }
 
 
@@ -111,13 +130,33 @@ class DocumentResolver(
         val elementResolution = mutableMapOf<ElementNode, ElementResolution>()
         val propertyResolution = mutableMapOf<PropertyNode, PropertyResolution>()
         val valueFactoryResolution = mutableMapOf<ValueFactoryNode, ValueFactoryResolution>()
+        val namedReferenceResolution = mutableMapOf<NamedReferenceNode, NamedReferenceResolution>()
 
         fun resolveValueFactory(valueFactoryNode: ValueFactoryNode): ValueFactoryResolution {
             val expr = document.languageTreeMappingContainer.data(valueFactoryNode)
             return when (val exprResolution = trace.expressionResolution(expr)) {
                 is ResolutionTrace.ResolutionOrErrors.Resolution -> ValueFactoryResolution.ValueFactoryResolved((exprResolution.result as ObjectOrigin.FunctionOrigin).function)
-                is ResolutionTrace.ResolutionOrErrors.Errors -> ValueFactoryResolution.ValueFactoryNotResolved(mapValueFactoryErrors(exprResolution.errors))
-                ResolutionTrace.ResolutionOrErrors.NoResolution -> ValueFactoryResolution.ValueFactoryNotResolved(listOf(UnresolvedBase))
+                is ResolutionTrace.ResolutionOrErrors.Errors ->
+                    ValueFactoryResolution.ValueFactoryNotResolved(mapValueFactoryErrors(exprResolution.errors))
+                is ResolutionTrace.ResolutionOrErrors.NoResolution ->
+                    ValueFactoryResolution.ValueFactoryNotResolved(listOf(UnresolvedBase))
+            }
+        }
+
+        fun resolveNamedReference(namedReferenceNode: NamedReferenceNode): NamedReferenceResolution {
+            val expr = document.languageTreeMappingContainer.data(namedReferenceNode)
+            val exprResolution = trace.expressionResolution(expr)
+            return when (exprResolution) {
+                is ResolutionTrace.ResolutionOrErrors.Resolution ->
+                    if (exprResolution.result is ObjectOrigin.EnumConstantOrigin) {
+                        NamedReferenceResolution.NamedReferenceResolved(exprResolution.result.entryName)
+                    } else {
+                        NamedReferenceResolution.NamedReferenceNotResolved(listOf(NonEnumValueNamedReference))
+                    }
+                is ResolutionTrace.ResolutionOrErrors.Errors ->
+                    NamedReferenceResolution.NamedReferenceNotResolved(mapNamedReferenceErrors(exprResolution.errors))
+                is ResolutionTrace.ResolutionOrErrors.NoResolution ->
+                    NamedReferenceResolution.NamedReferenceNotResolved(listOf(UnresolvedBase))
             }
         }
 
@@ -127,7 +166,12 @@ class DocumentResolver(
                     valueFactoryResolution[value] = resolveValueFactory(value)
                     value.values.forEach(::visitValue)
                 }
-                is DeclarativeDocument.ValueNode.LiteralValueNode -> Unit
+
+                is DeclarativeDocument.ValueNode.LiteralValueNode -> {}
+
+                is NamedReferenceNode -> {
+                    namedReferenceResolution[value] = resolveNamedReference(value)
+                }
             }
         }
 
@@ -140,7 +184,8 @@ class DocumentResolver(
                 }
 
                 is PropertyNode -> {
-                    propertyResolution[node] = propertyResolution(document.languageTreeMappingContainer.data(node) as Assignment)
+                    val resolution = propertyResolution(document.languageTreeMappingContainer.data(node) as Assignment)
+                    propertyResolution[node] = resolution
                     visitValue(node.value)
                 }
 
@@ -150,7 +195,7 @@ class DocumentResolver(
 
         document.content.forEach(::visitNode)
 
-        return DefaultDocumentResolutionContainer(elementResolution, propertyResolution, valueFactoryResolution)
+        return DefaultDocumentResolutionContainer(elementResolution, propertyResolution, valueFactoryResolution, namedReferenceResolution)
     }
 
     private
@@ -202,7 +247,11 @@ class DocumentResolver(
 
     private
     fun mapValueFactoryErrors(errors: Iterable<ResolutionError>): List<ValueFactoryNotResolvedReason> =
-        mapElementErrors(errors).map { it as ValueFactoryNotResolvedReason } // maybe handle value factory errors separately?
+        mapElementErrors(errors).map { it as ValueFactoryNotResolvedReason }
+
+    private
+    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>) : List<NamedReferenceNotResolvedReason> =
+        mapElementErrors(errors).map { it as NamedReferenceNotResolvedReason}
 
     private
     fun mapPropertyErrors(errors: Iterable<ResolutionError>): List<PropertyNotAssignedReason> = errors.map {

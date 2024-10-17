@@ -19,6 +19,8 @@ package org.gradle.api.tasks.compile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.concurrent.atomic.AtomicReference
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNull
 import static org.junit.Assert.assertTrue
@@ -94,5 +96,21 @@ class CompileOptionsTest extends Specification {
 
         expect:
         compileOptions.allCompilerArgs.contains('Foo23')
+    }
+
+    void "forkOptions closure"() {
+        AtomicReference<ForkOptions> forkOptions = new AtomicReference<ForkOptions>()
+        compileOptions.forkOptions(forkOptions::set)
+
+        expect:
+        compileOptions.forkOptions == forkOptions.get()
+    }
+
+    void "debugOptions closure"() {
+        AtomicReference<DebugOptions> debugOptions = new AtomicReference<DebugOptions>()
+        compileOptions.debugOptions(debugOptions::set)
+
+        expect:
+        compileOptions.debugOptions == debugOptions.get()
     }
 }

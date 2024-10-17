@@ -46,7 +46,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> U create(String name, Class<U> type) {
-        assertMutable("create(String, Class)");
+        assertCanMutate("create(String, Class)");
         return create(name, type, null);
     }
 
@@ -61,8 +61,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) {
-        assertMutable("create(String, Class, Action)");
-        assertCanAdd(name);
+        assertCanMutate("create(String, Class, Action)");
+        assertElementNotPresent(name);
         U object = doCreate(name, type);
         add(object);
         if (configuration != null) {
@@ -73,18 +73,18 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type) throws InvalidUserDataException {
-        assertMutable("register(String, Class)");
+        assertCanMutate("register(String, Class)");
         return createDomainObjectProvider(name, type, null);
     }
 
     @Override
     public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
-        assertMutable("register(String, Class, Action)");
+        assertCanMutate("register(String, Class, Action)");
         return createDomainObjectProvider(name, type, configurationAction);
     }
 
     protected <U extends T> NamedDomainObjectProvider<U> createDomainObjectProvider(String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
-        assertCanAdd(name);
+        assertElementNotPresent(name);
         NamedDomainObjectProvider<U> provider = Cast.uncheckedCast(
             getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractPolymorphicDomainObjectContainer.this, name, type, configurationAction)
         );

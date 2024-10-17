@@ -4,6 +4,7 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
@@ -40,6 +41,11 @@ sealed interface ObjectReflection {
         override val type: DataType.ConstantType<*>,
         override val objectOrigin: ObjectOrigin.ConstantOrigin,
         val value: Any
+    ) : ObjectReflection
+
+    data class EnumValue(
+        override val type: EnumClass,
+        override val objectOrigin: ObjectOrigin.EnumConstantOrigin
     ) : ObjectReflection
 
     data class External(
@@ -94,6 +100,8 @@ fun reflect(
             objectOrigin.literal.value
         )
 
+        is ObjectOrigin.EnumConstantOrigin -> ObjectReflection.EnumValue(type as EnumClass, objectOrigin)
+
         is ObjectOrigin.External -> ObjectReflection.External(type, objectOrigin)
 
         is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null(objectOrigin)
@@ -130,12 +138,14 @@ fun reflect(
                         else -> error("unexpected origin type")
                     }
                 }
+
                 is FunctionSemantics.Builder -> error("can't appear here")
             }
         }
 
         is ObjectOrigin.PropertyReference,
         is ObjectOrigin.FromLocalValue -> error("value origin needed")
+
         is ObjectOrigin.CustomConfigureAccessor -> reflectData(OperationId(-1L, DefaultOperationGenerationId.preExisting), type as DataClass, objectOrigin, context)
 
         is ObjectOrigin.ImplicitThisReceiver -> reflect(objectOrigin.resolvedTo, context)
@@ -151,6 +161,7 @@ fun reflectDefaultValue(
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
         is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataClass -> reflectData(OperationId(-1L, DefaultOperationGenerationId.preExisting), type, objectOrigin, context)
+        is EnumClass -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataType.NullType -> error("Null type can't appear in property types")
         is DataType.UnitType -> error("Unit can't appear in property types")
     }

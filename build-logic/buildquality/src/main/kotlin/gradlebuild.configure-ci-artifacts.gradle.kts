@@ -19,7 +19,6 @@ import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
 import gradlebuild.binarycompatibility.JapicmpTask
-import org.jlleitschuh.gradle.ktlint.tasks.GenerateReportsTask
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
     val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
@@ -38,7 +37,6 @@ fun Task.customReports(): List<File> = when (this) {
         gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile,
         gradleInstallationForTest.daemonRegistry.get().asFile
     )
-    is GenerateReportsTask -> listOf(reportsOutputDirectory.get().asFile)
     else -> emptyList()
 }
 

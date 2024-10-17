@@ -14,3 +14,6 @@ tasks.named<Jar>("jar") {
         ))
     }
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

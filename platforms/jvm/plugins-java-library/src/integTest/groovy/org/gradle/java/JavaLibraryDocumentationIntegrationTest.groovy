@@ -17,8 +17,10 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
+@ToBeFixedForIsolatedProjects(because = "subprojects")
 class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

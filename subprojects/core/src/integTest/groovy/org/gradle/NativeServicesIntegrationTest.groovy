@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.nativeintegration.jansi.JansiStorageLocator
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -57,6 +58,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/28203")
+    @LeaksFileHandles
     def "native services are #description with systemProperties == #systemProperties"() {
         given:
         // We set Gradle User Home to a different temporary directory that is outside

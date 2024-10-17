@@ -17,6 +17,8 @@
 package configurations
 
 import common.Os
+import common.buildScanTagParam
+import common.getBuildScanCustomValueParam
 import common.requiresNotEc2Agent
 import model.CIBuildModel
 import model.Stage
@@ -25,10 +27,6 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildT
     id(buildTypeId(model))
     name = "Smoke Ide Tests"
     description = "Tests against IDE sync process"
-
-    features {
-        publishBuildStatusToGithub(model)
-    }
 
     requirements {
         // These tests are usually heavy and the build time is twice on EC2 agents
@@ -39,7 +37,10 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildT
         model = model,
         buildType = this,
         gradleTasks = ":smoke-ide-test:smokeIdeTest",
-        extraParameters = buildScanTag("SmokeIdeTests"),
+        extraParameters = listOf(
+            stage.getBuildScanCustomValueParam(),
+            buildScanTagParam("SmokeIdeTests")
+        ).joinToString(" "),
     )
 }) {
     companion object {

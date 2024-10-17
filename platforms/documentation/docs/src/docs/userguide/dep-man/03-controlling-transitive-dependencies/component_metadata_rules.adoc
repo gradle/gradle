@@ -363,7 +363,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Modifying metadata on the component level for alignment
 
 While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
-This information can influence the <<dependency_resolution.adoc#understanding_dependency_resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+This information can influence the <<dependency_resolution_adv.adoc#understanding_dependency_resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
 It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
@@ -379,7 +379,7 @@ It is therefore recommended to only modify this attribute, if any, on the compon
 A dedicated API `setStatus(value)` is available for this.
 To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
 
-A module's status is taken into consideration when a <<single_versions.adoc#single-version-declarations,_latest_ version selector>> is resolved.
+A module's status is taken into consideration when a <<dependency_versions.adoc#single-version-declarations,_latest_ version selector>> is resolved.
 Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
 For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
 

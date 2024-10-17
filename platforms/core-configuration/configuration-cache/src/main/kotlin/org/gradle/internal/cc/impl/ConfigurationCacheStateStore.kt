@@ -23,24 +23,28 @@ import java.io.File
 internal
 interface ConfigurationCacheStateStore {
 
-    data class StateFile(val stateType: StateType, val file: File)
+    data class StateFile(val stateType: StateType, val file: File) {
+        val name: String get() = file.name
+    }
+
+    data class StateAccessResult<T>(val value: T, val accessedFiles: List<File>)
 
     fun assignSpoolFile(stateType: StateType): StateFile
 
     /**
      * Loads some value from zero or more state files.
      */
-    fun <T : Any> useForStateLoad(action: (ConfigurationCacheRepository.Layout) -> T): T
+    fun <T : Any> useForStateLoad(action: (ConfigurationCacheRepository.Layout) -> T): StateAccessResult<T>
 
     /**
      * Loads some value from a specific state file.
      */
-    fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T
+    fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): StateAccessResult<T>
 
     /**
      * Writes some value to zero or more state files.
      */
-    fun <T> useForStore(action: (ConfigurationCacheRepository.Layout) -> T): T
+    fun <T> useForStore(action: (ConfigurationCacheRepository.Layout) -> T): StateAccessResult<T>
 
     /**
      * Creates a new [ValueStore] that can be used to load and store multiple values.

@@ -138,10 +138,14 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/12972")
     def "property has no value"() {
-        buildFile << """
+        buildFile """
         configurations { conf }
 
         def emptyDep = objects.property(String)
+
+        // https://github.com/gradle/gradle/issues/15319
+        // behavior should be the same even if allDependencies accessed before
+        ${accessAllDependencies ? "configurations.conf.allDependencies" : ""}
 
         dependencies {
             conf emptyDep
@@ -164,6 +168,9 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         // fails("resolve")
         // then:
         // failure.assertHasCause("No value has been specified for this property.")
+
+        where:
+        accessAllDependencies << [true, false]
     }
 
     def "provider throws an exception"() {

@@ -27,10 +27,9 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface CacheResourceConfiguration {
-
     /**
-     * Sets the timestamp before which unused entries will be removed to be calculated exactly
-     * the given number of days previous to the current time.
+     * Sets the interval (in days) after which unused entries will be considered stale and removed from the cache.
+     * Any entries not used within this interval will be candidates for eviction.
      */
     void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays);
 }

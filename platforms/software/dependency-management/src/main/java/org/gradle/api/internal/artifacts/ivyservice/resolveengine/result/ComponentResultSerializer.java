@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,61 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.IOException;
-import java.util.List;
+/**
+ * Serializes a components from a resolved graph so they can be loaded back if requested
+ * by the user.
+ */
+public interface ComponentResultSerializer {
 
-public class ComponentResultSerializer {
-    private final ComponentSelectionReasonSerializer reasonSerializer;
-    private final ComponentDetailsSerializer componentDetailsSerializer;
-    private final SelectedVariantSerializer selectedVariantSerializer;
-    private final boolean includeAllSelectableVariantResults;
+    /**
+     * Serialize the component using the encoder.
+     */
+    void writeComponentResult(Encoder encoder, ResolvedGraphComponent component, boolean includeAllSelectableVariantResults) throws Exception;
 
-    public ComponentResultSerializer(
-        ComponentDetailsSerializer componentDetailsSerializer,
-        SelectedVariantSerializer selectedVariantSerializer,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        boolean includeAllSelectableVariantResults
-    ) {
-        this.componentDetailsSerializer = componentDetailsSerializer;
-        this.selectedVariantSerializer = selectedVariantSerializer;
-        this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
-        this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
-    }
-
-    public void readInto(Decoder decoder, ResolvedComponentVisitor builder) throws Exception {
-        long resultId = decoder.readSmallLong();
-        ComponentSelectionReason reason = reasonSerializer.read(decoder);
-        String repo = decoder.readNullableString();
-        builder.startVisitComponent(resultId, reason, repo);
-        componentDetailsSerializer.readComponentDetails(decoder, builder);
-        int variantCount = decoder.readSmallInt();
-        for (int i = 0; i < variantCount; i++) {
-            selectedVariantSerializer.readSelectedVariant(decoder, builder);
-        }
-        builder.endVisitComponent();
-    }
-
-    public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
-        try {
-            encoder.writeSmallLong(value.getResultId());
-            reasonSerializer.write(encoder, value.getSelectionReason());
-            encoder.writeNullableString(value.getRepositoryName());
-            componentDetailsSerializer.writeComponentDetails(value.getResolveState(), includeAllSelectableVariantResults, encoder);
-            List<ResolvedGraphVariant> selectedVariants = value.getSelectedVariants();
-            encoder.writeSmallInt(selectedVariants.size());
-            for (ResolvedGraphVariant variant : selectedVariants) {
-                selectedVariantSerializer.writeVariantResult(variant, encoder);
-            }
-        } catch (IOException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
-    }
+    /**
+     * Deserialize the component from the decoder, passing the result to the visitor.
+     */
+    void readComponentResult(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception;
 }

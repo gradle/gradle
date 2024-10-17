@@ -22,7 +22,7 @@ public class StandardPlugin implements Plugin<Project> {
     @Override
     public void apply(Project target) {
         // tag::problems-api-report[]
-        problems.forNamespace("reporters.standard.plugin").reporting(problem -> problem
+        problems.getReporter().reporting(problem -> problem
                 .id("adhoc-plugin-deprecation", "Plugin is deprecated")
                 .contextualLabel("The 'standard-plugin' is deprecated")
                 .documentedAt("https://github.com/gradle/gradle/README.md")

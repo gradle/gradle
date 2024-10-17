@@ -21,8 +21,8 @@ import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.api.internal.attributes.AttributeSchemaServices
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -30,14 +30,17 @@ import spock.lang.Specification
 class ConsumerProvidedVariantFinderTest extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def transformRegistry = Mock(VariantTransformRegistry)
-
-    ConsumerProvidedVariantFinder transformations
-
-    def setup() {
-        def schema = Mock(AttributesSchemaInternal)
-        schema.matcher() >> attributeMatcher
-        transformations = new ConsumerProvidedVariantFinder(transformRegistry, schema, AttributeTestUtil.attributesFactory())
+    def services = Mock(AttributeSchemaServices) {
+        getMatcher(_, _) >> attributeMatcher
+        getSchemaFactory() >> AttributeTestUtil.services().getSchemaFactory()
     }
+
+    ConsumerProvidedVariantFinder transformations = new ConsumerProvidedVariantFinder(
+        transformRegistry,
+        AttributeTestUtil.mutableSchema(),
+        AttributeTestUtil.attributesFactory(),
+        services
+    )
 
     def "selects transform that can produce variant that is compatible with requested"() {
         def requested = AttributeTestUtil.attributes([usage: "requested"])

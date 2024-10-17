@@ -19,11 +19,8 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.ExternalProcessStartedListener;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -41,12 +38,12 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.ModelDefaultsApplyingPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
-import org.gradle.api.internal.plugins.ModelDefaultsApplyingPluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -82,7 +79,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -108,7 +104,6 @@ import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.PluginScheme;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -312,82 +307,25 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        DependencyMetaDataProvider dependencyMetaDataProvider,
         BuildLogicBuilder buildLogicBuilder
     ) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             dependencyManagementServices,
-            fileResolver,
-            fileCollectionFactory,
-            dependencyMetaDataProvider,
             buildLogicBuilder
         );
-        return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
+
+        return factory.createProjectScriptHandler(
+            project.getBuildScriptSource(),
+            project.getClassLoaderScope(),
+            fileResolver,
+            fileCollectionFactory,
+            project
+        );
     }
 
     @Provides
     protected PropertyHost createPropertyHost() {
         return new ProjectBackedPropertyHost(project);
-    }
-
-    private static class ScriptScopedContext implements DomainObjectContext {
-        private final DomainObjectContext delegate;
-
-        public ScriptScopedContext(DomainObjectContext delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Path identityPath(String name) {
-            return delegate.identityPath(name);
-        }
-
-        @Override
-        public Path projectPath(String name) {
-            return delegate.projectPath(name);
-        }
-
-        @Override
-        public Path getProjectPath() {
-            return delegate.getProjectPath();
-        }
-
-        @Nullable
-        @Override
-        public Path getProjectIdentityPath() {
-            return delegate.getProjectIdentityPath();
-        }
-
-        @Nullable
-        @Override
-        public ProjectInternal getProject() {
-            return delegate.getProject();
-        }
-
-        @Override
-        public ModelContainer<?> getModel() {
-            return delegate.getModel();
-        }
-
-        @Override
-        public Path getBuildPath() {
-            return delegate.getBuildPath();
-        }
-
-        @Override
-        public boolean isScript() {
-            return true;
-        }
-
-        @Override
-        public boolean isRootScript() {
-            return false;
-        }
-
-        @Override
-        public boolean isPluginContext() {
-            return false;
-        }
     }
 
     @Provides
@@ -423,7 +361,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         CrossProjectConfigurator projectConfigurator
     ) {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, projectScopeServiceRegistry, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
+        return new DefaultDomainObjectCollectionFactory(instantiatorFactory, projectScopeServiceRegistry, collectionCallbackActionDecorator, projectConfigurator.getLazyBehaviorGuard());
     }
 
     @Provides

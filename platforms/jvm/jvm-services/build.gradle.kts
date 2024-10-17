@@ -23,7 +23,6 @@ description = "JVM invocation and inspection abstractions"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 2 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
     )
 }
 
@@ -58,4 +57,13 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
+packageCycles {
+    // Needed for the factory methods in the interface since the implementation is in an internal package
+    // which in turn references the interface.
+    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
 }

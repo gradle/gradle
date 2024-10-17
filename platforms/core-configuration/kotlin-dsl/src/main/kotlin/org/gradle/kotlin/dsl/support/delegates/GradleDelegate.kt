@@ -144,6 +144,8 @@ abstract class GradleDelegate : Gradle {
     override fun removeListener(listener: Any) =
         delegate.removeListener(listener)
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Will be removed in Gradle 9. Logging customization through listeners is no longer supported.")
     override fun useLogger(logger: Any) =
         delegate.useLogger(logger)
 

@@ -22,6 +22,7 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -56,16 +57,29 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
+    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+
     fun writeClass(type: Class<*>)
 
     /**
      * @see ClassEncoder.encodeClassLoader
      */
-    fun writeClassLoader(classLoader: ClassLoader?): Boolean = false
+    fun writeClassLoader(classLoader: ClassLoader?) = Unit
 }
 
 
 interface CloseableWriteContext : WriteContext, AutoCloseable
+
+
+fun <I, R> CloseableWriteContext.writeWith(
+    argument: I,
+    writeOperation: suspend WriteContext.(I) -> R
+): R =
+    useToRun {
+        runWriteOperation {
+            writeOperation(argument)
+        }
+    }
 
 
 interface Tracer {
@@ -91,6 +105,8 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     var immediateMode: Boolean // TODO:configuration-cache prevent StackOverflowErrors when crossing protocols
 
     suspend fun read(): Any?
+
+    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 
@@ -118,7 +134,18 @@ interface MutableReadContext : ReadContext {
 
 interface CloseableReadContext : MutableReadContext, AutoCloseable {
     fun finish()
+
 }
+
+
+fun <I, R> CloseableReadContext.readWith(argument: I, readOperation: suspend MutableReadContext.(I) -> R) =
+    useToRun {
+        runReadOperation {
+            readOperation(argument)
+        }.also {
+            finish()
+        }
+    }
 
 
 inline
@@ -140,6 +167,9 @@ interface IsolateContext {
     fun onProblem(problem: PropertyProblem)
 
     fun onError(error: Exception, message: StructuredMessageBuilder)
+
+    val name: String
+        get() = this::class.simpleName!!
 }
 
 

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
@@ -39,7 +40,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -207,7 +207,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (!Objects.equal(getAttributes(), dependencyRhs.getAttributes())) {
             return false;
         }
-        if (!Objects.equal(getRequestedCapabilities(), dependencyRhs.getRequestedCapabilities())) {
+        if (!Objects.equal(getCapabilitySelectors(), dependencyRhs.getCapabilitySelectors())) {
             return false;
         }
         return true;
@@ -252,11 +252,11 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public List<Capability> getRequestedCapabilities() {
+    public Set<CapabilitySelector> getCapabilitySelectors() {
         if (moduleDependencyCapabilities == null) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
-        return ImmutableList.copyOf(moduleDependencyCapabilities.getRequestedCapabilities().get());
+        return ImmutableSet.copyOf(moduleDependencyCapabilities.getCapabilitySelectors().get());
     }
 
     @Override
@@ -322,7 +322,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     private void validateNotVariantAware() {
-        if (!getAttributes().isEmpty() || !getRequestedCapabilities().isEmpty()) {
+        if (!getAttributes().isEmpty() || !getCapabilitySelectors().isEmpty()) {
             throw new InvalidUserCodeException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
         }
     }

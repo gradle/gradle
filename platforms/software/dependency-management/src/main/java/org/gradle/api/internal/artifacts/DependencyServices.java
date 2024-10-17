@@ -43,12 +43,12 @@ public class DependencyServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.add(ArtifactSetToFileCollectionFactory.class);
         registration.addProvider(new DependencyManagementBuildSessionScopeServices());
     }
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.add(ArtifactSetToFileCollectionFactory.class);
         registration.addProvider(new DependencyManagementBuildTreeScopeServices());
     }
 }

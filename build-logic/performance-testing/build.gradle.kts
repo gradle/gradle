@@ -25,7 +25,6 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")
-    testImplementation("io.mockk:mockk")
 }
 
 gradlePlugin {

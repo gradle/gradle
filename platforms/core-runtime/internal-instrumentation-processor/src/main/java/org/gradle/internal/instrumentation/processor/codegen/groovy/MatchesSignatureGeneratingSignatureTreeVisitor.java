@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -27,6 +26,7 @@ import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator.SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
@@ -39,9 +39,6 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
  */
 class MatchesSignatureGeneratingSignatureTreeVisitor {
     private final CodeBlock.Builder result;
-
-    private static final TypeName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
-        ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
 
     MatchesSignatureGeneratingSignatureTreeVisitor(CodeBlock.Builder result) {
         this.result = result;

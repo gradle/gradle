@@ -27,7 +27,18 @@ import java.lang.annotation.*;
 @Inherited
 public @interface ToolingApiVersion {
     /**
-     * The requested tooling API version. Can use '>=nnn', '<=nnn', '&lt;nnn', '&gt;nnn', '=nnn', '!nnn', 'current' or '!current' or space-separated list of patterns.
+     * The requested tooling API version. Can use:
+     * <ul>
+     *     <li>{@code >=nnn}</li>
+     *     <li>{@code <=nnn}</li>
+     *     <li>{@code <nnn}</li>
+     *     <li>{@code >nnn}</li>
+     *     <li>{@code =nnn}</li>
+     *     <li>{@code !nnn}</li>
+     *     <li>{@code current}</li>
+     *     <li>{@code !current}</li>
+     *     <li>space-separated list of patterns</li>
+     * </ul>
      */
     String value();
 }

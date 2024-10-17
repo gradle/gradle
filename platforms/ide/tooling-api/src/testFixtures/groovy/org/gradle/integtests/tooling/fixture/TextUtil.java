@@ -24,7 +24,7 @@ public class TextUtil {
     /**
      * TODO - hack to avoid classloading issues. We should use org.gradle.util.internal.TextUtil
      *
-     * Currently we can't use it reliably because it causes CNF issues with cross version integration tests running against tooling api < 1.3.
+     * Currently we can't use it reliably because it causes CNF issues with cross version integration tests running against tooling api versions less than 1.3.
      */
     public static String escapeString(Object obj) {
         return obj.toString().replaceAll("\\\\", "\\\\\\\\");

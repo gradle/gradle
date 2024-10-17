@@ -32,7 +32,7 @@ interface StatementResolver {
 
 
 class StatementResolverImpl(
-    private val propertyAccessResolver: PropertyAccessResolver,
+    private val namedReferenceResolver: NamedReferenceResolver,
     private val expressionResolver: ExpressionResolver,
     private val errorCollector: ErrorCollector
 ) : StatementResolver {
@@ -42,7 +42,7 @@ class StatementResolverImpl(
     override fun doResolveLocalValue(context: AnalysisContext, localValue: LocalValue) = context.doAnalyzeLocal(localValue)
 
     override fun doResolveExpressionStatement(context: AnalysisContext, expr: Expr) {
-        val resolvedExpr = expressionResolver.doResolveExpression(context, expr)
+        val resolvedExpr = expressionResolver.doResolveExpression(context, expr, null)
 
         when (expr) {
             is FunctionCall ->
@@ -55,7 +55,7 @@ class StatementResolverImpl(
 
     private
     fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment): AssignmentRecord? {
-        val lhsResolution = propertyAccessResolver.doResolvePropertyAccessToAssignable(this, assignment.lhs)
+        val lhsResolution = namedReferenceResolver.doResolveNamedReferenceToAssignable(this, assignment.lhs)
 
         return if (lhsResolution == null) {
             errorCollector.collect(ResolutionError(assignment.lhs, ErrorReason.UnresolvedReference(assignment.lhs)))
@@ -67,7 +67,7 @@ class StatementResolverImpl(
                 errorCollector.collect(ResolutionError(assignment, ErrorReason.ReadOnlyPropertyAssignment(lhsResolution.property)))
                 hasErrors = true
             }
-            val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs)
+            val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs, lhsResolution.property.valueType)
             if (rhsResolution == null) {
                 errorCollector.collect(ResolutionError(assignment, ErrorReason.UnresolvedAssignmentRhs))
                 null
@@ -94,7 +94,7 @@ class StatementResolverImpl(
 
     private
     fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
-        val rhs = expressionResolver.doResolveExpression(this, localValue.rhs)
+        val rhs = expressionResolver.doResolveExpression(this, localValue.rhs, null)
         if (rhs == null) {
             errorCollector.collect(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
         } else {
@@ -114,6 +114,7 @@ class StatementResolverImpl(
             is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
             is ObjectOrigin.DelegatingObjectOrigin -> isPotentiallyPersistentReceiver(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> false
+            is ObjectOrigin.EnumConstantOrigin -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.FunctionOrigin -> {
                 val semantics = objectOrigin.function.semantics

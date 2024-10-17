@@ -28,6 +28,7 @@ class EnvironmentVariablesPropagationTest extends Specification {
 
         where:
         value << ['GRADLE_ENTERPRISE_ACCESS_KEY',
+                  "DEVELOCITY_ACCESS_KEY",
                   "api_key",
                   "access_key",
                   "apikey",

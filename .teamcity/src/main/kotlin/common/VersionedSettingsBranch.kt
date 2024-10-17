@@ -48,12 +48,7 @@ data class VersionedSettingsBranch(val branchName: String) {
         val OLD_RELEASE_PATTERN = "release(\\d+)x".toRegex()
 
         fun fromDslContext(): VersionedSettingsBranch {
-            val branch = DslContext.getParameter("Branch")
-            // TeamCity uses a dummy name when first running the DSL
-            if (branch.contains("placeholder-1")) {
-                return VersionedSettingsBranch(MASTER_BRANCH)
-            }
-            return VersionedSettingsBranch(branch)
+            return VersionedSettingsBranch(DslContext.getParameter("Branch", "placeholder"))
         }
 
         private fun determineNightlyPromotionTriggerHour(branchName: String) = when (branchName) {

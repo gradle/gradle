@@ -23,14 +23,14 @@ import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.Test
+import org.gradle.internal.declarativedsl.assertIs
 
 
-object ResolutionTracerTest {
+class ResolutionTracerTest {
     val schema = schemaFromTypes(TopLevelReceiver::class, listOf(TopLevelReceiver::class))
 
     @Test
@@ -77,15 +77,17 @@ object ResolutionTracerTest {
         val call = result.errors.first { it.errorReason is ErrorReason.UnresolvedFunctionCallSignature }.element as FunctionCall
         val arg = (call.args[0] as FunctionArgument.ValueArgument).expr
 
-        val outerErrors = assertNotNull(resolver.trace.expressionResolution(call).errors)
-        assertEquals(2, outerErrors.size)
+        val outerErrors = resolver.trace.expressionResolution(call).errors
+        assertNotNull(outerErrors)
+        assertEquals(2, outerErrors?.size)
         assertEquals(
             setOf(ErrorReason.UnresolvedFunctionCallSignature::class, ErrorReason.UnresolvedFunctionCallArguments::class),
-            outerErrors.map { it.errorReason::class }.toSet()
+            outerErrors?.map { it.errorReason::class }?.toSet()
         )
 
-        val innerErrors = assertNotNull(resolver.trace.expressionResolution(arg).errors)
-        assertIs<ErrorReason.UnresolvedReference>(innerErrors.single().errorReason)
+        val innerErrors = resolver.trace.expressionResolution(arg).errors
+        assertNotNull(innerErrors)
+        assertIs<ErrorReason.UnresolvedReference>(innerErrors?.single()?.errorReason)
     }
 
     @Test

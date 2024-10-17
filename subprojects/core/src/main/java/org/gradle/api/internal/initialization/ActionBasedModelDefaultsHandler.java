@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
@@ -41,17 +42,19 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
+    private final InternalProblems problems;
 
-    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme) {
+    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.softwareTypeRegistry = softwareTypeRegistry;
         this.inspectionScheme = inspectionScheme;
+        this.problems = problems;
     }
 
     @Override
     public <T> void apply(T target, String softwareTypeName, Plugin<? super T> plugin) {
         SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
 
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, problems);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
             typeValidationContext,

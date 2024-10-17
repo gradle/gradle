@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -40,7 +39,7 @@ class SelectorStateResolverResults {
 
     public SelectorStateResolverResults(Comparator<Version> versionComparator, VersionParser versionParser, int size) {
         this.versionParser = versionParser;
-        this.results = Lists.newArrayListWithCapacity(size);
+        this.results = new ArrayList<>(size);
         this.versionComparator = versionComparator;
     }
 

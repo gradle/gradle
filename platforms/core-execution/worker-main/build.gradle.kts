@@ -16,7 +16,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.problemsApi)
-    api(projects.processServices)
+    api(projects.processMemoryServices)
     api(projects.native)
     api(libs.jsr305)
 
@@ -28,4 +28,7 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

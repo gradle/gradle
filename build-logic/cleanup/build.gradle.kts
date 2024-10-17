@@ -10,7 +10,6 @@ errorprone {
         "CatchAndPrintStackTrace", // 1 occurrences
         "DefaultCharset", // 3 occurrences
         "JavaTimeDefaultTimeZone", // 1 occurrences
-        "StringCaseLocaleUsage", // 2 occurrences
     )
 }
 

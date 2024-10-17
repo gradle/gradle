@@ -56,7 +56,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -73,7 +73,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model2 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -97,7 +97,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -117,7 +117,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         }
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model4 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -154,7 +154,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -262,7 +262,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("model-a", "model-b")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
@@ -294,7 +294,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.expectConcurrent("configure-a", "configure-b")
 
         when:
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         def model = fetchModel(GradleProject)
 
         then:

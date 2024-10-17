@@ -277,23 +277,31 @@ class ProblemReportingCrossProjectModelAccess(
             return super.delete(action)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun javaexec(closure: Closure<*>): ExecResult {
             onIsolationViolation("javaexec")
+            @Suppress("DEPRECATION")
             return super.javaexec(closure)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
             onIsolationViolation("javaexec")
+            @Suppress("DEPRECATION")
             return super.javaexec(action)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun exec(closure: Closure<*>): ExecResult {
             onIsolationViolation("exec")
+            @Suppress("DEPRECATION")
             return super.exec(closure)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun exec(action: Action<in ExecSpec>): ExecResult {
             onIsolationViolation("exec")
+            @Suppress("DEPRECATION")
             return super.exec(action)
         }
 

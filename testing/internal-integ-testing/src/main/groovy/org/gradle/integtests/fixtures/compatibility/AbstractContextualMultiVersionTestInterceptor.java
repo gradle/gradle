@@ -43,8 +43,6 @@ import static com.google.common.collect.Iterators.getLast;
  *     </ul>
  *     </li>
  * </ul>
- *
- * @param <T>
  */
 public abstract class AbstractContextualMultiVersionTestInterceptor<T extends VersionedTool> extends AbstractMultiTestInterceptor {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";

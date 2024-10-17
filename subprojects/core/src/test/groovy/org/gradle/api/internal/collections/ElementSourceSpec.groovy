@@ -21,14 +21,79 @@ import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.ChangingValue
 import org.gradle.api.internal.provider.ChangingValueHandler
 import org.gradle.api.internal.provider.CollectionProviderInternal
+import org.gradle.api.internal.provider.DefaultPropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.ValueSupplier
+import spock.lang.Specification
 
-abstract class ElementSourceSpec extends PendingSourceSpec {
+abstract class ElementSourceSpec extends Specification {
 
-    @Override
     abstract ElementSource<CharSequence> getSource()
 
     abstract List<CharSequence> iterationOrder(CharSequence... values)
+
+    def "does not run side effects of pending providers when realizing pending elements"() {
+        given:
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def sideEffect3 = Mock(ValueSupplier.SideEffect)
+        def sideEffect4 = Mock(ValueSupplier.SideEffect)
+        def sideEffect5 = Mock(ValueSupplier.SideEffect)
+        def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
+        def source = getSource()
+
+        when:
+        def provider1 = Providers.of("v1").withSideEffect(sideEffect1)
+        source.addPending(provider1)
+        def provider2 = Providers.of("v2").withSideEffect(sideEffect2)
+        source.addPending(provider2)
+        def provider3 = Providers.of("v3").withSideEffect(sideEffect3)
+        source.addPending(provider3)
+        def provider4 = propertyFactory.listProperty(String).with {
+            it.add(Providers.of("v4").withSideEffect(sideEffect4))
+            it
+        }
+        source.addPendingCollection(provider4)
+        def provider5 = propertyFactory.listProperty(String).with {
+            it.add(Providers.of("v5").withSideEffect(sideEffect5))
+            it
+        }
+        source.addPendingCollection(provider5)
+
+        then:
+        0 * _ // no side effects until elements are realized
+
+        when:
+        source.removePending(provider2)
+        source.removePendingCollection(provider4)
+
+        then:
+        0 * _ // can remove pending without running side effects
+
+        when:
+        source.realizePending()
+
+        then:
+        0 * sideEffect1.execute("v1")
+
+        then: // ensure ordering
+        0 * sideEffect3.execute("v3")
+
+        then: // ensure ordering
+        0 * sideEffect5.execute("v5")
+
+        // side effects of removed providers do not execute
+        0 * sideEffect2.execute(_)
+        0 * sideEffect4.execute(_)
+
+        when:
+        source.realizePending()
+
+        then:
+        0 * _ // realizing again does not run side effects
+    }
 
     def "can add a realized element"() {
         when:

@@ -35,6 +35,253 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.11]]
+== Upgrading from 8.10 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.0.20
+
+The embedded Kotlin has been updated from 1.9.24 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.20[Kotlin 2.0.20].
+Also see the link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.10[Kotlin 2.0.10] and link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.0[Kotlin 2.0.0] release notes.
+
+The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.20 as well.
+
+Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backward compatibility.
+
+==== Gradle daemon JVM configuration via toolchain
+
+The type of the property `UpdateDaemonJvm.jvmVersion` is now `Property<JavaLanguageVersion>`.
+
+If you configured the task in a build script, you will need to replace:
+
+`jvmVersion = JavaVersion.VERSION_17`
+
+With:
+
+`jvmVersion = JavaLanguageVersion.of(17)`
+
+Using the CLI options to configure which JVM version to use for the Gradle Daemon has no impact.
+
+==== Name matching changes
+
+The name-matching logic has been updated to treat numbers as word boundaries for camelCase names.
+Previously, a request like `unique` would match both `uniqueA` and `unique1`.
+Such a request will now fail due to ambiguity. To avoid issues, use the exact name instead of a shortened version.
+
+This change impacts:
+
+- Task selection
+- Project selection
+- Configuration selection in dependency report tasks
+
+=== Deprecations
+
+[[deprecated_fork_options_java_home]]
+==== Deprecated JavaHome property of ForkOptions
+
+The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[JavaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.
+
+Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
+
+[[mutating_buildscript_configurations]]
+==== Deprecated mutating buildscript configurations
+
+Starting in Gradle 9.0, mutating configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript-groovy.lang.Closure-[buildscript] block will result in an error.
+This applies to project, settings, init, and standalone scripts.
+
+The buildscript configurations block is only intended to control buildscript classpath resolution.
+
+Consider the following script that creates a new buildscript configuration in a Settings script and resolves it:
+
+[source,kotlin]
+----
+buildscript {
+    configurations {
+        create("myConfig")
+    }
+    dependencies {
+        "myConfig"("org:foo:1.0")
+    }
+}
+
+val files = buildscript.configurations["myConfig"].files
+----
+
+This pattern is sometimes used to resolve dependencies in Settings, where there is no other way to obtain a Configuration.
+Resolving dependencies in this context is not recommended.
+Using a detached configuration is a possible but discouraged alternative.
+
+The above example can be modified to use a detached configuration:
+
+[source,kotlin]
+----
+val myConfig = buildscript.configurations.detachedConfiguration(
+    buildscript.dependencies.create("org:foo:1.0")
+)
+
+val files = myConfig.files
+----
+
+[[selecting_variant_by_configuration_name]]
+==== Selecting Maven variants by configuration name
+
+Starting in Gradle 9.0, selecting variants by name from non-Ivy external components will be forbidden.
+
+Selecting variants by name from local components will still be permitted; however, this pattern is discouraged.
+Variant aware dependency resolution should be preferred over selecting variants by name for local components.
+
+The following dependencies will fail to resolve when targeting a non-Ivy external component:
+
+[source,groovy]
+----
+dependencies {
+    implementation(group: "com.example", name: "example", version: "1.0", configuration: "conf")
+    implementation("com.example:example:1.0") {
+        targetConfiguration = "conf"
+    }
+}
+----
+
+[[adding_to_configuration_container]]
+==== Deprecated manually adding to configuration container
+
+Starting in Gradle 9.0, manually adding configuration instances to a configuration container will result in an error.
+Configurations should only be added to the container through the eager or lazy factory methods.
+Detached configurations and copied configurations should not be added to the container.
+
+Calling the following methods on link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html[ConfigurationContainer] will be forbidden:
+- add(Configuration)
+- addAll(Collection)
+- addLater(Provider)
+- addAllLater(Provider)
+
+[[deprecate_get_dependency_project]]
+==== Deprecated `ProjectDependency#getDependencyProject()`
+
+The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDependencyProject()[`ProjectDependency#getDependencyProject()`] method has been deprecated and will be removed in Gradle 9.0.
+
+Accessing the mutable project instance of other projects should be avoided.
+
+[[deprecate_legacy_configuration_get_files]]
+==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
+
+The link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getFiles()[ResolvedConfiguration.getFiles()] and link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getFiles()[LenientConfiguration.getFiles()] methods have been deprecated and will be removed in Gradle 9.0.
+
+These deprecated methods do not track task dependencies, unlike their replacements.
+
+[source,kotlin]
+----
+val deprecated: Set<File> = conf.resolvedConfiguration.files
+val replacement: FileCollection = conf.incoming.files
+
+val lenientDeprecated: Set<File> = conf.resolvedConfiguration.lenientConfiguration.files
+val lenientReplacement: FileCollection = conf.incoming.artifactView {
+    isLenient = true
+}.files
+----
+
+[[deprecated_abstract_options]]
+==== Deprecated `AbstractOptions`
+
+The `AbstractOptions` class has been deprecated and will be removed in Gradle 9.0.
+All classes extending `AbstractOptions` will no longer extend it.
+
+As a result, the `AbstractOptions#define(Map)` method will no longer be present.
+This method exposes a non-type-safe API and unnecessarily relies on reflection.
+It can be replaced by directly setting the properties specified in the map.
+
+Additionally, `CompileOptions#fork(Map)`, `CompileOptions#debug(Map)`, and `GroovyCompileOptions#fork(Map)`, which depend on `define`, are also deprecated for removal in Gradle 9.0.
+
+Consider the following example of the deprecated behavior and its replacement:
+
+[source,groovy]
+----
+tasks.withType(JavaCompile) {
+    // Deprecated behavior
+    options.define(encoding: 'UTF-8')
+    options.fork(memoryMaximumSize: '1G')
+    options.debug(debugLevel: 'lines')
+
+    // Can be replaced by
+    options.encoding = 'UTF-8'
+
+    options.fork = true
+    options.forkOptions.memoryMaximumSize = '1G'
+
+    options.debug = true
+    options.debugOptions.debugLevel = 'lines'
+}
+----
+
+[[deprecated_content_equals]]
+==== Deprecated `Dependency#contentEquals(Dependency)`
+
+The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
+
+The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
+The existing method does not behave as specified by its Javadoc, and we do not plan to introduce a replacement that does.
+
+Potential migrations include using `Object.equals(Object)` directly, or comparing the fields of dependencies manually.
+
+[[deprecated_project_exec]]
+==== Deprecated `Project#exec` and `Project#javaexec`
+
+The methods link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
+link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] has been deprecated and will be removed in Gradle 9.0.
+
+These methods cannot be used with the configuration cache and should be replaced with compatible alternatives.
+At execution time, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service or standard Java/Groovy/Kotlin APIs, like `java.lang.ProcessBuilder` to run processes.
+Running external processes at configuration time isn't recommended, but methods of <<configuration_cache.adoc#config_cache:requirements:external_processes, `ProviderFactory`>> or a custom
+link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if necessary, at the cost of making the process output an input to the build configuration.
+
+[[detached_configurations_cannot_extend]]
+==== Detached Configurations should not use `extendsFrom`
+
+link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...)[Detached configurations] should not extend other configurations using `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#extendsFrom(org.gradle.api.artifacts.Configuration...)[extendsFrom]`.
+
+This behavior has been deprecated and will become an error in Gradle 9.0.
+
+To create extension relationships between configurations, you should change to using non-detached configurations created via the other factory methods present in the project's `link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html)[ConfigurationContainer]`.
+
+[[deprecated_use_logger]]
+==== Deprecated customized Gradle logging
+
+The link:{javadocPath}/org/gradle/api/invocation/Gradle.html#useLogger(java.lang.Object)[Gradle#useLogger(Object)] method has been deprecated and will be removed in Gradle 9.0.
+
+This method was originally intended to customize logs printed by Gradle.
+However, it only allows intercepting a subset of the logs and cannot work with the <<configuration_cache#config_cache:requirements:build_listeners,configuration cache>>.
+We do not plan to introduce a replacement for this feature.
+
+[[deprecated_nested_properties_setters]]
+==== Unnecessary options on compile options and doc tasks have been deprecated
+
+Gradle's API allowed some properties that represented nested groups of properties to be replaced wholesale with a setter method.
+This was awkward and unusual to do and would sometimes require the use of internal APIs.
+The setters for these properties will be removed in Gradle 9.0 to simplify the API and ensure consistent behavior.
+Instead of using the setter method, these properties should be configured by calling the getter and configuring the object directly or using the convenient configuration method.
+For example, in `CompileOptions`, instead of calling the `setForkOptions` setter, you can call `getForkOptions()` or `forkOptions(Action)`.
+
+The affected properties are:
+
+- link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getDebugOptions()[CompileOptions.getDebugOptions]
+- link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getForkOptions()[CompileOptions.getForkOptions]
+- link:{javadocPath}/org/gradle/api/tasks/compile/GroovyCompileOptions.html#getForkOptions()[GroovyCompileOptions.getForkOptions]
+- link:{javadocPath}/org/gradle/api/tasks/scala/ScalaDoc.html#getScalaDocOptions()[ScalaDoc.getScalaDocOptions]
+- link:{javadocPath}/org/gradle/language/scala/tasks/BaseScalaCompileOptions.html#getForkOptions()[BaseScalaCompileOptions.getForkOptions]
+- link:{javadocPath}/org/gradle/language/scala/tasks/BaseScalaCompileOptions.html#getIncrementalOptions()[BaseScalaCompileOptions.getIncrementalOptions]
+
+[[deprecated_javadoc_verbose]]
+==== Deprecated `Javadoc.isVerbose()` and `Javadoc.setVerbose(boolean)`
+
+These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Javadoc] have been deprecated and will be removed in Gradle 9.0.
+
+- link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
+- Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
+    - Calling `setVerbose(false)` did nothing.
+
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
@@ -166,7 +413,7 @@ We added a check to automatically disable file-system watching on macOS 11 (Big 
 
 ==== Possible change to JDK8-based compiler output when annotation processors are used
 
-The Java compilation infrastructure has been updated to use the [Problems API](https://docs.gradle.org/8.6/userguide/implementing_gradle_plugins.html#reporting_problems).
+The Java compilation infrastructure has been updated to use the <<implementing_gradle_plugins_binary.adoc#reporting_problems,Problems API>>.
 This change will supply the Tooling API clients with structured, rich information about compilation issues.
 
 The feature should not have any visible impact on the usual build output, with JDK8 being an exception.
@@ -523,7 +770,7 @@ ASM was upgraded from 9.5 to https://asm.ow2.io/versions.html[9.6] for better su
 
 The version catalog parser has been upgraded and is now compliant with https://toml.io/en/v1.0.0[version 1.0.0 of the TOML spec].
 
-This should not impact catalogs that use the <<platforms.adoc#sub::toml-dependencies-format,recommended syntax>> or were generated by Gradle for publication.
+This should not impact catalogs that use the <<version_catalogs.adoc#sub::toml-dependencies-format,recommended syntax>> or were generated by Gradle for publication.
 
 === Deprecations
 

@@ -18,6 +18,7 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
@@ -50,7 +51,7 @@ class SwiftBasePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def projectDir = tmpDir.createDir("project")
-    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("test").build()
+    ProjectInternal project = ProjectBuilder.builder().withProjectDir(projectDir).withName("test").build()
 
     def "adds compile task for binary"() {
         def binary = Stub(DefaultSwiftBinary)
@@ -153,7 +154,7 @@ class SwiftBasePluginTest extends Specification {
         project.evaluate()
 
         then:
-        def publications = project.services.get(ProjectPublicationRegistry).getPublications(NativeProjectPublication, project.identityPath)
+        def publications = project.services.get(ProjectPublicationRegistry).getPublicationsForProject(NativeProjectPublication, project.identityPath)
         publications.size() == 1
         publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }

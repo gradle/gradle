@@ -122,6 +122,7 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                     "\"${current.value}\""
                 else current.value.toString()
             )
+            is ObjectReflection.EnumValue -> current.objectOrigin.toString()
             is ObjectReflection.DataObjectReflection -> {
                 append(current.type.toString() + (if (current.identity.invocationId != -1L) "#" + current.identity else "") + " ")
                 if (visitedIdentity.add(current.identity)) {

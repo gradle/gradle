@@ -33,7 +33,7 @@ public class StreamingAwareBuildControllerAdapter extends NestedActionAwareBuild
     }
 
     @Override
-    public <T> void send(T value) {
+    public void send(Object value) {
         relay.dispatch(value);
     }
 }

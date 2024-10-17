@@ -25,6 +25,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
@@ -44,6 +45,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo.BridgeType.INSTANCE_METHOD_BRIDGE;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.DEPRECATION_LOGGER;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.FILE_SYSTEM_LOCATION;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
@@ -95,7 +97,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             CallableInfo callable = request.getInterceptedCallable();
 
             MethodSpec spec;
-            if (implementationExtra.getBridgedMethod() != null) {
+            if (implementationExtra.getBridgedMethodInfo() != null) {
                 spec = mapToBridgedMethod(implementation.getName(), implementationExtra, callable);
             } else {
                 List<ParameterSpec> parameters = callable.getParameters().stream()
@@ -120,7 +122,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
     }
 
     private static MethodSpec mapToBridgedMethod(String methodName, PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
-        ExecutableElement bridgedMethod = implementationExtra.getBridgedMethod();
+        BridgedMethodInfo bridgedMethodInfo = implementationExtra.getBridgedMethodInfo();
+        ExecutableElement bridgedMethod = bridgedMethodInfo.getBridgedMethod();
         List<TypeVariableName> typeVariables = bridgedMethod.getTypeParameters().stream()
             .map(element -> TypeVariableName.get((TypeVariable) element.asType()))
             .collect(Collectors.toList());
@@ -138,13 +141,31 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         if (implementationExtra.getDeprecationSpec().isEnabled()) {
             bodyBuilder.addStatement(getDeprecationCodeBlock(implementationExtra, callable));
         }
-        CodeBlock bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
-            ? CodeBlock.of("$T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
-            : CodeBlock.of("return $T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
+
+        CodeBlock bridgeCall;
+        List<AnnotationSpec> annotationSpecs = Collections.emptyList();
+        if (bridgedMethodInfo.getBridgeType() == INSTANCE_METHOD_BRIDGE) {
+            TypeName type = TypeName.get(bridgedMethod.getEnclosingElement().asType());
+            if (type instanceof ParameterizedTypeName) {
+                // To simplify code generation we remove type parameters from the instance type, e.g.:
+                // if we have AbstractExecTask<T>, method parameter has type `AbstractExecTask` without generics
+                type = ((ParameterizedTypeName) type).rawType;
+                annotationSpecs = Collections.singletonList(SUPPRESS_UNCHECKED_AND_RAWTYPES);
+            }
+            parameters.add(0, ParameterSpec.builder(type, SELF_PARAMETER_NAME).build());
+            bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
+                ? CodeBlock.of("$L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters)
+                : CodeBlock.of("return $L.$N($L)", SELF_PARAMETER_NAME, bridgedMethod.getSimpleName(), passedParameters);
+        } else {
+            bridgeCall = TypeName.get(bridgedMethod.getReturnType()).equals(TypeName.VOID)
+                ? CodeBlock.of("$T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters)
+                : CodeBlock.of("return $T.$N($L)", TypeName.get(bridgedMethod.getEnclosingElement().asType()), bridgedMethod.getSimpleName(), passedParameters);
+        }
         bodyBuilder.addStatement(bridgeCall);
 
         return MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addAnnotations(annotationSpecs)
             .addTypeVariables(typeVariables)
             .addParameters(parameters)
             .returns(TypeName.get(bridgedMethod.getReturnType()))

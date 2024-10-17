@@ -16,7 +16,6 @@
 package org.gradle.internal.resolve;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -26,6 +25,7 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -70,8 +70,8 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
                     appendSizeLimited(builder, unmatchedVersions);
                 }
                 if (!rejectedVersions.isEmpty()) {
-                    Collection<RejectedVersion> byRule = Lists.newArrayListWithExpectedSize(rejectedVersions.size());
-                    Collection<RejectedVersion> byAttributes = Lists.newArrayListWithExpectedSize(rejectedVersions.size());
+                    Collection<RejectedVersion> byRule = new ArrayList<>(rejectedVersions.size());
+                    Collection<RejectedVersion> byAttributes = new ArrayList<>(rejectedVersions.size());
                     mapRejections(rejectedVersions, byRule, byAttributes);
                     if (!byRule.isEmpty()) {
                         builder.node("Versions rejected by component selection rules");

@@ -17,7 +17,6 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.util.internal.GFileUtils;
@@ -32,7 +31,7 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
         // Copy files into the cache, if it is possible that loading the file in a ClassLoader may cause locking problems if the file is deleted
 
         if (sourceSnapshot.getType() != FileType.RegularFile) {

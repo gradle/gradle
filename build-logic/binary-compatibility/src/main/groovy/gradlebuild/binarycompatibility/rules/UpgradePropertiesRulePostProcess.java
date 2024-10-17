@@ -27,16 +27,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_ACCESSORS_OF_UPGRADED_PROPERTIES;
-import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES;
 
 public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRule {
 
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
-        Set<AccessorKey> seenUpgradedAccessorsChanges = (Set<AccessorKey>) context.getUserData().get(SEEN_OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
-        Map<AccessorKey, ReplacedAccessor> oldAccessorsOfUpgradedProperties = (Map<AccessorKey, ReplacedAccessor>) context.getUserData().get(OLD_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Set<AccessorKey> seenUpgradedAccessorsChanges = (Set<AccessorKey>) context.getUserData().get(SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
+        Map<AccessorKey, ReplacedAccessor> oldAccessorsOfUpgradedProperties = (Map<AccessorKey, ReplacedAccessor>) context.getUserData().get(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES);
 
         // Find accessors that were not removed but should be
         Map<AccessorKey, ReplacedAccessor> keptAccessors = new HashMap<>(oldAccessorsOfUpgradedProperties);

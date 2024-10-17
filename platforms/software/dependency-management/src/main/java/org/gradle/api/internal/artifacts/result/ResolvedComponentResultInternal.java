@@ -49,4 +49,12 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
      * @since 7.5
      */
     List<ResolvedVariantResult> getAvailableVariants();
+
+    /**
+     * Get a variant by its node ID.
+     *
+     * @return null if this component does not have a variant with the specified ID.
+     */
+    @Nullable
+    ResolvedVariantResult getVariant(long id);
 }

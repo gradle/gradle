@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.Path;
@@ -45,7 +46,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         ListenerManager listenerManager,
         BuildTreeLocalComponentProvider componentProvider
     ) {
-        this.currentProjectPath = getProjectIdentityPath(domainObjectContext);
+        this.currentProjectPath = getProjectBuildTreePath(domainObjectContext);
         this.currentBuildPath = domainObjectContext.getBuildPath();
         this.projectComponentObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
         this.componentProvider = componentProvider;
@@ -71,9 +72,10 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     }
 
     @Nullable
-    private static Path getProjectIdentityPath(DomainObjectContext domainObjectContext) {
-        if (domainObjectContext.getProject() != null) {
-            return domainObjectContext.getProject().getIdentityPath();
+    private static Path getProjectBuildTreePath(DomainObjectContext domainObjectContext) {
+        ProjectIdentity id = domainObjectContext.getProjectIdentity();
+        if (id != null) {
+            return id.getBuildTreePath();
         }
 
         return null;

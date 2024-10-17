@@ -52,6 +52,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
     private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
+    private final Pattern markdownLinkPattern = Pattern.compile("\\[[^]]+]\\([^)^\\\\]+\\)");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -105,6 +106,9 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         fw.println("# * To a different file: <<other-file(.adoc)#section-name,text>> - Note that the # and section are mandatory, otherwise the link is invalid in the single page output");
         fw.println("#");
         fw.println("# The checker does not handle implicit section names, so they must be explicit and declared as: [[section-name]]");
+        fw.println("#");
+        fw.println("# The checker also rejects Markdown-style links, such as [text](https://example.com/something) as they do not render properly");
+
     }
 
     private void gatherDeadLinksInFile(File sourceFile, Map<File, List<Error>> errors) {
@@ -117,6 +121,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 lineNumber++;
                 gatherDeadLinksInLine(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLine(sourceFile, line, lineNumber, errorsForFile);
+                gatherMarkdownLinksInLine(sourceFile, line, lineNumber, errorsForFile);
 
                 line = br.readLine();
             }
@@ -126,6 +131,14 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
 
         if (!errorsForFile.isEmpty()) {
             errors.put(sourceFile, errorsForFile);
+        }
+    }
+
+    private void gatherMarkdownLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = markdownLinkPattern.matcher(line);
+        while (matcher.find()) {
+             String invalidLink = matcher.group();
+             errorsForFile.add(new Error(lineNumber, line, "Markdown-style links are not supported: " + invalidLink));
         }
     }
 

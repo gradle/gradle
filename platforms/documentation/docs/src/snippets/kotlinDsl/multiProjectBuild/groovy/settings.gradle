@@ -1,0 +1,12 @@
+// tag::repositories[]
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+// end::repositories[]
+
+// tag::base[]
+rootProject.name = "multi-project-build"
+// end::base[]

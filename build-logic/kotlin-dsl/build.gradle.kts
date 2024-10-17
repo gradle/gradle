@@ -11,7 +11,6 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDslSharedRuntime)
 
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
     implementation(kotlin("sam-with-receiver"))
     implementation("org.ow2.asm:asm")

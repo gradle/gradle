@@ -1,12 +1,12 @@
 a = 1
-a.b.c = 1
 b = this
 c = null
-d = a.b.c
 x = true
 
+rootProject.name = "something"
+
 block {
-    a = (1)
+    a = 1
     b = 2
 }
 
@@ -15,4 +15,12 @@ f(x=y)
 f.g.h.i.j.k(test)
 f(1, x, "s", g())
 f(a = b, c = d)
-f(1).g(2).h(3)
+
+// errors
+// 5
+// a = (1)
+// a.b.c = 1
+// d = a.b.c
+// a.b {d = 1}
+// a.b.c {d = 1}
+// f(1).g(2).h(3)

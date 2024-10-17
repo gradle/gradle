@@ -35,8 +35,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.EmptySchema
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -69,12 +69,12 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
 
     def setup() {
         state = stateFactory.stateFor(
-            RootScriptDomainObjectContext.INSTANCE,
+            StandaloneDomainObjectContext.ANONYMOUS,
             componentIdentifier,
             id,
             project.configurations as ConfigurationsProvider,
             "status",
-            EmptySchema.INSTANCE
+            ImmutableAttributesSchema.EMPTY
         )
     }
 

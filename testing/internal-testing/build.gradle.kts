@@ -27,6 +27,7 @@ dependencies {
     api(libs.spock)
     api(libs.spockJUnit4)
 
+    implementation(projects.baseAsm)
     implementation(projects.buildOperations)
     implementation(projects.functional)
     implementation(projects.native)

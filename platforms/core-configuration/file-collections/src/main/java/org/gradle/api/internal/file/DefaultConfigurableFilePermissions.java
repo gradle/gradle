@@ -94,6 +94,10 @@ public class DefaultConfigurableFilePermissions extends AbstractFilePermissions 
 
     @Override
     public void unix(int unixNumeric) {
+        if (unixNumeric < 0 || unixNumeric >= 512) {
+            throw new IllegalArgumentException(unixNumeric + " is not a valid unix numeric permission from the range of [0, 512)");
+        }
+
         user.unix(getUserPartOf(unixNumeric));
         group.unix(getGroupPartOf(unixNumeric));
         other.unix(getOtherPartOf(unixNumeric));

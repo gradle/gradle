@@ -32,7 +32,7 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
 
         buildFile """
             ${getProblemReportingScript """
-                problems.forNamespace('org.example.plugin').throwing {
+                problems.getReporter().throwing {
                     it.id('type', 'label')
                     .withException(new RuntimeException('failed'))
             }"""}

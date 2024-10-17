@@ -24,6 +24,12 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
+import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
+import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
+import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
+import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -37,7 +43,6 @@ import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
 import org.gradle.internal.instrumentation.util.NameUtil;
-import org.gradle.util.internal.TextUtil;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
@@ -203,7 +208,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         });
         requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER).forEach(request -> {
             String propertyName = request.getInterceptedCallable().getCallableName();
-            String setterName = "set" + TextUtil.capitalize(propertyName);
+            String setterName = NameUtil.setterName(propertyName);
             scopeExpressions.add(CodeBlock.of("$1T.writesOfPropertiesNamed($2S)", INTERCEPTED_SCOPE_CLASS, propertyName));
             scopeExpressions.add(CodeBlock.of("$1T.methodsNamed($2S)", INTERCEPTED_SCOPE_CLASS, setterName));
         });
@@ -276,12 +281,12 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .orElseThrow(() -> new IllegalArgumentException("a property interception request must have a receiver parameter")).getParameterType();
     }
 
-    static final ClassName FILTERABLE_CALL_INTERCEPTOR = ClassName.bestGuess("org.gradle.internal.classpath.intercept.FilterableCallInterceptor");
-    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.AbstractCallInterceptor");
-    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor");
-    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
-        ClassName.bestGuess("org.gradle.internal.classpath.intercept.SignatureAwareCallInterceptor.SignatureMatch");
-    private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.PropertyAwareCallInterceptor");
-    private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
-    private static final ClassName INVOCATION_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
+    static final ClassName FILTERABLE_CALL_INTERCEPTOR = ClassName.get(FilterableCallInterceptor.class);
+    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.get(AbstractCallInterceptor.class);
+    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.get(SignatureAwareCallInterceptor.class);
+    static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
+        ClassName.get(SignatureAwareCallInterceptor.SignatureMatch.class);
+    private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.get(PropertyAwareCallInterceptor.class);
+    private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.get(InterceptScope.class);
+    private static final ClassName INVOCATION_CLASS = ClassName.get(Invocation.class);
 }

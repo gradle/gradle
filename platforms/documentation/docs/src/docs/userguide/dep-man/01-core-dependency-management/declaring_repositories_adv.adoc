@@ -67,7 +67,7 @@ Specifying a custom URL is also helpful if you want to declare a less popular, b
 
 Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
 Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`.
-For a full coverage see the <<#sec:repository-types,section on supported repository types>>.
+For a full coverage see the <<supported_repository_types.adoc#repository-types,section on supported repository types>>.
 
 You can also <<#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
 
@@ -76,7 +76,7 @@ You can also <<#sub:defining_custom_pattern_layout_for_an_ivy_repository,define 
 
 You can define more than one repository for resolving dependencies.
 Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other.
-You can mix any type of repository described in the <<#sec:repository-types,reference section>>.
+You can mix any type of repository described in the <<supported_repository_types.adoc#repository-types,reference section>>.
 
 This example demonstrates how to declare various named and custom URL repositories for a project:
 
@@ -90,7 +90,7 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 ====
 The order of declaration determines how Gradle will check for dependencies at runtime.
 If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_.
-You can learn more about the inner workings of <<dependency_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+You can learn more about the inner workings of <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
 ====
 
 === Strict limitation to declared repositories
@@ -150,7 +150,7 @@ These can be declared as local repositories, using a local filesystem path to ac
 
 The difference with the flat directory repository is that they do respect a format and contain metadata.
 
-When such a repository is configured, Gradle totally bypasses its <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>> for it as there can be no guarantee that content may not change between executions.
+When such a repository is configured, Gradle totally bypasses its <<dependency_resolution_adv.adoc#sec:dependency_cache,dependency cache>> for it as there can be no guarantee that content may not change between executions.
 Because of that limitation, they can have a performance impact.
 
 They also make build reproducibility much harder to achieve and their use should be limited to tinkering or prototyping.
@@ -189,7 +189,7 @@ If the JAR can't be found there, the extra `artifactUrls` are used to look for J
 
 You can specify credentials for Maven repositories secured by different type of authentication.
 
-See <<#sec:supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
 
 [[sub:maven_local]]
 === Local Maven repository
@@ -197,10 +197,10 @@ See <<#sec:supported_transport_protocols>> for authentication options.
 Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
 
-NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
+NOTE: Gradle stores resolved dependencies in <<dependency_resolution_adv.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 
-WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
+WARNING: Before adding Maven local as a repository, you should <<supported_repository_types.adoc#sec:case-for-maven-local, make sure this is really required>>.
 
 To declare the local Maven cache as a repository add this to your build script:
 
@@ -222,11 +222,11 @@ As a general advice, you should avoid adding `mavenLocal()` as a repository.
 There are different issues with using `mavenLocal()` that you should be aware of:
 
 * Maven uses it as a cache, not a repository, meaning it can contain partial modules.
-** For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found.
+** For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found.
 * As a <<sub:local-repos,local repository>>, Gradle does not trust its content, because:
 ** Origin of artifacts cannot be tracked, which is a correctness and security problem
 ** Artifacts can be easily overwritten, which is a security, correctness and reproducibility problem
-* To mitigate the fact that metadata and/or artifacts can be changed, Gradle does not perform <<dependency_resolution.adoc#sec:dependency_cache,any caching>> for <<sub:local-repos,local repositories>>
+* To mitigate the fact that metadata and/or artifacts can be changed, Gradle does not perform <<dependency_resolution_adv.adoc#sec:dependency_cache,any caching>> for <<sub:local-repos,local repositories>>
 ** As a consequence, your builds are slower
 ** Given that order of repositories is important, adding `mavenLocal()` _first_ means that all your builds are going to be slower
 
@@ -241,7 +241,7 @@ There are a few cases where you might have to use `mavenLocal()`:
 ** It is preferable to use <<composite_builds.adoc#composite_builds, composite builds>> for this use case
 ** If for some reason neither composite builds nor full featured repository are possible, then `mavenLocal()` is a last resort option
 
-After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<#sec:repository-content-filtering,a repository filter>>.
+After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<filtering_repository_content.adoc#repository-content-filtering,a repository filter>>.
 This will make sure it only provides what is expected and nothing else.
 
 [[sec:ivy_repositories]]
@@ -313,7 +313,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-ivy-repo]"]
 ====
 
-See <<#sec:supported_transport_protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported_transport_protocols>> for authentication options.
 
 [[sec:repository-content-filtering]]
 == Repository content filtering
@@ -343,7 +343,7 @@ By default, repositories include everything and exclude nothing:
 * If you declare both includes and excludes, then it includes only what is explicitly included and not excluded.
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
-When using a strict version, it is possible to use a version range, using <<single_versions.adoc#single-version-declarations,the format supported>> by Gradle.
+When using a strict version, it is possible to use a version range, using <<dependency_versions.adoc#single-version-declarations,the format supported>> by Gradle.
 In addition, there are filtering options by resolution context: configuration name or even configuration attributes.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
 

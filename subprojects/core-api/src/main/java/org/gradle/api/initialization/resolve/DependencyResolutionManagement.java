@@ -48,6 +48,7 @@ public interface DependencyResolutionManagement {
     RepositoryHandler getRepositories();
 
     @Incubating
+    @Restricted
     Property<RepositoriesMode> getRepositoriesMode();
 
     /**

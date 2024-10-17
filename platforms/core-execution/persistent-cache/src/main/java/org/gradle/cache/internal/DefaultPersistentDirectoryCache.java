@@ -22,7 +22,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +50,9 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         Consumer<? super PersistentCache> initAction,
         CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager lockManager,
-        ExecutorFactory executorFactory,
-        BuildOperationRunner buildOperationRunner
+        ExecutorFactory executorFactory
     ) {
-        super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+        super(dir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
         this.initAction = initAction;
         this.properties.putAll(properties);
     }

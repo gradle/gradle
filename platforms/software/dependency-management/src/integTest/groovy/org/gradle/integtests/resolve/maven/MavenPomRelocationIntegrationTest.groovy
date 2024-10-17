@@ -107,6 +107,27 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         file("compileClasspath").assertHasDescendants("artifactC-1.0.jar")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30468")
+    def "can resolve module with a relocation containing variables"() {
+        given:
+        def moduleA = publishPomWithRelocation('some-group', 'artifactA', null, 'artifactB', '${project.version}')
+        def moduleB = mavenHttpRepo.module('some-group', 'artifactB', "1.0").publish()
+
+        and:
+        createBuildFileWithDependency('some-group', 'artifactA')
+
+        and:
+        moduleA.pom.expectGet()
+        moduleB.pom.expectGet()
+        moduleB.artifact.expectGet()
+
+        when:
+        run "retrieve"
+
+        then:
+        file("compileClasspath").assertHasDescendants("artifactB-1.0.jar")
+    }
+
     def "fails to resolve module if published artifact does not exist with relocated coordinates"() {
         given:
         def original = publishPomWithRelocation('groupA', 'artifactA', 'notExist', 'notExist')

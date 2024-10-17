@@ -2,7 +2,7 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.prettyPrintLanguageResult
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 
 class RejectedLanguageFeaturesParsingTest {
