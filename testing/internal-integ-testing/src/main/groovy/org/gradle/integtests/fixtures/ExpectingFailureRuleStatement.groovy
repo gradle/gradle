@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.file.AbstractTestDirectoryProvider
 import org.junit.runners.model.Statement
 
 class ExpectingFailureRuleStatement extends Statement {
@@ -39,6 +40,9 @@ class ExpectingFailureRuleStatement extends Statement {
         } catch (Throwable ex) {
             System.err.println("Failed with $feature as expected:")
             ex.printStackTrace()
+            if (next instanceof AbstractTestDirectoryProvider.TestDirectoryCleaningStatement) {
+                next.cleanup()
+            }
         }
     }
 }

@@ -86,7 +86,7 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
         return new TestDirectoryCleaningStatement(base, description);
     }
 
-    private class TestDirectoryCleaningStatement extends Statement {
+    public class TestDirectoryCleaningStatement extends Statement {
         private final Statement base;
         private final Description description;
 
@@ -95,13 +95,9 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
             this.description = description;
         }
 
-        @Override
-        public void evaluate() throws Throwable {
-            // implicitly don't clean up if this throws
-            base.evaluate();
-
+        public void cleanup() {
             try {
-                cleanup();
+                AbstractTestDirectoryProvider.this.cleanup();
             } catch (Exception e) {
                 if (suppressCleanupErrors()) {
                     System.err.println(cleanupErrorMessage());
@@ -110,6 +106,15 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
                     throw new GradleException(cleanupErrorMessage(), e);
                 }
             }
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            // implicitly don't clean up if this throws exceptions
+            // so that we can inspect the test directory
+            base.evaluate();
+
+            cleanup();
         }
 
         private boolean suppressCleanupErrors() {
