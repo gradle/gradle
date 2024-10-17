@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
@@ -58,6 +59,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def failureProcessor = DependencyManagementTestUtil.newFailureHandler()
+    def transformationChainsAssessor = new TransformationChainsAssessor(new DefaultProviderFactory())
 
     def 'direct match on variant means no finder interaction'() {
         given:
@@ -161,6 +163,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
             attributesFactory,
             schemaServices,
             transformedVariantFactory,
+            transformationChainsAssessor,
             failureProcessor
         )
     }

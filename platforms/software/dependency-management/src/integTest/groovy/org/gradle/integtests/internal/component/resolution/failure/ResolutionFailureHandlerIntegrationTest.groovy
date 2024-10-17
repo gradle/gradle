@@ -371,24 +371,32 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > Found multiple transforms that can produce a variant of root project : with requested attributes:
+        assertFullMessageCorrect("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
        - color 'red'
        - shape 'round'
-     Found the following transforms:
-       - From 'configuration ':roundBlueLiquidElements'':
+     Found the following transformation chains:
+       - From configuration ':roundBlueLiquidElements':
            - With source attributes:
                - color 'blue'
                - shape 'round'
                - state 'liquid'
-           - Candidate transform(s):
-               - Transform 'BrokenTransform' producing attributes:
-                   - color 'red'
-                   - shape 'round'
-                   - state 'gas'
-               - Transform 'BrokenTransform' producing attributes:
-                   - color 'red'
-                   - shape 'round'
-                   - state 'solid'""")
+           - Candidate transformation chains:
+               - Transformation chain: 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - state 'liquid'
+                       - To attributes:
+                           - color 'red'
+                           - state 'gas'
+               - Transformation chain: 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - state 'liquid'
+                       - To attributes:
+                           - color 'red'
+                           - state 'solid'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()

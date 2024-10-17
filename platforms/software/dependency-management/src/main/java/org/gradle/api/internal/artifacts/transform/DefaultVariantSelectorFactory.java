@@ -43,6 +43,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     private final DomainObjectContext domainObjectContext;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final TransformationChainsAssessor transformationChainsAssessor;
 
     @Inject
     public DefaultVariantSelectorFactory(
@@ -53,7 +54,8 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         ResolutionFailureHandler failureProcessor,
         DomainObjectContext domainObjectContext,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        TransformationChainsAssessor transformationChainsAssessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributesFactory = attributesFactory;
@@ -63,6 +65,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
         this.domainObjectContext = domainObjectContext;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.transformationChainsAssessor = transformationChainsAssessor;
     }
 
     @Override
@@ -95,6 +98,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
             attributesFactory,
             attributeSchemaServices,
             transformedVariantFactory,
+            transformationChainsAssessor,
             failureProcessor
         );
     }

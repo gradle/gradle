@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes
 
+
 import org.gradle.api.internal.attributes.immutable.TestsImmutableAttributes
 import spock.lang.Specification
 

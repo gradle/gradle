@@ -1289,23 +1289,31 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib with requested attributes:
+        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
-Found the following transforms:
-  - From 'configuration ':lib:compile'':
+Found the following transformation chains:
+  - From configuration ':lib:compile':
       - With source attributes:
           - artifactType 'custom'
           - usage 'api'
-      - Candidate transform(s):
-          - Transform 'BrokenTransform' producing attributes:
-              - artifactType 'transformed'
-              - extra 'bar'
-              - usage 'api'
-          - Transform 'BrokenTransform' producing attributes:
-              - artifactType 'transformed'
-              - extra 'baz'
-              - usage 'api'"""
+      - Candidate transformation chains:
+          - Transformation chain: 'BrokenTransform':
+              - 'BrokenTransform':
+                  - Converts from attributes:
+                      - artifactType 'custom'
+                      - extra 'foo'
+                  - To attributes:
+                      - artifactType 'transformed'
+                      - extra 'bar'
+          - Transformation chain: 'BrokenTransform':
+              - 'BrokenTransform':
+                  - Converts from attributes:
+                      - artifactType 'custom'
+                      - extra 'foo'
+                  - To attributes:
+                      - artifactType 'transformed'
+                      - extra 'baz'"""
     }
 
     def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
@@ -1385,46 +1393,52 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib with requested attributes:
+        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
-Found the following transforms:
-  - From 'configuration ':lib:compile' variant variant1':
+Found the following transformation chains:
+  - From configuration ':lib:compile' variant 'variant1':
       - With source attributes:
           - artifactType 'jar'
           - buildType 'release'
           - flavor 'free'
           - usage 'api'
-      - Candidate transform(s):
-          - Transform 'BrokenTransform' producing attributes:
-              - artifactType 'transformed'
-              - buildType 'release'
-              - flavor 'free'
-              - usage 'api'
-  - From 'configuration ':lib:compile' variant variant2':
+      - Candidate transformation chains:
+          - Transformation chain: 'BrokenTransform':
+              - 'BrokenTransform':
+                  - Converts from attributes:
+                      - artifactType 'jar'
+                      - buildType 'release'
+                  - To attributes:
+                      - artifactType 'transformed'
+  - From configuration ':lib:compile' variant 'variant2':
       - With source attributes:
           - artifactType 'jar'
           - buildType 'release'
           - flavor 'paid'
           - usage 'api'
-      - Candidate transform(s):
-          - Transform 'BrokenTransform' producing attributes:
-              - artifactType 'transformed'
-              - buildType 'release'
-              - flavor 'paid'
-              - usage 'api'
-  - From 'configuration ':lib:compile' variant variant3':
+      - Candidate transformation chains:
+          - Transformation chain: 'BrokenTransform':
+              - 'BrokenTransform':
+                  - Converts from attributes:
+                      - artifactType 'jar'
+                      - buildType 'release'
+                  - To attributes:
+                      - artifactType 'transformed'
+  - From configuration ':lib:compile' variant 'variant3':
       - With source attributes:
           - artifactType 'jar'
           - buildType 'debug'
           - flavor 'free'
           - usage 'api'
-      - Candidate transform(s):
-          - Transform 'BrokenTransform' producing attributes:
-              - artifactType 'transformed'
-              - buildType 'debug'
-              - flavor 'free'
-              - usage 'api'"""
+      - Candidate transformation chains:
+          - Transformation chain: 'BrokenTransform':
+              - 'BrokenTransform':
+                  - Converts from attributes:
+                      - artifactType 'jar'
+                      - buildType 'debug'
+                  - To attributes:
+                      - artifactType 'transformed'"""
     }
 
     def "result is applied for all query methods"() {
