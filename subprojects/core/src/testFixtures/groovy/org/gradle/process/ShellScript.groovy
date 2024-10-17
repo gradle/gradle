@@ -72,12 +72,16 @@ abstract class ShellScript {
 
         @Override
         List<String> getCommandLine() {
-            return ["cmd.exe", "/d", "/c", scriptFile.absolutePath]
+            return makeCmdArgs(scriptFile.absolutePath)
         }
 
         @Override
         List<String> getRelativeCommandLine(File baseDir) {
-            return ["cmd.exe", "/d", "/c", getRelativePath(baseDir)]
+            return makeCmdArgs(getRelativePath(baseDir))
+        }
+
+        private List<String> makeCmdArgs(String scriptPath) {
+            return ["cmd.exe", "/e:on", "/d", "/c", scriptPath]
         }
     }
 
@@ -108,6 +112,8 @@ abstract class ShellScript {
         abstract Builder printText(String text);
 
         abstract Builder printEnvironmentVariable(String variableName)
+
+        abstract Builder printEnvironmentVariableIfPresent(String variableName)
 
         abstract Builder printWorkingDir()
 
@@ -151,6 +157,14 @@ abstract class ShellScript {
         }
 
         @Override
+        Builder printEnvironmentVariableIfPresent(String variableName) {
+            addLine("""if [ -n "\${${variableName}+x}" ]; then""")
+            printEnvironmentVariable(variableName)
+            addLine("fi")
+            return this
+        }
+
+        @Override
         Builder printWorkingDir() {
             return addLine("echo CWD=\$(pwd)")
         }
@@ -184,6 +198,14 @@ abstract class ShellScript {
         @Override
         Builder printEnvironmentVariable(String variableName) {
             return addLine("echo $variableName=%$variableName%")
+        }
+
+        @Override
+        Builder printEnvironmentVariableIfPresent(String variableName) {
+            addLine("if defined $variableName (")
+            printEnvironmentVariable(variableName)
+            addLine(")")
+            return this
         }
 
         @Override
