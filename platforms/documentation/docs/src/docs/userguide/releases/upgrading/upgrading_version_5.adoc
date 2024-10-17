@@ -478,7 +478,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
   Disable incremental Groovy compilation when you want to compile in those cases.
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
-  Use the methods on the <<dynamic_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
+  Use the methods on the <<resolution_rules.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
