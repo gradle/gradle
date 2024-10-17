@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:33.2.1-jre'
+}
+
+// tag::process-javadocs-views[]
+configurations {
+    customConfiguration
+}
+
+dependencies {
+    customConfiguration 'com.google.guava:guava:30.1-jre'
+}
+
+tasks.register('processJavadocs') {
+    doLast {
+        def view = configurations.customConfiguration.incoming.artifactView {
+            // Filter by attribute
+            attributes {
+                // This filters the artifacts down to only the Javadoc
+                // files associated with the Guava dependency
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
+            }
+        }
+
+        // Get the artifacts
+        def artifacts = view.artifacts.artifactFiles
+
+        // Process each artifact
+        artifacts.files.each { file ->
+            println "Processing Javadoc artifact: ${file.name}"
+        }
+    }
+}
+// end::process-javadocs-views[]
+
+// tag::resolve-javadocs-views[]
+tasks.register('resolveJavadocs') {
+    doLast {
+        def javadocArtifacts = configurations.customConfiguration.incoming.artifactView {
+            // Allows Gradle to select artifacts from alternative variants of a component,
+            // not just the variant that was initially selected during the dependency graph resolution phase.
+            withVariantReselection()
+            // Filter by attribute
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
+            }
+        }.artifacts
+
+        if (javadocArtifacts.artifacts.isEmpty()) {
+            println 'No Javadoc artifacts found.'
+        } else {
+            javadocArtifacts.each { artifact ->
+                println "Resolved Javadoc: ${artifact.file.name}"
+            }
+        }
+    }
+}
+// end::resolve-javadocs-views[]
