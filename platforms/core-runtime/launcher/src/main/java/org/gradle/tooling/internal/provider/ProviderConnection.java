@@ -386,6 +386,13 @@ public class ProviderConnection {
         return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
 
+    public void ping(ProviderOperationParameters providerParameters) {
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        Parameters params = initParams(providerParameters);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
+        ((PingCoordinator) clientServices.find(PingCoordinator.class)).ping();
+    }
+
     private static class Parameters {
         final DaemonParameters daemonParams;
         final BuildLayoutResult buildLayout;
