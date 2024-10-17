@@ -22,11 +22,15 @@ import javax.annotation.Nullable;
  * Meta-data about a build operation.
  */
 public final class BuildOperationDescriptor {
+    @Nullable
     private final OperationIdentifier id;
+    @Nullable
     private final OperationIdentifier parentId;
     private final String displayName;
     private final String name;
+    @Nullable
     private final String progressDisplayName;
+    @Nullable
     private final Object details;
     private final BuildOperationMetadata metadata;
     private final int totalProgress;
@@ -129,8 +133,11 @@ public final class BuildOperationDescriptor {
     public static final class Builder {
         private final String displayName;
         private String name;
+        @Nullable
         private String progressDisplayName;
+        @Nullable
         private Object details;
+        @Nullable
         private BuildOperationRef parent;
         private BuildOperationMetadata metadata = BuildOperationMetadata.NONE;
         private int totalProgress;
