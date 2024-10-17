@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.Project;
 import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 
@@ -24,7 +23,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
  * Combines the functionality of {@link AutoAppliedPluginHandler} and {@link ArgumentLoadedPluginHandler}
  * and provides a single mechanism for consolidating all explicit and implicit plugin requests.
  */
-public interface PluginHandler extends AutoAppliedPluginHandler, ArgumentLoadedPluginHandler {
+public interface PluginHandler {
     /**
      * Returns all plugin requests that should be applied to the given target, including
      * implicit and external requests.
@@ -39,9 +38,5 @@ public interface PluginHandler extends AutoAppliedPluginHandler, ArgumentLoadedP
      * @param initialPluginRequests the initial plugin requests, explicitly declared by the user in a script
      * @param pluginTarget the target object to apply the plugins to
      */
-    default PluginRequests getAllPluginRequests(PluginRequests initialPluginRequests, Object pluginTarget) {
-        PluginRequests autoAppliedPlugins = getAutoAppliedPlugins(initialPluginRequests, pluginTarget);
-        PluginRequests argumentLoadedPlugins = pluginTarget instanceof Project ? getArgumentLoadedPlugins() : PluginRequests.EMPTY;
-        return initialPluginRequests.mergeWith(autoAppliedPlugins).mergeWith(argumentLoadedPlugins);
-    }
+    PluginRequests getAllPluginRequests(PluginRequests initialPluginRequests, Object pluginTarget);
 }

@@ -17,29 +17,22 @@
 package org.gradle.buildinit.projectspecs;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 
 /**
- * Represents a parameter that can be provided to a {@link InitProjectSpec} to configure it
- * with custom information about this particular project to be generated.
- *
- * @param <T> The type of this parameter
+ * TODO
  * @since 8.12
  */
 @Incubating
-public interface InitProjectParameter<T> {
-    /**
-     * Returns the name of the parameter.
-     *
-     * @return the name of the parameter
-     * @since 8.12
-     */
-    String getName();
+public interface InitParameters {
+    DirectoryProperty getProjectDirectory();
 
     /**
-     * Returns the type of the parameter.
+     * Used for init actions without parameters.
      *
-     * @return the type of the parameter
-     * @since 8.12
+     * @since 5.6
      */
-    T getParameterType();
+    abstract class None implements InitParameters {
+        private None() {}
+    }
 }

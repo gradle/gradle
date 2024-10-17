@@ -23,6 +23,7 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
@@ -31,7 +32,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -39,6 +39,7 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -89,6 +90,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private final ToolchainManagementInternal toolchainManagement;
 
+    private final InitProjectSpecRegistry initProjectSpecRegistry;
+
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -110,6 +113,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
+        this.initProjectSpecRegistry = services.get(InitProjectSpecRegistry.class);
     }
 
     private static String getProjectName(File settingsDir) {
@@ -420,5 +424,10 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void defaults(Action<? super SharedModelDefaults> action) {
         action.execute(getDefaults());
+    }
+
+    @Override
+    public InitProjectSpecRegistry getInitProjectSpecRegistry() {
+        return initProjectSpecRegistry;
     }
 }

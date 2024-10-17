@@ -23,6 +23,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -89,4 +90,5 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
         include(new String[] {projectPath});
     }
 
+    InitProjectSpecRegistry getInitProjectSpecRegistry();
 }

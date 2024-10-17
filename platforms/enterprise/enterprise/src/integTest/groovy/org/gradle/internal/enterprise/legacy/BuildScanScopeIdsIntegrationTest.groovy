@@ -43,6 +43,6 @@ class BuildScanScopeIdsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        executer.withEagerClassLoaderCreationCheckDisabled()
+ //       executer.withEagerClassLoaderCreationCheckDisabled()
     }
 }

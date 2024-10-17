@@ -200,12 +200,12 @@ class BuildInitPluginProjectSpecsIntegrationTest extends AbstractInitIntegration
         then:
         assertResolvedPlugin("org.example.myplugin", "1.0")
         outputDoesNotContain("MyPlugin applied.")
-        assertLoadedSpec("First Project Type", "first-project-type")
-        assertLoadedSpec("Second Project Type", "second-project-type")
 
         // Note: If running in non-interactive mode, first template is automatically used
         assertProjectFileGenerated("project.output", "MyGenerator created this First Project Type project.")
         assertWrapperGenerated()
+        assertLoadedSpec("First Project Type", "first-project-type")
+        assertLoadedSpec("Second Project Type", "second-project-type")
     }
 
     @LeaksFileHandles
@@ -362,6 +362,7 @@ Known types:
         }
         args << "--overwrite"
         args << "--info"
+        args << "--stacktrace"
         args << "--init-script" << "../init.gradle"
 
         println "Executing: '${args.join(" ")}'"

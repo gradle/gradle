@@ -16,124 +16,65 @@
 
 package org.gradle.buildinit.projectspecs.internal;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.buildinit.projectspecs.InitProjectGenerator;
-import org.gradle.buildinit.projectspecs.InitProjectSpec;
+import org.gradle.api.Action;
+import org.gradle.api.file.Directory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.buildinit.projectspecs.InitAction;
+import org.gradle.buildinit.projectspecs.InitParameters;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.ArrayList;
+import javax.inject.Inject;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
- * A registry of the available {@link InitProjectSpec}s that can be used to generate new projects via the {@code init} task.
+ *
  */
-@ServiceScope(Scope.BuildSession.class)
-public final class InitProjectSpecRegistry {
-    private final Map<Class<? extends InitProjectGenerator>, List<InitProjectSpec>> specsByGeneratorType = new HashMap<>();
+@ServiceScope(Scope.Build.class)
+public abstract class InitProjectSpecRegistry {
+    private final Map<String, InitGenerator> registrations = new HashMap<>();
 
-    /**
-     * Loads and adds mappings (from generator to specs that can be generated) to this registry.
-     * <p>
-     * This does not replace existing mappings for the same generator class, but appends to any that are already
-     * present in the registry.  Attempting to register a spec for the same type with multiple generators will
-     * produce an exception.
-     *
-     * @param loader source that will load mappings to add to this registry
-     */
-    public void register(InitProjectSpecLoader loader) {
-        register(loader.loadProjectSpecs());
-    }
+    private final class Registration<G extends InitAction<P>, P extends InitParameters> implements InitGenerator {
+        private final String displayName;
+        private final Class<G> generatorType;
+        private final Class<P> parameterType;
+        private final Action<? super P> configuration;
 
-    /**
-     * Adds the given mappings (from generator to specs that can be generated) to this registry.
-     * <p>
-     * This does not replace existing mappings for the same generator class, but appends to any that are already
-     * present in the registry.  Attempting to register a spec for the same type with multiple generators will
-     * produce an exception.
-     *
-     * @param newSpecsByGeneratorType map from generator class to list of specs it can generate
-     */
-    @VisibleForTesting
-    void register(Map<Class<? extends InitProjectGenerator>, List<InitProjectSpec>> newSpecsByGeneratorType) {
-        newSpecsByGeneratorType.forEach((generator, newSpecs) -> {
-            List<InitProjectSpec> currentSpecsForGenerator = specsByGeneratorType.computeIfAbsent(generator, k -> new ArrayList<>());
-            newSpecs.forEach(newSpec -> {
-                doGetGeneratorForSpec(newSpec).ifPresent(generatorType -> {
-                    throw new IllegalStateException(String.format("Spec: '%s' with type: '%s' cannot use same type as another spec already registered!", newSpec.getDisplayName(), newSpec.getType()));
-                });
-                currentSpecsForGenerator.add(newSpec);
-            });
-        });
-    }
+        private Registration(String displayName, Class<G> generatorType, Class<P> parameterType, Action<? super P> configuration) {
+            this.displayName = displayName;
+            this.generatorType = generatorType;
+            this.parameterType = parameterType;
+            this.configuration = configuration;
+        }
 
-    public List<InitProjectSpec> getAllSpecs() {
-        return specsByGeneratorType.values().stream().flatMap(List::stream).collect(Collectors.toList());
-    }
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
 
-    public boolean isEmpty() {
-        return specsByGeneratorType.isEmpty();
-    }
-
-    /**
-     * Returns the {@link InitProjectSpec} in the registry with the given type; throwing
-     * an exception if there is not exactly one such spec.
-     *
-     * @param type the type of the project spec to find
-     * @return the project spec with the given type
-     */
-    public InitProjectSpec getSpecByType(String type) {
-        List<InitProjectSpec> matchingSpecs = specsByGeneratorType.values().stream()
-            .flatMap(List::stream)
-            .filter(spec -> Objects.equals(spec.getType(), type))
-            .collect(Collectors.toList());
-
-        switch (matchingSpecs.size()) {
-            case 0:
-                throw new IllegalStateException("Project spec with type: '" + type + "' was not found!" + System.lineSeparator() +
-                    "Known types:" + System.lineSeparator() +
-                    getAllSpecs().stream()
-                        .map(InitProjectSpec::getType)
-                        .map(t -> " - " + t)
-                        .collect(Collectors.joining(System.lineSeparator()))
-                );
-            case 1:
-                return matchingSpecs.get(0);
-            default:
-                throw new IllegalStateException("Multiple project specs: " + matchingSpecs.stream().map(InitProjectSpec::getDisplayName).collect(Collectors.joining(", ")) + " with type: '" + type + "' were found!");
+        @Override
+        public void generate(Directory projectDir) {
+            // TODO: Isolate generator and spec?
+            P parameters = getObjectFactory().newInstance(parameterType);
+            parameters.getProjectDirectory().convention(projectDir);
+            configuration.execute(parameters);
+            G generator = getObjectFactory().newInstance(generatorType, parameters);
+            generator.execute();
         }
     }
 
-    /**
-     * Returns the {@link InitProjectGenerator} type that can be used to generate a project
-     * with the given {@link InitProjectSpec}.
-     * <p>
-     * This searches by project type.
-     *
-     * @param spec the project spec to find the generator for
-     * @return the type of generator that can be used to generate a project with the given spec
-     */
-    public Class<? extends InitProjectGenerator> getGeneratorForSpec(InitProjectSpec spec) {
-        return doGetGeneratorForSpec(spec).orElseThrow(() -> new IllegalStateException("Spec: '" + spec.getDisplayName() + "' with type: '" + spec.getType() + "' is not registered!"));
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    public <T extends InitParameters> void register(String displayName, Class<? extends InitAction<T>> generator, Class<T> parameters, Action<? super T> configuration) {
+        if (registrations.containsKey(displayName)) {
+            throw new IllegalArgumentException("A generator with the display name '" + displayName + "' is already registered.");
+        }
+        registrations.put(displayName, new Registration<>(displayName, generator, parameters, configuration));
     }
 
-    private Optional<Class<? extends InitProjectGenerator>> doGetGeneratorForSpec(InitProjectSpec spec) {
-        return specsByGeneratorType.entrySet().stream()
-            .filter(entry -> isSpecWithTypePresent(spec, entry.getValue()))
-            .findFirst()
-            .map(Map.Entry::getKey);
-    }
-
-    private boolean isSpecWithTypePresent(InitProjectSpec target, List<InitProjectSpec> toSearch) {
-        return toSearch.stream().anyMatch(s -> isSameType(s, target));
-    }
-
-    private boolean isSameType(InitProjectSpec s1, InitProjectSpec s2) {
-        return Objects.equals(s1.getType(), s2.getType());
+    public Map<String, InitGenerator> getRegistrations() {
+        return registrations;
     }
 }

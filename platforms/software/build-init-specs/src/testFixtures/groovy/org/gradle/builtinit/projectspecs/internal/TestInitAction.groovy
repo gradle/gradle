@@ -17,24 +17,19 @@
 package org.gradle.builtinit.projectspecs.internal
 
 import org.gradle.api.file.Directory
-import org.gradle.buildinit.projectspecs.InitProjectConfig
-import org.gradle.buildinit.projectspecs.InitProjectGenerator
+import org.gradle.buildinit.projectspecs.InitAction
 
 /**
- * A sample {@link InitProjectGenerator} implementation for testing purposes.
+ * A sample {@link InitAction} implementation for testing purposes.
  * <p>
  * Always creates a file named {@link #OUTPUT_FILE} with the given output text.
  */
-class TestInitProjectGenerator implements InitProjectGenerator {
+abstract class TestInitAction implements InitAction<TestInitParameters> {
     public static final OUTPUT_FILE = "project.output"
-    private String output
-
-    TestInitProjectGenerator(String output = "Hello, World!") {
-        this.output = output
-    }
 
     @Override
-    void generate(InitProjectConfig config, Directory projectDir) {
-        projectDir.file(OUTPUT_FILE) << output
+    void execute() {
+        Directory projectDir = getParameters().getProjectDirectory().get()
+        projectDir.file(OUTPUT_FILE) << getParameters().getMessage().get()
     }
 }

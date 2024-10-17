@@ -25,20 +25,55 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.plugin.management.PluginRequest;
+import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginHandler;
+import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginRequest;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-public class DefaultPluginHandler implements PluginHandler {
+public class DefaultPluginHandler implements PluginHandler, AutoAppliedPluginHandler, ArgumentLoadedPluginHandler {
 
     private final AutoAppliedPluginRegistry registry;
 
     public DefaultPluginHandler(AutoAppliedPluginRegistry registry) {
         this.registry = registry;
+    }
+
+    @Override
+    public PluginRequests getAllPluginRequests(PluginRequests initialPluginRequests, Object pluginTarget) {
+        PluginRequests autoAppliedPlugins = getAutoAppliedPlugins(initialPluginRequests, pluginTarget);
+        PluginRequests argumentLoadedPlugins = pluginTarget instanceof Settings ? getArgumentLoadedPlugins(initialPluginRequests, (Settings)pluginTarget) : PluginRequests.EMPTY;
+        return initialPluginRequests.mergeWith(autoAppliedPlugins).mergeWith(argumentLoadedPlugins);
+    }
+
+
+    /**
+     * A static util class responsible for gathering {@link PluginRequest}s added outside of any build script.
+     * <p>
+     * These originate from an id + version pair in the form of {@code id:version}.  These are currently
+     * parsed from a system property {@link #INIT_PROJECT_SPEC_SUPPLIERS_PROP}.  Other such properties
+     * could be added, or this property renamed, to make this a more general-purpose mechanism.  Currently,
+     * only the {@code init} task makes use of this mechanism, so the name is appropriate for now.
+     */
+    PluginRequests getArgumentLoadedPlugins(PluginRequests initialPluginRequests, Settings settings) {
+        String propValue = System.getProperty(INIT_PROJECT_SPEC_SUPPLIERS_PROP);
+        if (propValue == null) {
+            return PluginRequests.EMPTY;
+        } else {
+            String[] pluginRequests = propValue.split(",");
+            List<PluginRequestInternal> templatePluginRequests = Arrays.stream(pluginRequests)
+                .map(ArgumentLoadedPluginRequest::parsePluginRequest)
+                .collect(Collectors.toList());
+            return filterAlreadyAppliedOrRequested(PluginRequests.of(templatePluginRequests), initialPluginRequests, settings.getPlugins(), settings.getBuildscript());
+        }
     }
 
     @Override

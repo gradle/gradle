@@ -18,11 +18,8 @@
 package org.gradle.buildinit.projectspecs.internal
 
 import org.gradle.api.logging.Logger
-import org.gradle.buildinit.projectspecs.InitProjectGenerator
-import org.gradle.buildinit.projectspecs.InitProjectSpec
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectGenerator
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectSource
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectSpec
+import org.gradle.buildinit.projectspecs.InitAction
+import org.gradle.builtinit.projectspecs.internal.TestInitAction
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -40,7 +37,7 @@ class InitProjectSpecRegistryTest extends Specification {
 
     def "registry provides loaded specs"() {
         given:
-        def generator = new TestInitProjectGenerator()
+        def generator = new TestInitAction()
         def spec1 = new TestInitProjectSpec("type1", "My Name")
         def spec2 = new TestInitProjectSpec("type2", "My Other Name")
         def registry = new InitProjectSpecRegistry()
@@ -85,8 +82,8 @@ class InitProjectSpecRegistryTest extends Specification {
         then: "loaded specs can be found"
         !registry.isEmpty()
         registry.getAllSpecs() == [spec, spec2]
-        registry.getGeneratorForSpec(spec) == TestInitProjectGenerator
-        registry.getGeneratorForSpec(spec2) == TestInitProjectGenerator
+        registry.getGeneratorForSpec(spec) == TestInitAction
+        registry.getGeneratorForSpec(spec2) == TestInitAction
 
         when:
         registry.getGeneratorForSpec(new TestInitProjectSpec("test3", "Some Third Spec"))
@@ -105,7 +102,7 @@ class InitProjectSpecRegistryTest extends Specification {
 
     def "registry can look up spec by type"() {
         given:
-        def generator = new TestInitProjectGenerator()
+        def generator = new TestInitAction()
         def spec1 = new TestInitProjectSpec("type1", "My Name")
         def spec2 = new TestInitProjectSpec("type2", "My Other Name")
         def registry = new InitProjectSpecRegistry()
@@ -130,7 +127,7 @@ Known types:
 
     def "multiple specs with same type cannot be registered"() {
         given:
-        def generator = new TestInitProjectGenerator()
+        def generator = new TestInitAction()
         def spec1 = new TestInitProjectSpec("type", "My Name")
         def spec2 = new TestInitProjectSpec("type", "My Other Name")
         def registry = new InitProjectSpecRegistry()
@@ -145,7 +142,7 @@ Known types:
 
     def "multiple specs with same type cannot be registered across multiple calls"() {
         given:
-        def generator = new TestInitProjectGenerator()
+        def generator = new TestInitAction()
         def spec1 = new TestInitProjectSpec("type", "My Name")
         def spec2 = new TestInitProjectSpec("type", "My Other Name")
         def registry = new InitProjectSpecRegistry()
@@ -161,7 +158,7 @@ Known types:
 
     def "Additional specs can be registered to an existing generator across multiple calls"() {
         given:
-        def generator = new TestInitProjectGenerator()
+        def generator = new TestInitAction()
         def spec1 = new TestInitProjectSpec("type", "My Name")
         def spec2 = new TestInitProjectSpec("type-2", "My Other Name")
         def registry = new InitProjectSpecRegistry()
@@ -181,8 +178,8 @@ Known types:
 
     def "multiple specs with same type cannot be registered to different generators"() {
         given:
-        def generator1 = new TestInitProjectGenerator()
-        def generator2 = Mock(InitProjectGenerator)
+        def generator1 = new TestInitAction()
+        def generator2 = Mock(InitAction)
         def spec1 = new TestInitProjectSpec("type", "My Name")
         def spec2 = new TestInitProjectSpec("type", "My Other Name")
         def registry = new InitProjectSpecRegistry()
@@ -197,8 +194,8 @@ Known types:
 
     def "multiple specs with same type cannot be registered to different generators across multiple register calls"() {
         given:
-        def generator1 = new TestInitProjectGenerator()
-        def generator2 = Mock(InitProjectGenerator)
+        def generator1 = new TestInitAction()
+        def generator2 = Mock(InitAction)
         def spec1 = new TestInitProjectSpec("type", "My Name")
         def spec2 = new TestInitProjectSpec("type", "My Other Name")
         def registry = new InitProjectSpecRegistry()

@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import groovy.transform.SelfType
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
@@ -27,6 +28,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * local Maven repository for testing, and contain utilities for asserting that the plugin
  * was resolved and its included spec was loaded.
  */
+@SelfType(AbstractInitIntegrationSpec)
 trait TestsInitProjectSpecsViaPlugin {
     def setup() {
         setupRepositoriesViaInit()
@@ -34,7 +36,7 @@ trait TestsInitProjectSpecsViaPlugin {
 
     private void setupRepositoriesViaInit() {
         groovyFile("init.gradle", """
-            settingsEvaluated { settings ->
+            beforeSettings { settings ->
                 settings.pluginManagement {
                     repositories {
                         maven {
@@ -49,12 +51,13 @@ trait TestsInitProjectSpecsViaPlugin {
     }
 
     void publishTestPlugin() {
-        def pluginProjectDir = file("plugin").with { createDir() }
+        def pluginProjectDir = file("plugin").createDir()
         executer.usingProjectDirectory(pluginProjectDir)
 
         PluginBuilder pluginBuilder = buildTestPlugin()
 
         executer.requireOwnGradleUserHomeDir("Adding new API that plugin needs") // TODO: Remove this when API is solid enough that it isn't changing every test run (it slows down test running)
+        executer.withArgument("--stacktrace")
         def results = pluginBuilder.publishAs("org.example.myplugin:plugin:1.0", mavenRepo, executer)
 
         println()
@@ -65,70 +68,28 @@ trait TestsInitProjectSpecsViaPlugin {
     private PluginBuilder buildTestPlugin() {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
 
-        pluginBuilder.addPluginWithCustomCode("""
-                project.getLogger().lifecycle("MyPlugin applied.");
-        """, "org.example.myplugin")
+        pluginBuilder.addSettingsPlugin("""
+    println("MyPlugin applied.")
+    settings.initProjectSpecRegistry.register("First Project Type", org.gradle.test.MyGenerator, org.gradle.test.MyGeneratorParameters) {
+        message = "First type"
+    }
+    settings.initProjectSpecRegistry.register("Second Project Type", org.gradle.test.MyGenerator, org.gradle.test.MyGeneratorParameters) {
+        message = "Second type"
+    }
+""", "org.example.myplugin")
 
-        pluginBuilder.file("src/main/resources/META-INF/services/org.gradle.buildinit.projectspecs.InitProjectSource") << "org.gradle.test.MySource\n"
-
-        pluginBuilder.java("org/gradle/test/MySource.java") << """
+        pluginBuilder.java("org/gradle/test/MyGeneratorParameters.java").java("""
             package org.gradle.test;
 
-            import java.util.Arrays;
-            import java.util.Collections;
-            import java.util.List;
+            import org.gradle.api.provider.Property;
+            import org.gradle.buildinit.projectspecs.InitParameters;
 
-            import org.gradle.buildinit.projectspecs.InitProjectGenerator;
-            import org.gradle.buildinit.projectspecs.InitProjectParameter;
-            import org.gradle.buildinit.projectspecs.InitProjectSpec;
-            import org.gradle.buildinit.projectspecs.InitProjectSource;
-
-            public class MySource implements InitProjectSource {
-                @Override
-                public List<InitProjectSpec> getProjectSpecs() {
-                    return Arrays.asList(
-                        new MyProjectSpec("first-project-type"),
-                        new MyProjectSpec("second-project-type")
-                    );
-                }
-
-                @Override
-                public Class<? extends InitProjectGenerator> getProjectGenerator() {
-                    return MyGenerator.class;
-                }
+            public interface MyGeneratorParameters extends InitParameters {
+                Property<String> getMessage();
             }
-        """
+        """)
 
-        pluginBuilder.java("org/gradle/test/MyProjectSpec.java") << """
-            package org.gradle.test;
-
-            import java.util.Arrays;
-            import java.util.Collections;
-            import java.util.List;
-
-            import org.gradle.buildinit.projectspecs.InitProjectParameter;
-            import org.gradle.buildinit.projectspecs.InitProjectSpec;
-
-            public class MyProjectSpec implements InitProjectSpec {
-                private final String type;
-
-                public MyProjectSpec(String type) {
-                    this.type = type;
-                }
-
-                @Override
-                public String getType() {
-                    return type;
-                }
-
-                @Override
-                public List<InitProjectParameter<?>> getParameters() {
-                    return Collections.emptyList();
-                }
-            }
-        """
-
-        pluginBuilder.java("org/gradle/test/MyGenerator.java") << """
+        pluginBuilder.java("org/gradle/test/MyGenerator.java").java("""
             package org.gradle.test;
 
             import java.io.File;
@@ -136,24 +97,24 @@ trait TestsInitProjectSpecsViaPlugin {
             import java.io.IOException;
 
             import org.gradle.api.file.Directory;
-            import org.gradle.buildinit.projectspecs.InitProjectConfig;
-            import org.gradle.buildinit.projectspecs.InitProjectGenerator;
+            import org.gradle.buildinit.projectspecs.InitAction;
 
-            public class MyGenerator implements InitProjectGenerator {
+            public abstract class MyGenerator implements InitAction<MyGeneratorParameters> {
                 @Override
-                public void generate(InitProjectConfig config, Directory location) {
+                public void execute() {
+                    Directory projectDir = getParameters().getProjectDirectory().get();
                     try {
-                        File output = location.file("project.output").getAsFile();
-                        output.createNewFile();
-                        FileWriter writer = new FileWriter(output);
-                        writer.write("MyGenerator created this " + config.getProjectSpec().getDisplayName() + " project.");
+                        File outputFile = projectDir.file("project.output").getAsFile();
+                        outputFile.createNewFile();
+                        FileWriter writer = new FileWriter(outputFile);
+                        writer.write("MyGenerator says " + getParameters().getMessage().get());
                         writer.close();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
             }
-        """
+        """)
 
         return pluginBuilder
     }

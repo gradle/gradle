@@ -17,10 +17,7 @@
 package org.gradle.buildinit.projectspecs.internal
 
 import org.gradle.api.logging.Logger
-import org.gradle.buildinit.projectspecs.InitProjectSpec
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectGenerator
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectSource
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectSpec
+import org.gradle.builtinit.projectspecs.internal.TestInitAction
 import org.gradle.internal.logging.ToStringLogger
 import spock.lang.Specification
 
@@ -44,7 +41,7 @@ class InitProjectSpecLoaderTest extends Specification {
         then:
         result.size() == 1
         result.keySet().size() == 1
-        result.keySet()[0] == TestInitProjectGenerator
+        result.keySet()[0] == TestInitAction
         result.values().size() == 1
         result.values()[0].size() == 1
         result.values()[0][0] == spec

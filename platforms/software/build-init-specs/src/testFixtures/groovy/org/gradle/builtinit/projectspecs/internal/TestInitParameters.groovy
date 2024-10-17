@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal.argumentloaded;
+package org.gradle.builtinit.projectspecs.internal
 
-/**
- * Provides a mechanism for requesting plugins via arguments to a build.
- */
-public interface ArgumentLoadedPluginHandler {
-    String INIT_PROJECT_SPEC_SUPPLIERS_PROP = "org.gradle.internal.buildinit.projectspecs";
+import org.gradle.api.provider.Property
+import org.gradle.buildinit.projectspecs.InitParameters
+
+interface TestInitParameters extends InitParameters {
+    Property<String> getMessage()
 }

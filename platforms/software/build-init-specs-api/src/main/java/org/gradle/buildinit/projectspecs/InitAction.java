@@ -18,30 +18,28 @@ package org.gradle.buildinit.projectspecs;
 
 import org.gradle.api.Incubating;
 
-import java.util.Map;
+import javax.inject.Inject;
 
 /**
- * Represents a {@link InitProjectSpec} that has been configured by the user, and can provide arguments
- * for all of its {@link InitProjectParameter}s.
+ * Generates a new project from a configured {@link InitParameters}.
  *
- * @implSpec Implementations must be immutable.
+ * @implSpec Implementations should be {@code public}, {@code abstract} and provide an (implicit or explicit)
+ * 0-argument constructor, as Gradle will instantiate them and inject any specified services.  Generators are
+ * <strong>NOT</strong> expected to generate Gradle wrapper files.
  * @since 8.12
  */
 @Incubating
-public interface InitProjectConfig {
+public interface InitAction<T extends InitParameters> {
     /**
-     * Returns the project specification this configuration is meant to generate.
-     *
-     * @return the project specification
-     * @since 8.12
+     * The parameters associated with a concrete work item.
      */
-    InitProjectSpec getProjectSpec();
+    @Inject
+    T getParameters();
 
     /**
-     * Returns the configured parameters for the project specification this instance configures.
+     * Generates a project from the given configuration in the given directory.
      *
-     * @return the parameters that have been configured for the spec
      * @since 8.12
      */
-    Map<InitProjectParameter<?>, Object> getArguments();
+    void execute();
 }

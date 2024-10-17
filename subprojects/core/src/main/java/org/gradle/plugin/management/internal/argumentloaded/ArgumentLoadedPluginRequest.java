@@ -55,7 +55,7 @@ public final class ArgumentLoadedPluginRequest implements PluginRequestInternal 
 
     @Override
     public boolean isApply() {
-        return false; // We're never applying these plugins, we're just loading them
+        return true; // We're never applying these plugins, we're just loading them
     }
 
     @Nullable

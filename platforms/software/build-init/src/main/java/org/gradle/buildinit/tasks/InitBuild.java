@@ -23,7 +23,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
@@ -51,11 +50,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-import org.gradle.buildinit.projectspecs.InitProjectConfig;
-import org.gradle.buildinit.projectspecs.InitProjectGenerator;
-import org.gradle.buildinit.projectspecs.InitProjectParameter;
-import org.gradle.buildinit.projectspecs.InitProjectSpec;
-import org.gradle.buildinit.projectspecs.internal.InitProjectSpecLoader;
+import org.gradle.buildinit.projectspecs.internal.InitGenerator;
 import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -64,13 +59,11 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,17 +92,12 @@ public abstract class InitBuild extends DefaultTask {
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
-    private final InitProjectSpecRegistry projectSpecRegistry;
+
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
     public InitBuild() {
-        // Don't inject this in order to preserve no-args constructor binary compatibility
-        projectSpecRegistry = getServices().get(InitProjectSpecRegistry.class);
 
-        // Have to load in the constructor to ensure specs are present with run in CC tests
-        InitProjectSpecLoader projectSpecLoader = new InitProjectSpecLoader(((ProjectInternal) getProject()).getClassLoaderScope().getLocalClassLoader(), getLogger());
-        projectSpecRegistry.register(projectSpecLoader);
     }
 
     /**
@@ -296,6 +284,9 @@ public abstract class InitBuild extends DefaultTask {
         return projectLayoutRegistry;
     }
 
+    @Inject
+    protected abstract InitProjectSpecRegistry getProjectSpecRegistry();
+
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
@@ -307,46 +298,20 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
-        boolean templatesAvailable = !projectSpecRegistry.isEmpty();
+        boolean templatesAvailable = !getProjectSpecRegistry().getRegistrations().isEmpty();
         return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
     }
 
     private void doInitSpecProjectGeneration(UserInputHandler inputHandler) {
-        InitProjectConfig config = inputHandler.askUser(this::selectAndConfigureSpec).get();
-        InitProjectGenerator generator = createGenerator(config);
-        generator.generate(config, projectDir);
+        InitGenerator generator = inputHandler.askUser(this::selectAndConfigureSpec).get();
+        generator.generate(projectDir);
         generateWrapper();
     }
 
-    private InitProjectConfig selectAndConfigureSpec(UserQuestions userQuestions) {
-        InitProjectSpec spec;
-        if (type == null) {
-            spec = userQuestions.choice("Select project type", projectSpecRegistry.getAllSpecs())
-                .renderUsing(InitProjectSpec::getDisplayName)
-                .ask();
-        }  else {
-            spec = projectSpecRegistry.getSpecByType(type);
-        }
-
-        // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
-        return new InitProjectConfig() {
-            @Override
-            @Nonnull
-            public InitProjectSpec getProjectSpec() {
-                return spec;
-            }
-
-            @Override
-            @Nonnull
-            public Map<InitProjectParameter<?>, Object> getArguments() {
-                return Collections.emptyMap();
-            }
-        };
-    }
-
-    private InitProjectGenerator createGenerator(InitProjectConfig config) {
-        Class<? extends InitProjectGenerator> generator = projectSpecRegistry.getGeneratorForSpec(config.getProjectSpec());
-        return getObjectFactory().newInstance(generator);
+    private InitGenerator selectAndConfigureSpec(UserQuestions userQuestions) {
+        return userQuestions.choice("Select project type", getProjectSpecRegistry().getRegistrations().values())
+            .renderUsing(InitGenerator::getDisplayName)
+            .ask();
     }
 
     private void doStandardProjectGeneration(UserInputHandler inputHandler) {

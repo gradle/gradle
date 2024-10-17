@@ -82,6 +82,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
+import org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
@@ -810,5 +811,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected AdditionalDataBuilderFactory createAdditionalDataBuilderFactory() {
         return new AdditionalDataBuilderFactory();
+    }
+
+    @Provides
+    protected InitProjectSpecRegistry createInitProjectSpecRegistry(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(InitProjectSpecRegistry.class);
     }
 }
