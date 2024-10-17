@@ -101,11 +101,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'testDebugUnitTest',
             'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
-        ).expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+        )
 
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        def result = runner.build()
+        def result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -138,7 +140,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'abi change on library'
         abiChange.run()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.build()
+        result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -154,7 +158,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         agpRunner(agpVersion, 'clean').build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.build()
+        result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
