@@ -15,23 +15,37 @@
 [[sec:dependency_cache]]
 = Dependency Caching
 
-== The Dependency Cache
-
 Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+1. **Local Cache**: Gradle caches dependencies locally to avoid repeated downloads.
+The cache is located in the `.gradle` directory under the user's home folder (e.g., `~/.gradle/caches/modules-2`).
+When a dependency is requested, Gradle first checks this local cache before attempting to fetch it from remote repositories.
+
+2. **Cache Expiry**: Gradle caches dependency metadata (such as the version metadata or POM files) for a configurable period, after which it is refreshed.
+The default metadata cache timeout is 24 hours, but this can be configured using the `resolutionStrategy.cacheChangingModulesFor` or `resolutionStrategy.cacheDynamicVersionsFor` methods.
+
+3. **Changing and Snapshot Dependencies**: By default, Gradle treats dependencies marked as "changing" (e.g., SNAPSHOT dependencies) differently and refreshes them more frequently.
+You can explicitly declare a dependency as changing using `changing = true` if the version is expected to change without a new version number.
+
+4. **Offline Mode**: Gradle can run in *offline mode*, using only the cached dependencies without trying to download anything from remote repositories.
+You can enable offline mode with the `--offline` flag, ensuring that your build only uses cached artifacts.
+
+5. **Refreshing Dependencies**: To force Gradle to update its dependencies, use the `--refresh-dependencies` flag.
+This option instructs Gradle to ignore cached versions and recheck for the latest artifacts in remote repositories, ensuring that your project is using the most up-to-date dependencies.
+
+== The Dependency Cache
 
 The Gradle dependency cache consists of two storage types located under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/caches`:
 
-* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files.
+1. A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files.
 The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
-* A binary store of resolved module metadata, including the results of resolving dynamic versions, module descriptors, and artifacts.
-
-The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior.
-Gradle enables reliable and reproducible enterprise builds with a focus on bandwidth and storage efficiency.
+2. A binary store of resolved module metadata, including the results of resolving dynamic versions, module descriptors, and artifacts.
 
 [[sub:cache_metadata]]
 === Separate metadata cache
 
 Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache.
+
 The information stored in the metadata cache includes:
 
 * The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
@@ -46,6 +60,7 @@ Every entry in the metadata cache includes a record of the repository that provi
 
 As described above, for each repository there is a separate metadata cache.
 A repository is identified by its URL, type and layout.
+
 If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository.
 This will always involve a remote lookup on the repository, however in many cases <<#sub:cache_artifact_reuse,no download will be required>>.
 
@@ -56,17 +71,19 @@ This is a key feature to create builds that are reliable and reproducible in any
 [[sub:cache_artifact_reuse]]
 === Artifact reuse
 
-Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact.
-If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum.
-If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
+Before downloading an artifact, Gradle attempts to retrieve the artifact's checksum by downloading its associated SHA file.
 
-As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository.
-If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
+If the checksum is available, Gradle skips the download if an artifact with the same ID and checksum already exists.
+However, if the checksum cannot be retrieved from the remote server, Gradle proceeds to download the artifact but will ignore it if it matches an existing one.
+
+Gradle also tries to reuse artifacts from the local Maven repository.
+If an artifact previously downloaded by Maven is a match, Gradle will use it, provided it can be verified against the checksum from the remote server.
 
 [[sub:cache_checksum_storage]]
 === Checksum based storage
 
 It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier.
+
 This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier.
 By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact.
 This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository.
@@ -81,11 +98,92 @@ The lock is held whenever the binary metadata store is being read or written, bu
 This concurrent access is only supported if the different Gradle processes can communicate together. This is usually _not the case_ for containerized builds.
 
 [[sub:cache_cleanup]]
-==== Cache Cleanup
+=== Cache Cleanup
 
-Gradle keeps track of which artifacts in the dependency cache are accessed.
-Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days.
-Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.
+Gradle tracks which artifacts in the dependency cache are accessed. Based on this information, the cache is periodically scanned (no more than once every 24 hours) to identify artifacts that haven't been used in over 30 days.
+These obsolete artifacts are then deleted to prevent the cache from growing indefinitely.
+
+[[sec:controlling-dynamic-version-caching]]
+== Controlling the Cache
+
+By default, Gradle caches dependencies (including dynamic versions and changing modules) for 24 hours, meaning it does not contact remote repositories for new versions during this time.
+
+To have Gradle check for newer versions more frequently or with every build, you can adjust the caching threshold or time-to-live (TTL) settings accordingly.
+
+NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to increased HTTP(s) calls.
+
+[[sec:controlling_dependency_caching_programmatically]]
+=== Controlling dependency caching programmatically
+
+You can fine-tune certain aspects of caching programmatically using the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html[ResolutionStrategy] for a configuration.
+The programmatic approach is useful if you want to change the settings permanently.
+
+To change how long Gradle will cache the resolved version for a dynamic version, use:
+
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
+====
+
+To change how long Gradle will cache the metadata and artifacts for a changing module, use:
+
+====
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
+====
+
+== Caching changing dependencies
+
+Gradle treats dependencies marked as "changing" (such as SNAPSHOT dependencies) differently from regular dependencies, refreshing them more frequently to ensure that you are always using the latest version.
+
+To declare a dependency as changing, you can set the `changing = true` attribute in your dependency declaration.
+This is useful for dependencies expected to change frequently without a new version number:
+
+[source,groovy]
+----
+dependencies {
+    implementation("com.example:my-library:1.0-SNAPSHOT") {
+        changing = true
+    }
+}
+----
+
+[[sec:offline-mode]]
+== Using offline mode
+
+The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.
+When running with `offline`, Gradle will not attempt to access the network for dependency resolution.
+If the required modules are not in the dependency cache, the build will fail.
+
+[[sec:refreshing-dependencies]]
+== Force-refreshing dependencies
+
+You can control the behavior of dependency caching for a distinct build invocation from the command line.
+Command line options help make a selective, ad-hoc choice for a single build execution.
+
+At times, the Gradle Dependency Cache can become out of sync with the actual state of the configured repositories.
+Perhaps a repository was initially misconfigured, or maybe a "non-changing" module was published incorrectly.
+To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
+
+The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts.
+A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
+However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again.
+This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
+
+- new versions of dynamic dependencies
+- new versions of changing modules (modules that use the same version string but can have different contents)
+
+Refreshing dependencies will cause Gradle to invalidate its listing caches.
+However:
+
+- it will perform HTTP HEAD requests on metadata files but _will not re-download them_ if they are identical
+- it will perform HTTP HEAD requests on artifact files but _will not re-download them_ if they are identical
+
+In other words, refreshing dependencies _only_ has an impact if you actually use dynamic dependencies _or_ that you have changing dependencies that you were not aware of (in which case it is your responsibility to declare them correctly to Gradle as changing dependencies).
+
+It's a common misconception to think that using `--refresh-dependencies` will force the download of dependencies.
+This is **not** the case: Gradle will only perform what is strictly required to refresh the dynamic dependencies.
+This _may_ involve downloading new listings, metadata files, or even artifacts, but the impact is minimal if nothing changed.
 
 [[sub:ephemeral-ci-cache]]
 == Dealing with ephemeral builds
@@ -113,7 +211,6 @@ Note that creating the cache and consuming it should be done using compatible Gr
 Otherwise, the build might still require some interactions with remote repositories to complete missing information, which might be available in a different version.
 If multiple incompatible Gradle versions are in play, all should be used when seeding the cache.
 
-.Dependency cache compatibility
 [%header%autowidth,compact]
 |===
 | Module cache version  | File cache version    | Metadata cache version    | Gradle version(s)
@@ -166,96 +263,3 @@ $GRADLE_HOME
 In a CI environment, it's a good idea to have one build which "seeds" a Gradle dependency cache, which is then _copied_ to a different directory.
 This directory can then be used as the read-only cache for other builds.
 You shouldn't use an existing Gradle installation cache as the read-only cache, because this directory may contain locks and may be modified by the seeding build.
-
-
-
-
-
-Dependency caching in Gradle significantly improves build performance by avoiding redundant downloads of dependencies.
-
-1. **Local Cache**: Gradle caches dependencies locally to avoid repeated downloads.
-The cache is located in the `.gradle` directory under the user's home folder (e.g., `~/.gradle/caches/modules-2`).
-When a dependency is requested, Gradle first checks this local cache before attempting to fetch it from remote repositories.
-
-2. **Cache Expiry**: Gradle caches dependency metadata (such as the version metadata or POM files) for a configurable period, after which it is refreshed.
-The default metadata cache timeout is 24 hours, but this can be configured using the `resolutionStrategy.cacheChangingModulesFor` or `resolutionStrategy.cacheDynamicVersionsFor` methods.
-
-3. **Changing and Snapshot Dependencies**: By default, Gradle treats dependencies marked as "changing" (e.g., snapshot dependencies) differently and refreshes them more frequently.
-You can explicitly declare a dependency as changing using `changing = true` if the version is expected to change without a new version number.
-
-4. **Offline Mode**: Gradle can run in *offline mode*, using only the cached dependencies without trying to download anything from remote repositories.
-You can enable offline mode with the `--offline` flag, ensuring that your build only uses cached artifacts.
-
-[[sec:controlling-dynamic-version-caching]]
-== Understanding dependency caching defaults
-
-By default, Gradle caches dependencies (including dynamic versions and changing modules) for 24 hours, meaning it does not contact remote repositories for new versions during this time.
-
-To have Gradle check for newer versions more frequently or with every build, you can adjust the caching threshold or time-to-live (TTL) settings accordingly.
-
-NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to increased HTTP(s) calls.
-
-You can override the default cache modes using <<#sec:controlling_dependency_caching_command_line,command line options>>.
-You can also <<#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
-
-[[sec:controlling_dependency_caching_programmatically]]
-== Controlling dependency caching programmatically
-
-You can fine-tune certain aspects of caching programmatically using the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html[ResolutionStrategy] for a configuration.
-The programmatic approach is useful if you want to change the settings permanently.
-
-To change how long Gradle will cache the resolved version for a dynamic version, use:
-
-====
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
-====
-
-To change how long Gradle will cache the metadata and artifacts for a changing module, use:
-
-====
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
-====
-
-[[sec:controlling_dependency_caching_command_line]]
-== Controlling dependency caching from the command line
-
-You can override the default cache modes using command line options.
-
-[[sec:offline-mode]]
-=== Avoiding network access with offline mode
-
-The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.
-When running with `offline`, Gradle will not attempt to access the network for dependency resolution.
-If the required modules are not in the dependency cache, the build will fail.
-
-[[sec:refreshing-dependencies]]
-=== Refreshing dependencies
-
-You can control the behavior of dependency caching for a distinct build invocation from the command line.
-Command line options help make a selective, ad-hoc choice for a single build execution.
-
-At times, the Gradle Dependency Cache can become out of sync with the actual state of the configured repositories.
-Perhaps a repository was initially misconfigured, or maybe a "non-changing" module was published incorrectly.
-To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
-
-The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts.
-A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded.
-However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again.
-This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
-
-- new versions of dynamic dependencies
-- new versions of changing modules (modules that use the same version string but can have different contents)
-
-Refreshing dependencies will cause Gradle to invalidate its listing caches.
-However:
-
-- it will perform HTTP HEAD requests on metadata files but _will not re-download them_ if they are identical
-- it will perform HTTP HEAD requests on artifact files but _will not re-download them_ if they are identical
-
-In other words, refreshing dependencies _only_ has an impact if you actually use dynamic dependencies _or_ that you have changing dependencies that you were not aware of (in which case it is your responsibility to declare them correctly to Gradle as changing dependencies).
-
-It's a common misconception to think that using `--refresh-dependencies` will force the download of dependencies.
-This is **not** the case: Gradle will only perform what is strictly required to refresh the dynamic dependencies.
-This _may_ involve downloading new listings, metadata files, or even artifacts, but the impact is minimal if nothing changed.
