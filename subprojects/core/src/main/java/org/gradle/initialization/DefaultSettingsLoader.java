@@ -60,17 +60,33 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
 
-        SettingsState state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
-        SettingsInternal settings = state.getSettings();
-        ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
-        if (useEmptySettings(spec, settings, startParameter)) {
-            // Discard the loaded settings and replace with an empty one
-            state.close();
-            state = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
-            settings = state.getSettings();
+
+        // Allow a built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
+        boolean emptyBuildDefinition = false;
+        for (BuiltInCommand command : builtInCommands) {
+            if (!command.needsBuildDefinition() && command.commandLineMatches(startParameter.getTaskNames())) {
+                // Allow built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
+                emptyBuildDefinition = true;
+            }
         }
 
-        setDefaultProject(spec, settings);
+        SettingsState state;
+        if (emptyBuildDefinition) {
+            state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
+            ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
+            setDefaultProject(spec, state.getSettings());
+        } else {
+            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
+            SettingsInternal settings = state.getSettings();
+            ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
+            if (useEmptySettings(spec, settings, startParameter)) {
+                // Discard the loaded settings and replace with an empty one
+                state.close();
+                state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
+            }
+            setDefaultProject(spec, state.getSettings());
+        }
+
         return state;
     }
 
