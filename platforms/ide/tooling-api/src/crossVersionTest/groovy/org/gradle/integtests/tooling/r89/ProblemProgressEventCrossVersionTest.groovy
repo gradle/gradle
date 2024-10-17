@@ -289,7 +289,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
-        problems[0].failure.failure == null
+        failureMessage(problems[0].failure) == null
     }
 
     class ProblemProgressListener implements ProgressListener {
@@ -313,6 +313,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     def failureMessage(failure) {
-        failure instanceof Failure ? failure.message : failure.failure.message
+        failure instanceof Failure ? failure?.message : failure?.failure?.message
     }
 }
