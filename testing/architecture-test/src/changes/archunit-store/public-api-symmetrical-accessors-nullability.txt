@@ -1,8 +1,6 @@
 Accessors for org.gradle.StartParameter.currentDir don't use symmetrical @Nullable
 Accessors for org.gradle.StartParameter.gradleUserHomeDir don't use symmetrical @Nullable
 Accessors for org.gradle.StartParameter.taskNames don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.AbstractCopyTask.dirMode don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.AbstractCopyTask.fileMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.AbstractExecTask.args don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.AbstractExecTask.executable don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.Exec.args don't use symmetrical @Nullable

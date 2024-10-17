@@ -88,12 +88,6 @@ public class UnauthorizedFileVisitDetails implements FileVisitDetails {
     }
 
     @Override
-    @Deprecated
-    public int getMode() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public FilePermissions getPermissions() {
         throw new UnsupportedOperationException();
     }
