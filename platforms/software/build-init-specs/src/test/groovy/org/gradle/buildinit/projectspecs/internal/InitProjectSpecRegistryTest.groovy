@@ -19,9 +19,7 @@ package org.gradle.buildinit.projectspecs.internal
 
 import org.gradle.api.logging.Logger
 import org.gradle.buildinit.projectspecs.InitProjectGenerator
-import org.gradle.buildinit.projectspecs.InitProjectSpec
 import org.gradle.builtinit.projectspecs.internal.TestInitProjectGenerator
-import org.gradle.builtinit.projectspecs.internal.TestInitProjectSource
 import org.gradle.builtinit.projectspecs.internal.TestInitProjectSpec
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.util.internal.TextUtil
@@ -69,39 +67,39 @@ class InitProjectSpecRegistryTest extends Specification {
         e.message == "Spec: 'My Name' with type: 'type3' is not registered!"
     }
 
-    def "registry can load specs from loader"() {
-        given:
-        InitProjectSpec spec = new TestInitProjectSpec("test", "Test Spec")
-        InitProjectSpec spec2 = new TestInitProjectSpec("test2", "Other Test Spec")
-        TestInitProjectSource.addSpecs(spec, spec2)
-
-        and:
-        InitProjectSpecLoader loader = new InitProjectSpecLoader(Thread.currentThread().contextClassLoader, logger)
-        def registry = new InitProjectSpecRegistry()
-
-        when:
-        registry.register(loader)
-
-        then: "loaded specs can be found"
-        !registry.isEmpty()
-        registry.getAllSpecs() == [spec, spec2]
-        registry.getGeneratorForSpec(spec) == TestInitProjectGenerator
-        registry.getGeneratorForSpec(spec2) == TestInitProjectGenerator
-
-        when:
-        registry.getGeneratorForSpec(new TestInitProjectSpec("test3", "Some Third Spec"))
-
-        then: "not loaded specs can't be found"
-        def e = thrown(IllegalStateException)
-        e.message == "Spec: 'Some Third Spec' with type: 'test3' is not registered!"
-
-        when:
-        registry.getGeneratorForSpec(new TestInitProjectSpec("not-test", "Test Spec"))
-
-        then: "specs with the same display name can't be found - we're finding specs by type"
-        e = thrown(IllegalStateException)
-        e.message == "Spec: 'Test Spec' with type: 'not-test' is not registered!"
-    }
+//    def "registry can load specs from loader"() {
+//        given:
+//        InitProjectSpec spec = new TestInitProjectSpec("test", "Test Spec")
+//        InitProjectSpec spec2 = new TestInitProjectSpec("test2", "Other Test Spec")
+//        TestInitProjectSource.addSpecs(spec, spec2)
+//
+//        and:
+//        InitProjectSpecLoader loader = new InitProjectSpecLoader(Thread.currentThread().contextClassLoader, logger)
+//        def registry = new InitProjectSpecRegistry()
+//
+//        when:
+//        registry.register(loader)
+//
+//        then: "loaded specs can be found"
+//        !registry.isEmpty()
+//        registry.getAllSpecs() == [spec, spec2]
+//        registry.getGeneratorForSpec(spec) == TestInitProjectGenerator
+//        registry.getGeneratorForSpec(spec2) == TestInitProjectGenerator
+//
+//        when:
+//        registry.getGeneratorForSpec(new TestInitProjectSpec("test3", "Some Third Spec"))
+//
+//        then: "not loaded specs can't be found"
+//        def e = thrown(IllegalStateException)
+//        e.message == "Spec: 'Some Third Spec' with type: 'test3' is not registered!"
+//
+//        when:
+//        registry.getGeneratorForSpec(new TestInitProjectSpec("not-test", "Test Spec"))
+//
+//        then: "specs with the same display name can't be found - we're finding specs by type"
+//        e = thrown(IllegalStateException)
+//        e.message == "Spec: 'Test Spec' with type: 'not-test' is not registered!"
+//    }
 
     def "registry can look up spec by type"() {
         given:

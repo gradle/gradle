@@ -34,12 +34,13 @@ trait TestsInitProjectSpecsViaPlugin {
 
     private void setupRepositoriesViaInit() {
         groovyFile("init.gradle", """
-            settingsEvaluated { settings ->
+            beforeSettings { settings ->
                 settings.pluginManagement {
                     repositories {
                         maven {
                             url '${mavenRepo.uri}'
                         }
+
                         ${RepoScriptBlockUtil.googleRepositoryDefinition()} // For AGP, needed by D-G prototype
                         ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                     }
@@ -65,39 +66,25 @@ trait TestsInitProjectSpecsViaPlugin {
     private PluginBuilder buildTestPlugin() {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
 
-        pluginBuilder.addPluginWithCustomCode("""
-                project.getLogger().lifecycle("MyPlugin applied.");
-        """, "org.example.myplugin")
+        pluginBuilder.addSettingsPluginWithCustomCode("""
+                java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TestSettingsPlugin.class.getName());
+                logger.warning("Applying MyPlugin...");
 
-        pluginBuilder.file("src/main/resources/META-INF/services/org.gradle.buildinit.projectspecs.InitProjectSource") << "org.gradle.test.MySource\n"
+                org.gradle.buildinit.projectspecs.internal.InitProjectSpecRegistry registry = getInitProjectSpecRegistry();
 
-        pluginBuilder.java("org/gradle/test/MySource.java") << """
-            package org.gradle.test;
-
-            import java.util.Arrays;
-            import java.util.Collections;
-            import java.util.List;
-
-            import org.gradle.buildinit.projectspecs.InitProjectGenerator;
-            import org.gradle.buildinit.projectspecs.InitProjectParameter;
-            import org.gradle.buildinit.projectspecs.InitProjectSpec;
-            import org.gradle.buildinit.projectspecs.InitProjectSource;
-
-            public class MySource implements InitProjectSource {
-                @Override
-                public List<InitProjectSpec> getProjectSpecs() {
-                    return Arrays.asList(
+                java.util.Map<Class<? extends org.gradle.buildinit.projectspecs.InitProjectGenerator>, java.util.List<org.gradle.buildinit.projectspecs.InitProjectSpec>> specsByGenerator = new java.util.HashMap<>();
+                specsByGenerator.put(
+                    MyGenerator.class,
+                    java.util.Arrays.asList(
                         new MyProjectSpec("first-project-type"),
                         new MyProjectSpec("second-project-type")
-                    );
-                }
+                    )
+                );
 
-                @Override
-                public Class<? extends InitProjectGenerator> getProjectGenerator() {
-                    return MyGenerator.class;
-                }
-            }
-        """
+                registry.register(specsByGenerator);
+
+                logger.warning("MyPlugin applied.");
+        """, "org.example.myplugin")
 
         pluginBuilder.java("org/gradle/test/MyProjectSpec.java") << """
             package org.gradle.test;
@@ -159,7 +146,7 @@ trait TestsInitProjectSpecsViaPlugin {
     }
 
     void assertResolvedPlugin(String id, String version) {
-        outputContains("Resolved plugin [id: '$id', version: '$version', apply: false]")
+        outputContains("Resolved plugin [id: '$id', version: '$version', apply: true]")
     }
 
     void assertLoadedSpec(String specName, String type) {

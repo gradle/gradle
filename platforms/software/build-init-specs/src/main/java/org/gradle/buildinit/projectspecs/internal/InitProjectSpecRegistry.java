@@ -17,6 +17,8 @@
 package org.gradle.buildinit.projectspecs.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.buildinit.projectspecs.InitProjectGenerator;
 import org.gradle.buildinit.projectspecs.InitProjectSpec;
 import org.gradle.internal.service.scopes.Scope;
@@ -35,21 +37,11 @@ import java.util.stream.Collectors;
  */
 @ServiceScope(Scope.BuildSession.class)
 public final class InitProjectSpecRegistry {
+    private static final Logger LOGGER = Logging.getLogger(InitProjectSpecRegistry.class);
+
     private final Map<Class<? extends InitProjectGenerator>, List<InitProjectSpec>> specsByGeneratorType = new HashMap<>();
 
-    /**
-     * Loads and adds mappings (from generator to specs that can be generated) to this registry.
-     * <p>
-     * This does not replace existing mappings for the same generator class, but appends to any that are already
-     * present in the registry.  Attempting to register a spec for the same type with multiple generators will
-     * produce an exception.
-     *
-     * @param loader source that will load mappings to add to this registry
-     */
-    public void register(InitProjectSpecLoader loader) {
-        register(loader.loadProjectSpecs());
-    }
-
+    // TODO: simplify registration - just args of (generator, spec), or (generator, list<spec>) no maps needed
     /**
      * Adds the given mappings (from generator to specs that can be generated) to this registry.
      * <p>
@@ -64,10 +56,13 @@ public final class InitProjectSpecRegistry {
         newSpecsByGeneratorType.forEach((generator, newSpecs) -> {
             List<InitProjectSpec> currentSpecsForGenerator = specsByGeneratorType.computeIfAbsent(generator, k -> new ArrayList<>());
             newSpecs.forEach(newSpec -> {
-                doGetGeneratorForSpec(newSpec).ifPresent(generatorType -> {
-                    throw new IllegalStateException(String.format("Spec: '%s' with type: '%s' cannot use same type as another spec already registered!", newSpec.getDisplayName(), newSpec.getType()));
-                });
+                // TODO: better deal with duplicates - if settings plugins are applied multiple times, perhaps we keep track of which settings plugins have registered
+                // and no-op if we've already seen one
+//                doGetGeneratorForSpec(newSpec).ifPresent(generatorType -> {
+//                    throw new IllegalStateException(String.format("Spec: '%s' with type: '%s' cannot use same type as another spec already registered!", newSpec.getDisplayName(), newSpec.getType()));
+//                });
                 currentSpecsForGenerator.add(newSpec);
+                LOGGER.info("Loaded project spec: '{} ({})', generated via: '{}'", newSpec.getDisplayName(), newSpec.getType(), generator.getName());
             });
         });
     }

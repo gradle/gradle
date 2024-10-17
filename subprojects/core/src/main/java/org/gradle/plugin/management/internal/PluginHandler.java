@@ -17,6 +17,7 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
 import org.gradle.plugin.management.internal.argumentloaded.ArgumentLoadedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 
@@ -41,7 +42,7 @@ public interface PluginHandler extends AutoAppliedPluginHandler, ArgumentLoadedP
      */
     default PluginRequests getAllPluginRequests(PluginRequests initialPluginRequests, Object pluginTarget) {
         PluginRequests autoAppliedPlugins = getAutoAppliedPlugins(initialPluginRequests, pluginTarget);
-        PluginRequests argumentLoadedPlugins = pluginTarget instanceof Project ? getArgumentLoadedPlugins() : PluginRequests.EMPTY;
+        PluginRequests argumentLoadedPlugins = pluginTarget instanceof Settings ? getArgumentLoadedPlugins() : PluginRequests.EMPTY;
         return initialPluginRequests.mergeWith(autoAppliedPlugins).mergeWith(argumentLoadedPlugins);
     }
 }
