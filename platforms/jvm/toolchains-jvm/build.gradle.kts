@@ -38,6 +38,7 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.platformBase)
+    api(projects.processServices)
     api(projects.resources)
     api(projects.toolchainsJvmShared)
 
@@ -46,6 +47,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.diagnostics)
+    implementation(projects.fileTemp)
     implementation(projects.logging)
 
     implementation(libs.commonsIo)
