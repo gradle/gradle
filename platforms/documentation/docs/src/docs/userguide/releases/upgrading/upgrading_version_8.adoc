@@ -227,10 +227,10 @@ Potential migrations include using `Object.equals(Object)` directly, or comparin
 [[deprecated_project_exec]]
 ==== Deprecated `Project#exec` and `Project#javaexec`
 
-The methods link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
+The link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
 link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
 link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] has been deprecated and will be removed in Gradle 9.0.
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] methods have been deprecated and will be removed in Gradle 9.0.
 
 These methods are scheduled for removal as part of the ongoing effort to make writing configuration-cache-compatible code easier.
 There is no way to use these method without breaking configuration cache requirements so it is advised to migrate to a compatible alternative.
