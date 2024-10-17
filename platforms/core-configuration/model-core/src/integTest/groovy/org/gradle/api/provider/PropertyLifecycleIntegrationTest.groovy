@@ -180,6 +180,92 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         outputContains("value: value 3")
     }
 
+    def "@ReplacesEagerProperty works with annotation #annotation"() {
+        given:
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                $annotation
+                abstract Property<String> getProp()
+
+                @TaskAction
+                void go() {
+                    println("value: " + prop.get())
+                }
+            }
+
+            task thing(type: SomeTask) {
+                prop = "value 1"
+                doFirst {
+                    prop = "value 3"
+                }
+            }
+
+            afterEvaluate {
+                thing.prop = "value 2"
+            }
+        """
+
+        expect:
+        if (expectDeprecationWarning) {
+            executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
+        }
+        succeeds("thing")
+        outputContains("value: value 3")
+
+        where:
+        annotation      | expectDeprecationWarning
+        "@Internal"     | false
+        "@Console"      | false
+        "@OptionValues" | false
+        "@ReplacedBy"   | false
+        "@Destroys"     | true
+        "@LocalState"   | true
+    }
+
+    def "@ReplacesEagerProperty works with annotation @Nested"() {
+        given:
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            class Bean {
+                @Internal
+                String value
+                Bean(String value) {
+                    this.value = value
+                }
+
+                String toString() {
+                    return value
+                }
+            }
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                @Nested
+                abstract Property<Bean> getProp()
+
+                @TaskAction
+                void go() {
+                    println("value: " + prop.get())
+                }
+            }
+
+            task thing(type: SomeTask) {
+                prop = new Bean("value 1")
+                doFirst {
+                    prop = new Bean("value 2")
+                }
+            }
+        """
+
+        expect:
+        succeeds("thing")
+        outputContains("value: value 2")
+    }
+
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """

@@ -62,6 +62,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         [Object, GroovyObject],
         [MutableType, MutableSubType],
         [Ignored, Ignored2],
+        [],
         { Method method -> method.isAnnotationPresent(Generated) },
         new TestCrossBuildInMemoryCacheFactory())
 
