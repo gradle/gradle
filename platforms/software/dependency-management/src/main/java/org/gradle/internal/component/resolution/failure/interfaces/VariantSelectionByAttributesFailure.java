@@ -16,8 +16,10 @@
 
 package org.gradle.internal.component.resolution.failure.interfaces;
 
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
+
+import java.util.Set;
 
 /**
  * Represents a specific type of {@link VariantSelectionFailure} where the failure occurred
@@ -38,7 +40,7 @@ public interface VariantSelectionByAttributesFailure extends VariantSelectionFai
      * Gets the capabilities requested on the dependency that selected the {@link #getTargetComponent()}
      * represented by this edge in the graph.
      *
-     * @return the capabilities used to select the component in the graph failing to select a variant
+     * @return the capabilities selectors used to select a variant
      */
-    ImmutableCapabilities getRequestedCapabilities();
+    Set<CapabilitySelector> getCapabilitySelectors();
 }

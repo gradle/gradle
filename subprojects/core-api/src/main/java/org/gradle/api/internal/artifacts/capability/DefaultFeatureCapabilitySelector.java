@@ -42,7 +42,7 @@ public final class DefaultFeatureCapabilitySelector implements CapabilitySelecto
 
     @Override
     public String getDisplayName() {
-        return "capability selector for feature '" + featureName + "'";
+        return "feature '" + featureName + "'";
     }
 
     @Override
