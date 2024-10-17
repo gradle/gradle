@@ -55,8 +55,10 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
@@ -265,16 +267,12 @@ class BuildServiceProviderCodec(
 object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
     override suspend fun WriteContext.encode(value: BuildServiceParameters) =
         writeSharedObject(value) {
-            BeanCodec.run {
-                encode(value)
-            }
+            encodeBean(value)
         }
 
     override suspend fun ReadContext.decode(): BuildServiceParameters =
         readSharedObject {
-            BeanCodec.run {
-                decode()
-            }
+            decodeBean()
         }.uncheckedCast()
 }
 
