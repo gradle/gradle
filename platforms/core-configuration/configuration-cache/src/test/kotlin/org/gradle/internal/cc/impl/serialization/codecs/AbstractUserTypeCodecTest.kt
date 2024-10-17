@@ -150,7 +150,7 @@ abstract class AbstractUserTypeCodecTest {
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
             logger = mock(),
             problemsListener = mock(),
-            classDecoder = DefaultClassDecoder(mock())
+            classDecoder = DefaultClassDecoder(mock(), mock())
         )
 
     private

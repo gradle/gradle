@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * A builder for a {@link ServiceRegistry}.
  *
- * <h3>Service lookup order</h3>
+ * <h2>Service lookup order</h2>
  *
  * How the service registry is built affects the lookup results in that registry.
  * <p>

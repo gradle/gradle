@@ -29,8 +29,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -48,7 +48,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
-    private ImmutableAttributesFactory attributesFactory;
+    private AttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private ObjectFactory objectFactory;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
@@ -278,7 +278,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         LOG.warn("Cannot set " + thing + " for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
 
-    public void setAttributesFactory(ImmutableAttributesFactory attributesFactory) {
+    public void setAttributesFactory(AttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
     }
 
@@ -290,7 +290,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.objectFactory = objectFactory;
     }
 
-    public ImmutableAttributesFactory getAttributesFactory() {
+    public AttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
 

@@ -158,7 +158,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def bean = create(InterfaceFileCollectionBean)
 
         expect:
-        bean.prop.toString() == "file collection"
+        bean.prop.toString() == "property 'prop'"
         bean.prop.empty
         bean.prop.from("a", "b")
         bean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
@@ -209,7 +209,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         bean.filesBean.toString() == "property 'filesBean'"
         bean.filesBean.modelIdentityDisplayName.displayName == "property 'filesBean'"
-        bean.filesBean.prop.toString() == "file collection"
+        bean.filesBean.prop.toString() == "property 'filesBean.prop'"
 
         bean.propBean.toString() == "property 'propBean'"
         bean.propBean.modelIdentityDisplayName.displayName == "property 'propBean'"
@@ -217,7 +217,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.modelIdentityDisplayName.displayName == "<display-name> property 'filesBean'"
-        beanWithDisplayName.filesBean.prop.toString() == "file collection"
+        beanWithDisplayName.filesBean.prop.toString() == "<display-name> property 'filesBean.prop'"
 
         beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
         beanWithDisplayName.propBean.modelIdentityDisplayName.displayName == "<display-name> property 'propBean'"
@@ -242,7 +242,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         bean.filesBean.toString() == "property 'filesBean'"
         bean.filesBean.modelIdentityDisplayName.displayName == "property 'filesBean'"
-        bean.filesBean.prop.toString() == "file collection"
+        bean.filesBean.prop.toString() == "property 'filesBean.prop'"
 
         bean.propBean.toString() == "property 'propBean'"
         bean.propBean.modelIdentityDisplayName.displayName == "property 'propBean'"
@@ -252,7 +252,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.modelIdentityDisplayName.displayName == "<display-name> property 'filesBean'"
-        beanWithDisplayName.filesBean.prop.toString() == "file collection"
+        beanWithDisplayName.filesBean.prop.toString() == "<display-name> property 'filesBean.prop'"
 
         beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
         beanWithDisplayName.propBean.modelIdentityDisplayName.displayName == "<display-name> property 'propBean'"

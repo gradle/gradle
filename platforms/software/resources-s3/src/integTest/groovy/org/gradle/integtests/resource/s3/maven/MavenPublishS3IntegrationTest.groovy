@@ -21,11 +21,11 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3Server
-import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.TestCredentialUtil
 import org.junit.Rule
 
 @Requires(IntegTestPreconditions.CanPublishToS3)
@@ -71,7 +71,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
 
     def "can publish to a S3 Maven repository using provided access and secret keys"() {
         given:
-        AwsCredentials credentials = new DefaultAwsCredentials()
+        AwsCredentials credentials = TestCredentialUtil.defaultAwsCredentials()
         credentials.setAccessKey("someAccessKey")
         credentials.setSecretKey("someSecretKey")
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")

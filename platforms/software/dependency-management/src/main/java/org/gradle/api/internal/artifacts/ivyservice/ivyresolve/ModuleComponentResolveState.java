@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -35,7 +35,7 @@ public interface ModuleComponentResolveState extends Versioned {
 
     ComponentMetadataProcessorFactory getComponentMetadataProcessorFactory();
 
-    ImmutableAttributesFactory getAttributesFactory();
+    AttributesFactory getAttributesFactory();
 
     @Nullable
     InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();

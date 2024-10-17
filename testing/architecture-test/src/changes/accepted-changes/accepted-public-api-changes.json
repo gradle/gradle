@@ -1,65 +1,67 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.debugOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
             "changes": [
-                "Method added to public class"
+                "Method added to interface"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.forkOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider,org.gradle.api.Action)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
             "changes": [
-                "Method added to public class"
+                "Method added to interface"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.forkOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
             "changes": [
-                "Method added to public class"
+                "Method added to interface"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.scala.ScalaDoc",
-            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.scalaDocOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible,org.gradle.api.Action)",
+            "acceptation": "Not incubating as API is cloned from DependencyHandler",
             "changes": [
-                "Method added to public class"
+                "Method added to interface"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration",
-            "member": "Class org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration",
-            "acceptation": "Kotlin DSL public script compilation configuration",
+            "type": "org.gradle.tooling.events.problems.ProblemDefinition",
+            "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
+            "acceptation": "Change in incubating API",
             "changes": [
-                "Interface has been added"
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration",
-            "member": "Constructor org.gradle.kotlin.dsl.KotlinDslStandaloneScriptCompilationConfiguration(kotlin.jvm.functions.Function1)",
-            "acceptation": "Kotlin DSL public script compilation configuration",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
-            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.forkOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
+            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getAdditionalData()",
+            "acceptation": "Change in incubating API",
             "changes": [
-                "Method added to public class"
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
-            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
-            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.incrementalOptions(org.gradle.api.Action)",
-            "acceptation": "No need to incubate",
+            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
+            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getContextualLabel()",
+            "acceptation": "Change in incubating API",
             "changes": [
-                "Method added to public class"
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.events.problems.SingleProblemEvent",
+            "member": "Method org.gradle.tooling.events.problems.SingleProblemEvent.getDetails()",
+            "acceptation": "Change in incubating API",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         }
     ]

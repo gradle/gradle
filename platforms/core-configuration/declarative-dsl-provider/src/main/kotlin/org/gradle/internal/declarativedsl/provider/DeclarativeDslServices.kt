@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.provider
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.layout.BuildLayoutConfiguration
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
@@ -37,6 +38,10 @@ class DeclarativeDslServices : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
     }
+
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.addProvider(ProjectServices)
+    }
 }
 
 
@@ -53,14 +58,18 @@ object BuildServices : ServiceRegistrationProvider {
         return defaultDeclarativeScriptEvaluator(schemaBuilder, softwareTypeRegistry)
     }
 
-    @Provides
-    fun createSoftwareTypeConventionHandler(
-        softwareTypeRegistry: SoftwareTypeRegistry
-    ): ModelDefaultsHandler {
-        return DeclarativeModelDefaultsHandler(softwareTypeRegistry)
-    }
-
     private
     fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
         getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
+}
+
+internal
+object ProjectServices : ServiceRegistrationProvider {
+    @Provides
+    fun createDeclarativeModelDefaultsHandler(
+        softwareTypeRegistry: SoftwareTypeRegistry,
+        objectFactory: ObjectFactory
+    ): ModelDefaultsHandler {
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry)
+    }
 }

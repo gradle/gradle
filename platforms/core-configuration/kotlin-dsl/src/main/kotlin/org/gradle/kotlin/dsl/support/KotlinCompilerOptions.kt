@@ -30,8 +30,8 @@ data class KotlinCompilerOptions(
 
 fun kotlinCompilerOptions(gradleProperties: GradlePropertiesController): KotlinCompilerOptions =
     KotlinCompilerOptions(
-        allWarningsAsErrors = getCompilerOptionBoolean(gradleProperties, ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME, false),
-        skipMetadataVersionCheck = getCompilerOptionBoolean(gradleProperties, SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME, true)
+        allWarningsAsErrors = getBooleanKotlinDslOption(gradleProperties, ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME, false),
+        skipMetadataVersionCheck = getBooleanKotlinDslOption(gradleProperties, SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME, true)
     )
 
 
@@ -42,21 +42,3 @@ const val ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME = "org.gradle.kotlin.dsl.allWarni
 private
 const val SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME = "org.gradle.kotlin.dsl.skipMetadataVersionCheck"
 
-
-/**
- * Read property value for compiler options.
- *
- * Kotlin compiler options for scripts can be set either via a System property or a Gradle property.
- * System properties have precedence, same as in `LayoutToPropertiesConverter`.
- */
-private
-fun getCompilerOptionBoolean(gradleProperties: GradlePropertiesController, propertyName: String, defaultValue: Boolean, whenUnset: (() -> Unit)? = null): Boolean {
-    val systemProp = System.getProperty(propertyName)
-    val gradleProp = gradleProperties.gradleProperties.find(propertyName)
-    return when {
-        // System properties have precedence, same as in LayoutToPropertiesConverter
-        systemProp != null -> systemProp == "true"
-        gradleProp != null -> gradleProp == "true"
-        else -> defaultValue.also { whenUnset?.invoke() }
-    }
-}

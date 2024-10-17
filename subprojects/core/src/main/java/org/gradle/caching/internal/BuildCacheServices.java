@@ -104,9 +104,13 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
             @Provides
             BuildCacheConfigurationInternal createBuildCacheConfiguration(
                 Instantiator instantiator,
+                InstantiatorFactory instantiatorFactory,
+                ServiceRegistry services,
                 List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
             ) {
-                return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
+                // We need to create an instantiator that has access to ObjectFactory
+                Instantiator buildScopedInstantiator = instantiatorFactory.decorate(services);
+                return instantiator.newInstance(DefaultBuildCacheConfiguration.class, buildScopedInstantiator, allBuildCacheServiceFactories);
             }
 
             @Provides

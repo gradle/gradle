@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
-    ImmutableAttributes EMPTY = new DefaultImmutableAttributes();
+    ImmutableAttributes EMPTY = new DefaultImmutableAttributesContainer();
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.

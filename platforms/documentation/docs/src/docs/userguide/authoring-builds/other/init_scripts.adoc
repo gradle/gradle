@@ -45,7 +45,7 @@ There are several ways to invoke an init script (in order of priority):
 1. *Specify a file on the command line* with the option `-I` or `--init-script` followed by the path to the script.
 +
 The command line option can appear more than once, each time adding another init script. The build will fail if any files specified on the command line do not exist.
-2. *Put a file called `yourfilename.init.gradle(.kts)`* in the `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/` directory.
+2. *Put a file called `init.gradle(.kts)`* in the `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/` directory.
 3. *Put a file called `yourfilename.init.gradle(.kts)`* in the `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/init.d/` directory.
 4. *Put a file called `yourfilename.init.gradle(.kts)`* in the `$<<installation.adoc#sec:linux_macos_users_2,__GRADLE_HOME__>>/init.d/` directory. Entries will be evaluated in alphabetic order.
 +

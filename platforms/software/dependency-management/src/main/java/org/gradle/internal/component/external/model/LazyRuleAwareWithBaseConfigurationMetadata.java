@@ -19,8 +19,8 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -44,7 +44,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private final ModuleConfigurationMetadata base;
     private final ModuleComponentIdentifier componentId;
     private final VariantMetadataRules variantMetadataRules;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ImmutableAttributes componentLevelAttributes;
     private final ImmutableList<ExcludeMetadata> excludes;
     private final boolean externalVariant;
@@ -57,7 +57,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     LazyRuleAwareWithBaseConfigurationMetadata(String name,
                                                @Nullable ModuleConfigurationMetadata base,
                                                ModuleComponentIdentifier componentId,
-                                               ImmutableAttributesFactory attributesFactory,
+                                               AttributesFactory attributesFactory,
                                                ImmutableAttributes componentLevelAttributes,
                                                VariantMetadataRules variantMetadataRules,
                                                ImmutableList<ExcludeMetadata> excludes,

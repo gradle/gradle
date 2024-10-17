@@ -17,9 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.ManualEvictionInMemoryCache;
-import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -147,6 +147,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         // Caller must be holding lock
+        @Nullable
         private V getIfPresentWithoutLock(K key) {
             V v = valuesForThisSession.get(key);
             if (v != null) {

@@ -95,7 +95,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def t = objects.newInstance(Thing)
-            assert t.files.toString() == "file collection"
+            assert t.files.toString() == "property 'files'"
             assert t.files.files.empty
             t.files.from('a.txt')
             assert t.files as List == [file('a.txt')]

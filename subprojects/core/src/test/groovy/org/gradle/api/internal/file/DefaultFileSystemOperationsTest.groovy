@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.file
 
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
+import org.gradle.api.file.SyncSpec
 import org.gradle.api.model.ObjectFactory
 import spock.lang.Specification
 
@@ -31,5 +34,21 @@ class DefaultFileSystemOperationsTest extends Specification {
 
         then:
         1 * fileOperations.copySpec()
+    }
+
+    @CompileStatic
+    def 'sync uses syncSpec'() {
+        setup:
+        Action<SyncSpec> action = { SyncSpec s ->
+            s.preserve {
+                it.include('**/*.java')
+            }
+        }
+
+        when:
+        fileSystemOperations.sync(action)
+
+        then:
+        1 * fileOperations.sync(action)
     }
 }

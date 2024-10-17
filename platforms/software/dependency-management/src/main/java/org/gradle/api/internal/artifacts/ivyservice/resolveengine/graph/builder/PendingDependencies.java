@@ -52,7 +52,7 @@ public class PendingDependencies {
         if (hardEdges != 0) {
             throw new IllegalStateException("Cannot remove a pending node for a dependency which is not pending");
         }
-        boolean removed = constraintProvidingNodes.remove(nodeState);
+        constraintProvidingNodes.remove(nodeState);
     }
 
     void turnIntoHardDependencies() {

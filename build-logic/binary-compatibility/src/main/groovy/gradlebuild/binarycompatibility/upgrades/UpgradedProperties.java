@@ -37,7 +37,9 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule.SINCE_ERROR_MESSAGE;
+import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
 import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
+import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;
 import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
 import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
 
@@ -86,9 +88,14 @@ public class UpgradedProperties {
             return isCurrentGetterThatReplacesBooleanIsGetter(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         }
 
+        if (jApiMethod.getCompatibilityChanges().contains(METHOD_NEW_DEFAULT) && isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors)) {
+            // Accept also default `getIsX` methods added to interface that are added for Kotlin source compatibility
+            return true;
+        }
+
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
             return isOldSetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
-        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
+        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS) || jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_INTERFACE)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) && isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);

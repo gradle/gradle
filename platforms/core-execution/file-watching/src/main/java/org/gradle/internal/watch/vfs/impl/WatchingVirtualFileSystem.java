@@ -18,8 +18,8 @@ package org.gradle.internal.watch.vfs.impl;
 
 import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
-import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
+import org.gradle.fileevents.internal.InotifyInstanceLimitTooLowException;
+import org.gradle.fileevents.internal.InotifyWatchesLimitTooLowException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;

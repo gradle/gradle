@@ -22,13 +22,14 @@ import static org.gradle.internal.execution.model.annotations.ModifierAnnotation
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public InputFilePropertyAnnotationHandler() {
         super(
             InputFile.class,
             InputFilePropertyType.FILE,
-            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS)
+            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY)
         );
     }
 }

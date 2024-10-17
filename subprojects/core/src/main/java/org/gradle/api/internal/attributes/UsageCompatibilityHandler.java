@@ -33,7 +33,7 @@ class UsageCompatibilityHandler {
         this.instantiator = instantiator;
     }
 
-    public <T> ImmutableAttributes doConcat(DefaultImmutableAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+    public <T> ImmutableAttributes doConcat(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
         assert key.getName().equals(Usage.USAGE_ATTRIBUTE.getName()) : "Should only be invoked for 'org.gradle.usage', got '" + key.getName() + "'";
         // Replace deprecated usage values
         String val;
@@ -57,7 +57,7 @@ class UsageCompatibilityHandler {
 
     }
 
-    private <T> ImmutableAttributes doConcatWithReplacement(DefaultImmutableAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, boolean typedUsage, String usage, String libraryElements) {
+    private <T> ImmutableAttributes doConcatWithReplacement(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, boolean typedUsage, String usage, String libraryElements) {
         if (typedUsage) {
             ImmutableAttributes usageNode = factory.doConcatIsolatable(node, key, isolatableFactory.isolate(instantiator.named(Usage.class, usage)));
             return factory.doConcatIsolatable(usageNode, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, libraryElements)));

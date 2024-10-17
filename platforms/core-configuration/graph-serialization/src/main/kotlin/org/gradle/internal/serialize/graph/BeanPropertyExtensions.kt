@@ -28,7 +28,7 @@ import java.lang.reflect.InvocationTargetException
  *
  * A property can only be written when there's a suitable [Codec] for its [value].
  */
-suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
+suspend fun WriteContext.writePropertyValue(kind: PropertyKind, name: String, value: Any?) {
     withPropertyTrace(kind, name) {
         try {
             write(value)
@@ -51,7 +51,7 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 
 
 /**
- * Reads a sequence of properties written with [writingProperties].
+ * Reads a bean property written with [writePropertyValue].
  */
 @Suppress("ThrowsCount")
 suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, action: (Any?) -> Unit) {

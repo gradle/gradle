@@ -26,7 +26,7 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerP
 /**
  * Marks that a property replaces an eager property.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface ReplacesEagerProperty {
     /**

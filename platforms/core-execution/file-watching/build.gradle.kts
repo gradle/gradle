@@ -10,9 +10,9 @@ dependencies {
     api(projects.files)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.gradleFileEvents)
     api(libs.jsr305)
     api(libs.nativePlatform)
-    api(libs.nativePlatformFileEvents)
     api(libs.slf4jApi)
     implementation(projects.functional)
 

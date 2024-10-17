@@ -26,6 +26,8 @@ import org.gradle.process.CommandLineArgumentProvider
 
 
 class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvider, Named {
+    private val toolchainInstallationPaths = test.project.toolchainInstallationPaths
+
     @Internal
     override fun getName() = "ciEnvironment"
 
@@ -47,7 +49,7 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
 
     private
     fun getToolchainInstallationPathsProperty(): List<String> {
-        return test.project.toolchainInstallationPaths?.let { listOf("-D$JAVA_INSTALLATIONS_PATHS_PROPERTY=$it") } ?: emptyList()
+        return toolchainInstallationPaths.map { listOf("-D$JAVA_INSTALLATIONS_PATHS_PROPERTY=$it") }.getOrElse(emptyList())
     }
 
     private

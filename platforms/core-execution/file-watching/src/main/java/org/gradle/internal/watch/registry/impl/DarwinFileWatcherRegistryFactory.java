@@ -17,10 +17,10 @@
 package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import net.rubygrapefruit.platform.file.FileEvents;
-import net.rubygrapefruit.platform.file.FileWatchEvent;
-import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
-import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions.OsxFileWatcher;
+import org.gradle.fileevents.FileEvents;
+import org.gradle.fileevents.FileWatchEvent;
+import org.gradle.fileevents.internal.OsxFileEventFunctions;
+import org.gradle.fileevents.internal.OsxFileEventFunctions.OsxFileWatcher;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;

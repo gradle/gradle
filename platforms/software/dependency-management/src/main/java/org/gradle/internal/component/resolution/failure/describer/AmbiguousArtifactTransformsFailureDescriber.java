@@ -19,9 +19,9 @@ package org.gradle.internal.component.resolution.failure.describer;
 import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException;
+import org.gradle.internal.component.resolution.failure.transform.SourceVariantData;
+import org.gradle.internal.component.resolution.failure.transform.TransformationChainData;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -51,31 +51,37 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
         formatSortedAttributes(formatter, failure.getRequestedAttributes());
         formatter.node("Found the following transforms");
 
-        Comparator<TransformedVariant> variantComparator =
-            Comparator.<TransformedVariant, String>comparing(x -> x.getTransformChain().getDisplayName())
-                .thenComparing(x -> x.getAttributes().toString());
-        Map<ResolvedVariant, List<TransformedVariant>> variantToTransforms = failure.getTransformedVariants().stream().collect(Collectors.groupingBy(
-            TransformedVariant::getRoot,
-            () -> new TreeMap<>(Comparator.comparing(variant -> variant.asDescribable().getDisplayName())),
-            Collectors.collectingAndThen(Collectors.toList(), list -> list.stream().sorted(variantComparator).collect(Collectors.toList()))));
+        Comparator<TransformationChainData> variantDataComparator =
+            Comparator.comparing(TransformationChainData::describeTransformations)
+                .thenComparing(x -> x.getFinalAttributes().toString());
+
+        Map<SourceVariantData, List<TransformationChainData>> transformationPaths = failure.getPotentialVariants().stream()
+            .collect(Collectors.groupingBy(
+                TransformationChainData::getInitialVariant,
+                () -> new TreeMap<>(Comparator.comparing(SourceVariantData::getVariantName)),
+                Collectors.collectingAndThen(Collectors.toList(), list -> list.stream().sorted(variantDataComparator).collect(Collectors.toList()))));
 
         formatter.startChildren();
-        for (Map.Entry<ResolvedVariant, List<TransformedVariant>> entry : variantToTransforms.entrySet()) {
-            formatter.node("From '" + entry.getKey().asDescribable().getDisplayName() + "'");
-            formatter.startChildren();
-            formatter.node("With source attributes");
-            formatSortedAttributes(formatter, entry.getKey().getAttributes());
-            formatter.node("Candidate transform(s)");
-            formatter.startChildren();
-            for (TransformedVariant variant : entry.getValue()) {
-                formatter.node("Transform '" + variant.getTransformChain().getDisplayName() + "' producing attributes:");
-                formatSortedAttributes(formatter, variant.getAttributes());
-            }
+        transformationPaths.forEach((root, transformations) -> {
+            formatSourceVariant(root, formatter);
+            transformations.forEach(transformationChainData -> {
+                formatter.node("Transform '" + transformationChainData.describeTransformations() + "' producing attributes:");
+                formatSortedAttributes(formatter, transformationChainData.getFinalAttributes());
+            });
             formatter.endChildren();
             formatter.endChildren();
-        }
+        });
         formatter.endChildren();
         return formatter.toString();
+    }
+
+    private void formatSourceVariant(SourceVariantData sourceVariantData, TreeFormatter formatter) {
+        formatter.node("From '" + sourceVariantData.getVariantName() + "'");
+        formatter.startChildren();
+        formatter.node("With source attributes");
+        formatSortedAttributes(formatter, sourceVariantData.getAttributes());
+        formatter.node("Candidate transform(s)");
+        formatter.startChildren();
     }
 
     private void formatSortedAttributes(TreeFormatter formatter, AttributeContainer attributes) {

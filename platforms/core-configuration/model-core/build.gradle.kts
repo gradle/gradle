@@ -5,6 +5,10 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
+gradlebuildJava {
+    usesJdkInternals = true
+}
+
 dependencies {
     api(projects.serialization)
     api(projects.serviceLookup)
@@ -67,12 +71,6 @@ dependencies {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release = null
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
 }
 
 integTest.usesJavadocCodeSnippets = true

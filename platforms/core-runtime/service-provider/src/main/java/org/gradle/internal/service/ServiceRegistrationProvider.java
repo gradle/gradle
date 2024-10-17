@@ -19,7 +19,7 @@ package org.gradle.internal.service;
 /**
  * Marker interface for reflection-based service declaration and registration.
  *
- * <h3>Declaring statically</h3>
+ * <h2>Declaring statically</h2>
  * You can declare services and factories by adding methods to the implementation of this interface.
  * <p>
  * The service-declaring methods are

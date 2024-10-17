@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import com.gradle.develocity.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -34,7 +33,6 @@ import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-@LocalOnly(because = "Multiple choices for a Java version cause the tests to fail as the Java version is not deterministic") // https://github.com/gradle/gradle-private/issues/4498
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests
@@ -119,7 +117,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
         def task = ":myToolchainTask"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildFile << """
             abstract class ToolchainTask extends DefaultTask {
@@ -560,7 +558,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'compileJava' task"() {
         def task = ":compileJava"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -581,7 +579,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'test' task"() {
         def task = ":test"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 
@@ -604,7 +602,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     def "emits toolchain usages when task fails for 'javadoc' task"() {
         def task = ":javadoc"
 
-        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         configureJavaPluginToolchainVersion(jdkMetadata)
 

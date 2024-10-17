@@ -198,6 +198,66 @@ class DocumentOverlayTest {
         )
     }
 
+    @Test
+    fun `configuring blocks with identity keys get merged based on the key`() {
+        val underlay = resolvedDocument(
+            """
+            configuringById(2) {
+                a = 2
+            }
+            configuringById(1) {
+                a = 1
+            }
+            configuringById(3) {
+                a = 3
+            }
+            """.trimIndent()
+        )
+
+        val overlay = resolvedDocument(
+            """
+            configuringById(1) {
+                b = 1
+            }
+            configuringById(2) {
+                b = 2
+            }
+            configuringById(4) {
+                b = 4
+            }
+            """.trimIndent()
+        )
+
+        // TODO: this test asserts the order of the result element that follows from the rule:
+        //       "the elements missing in the overlay go first, then the merged ones".
+        //       However, a more natural result order might be with keys ordered as: 2, 1, 3, 4
+        overlayResolvedDocuments(underlay, overlay).document.assertMergeResult(
+            """
+            element(configuringById, [literal(3)], content.size = 1)
+                literal(3)
+                property(a, literal(3))
+                    literal(3)
+            element(configuringById, [literal(1)], content.size = 2)
+                literal(1)
+                property(a, literal(1))
+                    literal(1)
+                property(b, literal(1))
+                    literal(1)
+            element(configuringById, [literal(2)], content.size = 2)
+                literal(2)
+                property(a, literal(2))
+                    literal(2)
+                property(b, literal(2))
+                    literal(2)
+            element(configuringById, [literal(4)], content.size = 1)
+                literal(4)
+                property(b, literal(4))
+                    literal(4)
+
+            """.trimIndent(),
+        )
+    }
+
 
     @Test
     fun `the overlay shows where the elements come from`() {
@@ -408,6 +468,9 @@ class DocumentOverlayTest {
 
         @Configuring
         fun configuring(configure: NestedReceiver.() -> Unit)
+
+        @Configuring
+        fun configuringById(id: Int, configure: NestedReceiver.() -> Unit)
 
         @Adding
         fun adding(someValue: Int, configure: NestedReceiver.() -> Unit): NestedReceiver

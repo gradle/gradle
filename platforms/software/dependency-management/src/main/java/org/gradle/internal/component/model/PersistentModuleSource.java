@@ -23,7 +23,9 @@ import java.io.IOException;
 /**
  * Interface for module sources which need to be serialized with
  * the metadata descriptor. Adding or removing such a metadata source
- * requires updating the metadata cache store format (see {@link org.gradle.api.internal.artifacts.ivyservice.CacheLayout}).
+ * requires updating the metadata cache store format.
+ *
+ * @see org.gradle.api.internal.artifacts.ivyservice.CacheLayout
  */
 public interface PersistentModuleSource extends ModuleSource {
     /**

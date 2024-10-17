@@ -23,15 +23,14 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
 
 class AttributeTestUtil {
-    static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+    static DefaultAttributesFactory attributesFactory() {
+        return new DefaultAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
     }
 
     /**

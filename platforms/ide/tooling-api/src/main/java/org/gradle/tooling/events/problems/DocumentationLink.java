@@ -18,8 +18,6 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * Represents documentation link.
  *
@@ -33,6 +31,5 @@ public interface DocumentationLink {
      *
      * @since 8.6
      */
-    @Nullable
     String getUrl();
 }

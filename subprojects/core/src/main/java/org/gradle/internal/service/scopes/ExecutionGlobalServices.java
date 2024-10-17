@@ -82,6 +82,7 @@ import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategor
 import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.properties.annotations.NestedBeanAnnotationHandler;
@@ -226,7 +227,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 PathSensitive.class,
                 SkipWhenEmpty.class,
                 IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class
+                NormalizeLineEndings.class,
+                ReplacesEagerProperty.class
             ),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
@@ -280,6 +282,11 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @Provides
     PropertyAnnotationHandler createOptionValuesAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(OptionValues.class);
+    }
+
+    @Provides
+    PropertyAnnotationHandler createReplacesEagerPropertyAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(ReplacesEagerProperty.class);
     }
 
     @Provides

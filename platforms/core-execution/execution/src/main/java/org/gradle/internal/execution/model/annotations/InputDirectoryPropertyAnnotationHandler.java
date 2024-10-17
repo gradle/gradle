@@ -25,13 +25,14 @@ import static org.gradle.internal.execution.model.annotations.ModifierAnnotation
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public InputDirectoryPropertyAnnotationHandler() {
         super(
             InputDirectory.class,
             InputFilePropertyType.DIRECTORY,
-            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS)
+            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS, REPLACES_EAGER_PROPERTY)
         );
     }
 

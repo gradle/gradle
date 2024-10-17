@@ -53,6 +53,8 @@ public class IvyServices extends AbstractGradleModuleServices {
             return new ContextualizingIvyPublisher(publisher, ivyContextManager);
         }
 
+        @SuppressWarnings("UnusedVariable")
+        @Provides
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             // TODO There should be a more explicit way to execute an action against existing services
             componentTypeRegistry.maybeRegisterComponentType(IvyModule.class)

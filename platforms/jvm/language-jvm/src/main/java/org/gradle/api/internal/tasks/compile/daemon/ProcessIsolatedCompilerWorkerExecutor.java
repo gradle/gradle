@@ -34,6 +34,6 @@ public class ProcessIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompi
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
         // Compiler daemons do not rely on project cache directory
-        return new ForkedWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), projectCacheDir.getDir(), daemonForkOptions);
+        return new ForkedWorkerRequirement(daemonForkOptions.getWorkingDir(), projectCacheDir.getDir(), daemonForkOptions);
     }
 }

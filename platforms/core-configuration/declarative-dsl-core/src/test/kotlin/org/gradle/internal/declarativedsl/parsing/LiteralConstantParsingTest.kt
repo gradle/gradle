@@ -509,19 +509,12 @@ class LiteralConstantParsingTest {
                 a = -2u
                 a = 0xFFu
                 a = 0b100u
-                a = 3.14u
-                a = 1e1u
-                a = 1.0e1u
-                a = 2_2.0fu
-                a = 6.022_137e+2_3fu
                 a = 1U
                 a = 0xFU
-                a = 1uU
-                a = 1Uu
-                a = 1Lu
-                a = 1LU
-                a = 1uL
-                a = 1UL
+                a = 0b100U
+                a = 1ul
+                a = 2uL
+                a = 2UL
                 a = 3Ul
             """.trimIndent()
         val results = ParseTestUtil.parse(code)
@@ -570,122 +563,52 @@ class LiteralConstantParsingTest {
                     )
                 )
                 ErroneousStatement (
-                    MultipleFailures(
-                        ParsingError(
-                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                            potentialElementSource = indexes: 56..60, line/column: 7/5..7/9, file: test,
-                            erroneousSource = indexes: 56..60, line/column: 7/5..7/9, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 62..63, line/column: 8/1..8/2, file: test,
-                            erroneousSource = indexes: 62..63, line/column: 8/1..8/2, file: test
-                        )
-                        ParsingError(
-                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                            potentialElementSource = indexes: 66..69, line/column: 8/5..8/8, file: test,
-                            erroneousSource = indexes: 66..69, line/column: 8/5..8/8, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 71..72, line/column: 9/1..9/2, file: test,
-                            erroneousSource = indexes: 71..72, line/column: 9/1..9/2, file: test
-                        )
-                        ParsingError(
-                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                            potentialElementSource = indexes: 75..80, line/column: 9/5..9/10, file: test,
-                            erroneousSource = indexes: 75..80, line/column: 9/5..9/10, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 82..83, line/column: 10/1..10/2, file: test,
-                            erroneousSource = indexes: 82..83, line/column: 10/1..10/2, file: test
-                        )
-                        ParsingError(
-                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                            potentialElementSource = indexes: 86..92, line/column: 10/5..10/11, file: test,
-                            erroneousSource = indexes: 86..92, line/column: 10/5..10/11, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 94..95, line/column: 11/1..11/2, file: test,
-                            erroneousSource = indexes: 94..95, line/column: 11/1..11/2, file: test
-                        )
-                        ParsingError(
-                            message = Parsing failure, unsupported constant type: FLOAT_CONSTANT,
-                            potentialElementSource = indexes: 98..113, line/column: 11/5..11/20, file: test,
-                            erroneousSource = indexes: 98..113, line/column: 11/5..11/20, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 115..116, line/column: 12/1..12/2, file: test,
-                            erroneousSource = indexes: 115..116, line/column: 12/1..12/2, file: test
-                        )
-                        UnsupportedConstruct(
-                            languageFeature = UnsignedType,
-                            potentialElementSource = indexes: 119..121, line/column: 12/5..12/7, file: test,
-                            erroneousSource = indexes: 119..121, line/column: 12/5..12/7, file: test
-                        )
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 56..58, line/column: 7/5..7/7, file: test,
+                        erroneousSource = indexes: 56..58, line/column: 7/5..7/7, file: test
                     )
                 )
                 ErroneousStatement (
                     UnsupportedConstruct(
                         languageFeature = UnsignedType,
-                        potentialElementSource = indexes: 126..130, line/column: 13/5..13/9, file: test,
-                        erroneousSource = indexes: 126..130, line/column: 13/5..13/9, file: test
-                    )
-                )
-                ErroneousStatement (
-                    MultipleFailures(
-                        UnsupportedConstruct(
-                            languageFeature = UnsignedType,
-                            potentialElementSource = indexes: 135..137, line/column: 14/5..14/7, file: test,
-                            erroneousSource = indexes: 135..137, line/column: 14/5..14/7, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 139..140, line/column: 15/1..15/2, file: test,
-                            erroneousSource = indexes: 139..140, line/column: 15/1..15/2, file: test
-                        )
-                        UnsupportedConstruct(
-                            languageFeature = UnsignedType,
-                            potentialElementSource = indexes: 143..145, line/column: 15/5..15/7, file: test,
-                            erroneousSource = indexes: 143..145, line/column: 15/5..15/7, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 147..148, line/column: 16/1..16/2, file: test,
-                            erroneousSource = indexes: 147..148, line/column: 16/1..16/2, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 155..156, line/column: 17/1..17/2, file: test,
-                            erroneousSource = indexes: 155..156, line/column: 17/1..17/2, file: test
-                        )
-                        ParsingError(
-                            message = Argument is absent,
-                            potentialElementSource = indexes: 163..164, line/column: 18/1..18/2, file: test,
-                            erroneousSource = indexes: 163..164, line/column: 18/1..18/2, file: test
-                        )
-                        UnsupportedConstruct(
-                            languageFeature = UnsignedType,
-                            potentialElementSource = indexes: 167..170, line/column: 18/5..18/8, file: test,
-                            erroneousSource = indexes: 167..170, line/column: 18/5..18/8, file: test
-                        )
+                        potentialElementSource = indexes: 63..67, line/column: 8/5..8/9, file: test,
+                        erroneousSource = indexes: 63..67, line/column: 8/5..8/9, file: test
                     )
                 )
                 ErroneousStatement (
                     UnsupportedConstruct(
                         languageFeature = UnsignedType,
-                        potentialElementSource = indexes: 175..178, line/column: 19/5..19/8, file: test,
-                        erroneousSource = indexes: 175..178, line/column: 19/5..19/8, file: test
+                        potentialElementSource = indexes: 72..78, line/column: 9/5..9/11, file: test,
+                        erroneousSource = indexes: 72..78, line/column: 9/5..9/11, file: test
                     )
                 )
                 ErroneousStatement (
                     UnsupportedConstruct(
                         languageFeature = UnsignedType,
-                        potentialElementSource = indexes: 183..186, line/column: 20/5..20/8, file: test,
-                        erroneousSource = indexes: 183..186, line/column: 20/5..20/8, file: test
+                        potentialElementSource = indexes: 83..86, line/column: 10/5..10/8, file: test,
+                        erroneousSource = indexes: 83..86, line/column: 10/5..10/8, file: test
+                    )
+                )
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 91..94, line/column: 11/5..11/8, file: test,
+                        erroneousSource = indexes: 91..94, line/column: 11/5..11/8, file: test
+                    )
+                )
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 99..102, line/column: 12/5..12/8, file: test,
+                        erroneousSource = indexes: 99..102, line/column: 12/5..12/8, file: test
+                    )
+                )
+                ErroneousStatement (
+                    UnsupportedConstruct(
+                        languageFeature = UnsignedType,
+                        potentialElementSource = indexes: 107..110, line/column: 13/5..13/8, file: test,
+                        erroneousSource = indexes: 107..110, line/column: 13/5..13/8, file: test
                     )
                 )""".trimIndent()
         results.assert(removeCommentAndEmptyLines(expected))

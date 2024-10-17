@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.model.ObjectFactory;
 
@@ -31,12 +31,12 @@ import javax.annotation.Nullable;
 public class DefaultDependencyConstraintFactory implements DependencyConstraintFactoryInternal {
     private final ObjectFactory objectFactory;
     private final DependencyConstraintNotationParser dependencyConstraintNotationParser;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
     public DefaultDependencyConstraintFactory(
         ObjectFactory objectFactory,
         DependencyConstraintNotationParser dependencyConstraintNotationParser,
-        ImmutableAttributesFactory attributesFactory
+        AttributesFactory attributesFactory
     ) {
         this.objectFactory = objectFactory;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;

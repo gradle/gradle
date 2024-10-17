@@ -20,17 +20,19 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.Task;
 import org.gradle.tooling.model.gradle.BuildInvocations;
+import org.gradle.tooling.model.gradle.GradleBuild;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 public class FetchBuildInvocationsTasks implements BuildAction<List<Task>> {
     @Override
     public List<Task> execute(BuildController controller) {
-        return controller.getBuildModel().getEditableBuilds().stream()
-            .map(build -> controller.getModel(build.getRootProject(), BuildInvocations.class))
-            .flatMap(invocations -> invocations.getTasks().stream())
-            .collect(toList());
+        List<Task> result = new ArrayList<>();
+        for (GradleBuild build : controller.getBuildModel().getEditableBuilds()) {
+            BuildInvocations invocations = controller.getModel(build.getRootProject(), BuildInvocations.class);
+            result.addAll(invocations.getTasks());
+        }
+        return result;
     }
 }

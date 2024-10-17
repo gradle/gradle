@@ -229,16 +229,18 @@ public class ExternalResourceName implements Describable {
             builder.delete(index, builder.length());
         }
 
-        return encode(builder.toString(), true);
+        return builder.toString();
     }
 
     private static String encode(String path, boolean isPathSeg) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < path.length(); i++) {
             char ch = path.charAt(i);
-            if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9') {
+            if (isLowerCaseChar(ch) ||
+                isUpperCaseChar(ch) ||
+                isDigit(ch)) {
                 builder.append(ch);
-            } else if (ch == '/' || ch == '@' || isPathSeg && ch == ':' || ch == '.' || ch == '-' || ch == '_' || ch == '~'
+            } else if (ch == '/' || ch == '@' || (isPathSeg && ch == ':') || ch == '.' || ch == '-' || ch == '_' || ch == '~'
                 || ch == '!' || ch == '$' || ch == '&' || ch == '\'' || ch == '(' || ch == ')' || ch == '*' || ch == '+'
                 || ch == ',' || ch == ';' || ch == '=') {
                 builder.append(ch);
@@ -246,16 +248,28 @@ public class ExternalResourceName implements Describable {
                 if (ch <= 0x7F) {
                     escapeByte(ch, builder);
                 } else if (ch <= 0x7FF) {
-                    escapeByte(0xC0 | (ch >> 6) & 0x1F, builder);
-                    escapeByte(0x80 | ch & 0x3F, builder);
+                    escapeByte(0xC0 | ((ch >> 6) & 0x1F), builder);
+                    escapeByte(0x80 | (ch & 0x3F), builder);
                 } else {
-                    escapeByte(0xE0 | (ch >> 12) & 0x1F, builder);
-                    escapeByte(0x80 | (ch >> 6) & 0x3F, builder);
-                    escapeByte(0x80 | ch & 0x3F, builder);
+                    escapeByte(0xE0 | ((ch >> 12) & 0x1F), builder);
+                    escapeByte(0x80 | ((ch >> 6) & 0x3F), builder);
+                    escapeByte(0x80 | (ch & 0x3F), builder);
                 }
             }
         }
         return builder.toString();
+    }
+
+    private static boolean isDigit(char ch) {
+        return ch >= '0' && ch <= '9';
+    }
+
+    private static boolean isUpperCaseChar(char ch) {
+        return ch >= 'A' && ch <= 'Z';
+    }
+
+    private static boolean isLowerCaseChar(char ch) {
+        return ch >= 'a' && ch <= 'z';
     }
 
     private static void escapeByte(int ch, StringBuilder builder) {

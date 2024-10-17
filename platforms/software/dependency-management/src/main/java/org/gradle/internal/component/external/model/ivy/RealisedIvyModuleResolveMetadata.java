@@ -32,6 +32,7 @@ import org.gradle.internal.component.external.model.AbstractRealisedModuleCompon
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ExternalVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -45,7 +46,6 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -168,7 +168,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private final DefaultIvyModuleResolveMetadata metadata;
     private final String branch;
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> derivedVariants;
+    private Optional<List<? extends ExternalVariantGraphResolveMetadata>> derivedVariants;
 
     private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ModuleConfigurationMetadata> transformedConfigurations) {
         super(metadata, metadata.getVariants(), transformedConfigurations);
@@ -235,7 +235,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalVariantGraphResolveMetadata>> maybeDeriveVariants() {
         if (derivedVariants == null && getConfigurationNames().size() != configurationDefinitions.size()) {
             // if there are more configurations than definitions, configurations have been added by rules and thus they are variants
             derivedVariants = Optional.of(allConfigurationsThatAreVariants());

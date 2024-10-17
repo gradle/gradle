@@ -32,8 +32,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -81,7 +81,7 @@ import static java.util.stream.Collectors.toMap;
 public abstract class DefaultMavenPublication implements MavenPublicationInternal {
 
     private final String name;
-    private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final AttributesFactory attributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final String projectDisplayName;
     private final Directory buildDir;
@@ -111,7 +111,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         NotationParser<Object, MavenArtifact> mavenArtifactParser,
         ObjectFactory objectFactory,
         FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory,
+        AttributesFactory attributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         VersionMappingStrategyInternal versionMappingStrategy,
         TaskDependencyFactory taskDependencyFactory,
@@ -119,7 +119,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         Project project
     ) {
         this.name = name;
-        this.immutableAttributesFactory = immutableAttributesFactory;
+        this.attributesFactory = attributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
         this.projectDisplayName = project.getDisplayName();
@@ -538,7 +538,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     public ImmutableAttributes getAttributes() {
         String version = pom.getCoordinates().getVersion().get();
         String status = MavenVersionUtils.inferStatusFromVersionNumber(version);
-        return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
+        return attributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
     }
 
     private String getPublishedUrl(PublishArtifact source) {

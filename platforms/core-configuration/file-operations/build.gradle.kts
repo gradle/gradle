@@ -31,7 +31,6 @@ errorprone {
         "InlineMeSuggester", // 1 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
-        "OperatorPrecedence", // 5 occurrences
     )
 }
 

@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -66,5 +67,5 @@ public interface ProblemContext {
      * @since 8.8
      */
     @Nullable
-    FailureContainer getFailure();
+    Failure getFailure();
 }

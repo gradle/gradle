@@ -133,7 +133,7 @@ You’ll discover that Gradle has a rich API for working with dependencies — o
 
 [[sec:cpp_compile_link]]
 == Compiling and linking your code
-Compiling both your code can be trivially easy if you follow the conventions:
+Compiling your code can be trivially easy if you follow the conventions:
 
 1. Put your source code under the _src/main/cpp_ directory
 2. Declare your compile dependencies in the `implementation` configurations (see the previous section)
@@ -150,7 +150,7 @@ NOTE: All link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[Cpp
 
 Gradle offers the ability to execute the same build using different tool chains.
 When you build a native binary, Gradle will attempt to locate a tool chain installed on your machine that can build the binary.
-Gradle select the first tool chain that can build for the target operating system and architecture.
+Gradle selects the first tool chain that can build for the target operating system and architecture.
 In the future, Gradle will consider source and ABI compatibility when selecting a tool chain.
 
 Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual {cpp} footnote:[Installed with Visual Studio 2010 to 2019] (Windows-only).

@@ -593,7 +593,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             require(uri("settings.gradle.kts").toString().endsWith("settings.gradle.kts"), { "uri(path)" })
             require(file("settings.gradle.kts").isFile, { "file(path)" })
             require(files("settings.gradle.kts").files.isNotEmpty(), { "files(paths)" })
-            require(fileTree(".").contains(file("settings.gradle.kts")), { "fileTree(path)" })
+            require(fileTree(".") { include("*.kts") }.contains(file("settings.gradle.kts")), { "fileTree(path)" })
             require(copySpec {} != null, { "copySpec {}" })
             require(mkdir("some").isDirectory, { "mkdir(path)" })
             require(delete("some"), { "delete(path)" })

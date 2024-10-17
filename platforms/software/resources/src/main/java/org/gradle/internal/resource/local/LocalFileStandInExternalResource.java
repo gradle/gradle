@@ -161,6 +161,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
     }
 
     @Override
+    @SuppressWarnings("overloads")
     public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) {
         if (!localFile.exists()) {
             throw ResourceExceptions.getMissing(getURI());

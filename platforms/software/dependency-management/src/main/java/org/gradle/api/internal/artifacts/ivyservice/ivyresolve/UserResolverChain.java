@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueFactory;
@@ -44,7 +44,7 @@ public class UserResolverChain implements ComponentResolvers {
         VersionParser versionParser,
         AttributeContainer consumerAttributes,
         ImmutableAttributesSchema consumerSchema,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         ComponentMetadataProcessorFactory componentMetadataProcessor,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,

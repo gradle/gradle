@@ -19,7 +19,7 @@ package org.gradle.internal.credentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.tasks.Internal;
 
-public class DefaultAwsCredentials implements AwsCredentials {
+public abstract class DefaultAwsCredentials implements AwsCredentials {
 
     private String accessKey;
     private String secretKey;

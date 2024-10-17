@@ -239,7 +239,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
             inputs.file(performanceScenarioJson.absolutePath)
             inputs.file(tmpPerformanceScenarioJson.absolutePath)
-            project.toolchainInstallationPaths?.apply {
+            project.toolchainInstallationPaths.orNull?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
             }
         }
@@ -254,7 +254,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
             systemProperty("org.gradle.performance.develocity.plugin.infoDir", projectDir.absolutePath)
 
-            project.toolchainInstallationPaths?.apply {
+            project.toolchainInstallationPaths.orNull?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
             }
 

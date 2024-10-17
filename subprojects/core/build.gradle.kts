@@ -53,7 +53,6 @@ errorprone {
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
         "NotJavadoc", // 1 occurrences
-        "OperatorPrecedence", // 5 occurrences
         "OptionalMapUnusedValue", // 1 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences

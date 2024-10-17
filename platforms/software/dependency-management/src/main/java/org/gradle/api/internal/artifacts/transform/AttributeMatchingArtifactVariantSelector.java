@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
@@ -45,7 +45,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final ImmutableAttributesSchema consumerSchema;
     private final TransformUpstreamDependenciesResolver dependenciesResolver;
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final TransformedVariantFactory transformedVariantFactory;
     private final ResolutionFailureHandler failureProcessor;
@@ -54,7 +54,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributesSchema consumerSchema,
         TransformUpstreamDependenciesResolver dependenciesResolver,
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         TransformedVariantFactory transformedVariantFactory,
         ResolutionFailureHandler failureProcessor

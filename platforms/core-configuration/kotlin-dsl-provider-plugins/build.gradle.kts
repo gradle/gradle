@@ -12,6 +12,7 @@ dependencies {
     api(projects.logging)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
+    api(projects.persistentCache)
 
     api(libs.inject)
     api(libs.kotlinStdlib)
@@ -31,6 +32,7 @@ dependencies {
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
+    implementation(projects.declarativeDslInternalUtils)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false

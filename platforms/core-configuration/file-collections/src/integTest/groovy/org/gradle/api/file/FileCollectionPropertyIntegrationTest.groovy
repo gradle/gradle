@@ -80,7 +80,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
                     prop.set([layout.projectDir.dir("other.dir")])
                 }
             }
-"""
+        """
 
         when:
         fails("show")
@@ -88,6 +88,43 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':show'.")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
+    }
+
+    def "UPGRADED task #annotation file property is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
+        executer.requireOwnGradleUserHomeDir("temp")
+        buildFile << """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                ${annotation}
+                ${propertyImpl}
+
+                @TaskAction
+                void go() {
+                    println "value: " + prop.get()
+                }
+            }
+
+            task show(type: SomeTask) {
+                def layout = project.layout
+                prop = [layout.projectDir.$fileMethod("in")]
+                doFirst {
+                    prop.set([layout.projectDir.$fileMethod("other")])
+                }
+            }
+"""
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Changing property value of task ':show' property 'prop' at execution time. This behavior has been deprecated.*")
+        succeeds("show")
+        outputContains("value: [${file('other')}]")
+
+        where:
+        annotation           | propertyImpl                                  | fileMethod
+        "@InputFiles"        | "abstract SetProperty<RegularFile> getProp()" | 'file'
+        "@OutputFiles"       | "abstract SetProperty<RegularFile> getProp()" | 'file'
+        "@OutputDirectories" | "abstract SetProperty<Directory> getProp()"   | 'dir'
     }
 
     def "can wire the output file of multiple tasks as input to another task using property"() {

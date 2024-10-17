@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 
@@ -63,8 +64,15 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
         AttributesSchemaInternal mutableSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         ImmutableAttributesSchema schema = attributesSchemaFactory.create(mutableSchema);
-        ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
 
-        return resolveStateFactory.stateFor(projectState, componentIdentifier, moduleVersionIdentifier, configurations, module.getStatus(), schema);
+        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
+            moduleVersionIdentifier,
+            componentIdentifier,
+            module.getStatus(),
+            schema
+        );
+
+        ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
+        return resolveStateFactory.stateFor(projectState, metadata, configurations);
     }
 }

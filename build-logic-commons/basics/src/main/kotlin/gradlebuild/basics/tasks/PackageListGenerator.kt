@@ -49,6 +49,7 @@ import java.util.zip.ZipInputStream
 abstract class PackageListGenerator : DefaultTask() {
 
     companion object {
+        // Things we do not want to shade
         val DEFAULT_EXCLUDES: List<String> = listOf(
             "org/gradle",
             "java",
@@ -72,6 +73,11 @@ abstract class PackageListGenerator : DefaultTask() {
             "sun/misc"
         )
 
+        // Things we do want to shade despite being covered by excludes
+        val DEFAULT_INCLUDES: List<String> = listOf(
+            "org/gradle/fileevents"
+        )
+
         @Throws(IOException::class)
         private
         fun openJarFile(file: Path): ZipInputStream {
@@ -84,7 +90,7 @@ abstract class PackageListGenerator : DefaultTask() {
      *
      * <p>Visible for testing.</p>
      */
-    class Implementation(private val excludes: List<String>) {
+    class Implementation(private val excludes: List<String>, private val includes: List<String>) {
         fun collectPackages(files: Iterable<Path>): Trie {
             val builder = Trie.Builder()
             for (file in files) {
@@ -140,13 +146,25 @@ abstract class PackageListGenerator : DefaultTask() {
             val endIndex = zipEntry.name.lastIndexOf("/")
             if (endIndex > 0) {
                 val packageName = zipEntry.name.substring(0, endIndex)
-                for (exclude in excludes) {
-                    if ("$packageName/".startsWith("$exclude/")) {
-                        return
-                    }
+                if (shouldInclude(packageName, excludes, includes)) {
+                    builder.addWord(packageName)
                 }
-                builder.addWord(packageName)
             }
+        }
+
+        private
+        fun shouldInclude(packageName: String, excludes: List<String>, includes: List<String>): Boolean {
+            for (exclude in excludes) {
+                if ("$packageName/".startsWith("$exclude/")) {
+                    for (include in includes) {
+                        if ("$packageName/".startsWith("$include/")) {
+                            return true
+                        }
+                    }
+                    return false
+                }
+            }
+            return true
         }
     }
 
@@ -159,8 +177,12 @@ abstract class PackageListGenerator : DefaultTask() {
     @get:Input
     abstract val excludes: ListProperty<String>
 
+    @get:Input
+    abstract val includes: ListProperty<String>
+
     init {
         excludes.convention(DEFAULT_EXCLUDES)
+        includes.convention(DEFAULT_INCLUDES)
     }
 
     @TaskAction
@@ -169,7 +191,7 @@ abstract class PackageListGenerator : DefaultTask() {
             @Throws(Exception::class)
             public
             override fun doExecute(bufferedWriter: BufferedWriter) {
-                val packages = Implementation(excludes.get()).collectPackages(classpath.files.map(File::toPath))
+                val packages = Implementation(excludes.get(), includes.get()).collectPackages(classpath.files.map(File::toPath))
                 packages.dump(false, object : ErroringAction<String>() {
                     @Throws(Exception::class)
                     override fun doExecute(s: String) {

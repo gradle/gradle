@@ -54,7 +54,7 @@ The first time you run a particular set of tasks, there will be no entry in the 
 1. Run init scripts.
 2. Run the settings script for the build, applying any requested settings plugins.
 3. Configure and build the `buildSrc` project, if present.
-4. Run the builds scripts for the build, applying any requested project plugins.
+4. Run the build scripts for the build, applying any requested project plugins.
 5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
 
 Following the configuration phase, Gradle writes a snapshot of the task graph to a new configuration cache entry, for later Gradle invocations.
@@ -559,7 +559,7 @@ For example, running tests after making some changes to the source code.
 When working on a plugin, progressively target the contributed or configured tasks.
 
 Explore by turning problems into warnings::
-Don't stop at the first build failure and <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
+Don't stop at the first build failure; <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
 If a build fails, use the HTML report to reason about the reported problems related to the failure.
 Continue running more useful tasks.
 +

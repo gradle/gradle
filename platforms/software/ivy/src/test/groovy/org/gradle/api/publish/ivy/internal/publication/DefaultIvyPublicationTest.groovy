@@ -37,7 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.model.ObjectFactory
@@ -364,7 +364,7 @@ class DefaultIvyPublicationTest extends Specification {
         def objectFactory = TestUtil.createTestServices {
             it.add(Instantiator, TestUtil.instantiatorFactory().decorateLenient())
             it.add(ProjectDependencyPublicationResolver, projectDependencyResolver)
-            it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
+            it.add(AttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(PlatformSupport, DependencyManagementTestUtil.platformSupport())
             it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
             it.add(AttributesSchemaInternal, AttributeTestUtil.mutableSchema())

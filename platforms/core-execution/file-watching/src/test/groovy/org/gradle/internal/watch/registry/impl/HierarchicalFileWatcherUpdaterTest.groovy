@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl
 
-import net.rubygrapefruit.platform.file.FileWatcher
+import org.gradle.fileevents.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater

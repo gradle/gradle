@@ -169,9 +169,7 @@ No sub-projects
                 public abstract LibraryExtension getLibrary();
 
                 @Override
-                public void apply(Project project) {
-                    project.getExtensions().add("library", getLibrary());
-                }
+                public void apply(Project project) { }
             }
         """
         file("build-logic/src/main/java/com/example/restricted/ApplicationPlugin.java") << """
@@ -186,9 +184,7 @@ No sub-projects
                 public abstract ApplicationExtension getApplication();
 
                 @Override
-                public void apply(Project project) {
-                    project.getExtensions().add("application", getApplication());
-                }
+                public void apply(Project project) { }
             }
         """
         file("build-logic/src/main/java/com/example/restricted/UtilityPlugin.java") << """
@@ -203,9 +199,7 @@ No sub-projects
                 public abstract UtilityExtension getUtility();
 
                 @Override
-                public void apply(Project project) {
-                    project.getExtensions().add("utility", getUtility());
-                }
+                public void apply(Project project) { }
             }
         """
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << """

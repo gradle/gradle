@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -141,9 +142,14 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     public ImmutableList<ResolvedVariant> calculateOwnArtifacts() {
         if (artifacts.isEmpty()) {
             return getArtifactsForGraphVariant(variant);
-        } else {
-            return ImmutableList.of(variant.prepareForArtifactResolution().resolveAdhocVariant(variantResolver, artifacts));
         }
+
+        // The user requested artifacts on the dependency.
+        // Resolve an adhoc variant with those artifacts.
+        ComponentArtifactResolveMetadata componentArtifactMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
+        VariantArtifactResolveState artifactState = variant.prepareForArtifactResolution();
+        ImmutableList<ComponentArtifactMetadata> adhocArtifacts = artifactState.getAdhocArtifacts(artifacts);
+        return ImmutableList.of(variantResolver.resolveAdhocVariant(componentArtifactMetadata, adhocArtifacts));
     }
 
     /**

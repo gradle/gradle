@@ -29,16 +29,16 @@ class SigningTasksSpec extends SigningProjectSpec {
         when:
         signing {
             sign jar
-            sign sourcesJar, javadocJar
+            sign project.sourcesJar, project.javadocJar
         }
 
         then:
-        def signingTasks = [signJar, signSourcesJar, signJavadocJar]
+        def signingTasks = [project.signJar, project.signSourcesJar, project.signJavadocJar]
 
         and:
-        jar in signJar.dependsOn
-        sourcesJar in signSourcesJar.dependsOn
-        javadocJar in signJavadocJar.dependsOn
+        jar in project.signJar.dependsOn
+        project.sourcesJar in project.signSourcesJar.dependsOn
+        project.javadocJar in project.signJavadocJar.dependsOn
 
         and:
         signingTasks.every { it.singleSignature in configurations.signatures.artifacts }
@@ -58,7 +58,7 @@ class SigningTasksSpec extends SigningProjectSpec {
         signJarTask.name == "signJar"
 
         when:
-        def (signSourcesJarTask, signJavadocJarTask) = signing.sign(sourcesJar, javadocJar)
+        def (signSourcesJarTask, signJavadocJarTask) = signing.sign(project.sourcesJar, project.javadocJar)
 
         then:
         [signSourcesJarTask, signJavadocJarTask]*.name == ["signSourcesJar", "signJavadocJar"]
@@ -120,17 +120,17 @@ class SigningTasksSpec extends SigningProjectSpec {
 
         when:
         signing {
-            sign jar, sourcesJar
+            sign jar, project.sourcesJar
         }
 
         then:
-        signJar.description == "Signs the archive produced by the 'jar' task."
-        signSourcesJar.description == "Signs the archive produced by the 'sourcesJar' task."
+        project.signJar.description == "Signs the archive produced by the 'jar' task."
+        project.signSourcesJar.description == "Signs the archive produced by the 'sourcesJar' task."
     }
 
     private createJarTaskOutputFile(String... tasksToSimulate) {
         for (def task : tasksToSimulate) {
-            def jarFile = tasks.getByName(task).outputs.files.singleFile
+            def jarFile = project.tasks.named(task).get().outputs.files.singleFile
             File libsDir = jarFile.parentFile
             libsDir.mkdirs()
             jarFile.createNewFile()

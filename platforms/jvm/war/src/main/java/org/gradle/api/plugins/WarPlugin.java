@@ -26,7 +26,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -61,13 +61,13 @@ public abstract class WarPlugin implements Plugin<Project> {
     public static final String WEB_APP_GROUP = "web application";
 
     private final ObjectFactory objectFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
     private Project project;
     private JvmFeatureInternal mainFeature;
 
     @Inject
-    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
+    public WarPlugin(ObjectFactory objectFactory, AttributesFactory attributesFactory) {
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
     }

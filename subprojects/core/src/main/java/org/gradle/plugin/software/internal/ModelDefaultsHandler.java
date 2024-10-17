@@ -22,5 +22,5 @@ import org.gradle.api.Plugin;
  * Applies the model defaults from a given software type to a target object.
  */
 public interface ModelDefaultsHandler {
-    <T> void apply(T target, String softwareTypeName, Plugin<? super T> plugin);
+    <T> void apply(T target, String softwareTypeName, Plugin<?> plugin);
 }

@@ -22,11 +22,16 @@ import java.io.Serializable
 
 @ToolingModelContract(subTypes = [
     ParameterSemantics.StoreValueInProperty::class,
+    ParameterSemantics.IdentityKey::class,
     ParameterSemantics.Unknown::class
 ])
 sealed interface ParameterSemantics : Serializable {
     interface StoreValueInProperty : ParameterSemantics {
         val dataProperty: DataProperty
+    }
+
+    interface IdentityKey : ParameterSemantics {
+        val basedOnProperty : DataProperty?
     }
 
     interface Unknown : ParameterSemantics

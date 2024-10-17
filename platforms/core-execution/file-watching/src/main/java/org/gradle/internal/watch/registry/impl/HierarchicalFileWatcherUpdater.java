@@ -18,7 +18,7 @@ package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.fileevents.FileWatcher;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;

@@ -53,6 +53,7 @@ class StageProject(
 
     init {
         features {
+            buildReportTab("Problems Report", "problems-report.html")
             if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
                 buildReportTab("API Compatibility Report", "$hiddenArtifactDestination/report-architecture-test-binary-compatibility-report.html")
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")

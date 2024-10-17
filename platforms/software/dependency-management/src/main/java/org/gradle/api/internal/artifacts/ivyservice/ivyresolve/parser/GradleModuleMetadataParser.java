@@ -34,10 +34,10 @@ import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySel
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
@@ -73,17 +73,17 @@ public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
 
     public static final String FORMAT_VERSION = "1.1";
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public GradleModuleMetadataParser(ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
+    public GradleModuleMetadataParser(AttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
         this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
-    public ImmutableAttributesFactory getAttributesFactory() {
+    public AttributesFactory getAttributesFactory() {
         return attributesFactory;
     }
 
@@ -130,10 +130,10 @@ public class GradleModuleMetadataParser {
             return;
         }
         for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
-            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
+            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenAttributesFactory.CATEGORY_ATTRIBUTE);
             if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
                 // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
+                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
                 Capability enforcedCapability = buildShadowPlatformCapability(metadata.getId());
                 metadata.addVariant(variant.copy("enforced" + capitalize(variant.getName()), enforcedAttributes, enforcedCapability));
             }

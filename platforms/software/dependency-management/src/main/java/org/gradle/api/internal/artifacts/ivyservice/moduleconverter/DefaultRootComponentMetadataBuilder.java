@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -86,10 +87,17 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 
+        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
+            moduleVersionId,
+            componentIdentifier,
+            status,
+            immutableSchema
+        );
+
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
-                return getComponentState(owner, componentIdentifier, moduleVersionId, status, immutableSchema);
+                return getComponentState(owner, metadata);
             }
 
             @Override
@@ -108,12 +116,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
             @Override
             public ComponentIdentifier getComponentIdentifier() {
-                return componentIdentifier;
+                return metadata.getId();
             }
 
             @Override
             public ModuleVersionIdentifier getModuleVersionIdentifier() {
-                return moduleVersionId;
+                return metadata.getModuleVersionId();
             }
         };
     }
@@ -125,12 +133,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private LocalComponentGraphResolveState getComponentState(
         DomainObjectContext domainObjectContext,
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionIdentifier,
-        String status,
-        ImmutableAttributesSchema schema
+        LocalComponentGraphResolveMetadata metadata
     ) {
-        LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
+        LocalComponentGraphResolveState state = holder.tryCached(metadata.getId());
         if (state != null) {
             return state;
         }
@@ -139,11 +144,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModelContainer<?> model = domainObjectContext.getModel();
 
         if (shouldCacheResolutionState()) {
-            result = localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, status, schema);
+            result = localResolveStateFactory.stateFor(model, metadata, configurationsProvider);
             holder.cache(result, true);
         } else {
             // Mark the state as 'ad hoc' and not cacheable
-            result = localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, status, schema);
+            result = localResolveStateFactory.adHocStateFor(model, metadata, configurationsProvider);
             holder.cache(result, false);
         }
 

@@ -165,6 +165,46 @@ afterEvaluate {
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
+    def "UPGRADED task @Input property is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
+        given:
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+
+                @ReplacesEagerProperty
+                @Input
+                abstract ListProperty<String> getProp()
+
+                @OutputFile
+                final Property<RegularFile> outputFile = project.objects.fileProperty()
+
+                @TaskAction
+                void go() {
+                    println("value: " + prop.get().join(", "))
+                    outputFile.get().asFile.text = prop.get()
+                }
+            }
+
+            task thing(type: SomeTask) {
+                prop = ["value 1"]
+                outputFile = layout.buildDirectory.file("out.txt")
+                doFirst {
+                    prop.add("value 3")
+                }
+            }
+
+            afterEvaluate {
+                thing.prop.addAll(["value 2"])
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
+        succeeds("thing")
+        outputContains("value: value 1, value 2, value 3")
+    }
+
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:

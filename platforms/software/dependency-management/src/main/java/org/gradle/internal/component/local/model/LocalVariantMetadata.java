@@ -36,11 +36,6 @@ public final class LocalVariantMetadata extends DefaultVariantMetadata {
         this.artifacts = artifacts;
     }
 
-    public LocalVariantMetadata prepareToResolveArtifacts() {
-        artifacts.finalizeIfNotAlready();
-        return this;
-    }
-
     @Override
     public boolean isEligibleForCaching() {
         return true;
@@ -48,6 +43,7 @@ public final class LocalVariantMetadata extends DefaultVariantMetadata {
 
     @Override
     public ImmutableList<LocalComponentArtifactMetadata> getArtifacts() {
+        artifacts.finalizeIfNotAlready();
         return artifacts.get();
     }
 }

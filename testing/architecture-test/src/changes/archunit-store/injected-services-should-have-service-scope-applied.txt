@@ -12,7 +12,7 @@ Class <org.gradle.api.internal.ProcessOperations> is not annotated with @Service
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator> is not annotated with @ServiceScope in (VersionComparator.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme> is not annotated with @ServiceScope in (VersionSelectorScheme.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver> is not annotated with @ServiceScope in (ProjectDependencyPublicationResolver.java:0)
-Class <org.gradle.api.internal.attributes.ImmutableAttributesFactory> is not annotated with @ServiceScope in (ImmutableAttributesFactory.java:0)
+Class <org.gradle.api.internal.attributes.AttributesFactory> is not annotated with @ServiceScope in (AttributesFactory.java:0)
 Class <org.gradle.api.internal.cache.CacheConfigurationsInternal> is not annotated with @ServiceScope in (CacheConfigurationsInternal.java:0)
 Class <org.gradle.api.internal.file.DefaultProjectLayout> is not annotated with @ServiceScope in (DefaultProjectLayout.java:0)
 Class <org.gradle.api.internal.file.TaskFileVarFactory> is not annotated with @ServiceScope in (TaskFileVarFactory.java:0)

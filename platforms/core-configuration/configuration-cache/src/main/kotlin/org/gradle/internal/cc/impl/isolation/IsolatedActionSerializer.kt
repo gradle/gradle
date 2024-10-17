@@ -26,7 +26,6 @@ import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.ClassDecoder
@@ -35,6 +34,7 @@ import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
@@ -151,7 +151,7 @@ class EnvironmentEncoder : ClassEncoder {
     private
     val refs = IdentityHashMap<Class<*>, Int>()
 
-    override fun Encoder.encodeClass(type: Class<*>) {
+    override fun WriteContext.encodeClass(type: Class<*>) {
         writeSmallInt(refs.computeIfAbsent(type) { refs.size })
     }
 

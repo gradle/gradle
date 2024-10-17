@@ -220,7 +220,10 @@
          </trusted-key>
          <trusted-key id="8A10792983023D5D14C93B488D7F1BEC1E2ECAE7" group="^com[.]fasterxml($|([.].*))" regex="true"/>
          <trusted-key id="8C03DA5873B13E40C8C0DCE46A7AE74683A8AE1A" group="net.sourceforge.htmlunit"/>
-         <trusted-key id="8DA70C00DF7AF1B0D2F9DC74DDBCC1270A29D081" group="org.apache.ant"/>
+         <trusted-key id="8DA70C00DF7AF1B0D2F9DC74DDBCC1270A29D081">
+            <trusting group="org.apache.ant"/>
+            <trusting group="org.apache.ivy"/>
+         </trusted-key>
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
@@ -868,9 +871,9 @@
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.1">
-         <artifact name="gradle-enterprise-conventions-plugin-0.10.1.jar">
-            <sha256 value="69487b9158b5ec4620a9adbd5cc63fdfd1b00ce482bfa595f0340594ae10e388" origin="Verified" reason="Artifact is not signed"/>
+      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.2">
+         <artifact name="gradle-enterprise-conventions-plugin-0.10.2.jar">
+            <sha256 value="48d4b3bb8337998f191f2d2a5d7afbdeaed39dd248c7c2d2ab2fcdde76b365e9" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">

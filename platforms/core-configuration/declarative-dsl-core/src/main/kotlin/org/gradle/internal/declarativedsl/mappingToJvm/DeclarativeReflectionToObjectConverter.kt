@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
+import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -97,7 +98,7 @@ class DeclarativeReflectionToObjectConverter(
     sealed interface ObjectAccessKey {
         data class Identity(val id: OperationId) : ObjectAccessKey
         data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
-        data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction) : ObjectAccessKey
+        data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction, val identityValues: List<Any?>) : ObjectAccessKey
     }
 
 
@@ -133,7 +134,16 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun objectFromConfiguringLambda(
         origin: ObjectOrigin.ConfiguringLambdaReceiver
-    ): Any? = objectByIdentity(ObjectAccessKey.ConfiguringLambda(origin.receiver, origin.function)) {
+    ): Any? = objectByIdentity(
+        ObjectAccessKey.ConfiguringLambda(
+            origin.receiver,
+            origin.function,
+            identityValues = origin.parameterBindings.bindingMap.map {(parameter, value) ->
+                if (parameter.semantics is ParameterSemantics.IdentityKey) {
+                    (value as? ObjectOrigin.ConstantOrigin)?.literal?.value
+                } else null
+            })
+    ) {
         val function = origin.function
         val receiverInstance = getObjectByResolvedOrigin(origin.receiver)
             ?: error("tried to invoke a function $function on a null receiver ${origin.receiver}")

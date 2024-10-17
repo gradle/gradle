@@ -27,8 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.capabilities.CapabilityInternal
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Issue
 import spock.lang.Specification
@@ -109,14 +107,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
     }
 
     NodeState node(ComponentState cs) {
-        def metadata = Mock(VariantGraphResolveMetadata) {
-            getDependencies() >> []
-            getCapabilities() >> ImmutableCapabilities.of([])
-        }
-        def state = Mock(VariantGraphResolveState) {
-            getMetadata() >> metadata
-        }
-
+        def state = Stub(VariantGraphResolveState)
         def node = new NodeState(id++, cs, resolveState, state, true) {
             @Override
             boolean isSelected() {

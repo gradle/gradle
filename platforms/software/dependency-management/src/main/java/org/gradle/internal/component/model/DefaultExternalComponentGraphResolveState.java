@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,7 +32,6 @@ import org.gradle.internal.component.external.model.ExternalComponentResolveMeta
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
-import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -112,18 +110,18 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
     }
 
     private DefaultConfigurationGraphResolveState newVariantState(ModuleConfigurationMetadata configuration) {
-        return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), this, configuration);
+        return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), configuration);
     }
 
     private static class DefaultConfigurationGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final ModuleConfigurationMetadata configuration;
-        private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
+        private final DefaultConfigurationArtifactResolveState artifactResolveState;
 
-        public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ModuleConfigurationMetadata configuration) {
+        public DefaultConfigurationGraphResolveState(long instanceId, ModuleConfigurationMetadata configuration) {
             this.instanceId = instanceId;
             this.configuration = configuration;
-            this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(componentState.prepareForArtifactResolution().getArtifactMetadata(), configuration));
+            this.artifactResolveState = new DefaultConfigurationArtifactResolveState(configuration);
         }
 
         @Override
@@ -147,6 +145,16 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         }
 
         @Override
+        public List<? extends DependencyMetadata> getDependencies() {
+            return configuration.getDependencies();
+        }
+
+        @Override
+        public List<? extends ExcludeMetadata> getExcludes() {
+            return configuration.getExcludes();
+        }
+
+        @Override
         public ConfigurationGraphResolveMetadata getMetadata() {
             return configuration;
         }
@@ -157,32 +165,25 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         }
 
         @Override
-        public VariantArtifactGraphResolveMetadata resolveArtifacts() {
-            return configuration;
-        }
-
-        @Override
         public VariantArtifactResolveState prepareForArtifactResolution() {
-            return artifactResolveState.get();
+            return artifactResolveState;
         }
     }
 
     private static class DefaultConfigurationArtifactResolveState implements VariantArtifactResolveState {
-        private final ComponentArtifactResolveMetadata component;
         private final ConfigurationMetadata configuration;
 
-        public DefaultConfigurationArtifactResolveState(ComponentArtifactResolveMetadata component, ConfigurationMetadata configuration) {
-            this.component = component;
+        public DefaultConfigurationArtifactResolveState(ConfigurationMetadata configuration) {
             this.configuration = configuration;
         }
 
         @Override
-        public ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts) {
+        public ImmutableList<ComponentArtifactMetadata> getAdhocArtifacts(List<IvyArtifactName> dependencyArtifacts) {
             ImmutableList.Builder<ComponentArtifactMetadata> artifacts = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
             for (IvyArtifactName dependencyArtifact : dependencyArtifacts) {
                 artifacts.add(configuration.artifact(dependencyArtifact));
             }
-            return variantResolver.resolveAdhocVariant(component, artifacts.build());
+            return artifacts.build();
         }
 
         @Override

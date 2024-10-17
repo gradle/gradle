@@ -34,8 +34,8 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
@@ -145,7 +145,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         private List<String> statusScheme = ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
         private final AttributeContainerInternal attributes;
 
-        private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, ImmutableAttributesFactory attributesFactory) {
+        private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, AttributesFactory attributesFactory) {
             this.id = id;
             this.attributes = attributesFactory.mutable();
             this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, MavenVersionUtils.inferStatusFromEffectiveVersion(id.getVersion()));

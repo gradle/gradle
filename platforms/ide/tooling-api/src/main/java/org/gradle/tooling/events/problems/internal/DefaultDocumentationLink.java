@@ -18,12 +18,10 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.DocumentationLink;
 
-import javax.annotation.Nullable;
-
 public class DefaultDocumentationLink implements DocumentationLink {
     private final String url;
 
-    public DefaultDocumentationLink(@Nullable String url) {
+    public DefaultDocumentationLink(String url) {
         this.url = url;
     }
 

@@ -122,12 +122,12 @@ value class ClassLoaderRole(val local: Boolean)
 
 
 interface ClassEncoder {
-    fun Encoder.encodeClass(type: Class<*>)
+    fun WriteContext.encodeClass(type: Class<*>)
 
     /**
      * Tries to encode the given [classLoader].
      */
-    fun Encoder.encodeClassLoader(classLoader: ClassLoader?) = Unit
+    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) = Unit
 }
 
 

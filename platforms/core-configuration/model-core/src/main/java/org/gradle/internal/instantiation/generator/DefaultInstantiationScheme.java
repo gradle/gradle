@@ -23,6 +23,7 @@ import org.gradle.internal.instantiation.DeserializationInstantiator;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.instantiation.generator.ClassGenerator.SerializationConstructor;
 import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.annotation.Annotation;
@@ -33,7 +34,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     private final DependencyInjectingInstantiator instantiator;
     private final ConstructorSelector constructorSelector;
     private final Set<Class<? extends Annotation>> injectionAnnotations;
-    private final CrossBuildInMemoryCache<Class<?>, ClassGenerator.SerializationConstructor<?>> deserializationConstructorCache;
+    private final CrossBuildInMemoryCache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache;
     private final DeserializationInstantiator deserializationInstantiator;
     private final ClassGenerator classGenerator;
 
@@ -41,7 +42,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         this(constructorSelector, classGenerator, defaultServices, injectionAnnotations, cacheFactory.newClassCache());
     }
 
-    private DefaultInstantiationScheme(ConstructorSelector constructorSelector, ClassGenerator classGenerator, ServiceLookup defaultServices, Set<Class<? extends Annotation>> injectionAnnotations, CrossBuildInMemoryCache<Class<?>, ClassGenerator.SerializationConstructor<?>> deserializationConstructorCache) {
+    private DefaultInstantiationScheme(ConstructorSelector constructorSelector, ClassGenerator classGenerator, ServiceLookup defaultServices, Set<Class<? extends Annotation>> injectionAnnotations, CrossBuildInMemoryCache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache) {
         this.classGenerator = classGenerator;
         this.instantiator = new DependencyInjectingInstantiator(constructorSelector, defaultServices);
         this.constructorSelector = constructorSelector;
@@ -79,9 +80,9 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         private final ClassGenerator classGenerator;
         private final ServiceLookup services;
         private final InstanceGenerator nestedGenerator;
-        private final CrossBuildInMemoryCache<Class<?>, ClassGenerator.SerializationConstructor<?>> constructorCache;
+        private final CrossBuildInMemoryCache<Class<?>, SerializationConstructor<?>> constructorCache;
 
-        public DefaultDeserializationInstantiator(ClassGenerator classGenerator, ServiceLookup services, InstanceGenerator nestedGenerator, CrossBuildInMemoryCache<Class<?>, ClassGenerator.SerializationConstructor<?>> constructorCache) {
+        public DefaultDeserializationInstantiator(ClassGenerator classGenerator, ServiceLookup services, InstanceGenerator nestedGenerator, CrossBuildInMemoryCache<Class<?>, SerializationConstructor<?>> constructorCache) {
             this.classGenerator = classGenerator;
             this.services = services;
             this.nestedGenerator = nestedGenerator;
@@ -89,16 +90,28 @@ class DefaultInstantiationScheme implements InstantiationScheme {
         }
 
         @Override
+        public <T> Class<? extends T> getGeneratedType(Class<T> implType) {
+            return classGenerator.generate(implType).getGeneratedClass();
+        }
+
+        @Override
         public <T> T newInstance(Class<T> implType, Class<? super T> baseClass) {
             // TODO - The baseClass can be inferred from the implType, so attach the serialization constructor onto the GeneratedClass rather than parameterizing and caching here
             try {
-                ClassGenerator.SerializationConstructor<?> constructor = constructorCache.get(implType, () -> classGenerator.generate(implType).getSerializationConstructor(baseClass));
+                SerializationConstructor<?> constructor = serializationConstructorFor(implType, baseClass);
                 return implType.cast(constructor.newInstance(services, nestedGenerator));
             } catch (InvocationTargetException e) {
                 throw new ObjectInstantiationException(implType, e.getCause());
             } catch (Exception e) {
                 throw new ObjectInstantiationException(implType, e);
             }
+        }
+
+        private <T> SerializationConstructor<?> serializationConstructorFor(Class<T> implType, Class<? super T> baseClass) {
+            return constructorCache.get(
+                implType,
+                () -> classGenerator.generate(implType).getSerializationConstructor(baseClass)
+            );
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.model;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Named;
@@ -29,7 +30,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.provider.DefaultListProperty;
+import org.gradle.api.internal.provider.DefaultMapProperty;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -43,7 +46,7 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
 
     public InstantiatorBackedObjectFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
+        this.instantiator = Preconditions.checkNotNull(instantiator);
     }
 
     @Override
@@ -108,12 +111,12 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
-        return broken();
+        return new DefaultSetProperty<>(PropertyHost.NO_OP, elementType);
     }
 
     @Override
     public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
-        return broken();
+        return new DefaultMapProperty<>(PropertyHost.NO_OP, keyType, valueType);
     }
 
     @Override

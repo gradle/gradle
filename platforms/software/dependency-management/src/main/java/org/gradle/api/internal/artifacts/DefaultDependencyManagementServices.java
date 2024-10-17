@@ -104,9 +104,9 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -130,6 +130,7 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
@@ -299,6 +300,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DependencyGraphBuilder.class);
             registration.add(AttributeDescriberRegistry.class);
             registration.add(GraphVariantSelector.class);
+            registration.add(TransformedVariantConverter.class);
         }
 
         @Provides
@@ -388,7 +390,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, TransformParameterScheme parameterScheme) {
+        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, AttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, TransformParameterScheme parameterScheme) {
             return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 
@@ -408,7 +410,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             VersionSelectorScheme versionSelectorScheme,
             AuthenticationSchemeRegistry authenticationSchemeRegistry,
             IvyContextManager ivyContextManager,
-            ImmutableAttributesFactory attributesFactory,
+            AttributesFactory attributesFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             InstantiatorFactory instantiatorFactory,
             FileResourceRepository fileResourceRepository,
@@ -494,8 +496,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator decorator, VariantTransformRegistry transformRegistry) {
-            return new DefaultArtifactTypeRegistry(instantiator, immutableAttributesFactory, decorator, transformRegistry);
+        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator decorator, VariantTransformRegistry transformRegistry) {
+            return new DefaultArtifactTypeRegistry(instantiator, attributesFactory, decorator, transformRegistry);
         }
 
         @Provides
@@ -568,7 +570,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Instantiator instantiator,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             SimpleMapInterner interner,
-            ImmutableAttributesFactory attributesFactory,
+            AttributesFactory attributesFactory,
             IsolatableFactory isolatableFactory,
             ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
             PlatformSupport platformSupport
@@ -604,10 +606,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService) {
+        ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService, TransformedVariantConverter transformedVariantConverter) {
             InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
 
-            ResolutionFailureHandler handler = new ResolutionFailureHandler(instanceGenerator, problemsService);
+            ResolutionFailureHandler handler = new ResolutionFailureHandler(instanceGenerator, problemsService, transformedVariantConverter);
             GradlePluginVariantsSupport.configureFailureHandler(handler);
             PlatformSupport.configureFailureHandler(handler);
             return handler;
@@ -741,8 +743,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Override
-        public ImmutableAttributesFactory getAttributesFactory() {
-            return services.get(ImmutableAttributesFactory.class);
+        public AttributesFactory getAttributesFactory() {
+            return services.get(AttributesFactory.class);
         }
 
         @Override

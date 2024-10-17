@@ -156,6 +156,6 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())
 
         def variant = consumer.selectVariants(variantSelector, attributes, state, ImmutableAttributesSchema.EMPTY, [] as Set).variants[0]
-        variant.metadata.dependencies
+        variant.dependencies
     }
 }

@@ -27,7 +27,7 @@ import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
 import org.gradle.internal.serialize.graph.withDebugFrame
-import org.gradle.internal.serialize.graph.writeNextProperty
+import org.gradle.internal.serialize.graph.writePropertyValue
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
 
@@ -40,15 +40,15 @@ object JavaRecordCodec : EncodingProducer, Decoding {
 
     @Suppress("SpreadOperator")
     override suspend fun ReadContext.decode(): Any? {
-        val clazz = readClass()
-        val fields = clazz.relevantFields
+        val recordType = readClass()
+        val fields = recordType.relevantFields
 
         val args = readFields(fields)
         val types = fields.map { it.type }.toTypedArray()
         return try {
-            clazz.getConstructor(*types).newInstance(*args.toTypedArray())
+            recordType.getConstructor(*types).newInstance(*args.toTypedArray())
         } catch (ex: Exception) {
-            throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
+            throw IllegalStateException("Failed to create instance of ${recordType.name} with args $args", ex)
         }
     }
 
@@ -82,17 +82,17 @@ object JavaRecordCodec : EncodingProducer, Decoding {
 private
 object JavaRecordEncoding : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
-        val clazz = value::class.java
-        writeClass(clazz)
-        for (field in clazz.relevantFields) {
+        val recordType = value::class.java
+        writeClass(recordType)
+        for (field in recordType.relevantFields) {
             field.isAccessible = true
             val fieldName = field.name
             val fieldValue = field.get(value)
             unsupportedFieldTypeFor(field)?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
-            withDebugFrame({ "${clazz.typeName}.$fieldName" }) {
-                writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
+            withDebugFrame({ "${recordType.typeName}.$fieldName" }) {
+                writePropertyValue(PropertyKind.Field, fieldName, fieldValue)
             }
         }
     }

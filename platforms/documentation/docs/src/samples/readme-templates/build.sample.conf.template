@@ -3,7 +3,7 @@ commands: [{
     args: build
     # We temporarily disable deprecation warnings until we can update the gradle/gradle wrapper
     # to the new version where projects created with build-init do not emit warnings.
-    flags: "--warning-mode=none"
+    flags: "--warning-mode=none --no-configuration-cache"
     expected-output-file: build.out
     allow-disordered-output: true
 }]

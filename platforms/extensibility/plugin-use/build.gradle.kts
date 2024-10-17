@@ -13,6 +13,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.problemsApi)
 
     api(libs.guava)
     api(libs.jsr305)
@@ -20,7 +21,6 @@ dependencies {
     implementation(projects.functional)
 
     implementation(projects.jvmServices)
-    implementation(projects.problemsApi)
 
     testImplementation(testFixtures(projects.resourcesHttp))
 

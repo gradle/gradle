@@ -119,6 +119,7 @@ object SchemaSerialization {
             }
             polymorphic(ParameterSemantics::class) {
                 subclass(ParameterSemanticsInternal.DefaultStoreValueInProperty::class)
+                subclass(ParameterSemanticsInternal.DefaultIdentityKey::class)
                 subclass(ParameterSemanticsInternal.DefaultUnknown::class)
             }
             polymorphic(SchemaFunction::class) {

@@ -258,15 +258,16 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3573")
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
-        String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
-        executer.withBuildJvmOpts(tmpDirJvmOpt)
+        def tempDir = tmpDir.testDirectory.createDir("temp-dir")
+        String vmOpt = "-Djava.io.${tempDir}.absolutePath"
+        executer.withBuildJvmOpts(vmOpt)
 
         when:
         succeeds("help")
 
         then:
         library.exists()
-        assertNoFilesInTmp()
+        assertNoFilesInTmp(tempDir)
         long lastModified = library.lastModified()
 
         when:
@@ -274,12 +275,12 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         library.exists()
-        assertNoFilesInTmp()
+        assertNoFilesInTmp(tempDir)
         lastModified == library.lastModified()
     }
 
-    private void assertNoFilesInTmp() {
-        assert tmpDir.testDirectory.listFiles().length == 0
+    private static void assertNoFilesInTmp(File tempDir) {
+        assert tempDir.listFiles().length == 0
     }
 
     private DaemonLogsAnalyzer getDaemons() {

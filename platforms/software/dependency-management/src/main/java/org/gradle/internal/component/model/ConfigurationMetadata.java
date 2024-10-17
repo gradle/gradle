@@ -36,7 +36,7 @@ import java.util.Set;
  * @see VariantGraphResolveMetadata
  * @see ConfigurationGraphResolveMetadata
  */
-public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetadata, HasAttributes {
+public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      *
@@ -67,7 +67,6 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
-    @Override
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**

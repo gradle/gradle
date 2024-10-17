@@ -20,7 +20,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
-public class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
+public abstract class DefaultHttpHeaderCredentials implements HttpHeaderCredentials {
 
     private String name;
     private String value;

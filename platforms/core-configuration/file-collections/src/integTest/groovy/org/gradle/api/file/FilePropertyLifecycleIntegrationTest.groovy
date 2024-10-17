@@ -91,6 +91,45 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         "@OutputDirectory" | _
     }
 
+    def "UPGRADED task #annotation file property is LENIENTLY implicitly finalized when task starts execution UNTIL NEXT MAJOR"() {
+        buildFile << """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                ${annotation}
+                abstract $propertyType getProp()
+
+                @TaskAction
+                void go() {
+                    println "value: " + prop.get()
+                }
+            }
+
+            task show(type: SomeTask) {
+                prop = layout.projectDir.$fileMethod("in.$fileMethod")
+                def other = layout.projectDir.$fileMethod("other.$fileMethod")
+                doFirst {
+                    prop = other
+                }
+            }
+        """
+        file("in.file").createFile()
+        file("in.dir").createDir()
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Changing property value of task ':show' property 'prop' at execution time. This behavior has been deprecated.*")
+        succeeds("show")
+        outputContains("value: " + file("other." + fileMethod))
+
+        where:
+        annotation         | propertyType          | fileMethod
+        "@InputFile"       | "RegularFileProperty" | "file"
+        "@OutputFile"      | "RegularFileProperty" | "file"
+        "@InputDirectory"  | "DirectoryProperty"   | "dir"
+        "@OutputDirectory" | "DirectoryProperty"   | "dir"
+    }
+
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:

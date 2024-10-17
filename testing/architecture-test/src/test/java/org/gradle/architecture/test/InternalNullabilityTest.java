@@ -44,6 +44,8 @@ public class InternalNullabilityTest {
      */
     @ArchTest
     public static final ArchRule internal_classes_are_annotated_with_non_null_api = freeze(classes()
-        .that(are(inGradleInternalApiPackages())).and(classes_not_written_in_kotlin).and(not_synthetic_classes)
+        .that(are(inGradleInternalApiPackages()))
+        .and(classes_not_written_in_kotlin)
+        .and(not_synthetic_classes)
         .should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class)));
 }

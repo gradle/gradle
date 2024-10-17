@@ -101,6 +101,14 @@ class Gradleception(
         param("env.BUILD_COMMIT_ID", "HEAD")
     }
 
+    if (buildJvm.version != BuildToolBuildJvm.version) {
+        steps.gradleWrapper {
+            name = "UPDATE_DAEMON_JVM_CRITERIA_FILE"
+            tasks = "updateDaemonJvm --jvm-version=${buildJvm.version.major}"
+            gradleParams = defaultParameters
+        }
+    }
+
     applyDefaults(
         model,
         this,

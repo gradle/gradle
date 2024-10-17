@@ -220,4 +220,9 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     public TaskDependency getBuildDependencies() {
         return delegate.getBuildDependencies();
     }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

@@ -53,7 +53,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     // Configurations are built on-demand, but only once.
     private final Map<String, ModuleConfigurationMetadata> configurations = new HashMap<>();
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> graphVariants;
+    private Optional<List<? extends ExternalVariantGraphResolveMetadata>> graphVariants;
 
     protected AbstractLazyModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         super(metadata);
@@ -95,12 +95,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         return configurationDefinitions;
     }
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> buildVariantsForGraphTraversal() {
+    private Optional<List<? extends ExternalVariantGraphResolveMetadata>> buildVariantsForGraphTraversal() {
         ImmutableList<? extends ComponentVariant> variants = getVariants();
         if (variants.isEmpty()) {
             return addVariantsByRule(maybeDeriveVariants());
         }
-        ImmutableList.Builder<VariantGraphResolveMetadata> configurations = new ImmutableList.Builder<>();
+        ImmutableList.Builder<ExternalVariantGraphResolveMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
         }
@@ -108,12 +108,12 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
 
     }
 
-    private Optional<List<? extends VariantGraphResolveMetadata>> addVariantsByRule(Optional<List<? extends VariantGraphResolveMetadata>> variants) {
+    private Optional<List<? extends ExternalVariantGraphResolveMetadata>> addVariantsByRule(Optional<List<? extends ExternalVariantGraphResolveMetadata>> variants) {
         if (variantMetadataRules.getAdditionalVariants().isEmpty()) {
             return variants;
         }
-        Map<String, VariantGraphResolveMetadata> variantsByName;
-        ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
+        Map<String, ExternalVariantGraphResolveMetadata> variantsByName;
+        ImmutableList.Builder<ExternalVariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
         if (variants.isPresent()) {
             variantsByName = variants.get().stream().collect(Collectors.toMap(VariantGraphResolveMetadata::getName, Function.identity()));
             builder.addAll(variants.get());
@@ -122,7 +122,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         }
         for (AdditionalVariant additionalVariant : variantMetadataRules.getAdditionalVariants()) {
             String baseName = additionalVariant.getBase();
-            VariantGraphResolveMetadata base = null;
+            ExternalVariantGraphResolveMetadata base = null;
             if (baseName != null) {
                 if (variants.isPresent()) {
                     base = variantsByName.get(baseName);
@@ -145,7 +145,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     }
 
     @Override
-    public synchronized List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
+    public synchronized List<? extends ExternalVariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
             graphVariants = buildVariantsForGraphTraversal();
         }
@@ -197,7 +197,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         }
     }
 
-    private ImmutableList<ExcludeMetadata> constructVariantExcludes(VariantGraphResolveMetadata base) {
+    private ImmutableList<ExcludeMetadata> constructVariantExcludes(ExternalVariantGraphResolveMetadata base) {
         if (base == null) {
             return ImmutableList.of();
         }

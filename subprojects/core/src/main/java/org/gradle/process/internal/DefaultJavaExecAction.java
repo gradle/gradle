@@ -23,7 +23,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.ExecResult;
-import org.gradle.process.JavaForkOptions;
 
 import java.util.concurrent.Executor;
 
@@ -39,7 +38,7 @@ public class DefaultJavaExecAction extends JavaExecHandleBuilder implements Java
         BuildCancellationToken buildCancellationToken,
         TemporaryFileProvider temporaryFileProvider,
         JavaModuleDetector javaModuleDetector,
-        JavaForkOptions javaOptions
+        JavaForkOptionsInternal javaOptions
     ) {
         super(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, javaOptions);
     }

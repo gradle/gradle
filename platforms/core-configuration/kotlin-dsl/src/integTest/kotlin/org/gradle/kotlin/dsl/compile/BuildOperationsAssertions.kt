@@ -78,9 +78,4 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
         MatcherAssert.assertThat(compileAvoidanceWarnings, CoreMatchers.hasItem(CoreMatchers.endsWith(end)))
         return this
     }
-
-    fun assertNumberOfCompileAvoidanceWarnings(n: Int): BuildOperationsAssertions {
-        MatcherAssert.assertThat(compileAvoidanceWarnings, org.hamcrest.Matchers.hasSize(n))
-        return this
-    }
 }

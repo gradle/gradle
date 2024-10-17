@@ -21,8 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Desugar
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.DefaultAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -36,7 +36,7 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
 
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);
-        registration.add(DefaultImmutableAttributesFactory.class);
+        registration.add(DefaultAttributesFactory.class);
         registration.add(DesugaredAttributeContainerSerializer.class);
         registration.add(MavenMutableModuleMetadataFactory.class);
         registration.add(IvyMutableModuleMetadataFactory.class);
@@ -53,13 +53,13 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
     @Provides
     ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        ImmutableAttributesFactory immutableAttributesFactory,
+        AttributesFactory attributesFactory,
         NamedObjectInstantiator namedObjectInstantiator,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
     ) {
         return new DependencyManagementValueSnapshotterSerializerRegistry(
             moduleIdentifierFactory,
-            immutableAttributesFactory,
+            attributesFactory,
             namedObjectInstantiator,
             componentSelectionDescriptorFactory
         );

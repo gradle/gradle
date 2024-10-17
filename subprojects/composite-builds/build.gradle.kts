@@ -9,7 +9,6 @@ errorprone {
         "FutureReturnValueIgnored", // 1 occurrences
         "SameNameButDifferent", // 11 occurrences
         "ThreadLocalUsage", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
     )
 }
 

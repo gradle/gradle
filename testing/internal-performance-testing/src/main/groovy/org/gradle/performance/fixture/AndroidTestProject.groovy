@@ -80,7 +80,7 @@ class AndroidTestProject implements TestProject {
         version
     }
 
-    private static void configureForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {
+    static void configureForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {
         runner.args.add("-DagpVersion=${agpVersion}")
 
         def javaVersion = AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion)

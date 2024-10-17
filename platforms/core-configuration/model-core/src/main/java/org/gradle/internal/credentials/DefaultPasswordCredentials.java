@@ -19,17 +19,9 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
-public class DefaultPasswordCredentials implements PasswordCredentials {
+public abstract class DefaultPasswordCredentials implements PasswordCredentials {
     private String username;
     private String password;
-
-    public DefaultPasswordCredentials() {
-    }
-
-    public DefaultPasswordCredentials(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
 
     @Input
     @Override

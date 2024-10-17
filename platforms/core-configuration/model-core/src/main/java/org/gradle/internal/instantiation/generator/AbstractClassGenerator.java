@@ -92,6 +92,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
+import static org.gradle.api.internal.GeneratedSubclasses.unpack;
 
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
@@ -178,7 +179,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return roleHandler;
     }
 
-    private <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
+    private static <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
         return new TypeToken<Provider<T>>() {
         }.where(new TypeParameter<T>() {
         }, providerType);
@@ -186,15 +187,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
-        GeneratedClassImpl generatedClass = generatedClasses.getIfPresent(type);
-        if (generatedClass == null) {
-            // It is possible that multiple threads will execute this branch concurrently, when the type is missing. However, the contract for `get()` below will ensure that
-            // only one thread will actually generate the implementation class
-            generatedClass = generatedClasses.get(type, generator);
-            // Also use the generated class for itself
-            generatedClasses.put(generatedClass.generatedClass, generatedClass);
-        }
-        return Cast.uncheckedNonnullCast(generatedClass);
+        return Cast.uncheckedNonnullCast(generatedClasses.get(unpack(type), generator));
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
@@ -365,10 +358,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return false;
         }
         // Ignore irrelevant synthetic metaClass field injected by the Groovy compiler
-        if (instanceFields.size() == 1 && isSyntheticMetaClassField(instanceFields.get(0))) {
-            return false;
-        }
-        return true;
+        return instanceFields.size() != 1
+            || !isSyntheticMetaClassField(instanceFields.get(0));
     }
 
     private boolean isSyntheticMetaClassField(Field field) {
@@ -433,8 +424,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isLazyAttachProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
-        // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || hasNestedAnnotation(property));
+        // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty()
+            && (Provider.class.isAssignableFrom(property.getType()) || isConfigurableFileCollectionType(property.getType()) || hasNestedAnnotation(property));
+    }
+
+    private static boolean isReattachProperty(PropertyMetadata property) {
+        // Properties that should have reattached property owners upon reading from the cache
+        return hasPropertyType(property) || isConfigurableFileCollectionType(property.getType());
     }
 
     private static boolean isNameProperty(PropertyMetadata property) {
@@ -457,7 +454,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static boolean isAttachableType(MethodMetadata method) {
-        return Provider.class.isAssignableFrom(method.getReturnType()) || hasNestedAnnotation(method);
+        return Provider.class.isAssignableFrom(method.getReturnType()) || isConfigurableFileCollectionType(method.getReturnType()) || hasNestedAnnotation(method);
     }
 
     private static boolean hasNestedAnnotation(MethodMetadata method) {
@@ -778,7 +775,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ClassGenerationHandler {
-         // used in subclasses
+        // used in subclasses
         void startType(Class<?> type) {
         }
 
@@ -995,9 +992,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     hasExtensionAwareImplementation = true;
                     return true;
                 }
-                if (property.getName().equals("conventionMapping") || property.getName().equals("convention")) {
-                    return true;
-                }
+                return property.getName().equals("conventionMapping")
+                    || property.getName().equals("convention");
             }
 
             return false;
@@ -1128,7 +1124,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.markPropertyAsIneligibleForConventionMapping(property);
             }
             for (PropertyMetadata property : readOnlyProperties) {
-                if (hasPropertyType(property)) {
+                if (isReattachProperty(property)) {
                     boolean applyRole = isRoleType(property);
                     visitor.attachOnDemand(property, applyRole);
                 }

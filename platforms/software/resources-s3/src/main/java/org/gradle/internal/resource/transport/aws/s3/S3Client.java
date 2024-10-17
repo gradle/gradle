@@ -40,7 +40,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
@@ -106,7 +105,7 @@ public class S3Client {
             HttpProxySettings.HttpProxy proxy = s3ConnectionProperties.getProxy().get();
             clientConfiguration.setProxyHost(proxy.host);
             clientConfiguration.setProxyPort(proxy.port);
-            PasswordCredentials credentials = proxy.credentials;
+            HttpProxySettings.HttpProxyCredentials credentials = proxy.credentials;
             if (credentials != null) {
                 clientConfiguration.setProxyUsername(credentials.getUsername());
                 clientConfiguration.setProxyPassword(credentials.getPassword());

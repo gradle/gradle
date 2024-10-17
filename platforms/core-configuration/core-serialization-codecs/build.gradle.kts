@@ -20,6 +20,10 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
+gradlebuildJava {
+    usesFutureStdlib = true
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.configurationCacheBase)

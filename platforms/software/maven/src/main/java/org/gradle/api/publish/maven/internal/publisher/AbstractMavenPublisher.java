@@ -70,7 +70,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         String version = publication.getVersion();
 
         ModuleArtifactPublisher artifactPublisher = new ModuleArtifactPublisher(repository, localRepo, rootUri, groupId, artifactId, version);
-        SnapshotMetadataResult snapshotMetadataResult = computeSnapshotMetadata(publication, repository, localRepo, version, artifactPublisher, groupId, artifactId);
+        SnapshotMetadataResult snapshotMetadataResult = computeSnapshotMetadata(publication, repository, version, artifactPublisher, groupId, artifactId);
 
         if (snapshotMetadataResult != null && !localRepo) {
             // Use the timestamped version for all published artifacts
@@ -83,7 +83,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     @Nullable
-    private SnapshotMetadataResult computeSnapshotMetadata(MavenNormalizedPublication publication, ExternalResourceRepository repository, boolean localRepo, String version, ModuleArtifactPublisher artifactPublisher, String groupId, String artifactId) {
+    private SnapshotMetadataResult computeSnapshotMetadata(MavenNormalizedPublication publication, ExternalResourceRepository repository, String version, ModuleArtifactPublisher artifactPublisher, String groupId, String artifactId) {
         if (isSnapshot(version)) {
             ExternalResourceName snapshotMetadataPath = artifactPublisher.getSnapshotMetadataLocation();
             Metadata snapshotMetadata = createSnapshotMetadata(publication, groupId, artifactId, version, repository, snapshotMetadataPath);

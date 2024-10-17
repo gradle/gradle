@@ -27,6 +27,10 @@ import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -63,6 +67,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -510,14 +515,8 @@ public class BuildOperationTrace implements Stoppable {
         return new JsonGenerator.Options()
             .addConverter(new JsonClassConverter())
             .addConverter(new JsonThrowableConverter())
-            /*
-              From ResolutionFailureData, we want to exclude the actual failure field
-              from JSON serialization in the trace, because it can contain arbitrary
-              data including circular references that aren't serializable.  See the
-              note on AmbiguousArtifactTransformsFailure for more.  Once that class
-              is refactored, we should explore removing this exclusion.
-            */
-            .excludeFieldsByName("resolutionFailure")
+            .addConverter(new JsonAttributeContainerConverter())
+            .addConverter(new JsonBuildIdentifierConverter())
             .build();
     }
 
@@ -538,6 +537,58 @@ public class BuildOperationTrace implements Stoppable {
             }
             builder.put("stackTrace", Throwables.getStackTraceAsString(throwable));
             return builder.build();
+        }
+    }
+
+    /**
+     * A custom {@link JsonGenerator.Converter} is needed to deal with the fact that our {@link AttributeContainer} implementations
+     * have {@link AttributeContainer#getAttributes()} methods that return {@code this}.
+     *
+     * Attempting to serialize any of these causes a stack overflow, so
+     * just convert them to an easily serializable {@link Map} first.
+     */
+    @NonNullApi
+    private static final class JsonAttributeContainerConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return AttributeContainer.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            AttributeContainer attributeContainer = (AttributeContainer) value;
+
+            /*
+             * We need to convert to a map manually since asMap is only available on the internal container type,
+             * which even though we know should always be a safe cast, it isn't a type that is available in this project.
+             */
+            ImmutableMap.Builder<Attribute<?>, ?> builder = ImmutableMap.builder();
+            for (Attribute<?> attribute : attributeContainer.keySet()) {
+                builder.put(attribute, Cast.uncheckedCast(Objects.requireNonNull(attributeContainer.getAttribute(attribute))));
+            }
+
+            return builder.build();
+        }
+    }
+
+    /**
+     * Avoid calling deprecated methods on {@link BuildIdentifier} when serializing it, which cause noise output in tests that
+     * feature resolution failures that contain this type as fields.
+     *
+     * TODO: Remove this in Gradle 9, once {@link BuildIdentifier#isCurrentBuild()} and {@link BuildIdentifier#getName()} are removed.
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    @NonNullApi
+    private static final class JsonBuildIdentifierConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return BuildIdentifier.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            return ((BuildIdentifier) value).getBuildPath();
         }
     }
 

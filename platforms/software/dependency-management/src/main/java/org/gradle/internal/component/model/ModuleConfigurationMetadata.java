@@ -16,11 +16,12 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.internal.component.external.model.ExternalVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
 import java.util.List;
 
-public interface ModuleConfigurationMetadata extends ConfigurationMetadata, ConfigurationGraphResolveMetadata, VariantResolveMetadata {
+public interface ModuleConfigurationMetadata extends ConfigurationMetadata, ConfigurationGraphResolveMetadata, ExternalVariantGraphResolveMetadata, VariantResolveMetadata {
 
     @Override
     List<? extends ModuleDependencyMetadata> getDependencies();

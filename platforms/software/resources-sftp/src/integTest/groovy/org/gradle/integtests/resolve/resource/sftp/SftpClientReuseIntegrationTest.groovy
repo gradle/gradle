@@ -72,7 +72,10 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.artifacts.repositories.PasswordCredentials
             import org.gradle.internal.credentials.DefaultPasswordCredentials
 
-            PasswordCredentials creds = new DefaultPasswordCredentials('sftp', 'sftp')
+            PasswordCredentials creds = objects.newInstance(DefaultPasswordCredentials).tap {
+                it.username = 'sftp'
+                it.password = 'sftp'
+            }
 
             class SftpTask extends DefaultTask {
                 @Internal

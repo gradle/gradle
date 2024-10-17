@@ -267,7 +267,8 @@ class DocumentOverlayContext(
          */
         data class CanMergeBlock(
             val functionName: String,
-            val configuredTypeName: FqName
+            val configuredTypeName: FqName,
+            val identityValues: List<Any?>
         ) : MergeKey
     }
 
@@ -290,12 +291,12 @@ fun resolutionContainerMergeKeyMapper(
 ) = DocumentOverlayContext.MergeKeyMapper { node ->
     when (val nodeResolution = resolutionContainer.data(node)) {
         is ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
-            // TODO: this will need adjustment once access-and-configure semantics get replaced with ensure-exists-and-configure with literal key arguments
             DocumentOverlayContext.MergeKey.CannotMerge
 
         is ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved -> {
             val name = (node as ElementNode).name
-            DocumentOverlayContext.MergeKey.CanMergeBlock(name, nodeResolution.elementType.name)
+            val identityValues = node.elementValues.map { if (it is ValueNode.LiteralValueNode) it.value else null }
+            DocumentOverlayContext.MergeKey.CanMergeBlock(name, nodeResolution.elementType.name, identityValues)
         }
 
         is PropertyResolution.PropertyAssignmentResolved ->

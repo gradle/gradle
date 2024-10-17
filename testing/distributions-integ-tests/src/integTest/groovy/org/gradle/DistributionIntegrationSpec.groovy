@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 145
+    protected static final THIRD_PARTY_LIB_COUNT = 137
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -251,9 +251,11 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         // Core libs
         def coreLibs = contentsDir.file("lib").listFiles().findAll {
-            it.name.startsWith("gradle-") && !it.name.startsWith("gradle-api-metadata") && !it.name.startsWith("gradle-kotlin-dsl")
+            it.name.startsWith("gradle-")
+                && !it.name.startsWith("gradle-api-metadata")
+                && !it.name.startsWith("gradle-kotlin-dsl")
+                && !it.name.startsWith("gradle-fileevents")
         }
-
 
         def prefixedCoreLibNames = coreLibsModules.collect { "gradle-$it" }
         def expectedCoreLibs = prefixedCoreLibNames.toSet()

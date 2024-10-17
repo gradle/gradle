@@ -16,8 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
+import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.Set;
@@ -25,21 +24,24 @@ import java.util.Set;
 /**
  * State that is used for artifact resolution based on a variant that is selected during graph resolution.
  *
- * <p>Instances of this type are located using {@link ComponentArtifactResolveState}.</p>
+ * <p>Instances of this type are located using {@link VariantGraphResolveState}.</p>
  */
 public interface VariantArtifactResolveState {
-    /**
-     * Resolve the artifacts specified by the given {@link IvyArtifactName}s.
-     *
-     * This is used to resolve artifacts declared as part of a dependency.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
-     */
-    ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
 
     /**
-     * The artifact options for this variant. These are effectively precomputed or
-     * producer-defined transforms.
+     * Get the set of artifacts from this variant matching the provided {@link IvyArtifactName}s.
+     *
+     * This is used to resolve artifacts declared as part of a dependency.
+     */
+    ImmutableList<ComponentArtifactMetadata> getAdhocArtifacts(List<IvyArtifactName> dependencyArtifacts);
+
+    /**
+     * The artifact sets provided by this variant.
+     * <p>
+     * Each variant in a graph can expose a number of different artifact sets. Each
+     * artifact set should contain the same content, but may be transformed in some way.
+     * For example, zipped and unzipped versions of the same content.
      */
     Set<? extends VariantResolveMetadata> getArtifactVariants();
+
 }

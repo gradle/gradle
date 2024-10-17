@@ -209,6 +209,10 @@ object ParameterSemanticsInternal {
     data class DefaultStoreValueInProperty(override val dataProperty: DataProperty) : ParameterSemantics.StoreValueInProperty
 
     @Serializable
+    @SerialName("identityKey")
+    data class DefaultIdentityKey(override val basedOnProperty: DataProperty?) : ParameterSemantics.IdentityKey
+
+    @Serializable
     @SerialName("unknown")
     data object DefaultUnknown : ParameterSemantics.Unknown {
         @Suppress("unused")

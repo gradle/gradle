@@ -28,7 +28,6 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.MissingValueException;
@@ -74,20 +73,16 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final ProviderFactory providerFactory;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
-                              FileResolver fileResolver, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory,
+                              FileResolver fileResolver,
                               TaskDependencyFactory taskDependencyFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
-        this.immutableAttributesFactory = immutableAttributesFactory;
-        this.providerFactory = providerFactory;
         this.taskDependencyFactory = taskDependencyFactory;
     }
 

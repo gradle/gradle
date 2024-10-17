@@ -87,7 +87,6 @@ tasks {
         group = "Verification"
         testClassesDirs = smokeTestSourceSet.output.classesDirs
         classpath = smokeTestSourceSet.runtimeClasspath
-        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
         inputs.property("androidSdkRootIsSet", System.getenv("ANDROID_SDK_ROOT") != null)
 
@@ -151,6 +150,7 @@ tasks {
     register<SmokeTest>("santaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests"
         configureForSmokeTest(santaTracker)
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         useJUnitPlatform {
             filter {
                 includeTestsMatching(santaTrackerTestPattern)
@@ -161,6 +161,7 @@ tasks {
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests with the configuration cache"
         configureForSmokeTest(santaTracker)
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
         useJUnitPlatform {

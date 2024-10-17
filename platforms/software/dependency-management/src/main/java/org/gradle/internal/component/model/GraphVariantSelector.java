@@ -214,22 +214,41 @@ public class GraphVariantSelector {
         List<VariantGraphResolveState> sameClassifier = Collections.emptyList();
         // let's see if we can find a single variant which has exactly the requested artifacts
         for (VariantGraphResolveState match : matches) {
-            List<? extends ComponentArtifactMetadata> artifacts = match.resolveArtifacts().getArtifacts();
-            if (artifacts.size() == 1) {
-                ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
-                if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
-                    if (classifier.equals(componentArtifactMetadata.getName().getClassifier())) {
-                        if (sameClassifier == Collections.EMPTY_LIST) {
-                            sameClassifier = Collections.singletonList(match);
-                        } else {
-                            sameClassifier = Lists.newArrayList(sameClassifier);
-                            sameClassifier.add(match);
-                        }
-                    }
+            if (variantProvidesClassifier(match, classifier)) {
+                if (sameClassifier == Collections.EMPTY_LIST) {
+                    sameClassifier = Collections.singletonList(match);
+                } else {
+                    sameClassifier = Lists.newArrayList(sameClassifier);
+                    sameClassifier.add(match);
                 }
             }
         }
         return sameClassifier;
+    }
+
+    private static boolean variantProvidesClassifier(VariantGraphResolveState variant, String classifier) {
+        Set<? extends VariantResolveMetadata> artifactSets = variant.prepareForArtifactResolution().getArtifactVariants();
+        for (VariantResolveMetadata artifactSet : artifactSets) {
+            if (artifactSetStrictlyProvidesClassifier(artifactSet, classifier)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean artifactSetStrictlyProvidesClassifier(VariantResolveMetadata artifactSet, String classifier) {
+        List<? extends ComponentArtifactMetadata> artifacts = artifactSet.getArtifacts();
+        if (artifacts.size() != 1) {
+            return false;
+        }
+
+        ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
+        if (!(componentArtifactMetadata instanceof ModuleComponentArtifactMetadata)) {
+            return false;
+        }
+
+        return classifier.equals(componentArtifactMetadata.getName().getClassifier());
     }
 
     @Nullable

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
@@ -37,7 +37,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
     private final CompositeBuildContext context;
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, Capability> capabilitiesParser;
     private final Set<IncludedBuildState> processed = new HashSet<>();
@@ -46,7 +46,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
         CompositeBuildContext context,
         Instantiator instantiator,
         ObjectFactory objectFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
         NotationParser<Object, Capability> capabilitiesParser
     ) {
