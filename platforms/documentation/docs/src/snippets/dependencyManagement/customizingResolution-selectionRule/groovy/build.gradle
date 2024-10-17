@@ -47,7 +47,7 @@ dependencies {
 }
 // end::reject-version-1-1[]
 
-tasks.register('printImplConfig') {
+tasks.register('printRejectConfig') {
     FileCollection implConfig = configurations.runtimeClasspath
     doLast {
         implConfig.each { println "Resolved: ${it.name}" }
