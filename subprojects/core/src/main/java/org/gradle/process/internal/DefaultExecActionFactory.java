@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
@@ -33,6 +33,10 @@ import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
@@ -150,7 +154,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
+        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
         if (forkOptions.getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
         }
@@ -164,9 +168,9 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        JavaForkOptionsInternal copy = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
+        JavaForkOptionsInternal copy = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
         options.copyTo(copy);
-        return new ImmutableJavaForkOptions(copy);
+        return new ImmutableJavaForkOptions(objectFactory, fileCollectionFactory, copy);
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
@@ -369,7 +373,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         @Override
         public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
             JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory, javaDebugOptions);
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
             return forkOptions;
         }
@@ -406,11 +410,35 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
     }
 
-    private static class ImmutableJavaForkOptions implements JavaForkOptionsInternal {
+    static class ImmutableJavaForkOptions implements JavaForkOptionsInternal {
         private final JavaForkOptionsInternal delegate;
+        private final Property<String> defaultCharacterEncoding;
+        private final Property<String> minHeapSize;
+        private final Property<String> maxHeapSize;
+        private final ListProperty<String> jvmArgs;
+        private final ConfigurableFileCollection bootstrapClasspath;
+        private final Property<Boolean> enableAssertions;
+        private final Property<Boolean> debug;
+        private final MapProperty<String, Object> systemProperties;
 
-        public ImmutableJavaForkOptions(JavaForkOptionsInternal delegate) {
+        public ImmutableJavaForkOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory, JavaForkOptionsInternal delegate) {
             this.delegate = delegate;
+            this.defaultCharacterEncoding = objectFactory.property(String.class).convention(delegate.getDefaultCharacterEncoding());
+            this.defaultCharacterEncoding.disallowChanges();
+            this.minHeapSize = objectFactory.property(String.class).convention(delegate.getMinHeapSize());
+            this.minHeapSize.disallowChanges();
+            this.maxHeapSize = objectFactory.property(String.class).convention(delegate.getMaxHeapSize());
+            this.maxHeapSize.disallowChanges();
+            this.jvmArgs = objectFactory.listProperty(String.class).convention(delegate.getJvmArgs());
+            this.jvmArgs.disallowChanges();
+            this.bootstrapClasspath = fileCollectionFactory.configurableFiles().from(delegate.getBootstrapClasspath());
+            this.bootstrapClasspath.disallowChanges();
+            this.enableAssertions = objectFactory.property(Boolean.class).convention(delegate.getEnableAssertions());
+            this.enableAssertions.disallowChanges();
+            this.debug = objectFactory.property(Boolean.class).convention(delegate.getDebug());
+            this.debug.disallowChanges();
+            this.systemProperties = objectFactory.mapProperty(String.class, Object.class).convention(delegate.getSystemProperties());
+            this.systemProperties.disallowChanges();
         }
 
         @Override
@@ -424,13 +452,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public Map<String, Object> getSystemProperties() {
-            return ImmutableMap.copyOf(delegate.getSystemProperties());
-        }
-
-        @Override
-        public void setSystemProperties(Map<String, ?> properties) {
-            throw new UnsupportedOperationException();
+        public MapProperty<String, Object> getSystemProperties() {
+            return systemProperties;
         }
 
         @Override
@@ -469,8 +492,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public String getDefaultCharacterEncoding() {
-            return delegate.getDefaultCharacterEncoding();
+        public Property<String> getDefaultCharacterEncoding() {
+            return defaultCharacterEncoding;
         }
 
         @Override
@@ -489,23 +512,13 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public String getMinHeapSize() {
-            return delegate.getMinHeapSize();
-        }
-
-        @Override
-        public void setMinHeapSize(String heapSize) {
-            throw new UnsupportedOperationException();
+        public Property<String> getMinHeapSize() {
+            return minHeapSize;
         }
 
         @Override
@@ -519,28 +532,13 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public String getMaxHeapSize() {
-            return delegate.getMaxHeapSize();
+        public Property<String> getMaxHeapSize() {
+            return maxHeapSize;
         }
 
         @Override
-        public void setMaxHeapSize(String heapSize) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public List<String> getJvmArgs() {
-            return ImmutableList.copyOf(delegate.getJvmArgs());
-        }
-
-        @Override
-        public void setJvmArgs(List<String> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setJvmArgs(Iterable<?> arguments) {
-            throw new UnsupportedOperationException();
+        public ListProperty<String> getJvmArgs() {
+            return jvmArgs;
         }
 
         @Override
@@ -554,18 +552,13 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        public ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public FileCollection getBootstrapClasspath() {
-            return delegate.getBootstrapClasspath();
-        }
-
-        @Override
-        public void setBootstrapClasspath(FileCollection classpath) {
-            throw new UnsupportedOperationException();
+        public ConfigurableFileCollection getBootstrapClasspath() {
+            return bootstrapClasspath;
         }
 
         @Override
@@ -574,23 +567,13 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public boolean getEnableAssertions() {
-            return delegate.getEnableAssertions();
+        public Property<Boolean> getEnableAssertions() {
+            return enableAssertions;
         }
 
         @Override
-        public void setEnableAssertions(boolean enabled) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean getDebug() {
-            return delegate.getDebug();
-        }
-
-        @Override
-        public void setDebug(boolean enabled) {
-            throw new UnsupportedOperationException();
+        public Property<Boolean> getDebug() {
+            return debug;
         }
 
         @Override
@@ -604,18 +587,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public List<String> getAllJvmArgs() {
-            return ImmutableList.copyOf(delegate.getAllJvmArgs());
-        }
-
-        @Override
-        public void setAllJvmArgs(List<String> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setAllJvmArgs(Iterable<?> arguments) {
-            throw new UnsupportedOperationException();
+        public Provider<List<String>> getAllJvmArgs() {
+            return delegate.getAllJvmArgs();
         }
 
         @Override

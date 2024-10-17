@@ -42,7 +42,7 @@ public class AntlrWorkerManager {
         builder.sharedPackages("antlr", "org.antlr");
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
-        javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
+        javaCommand.getMaxHeapSize().set(spec.getMaxHeapSize());
         javaCommand.systemProperty("ANTLR_DO_NOT_EXIT", "true");
         javaCommand.redirectErrorStream();
         return builder.build();

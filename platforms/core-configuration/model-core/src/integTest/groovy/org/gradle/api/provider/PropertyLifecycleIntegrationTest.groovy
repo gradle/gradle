@@ -209,9 +209,6 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        if (expectDeprecationWarning) {
-            executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
-        }
         succeeds("thing")
         outputContains("value: value 3")
 
@@ -221,8 +218,8 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         "@Console"      | false
         "@OptionValues" | false
         "@ReplacedBy"   | false
-        "@Destroys"     | true
-        "@LocalState"   | true
+        "@Destroys"     | false
+        "@LocalState"   | false
     }
 
     def "@ReplacesEagerProperty works with annotation @Nested"() {
