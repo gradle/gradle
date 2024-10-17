@@ -109,7 +109,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition) {
+    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, BuildState referrer) {
         return registerBuild(buildDefinition, false, null);
     }
 
