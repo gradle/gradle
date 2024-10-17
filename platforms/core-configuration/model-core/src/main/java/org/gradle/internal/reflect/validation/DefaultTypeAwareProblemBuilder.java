@@ -54,6 +54,12 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     @Override
+    public TypeAwareProblemBuilder forMethod(String methodName) {
+        additionalData(TypeValidationDataSpec.class, data -> data.methodName(methodName));
+        return this;
+    }
+
+    @Override
     public TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty) {
         if (parentProperty == null) {
             return this;
@@ -123,6 +129,24 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             builder.append(property)
                 .append("' ");
         }
+
+        Object method = additionalData.map(TypeValidationData::getMethodName).orElse(null);
+        if (method != null) {
+            if (typeRelevant) {
+                builder.append("method '");
+            } else {
+                if (pluginId.isPresent()) {
+                    builder.append("In plugin '")
+                        .append(pluginId.get())
+                        .append("' method '");
+                } else {
+                    builder.append("Method '");
+                }
+            }
+            builder.append(method)
+                .append("' ");
+        }
+
         return builder.toString();
     }
 

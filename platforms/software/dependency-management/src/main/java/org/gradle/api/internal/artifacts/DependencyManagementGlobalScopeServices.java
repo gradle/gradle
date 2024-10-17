@@ -142,6 +142,7 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class
             ),
+            ImmutableSet.of(),
             instantiationScheme
         );
         return new TransformParameterScheme(instantiationScheme, inspectionScheme);
@@ -167,6 +168,7 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class
             ),
+            ImmutableSet.of(),
             instantiationScheme
         );
         return new TransformActionScheme(instantiationScheme, inspectionScheme);
