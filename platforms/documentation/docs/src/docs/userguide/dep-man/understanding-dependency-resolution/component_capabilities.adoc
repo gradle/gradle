@@ -17,10 +17,14 @@
 
 In a dependency graph, it's common for multiple implementations of the same API to be accidentally included, especially with libraries like logging frameworks where different bindings are selected by various transitive dependencies.
 Since these implementations typically reside at different group, artifact, and version (GAV) coordinates, build tools often can't detect the conflict.
+
 To address this, Gradle introduces the concept of **capability**.
 
 [[sub:capabilities]]
+== Understanding capabilities
+
 A capability is essentially a way to declare that different components (dependencies) offer the same functionality.
+
 It’s **illegal** for Gradle to include more than one component providing the same capability in a single dependency graph.
 If Gradle detects two components providing the same capability (e.g., different bindings for a logging framework), it will fail the build with an error, indicating the conflicting modules. This ensures that conflicting implementations are resolved, avoiding issues on the classpath.
 
@@ -51,8 +55,7 @@ A **capability** is identified by a `(group, module, version)` triplet.
 
 Every component defines an implicit capability based on its GAV coordinates: group, artifact, and version.
 
-For instance, the `org.apache.commons:commons-lang3:3.8` module has an implicit capability with the group `org.apache.commons`, name `commons-lang3`, and version `3.8`.
-It's important to note that capabilities are **versioned**:
+For instance, the `org.apache.commons:commons-lang3:3.8` module has an implicit capability with the group `org.apache.commons`, name `commons-lang3`, and version `3.8`:
 
 [source,kotlin]
 ----
@@ -61,17 +64,17 @@ dependencies {
 }
 ----
 
+It's important to note that capabilities are **versioned**.
+
 [[sub:declaring-component-capabilities]]
 == Declaring component capabilities
 
-Gradle will fail by default if two components in the dependency graph provide the same capability.
-Since many modules are published without Gradle Module Metadata, capabilities are not always automatically recognized by Gradle.
 To detect conflicts early, it's useful to declare *component capabilities* through rules, allowing conflicts to be caught during the build instead of at runtime.
 
 One common scenario is when a component is relocated to different coordinates in a newer release.
 
 For example, the ASM library was published under `asm:asm` until version `3.3.1`, and then relocated to `org.ow2.asm:asm` starting with version `4.0.`
-Including both versions on the classpath is illegal because they provide the same feature, just under different coordinates.
+Including both versions on the classpath is illegal because they provide the same feature, under different coordinates.
 
 Since each component has an implicit capability based on its GAV coordinates, we can address this conflict by using a rule that declares the `asm:asm` module as providing the `org.ow2.asm:asm` capability:
 
