@@ -28,10 +28,10 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 
 
-// Android Studio Koala | 2024.1.1
+// Android Studio Jellyfish 2023.3.1
 // Find all references here https://developer.android.com/studio/archive
 // Update verification-metadata.xml
-const val DEFAULT_ANDROID_STUDIO_VERSION = "2024.1.1.11"
+const val DEFAULT_ANDROID_STUDIO_VERSION = "2023.3.1.18"
 const val UNPACK_ANDROID_STUDIO_TASK_NAME = "unpackAndroidStudio"
 const val ANDROID_STUDIO_INSTALL_PATH = "android-studio"
 
