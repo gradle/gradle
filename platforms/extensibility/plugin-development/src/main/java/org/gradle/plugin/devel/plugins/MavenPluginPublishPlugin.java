@@ -16,13 +16,11 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -40,9 +38,6 @@ import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginR
 abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     @Inject
-    protected abstract ProviderFactory getProviderFactory();
-
-    @Inject
     public MavenPluginPublishPlugin() {
         // This class is not visible outside of this package.
         // To instantiate this plugin, we need a protected constructor.
@@ -50,26 +45,18 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(final Project project) {
-                configurePublishing(project);
-            }
-        });
+        project.afterEvaluate(this::configurePublishing);
     }
 
     private void configurePublishing(final Project project) {
-        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-            @Override
-            public void execute(PublishingExtension publishing) {
-                final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
-                if (!pluginDevelopment.isAutomatedPublishing()) {
-                    return;
-                }
-                SoftwareComponent mainComponent = project.getComponents().getByName("java");
-                MavenPublication mainPublication = addMainPublication(publishing, mainComponent);
-                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+        project.getExtensions().configure(PublishingExtension.class, publishing -> {
+            final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+            if (!pluginDevelopment.isAutomatedPublishing()) {
+                return;
             }
+            SoftwareComponent mainComponent = project.getComponents().getByName("java");
+            MavenPublication mainPublication = addMainPublication(publishing, mainComponent);
+            addMarkerPublications(mainPublication, publishing, pluginDevelopment);
         });
     }
 
@@ -89,27 +76,26 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
         String pluginId = declaration.getId();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
-        publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
-        publication.setGroupId(pluginId);
+        publication.getArtifactId().set(pluginId + PLUGIN_MARKER_SUFFIX);
+        publication.getGroupId().set(pluginId);
 
-        Provider<String> groupProvider = getProviderFactory().provider(coordinates::getGroupId);
-        Provider<String> artifactIdProvider = getProviderFactory().provider(coordinates::getArtifactId);
-        Provider<String> versionProvider = getProviderFactory().provider(coordinates::getVersion);
-        publication.getPom().withXml(new Action<XmlProvider>() {
-            @Override
-            public void execute(XmlProvider xmlProvider) {
-                Element root = xmlProvider.asElement();
-                Document document = root.getOwnerDocument();
-                Node dependencies = root.appendChild(document.createElement("dependencies"));
-                Node dependency = dependencies.appendChild(document.createElement("dependency"));
-                Node groupId = dependency.appendChild(document.createElement("groupId"));
-                groupId.setTextContent(groupProvider.get());
-                Node artifactId = dependency.appendChild(document.createElement("artifactId"));
-                artifactId.setTextContent(artifactIdProvider.get());
-                Node version = dependency.appendChild(document.createElement("version"));
-                version.setTextContent(versionProvider.get());
-            }
-        });
+        // required for configuration cache to lose the dependency on the MavenPublication and make the lambda below serializable
+        Provider<String> groupProvider = coordinates.getGroupId();
+        Provider<String> artifactIdProvider = coordinates.getArtifactId();
+        Provider<String> versionProvider = coordinates.getVersion();
+
+        publication.getPom().withXml(SerializableLambdas.action(xmlProvider -> {
+            Element root = xmlProvider.asElement();
+            Document document = root.getOwnerDocument();
+            Node dependencies = root.appendChild(document.createElement("dependencies"));
+            Node dependency = dependencies.appendChild(document.createElement("dependency"));
+            Node groupId = dependency.appendChild(document.createElement("groupId"));
+            groupId.setTextContent(groupProvider.get());
+            Node artifactId = dependency.appendChild(document.createElement("artifactId"));
+            artifactId.setTextContent(artifactIdProvider.get());
+            Node version = dependency.appendChild(document.createElement("version"));
+            version.setTextContent(versionProvider.get());
+        }));
 
         publication.getPom().getName().convention(declaration.getDisplayName());
         publication.getPom().getDescription().convention(declaration.getDescription());

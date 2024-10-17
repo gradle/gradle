@@ -56,8 +56,8 @@ public abstract class JacocoPluginExtension {
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
 
-    private final ProviderFactory providers;
     private final ObjectFactory objects;
+    private final ProviderFactory providers;
     private final ProjectLayout layout;
     private final FileSystemOperations fs;
     private final JacocoAgentJar agent;
@@ -74,8 +74,8 @@ public abstract class JacocoPluginExtension {
     @Inject
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.agent = agent;
-        this.providers = project.getProviders();
         this.objects = project.getObjects();
+        this.providers = project.getProviders();
         this.layout = project.getLayout();
         this.fs = ((ProjectInternal) project).getServices().get(FileSystemOperations.class);
         reportsDirectory = project.getObjects().directoryProperty();
@@ -113,21 +113,19 @@ public abstract class JacocoPluginExtension {
     public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
-        final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, objects, agent, task);
+        JacocoTaskExtension extension = objects.newInstance(JacocoTaskExtension.class, objects, providers, agent, task);
         extension.setDestinationFile(layout.getBuildDirectory().file("jacoco/" + taskName + ".exec").map(RegularFile::getAsFile));
+        task.getExtensions().add(TASK_EXTENSION_NAME, extension);
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
         task.doFirst(new JacocoOutputCleanupTestTaskAction(
             fs,
-            providers.provider(() -> extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE),
+            extension.getOutput().zip(extension.getEnabled(), (output, enabled) -> enabled && output == JacocoTaskExtension.Output.FILE),
             providers.provider(extension::getDestinationFile)
         ));
 
         // Do not cache the task if we are not writing execution data to a file
-        Provider<Boolean> doNotCachePredicate = providers.provider(() ->
-            // Do not cache Test task if Jacoco doesn't produce its output as files
-            extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE
-        );
+        Provider<Boolean> doNotCachePredicate = extension.getOutput().zip(extension.getEnabled(), (output, enabled) -> enabled && output != JacocoTaskExtension.Output.FILE);
         task.getOutputs().doNotCacheIf(
             "JaCoCo configured to not produce its output as a file",
             spec(targetTask -> doNotCachePredicate.get())
@@ -172,12 +170,13 @@ public abstract class JacocoPluginExtension {
         @Optional
         @Nested
         public JacocoTaskExtension getJacoco() {
-            return jacoco.isEnabled() ? jacoco : null;
+            return jacoco.getEnabled().get() ? jacoco : null;
         }
 
         @Override
         public Iterable<String> asArguments() {
-            return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.emptyList();
+            return jacoco.getEnabled().zip(jacoco.getAsJvmArg(), (enabled, args) -> enabled ? ImmutableList.of(args) : Collections.<String>emptyList())
+                .getOrElse(Collections.emptyList());
         }
 
         @Internal

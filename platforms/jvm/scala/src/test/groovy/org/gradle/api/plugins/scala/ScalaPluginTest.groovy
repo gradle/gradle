@@ -132,10 +132,10 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         task instanceof ScalaDoc
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
-        task.destinationDir == project.file("$project.docsDir/scaladoc")
+        task.destinationDir.asFile.get() == project.file("$project.docsDir/scaladoc")
         task.source as List == project.sourceSets.main.scala as List // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
     def configuresScalaDocTasksDefinedByTheBuildScript() {

@@ -1043,7 +1043,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true, getDryRun()));
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), getObjectFactory(), true, getDryRun()));
     }
 
     /**
@@ -1313,16 +1313,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
         if (JUnitOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitOptions junitOptions = (JUnitOptions) frameworkOptions;
-            return junitOptions.getIncludeCategories().isEmpty()
-                && junitOptions.getExcludeCategories().isEmpty();
+            return junitOptions.getIncludeCategories().get().isEmpty()
+                && junitOptions.getExcludeCategories().get().isEmpty();
         } else if (JUnitPlatformOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitPlatformOptions junitPlatformOptions = (JUnitPlatformOptions) frameworkOptions;
-            return junitPlatformOptions.getIncludeTags().isEmpty()
-                && junitPlatformOptions.getExcludeTags().isEmpty();
+            return junitPlatformOptions.getIncludeTags().get().isEmpty()
+                && junitPlatformOptions.getExcludeTags().get().isEmpty();
         } else if (TestNGOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             TestNGOptions testNGOptions = (TestNGOptions) frameworkOptions;
-            return testNGOptions.getIncludeGroups().isEmpty()
-                && testNGOptions.getExcludeGroups().isEmpty();
+            return testNGOptions.getIncludeGroups().get().isEmpty()
+                && testNGOptions.getExcludeGroups().get().isEmpty();
         } else {
             throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
         }

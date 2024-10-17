@@ -62,7 +62,7 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         }
         builder.append('\n');
 
-        if (testLogging.getShowCauses() && exception.getCause() != null) {
+        if (testLogging.getShowCauses().get() && exception.getCause() != null) {
             printException(descriptor, exception.getCause(), true, indentLevel + 1, builder);
         }
     }

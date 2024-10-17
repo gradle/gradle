@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -43,9 +44,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
-import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -116,65 +117,74 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.coordinates.version.get() == "version2"
 
         and:
-        publication.groupId == "group2"
-        publication.artifactId == "name2"
-        publication.version == "version2"
+        publication.getGroupId().get() == "group2"
+        publication.getArtifactId().get() == "name2"
+        publication.getVersion().get() == "version2"
     }
 
     def "packaging is taken from first added artifact without extension"() {
         when:
-        def mavenArtifact = Mock(MavenArtifact)
+        def mavenArtifact = Mock(MavenTestArtifact) {
+            extension >> createStringProperty("ext")
+            classifier >> createStringProperty(null)
+        }
         notationParser.parseNotation("artifact") >> mavenArtifact
-        mavenArtifact.extension >> "ext"
 
         and:
         def publication = createPublication()
         publication.artifact "artifact"
 
         then:
-        publication.pom.packaging == "ext"
+        publication.pom.getPackaging().get() == "ext"
     }
 
     def "packaging determines main artifact"() {
         when:
         def mavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
+            extension >> createStringProperty("ext")
+            classifier >> createStringProperty(null)
+            file >> Providers.of((RegularFile) () -> artifactFile)
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
-        mavenArtifact.extension >> "ext"
+
         def attachedMavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
+            extension >> createStringProperty("jar")
+            classifier >> createStringProperty(null)
+            file >> Providers.of((RegularFile) () -> artifactFile)
         }
         notationParser.parseNotation("attached") >> attachedMavenArtifact
-        attachedMavenArtifact.extension >> "jar"
 
         and:
         def publication = createPublication()
         publication.artifact("artifact")
         publication.artifact("attached")
-        publication.pom.packaging = "ext"
+        publication.pom.packaging.set("ext")
 
         then:
-        publication.asNormalisedPublication().mainArtifact.extension == "ext"
-        publication.pom.packaging == "ext"
+        publication.asNormalisedPublication().mainArtifact.getExtension() == "ext"
+        publication.pom.getPackaging().get() == "ext"
     }
 
     def 'if there is only one artifact it is the main artifact even if packaging is different'() {
         when:
         def mavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
+            extension >> createStringProperty("ext")
+            classifier >> createStringProperty(null)
+            file >> Providers.of((RegularFile) () -> artifactFile)
         }
         notationParser.parseNotation("artifact") >> mavenArtifact
-        mavenArtifact.extension >> "ext"
 
         and:
         def publication = createPublication()
         publication.artifact("artifact")
-        publication.pom.packaging = "otherext"
+        publication.pom.packaging.set("otherext")
 
         then:
-        publication.asNormalisedPublication().mainArtifact.extension == "ext"
-        publication.pom.packaging == "otherext"
+        publication.asNormalisedPublication().mainArtifact.getExtension() == "ext"
+        publication.pom.getPackaging().get() == "otherext"
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
@@ -200,7 +210,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(artifact) >> mavenArtifact
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
 
         and:
         publication.from(componentWithArtifact(artifact))
@@ -235,7 +245,7 @@ class DefaultMavenPublicationTest extends Specification {
         def component = Stub(SoftwareComponentInternal)
         component.usages >> [variant1, variant2]
         def mavenArtifact = Mock(MavenArtifact)
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
         notationParser.parseNotation(artifact1) >> mavenArtifact
 
         when:
@@ -492,7 +502,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
 
         and:
         publication.artifact notation
@@ -507,19 +517,19 @@ class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         Object notation = new Object();
         def mavenArtifact = Mock(MavenArtifact)
+        def extension = createStringProperty("changed")
 
         when:
         notationParser.parseNotation(notation) >> mavenArtifact
-        mavenArtifact.file >> artifactFile
+        mavenArtifact.file >> Providers.of((RegularFile) () -> artifactFile)
         mavenArtifact.classifier >> null
-        1 * mavenArtifact.setExtension('changed')
-        _ * mavenArtifact.getExtension() >> 'changed'
+        _ * mavenArtifact.getExtension() >> extension
         0 * mavenArtifact._
 
         and:
         publication.artifact(notation, new Action<MavenArtifact>() {
             void execute(MavenArtifact t) {
-                t.extension = 'changed'
+                t.getExtension().set("changed")
             }
         })
 
@@ -661,17 +671,14 @@ class DefaultMavenPublicationTest extends Specification {
         )
     }
 
-    def otherPublication(String name, String group, String artifactId, String version) {
-        def pub = Mock(PublicationInternal)
-        pub.name >> name
-        pub.coordinates >> new DefaultModuleVersionIdentifier(group, artifactId, version)
-        return pub
-    }
-
     def platformAttribute() {
         return AttributeTestUtil.attributesFactory().of(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.REGULAR_PLATFORM))
     }
 
     interface MavenTestArtifact extends MavenArtifact, PublicationArtifactInternal {
+    }
+
+    private def createStringProperty(String value) {
+        return TestUtil.propertyFactory().property(String).value(value)
     }
 }

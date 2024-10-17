@@ -16,94 +16,85 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import com.google.common.base.Strings;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskDependency;
-
-import javax.annotation.Nullable;
 
 public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
+    private final Property<String> nameProperty;
+    private final Property<String> typeProperty;
+    private final Property<String> extensionProperty;
+    private final Property<String> classifierProperty;
+    private final Property<String> confProperty;
 
-    private String name;
-    private String type;
-    private String extension;
-    private String classifier;
-    private String conf;
-
-    protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory) {
+    protected AbstractIvyArtifact(
+        TaskDependencyFactory taskDependencyFactory,
+        ProviderFactory providerFactory,
+        ObjectFactory objectFactory
+    ) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
         this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {
             context.add(getDefaultBuildDependencies());
             additionalBuildDependencies.visitDependencies(context);
         });
+
+        this.nameProperty = objectFactory.property(String.class);
+        this.typeProperty = objectFactory.property(String.class);
+        this.extensionProperty = objectFactory.property(String.class);
+        this.classifierProperty = objectFactory.property(String.class);
+        this.confProperty = objectFactory.property(String.class);
+
+        // those should be lazy because the fields are not yet initialized in child classes
+        getName().set(providerFactory.provider(() -> getDefaultName().getOrNull()));
+        getType().set(providerFactory.provider(() -> getDefaultType().getOrNull()));
+        getExtension().set(providerFactory.provider(() -> getDefaultExtension().getOrNull()));
+        getClassifier().set(providerFactory.provider(() -> getDefaultClassifier().getOrNull()));
+        getConf().set(providerFactory.provider(() -> getDefaultConf().getOrNull()));
     }
 
     @Override
-    public String getName() {
-        return name != null ? name : getDefaultName();
+    public Property<String> getName() {
+        return nameProperty;
     }
 
-    protected abstract String getDefaultName();
+    protected abstract Provider<String> getDefaultName();
 
     @Override
-    public void setName(String name) {
-        this.name = Strings.nullToEmpty(name);
+    public Property<String> getType() {
+        return typeProperty;
     }
+
+    protected abstract Provider<String> getDefaultType();
 
     @Override
-    public String getType() {
-        return type != null ? type : getDefaultType();
+    public Property<String> getExtension() {
+        return extensionProperty;
     }
 
-    protected abstract String getDefaultType();
+    protected abstract Provider<String> getDefaultExtension();
 
+    @Optional
     @Override
-    public void setType(String type) {
-        this.type = Strings.nullToEmpty(type);
+    public Property<String> getClassifier() {
+        return classifierProperty;
     }
 
+    protected abstract Provider<String> getDefaultClassifier();
+
+    @Optional
     @Override
-    public String getExtension() {
-        return extension != null ? extension : getDefaultExtension();
+    public Property<String> getConf() {
+        return confProperty;
     }
 
-    protected abstract String getDefaultExtension();
-
-    @Override
-    public void setExtension(String extension) {
-        this.extension = Strings.nullToEmpty(extension);
-    }
-
-    @Nullable
-    @Override
-    public String getClassifier() {
-        return Strings.emptyToNull(classifier != null ? classifier : getDefaultClassifier());
-    }
-
-    @Nullable
-    protected abstract String getDefaultClassifier();
-
-    @Override
-    public void setClassifier(@Nullable String classifier) {
-        this.classifier = Strings.nullToEmpty(classifier);
-    }
-
-    @Nullable
-    @Override
-    public String getConf() {
-        return Strings.emptyToNull(conf != null ? conf : getDefaultConf());
-    }
-
-    @Nullable
-    protected abstract String getDefaultConf();
-
-    @Override
-    public void setConf(@Nullable String conf) {
-        this.conf = Strings.nullToEmpty(conf);
-    }
+    protected abstract Provider<String> getDefaultConf();
 
     @Override
     public void builtBy(Object... tasks) {
@@ -119,6 +110,6 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
 
     @Override
     public String toString() {
-        return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
+        return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName().getOrNull(), getType().getOrNull(), getExtension().getOrNull(), getClassifier().getOrNull());
     }
 }

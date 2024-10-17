@@ -15,7 +15,8 @@
  */
 package org.gradle.api.plugins.scala
 
-import org.gradle.api.artifacts.Configuration
+
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
@@ -24,6 +25,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.internal.TextUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.hasItem
@@ -51,12 +53,20 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
 
     def preconfiguresZincClasspathForCompileTasksThatUseZinc() {
         when:
+        File mavenRepo = project.getLayout().getBuildDirectory().dir("repo").get().asFile
+        project.repositories {
+            mavenLocal {
+                url = mavenRepo.absolutePath
+            }
+        }
+        def zincArtifactId = "zinc_${ScalaBasePlugin.DEFAULT_SCALA_ZINC_VERSION}"
+        publishArtifact(mavenRepo, "org.scala-sbt", zincArtifactId, ScalaBasePlugin.DEFAULT_ZINC_VERSION)
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
 
         then:
-        task.zincClasspath instanceof Configuration
-        task.zincClasspath.incoming.dependencies.find { it.name.contains('zinc') }
+        task.zincClasspath instanceof ConfigurableFileCollection
+        task.zincClasspath.files.any { File file -> TextUtil.normaliseFileSeparators(file.absolutePath).contains("org/scala-sbt/$zincArtifactId") }
     }
 
     def addsScalaConventionToNewSourceSet() {
@@ -137,8 +147,22 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         def task = project.task('otherScaladoc', type: ScalaDoc)
 
         then:
-        task.destinationDir == project.file("$project.docsDir/scaladoc")
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.destinationDir.asFile.get() == project.file("$project.docsDir/scaladoc")
+        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
         task dependsOn()
+    }
+
+    private static void publishArtifact(File repo, String group, String artifactId, String version) {
+        File artifactDir = new File(repo, "${group.replace(".", "/")}/$artifactId/$version")
+        artifactDir.mkdirs()
+        new File(artifactDir, "${artifactId}-${version}.jar").createNewFile()
+        new File(artifactDir, "${artifactId}-${version}.pom") << """
+            <project>
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>$group</groupId>
+                <artifactId>$artifactId</artifactId>
+                <version>$version</version>
+            </project>
+        """
     }
 }
