@@ -61,10 +61,14 @@ class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends Cro
             import org.gradle.api.tasks.TaskAction
 
             @CompileStatic
-            class SubclassTask extends DefaultTask {
-                @TaskAction
-                void doGet() {
+            abstract class SubclassTask extends DefaultTask {
+                SubclassTask() {
+                    // access at configuration time to be CC-compatible
                     project.file("file.txt")
+                }
+                @TaskAction
+                void doIt() {
+                    println("Done")
                 }
             }
         """

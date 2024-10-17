@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -386,7 +385,6 @@ task retrieve(type: Sync) {
     }
 
     @Issue("gradle/gradle#3019")
-    @ToBeFixedForConfigurationCache
     def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
         given:
         buildFile << """
@@ -402,13 +400,16 @@ dependencies {
 }
 
 task resolveStaleThenFresh {
+    def fs = services.get(FileSystemOperations)
+    def stale = configurations.stale
+    def fresh = configurations.fresh
     doFirst {
-        project.sync {
-            from configurations.stale
+        fs.sync {
+            from stale
             into 'stale'
         }
-        project.sync {
-            from configurations.fresh
+        fs.sync {
+            from fresh
             into 'fresh'
         }
     }

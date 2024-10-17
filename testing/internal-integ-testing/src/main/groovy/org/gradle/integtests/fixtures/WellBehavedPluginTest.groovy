@@ -24,6 +24,8 @@ import java.util.regex.Pattern
 
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
+    boolean expectTaskProjectDeprecation
+
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)
         if (matcher.matches()) {
@@ -53,6 +55,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         applyPluginUnqualified()
 
         expect:
+        expectTaskProjectDeprecationIfNeeded()
         succeeds mainTask
     }
 
@@ -81,6 +84,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         applyPlugin()
 
         expect:
+        expectTaskProjectDeprecationIfNeeded()
         succeeds mainTask
     }
 
@@ -154,5 +158,17 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
         then:
         assert output.count("configuring :") == 0
+    }
+
+    void expectTaskProjectDeprecationIfNeeded() {
+        if (expectTaskProjectDeprecation) {
+            expectTaskProjectDeprecation()
+        }
+    }
+
+    void expectTaskProjectDeprecation() {
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+            "This will fail with an error in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 }
