@@ -17,36 +17,20 @@ package org.gradle.plugins.ear.descriptor.internal;
 
 import groovy.util.Node;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.EarWebModule;
 
-public class DefaultEarWebModule extends DefaultEarModule implements EarWebModule {
-
-    private String contextRoot;
-
-    public DefaultEarWebModule() {
-    }
-
-    public DefaultEarWebModule(String path, String contextRoot) {
-        super(path);
-        this.contextRoot = contextRoot;
-    }
+public abstract class DefaultEarWebModule extends DefaultEarModule implements EarWebModule {
 
     @Override
-    public String getContextRoot() {
-        return contextRoot;
-    }
-
-    @Override
-    public void setContextRoot(String contextRoot) {
-        this.contextRoot = contextRoot;
-    }
+    public abstract Property<String> getContextRoot();
 
     @Override
     public Node toXmlNode(Node parentModule, Object name) {
         Node web = new Node(parentModule, name);
-        new Node(web, nodeNameFor("web-uri", name), getPath());
-        new Node(web, nodeNameFor("context-root", name), contextRoot);
-        if (StringUtils.isNotEmpty(getAltDeployDescriptor())) {
+        new Node(web, nodeNameFor("web-uri", name), getPath().get());
+        new Node(web, nodeNameFor("context-root", name), getContextRoot().get());
+        if (StringUtils.isNotEmpty(getAltDeployDescriptor().getOrNull())) {
             return new Node(parentModule, nodeNameFor("alt-dd", name), getAltDeployDescriptor());
         }
         return null;
