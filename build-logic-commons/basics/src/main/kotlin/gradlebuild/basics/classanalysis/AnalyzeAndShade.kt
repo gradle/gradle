@@ -17,7 +17,7 @@
 package gradlebuild.basics.classanalysis
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
+import org.gradle.api.internal.file.archive.ZipEntryConstants
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.commons.ClassRemapper
@@ -164,7 +164,7 @@ class JarAnalyzer(
 
 fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {
     val entry = ZipEntry(entryName)
-    entry.time = CONSTANT_TIME_FOR_ZIP_ENTRIES
+    entry.time = ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES
     putNextEntry(entry)
     BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(this) }
     closeEntry()

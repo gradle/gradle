@@ -523,7 +523,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         return """
             plugins {
                 id('java-gradle-plugin')
-                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latestStableOrRC + '")' } else { '' } }
+                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latest + '")' } else { '' } }
             }
 
             ${mavenCentralRepository()}
