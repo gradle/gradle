@@ -30,9 +30,9 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.RenderingUtils;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
@@ -41,7 +41,6 @@ import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -81,17 +80,17 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     private final File jdkDirectory;
     private final FileLockManager lockManager;
 
-    private final JvmMetadataDetector detector;
+    // Specifically requesting the DefaultJvmMetadataDetector to ensure no caching or logging is done
+    private final DefaultJvmMetadataDetector detector;
     // Specifically requesting the GradleUserHomeTemporaryFileProvider to ensure that the temporary files are created on the same file system as the target directory
     // This is a prerequisite for atomic moves in most cases, which are used in the provisionFromArchive method
     private final GradleUserHomeTemporaryFileProvider temporaryFileProvider;
 
-    @Inject
     public DefaultJdkCacheDirectory(
         GradleUserHomeDirProvider homeDirProvider,
         FileOperations operations,
         FileLockManager lockManager,
-        JvmMetadataDetector detector,
+        DefaultJvmMetadataDetector detector,
         GradleUserHomeTemporaryFileProvider temporaryFileProvider
     ) {
         this.operations = operations;

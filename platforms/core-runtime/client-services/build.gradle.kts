@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.fileOperations)
+    implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
     implementation(projects.time)
