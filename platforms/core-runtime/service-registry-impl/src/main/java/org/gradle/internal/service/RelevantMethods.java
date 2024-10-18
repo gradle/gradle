@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.specs.Spec;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -24,7 +27,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.gradle.util.internal.ArrayUtils.contains;
+import static org.gradle.util.internal.CollectionUtils.any;
 
 class RelevantMethods {
     private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
@@ -86,7 +89,7 @@ class RelevantMethods {
                 if (method.getReturnType().equals(Void.TYPE)) {
                     throw new ServiceValidationException(String.format("Method %s.%s() must not return void.", type.getName(), method.getName()));
                 }
-                if (takesReturnTypeAsParameter(method)) {
+                if (isDecorating(method)) {
                     add(decorators, method);
                 } else {
                     add(factories, method);
@@ -108,8 +111,30 @@ class RelevantMethods {
             }
         }
 
-        private static boolean takesReturnTypeAsParameter(Method method) {
-            return contains(method.getParameterTypes(), method.getReturnType());
+        private static boolean isDecorating(Method method) {
+            // Boilerplate due to Java 6 constraint
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            int parameterCount = parameterTypes.length;
+            Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+
+            for (int i = 0; i < parameterCount; i++) {
+                if (parameterTypes[i].equals(method.getReturnType())) {
+                    boolean isFromConstructor = any(parameterAnnotations[i], new Spec<Annotation>() {
+                        @Override
+                        public boolean isSatisfiedBy(Annotation element) {
+                            return FromConstructor.class.equals(element.annotationType());
+                        }
+                    });
+
+                    if (isFromConstructor) {
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
