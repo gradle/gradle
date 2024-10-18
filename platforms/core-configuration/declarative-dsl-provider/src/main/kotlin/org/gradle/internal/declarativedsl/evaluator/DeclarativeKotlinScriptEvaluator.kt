@@ -45,7 +45,6 @@ import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
-internal
 interface DeclarativeKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
