@@ -107,7 +107,7 @@ Default retention for unused resources is 30 days.
 Default retention for unused resources is 7 days.
 5. *Build cache:* The local build cache (e.g., build-cache-1).
 +
-Default retention for unused build-cache entries is 7 days.
+Default retention for unused build cache entries is 7 days.
 
 The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 

@@ -19,7 +19,7 @@ plugins {
     id("application")
 }
 
-description = "Example client application using the build-cache library"
+description = "Example client application using the build cache library"
 
 dependencies {
     implementation(projects.buildCache)
