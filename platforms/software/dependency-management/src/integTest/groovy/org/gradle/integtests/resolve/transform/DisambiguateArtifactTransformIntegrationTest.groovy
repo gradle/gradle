@@ -229,6 +229,7 @@ ${artifactTransform("TestTransform")}
 """
 
         when:
+        executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ")
         run "resolve"
 
         then:
@@ -240,7 +241,7 @@ ${artifactTransform("TestTransform")}
         fails 'resolve', '-PextraAttribute'
 
         then:
-        failureCauseContains('Found multiple transforms')
+        failureCauseContains('Found multiple transformation chains')
     }
 
     def "transform with two attributes will not confuse"() {
