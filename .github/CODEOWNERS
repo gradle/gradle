@@ -37,6 +37,10 @@ testing/performance/                    @gradle/bt-support
 testing/smoke-test/                     @gradle/bt-support
 testing/soak/                           @gradle/bt-support
 
+# These files change frequently, and changes to them don't need to automatically alert the architecture council
+testing/architecture-test/src/changes/accepted-changes/accepted-public-api-changes.json     @gradle/bt-unassigned-maintainers
+testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt           @gradle/bt-unassigned-maintainers
+
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
 architecture/                               @gradle/bt-architecture-council
@@ -107,10 +111,6 @@ platforms/extensibility/        @gradle/bt-extensibility-maintainers
 
 # Native
 platforms/native/                   @gradle/bt-native-maintainers
-
-# gitStream files
-.cm/                                @tresat
-.github/workflows/gitstream.yml     @tresat
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
