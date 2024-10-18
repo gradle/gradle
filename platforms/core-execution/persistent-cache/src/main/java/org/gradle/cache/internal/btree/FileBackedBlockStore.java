@@ -27,7 +27,6 @@ import java.io.RandomAccessFile;
 public class FileBackedBlockStore implements BlockStore {
     private final File cacheFile;
     private RandomAccessFile file;
-    private boolean writable;
     private ByteOutput output;
     private ByteInput input;
     private long nextBlock;
@@ -50,10 +49,8 @@ public class FileBackedBlockStore implements BlockStore {
             cacheFile.getParentFile().mkdirs();
             try {
                 file = randomAccessFile("rw");
-                writable = true;
             } catch (FileNotFoundException e) {
                 file = randomAccessFile("r");
-                writable = false;
             }
             output = new ByteOutput(file);
             input = new ByteInput(file);
@@ -74,7 +71,7 @@ public class FileBackedBlockStore implements BlockStore {
     @Override
     public void close() {
         try {
-            if (writable) {
+            if (currentFileSize != file.length()) {
                 file.setLength(currentFileSize);
             }
             file.close();
