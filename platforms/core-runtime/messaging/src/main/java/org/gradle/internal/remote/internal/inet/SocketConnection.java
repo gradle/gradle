@@ -58,9 +58,6 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     public SocketConnection(SocketChannel socket, MessageSerializer streamSerializer, StatefulSerializer<T> messageSerializer) {
         this.socket = socket;
         try {
-            // NOTE: we use non-blocking IO as there is no reliable way when using blocking IO to shutdown reads while
-            // keeping writes active. For example, Socket.shutdownInput() does not work on Windows.
-            socket.configureBlocking(false);
             outstr = new SocketOutputStream(socket);
             instr = new SocketInputStream(socket);
         } catch (IOException e) {
