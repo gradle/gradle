@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 
-import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 /**
@@ -82,58 +81,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @return this
      */
     CopyProcessingSpec rename(Pattern sourceRegEx, String replaceWith);
-
-    /**
-     * Returns the Unix permissions to use for the target files. {@code null} means that existing
-     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
-     * will actually be applied.
-     *
-     * @return The file permissions, or {@code null} if existing permissions should be preserved.
-     *
-     * @deprecated Use {@link #getFilePermissions()} instead. This method is scheduled for removal in Gradle 9.0.
-     */
-    @Nullable
-    @Deprecated
-    Integer getFileMode();
-
-    /**
-     * Sets the Unix permissions to use for the target files. {@code null} means that existing
-     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
-     * will actually be applied.
-     *
-     * @param mode The file permissions.
-     * @return this
-     *
-     * @deprecated Use {@link #filePermissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
-     */
-    @Deprecated
-    CopyProcessingSpec setFileMode(@Nullable Integer mode);
-
-    /**
-     * Returns the Unix permissions to use for the target directories. {@code null} means that existing
-     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
-     * will actually be applied.
-     *
-     * @return The directory permissions, or {@code null} if existing permissions should be preserved.
-     *
-     * @deprecated Use {@link #getDirPermissions()} instead. This method is scheduled for removal in Gradle 9.0.
-     */
-    @Nullable
-    @Deprecated
-    Integer getDirMode();
-
-    /**
-     * Sets the Unix permissions to use for the target directories. {@code null} means that existing
-     * permissions are preserved. It is dependent on the copy action implementation whether these permissions
-     * will actually be applied.
-     *
-     * @param mode The directory permissions.
-     * @return this
-     *
-     * @deprecated Use {@link #dirPermissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
-     */
-    @Deprecated
-    CopyProcessingSpec setDirMode(@Nullable Integer mode);
 
     /**
      * Property for querying and configuring file access permissions.

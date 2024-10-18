@@ -52,7 +52,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
@@ -539,46 +538,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public AbstractCopyTask expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
         getMainSpec().expand(properties, action);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    @Deprecated
-    public Integer getDirMode() {
-        return getMainSpec().getDirMode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    @Deprecated
-    public Integer getFileMode() {
-        return getMainSpec().getFileMode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public AbstractCopyTask setDirMode(@Nullable Integer mode) {
-        getMainSpec().setDirMode(mode);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public AbstractCopyTask setFileMode(@Nullable Integer mode) {
-        getMainSpec().setFileMode(mode);
         return this;
     }
 
