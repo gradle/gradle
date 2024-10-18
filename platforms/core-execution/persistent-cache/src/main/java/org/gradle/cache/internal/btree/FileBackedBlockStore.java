@@ -47,7 +47,11 @@ public class FileBackedBlockStore implements BlockStore {
         this.factory = factory;
         try {
             cacheFile.getParentFile().mkdirs();
-            file = openRandomAccessFile();
+            try {
+                file = randomAccessFile("rw");
+            } catch (FileNotFoundException e) {
+                file = randomAccessFile("r");
+            }
             output = new ByteOutput(file);
             input = new ByteInput(file);
             currentFileSize = file.length();
@@ -60,14 +64,6 @@ public class FileBackedBlockStore implements BlockStore {
         }
     }
 
-    private RandomAccessFile openRandomAccessFile() throws FileNotFoundException {
-        try {
-            return randomAccessFile("rw");
-        } catch (FileNotFoundException e) {
-            return randomAccessFile("r");
-        }
-    }
-
     private RandomAccessFile randomAccessFile(String mode) throws FileNotFoundException {
         return new RandomAccessFile(cacheFile, mode);
     }
@@ -75,6 +71,9 @@ public class FileBackedBlockStore implements BlockStore {
     @Override
     public void close() {
         try {
+            if (currentFileSize != file.length()) {
+                file.setLength(currentFileSize);
+            }
             file.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -83,12 +82,7 @@ public class FileBackedBlockStore implements BlockStore {
 
     @Override
     public void clear() {
-        try {
-            file.setLength(0);
-            currentFileSize = 0;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        currentFileSize = 0;
         nextBlock = 0;
     }
 
@@ -220,11 +214,11 @@ public class FileBackedBlockStore implements BlockStore {
                 throw new IllegalArgumentException("Block payload exceeds maximum size");
             }
             outputStream.writeInt((int) bytesWritten);
+
             output.done();
 
             // Pad
             if (currentFileSize < finalSize) {
-                file.setLength(finalSize);
                 currentFileSize = finalSize;
             }
         }
