@@ -37,6 +37,8 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.loggingApi)
     implementation(projects.problemsApi)
+
+    testImplementation(projects.serviceRegistryImpl)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
