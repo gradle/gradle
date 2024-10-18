@@ -103,6 +103,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final ImmutableSet<Class<?>> mutableNonFinalClasses;
     private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotations;
+    private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotationsAllowedModifiers;
     private final Predicate<? super Method> generatedMethodDetector;
 
     /**
@@ -114,6 +115,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
      * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
+     * @param ignoredMethodAnnotationsAllowedModifiers Annotations allowed to be used with the ignore annotations.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param mutableNonFinalClasses Mutable classes that shouldn't need explicit setters
      * @param cacheFactory A factory to create cross-build in-memory caches.
@@ -126,6 +128,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
         Collection<Class<? extends Annotation>> ignoredMethodAnnotations,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotationsAllowedModifiers,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
@@ -137,6 +140,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
         this.ignoredMethodAnnotations = ImmutableSet.copyOf(ignoredMethodAnnotations);
+        this.ignoredMethodAnnotationsAllowedModifiers = ImmutableSet.copyOf(ignoredMethodAnnotationsAllowedModifiers);
         this.generatedMethodDetector = generatedMethodDetector;
     }
 
@@ -606,7 +610,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             for (Annotation declaredType : declaredTypes) {
                 Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
                 if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
-                    if (declaredAnnotations.values().size() > 1) {
+                    if (declaredAnnotations.size() > 1 && ignoreAnnotationDisallowedModifiers(declaredAnnotations.values()).count() > 1) {
                         visitPropertyProblem(problem ->
                             problem
                                 .forProperty(propertyName)
@@ -615,7 +619,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                     String.format(
                                         "annotated with @%s should not be also annotated with %s",
                                         ignoredMethodAnnotation.getSimpleName(),
-                                        simpleAnnotationNames(declaredAnnotations.values().stream()
+                                        simpleAnnotationNames(ignoreAnnotationDisallowedModifiers(declaredAnnotations.values())
                                             .<Class<? extends Annotation>>map(Annotation::annotationType)
                                             .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
                                     )
@@ -649,6 +653,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 builder.put(category, resolvedAnnotation);
             }
             return builder.build();
+        }
+
+        private Stream<Annotation> ignoreAnnotationDisallowedModifiers(Collection<Annotation> annotations) {
+            return annotations.stream().filter(annotation -> !ignoredMethodAnnotationsAllowedModifiers.contains(annotation.annotationType()));
         }
 
         private ImmutableSet<AnnotationCategory> allAnnotationCategories() {

@@ -89,6 +89,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS,
+        [],
         { false },
         cacheFactory
     )
