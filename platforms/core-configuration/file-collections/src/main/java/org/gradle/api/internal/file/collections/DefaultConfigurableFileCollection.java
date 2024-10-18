@@ -141,7 +141,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void implicitFinalizeValue() {
-        if (!valueState.isUpgradedPropertyValue()) {
+        if (valueState.isUpgradedPropertyValue()) {
+            // Upgraded properties should not be finalized to simplify migration.
+            // This behaviour should be removed with Gradle 10.
+            valueState.warnOnUpgradedPropertyValueChanges();
+        } else {
             // Property prevents reads *and* mutations,
             // however CFCs only want automatic finalization on query,
             // so we do not #disallowChanges().

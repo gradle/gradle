@@ -127,7 +127,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     // Create a variant of the test suite to force realization of component metadata
     if (testType == TestType.INTEGRATION) {
         createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType) {
-            systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
+            systemProperty("org.gradle.integtest.force.realize.metadata", "true")
         }
     }
 }
@@ -163,7 +163,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         val integTest = project.the<IntegrationTestExtension>()
         project.getBucketProvider().get().bucketProvider.configureTest(this, sourceSet.name)
         description = "Runs ${testType.prefix} with $executer executer"
-        systemProperties["org.gradle.integtest.executer"] = executer
+        systemProperty("org.gradle.integtest.executer", executer)
         addDebugProperties()
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
@@ -189,7 +189,7 @@ fun IntegrationTest.setUpAgentIfNeeded(testType: TestType, executer: String) {
     val integtestAgentAllowed = project.providers.gradleProperty(integTestUseAgentSysPropName);
     if (integtestAgentAllowed.isPresent) {
         val shouldUseAgent = integtestAgentAllowed.get().toBoolean()
-        systemProperties[integTestUseAgentSysPropName] = shouldUseAgent.toString()
+        systemProperty(integTestUseAgentSysPropName, shouldUseAgent.toString())
     }
 }
 
@@ -199,7 +199,7 @@ fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
     val integtestDebug = project.providers.gradleProperty("org.gradle.integtest.debug")
     if (integtestDebug.isPresent) {
-        systemProperties["org.gradle.integtest.debug"] = "true"
+        systemProperty("org.gradle.integtest.debug", "true")
         testLogging.showStandardStreams = true
     }
     // TODO Move magic property out
@@ -210,7 +210,7 @@ fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
     val integtestLauncherDebug = project.providers.gradleProperty("org.gradle.integtest.launcher.debug")
     if (integtestLauncherDebug.isPresent) {
-        systemProperties["org.gradle.integtest.launcher.debug"] = "true"
+        systemProperty("org.gradle.integtest.launcher.debug", "true")
     }
 }
 
@@ -220,9 +220,9 @@ fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
     val testVersions = project.providers.gradleProperty("testVersions")
     if (testVersions.isPresent) {
-        systemProperties[integTestVersionsSysProp] = testVersions.get()
+        systemProperty(integTestVersionsSysProp, testVersions.get())
     } else {
-        systemProperties[integTestVersionsSysProp] = defaultVersions
+        systemProperty(integTestVersionsSysProp, defaultVersions)
     }
 }
 

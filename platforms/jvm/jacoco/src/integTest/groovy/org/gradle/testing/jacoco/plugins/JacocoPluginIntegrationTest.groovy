@@ -41,7 +41,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
                 }
 
                 doLast {
-                    assert allJvmArgs.every { !it.contains("javaagent") }
+                    assert allJvmArgs.get().every { !it.contains("javaagent") }
                 }
             }
         """
