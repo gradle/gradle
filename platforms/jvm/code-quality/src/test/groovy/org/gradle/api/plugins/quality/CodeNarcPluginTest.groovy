@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
 
@@ -49,27 +50,35 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         CodeNarcExtension codenarc = project.extensions.codenarc
         codenarc.config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
         codenarc.configFile == project.file("config/codenarc/codenarc.xml")
-        codenarc.maxPriority1Violations == 0
-        codenarc.maxPriority2Violations == 0
-        codenarc.maxPriority3Violations == 0
-        codenarc.reportFormat == "html"
-        codenarc.reportsDir == project.file("build/reports/codenarc")
-        codenarc.sourceSets == []
-        !codenarc.ignoreFailures
+        codenarc.maxPriority1Violations.get() == 0
+        codenarc.maxPriority2Violations.get() == 0
+        codenarc.maxPriority3Violations.get() == 0
+        codenarc.reportFormat.get() == "html"
+        codenarc.reportsDir.asFile.get() == project.file("build/reports/codenarc")
+        codenarc.sourceSets.get() == []
+        !codenarc.ignoreFailures.get()
     }
 
     def "configures any additional codenarc tasks"() {
         def task = project.tasks.create("codenarcCustom", CodeNarc)
+        MavenFileRepository repo = new MavenFileRepository(temporaryFolder.createDir("repo"))
+        project.repositories {
+            maven {
+                url repo.uri
+            }
+        }
+        repo.module("org.codenarc", "CodeNarc", CodeNarcPlugin.STABLE_VERSION).publish()
+        repo.module("org.codenarc", "CodeNarc", CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT).publish()
 
         expect:
         task.description == null
         task.source.isEmpty()
-        task.codenarcClasspath == project.configurations.codenarc
+        task.codenarcClasspath.files == project.configurations.codenarc.files
         task.config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
         task.configFile == project.file("config/codenarc/codenarc.xml")
-        task.maxPriority1Violations == 0
-        task.maxPriority2Violations == 0
-        task.maxPriority3Violations == 0
+        task.maxPriority1Violations.get() == 0
+        task.maxPriority2Violations.get() == 0
+        task.maxPriority3Violations.get() == 0
         task.reports.enabled*.name == ["html"]
         task.reports.html.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.html")
         task.ignoreFailures == false
@@ -77,6 +86,14 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
 
     def "can customize additional tasks via extension"() {
         def task = project.tasks.create("codenarcCustom", CodeNarc)
+        MavenFileRepository repo = new MavenFileRepository(temporaryFolder.createDir("repo"))
+        project.repositories {
+            maven {
+                url repo.uri
+            }
+        }
+        repo.module("org.codenarc", "CodeNarc", CodeNarcPlugin.STABLE_VERSION).publish()
+        repo.module("org.codenarc", "CodeNarc", CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT).publish()
 
         project.codenarc {
             config = project.resources.text.fromFile("codenarc-config")
@@ -91,12 +108,12 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         expect:
         task.description == null
         task.source.isEmpty()
-        task.codenarcClasspath == project.configurations.codenarc
+        task.codenarcClasspath.files == project.configurations.codenarc.files
         task.config.inputFiles.singleFile == project.file("codenarc-config")
         task.configFile == project.file("codenarc-config")
-        task.maxPriority1Violations == 10
-        task.maxPriority2Violations == 50
-        task.maxPriority3Violations == 200
+        task.maxPriority1Violations.get() == 10
+        task.maxPriority2Violations.get() == 50
+        task.maxPriority3Violations.get() == 200
         task.reports.enabled*.name == ["xml"]
         task.reports.xml.outputLocation.asFile.get() == project.file("codenarc-reports/custom.xml")
         task.ignoreFailures == true

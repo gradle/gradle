@@ -26,18 +26,18 @@ class ForkOptionsTest extends Specification {
 
     def 'initial values of forkOptions'() {
         expect:
-        forkOptions.executable == null
+        forkOptions.executable.getOrNull() == null
         forkOptions.javaHome == null
-        forkOptions.memoryInitialSize == null
-        forkOptions.memoryMaximumSize == null
-        forkOptions.tempDir == null
-        forkOptions.jvmArgs == []
+        forkOptions.memoryInitialSize.getOrNull() == null
+        forkOptions.memoryMaximumSize.getOrNull() == null
+        forkOptions.tempDir.getOrNull() == null
+        forkOptions.jvmArgs.get() == []
     }
 
     def 'options can be defined via a map'() {
         when:
         forkOptions.define(PROPS.collectEntries { [it, "${it}Value" as String ] })
         then:
-        PROPS.each { assert forkOptions."${it}" == "${it}Value" as String }
+        PROPS.each { assert forkOptions."${it}".get() == "${it}Value" as String }
     }
 }

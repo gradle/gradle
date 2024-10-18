@@ -18,17 +18,20 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TestEventLoggerTest extends Specification {
-    def textOutputFactory = new TestStyledTextOutputFactory()
+    StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
 
-    def testLogging = new DefaultTestLogging()
-    def exceptionFormatter = Mock(TestExceptionFormatter)
-    def eventLogger = new TestEventLogger(textOutputFactory, LogLevel.INFO, testLogging, exceptionFormatter)
+    TestLogging testLogging = TestUtil.newInstance(DefaultTestLogging.class)
+    TestExceptionFormatter exceptionFormatter = Mock(TestExceptionFormatter)
 
     def rootDescriptor = new SimpleTestDescriptor(name: "", composite: true)
     def workerDescriptor = new SimpleTestDescriptor(name: "worker", composite: true, parent: rootDescriptor)
@@ -41,6 +44,7 @@ class TestEventLoggerTest extends Specification {
 
     def "logs event if event type matches"() {
         testLogging.events(TestLogEvent.PASSED, TestLogEvent.SKIPPED)
+        def eventLogger = newTestEventLogger()
 
         when:
         eventLogger.afterTest(methodDescriptor, result)
@@ -61,6 +65,7 @@ class TestEventLoggerTest extends Specification {
         testLogging.events(TestLogEvent.PASSED)
         testLogging.minGranularity = 2
         testLogging.maxGranularity = 4
+        def eventLogger = newTestEventLogger()
 
         when:
         eventLogger.afterSuite(outerSuiteDescriptor, result)
@@ -84,11 +89,11 @@ class TestEventLoggerTest extends Specification {
         testLogging.events(TestLogEvent.FAILED)
         result.resultType = TestResult.ResultType.FAILURE
         result.exceptions = [new RuntimeException()]
-
         exceptionFormatter.format(*_) >> "formatted exception"
 
         when:
         testLogging.showExceptions = true
+        def eventLogger = newTestEventLogger()
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
@@ -97,6 +102,7 @@ class TestEventLoggerTest extends Specification {
         when:
         textOutputFactory.clear()
         testLogging.showExceptions = false
+        eventLogger = newTestEventLogger()
         eventLogger.afterTest(methodDescriptor, result)
 
         then:
@@ -106,5 +112,51 @@ class TestEventLoggerTest extends Specification {
     def "allows empty event set"() {
         expect:
         testLogging.setEvents(Collections.emptySet())
+    }
+
+    def "allows standardStreams to be turned on and off"() {
+        def stdOutEvent = Mock(TestOutputEvent) {
+            getDestination() >> TestOutputEvent.Destination.StdOut
+            getMessage() >> "Hello from StdOut"
+        }
+        def stdErrorEvent = Mock(TestOutputEvent) {
+            getDestination() >> TestOutputEvent.Destination.StdErr
+            getMessage() >> "Hello from StdErr"
+        }
+
+        when:
+        textOutputFactory.clear()
+        testLogging.showStandardStreams = false
+        def eventLogger = newTestEventLogger()
+        eventLogger.onOutput(methodDescriptor, stdOutEvent)
+        eventLogger.onOutput(methodDescriptor, stdErrorEvent)
+
+        then:
+        textOutputFactory.toString().isEmpty()
+
+        when:
+        textOutputFactory.clear()
+        testLogging.showStandardStreams = true
+        eventLogger = newTestEventLogger()
+        eventLogger.onOutput(methodDescriptor, stdOutEvent)
+        eventLogger.onOutput(methodDescriptor, stdErrorEvent)
+
+        then:
+        textOutputFactory.toString().contains("Hello from StdOut")
+        textOutputFactory.toString().contains("Hello from StdErr")
+    }
+
+    private TestEventLogger newTestEventLogger() {
+        return new TestEventLogger(
+            textOutputFactory,
+            LogLevel.INFO,
+            exceptionFormatter,
+            testLogging.getShowExceptions().get(),
+            testLogging.getMinGranularity().get(),
+            testLogging.getMaxGranularity().get(),
+            testLogging.getDisplayGranularity().get(),
+            testLogging.getShowStandardStreams().getOrNull(),
+            testLogging.getEvents().get(),
+        )
     }
 }

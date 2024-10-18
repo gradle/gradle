@@ -18,14 +18,16 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,9 +38,7 @@ import java.util.List;
  * @since 7.1
  */
 @Incubating
-public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
-
-    private final List<CommandLineArgumentProvider> jvmArgumentProviders = new ArrayList<>();
+public abstract class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
 
     /**
      * Returns any additional JVM argument providers for the compiler process.
@@ -46,25 +46,27 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
      */
     @Optional
     @Nested
-    @ToBeReplacedByLazyProperty
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return jvmArgumentProviders;
-    }
+    // Marked as ACCESSORS_KEPT since incubating methods are not reported as removed
+    @ReplacesEagerProperty(binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT)
+    public abstract ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders();
 
     /**
      * Returns the full set of arguments to use to launch the JVM for the compiler process. This includes arguments to define
      * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *
-     * @return The immutable list of arguments. Returns an empty list if there are no arguments.
+     * @return The provider of arguments. Returns an empty provider if there are no arguments.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public List<String> getAllJvmArgs() {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(CollectionUtils.stringize(getJvmArgs()));
-        for (CommandLineArgumentProvider argumentProvider : getJvmArgumentProviders()) {
-            builder.addAll(argumentProvider.asArguments());
-        }
-        return builder.build();
+    // Marked as ACCESSORS_KEPT since incubating methods are not reported as removed
+    @ReplacesEagerProperty(binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT)
+    public Provider<List<String>> getAllJvmArgs() {
+        return getJvmArgs().zip(getJvmArgumentProviders(), (args, providers) -> {
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            builder.addAll(CollectionUtils.stringize(args));
+            for (CommandLineArgumentProvider argumentProvider : providers) {
+                builder.addAll(argumentProvider.asArguments());
+            }
+            return builder.build();
+        });
     }
 }

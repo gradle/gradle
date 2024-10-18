@@ -57,6 +57,7 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         [Internal],
+        [],
         { false },
         cacheFactory
     )

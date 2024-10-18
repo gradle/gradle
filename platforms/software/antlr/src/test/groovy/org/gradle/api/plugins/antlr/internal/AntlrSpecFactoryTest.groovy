@@ -18,24 +18,27 @@ package org.gradle.api.plugins.antlr.internal
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.antlr.AntlrTask
+import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AntlrSpecFactoryTest extends Specification {
 
     private AntlrSpecFactory factory = new AntlrSpecFactory()
     private FileCollection sourceSetDirectories = Mock()
+    private project = ProjectBuilder.builder().build()
 
     def tracePropertiesAddedToArgumentList() {
         when:
         sourceSetDirectoriesAreEmptySet()
-        AntlrTask task = Mock()
-
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> []
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
+        AntlrTask task = createTask().tap {
+            it.outputDirectory = destFile()
+            it.arguments = []
+            it.trace = true
+            it.traceLexer = true
+            it.traceParser = true
+            it.traceTreeWalker = true
+        }
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -48,14 +51,14 @@ class AntlrSpecFactoryTest extends Specification {
 
     def sourceSetDirectoriesNull() {
         when:
-        AntlrTask task = Mock()
-
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> []
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
+        AntlrTask task = createTask().tap {
+            it.outputDirectory = destFile()
+            it.arguments = []
+            it.trace = true
+            it.traceLexer = true
+            it.traceParser = true
+            it.traceTreeWalker = true
+        }
 
         def spec = factory.create(task, [] as Set, null)
 
@@ -66,9 +69,10 @@ class AntlrSpecFactoryTest extends Specification {
     def customTraceArgumentsOverrideProperties() {
         when:
         sourceSetDirectoriesAreEmptySet()
-        AntlrTask task = Mock()
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
+        AntlrTask task = createTask().tap {
+            it.outputDirectory = destFile()
+            it.arguments = ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
+        }
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -82,13 +86,14 @@ class AntlrSpecFactoryTest extends Specification {
     def traceArgumentsDoNotDuplicateTrueTraceProperties() {
         when:
         sourceSetDirectoriesAreEmptySet()
-        AntlrTask task = Mock()
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
+        AntlrTask task = createTask().tap {
+            it.outputDirectory = destFile()
+            it.arguments = ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
+            it.trace = true
+            it.traceLexer = true
+            it.traceParser = true
+            it.traceTreeWalker = true
+        }
 
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
@@ -99,13 +104,16 @@ class AntlrSpecFactoryTest extends Specification {
         spec.arguments.count { it == "-traceTreeWalker" } == 1
     }
 
+    private AntlrTask createTask() {
+        AntlrTask task = TestUtil.createTask(AntlrTask, project)
+        task
+    }
+
     private void sourceSetDirectoriesAreEmptySet() {
         1 * sourceSetDirectories.getFiles() >> []
     }
 
     def destFile() {
-        File dest = Mock()
-        dest.getAbsolutePath() >> "/output"
-        dest
+        return project.layout.buildDirectory.dir("antlr").get().asFile
     }
 }

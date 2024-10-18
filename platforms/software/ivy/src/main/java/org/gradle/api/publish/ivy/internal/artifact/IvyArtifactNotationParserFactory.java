@@ -21,7 +21,9 @@ import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -45,12 +47,23 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
     private final FileResolver fileResolver;
     private final IvyPublicationCoordinates publicationCoordinates;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final ProviderFactory providerFactory;
+    private final ObjectFactory objectFactory;
 
-    public IvyArtifactNotationParserFactory(Instantiator instantiator, FileResolver fileResolver, IvyPublicationCoordinates publicationCoordinates, TaskDependencyFactory taskDependencyFactory) {
+    public IvyArtifactNotationParserFactory(
+        Instantiator instantiator,
+        FileResolver fileResolver,
+        IvyPublicationCoordinates publicationCoordinates,
+        TaskDependencyFactory taskDependencyFactory,
+        ProviderFactory providerFactory,
+        ObjectFactory objectFactory
+    ) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.publicationCoordinates = publicationCoordinates;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.providerFactory = providerFactory;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -87,7 +100,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
-            return instantiator.newInstance(ArchiveTaskBasedIvyArtifact.class, archiveTask, publicationCoordinates, taskDependencyFactory);
+            return instantiator.newInstance(ArchiveTaskBasedIvyArtifact.class, archiveTask, publicationCoordinates, taskDependencyFactory, providerFactory, objectFactory);
         }
     }
 
@@ -98,14 +111,14 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
-            return instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, publishArtifact, publicationCoordinates, taskDependencyFactory);
+            return instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, publishArtifact, publicationCoordinates, taskDependencyFactory, providerFactory, objectFactory);
         }
     }
 
     private class ProviderNotationConverter implements NotationConverter<Provider<?>, IvyArtifact> {
         @Override
         public void convert(Provider<?> publishArtifact, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
-            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, new LazyPublishArtifact(publishArtifact, fileResolver, taskDependencyFactory), publicationCoordinates, taskDependencyFactory);
+            IvyArtifact artifact = instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, new LazyPublishArtifact(publishArtifact, fileResolver, taskDependencyFactory), publicationCoordinates, taskDependencyFactory, providerFactory, objectFactory);
             result.converted(artifact);
         }
 
@@ -125,7 +138,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         @Override
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationCoordinates, taskDependencyFactory);
+            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationCoordinates, taskDependencyFactory, providerFactory, objectFactory);
             if (notation instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependencyContainer;
                 if (notation instanceof Provider) {

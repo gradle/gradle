@@ -59,6 +59,7 @@ trait TestAnnotationHandlingSupport {
         [Object, GroovyObject],
         [],
         [Ignored, AlsoIgnored],
+        [],
         { Method method -> method.isAnnotationPresent(Generated) },
         TestCrossBuildInMemoryCacheFactory.instance()
     )

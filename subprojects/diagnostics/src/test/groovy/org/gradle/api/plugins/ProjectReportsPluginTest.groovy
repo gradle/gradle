@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.CoreMatchers.instanceOf
 
 class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
     private final ProjectReportsPlugin plugin = TestUtil.newInstance(ProjectReportsPlugin.class)
@@ -44,27 +43,23 @@ class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
         plugin.apply(project);
 
         then:
-        Task taskReport = project.tasks.getByName(ProjectReportsPlugin.TASK_REPORT);
-        taskReport instanceOf(TaskReportTask.class)
-        taskReport.outputFile == new File(project.buildDir, "reports/project/tasks.txt")
-        taskReport.projects == [project] as Set
+        TaskReportTask taskReport = project.tasks.named(ProjectReportsPlugin.TASK_REPORT, TaskReportTask).get();
+        taskReport.outputFile.get().asFile == new File(project.layout.buildDirectory.asFile.get(), "reports/project/tasks.txt")
+        taskReport.projects.get() == [project] as Set
 
-        Task propertyReport = project.tasks.getByName(ProjectReportsPlugin.PROPERTY_REPORT)
-        propertyReport instanceOf(PropertyReportTask.class)
-        propertyReport.outputFile == new File(project.buildDir, "reports/project/properties.txt")
-        propertyReport.projects == [project] as Set
+        PropertyReportTask propertyReport = project.tasks.named(ProjectReportsPlugin.PROPERTY_REPORT, PropertyReportTask).get()
+        propertyReport.outputFile.get().asFile == new File(project.layout.buildDirectory.asFile.get(), "reports/project/properties.txt")
+        propertyReport.projects.get() == [project] as Set
 
-        Task dependencyReport = project.tasks.getByName(ProjectReportsPlugin.DEPENDENCY_REPORT);
-        dependencyReport instanceOf(DependencyReportTask.class)
-        dependencyReport.outputFile == new File(project.getBuildDir(), "reports/project/dependencies.txt")
-        dependencyReport.projects == [project] as Set
+        DependencyReportTask dependencyReport = project.tasks.named(ProjectReportsPlugin.DEPENDENCY_REPORT, DependencyReportTask).get();
+        dependencyReport.outputFile.get().asFile == new File(project.layout.buildDirectory.asFile.get(), "reports/project/dependencies.txt")
+        dependencyReport.projects.get() == [project] as Set
 
-        Task htmlReport = project.tasks.getByName(ProjectReportsPlugin.HTML_DEPENDENCY_REPORT);
-        htmlReport instanceOf(HtmlDependencyReportTask.class)
-        htmlReport.reports.html.outputLocation.get().asFile == new File(project.buildDir, "reports/project/dependencies")
-        htmlReport.projects == [project] as Set
+        HtmlDependencyReportTask htmlReport = project.tasks.named(ProjectReportsPlugin.HTML_DEPENDENCY_REPORT, HtmlDependencyReportTask).get();
+        htmlReport.reports.html.outputLocation.get().asFile == new File(project.layout.buildDirectory.asFile.get(), "reports/project/dependencies")
+        htmlReport.projects.get() == [project] as Set
 
-        Task projectReport = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
+        Task projectReport = project.getTasks().named(ProjectReportsPlugin.PROJECT_REPORT).get();
         projectReport dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT, ProjectReportsPlugin.HTML_DEPENDENCY_REPORT)
     }
 }

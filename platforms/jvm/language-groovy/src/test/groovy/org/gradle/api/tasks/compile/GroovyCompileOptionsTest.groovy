@@ -43,26 +43,26 @@ class GroovyCompileOptionsTest {
 
     @Test
     void testCompileOptions() {
-        assertTrue(compileOptions.failOnError)
-        assertFalse(compileOptions.listFiles)
-        assertFalse(compileOptions.verbose)
-        assertTrue(compileOptions.fork)
-        assertEquals(['java', 'groovy'], compileOptions.fileExtensions)
-        assertEquals('UTF-8', compileOptions.encoding)
+        assertTrue(compileOptions.failOnError.get())
+        assertFalse(compileOptions.listFiles.get())
+        assertFalse(compileOptions.verbose.get())
+        assertTrue(compileOptions.fork.get())
+        assertEquals(['java', 'groovy'], compileOptions.fileExtensions.get())
+        assertEquals('UTF-8', compileOptions.encoding.get())
         assertNotNull(compileOptions.forkOptions)
-        assertNull(compileOptions.configurationScript)
-        assertFalse(compileOptions.javaAnnotationProcessing)
-        assertFalse(compileOptions.parameters)
+        assertNull(compileOptions.configurationScript.asFile.orNull)
+        assertFalse(compileOptions.javaAnnotationProcessing.get())
+        assertFalse(compileOptions.parameters.get())
     }
 
     @Test
     void testFork() {
         compileOptions.fork = false
-        assertNull(compileOptions.forkOptions.memoryMaximumSize)
+        assertNull(compileOptions.forkOptions.memoryMaximumSize.getOrNull())
 
         compileOptions.fork([memoryMaximumSize: '1g'])
-        assertTrue(compileOptions.fork)
-        assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
+        assertTrue(compileOptions.fork.get())
+        assertEquals(compileOptions.forkOptions.memoryMaximumSize.get(), '1g')
     }
 
     @Test
@@ -72,10 +72,10 @@ class GroovyCompileOptionsTest {
         compileOptions.fork = false
         compileOptions.parameters = true
         compileOptions.define( encoding: 'encoding')
-        assertEquals('encoding', compileOptions.encoding)
-        assertFalse(compileOptions.verbose)
-        assertFalse(compileOptions.fork)
-        assertTrue(compileOptions.parameters)
+        assertEquals('encoding', compileOptions.encoding.get())
+        assertFalse(compileOptions.verbose.get())
+        assertFalse(compileOptions.fork.get())
+        assertTrue(compileOptions.parameters.get())
     }
 
     @Test

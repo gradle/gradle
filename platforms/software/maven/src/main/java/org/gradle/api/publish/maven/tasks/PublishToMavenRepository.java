@@ -35,14 +35,12 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.inject.Inject;
 import java.net.URI;
 import java.util.Collection;
 
@@ -57,38 +55,30 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
-    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
     /**
      * The repository to publish to.
      *
-     * @return The repository to publish to
+     * For now, only instances of {@link DefaultMavenArtifactRepository} are supported.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     public MavenArtifactRepository getRepository() {
         return repository.get();
     }
 
     @Nested
     @Optional
-    Property<Credentials> getCredentials() {
-        return credentials;
-    }
-
-    @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
+    abstract Property<Credentials> getCredentials();
 
     /**
      * Sets the repository to publish to.
      *
-     * @param repository The repository to publish to
+     * @param repository The repository to publish to. Only instances of {@link DefaultMavenArtifactRepository} are supported.
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
-        this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
+        this.getCredentials().set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
     }
 
     @TaskAction
@@ -106,7 +96,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        DefaultMavenArtifactRepository repository = this.repository.get();
+        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) getRepository();
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
