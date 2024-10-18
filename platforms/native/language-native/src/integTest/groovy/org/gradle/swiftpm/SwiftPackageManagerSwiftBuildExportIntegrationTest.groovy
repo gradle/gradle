@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class SwiftPackageManagerSwiftBuildExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for single project Swift library that defines only the production targets"() {
         given:
         buildFile << """
@@ -69,7 +68,6 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for multi-project Swift build"() {
         given:
         createDirs("hello", "log")
@@ -147,7 +145,6 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for Swift library with shared and static linkage"() {
         given:
         buildFile << """
@@ -196,7 +193,6 @@ let package = Package(
 
     // See https://github.com/gradle/gradle-native/issues/1007
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with declared Swift language version"() {
         given:
         buildFile << """
@@ -241,7 +237,6 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "honors customizations to Swift module name"() {
         given:
         createDirs("lib1", "lib2")

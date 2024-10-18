@@ -258,7 +258,6 @@ When enabled, tasks using a <<build_services#build_services, shared build servic
 In addition, when the configuration cache is not enabled but the feature flag is present, deprecations for the following <<config_cache:requirements, configuration cache requirements>> are also enabled:
 
 * <<config_cache:requirements:build_listeners, Registering build listeners>>
-* <<config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
 * <<config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
 
 It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features the default.

@@ -406,12 +406,14 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
             import javax.annotation.Nullable
 
-            class PrintInputsAndOutputs extends DefaultTask {
+            abstract class PrintInputsAndOutputs extends DefaultTask {
+                @Inject
+                abstract PropertyWalker getPropertyWalker()
                 @Internal
                 Task task
                 @TaskAction
                 void printInputsAndOutputs() {
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor() {
+                    TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
                         @Override
                         void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
                             println "Input property '\${propertyName}'"

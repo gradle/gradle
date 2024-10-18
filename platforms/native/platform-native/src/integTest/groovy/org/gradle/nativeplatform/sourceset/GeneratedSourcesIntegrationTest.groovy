@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.sourceset
 import org.apache.commons.io.FileUtils
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -34,14 +33,16 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     def setup() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-class GenerateSources extends DefaultTask {
+abstract class GenerateSources extends DefaultTask {
     @InputDirectory File inputDir
     @OutputDirectory File sourceDir
     @OutputDirectory @Optional File headerDir
+    @Inject
+    public abstract FileSystemOperations getFileSystemOperations()
 
     @TaskAction
     void processInputFiles() {
-        project.copy {
+        fileSystemOperations.copy {
             from inputDir
             into sourceDir.parentFile
             filter { String line ->
@@ -64,7 +65,6 @@ task generateCSources(type: GenerateSources) {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "generator task produces c sources and headers"() {
         given:
         def app = new CHelloWorldApp()
@@ -90,7 +90,6 @@ model {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "generator task produces sources for dependent source set with headers only"() {
         given:
         // Write sources to src/main, headers to src/input
@@ -124,7 +123,6 @@ model {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "generator task produces sources for dependent source set"() {
         given:
         def app = new CHelloWorldApp()
@@ -154,7 +152,6 @@ model {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can have library composed of generated sources"() {
         given:
         def app = new CHelloWorldApp()
@@ -188,7 +185,6 @@ model {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on header-only library composed of generated sources"() {
         given:
         // Write sources to src/main, headers to src/hello
@@ -226,7 +222,6 @@ model {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "generator task produces cpp sources"() {
         given:
         def app = new CppHelloWorldApp()
@@ -259,7 +254,6 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "generator task produces assembler sources"() {
         given:
         def app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
@@ -295,7 +289,6 @@ model {
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
-    @ToBeFixedForConfigurationCache
     def "generator task produces windows resources"() {
         given:
         def app = new WindowsResourceHelloWorldApp()
@@ -356,7 +349,6 @@ model {
         failure.assertHasCause "Could not get unknown property 'sourceDir' for task ':generateSources' of type org.gradle.api.DefaultTask."
     }
 
-    @ToBeFixedForConfigurationCache
     def "can explicitly configure source and header directories from generator task"() {
         given:
         def app = new CHelloWorldApp()
@@ -390,7 +382,6 @@ model {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure generator task properties after wiring"() {
         given:
         def app = new CHelloWorldApp()
@@ -424,7 +415,6 @@ lateConfiguredGenerator {
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
     def "creates visual studio project including generated sources"() {
         given:
         def app = new CHelloWorldApp()

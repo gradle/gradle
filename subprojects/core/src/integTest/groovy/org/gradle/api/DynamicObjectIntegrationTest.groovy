@@ -72,6 +72,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         )
 
         expectConventionTypeDeprecationWarnings()
+        expectTaskProjectDeprecation()
 
         expect:
         succeeds("testTask")
@@ -109,6 +110,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         )
 
         expectConventionTypeDeprecationWarnings()
+        expectTaskProjectDeprecation()
 
         expect:
         succeeds("testTask")
@@ -445,6 +447,7 @@ assert 'overridden value' == global
         '''
 
         expect:
+        expectTaskProjectDeprecation(3)
         succeeds("test")
     }
 
@@ -1045,12 +1048,12 @@ task print(type: MyTask) {
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def findPropertyShouldReturnValueIfFound() {
         buildFile """
             task run {
+                def property = project.findProperty('foundProperty')
                 doLast {
-                    assert project.findProperty('foundProperty') == 'foundValue'
+                    assert property == 'foundValue'
                 }
             }
         """
@@ -1060,12 +1063,12 @@ task print(type: MyTask) {
         succeeds("run")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def findPropertyShouldReturnNullIfNotFound() {
         buildFile """
             task run {
+                def property = project.findProperty('notFoundProperty')
                 doLast {
-                    assert project.findProperty('notFoundProperty') == null
+                    assert property == null
                 }
             }
         """
@@ -1082,6 +1085,14 @@ task print(type: MyTask) {
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
             )
+        }
+    }
+
+    private void expectTaskProjectDeprecation(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+                "This will fail with an error in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
     }
 }
