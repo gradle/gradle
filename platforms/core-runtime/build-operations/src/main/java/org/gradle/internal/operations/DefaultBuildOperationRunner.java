@@ -201,6 +201,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
+    @SuppressWarnings("NullAway") // The result is only nullable when the T is nullable. Without proper type annotations this is too invasive to fix.
     private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
         private T returnValue;
 
@@ -217,6 +218,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
         private final CurrentBuildOperationRef currentBuildOperationRef;
         private final BuildOperationExecutionListener delegate;
+        @Nullable
         private BuildOperationState originalCurrentBuildOperation;
 
         private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
@@ -317,8 +319,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static class DefaultBuildOperationContext implements ReadableBuildOperationContext {
         private final BuildOperationDescriptor descriptor;
         private final BuildOperationExecutionListener listener;
+        @Nullable
         private Throwable failure;
+        @Nullable
         private Object result;
+        @Nullable
         private String status;
 
         public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {

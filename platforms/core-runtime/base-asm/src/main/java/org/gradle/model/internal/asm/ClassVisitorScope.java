@@ -75,7 +75,7 @@ public class ClassVisitorScope extends ClassVisitor {
     /**
      * Adds a public method to the generated type.
      */
-    protected void publicMethod(String name, String descriptor, String signature, BytecodeFragment body) {
+    protected void publicMethod(String name, String descriptor, @Nullable String signature, BytecodeFragment body) {
         addMethod(ACC_PUBLIC, name, descriptor, signature, body);
     }
 
@@ -89,7 +89,7 @@ public class ClassVisitorScope extends ClassVisitor {
     /**
      * Adds a method to the generated type.
      */
-    private void addMethod(int access, String name, String descriptor, String signature, BytecodeFragment body) {
+    private void addMethod(int access, String name, String descriptor, @Nullable String signature, BytecodeFragment body) {
         MethodVisitor methodVisitor = visitMethod(access, name, descriptor, signature, null);
         body.emit(methodVisitor);
         methodVisitor.visitMaxs(0, 0);

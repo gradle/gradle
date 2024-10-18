@@ -31,7 +31,7 @@ public final class UncheckedException extends RuntimeException {
         super(cause);
     }
 
-    private UncheckedException(String message, Throwable cause) {
+    private UncheckedException(@Nullable String message, Throwable cause) {
         super(message, cause);
     }
 
