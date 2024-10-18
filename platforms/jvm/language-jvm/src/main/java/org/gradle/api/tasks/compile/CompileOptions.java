@@ -101,6 +101,7 @@ public abstract class CompileOptions extends AbstractOptions {
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
     private final Property<Integer> release;
+    private final Property<Boolean> enablePreview;
 
     private final DirectoryProperty generatedSourceOutputDirectory;
 
@@ -113,6 +114,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
+        this.enablePreview = objectFactory.property(Boolean.class);
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
@@ -365,12 +367,12 @@ public abstract class CompileOptions extends AbstractOptions {
     /**
      * Returns any additional arguments to be passed to the compiler.
      * Defaults to the empty list.
-     *
+     * <p>
      * Compiler arguments not supported by the DSL can be added here.
-     *
-     * For example, it is possible to pass the {@code --enable-preview} option that was added in newer Java versions:
-     * <pre><code>compilerArgs.add("--enable-preview")</code></pre>
-     *
+     * <p>
+     * For example, it is possible to pass the {@code -Werror} option:
+     * <pre><code>compilerArgs.add("-Werror")</code></pre>
+     * <p>
      * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
      */
@@ -567,6 +569,17 @@ public abstract class CompileOptions extends AbstractOptions {
         return release;
     }
 
+    /**
+     * Configures whether Preview Features should be enabled for the compilation ({@code --enable-preview} compiler flag).
+     *
+     * @since 8.10
+     */
+    @Incubating
+    @Optional
+    @Input
+    public Property<Boolean> getEnablePreview() {
+        return enablePreview;
+    }
 
     /**
      * Set the version of the Java module.
