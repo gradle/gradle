@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.attributes.matching;
 
-import com.google.common.base.Objects;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
 import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
 
@@ -40,40 +39,29 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Default implementation of {@link AttributeSelectionSchema}.
+ * Default implementation of {@link AttributeSelectionSchema}, based off of a backing
+ * {@link ImmutableAttributesSchema schema}.
+ * <p>
+ * This implementation should rarely be used on its own, and should almost always be
+ * wrapped in a {@link CachingAttributeSelectionSchema}.
  */
 public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema {
-    private final AttributesSchemaInternal consumerSchema;
-    private final AttributesSchemaInternal producerSchema;
+    private final ImmutableAttributesSchema schema;
 
-    public DefaultAttributeSelectionSchema(AttributesSchemaInternal consumerSchema, AttributesSchemaInternal producerSchema) {
-        this.consumerSchema = consumerSchema;
-        this.producerSchema = producerSchema;
+    public DefaultAttributeSelectionSchema(ImmutableAttributesSchema schema) {
+        this.schema = schema;
     }
 
     @Override
     public boolean hasAttribute(Attribute<?> attribute) {
-        return consumerSchema.getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
+        return schema.getAttributes().contains(attribute);
     }
 
     @Override
-    public Set<Object> disambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates) {
-        DefaultMultipleCandidateResult<Object> result = null;
-
-        DisambiguationRule<Object> rules = consumerSchema.disambiguationRules(attribute);
+    public <T> Set<T> disambiguate(Attribute<T> attribute, @Nullable T requested, Set<T> candidates) {
+        DisambiguationRule<T> rules = schema.disambiguationRules(attribute);
         if (rules.doesSomething()) {
-            result = new DefaultMultipleCandidateResult<>(requested, candidates);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return result.getMatches();
-            }
-        }
-
-        rules = producerSchema.disambiguationRules(attribute);
-        if (rules.doesSomething()) {
-            if (result == null) {
-                result = new DefaultMultipleCandidateResult<>(requested, candidates);
-            }
+            DefaultMultipleCandidateResult<T> result = new DefaultMultipleCandidateResult<>(requested, candidates);
             rules.execute(result);
             if (result.hasResult()) {
                 return result.getMatches();
@@ -88,27 +76,14 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
     }
 
     @Override
-    public boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
+    public <T> boolean matchValue(Attribute<T> attribute, T requested, T candidate) {
         if (requested.equals(candidate)) {
             return true;
         }
 
-        CompatibilityCheckResult<Object> result = null;
-
-        CompatibilityRule<Object> rules = consumerSchema.compatibilityRules(attribute);
+        CompatibilityRule<T> rules = schema.compatibilityRules(attribute);
         if (rules.doesSomething()) {
-            result = new DefaultCompatibilityCheckResult<>(requested, candidate);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return result.isCompatible();
-            }
-        }
-
-        rules = producerSchema.compatibilityRules(attribute);
-        if (rules.doesSomething()) {
-            if (result == null) {
-                result = new DefaultCompatibilityCheckResult<>(requested, candidate);
-            }
+            CompatibilityCheckResult<T> result = new DefaultCompatibilityCheckResult<>(requested, candidate);
             rules.execute(result);
             if (result.hasResult()) {
                 return result.isCompatible();
@@ -120,11 +95,7 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
 
     @Override
     public Attribute<?> getAttribute(String name) {
-        Attribute<?> attribute = consumerSchema.getAttributeByName(name);
-        if (attribute != null) {
-            return attribute;
-        }
-        return producerSchema.getAttributeByName(name);
+        return schema.getAttributeByName(name);
     }
 
     @Override
@@ -136,14 +107,10 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
         removeSameAttributes(requested, extraAttributes);
         Attribute<?>[] extraAttributesArray = extraAttributes.toArray(new Attribute<?>[0]);
         for (int i = 0; i < extraAttributesArray.length; i++) {
-            Attribute<?> extraAttribute = extraAttributesArray[i];
             // Some of these attributes might be weakly typed, e.g. coming as Strings from an
             // artifact repository. We always check whether the schema has a more strongly typed
             // version of an attribute and use that one instead to apply its disambiguation rules.
-            Attribute<?> schemaAttribute = getAttribute(extraAttribute.getName());
-            if (schemaAttribute != null) {
-                extraAttributesArray[i] = schemaAttribute;
-            }
+            extraAttributesArray[i] = tryRehydrate(extraAttributesArray[i]);
         }
         return extraAttributesArray;
     }
@@ -163,56 +130,35 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
 
     @Override
     public PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
-        if (consumerSchema.getAttributeDisambiguationPrecedence().isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
+        if (schema.getAttributeDisambiguationPrecedence().isEmpty()) {
             // If no attribute precedence has been set anywhere, we can just iterate in order
             return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()));
+        }
+
+        // Populate requested attribute -> position in requested attribute list
+        final Map<String, Integer> remaining = new LinkedHashMap<>();
+        int position = 0;
+        for (Attribute<?> requestedAttribute : requested) {
+            remaining.put(requestedAttribute.getName(), position++);
+        }
+
+        List<Integer> sorted = new ArrayList<>(remaining.size());
+
+        // Add attribute index to sorted in the order of precedence
+        for (Attribute<?> preferredAttribute : schema.getAttributeDisambiguationPrecedence()) {
+            if (requested.contains(preferredAttribute)) {
+                sorted.add(remaining.remove(preferredAttribute.getName()));
+            }
+        }
+
+        // If nothing was sorted, there were no attributes in the request that matched any attribute precedences
+        if (sorted.isEmpty()) {
+            // Iterate in order
+            return new PrecedenceResult(remaining.values());
         } else {
-            // Populate requested attribute -> position in requested attribute list
-            final Map<String, Integer> remaining = new LinkedHashMap<>();
-            int position = 0;
-            for (Attribute<?> requestedAttribute : requested) {
-                remaining.put(requestedAttribute.getName(), position++);
-            }
-            List<Integer> sorted = new ArrayList<>(remaining.size());
-
-            // Add attribute index to sorted in the order of precedence by the consumer
-            for (Attribute<?> preferredAttribute : consumerSchema.getAttributeDisambiguationPrecedence()) {
-                if (requested.contains(preferredAttribute)) {
-                    sorted.add(remaining.remove(preferredAttribute.getName()));
-                }
-            }
-            // Add attribute index to sorted in the order of precedence by the producer
-            for (Attribute<?> preferredAttribute : producerSchema.getAttributeDisambiguationPrecedence()) {
-                if (remaining.containsKey(preferredAttribute.getName()) && requested.contains(preferredAttribute)) {
-                    sorted.add(remaining.remove(preferredAttribute.getName()));
-                }
-            }
-            // If nothing was sorted, there were no attributes in the request that matched any attribute precedences
-            if (sorted.isEmpty()) {
-                // Iterate in order
-                return new PrecedenceResult(remaining.values());
-            } else {
-                // sorted now contains any requested attribute indices in the order they appear in
-                // the consumer and producer's attribute precedences
-                return new PrecedenceResult(sorted, remaining.values());
-            }
+            // sorted now contains any requested attribute indices in the order they appear in
+            // the consumer and producer's attribute precedences
+            return new PrecedenceResult(sorted, remaining.values());
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultAttributeSelectionSchema that = (DefaultAttributeSelectionSchema) o;
-        return consumerSchema.equals(that.consumerSchema) && producerSchema.equals(that.producerSchema);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(consumerSchema, producerSchema);
     }
 }

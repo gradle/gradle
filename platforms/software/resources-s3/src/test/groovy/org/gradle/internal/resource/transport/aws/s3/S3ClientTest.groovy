@@ -29,8 +29,8 @@ import com.amazonaws.services.s3.model.UploadPartRequest
 import com.amazonaws.services.s3.model.UploadPartResult
 import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
-import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.http.HttpProxySettings
+import org.gradle.util.TestCredentialUtil
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -243,7 +243,7 @@ class S3ClientTest extends Specification {
     }
 
     def credentials() {
-        def credentials = new DefaultAwsCredentials()
+        def credentials = TestCredentialUtil.defaultAwsCredentials()
         credentials.setAccessKey("AKey")
         credentials.setSecretKey("ASecret")
         credentials

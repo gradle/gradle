@@ -66,10 +66,4 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
         return isContentEqualsFor(that);
 
     }
-
-    @Override
-    public String toString() {
-        return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s'}",
-                getGroup(), getName(), getVersion(), getTargetConfiguration() != null ? getTargetConfiguration() : Dependency.DEFAULT_CONFIGURATION);
-    }
 }

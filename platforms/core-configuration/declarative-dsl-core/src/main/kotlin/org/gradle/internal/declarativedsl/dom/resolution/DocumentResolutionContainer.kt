@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution.ErrorResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.PropertyResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.LiteralValueResolved
+import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.NamedReferenceResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.dom.data.NodeDataContainer
 import org.gradle.internal.declarativedsl.dom.data.ValueDataContainer
@@ -29,6 +30,6 @@ import org.gradle.internal.declarativedsl.dom.data.ValueDataContainer
 
 interface DocumentResolutionContainer :
     NodeDataContainer<DocumentNodeResolution, ElementResolution, PropertyResolution, ErrorResolution>,
-    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved>
+    ValueDataContainer<ValueNodeResolution, ValueFactoryResolution, LiteralValueResolved, NamedReferenceResolution>
 
 

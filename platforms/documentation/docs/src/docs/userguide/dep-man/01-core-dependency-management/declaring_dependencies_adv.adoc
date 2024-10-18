@@ -32,7 +32,7 @@ See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin
 .Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
-For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<dependency_resolution.adoc#sec:programmatic_api,resolution result APIs>>.
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<programmatic_dependency_resolution.adoc#sec:programmatic_api,resolution result APIs>>.
 
 [[sub:config-inheritance-composition]]
 === Configuration inheritance and composition
@@ -274,7 +274,7 @@ include::{snippetsPath}/artifacts/generatedFileDependencies/tests/generatedFileD
 ==== Versioning of file dependencies
 
 It is recommended to clearly express the intention and a concrete version for file dependencies.
-File dependencies are not considered by Gradle's <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,version conflict resolution>>.
+File dependencies are not considered by Gradle's <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps,version conflict resolution>>.
 Therefore, it is extremely important to assign a version to the file name to indicate the distinct set of changes shipped with it.
 For example `commons-beanutils-1.3.jar` lets you track the changes of the library by the release notes.
 

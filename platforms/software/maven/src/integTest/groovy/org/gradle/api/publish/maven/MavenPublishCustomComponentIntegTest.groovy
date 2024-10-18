@@ -160,7 +160,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                 // shared mutable state for tests, don't do this at home!
                 static AttributeContainer INSTANCE
             }
-            TestAttributes.INSTANCE = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
+            TestAttributes.INSTANCE = project.services.get(org.gradle.api.internal.attributes.AttributesFactory)
                .mutable()
                .attribute(Attribute.of("test.attribute", String), "value")
 

@@ -19,11 +19,10 @@ package org.gradle.nativeplatform.test.xctest.plugins;
 import com.google.common.collect.Lists;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -85,11 +84,11 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
     private final ToolChainSelector toolChainSelector;
     private final NativeComponentFactory componentFactory;
     private final ObjectFactory objectFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, ObjectFactory objectFactory, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
         this.toolChainSelector = toolChainSelector;
         this.componentFactory = componentFactory;
@@ -247,16 +246,11 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
             if (binary.getTargetMachine().getOperatingSystemFamily().isLinux()) {
                 TaskProvider<Sync> renameLinuxMainTask = project.getTasks().register("renameLinuxMain", Sync.class, task -> {
                     task.from(binary.getSwiftSource());
-                    task.into(project.provider(() -> task.getTemporaryDir()));
+                    task.into(project.getLayout().getBuildDirectory().dir("linuxMain"));
                     task.include("LinuxMain.swift");
-                    task.rename(new Transformer<String, String>() {
-                        @Override
-                        public String transform(String it) {
-                            return "main.swift";
-                        }
-                    });
+                    task.rename(".*", "main.swift");
                 });
-                compile.getSource().from(project.files(renameLinuxMainTask).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
+                compile.getSource().from(project.files(renameLinuxMainTask.map(Sync::getDestinationDir)).getAsFileTree().matching(patterns -> patterns.include("**/*.swift")));
             }
         }
     }

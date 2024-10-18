@@ -17,18 +17,19 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -54,13 +55,13 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final ComponentGraphResolveState component;
     private final VariantGraphResolveState variant;
     private final ComponentIdentifier componentId;
-    private final AttributesSchemaInternal producerSchema;
+    private final ImmutableAttributesSchema producerSchema;
     private final ImmutableAttributes overriddenAttributes;
     private final List<IvyArtifactName> artifacts;
     private final ExcludeSpec exclusions;
-    private final List<Capability> capabilities;
+    private final Set<CapabilitySelector> capabilitySelectors;
     private final GraphVariantSelector graphVariantSelector;
-    private final AttributesSchemaInternal consumerSchema;
+    private final ImmutableAttributesSchema consumerSchema;
 
     private final CalculatedValue<ImmutableList<ResolvedVariant>> ownArtifacts;
 
@@ -70,7 +71,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         VariantGraphResolveState variant,
         DependencyGraphEdge dependency,
         GraphVariantSelector graphVariantSelector,
-        AttributesSchemaInternal consumerSchema,
+        ImmutableAttributesSchema consumerSchema,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.variantResolver = variantResolver;
@@ -81,7 +82,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.overriddenAttributes = dependency.getAttributes();
         this.artifacts = dependency.getDependencyMetadata().getArtifacts();
         this.exclusions = dependency.getExclusions();
-        this.capabilities = dependency.getSelector().getRequested().getRequestedCapabilities();
+        this.capabilitySelectors = dependency.getSelector().getRequested().getCapabilitySelectors();
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;
         this.ownArtifacts = calculatedValueContainerFactory.create(
@@ -141,9 +142,14 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     public ImmutableList<ResolvedVariant> calculateOwnArtifacts() {
         if (artifacts.isEmpty()) {
             return getArtifactsForGraphVariant(variant);
-        } else {
-            return ImmutableList.of(variant.prepareForArtifactResolution().resolveAdhocVariant(variantResolver, artifacts));
         }
+
+        // The user requested artifacts on the dependency.
+        // Resolve an adhoc variant with those artifacts.
+        ComponentArtifactResolveMetadata componentArtifactMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
+        VariantArtifactResolveState artifactState = variant.prepareForArtifactResolution();
+        ImmutableList<ComponentArtifactMetadata> adhocArtifacts = artifactState.getAdhocArtifacts(artifacts);
+        return ImmutableList.of(variantResolver.resolveAdhocVariant(componentArtifactMetadata, adhocArtifacts));
     }
 
     /**
@@ -158,7 +164,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         // First, find the graph variant containing the artifact variants to select among.
         VariantGraphResolveState graphVariant = graphVariantSelector.selectByAttributeMatchingLenient(
             requestAttributes,
-            capabilities,
+            capabilitySelectors,
             component,
             consumerSchema,
             Collections.emptyList()

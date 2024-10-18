@@ -47,11 +47,11 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.jvmServices)
     implementation(projects.native)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.jvmServices)
 
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))

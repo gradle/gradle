@@ -11,12 +11,6 @@ This project is a implementation dependency of many other testing-related subpro
 dependency for any projects working directly with Test tasks.
 """
 
-errorprone {
-    disabledChecks.addAll(
-        "EmptyBlockTag", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.time)
@@ -24,9 +18,9 @@ dependencies {
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.fileOperations)
     api(projects.logging)
     api(projects.messaging)
-    api(projects.processServices)
     api(projects.reporting)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)

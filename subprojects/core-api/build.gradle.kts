@@ -7,7 +7,6 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 
 errorprone {
     disabledChecks.addAll(
-        "EmptyBlockTag", // 5 occurrences
         "InlineMeSuggester", // 1 occurrences
         "MalformedInlineTag", // 3 occurrences
         "MixedMutabilityReturnType", // 3 occurrences
@@ -22,7 +21,6 @@ errorprone {
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
-    api(projects.processServices)
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
     api(projects.loggingApi)

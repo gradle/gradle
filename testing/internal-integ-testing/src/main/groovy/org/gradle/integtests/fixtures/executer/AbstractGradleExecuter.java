@@ -25,6 +25,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -42,6 +43,9 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
@@ -54,6 +58,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -95,7 +100,6 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
-import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
 import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR;
 
@@ -114,7 +118,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         ValidationServicesFixture.getServices()
     ).getServices();
 
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ExecHandleFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
 
@@ -159,7 +163,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 120;
-    private boolean requireDaemon;
+    protected boolean requireDaemon;
     private File daemonBaseDir;
     private final List<String> buildJvmOpts = new ArrayList<>();
     private final List<String> commandLineJvmOpts = new ArrayList<>();
@@ -568,7 +572,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
             // Pass build JVM args through to daemon via system property on the launcher JVM
-            String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, input -> String.format("'%s'", input)));
+            String quotedArgs = joinAndQuoteJvmArgs(gradleInvocation.buildJvmArgs);
             gradleInvocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
         } else {
             // Have to pass build JVM args directly to launcher JVM
@@ -589,6 +593,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
+    }
+
+    protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
+        return join(" ", buildJvmArgs, input -> {
+            if (input.contains("'")) {
+                throw new IllegalArgumentException("Cannot handle JVM args containing single quotes: " + input);
+            }
+            return "'" + input + "'";
+        });
     }
 
     /**
@@ -615,24 +628,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
-        if (getJavaVersionFromJavaHome().compareTo(JavaVersion.VERSION_1_8) < 0) {
-            // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
-            buildJvmOpts.add("-XX:MaxPermSize=320m");
-        } else {
-            buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
-        }
+        buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
+
         buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
         buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir());
         return buildJvmOpts;
-    }
-
-    private boolean xmxSpecified() {
-        for (String arg : buildJvmOpts) {
-            if (arg.startsWith("-Xmx")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -891,6 +891,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return requireDaemon || cliDaemonArgument == DAEMON;
     }
 
+    protected boolean isSingleUseDaemonRequested() {
+        return resolveCliDaemonArgument() == NO_DAEMON && requireDaemon;
+    }
 
     public static boolean isAgentInstrumentationEnabled() {
         return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));

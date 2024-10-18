@@ -189,10 +189,17 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+            .withAdvice("Use a lenient ArtifactView instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+            .nagUser();
+
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -208,7 +215,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -216,7 +223,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     public Set<ResolvedArtifact> getArtifacts() {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
@@ -232,7 +239,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 

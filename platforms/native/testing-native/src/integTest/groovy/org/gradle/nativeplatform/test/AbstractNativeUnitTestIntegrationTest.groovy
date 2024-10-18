@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.LanguageTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -27,13 +26,6 @@ import static org.gradle.nativeplatform.MachineArchitecture.X86
 import static org.gradle.nativeplatform.MachineArchitecture.X86_64
 
 abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements LanguageTaskNames {
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithApplicationIntegrationTest',
-        'SwiftXCTestWithoutComponentIntegrationTest'
-    ])
     def "does nothing when no source files are present"() {
         given:
         makeSingleProject()
@@ -46,13 +38,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         result.assertTasksSkipped(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithApplicationIntegrationTest',
-        'SwiftXCTestWithoutComponentIntegrationTest'
-    ])
     def "runs tests when #task lifecycle task executes"() {
         given:
         makeSingleProject()
@@ -73,13 +58,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithApplicationIntegrationTest',
-        'SwiftXCTestWithoutComponentIntegrationTest'
-    ])
     def "runs tests when #task lifecycle task executes and target machines are specified on the component under test"() {
         Assume.assumeFalse(componentUnderTestDsl == null)
 
@@ -104,13 +82,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithApplicationIntegrationTest',
-        'SwiftXCTestWithoutComponentIntegrationTest'
-    ])
     def "runs tests when #task lifecycle task executes and target machines are specified on both main component and test component"() {
         Assume.assumeFalse(componentUnderTestDsl == null)
 
@@ -134,13 +105,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         "build" | X86_64               | [":test", ":check", ":build", getTasksToAssembleComponentUnderTest(X86_64), ":assemble"]
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithApplicationIntegrationTest',
-        'SwiftXCTestWithoutComponentIntegrationTest'
-    ])
     def "runs tests when #task lifecycle task executes and target machines are specified on the test component only"() {
         given:
         makeSingleProject()
@@ -178,13 +142,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         failure.assertHasCause("The target machine ${currentOsFamilyName}:${otherArchitecture} was specified for the unit test, but this target machine was not specified on the component under test.")
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'SwiftXCTestWithBothLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithSharedLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithStaticLibraryLinkageIntegrationTest',
-        'SwiftXCTestWithApplicationIntegrationTest',
-        'SwiftXCTestWithoutComponentIntegrationTest'
-    ])
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
         given:
         makeSingleProject()

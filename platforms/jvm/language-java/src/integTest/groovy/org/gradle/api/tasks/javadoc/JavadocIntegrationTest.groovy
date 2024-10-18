@@ -613,6 +613,61 @@ Joe!""")
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
     }
 
+    def "isVerbose is deprecated"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                print("Javadoc is verbose: " + isVerbose())
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.isVerbose() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().isVerbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+        outputContains("Javadoc is verbose: false")
+    }
+
+    def "setVerbose(true) is deprecated"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                setVerbose(true)
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(true) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().verbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+    }
+
+    def "setVerbose(false) is deprecated with additional details"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                setVerbose(false)
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(false) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Passing false to this method does nothing. You may want to call getOptions().quiet(). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

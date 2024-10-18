@@ -27,7 +27,7 @@ public interface StreamHasher {
     /**
      * Returns the hash of the given input stream. The stream will not be closed by the method.
      */
-    HashCode hash(InputStream inputStream);
+    HashCode hash(InputStream inputStream) throws IOException;
 
     /**
      * Returns the hash of the given input stream while copying the data to the output stream.

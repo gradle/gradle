@@ -27,12 +27,9 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
@@ -439,17 +436,13 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         // But since we do some artifact transform caching via BuildService,
         // that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
         val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
-        val fileCollectionFactory = gradle.serviceOf<FileCollectionFactory>()
-        val dependencyResolutionServices = dependencyManagementServices.create(
-            gradle.serviceOf<FileResolver>(),
-            fileCollectionFactory,
-            gradle.serviceOf<DependencyMetaDataProvider>(),
-            UnknownProjectFinder("Project dependencies are not allowed at GeneratePrecompiledScriptPluginAccessors resolution"),
+        val dependencyResolutionServices = dependencyManagementServices.newDetachedResolver(
             StandaloneDomainObjectContext.PLUGINS
         )
 
         val dependencies = dependencyResolutionServices.dependencyHandler
         val configurations = dependencyResolutionServices.configurationContainer
+        val fileCollectionFactory = gradle.serviceOf<FileCollectionFactory>()
         val configuration = createBuildLogicClassPathConfiguration(dependencies, configurations, fileCollectionFactory)
 
         val resolver = gradle.serviceOf<ScriptClassPathResolver>()

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -197,12 +196,13 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         ComponentArtifactResolveState componentState = moduleResolveResult.getState().prepareForArtifactResolution();
         DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(componentState.getId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {
-            addArtifacts(componentResult, artifactType, componentState, moduleResolveResult.getModuleVersionId(), artifactResolver);
+            moduleResolveResult.getModuleVersionId();
+            addArtifacts(componentResult, artifactType, componentState, artifactResolver);
         }
         return componentResult;
     }
 
-    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentArtifactResolveState componentState, ModuleVersionIdentifier owner, ArtifactResolver artifactResolver) {
+    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentArtifactResolveState componentState, ArtifactResolver artifactResolver) {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         componentState.resolveArtifactsWithType(artifactResolver, convertType(type), artifactSetResolveResult);
 

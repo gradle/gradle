@@ -255,7 +255,7 @@ public class ClassSetAnalysisData {
         Set<String> typesInPackage = new HashSet<>();
         for (String type : classHashes.keySet()) {
             int i = type.lastIndexOf(".");
-            if (i < 0 && packageName == null || i > 0 && type.substring(0, i).equals(packageName)) {
+            if ((i < 0 && packageName == null) || (i > 0 && type.substring(0, i).equals(packageName))) {
                 typesInPackage.add(type);
             }
         }

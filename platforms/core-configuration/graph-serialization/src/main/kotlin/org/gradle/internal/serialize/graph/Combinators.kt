@@ -55,6 +55,8 @@ fun <T> IsolateContext.ownerService(serviceType: Class<T>) =
 
 fun <T : Any> reentrant(codec: Codec<T>): Codec<T> = object : Codec<T> {
 
+    override fun toString(): String = "reentrant $codec"
+
     var encodeCall: EncodeFrame<T>? = null
 
     var decodeCall: DecodeFrame<T?>? = null

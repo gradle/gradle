@@ -16,24 +16,29 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.artifacts.DependencyResolutionListener
+import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.api.invocation.Gradle
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.DeprecatedInGradleScope
+import org.gradle.internal.InternalListener
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
 /**
- * Reports deprecations when [FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE] is enabled
- * but the configuration cache is not (since the deprecated features are already reported as problems
- * in that case).
+ * Reports deprecations for behaviors unsupported with CC even if CC is not enabled.
+ * Some deprecations are skipped if CC is in use since the deprecated features are already reported as problems in that case.
  */
 @ListenerService
 @ServiceScope(Scope.BuildTree::class)
@@ -44,8 +49,19 @@ class DeprecatedFeaturesListener(
 ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener, ExecutionAccessListener {
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (shouldNag()) {
-            nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
+        when {
+            invocationDescription == "Gradle.useLogger" && listener !is InternalListener -> {
+                // Some configuration-time only listeners are allowed by CC, but Gradle.useLogger is deprecated for everything.
+                // A couple of places in Gradle continue calling useLogger until this method is removed, and we suppress the
+                // warning for their InternalListeners here.
+                DeprecationLogger.deprecateMethod(Gradle::class.java, "useLogger(Object)")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "deprecated_use_logger")
+                    .nagUser();
+            }
+            shouldNagAbout(listener) -> {
+                nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
+            }
         }
     }
 
@@ -90,6 +106,9 @@ class DeprecatedFeaturesListener(
         // TODO:configuration-cache - this listener shouldn't be registered when cc is enabled
         !buildModelParameters.isConfigurationCache && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE)
 
+    private
+    fun shouldNagAbout(listener: Any): Boolean = shouldNag() && !isSupportedListener(listener)
+
     /**
      * Only nag about tasks that are actually executing, but not tasks that are configured by the executing tasks.
      * A task is unlikely to reach out to other tasks without violating other constraints.
@@ -101,4 +120,21 @@ class DeprecatedFeaturesListener(
     private
     fun throwUnsupported(reason: String): Nothing =
         throw UnsupportedOperationException("$reason is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
+}
+
+/**
+ * Checks if the build listener is allowed to be registered with the configuration cache enabled.
+ */
+internal
+fun isSupportedListener(listener: Any): Boolean {
+    return when {
+        // Internal listeners are always allowed: we know their lifecycle and ensure there are no problems when configuration cache is reused.
+        listener is InternalListener -> true
+        // Explicitly unsupported Listener types are disallowed.
+        JavaReflectionUtil.hasAnnotation(listener.javaClass, DeprecatedInGradleScope::class.java) -> false
+        // We had to check for unsupported first to reject a listener that implements both allowed and disallowed interfaces.
+        listener is ProjectEvaluationListener || listener is TaskExecutionGraphListener || listener is DependencyResolutionListener -> true
+        // Just reject everything we don't know.
+        else -> false
+    }
 }

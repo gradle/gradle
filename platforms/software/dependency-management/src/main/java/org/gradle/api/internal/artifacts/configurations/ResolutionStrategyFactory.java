@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
@@ -50,7 +50,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final Instantiator instantiator;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
     private final VcsMappingsStore vcsMappingsStore;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencyLockingProvider dependencyLockingProvider;
@@ -66,7 +66,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         Instantiator instantiator,
         DependencySubstitutionRules globalDependencySubstitutionRules,
         VcsMappingsStore vcsMappingsStore,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyLockingProvider dependencyLockingProvider,

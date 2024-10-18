@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -154,11 +153,11 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> filter(List<? extends T> list, Spec<? super T> filter) {
-        return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
+        return filter(list, new ArrayList<>(list.size()), filter);
     }
 
     public static <T> List<T> filter(T[] array, Spec<? super T> filter) {
-        return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
+        return filter(Arrays.asList(array), new ArrayList<>(array.length), filter);
     }
 
 

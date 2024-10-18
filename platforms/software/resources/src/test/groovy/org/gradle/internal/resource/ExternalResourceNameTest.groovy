@@ -38,10 +38,13 @@ class ExternalResourceNameTest extends Specification {
         name.root.uri.toASCIIString() == expectedRoot
 
         where:
-        uri                           | expectedRoot        | expectedPath
-        "http://host:8080/path"       | "http://host:8080/" | "/path"
-        "http://host:8080/path?query" | "http://host:8080/" | "/path"
-        "http://host:8080?query"      | "http://host:8080"  | ""
+        uri                             | expectedRoot                    | expectedPath
+        "http://host:8080/path"         | "http://host:8080/"             | "/path"
+        "http://host:8080/path?query"   | "http://host:8080/"             | "/path"
+        "http://host:8080?query"        | "http://host:8080"              | ""
+        "http://127.0.0.1:8080"         | "http://127.0.0.1:8080"         | ""
+        "http://[0:0:0:0:0:0:0:1]:8080" | "http://[0:0:0:0:0:0:0:1]:8080" | ""
+        "http://[::1]:8080"             | "http://[::1]:8080"             | ""
     }
 
     def "can construct a resource name from URI and path"() {

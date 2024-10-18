@@ -45,10 +45,10 @@ class DaemonGroovyCompilerIntegrationTest extends AbstractApiGroovyCompilerInteg
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
-                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
-                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
-                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
-                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                        new File(it.forkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.jvmOptions.minHeapSize == "128m" &&
+                        it.forkOptions.jvmOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.jvmOptions.mutableSystemProperties['foo'] == "bar"
                     }
                 }
             }
@@ -58,6 +58,23 @@ class DaemonGroovyCompilerIntegrationTest extends AbstractApiGroovyCompilerInteg
         succeeds "compileGroovy"
         groovyClassFile("Thing.class").exists()
         groovyClassFile("JavaThing.class").exists()
+    }
+
+    def "setting forkOptions is deprecated"() {
+        given:
+        file("src/main/groovy/Thing.groovy") << "class Thing {}"
+        buildFile << """
+            apply plugin: "groovy"
+            ${mavenCentralRepository()}
+            tasks.withType(GroovyCompile) {
+                // Just do something trivial to call it
+                options.setForkOptions(options.forkOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setForkOptions(ForkOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of forkOptions is unnecessary. Please use the forkOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
+
+        expect:
+        succeeds "compileGroovy"
     }
 
     @Override

@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintsMetadataAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependenciesMetadataAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataAdapter;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
@@ -53,13 +53,13 @@ public class DependencyMetadataRules {
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser;
     private final List<VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata>> dependencyActions = new ArrayList<>();
     private final List<VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<>();
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
     public DependencyMetadataRules(
         Instantiator instantiator,
         NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
         NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser,
-        ImmutableAttributesFactory attributesFactory
+        AttributesFactory attributesFactory
     ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;

@@ -26,11 +26,13 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.internal.attributes.EmptySchema
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
@@ -61,7 +63,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         decorateSpec(_) >> { Spec spec -> spec }
         decorate(_ as Action) >> { it[0] }
     }
-    def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
+    def attributesFactory = AttributeTestUtil.attributesFactory()
     def metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
     }
@@ -77,7 +79,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         fileCollectionFactory,
         buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
-        immutableAttributesFactory,
+        attributesFactory,
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
@@ -85,14 +87,15 @@ class DefaultConfigurationContainerSpec extends Specification {
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
-        TestFiles.taskDependencyFactory()
+        TestFiles.taskDependencyFactory(),
+        new DefaultProblems([new NoOpProblemEmitter()])
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
         domainObjectCollectionCallbackActionDecorator,
         metaDataProvider,
         domainObjectContext,
-        EmptySchema.INSTANCE,
+        Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory)

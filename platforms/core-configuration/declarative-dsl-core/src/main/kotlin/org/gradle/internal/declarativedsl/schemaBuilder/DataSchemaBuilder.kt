@@ -19,16 +19,20 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
+import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.fqName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.typeOf
 
 
 class DataSchemaBuilder(
@@ -53,8 +57,8 @@ class DataSchemaBuilder(
         val topLevelReceiverName = topLevelReceiver.fqName
 
         return DefaultAnalysisSchema(
-            dataTypes.single { it.name == topLevelReceiverName },
-            dataTypes.associateBy { it.name },
+            dataTypes.filterIsInstance<DataClass>().single { it.name == topLevelReceiverName },
+            dataTypes.associateBy { it.name } + preIndex.syntheticTypes.associateBy { it.name },
             extFunctions,
             extObjects,
             defaultImports.toSet()
@@ -75,6 +79,11 @@ class DataSchemaBuilder(
         private
         val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KFunction<*>>>()
 
+        private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
+
+        fun getOrRegisterSyntheticType(id: String, produceType: () -> DataClass): DataClass =
+            mutableSyntheticTypes.getOrPut(id, produceType)
+
         fun addType(kClass: KClass<*>) {
             properties.getOrPut(kClass) { mutableMapOf() }
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }
@@ -88,6 +97,9 @@ class DataSchemaBuilder(
         fun claimFunction(kClass: KClass<*>, kFunction: KFunction<*>) {
             claimedFunctions.getOrPut(kClass) { mutableSetOf() }.add(kFunction)
         }
+
+        val syntheticTypes: List<DataClass>
+            get() = mutableSyntheticTypes.values.toList()
 
         val types: Iterable<KClass<*>>
             get() = properties.keys
@@ -119,7 +131,7 @@ class DataSchemaBuilder(
                 addType(type)
                 val properties = propertyExtractor.extractProperties(type)
                 properties.forEach {
-                    it.claimedFunctions.forEach { claimFunction(type, it) }
+                    it.claimedFunctions.forEach { f -> claimFunction(type, f) }
                     addProperty(
                         type,
                         DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
@@ -130,17 +142,29 @@ class DataSchemaBuilder(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private
     fun createDataType(
         kClass: KClass<*>,
         preIndex: PreIndex,
-    ): DataClass {
-        val properties = preIndex.getAllProperties(kClass)
+    ): DataType.ClassDataType {
+        return when {
+            isEnum(kClass) -> {
+                val entryNames = (kClass as KClass<Enum<*>>).java.enumConstants.map { it.name }
+                DefaultEnumClass(kClass.fqName, kClass.java.name, entryNames)
+            }
+            else -> {
+                val properties = preIndex.getAllProperties(kClass)
+                val functions = functionExtractor.memberFunctions(kClass, preIndex).toList()
+                val constructors = functionExtractor.constructors(kClass, preIndex).toList()
+                DefaultDataClass(kClass.fqName, supertypesOf(kClass), properties, functions, constructors)
+            }
+        }
+    }
 
-        val functions = functionExtractor.memberFunctions(kClass, preIndex)
-        val constructors = functionExtractor.constructors(kClass, preIndex)
-        val name = kClass.fqName
-        return DefaultDataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
+    private
+    fun isEnum(kClass: KClass<*>): Boolean {
+        return kClass.supertypes.any { it.isSubtypeOf(typeOf<Enum<*>>()) }
     }
 
     private

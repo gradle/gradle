@@ -16,9 +16,8 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
@@ -27,9 +26,6 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         """
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'XCTestDependenciesIntegrationTest'
-    ])
     def "can define implementation dependencies on component"() {
         given:
         createDirs("lib")
@@ -50,9 +46,6 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        'XCTestDependenciesIntegrationTest'
-    ])
     def "can define implementation dependencies on each binary"() {
         given:
         createDirs("lib")

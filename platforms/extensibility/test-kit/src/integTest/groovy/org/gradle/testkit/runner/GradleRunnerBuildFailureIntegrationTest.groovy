@@ -92,9 +92,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         buildFile helloWorldTask()
 
         when:
-        def runner = gradleVersion >= GradleVersion.version("4.5")
-            ? this.runner('helloWorld', '--warning-mode=none')
-            : this.runner('helloWorld')
+        def runner = createRunner()
         runner.buildAndFail()
 
         then:
@@ -110,6 +108,17 @@ $t.buildResult.output"""
 
         normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
+    }
+
+    def GradleRunner createRunner() {
+        def args = ['helloWorld']
+        if (gradleVersion >= GradleVersion.version("4.5")) {
+            args += '--warning-mode=none'
+        }
+        if (gradleVersion > GradleVersion.version("8.11-milestone-1")) {
+            args += "--no-problems-report"
+        }
+        this.runner(args)
     }
 
     def "throws when build is expected to succeed but fails"() {

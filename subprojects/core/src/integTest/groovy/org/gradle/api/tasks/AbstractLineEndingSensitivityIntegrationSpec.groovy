@@ -29,6 +29,12 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
     public static final String TRANSFORM_EXECUTED = 'Transform producer.zip (project :producer) with AugmentTransform'
     public static final String TEXT_WITH_LINE_ENDINGS = "\nhere's a line\nhere's another line\n\n"
 
+    def setup() {
+        executer.beforeExecute {
+            requireOwnGradleUserHomeDir("Some non-incremental transforms would otherwise reuse outputs from previous builds on the same machine")
+        }
+    }
+
     abstract String getStatusForReusedOutput()
 
     abstract void execute(String... tasks)

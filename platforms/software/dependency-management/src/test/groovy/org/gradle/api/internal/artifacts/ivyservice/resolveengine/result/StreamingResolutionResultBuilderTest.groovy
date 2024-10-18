@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
@@ -73,6 +74,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         new DummyBinaryStore(),
         new DummyStore(),
         new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+        new CapabilitySelectorSerializer(),
         componentResultSerializer,
         DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
         false

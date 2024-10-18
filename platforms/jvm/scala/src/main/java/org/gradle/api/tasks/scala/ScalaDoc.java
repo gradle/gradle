@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -165,8 +167,29 @@ public abstract class ScalaDoc extends SourceTask {
         return scalaDocOptions;
     }
 
+    /**
+     * Sets the ScalaDoc generation options.
+     *
+     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #scalaDocOptions(Action)} instead.
+     */
+    @Deprecated
     public void setScalaDocOptions(ScalaDocOptions scalaDocOptions) {
+        DeprecationLogger.deprecateMethod(ScalaDoc.class, "setScalaDocOptions(ScalaDocOptions)")
+            .replaceWith("scalaDocOptions(Action)")
+            .withContext("Setting a new instance of scalaDocOptions is unnecessary.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
+            .nagUser();
         this.scalaDocOptions = scalaDocOptions;
+    }
+
+    /**
+     * Configures the ScalaDoc generation options.
+     *
+     * @since 8.11
+     */
+    public void scalaDocOptions(Action<? super ScalaDocOptions> action) {
+        action.execute(getScalaDocOptions());
     }
 
     /**

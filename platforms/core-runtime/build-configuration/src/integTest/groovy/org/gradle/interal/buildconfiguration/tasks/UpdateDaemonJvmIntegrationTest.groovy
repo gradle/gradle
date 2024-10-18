@@ -30,6 +30,11 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
+    def setup() {
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+    }
+
     def "root project has an updateDaemonJvm task only"() {
         buildFile << """
             def updateDaemonJvm = tasks.named("updateDaemonJvm").get()

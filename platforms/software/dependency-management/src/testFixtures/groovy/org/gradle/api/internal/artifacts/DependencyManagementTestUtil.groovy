@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.ModuleComponentGraphResolveS
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
@@ -40,15 +41,15 @@ class DependencyManagementTestUtil {
     }
 
     static MavenMutableModuleMetadataFactory mavenMetadataFactory() {
-        return new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), defaultSchema())
+        return new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), preferJavaRuntimeVariant())
     }
 
     static IvyMutableModuleMetadataFactory ivyMetadataFactory() {
-        return new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), defaultSchema())
+        return new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), AttributeTestUtil.attributesFactory(), preferJavaRuntimeVariant())
     }
 
-    static PreferJavaRuntimeVariant defaultSchema() {
-        return new PreferJavaRuntimeVariant(TestUtil.objectInstantiator())
+    static PreferJavaRuntimeVariant preferJavaRuntimeVariant() {
+        return new PreferJavaRuntimeVariant(TestUtil.objectInstantiator(), AttributeTestUtil.services().getSchemaFactory())
     }
 
     static PlatformSupport platformSupport() {
@@ -63,6 +64,11 @@ class DependencyManagementTestUtil {
         def services = TestUtil.createTestServices {
             it.add(AttributeDescriberRegistry)
         }
-        new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(services), new DefaultProblems([new NoOpProblemEmitter()]))
+
+        return new ResolutionFailureHandler(
+            TestUtil.instantiatorFactory().inject(services),
+            new DefaultProblems([new NoOpProblemEmitter()]),
+            new TransformedVariantConverter()
+        )
     }
 }

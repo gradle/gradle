@@ -6,7 +6,6 @@ description = "Plugins and model builders for integration with Eclipse and Intel
 
 errorprone {
     disabledChecks.addAll(
-        "EmptyBlockTag", // 1 occurrences
         "LoopOverCharArray", // 1 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
     )
@@ -18,6 +17,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)

@@ -18,20 +18,20 @@ package org.gradle.plugins.signing
 import org.gradle.plugins.signing.type.pgp.ArmoredSignatureType
 
 class SigningConfigurationsSpec extends SigningProjectSpec {
-    
+
     def setup() {
         applyPlugin()
         useJavadocAndSourceJars()
-        configurations {
+        project.configurations {
             meta
             produced.extendsFrom meta, archives
         }
-        
-        artifacts {
-            meta javadocJar, sourcesJar
+
+        project.artifacts {
+            meta project.javadocJar, project.sourcesJar
         }
     }
-        
+
     def "sign configuration with defaults"() {
         when:
         signing {
@@ -39,7 +39,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         }
 
         then:
-        def signingTasks = [signArchives, signMeta]
+        def signingTasks = [project.signArchives, project.signMeta]
 
         // TODO - find way to test that the appropriate dependencies have been setup
         //        it would be easy if we could do…
@@ -61,7 +61,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
 
         then:
         configurations.signatures.artifacts.size() == 3
-        signProduced.signatures.every { it in configurations.signatures.artifacts }
+        project.signProduced.signatures.every { it in configurations.signatures.artifacts }
     }
 
     def "sign configuration with custom type"() {
@@ -79,10 +79,10 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
     def "sign task has description"() {
         when:
         signing {
-            sign configurations.produced
+            sign project.configurations.produced
         }
 
         then:
-        signProduced.description == "Signs all artifacts in the 'produced' configuration."
+        project.signProduced.description == "Signs all artifacts in the 'produced' configuration."
     }
 }

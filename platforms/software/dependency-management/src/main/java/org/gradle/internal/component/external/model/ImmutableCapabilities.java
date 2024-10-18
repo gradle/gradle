@@ -22,6 +22,7 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * A deeply immutable implementation of {@link CapabilitiesMetadata}.
@@ -33,7 +34,7 @@ import java.util.Collection;
  * Note that while this class is not itself {@code final}, all fields are private, so
  * subclassing should not break the immutability contract.
  */
-public class ImmutableCapabilities {
+public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableSet.of());
 
     private final ImmutableSet<ImmutableCapability> capabilities;
@@ -75,6 +76,15 @@ public class ImmutableCapabilities {
 
     public ImmutableSet<ImmutableCapability> asSet() {
         return capabilities;
+    }
+
+    @Override
+    public Iterator<ImmutableCapability> iterator() {
+        return capabilities.iterator();
+    }
+
+    public boolean isEmpty() {
+        return capabilities.isEmpty();
     }
 
     /**

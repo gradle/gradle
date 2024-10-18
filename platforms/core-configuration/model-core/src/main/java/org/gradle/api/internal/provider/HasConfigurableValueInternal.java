@@ -24,4 +24,9 @@ public interface HasConfigurableValueInternal extends HasConfigurableValue {
      * Implementations may then fail on subsequent changes, or generate a deprecation warning and ignore changes.
      */
     void implicitFinalizeValue();
+
+    /**
+     * Used for Provider API migration to not finalize values but only warn on changes to the value of this object.
+     */
+    void markAsUpgradedProperty();
 }

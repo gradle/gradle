@@ -70,6 +70,9 @@ class TestApi {
         @get:Restricted
         var number: Int
 
+        @get:Restricted
+        var enum: Enum
+
         @Adding
         fun add(): MyNestedElement
 
@@ -83,6 +86,10 @@ class TestApi {
     }
 
     interface MyNestedElement
+
+    enum class Enum {
+        A, B, C
+    }
 }
 
 

@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
+import org.gradle.internal.declarativedsl.dom.DefaultNamedReferenceNode
 import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
@@ -53,6 +54,7 @@ class ModelToDocumentMutationPlannerTest {
             nested {
                 number = 456
                 add()
+                enum = A
             }
         """.trimIndent()
 
@@ -69,7 +71,7 @@ class ModelToDocumentMutationPlannerTest {
     val document = resolved.document
 
     @Test
-    fun `set property value`() {
+    fun `set numeric property value`() {
         val newValue = DefaultLiteralNode(
             "789",
             SyntheticallyProduced
@@ -88,6 +90,29 @@ class ModelToDocumentMutationPlannerTest {
         assertSuccessfulMutation(
             mutationPlan,
             ReplaceValue(document.elementNamed("nested").propertyNamed("number").value) { newValue }
+        )
+    }
+
+    @Test
+    fun `set enum property value`() {
+        val newValue = DefaultNamedReferenceNode(
+            "A",
+            SyntheticallyProduced
+        )
+
+        val mutationPlan = planMutation(
+            resolved,
+            mutationRequest(
+                ModelMutation.SetPropertyValue(
+                    schema.propertyFor(TestApi.NestedReceiver::enum),
+                    NewValueNodeProvider.Constant(newValue)
+                )
+            )
+        )
+
+        assertSuccessfulMutation(
+            mutationPlan,
+            ReplaceValue(document.elementNamed("nested").propertyNamed("enum").value) { newValue }
         )
     }
 

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -37,7 +37,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     protected final DefaultVersionCatalog config;
     protected final ProviderFactory providers;
     protected final ObjectFactory objects;
-    protected final ImmutableAttributesFactory attributesFactory;
+    protected final AttributesFactory attributesFactory;
     protected final CapabilityNotationParser capabilityNotationParser;
 
     @SuppressWarnings("unused")
@@ -59,7 +59,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
                                                 ProviderFactory providers,
                                                 ObjectFactory objects,
-                                                ImmutableAttributesFactory attributesFactory,
+                                                AttributesFactory attributesFactory,
                                                 CapabilityNotationParser capabilityNotationParser
     ) {
         this.config = config;
@@ -83,7 +83,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         });
     }
 
-    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser, ObjectFactory objectFactory) {
+    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser, ObjectFactory objectFactory) {
         ImmutableVersionConstraint version = data.getVersion();
         DefaultMinimalDependency result = new DefaultMinimalDependency(
             DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
@@ -136,10 +136,10 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         protected final ProviderFactory providers;
         protected final DefaultVersionCatalog config;
         protected final ObjectFactory objects;
-        protected final ImmutableAttributesFactory attributesFactory;
+        protected final AttributesFactory attributesFactory;
         protected final CapabilityNotationParser capabilityNotationParser;
 
-        public BundleFactory(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {
+        public BundleFactory(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {
             this.objects = objects;
             this.providers = providers;
             this.config = config;

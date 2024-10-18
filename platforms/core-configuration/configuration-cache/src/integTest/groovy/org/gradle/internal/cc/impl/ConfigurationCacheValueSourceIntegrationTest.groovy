@@ -641,4 +641,59 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             problemsWithStackTraceCount = 0
         }
     }
+
+    def 'reentrant fingerprint'() {
+        def configurationCache = newConfigurationCacheFixture()
+        given:
+        buildFile """
+            abstract class CustomValueSource implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getString()
+                }
+
+                @Override String obtain() {
+                    return parameters.string.get()
+                }
+            }
+
+            abstract class PrintTask extends DefaultTask {
+                @Input abstract Property<String> getMessage()
+                @TaskAction def doIt() {
+                    println message.get()
+                }
+            }
+
+            tasks.register('build', PrintTask) {
+                message = providers.of(CustomValueSource) {
+                    parameters {
+                        string = provider {
+                            System.getProperty('MY_SYSTEM_PROPERTY', '42')
+                        }
+                    }
+                }.get() // explicitly calling get to trigger reentrant fingerprint behavior
+
+            }
+        """
+
+        when:
+        configurationCacheRun 'build'
+
+        then:
+        outputContains '42'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'build'
+
+        then:
+        outputContains '42'
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun 'build', '-DMY_SYSTEM_PROPERTY=2001'
+
+        then:
+        outputContains '2001'
+        configurationCache.assertStateStored()
+    }
 }

@@ -18,17 +18,19 @@ package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.Describables
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instantiation.DeserializationInstantiator
+import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
-import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.ReadIdentities
-import org.gradle.internal.serialize.graph.ownerService
 
 
 internal
-class DefaultClassDecoder : ClassDecoder {
+class DefaultClassDecoder(
+    private val defaultClassLoaderScope: ClassLoaderScope,
+    private val instantiator: DeserializationInstantiator
+) : ClassDecoder {
 
     private
     val classes = ReadIdentities()
@@ -36,20 +38,22 @@ class DefaultClassDecoder : ClassDecoder {
     private
     val scopes = ReadIdentities()
 
-    override fun ReadContext.decodeClass(): Class<*> {
+    override fun Decoder.decodeClass(): Class<*> {
         val id = readSmallInt()
         val type = classes.getInstance(id)
         if (type != null) {
             return type as Class<*>
         }
+        val isGenerated = readBoolean()
         val name = readString()
-        val classLoader = decodeClassLoader() ?: javaClass.classLoader
-        val newType = Class.forName(name, false, classLoader)
-        classes.putInstance(id, newType)
-        return newType
+        val classLoader = decodeClassLoader()
+        val newType = classForName(name, classLoader ?: gradleRuntimeClassLoader)
+        val actualType = if (isGenerated) instantiator.getGeneratedType(newType) else newType
+        classes.putInstance(id, actualType)
+        return actualType
     }
 
-    override fun ReadContext.decodeClassLoader(): ClassLoader? =
+    override fun Decoder.decodeClassLoader(): ClassLoader? =
         if (readBoolean()) {
             val scope = readScope()
             if (readBoolean()) {
@@ -62,7 +66,7 @@ class DefaultClassDecoder : ClassDecoder {
         }
 
     private
-    fun ReadContext.readScope(): ClassLoaderScope {
+    fun Decoder.readScope(): ClassLoaderScope {
         val id = readSmallInt()
         val scope = scopes.getInstance(id)
         if (scope != null) {
@@ -72,7 +76,7 @@ class DefaultClassDecoder : ClassDecoder {
         val parent = if (readBoolean()) {
             readScope()
         } else {
-            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
+            defaultClassLoaderScope
         }
 
         val name = readString()
@@ -96,7 +100,7 @@ class DefaultClassDecoder : ClassDecoder {
     }
 
     private
-    fun ReadContext.readHashCode() = if (readBoolean()) {
+    fun Decoder.readHashCode() = if (readBoolean()) {
         HashCode.fromBytes(readBinary())
     } else {
         null

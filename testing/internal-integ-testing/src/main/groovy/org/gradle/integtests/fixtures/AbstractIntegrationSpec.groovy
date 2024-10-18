@@ -418,6 +418,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     AbstractIntegrationSpec withBuildCache() {
+        executer.withArgument("--no-problems-report")
         executer.withBuildCacheEnabled()
         this
     }

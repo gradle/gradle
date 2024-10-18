@@ -18,7 +18,7 @@
 A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
 These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.
 
-A *convention plugin* is a plugin that normaly configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
+A *convention plugin* is a plugin that normally configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
 Convention plugins are also used to enforce project standards and help streamline the build process.
 They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
 
@@ -64,9 +64,8 @@ plugins {
 ----
 =====
 
-On the other hand, a script named `code-quality.gradle(.kts)` located in `src/main/groovy/my` (or `src/main/kotlin/my`) with the package declaration `my` would be exposed as the `my.code-quality` plugin:
+On the other hand, a script named `code-quality.gradle.kts` located in `src/main/kotlin/my` with the package declaration `my` would be exposed as the `my.code-quality` plugin:
 
-[.multi-language-sample]
 =====
 .buildSrc/build.gradle.kts
 [source, kotlin]
@@ -83,23 +82,8 @@ plugins {
 }
 ----
 =====
-[.multi-language-sample]
-=====
-.buildSrc/build.gradle
-[source, groovy]
-----
-plugins {
-    id 'groovy-gradle-plugin'
-}
-----
-.app/build.gradle
-[source, groovy]
-----
-plugins {
-    id 'my.code-quality'
-}
-----
-=====
+
+IMPORTANT: Groovy pre-compiled script plugins cannot have packages.
 
 [[sec:getting_input_from_the_build]]
 == Making a plugin configurable using extensions
@@ -148,9 +132,9 @@ include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main
 ====
 
 `extension.message.convention(...)` sets a convention for the `message` property of the extension.
-This convention specifies that the value of `message` should default to the content of a file named `defaultGreeting.txt` located in the build directory of the project.
+This convention specifies that the value of `message` should default to `"Hello from Gradle"`.
 
-If the `message` property is not explicitly set, its value will be automatically set to the content of `defaultGreeting.txt`.
+If the `message` property is not explicitly set, its value will be automatically set to `"Hello from Gradle"`.
 
 [[sec:mapping_extension_properties_to_task_properties]]
 == Mapping extension properties to task properties

@@ -80,6 +80,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         _ * loggingServices.get(StyledTextOutputFactory) >> textOutputFactory
         StyledTextOutput textOutput = new StreamingStyledTextOutput(outputs.stdErrPrintStream)
         _ * textOutputFactory.create(_, _) >> textOutput
+
+        tmpDir.file("settings.gradle").touch() // To prevent layout from detecting files from gradle/gradle build
     }
 
     def "delegates to each action factory to configure the command-line parser and create the action"() {
@@ -116,19 +118,34 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "reports command-line parse failure"() {
         when:
-        def commandLineExecution = factory.convert(['--broken'])
+        def commandLineExecution = factory.convert(options.split().toList())
         commandLineExecution.execute(executionListener)
 
         then:
-        outputs.stdErr.contains('--broken')
+        outputs.stdErr.contains(expectedMessage)
         outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
         outputs.stdErr.contains('--help')
+        !outputs.stdErr.contains('To see help contextual to the project, use gradle help')
+        outputs.stdErr.contains('To see more detail about a task, run gradle help --task <task>')
+        if (expectedSuggestion != null) {
+            assert outputs.stdErr.contains("For example, gradle help --task $expectedSuggestion")
+        } else {
+            assert !outputs.stdErr.contains("For example, gradle help --task ")
+        }
+        outputs.stdErr.contains('To see a list of available tasks, run gradle tasks')
         outputs.stdErr.contains('--some-option')
 
         and:
         1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
+
+        where:
+        options                   | expectedMessage                                             | expectedSuggestion
+        '--broken'                | "Unknown command-line option '--broken'"                    | null
+        'wrapper --version=1.2.3' | "Command-line option '--version' does not take an argument" | 'wrapper'
+        '--version=1.2.3'         | "Command-line option '--version' does not take an argument" | null
+        '--wrapper'               | "Unknown command-line option '--wrapper'"                   | null
     }
 
     def "reports failure to build action due to command-line parse failure"() {
@@ -191,6 +208,9 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         then:
         outputs.stdOut.contains('To see help contextual to the project, use gradle help')
+        outputs.stdOut.contains('To see more detail about a task, run gradle help --task <task>')
+        !outputs.stdOut.contains("For example, gradle help --task")
+        outputs.stdOut.contains('To see a list of available tasks, run gradle tasks')
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
         outputs.stdOut.contains('--help')
         outputs.stdOut.contains('--some-option')
@@ -201,6 +221,28 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         where:
         option << ['-h', '-?', '--help']
+    }
+
+    def "displays example for task "() {
+        when:
+        def commandLineExecution = factory.convert(options.split().toList())
+        commandLineExecution.execute(executionListener)
+
+        then:
+        outputs.stdOut.contains('To see help contextual to the project, use gradle help')
+        outputs.stdOut.contains('To see more detail about a task, run gradle help --task <task>')
+        outputs.stdOut.contains("For example, gradle help --task init")
+        outputs.stdOut.contains('To see a list of available tasks, run gradle tasks')
+        outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
+        outputs.stdOut.contains('--help')
+        outputs.stdOut.contains('--some-option')
+
+        and:
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option') }
+        0 * executionListener._
+
+        where:
+        options << ['-h init', 'init -?', 'init --help', '--help init']
     }
 
     def "uses system property for application name"() {
@@ -239,7 +281,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "displays version message"() {
         when:
-        def commandLineExecution = factory.convert(options)
+        def commandLineExecution = factory.convert(options + ["-p${tmpDir.getTestDirectory()}".toString()])
         commandLineExecution.execute(executionListener)
 
         then:
@@ -257,7 +299,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "displays version message and continues build"() {
         when:
-        def commandLineExecution = factory.convert(options)
+        def commandLineExecution = factory.convert(options + ["-p${tmpDir.getTestDirectory()}".toString()])
         commandLineExecution.execute(executionListener)
 
         then:

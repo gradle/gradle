@@ -96,7 +96,11 @@ class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationS
         run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")

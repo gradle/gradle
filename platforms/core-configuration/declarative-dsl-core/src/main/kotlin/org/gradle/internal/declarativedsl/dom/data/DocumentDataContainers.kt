@@ -34,18 +34,20 @@ interface NodeDataContainer<out DNode, out DElement : DNode, out DProperty : DNo
 typealias NodeData<DNode> = NodeDataContainer<DNode, DNode, DNode, DNode>
 
 
-interface ValueDataContainer<out DValue, out DValueFactory : DValue, out DLiteral : DValue> {
-    fun data(value: DeclarativeDocument.ValueNode): DValue = when (value) {
-        is DeclarativeDocument.ValueNode.ValueFactoryNode -> data(value)
-        is DeclarativeDocument.ValueNode.LiteralValueNode -> data(value)
+interface ValueDataContainer<out DValue, out DValueFactory : DValue, out DLiteral : DValue, out DNamedReference : DValue> {
+    fun data(node: DeclarativeDocument.ValueNode): DValue = when (node) {
+        is DeclarativeDocument.ValueNode.ValueFactoryNode -> data(node)
+        is DeclarativeDocument.ValueNode.LiteralValueNode -> data(node)
+        is DeclarativeDocument.ValueNode.NamedReferenceNode -> data(node)
     }
 
-    fun data(value: DeclarativeDocument.ValueNode.ValueFactoryNode): DValueFactory
-    fun data(value: DeclarativeDocument.ValueNode.LiteralValueNode): DLiteral
+    fun data(node: DeclarativeDocument.ValueNode.ValueFactoryNode): DValueFactory
+    fun data(node: DeclarativeDocument.ValueNode.LiteralValueNode): DLiteral
+    fun data(node: DeclarativeDocument.ValueNode.NamedReferenceNode): DNamedReference
 }
 
 
-typealias ValueData<DValue> = ValueDataContainer<DValue, DValue, DValue>
+typealias ValueData<DValue> = ValueDataContainer<DValue, DValue, DValue, DValue>
 
 
 fun <C, D> C.data(node: DeclarativeDocument.Node): D where C : NodeData<out D>, C : ValueData<out D> = when (node) {

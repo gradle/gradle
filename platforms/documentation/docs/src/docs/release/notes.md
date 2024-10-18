@@ -53,16 +53,34 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="native-plugin-improvements"></a>
-### Core plugin improvements
+<a name="build-authoring"></a>
+### Build authoring improvements
 
-Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-#### Configuration cache compatibility for Swift and C++ plugins
+#### `DependencyConstraintHandler` now has `addProvider` methods
 
-The [Swift](userguide/swift_application_plugin.html) and [C++](userguide/cpp_application_plugin.html) core plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible.
+The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the 
+[`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
 
-The [`xctest`](userguide/xctest_plugin.html) and [`visual-studio`](userguide/visual_studio_plugin.html) plugins are not yet compatible.
+```kotlin
+dependencies {
+    constraints {
+        // Existing API:
+        add("implementation", provider { "org.foo:bar:1.0" })
+        add("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+        // New methods:
+        addProvider("implementation", provider { "org.foo:bar:1.0" })
+        addProvider("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+    }
+}
+```
+
+This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

@@ -33,9 +33,7 @@ data class ProblemReportDetails(
 class ProblemReportDetailsJsonSource(private val details: ProblemReportDetails) : JsonSource {
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
-            property("totalProblemCount") {
-                write(details.totalProblemCount.toString())
-            }
+            property("totalProblemCount", details.totalProblemCount)
             details.buildDisplayName?.let { property("buildName", it) }
             details.requestedTasks?.let {
                 property("requestedTasks", it)

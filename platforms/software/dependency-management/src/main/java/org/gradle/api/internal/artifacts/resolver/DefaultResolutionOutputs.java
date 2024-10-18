@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
@@ -30,9 +31,10 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -42,6 +44,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.util.Collections;
 
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
@@ -60,14 +64,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final ResolutionAccess resolutionAccess;
     private final TaskDependencyFactory taskDependencyFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final Instantiator instantiator;
 
     public DefaultResolutionOutputs(
         ResolutionAccess resolutionAccess,
         TaskDependencyFactory taskDependencyFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         Instantiator instantiator
     ) {
         this.resolutionAccess = resolutionAccess;
@@ -83,6 +87,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     }
 
     @Override
+    public Provider<ResolvedVariantResult> getRootVariant() {
+        return new DefaultProvider<>(() -> {
+            MinimalResolutionResult resolutionResult = getVisitedGraphResults().getResolutionResult();
+            return resolutionResult.getRootSource().get().getVariant(resolutionResult.getRootVariantId());
+        });
+    }
+
+    @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
         return new DefaultProvider<>(() -> getVisitedGraphResults().getResolutionResult().getRootSource().get());
     }
@@ -93,7 +105,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private VisitedGraphResults getVisitedGraphResults() {
         VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
         graph.getResolutionFailure().ifPresent(ex -> {
-            throw ex;
+            resolutionAccess.getHost().rethrowFailuresAndReportProblems("dependencies", Collections.singleton(ex));
         });
         return graph;
     }
@@ -144,7 +156,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final ResolutionAccess resolutionAccess;
         private final TaskDependencyFactory taskDependencyFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributesFactory attributesFactory;
 
         public DefaultArtifactView(
             boolean lenient,
@@ -155,7 +167,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
-            ImmutableAttributesFactory attributesFactory
+            AttributesFactory attributesFactory
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -191,6 +203,10 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private SelectedArtifactSet selectArtifacts(ResolverResults results) {
             // If the user set the view attributes, we allow variant matching to fail for no matching variants.
             // If we are using the original request attributes, variant matching should not fail.
+            // TODO #27773: This is probably not desired behavior. It can be very confusing to request new attributes and
+            // then have an ArtifactView silently return no results. We should add a switch specifying whether you
+            // want 0 or 1 artifact result, 1 artifact result, or 1+ artifact results for each graph variant, and then
+            // deprecate views that select no artifacts without the user specifying that switch.
             boolean allowNoMatchingVariants = !viewAttributes.isEmpty();
 
             return results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
@@ -227,7 +243,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private boolean lenient;
         private boolean reselectVariants;
 
-        public DefaultArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory) {
+        public DefaultArtifactViewConfiguration(AttributesFactory attributesFactory) {
             this.viewAttributes = attributesFactory.mutable();
         }
 

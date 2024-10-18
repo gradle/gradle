@@ -18,12 +18,10 @@ package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
@@ -32,6 +30,7 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -55,10 +54,12 @@ import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPlugi
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
+import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
@@ -90,6 +91,11 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @Override
     public void registerSettingsServices(ServiceRegistration registration) {
         registration.addProvider(new SettingsScopeServices());
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeServices());
     }
 
     @NonNullApi
@@ -137,11 +143,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        ModelDefaultsApplicator createSoftwareTypeConventionApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<ModelDefaultsHandler> modelDefaultsHandlers) {
-            return new DefaultModelDefaultsApplicator(softwareTypeRegistry, modelDefaultsHandlers);
-        }
-
-        @Provides
         PluginScheme createPluginScheme(InstantiatorFactory instantiatorFactory, InspectionSchemeFactory inspectionSchemeFactory) {
             InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
             ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
@@ -159,9 +160,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
-            FileResolver fileResolver,
             DependencyManagementServices dependencyManagementServices,
-            DependencyMetaDataProvider dependencyMetaDataProvider,
             ClassLoaderScopeRegistry classLoaderScopeRegistry,
             PluginInspector pluginInspector,
             InjectedPluginClasspath injectedPluginClasspath,
@@ -172,12 +171,10 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
-            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
-                fileResolver,
-                fileCollectionFactory,
-                dependencyManagementServices,
-                dependencyMetaDataProvider
-            );
+
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory =
+                () -> dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS);
+
             return new DefaultInjectedClasspathPluginResolver(
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 scriptClassPathResolver,
@@ -196,29 +193,25 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         PluginDependencyResolutionServices createPluginDependencyResolutionServices(
-            FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
-            DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider
+            DependencyManagementServices dependencyManagementServices
         ) {
-            return new PluginDependencyResolutionServices(
-                makeDependencyResolutionServicesFactory(fileResolver, fileCollectionFactory, dependencyManagementServices, dependencyMetaDataProvider));
+            return new PluginDependencyResolutionServices(() ->
+                dependencyManagementServices.newDetachedResolver(StandaloneDomainObjectContext.PLUGINS)
+            );
         }
 
-        private static Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(
-            final FileResolver fileResolver,
-            final FileCollectionFactory fileCollectionFactory,
-            final DependencyManagementServices dependencyManagementServices,
-            final DependencyMetaDataProvider dependencyMetaDataProvider
-        ) {
-            return new Factory<DependencyResolutionServices>() {
-                @Override
-                public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), StandaloneDomainObjectContext.PLUGINS);
-                }
-            };
+    }
+
+    @NonNullApi
+    private static class ProjectScopeServices implements ServiceRegistrationProvider {
+        @Provides
+        SoftwareFeatureApplicator createSoftwareFeatureApplicator(Project project, ModelDefaultsApplicator modelDefaultsApplicator, PluginScheme pluginScheme, InternalProblems problems) {
+            return new DefaultSoftwareFeatureApplicator(project, modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems);
         }
 
-        private static ProjectFinder makeUnknownProjectFinder() {
-            return new UnknownProjectFinder("Cannot use project dependencies in a plugin resolution definition.");
+        @Provides
+        ModelDefaultsApplicator createModelDefaultsApplicator(List<ModelDefaultsHandler> modelDefaultsHandlers) {
+            return new DefaultModelDefaultsApplicator(modelDefaultsHandlers);
         }
     }
 }

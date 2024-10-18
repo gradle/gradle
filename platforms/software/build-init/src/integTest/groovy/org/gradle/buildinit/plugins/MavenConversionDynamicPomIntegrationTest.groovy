@@ -72,6 +72,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
@@ -98,6 +101,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
@@ -124,6 +130,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
@@ -156,6 +165,9 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)

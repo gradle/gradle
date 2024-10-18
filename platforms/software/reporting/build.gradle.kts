@@ -23,7 +23,9 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.modelCore)
     api(projects.reportRendering)
+    api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
@@ -32,8 +34,6 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.logging)
-    implementation(projects.modelCore)
-    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
     implementation(libs.jatl)

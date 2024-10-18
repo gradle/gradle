@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
@@ -34,6 +35,7 @@ public interface VariantSelectorFactory {
     ArtifactVariantSelector create(
         ResolutionHost resolutionHost,
         ImmutableAttributes requestAttributes,
+        ImmutableAttributesSchema consumerSchema,
         @Nullable ConfigurationIdentity configurationId,
         ResolutionStrategy.SortOrder artifactDependencySortOrder,
         ResolutionResultProvider<ResolverResults> resolverResults,

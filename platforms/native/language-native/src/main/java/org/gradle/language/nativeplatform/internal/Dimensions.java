@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
@@ -69,7 +69,7 @@ public class Dimensions {
     }
 
     public static void unitTestVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines, @Nullable SetProperty<TargetMachine> declaredTargetMachinesOfTestedComponent,
-                                        ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
+                                        ObjectFactory objectFactory, AttributesFactory attributesFactory,
                                         Provider<String> group, Provider<String> version,
                                         Action<NativeVariantIdentity> action) {
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "unit test", declaredTargetMachines);
@@ -81,7 +81,7 @@ public class Dimensions {
     }
 
     public static void applicationVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines,
-                                       ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
+                                       ObjectFactory objectFactory, AttributesFactory attributesFactory,
                                        Provider<String> group, Provider<String> version,
                                        Action<NativeVariantIdentity> action) {
         Collection<BuildType> buildTypes = BuildType.DEFAULT_BUILD_TYPES;
@@ -90,7 +90,7 @@ public class Dimensions {
     }
 
     public static void libraryVariants(Provider<String> baseName, SetProperty<Linkage> declaredLinkages, SetProperty<TargetMachine> declaredTargetMachines,
-                                           ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
+                                           ObjectFactory objectFactory, AttributesFactory attributesFactory,
                                            Provider<String> group, Provider<String> version,
                                            Action<NativeVariantIdentity> action) {
         Collection<BuildType> buildTypes = BuildType.DEFAULT_BUILD_TYPES;
@@ -121,7 +121,7 @@ public class Dimensions {
     }
 
     private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<Linkage> linkages, Collection<TargetMachine> targetMachines,
-                                 ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
+                                 ObjectFactory objectFactory, AttributesFactory attributesFactory,
                                  // TODO: These should come from somewhere else, probably
                                  Provider<String> group, Provider<String> version,
                                  Action<NativeVariantIdentity> action) {
@@ -162,7 +162,7 @@ public class Dimensions {
     }
 
     private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<TargetMachine> targetMachines,
-                                 ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory,
+                                 ObjectFactory objectFactory, AttributesFactory attributesFactory,
                                  // TODO: These should come from somewhere else, probably
                                  Provider<String> group, Provider<String> version,
                                  Action<NativeVariantIdentity> action) {

@@ -133,6 +133,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-operations-trace",
+    "path": "platforms/core-runtime/build-operations-trace",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-option",
     "path": "platforms/core-runtime/build-option",
     "unitTests": true,
@@ -297,6 +304,13 @@
     "name": "declarative-dsl-evaluator",
     "path": "platforms/core-configuration/declarative-dsl-evaluator",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-internal-utils",
+    "path": "platforms/core-configuration/declarative-dsl-internal-utils",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -490,6 +504,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "file-operations",
+    "path": "platforms/core-configuration/file-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "file-temp",
     "path": "platforms/core-runtime/file-temp",
     "unitTests": true,
@@ -646,7 +667,7 @@
   {
     "name": "internal-instrumentation-api",
     "path": "platforms/core-runtime/internal-instrumentation-api",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

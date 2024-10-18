@@ -18,6 +18,11 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
+    def runRetrieveTask() {
+        executer.withArgument("--no-problems-report")
+        run 'retrieve'
+    }
+
     void "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
@@ -37,7 +42,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -47,7 +52,8 @@ task retrieve(type: Sync) {
         when:
         moduleA.dependsOn('group', 'projectB', '9.1')
         moduleA.publishWithChangedContent()
-        run 'retrieve'
+        executer.withArgument("--no-problems-report")
+        runRetrieveTask()
 
         then:
         buildDir.assertHasDescendants(moduleA.artifactFile.name, 'projectB-9.1.jar')
@@ -74,7 +80,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')
@@ -84,7 +90,8 @@ task retrieve(type: Sync) {
         when:
         moduleA.dependsOn('group', 'projectB', '9.1')
         moduleA.publishWithChangedContent()
-        run 'retrieve'
+        executer.withArgument("--no-problems-report")
+        runRetrieveTask()
 
         then:
         buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
@@ -125,7 +132,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        run 'retrieve'
+        runRetrieveTask()
 
         then:
         def buildDir = file('build')

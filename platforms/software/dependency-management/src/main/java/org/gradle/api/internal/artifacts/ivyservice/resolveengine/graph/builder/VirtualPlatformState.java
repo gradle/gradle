@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -23,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,7 +34,7 @@ public class VirtualPlatformState {
     private final ResolveOptimizations resolveOptimizations;
 
     private final Set<ModuleResolveState> participatingModules = new LinkedHashSet<>();
-    private final List<EdgeState> orphanEdges = Lists.newArrayListWithExpectedSize(2);
+    private final List<EdgeState> orphanEdges = new ArrayList<>(2);
 
     private boolean hasForcedParticipatingModule;
 
@@ -81,7 +81,7 @@ public class VirtualPlatformState {
     List<String> getCandidateVersions() {
         String forcedVersion = getForcedVersion();
         ComponentState selectedPlatformComponent = platformModule.getSelected();
-        List<String> sorted = Lists.newArrayListWithCapacity(participatingModules.size() + 1);
+        List<String> sorted = new ArrayList<>(participatingModules.size() + 1);
         sorted.add(selectedPlatformComponent.getVersion());
         for (ModuleResolveState module : participatingModules) {
             ComponentState selected = module.getSelected();

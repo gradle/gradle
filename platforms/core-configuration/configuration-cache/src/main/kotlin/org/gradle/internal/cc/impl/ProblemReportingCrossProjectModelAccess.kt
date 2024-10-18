@@ -20,7 +20,6 @@ import groovy.lang.Closure
 import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
 import org.gradle.api.Action
-import org.gradle.api.AntBuilder
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
@@ -163,21 +162,6 @@ class ProblemReportingCrossProjectModelAccess(
             onIsolationViolation(what)
         }
 
-        override fun equals(other: Any?): Boolean {
-            if (other === this) {
-                return true
-            }
-            if (other == null || other.javaClass != javaClass) {
-                return false
-            }
-            val project = other as ProblemReportingProject
-            return delegate == project.delegate && referrer == project.referrer // do not include `access`
-        }
-
-        override fun hashCode(): Int = delegate.hashCode()
-
-        override fun toString(): String = delegate.toString()
-
         override fun propertyMissing(name: String): Any? {
             onProjectsCoupled()
             return withDelegateDynamicCallReportingConfigurationOrder(
@@ -293,23 +277,31 @@ class ProblemReportingCrossProjectModelAccess(
             return super.delete(action)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun javaexec(closure: Closure<*>): ExecResult {
             onIsolationViolation("javaexec")
+            @Suppress("DEPRECATION")
             return super.javaexec(closure)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
             onIsolationViolation("javaexec")
+            @Suppress("DEPRECATION")
             return super.javaexec(action)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun exec(closure: Closure<*>): ExecResult {
             onIsolationViolation("exec")
+            @Suppress("DEPRECATION")
             return super.exec(closure)
         }
 
+        @Deprecated("Deprecated in Java")
         override fun exec(action: Action<in ExecSpec>): ExecResult {
             onIsolationViolation("exec")
+            @Suppress("DEPRECATION")
             return super.exec(action)
         }
 
@@ -376,26 +368,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getLogger(): Logger {
             onIsolationViolation("logger")
             return super.getLogger()
-        }
-
-        override fun getAnt(): AntBuilder {
-            onIsolationViolation("ant")
-            return super.getAnt()
-        }
-
-        override fun createAntBuilder(): AntBuilder {
-            onIsolationViolation("antBuilder")
-            return super.createAntBuilder()
-        }
-
-        override fun ant(configureClosure: Closure<*>): AntBuilder {
-            onIsolationViolation("ant")
-            return super.ant(configureClosure)
-        }
-
-        override fun ant(configureAction: Action<in AntBuilder>): AntBuilder {
-            onIsolationViolation("ant")
-            return super.ant(configureAction)
         }
 
         override fun getGradle(): GradleInternal {

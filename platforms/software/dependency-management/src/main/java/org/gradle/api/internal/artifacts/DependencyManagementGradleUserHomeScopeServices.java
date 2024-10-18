@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.Cache;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -72,9 +73,10 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
         DocumentationRegistry documentationRegistry,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cacheConfigurations);
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cacheConfigurations, cacheCleanupStrategyFactory);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -92,13 +94,14 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         CacheBuilder cacheBuilder = cacheBuilderFactory
             .createCacheBuilder(CacheLayout.TRANSFORMS.getName())
             .withDisplayName("Artifact transforms cache");
         CrossBuildInMemoryCache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
-        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations);
+        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory);
         return new ImmutableTransformWorkspaceServices() {
             @Override
             public ImmutableWorkspaceProvider getWorkspaceProvider() {

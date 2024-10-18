@@ -17,10 +17,10 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
@@ -56,7 +56,7 @@ public class DynamicProblemOperationContext extends DefaultOperationDescriptor i
 
     @Nullable
     @Override
-    public FailureContainer getFailure() {
+    public Failure getFailure() {
         throw new UnsupportedOperationException();
     }
 }

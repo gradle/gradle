@@ -24,13 +24,13 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
-import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemAwareFailure
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.exceptions.CompilationFailedIndicator
 import org.gradle.internal.exceptions.ContextAwareException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.FailureResolutionAware
@@ -56,8 +56,7 @@ class BuildExceptionReporterTest extends Specification {
     static final String LOCATION = "<location>"
     static final String STACKTRACE = "{info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace."
     static final String INFO_OR_DEBUG = "{info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output."
-    static final String INFO = "{info}> {normal}Run with {userinput}--info{normal} option to get more log output."
-    static final String SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
+    static final String TRY_SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
     static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}."
 
 
@@ -86,7 +85,7 @@ $MESSAGE
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -159,7 +158,7 @@ org.gradle.api.GradleException (no error message)
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -182,7 +181,7 @@ $MESSAGE
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -205,7 +204,7 @@ java.io.IOException
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -229,7 +228,7 @@ $MESSAGE
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -258,7 +257,7 @@ $MESSAGE
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -281,7 +280,7 @@ $MESSAGE
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -305,7 +304,7 @@ $MESSAGE
 
 * Try:
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 
 * Exception is:
@@ -337,7 +336,7 @@ Execution failed for null.
 {info}> {normal}org.gradle.internal.buildevents.TestNonGradleCauseException (no error message)
 
 * Try:
-$SCAN
+$TRY_SCAN
 ==============================================================================
 
 {failure}2: {normal}{failure}Task failed with an exception.{normal}
@@ -350,8 +349,7 @@ Execution failed for null.
 {info}> {normal}org.gradle.internal.buildevents.TestCompilationFailureException (no error message)
 
 * Try:
-$INFO
-$SCAN
+$TRY_SCAN
 ==============================================================================
 
 {failure}3: {normal}{failure}Task failed with an exception.{normal}
@@ -362,7 +360,7 @@ $SCAN
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 ==============================================================================
 """;
@@ -383,7 +381,7 @@ $MESSAGE
 
 * Try:
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 
 * Exception is:
@@ -407,7 +405,7 @@ $MESSAGE
 
 * Try:
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 
 * Exception is:
@@ -438,7 +436,7 @@ $MESSAGE
 {info}> {normal}resolution 2.
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -492,7 +490,7 @@ Could not resolve all task dependencies for org:example:1.0.
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -522,7 +520,7 @@ Could not resolve all task dependencies for org:example:1.0.
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -554,7 +552,7 @@ Could not resolve all task dependencies for org:example:1.0.
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
@@ -593,94 +591,11 @@ Could not resolve all task dependencies for org:example:1.0.
 * Try:
 $STACKTRACE
 $INFO_OR_DEBUG
-$SCAN
+$TRY_SCAN
 $GET_HELP
 """
     }
     // endregion Duplicate Exception Branch Filtering
-
-    def "singular exceptions containing problems are rendered"() {
-        given:
-        def problem1 = new DefaultProblemBuilder()
-            .id("group-1", "Group 1")
-            .build()
-        def problem2 = new DefaultProblemBuilder()
-            .id("group-2", "Group 2")
-            .build()
-        def failure = new ContextAwareException(
-            new GradleException(
-                "<root problem message>",
-                new TestProblemAwareFailure(problem1, problem2)
-            )
-        )
-
-        when:
-        reporter.buildFinished(result(failure))
-
-        then:
-        output.value.contains(
-            """\
-* What went wrong:
-<root problem message>
-{info}> {normal}<problem-bearing exception message>
-
-Group 1 (generic:group-1)
-  Group 1
-Group 2 (generic:group-2)
-  Group 2
-"""
-        )
-    }
-
-    def "multi-cause exceptions containing problems are rendered"() {
-        given:
-        def problem1 = new DefaultProblemBuilder()
-            .id("group-1", "Group 1")
-            .build()
-        def problem2 = new DefaultProblemBuilder()
-            .id("group-2", "Group 2")
-            .build()
-        def failure = new MultipleBuildFailures(
-            Arrays.asList(
-                new ContextAwareException(
-                    new GradleException(
-                        "<root problem-1 message>",
-                        new TestProblemAwareFailure(problem1)
-                    )
-                ),
-                new ContextAwareException(
-                    new GradleException(
-                        "<root problem-2 message>",
-                        new TestProblemAwareFailure(problem2)
-                    )
-                )
-            )
-        )
-
-        when:
-        reporter.buildFinished(result(failure))
-
-        then:
-        output.value.contains(
-            """\
-* What went wrong:
-<root problem-1 message>
-{info}> {normal}<problem-bearing exception message>
-
-Group 1 (generic:group-1)
-  Group 1
-""")
-        output.value.contains(
-            """\
-* What went wrong:
-<root problem-2 message>
-{info}> {normal}<problem-bearing exception message>
-
-Group 2 (generic:group-2)
-  Group 2
-""")
-    }
-
     def result(Throwable failure) {
         BuildResult result = Mock()
         result.failure >> failure
@@ -693,7 +608,7 @@ Group 2 (generic:group-2)
         }
     }
 
-    class TestProblemAwareFailure extends Throwable implements ProblemAwareFailure {
+    class TestProblemAwareFailure extends Throwable implements CompilationFailedIndicator, ProblemAwareFailure {
         List<Problem> problems
 
         TestProblemAwareFailure(Problem... problems) {

@@ -32,9 +32,9 @@ import java.util.Set;
 @ServiceScope(Scope.BuildTree.class)
 public class AttributeDesugaring {
     private final Map<ImmutableAttributes, ImmutableAttributes> desugared = new IdentityHashMap<>();
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
 
-    public AttributeDesugaring(ImmutableAttributesFactory attributesFactory) {
+    public AttributeDesugaring(AttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
     }
 
@@ -70,7 +70,7 @@ public class AttributeDesugaring {
             AttributeContainer moduleAttributes = module.getAttributes();
             if (!moduleAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
-                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes), module.getRequestedCapabilities());
+                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes), module.getCapabilitySelectors());
             }
         }
         if (selector instanceof DefaultProjectComponentSelector) {
