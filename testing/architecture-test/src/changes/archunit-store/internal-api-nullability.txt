@@ -4275,7 +4275,6 @@ Class <org.gradle.process.internal.DefaultExecAction> is not annotated (directly
 Class <org.gradle.process.internal.DefaultExecActionFactory$BuilderImpl> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecActionFactory.java:0)
 Class <org.gradle.process.internal.DefaultExecActionFactory$DecoratingExecActionFactory$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecActionFactory.java:0)
 Class <org.gradle.process.internal.DefaultExecActionFactory$DecoratingExecActionFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecActionFactory.java:0)
-Class <org.gradle.process.internal.DefaultExecActionFactory$ImmutableJavaForkOptions> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecActionFactory.java:0)
 Class <org.gradle.process.internal.DefaultExecActionFactory$RootExecFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecActionFactory.java:0)
 Class <org.gradle.process.internal.DefaultExecActionFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecActionFactory.java:0)
 Class <org.gradle.process.internal.DefaultExecHandle$CompositeStreamsHandler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultExecHandle.java:0)
