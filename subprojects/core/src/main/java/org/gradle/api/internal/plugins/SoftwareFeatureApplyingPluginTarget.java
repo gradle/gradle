@@ -18,22 +18,26 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-public class ModelDefaultsApplyingPluginTarget<T> implements PluginTarget {
+public class SoftwareFeatureApplyingPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
-    private final T target;
-    private final ModelDefaultsApplicator modelDefaultsApplicator;
+    private final Project target;
+    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final SoftwareFeatureApplicator softwareFeatureApplicator;
 
-    public ModelDefaultsApplyingPluginTarget(T target, PluginTarget delegate, ModelDefaultsApplicator modelDefaultsApplicator) {
+    public SoftwareFeatureApplyingPluginTarget(Project target, PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, SoftwareFeatureApplicator softwareFeatureApplicator) {
         this.target = target;
         this.delegate = delegate;
-        this.modelDefaultsApplicator = modelDefaultsApplicator;
+        this.softwareTypeRegistry = softwareTypeRegistry;
+        this.softwareFeatureApplicator = softwareFeatureApplicator;
     }
 
     @Override
@@ -57,8 +61,10 @@ public class ModelDefaultsApplyingPluginTarget<T> implements PluginTarget {
     }
 
     @Override
-    public void applyModelDefaults(Plugin<?> plugin) {
-        modelDefaultsApplicator.applyDefaultsTo(target, Cast.uncheckedNonnullCast(plugin));
+    public void applySoftwareFeatures(Plugin<?> plugin) {
+        softwareTypeRegistry.implementationFor(Cast.uncheckedCast(plugin.getClass())).ifPresent(softwareTypeImplementation -> {
+            softwareFeatureApplicator.applyFeatureTo(target, softwareTypeImplementation);
+        });
     }
 
     @Override

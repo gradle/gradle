@@ -82,7 +82,7 @@ class SimpleAnalysisEvaluator(
 
     private
     fun scriptContextFromFileName(fileName: String) = when (File(fileName).name) {
-        "build.gradle.dcl" -> DeclarativeScriptContext.ProjectScript
+        "build.gradle.dcl" -> object : DeclarativeScriptContext.ProjectScript {}
         "settings.gradle.dcl" -> object : DeclarativeScriptContext.SettingsScript {}
         else -> DeclarativeScriptContext.UnknownScript
     }

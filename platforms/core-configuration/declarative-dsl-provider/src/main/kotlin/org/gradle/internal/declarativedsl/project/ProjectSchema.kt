@@ -23,21 +23,24 @@ import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretation
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.software.softwareTypesWithPluginApplication
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 internal
 fun projectInterpretationSequence(
-    softwareTypeRegistry: SoftwareTypeRegistry
-) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(softwareTypeRegistry)))
+    softwareTypeRegistry: SoftwareTypeRegistry,
+    softwareFeatureApplicator: SoftwareFeatureApplicator
+) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(softwareTypeRegistry, softwareFeatureApplicator)))
 
 
 fun projectEvaluationSchema(
-    softwareTypeRegistry: SoftwareTypeRegistry
+    softwareTypeRegistry: SoftwareTypeRegistry,
+    softwareFeatureApplicator: SoftwareFeatureApplicator
 ): EvaluationAndConversionSchema {
     return buildEvaluationAndConversionSchema(ProjectTopLevelReceiver::class, analyzeEverything) {
         gradleDslGeneralSchema()
         dependencyCollectors()
-        softwareTypesWithPluginApplication(ProjectTopLevelReceiver::class, softwareTypeRegistry)
+        softwareTypesWithPluginApplication(ProjectTopLevelReceiver::class, softwareTypeRegistry, softwareFeatureApplicator)
     }
 }
