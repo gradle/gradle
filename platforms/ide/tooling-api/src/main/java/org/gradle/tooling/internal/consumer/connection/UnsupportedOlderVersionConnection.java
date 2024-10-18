@@ -91,6 +91,11 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
         throw unsupported();
     }
 
+    @Override
+    public void ping(ConsumerOperationParameters operationParameters) {
+        throw unsupported();
+    }
+
     private UnsupportedVersionException unsupported() {
         return new UnsupportedVersionException(String.format("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 2.6 or later.", version));
     }

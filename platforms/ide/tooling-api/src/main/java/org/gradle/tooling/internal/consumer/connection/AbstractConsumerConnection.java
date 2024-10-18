@@ -88,4 +88,9 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     public void stopWhenIdle(ConsumerOperationParameters operationParameters) {
         // Default is no-op
     }
+
+    @Override
+    public void ping(ConsumerOperationParameters operationParameters) {
+        // Default is no-op
+    }
 }
