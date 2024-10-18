@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.Factory;
 import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
@@ -50,12 +51,22 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, ServiceRegistry services, FileCollectionFactory fileCollectionFactory) {
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(services, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
-        DaemonStopClient client = clientServices.get(DaemonStopClient.class);
-        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(client);
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, Factory<DaemonStopClient> daemonStopClientFactory) {
+        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(daemonStopClientFactory);
         listenerManager.addListener(shutdownCoordinator);
         return shutdownCoordinator;
+    }
+
+    @Provides
+    Factory<DaemonStopClient> createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, ServiceRegistry services, FileCollectionFactory fileCollectionFactory) {
+        return new Factory<DaemonStopClient>() {
+            @Override
+            public DaemonStopClient create() {
+                ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(services, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
+                DaemonStopClient client = clientServices.get(DaemonStopClient.class);
+                return client;
+            }
+        };
     }
 
     @Provides
