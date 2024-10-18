@@ -219,11 +219,7 @@ class DefaultConfigurationCache internal constructor(
 
     // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
-        // We are preserving the original value if it had to be created,
-        // because it carries information required by dependency resolution
-        // to ensure project artifacts are actually created the first time around.
-        // When the value is loaded from the store, the dependency information is lost.
-        return projectMetadata.loadOrCreateOriginalValue(identityPath, creator)
+        return projectMetadata.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {

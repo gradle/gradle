@@ -112,6 +112,7 @@ import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
+import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.PublishArtifactLocalArtifactMetadataCodec
 import org.gradle.internal.serialize.codecs.dm.ResolveArtifactNodeCodec
@@ -211,6 +212,7 @@ class Codecs(
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
+            bind(ImmutableAttributesSchemaCodec(instantiator))
             bind(ComponentVariantIdentifierCodec)
             bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
             bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
