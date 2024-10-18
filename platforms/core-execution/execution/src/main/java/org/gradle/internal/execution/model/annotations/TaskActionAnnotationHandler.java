@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.internal.execution.model.annotations;
 
-/**
- * Specifies configuration options when creating a new TypeValidationData instance.
- */
-public interface TypeValidationDataSpec extends AdditionalDataSpec {
-    TypeValidationDataSpec pluginId(String pluginId);
-    TypeValidationDataSpec propertyName(String propertyName);
-    TypeValidationDataSpec methodName(String methodName);
-    TypeValidationDataSpec parentPropertyName(String parentPropertyName);
-    TypeValidationDataSpec typeName(String typeName);
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.properties.annotations.AbstractMethodAnnotationHandler;
+
+public class TaskActionAnnotationHandler extends AbstractMethodAnnotationHandler {
+    public TaskActionAnnotationHandler() {
+        super(TaskAction.class, ImmutableSet.of());
+    }
+
+    @Override
+    public boolean isMethodRelevant() {
+        return true;
+    }
 }
