@@ -25,7 +25,9 @@ import org.gradle.internal.serialize.graph.EncodingProvider
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SerializerCodec
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.singleton
 import org.gradle.internal.serialize.graph.withDebugFrame
+import java.util.IdentityHashMap
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
@@ -35,7 +37,7 @@ import kotlin.reflect.KClass
  * to the proper binding (if one is found).
  *
  * The binding (a tagged codec) is chosen based on the availability of a [Binding.encoding] for the value being encoded.
- * This is basically implemented as a predicate dispatching on the value type, first available Binding.encoding wins
+ * This is basically implemented as a predicate dispatching on the value type, first available [Binding.encoding] wins
  * and its [Binding.tag] is recorded in the output stream so decoding can be implemented via a fast array lookup.
  *
  * @see Binding.tag
@@ -45,16 +47,25 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     internal
     companion object {
         private
-        const val NULL_VALUE: Int = -1
+        const val NULL_VALUE: Int = 0
     }
+
+    private
+    val nonSingletonBindings = bindings.filterNot(Binding::isSingleton)
 
     private
     val encodings = ConcurrentHashMap<Class<*>, TaggedEncoding>()
 
+    private
+    val singletonEncodings: Map<Any, TaggedEncoding> =
+        bindings.filter { it.isSingleton }.map { binding ->
+            binding.singleton!! to TaggedEncoding(binding.tag, binding.encodingForSingleton())
+        }.toMap(IdentityHashMap())
+
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeSmallInt(NULL_VALUE)
-        else -> taggedEncodingFor(value.javaClass).run {
-            writeSmallInt(tag)
+        else -> taggedEncodingFor(value).run {
+            writeSmallInt(tag + 1)
             withDebugFrame({
                 // TODO:configuration-cache evaluate whether we need to unpack the type here
                 // GeneratedSubclasses.unpackType(value).typeName
@@ -67,17 +78,25 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
         NULL_VALUE -> null
-        else -> bindings[tag].decoding.run { decode() }
+        else -> bindings[tag - 1].decoding.run { decode() }
     }
 
     private
-    fun taggedEncodingFor(type: Class<*>): TaggedEncoding =
-        encodings.computeIfAbsent(type, ::computeEncoding)
+    fun taggedEncodingFor(value: Any): TaggedEncoding {
+        return taggedEncodingForSingleton(value)
+            ?: taggedEncodingForType(value::class.java)
+    }
+
+    private fun taggedEncodingForType(type: Class<*>) = encodings.computeIfAbsent(type, ::computeEncoding)
+
+    private fun taggedEncodingForSingleton(value: Any) = singletonEncodings.get(value)?.also {
+        println("Encoding for $value: $it")
+    }
 
     private
     fun computeEncoding(type: Class<*>): TaggedEncoding {
-        for (binding in bindings) {
-            val encoding = binding.encodingForType(type)
+        for (binding in nonSingletonBindings) {
+            val encoding = binding.encodingFor(type)
             if (encoding != null) {
                 return TaggedEncoding(binding.tag, encoding)
             }
@@ -96,9 +115,25 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 data class Binding(
     val tag: Int,
     val encoding: EncodingProducer,
-    val decoding: Decoding
+    val decoding: Decoding,
+    val singleton: Any? = null
 ) {
-    fun encodingForType(type: Class<*>) = encoding.encodingForType(type)
+    fun encodingFor(type: Class<*>) = encoding.encodingFor(type)
+
+    fun encodingForSingleton() = encoding.encodingForValue(singleton!!)!!
+
+    fun withTag(newTag: Int): Binding =
+        Binding(newTag, encoding, decoding)
+
+    val isSingleton: Boolean
+        get() = singleton != null
+
+    companion object {
+        fun forSingleton(tag: Int, instance: Any): Binding =
+            singleton(instance).let { singletonCodec ->
+                Binding(tag, SingletonEncodingProducer(instance, singletonCodec), singletonCodec, instance)
+            }
+    }
 }
 
 
@@ -111,6 +146,22 @@ interface EncodingProducer {
      * Returns the encoding to use for that type, or null, if not supported.
      */
     fun encodingForType(type: Class<*>): Encoding?
+
+    fun encodingFor(type: Class<*>, value: Any? = null): Encoding? =
+        encodingForType(type)
+
+    fun encodingForValue(value: Any): Encoding? =
+        encodingForType(value.javaClass)
+}
+
+class SingletonEncodingProducer(val singleton: Any, val encoding: Encoding): EncodingProducer {
+    override fun encodingForType(type: Class<*>): Encoding = error("Unsupported")
+
+    override fun encodingFor(type: Class<*>, value: Any?): Encoding? =
+        value?.let (::encodingForValue)
+
+    override fun encodingForValue(value: Any): Encoding? =
+        if (value === singleton) encoding else null
 }
 
 
@@ -144,7 +195,12 @@ class BindingsBuilder(initialBindings: List<Binding>) {
     private
     val bindings = ArrayList(initialBindings)
 
-    fun build() = Bindings(ImmutableList.copyOf(bindings))
+    private
+    val singletons = ArrayList<Any>()
+
+    fun build() = singletons.run {
+        ImmutableList.copyOf(singletonBindings() + bindings.mapIndexed { index, binding -> binding.withTag(index + size) })
+    }.let { Bindings(it) }
 
     inline fun <reified T> bind(codec: Codec<T>) =
         bind(T::class.java, codec)
@@ -162,7 +218,7 @@ class BindingsBuilder(initialBindings: List<Binding>) {
         bind(type, SerializerCodec(serializer))
 
     fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.all { it.encodingForType(type) == null }) {
+        require(bindings.all { it.encodingFor(type) == null }) {
             "There's already an encoding for type '$type'"
         }
         val codecForAny = codec.uncheckedCast<Codec<Any>>()
@@ -181,6 +237,15 @@ class BindingsBuilder(initialBindings: List<Binding>) {
                 decoding = decoding
             )
         )
+    }
+
+    fun withSingleton(singleton: Any) {
+        singletons.add(singleton)
+    }
+
+    private
+    fun List<Any>.singletonBindings(): List<Binding> = mapIndexed { index, singleton ->
+        Binding.forSingleton(index + bindings.size, singleton)
     }
 
     private
