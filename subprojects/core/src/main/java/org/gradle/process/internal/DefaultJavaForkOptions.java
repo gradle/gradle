@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -31,7 +32,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
+    // Filter out any environment variables that should not be inherited.
+    private static final Provider<Map<String, String>> INHERITABLE_ENVIRONMENT_VARIABLES = CURRENT_ENVIRONMENT_VARIABLES.map(transformer(Jvm::getInheritableEnvironmentVariables));
+
     private final JvmOptions options;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
@@ -204,9 +210,8 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    protected Map<String, ?> getInheritableEnvironment() {
-        // Filter out any environment variables that should not be inherited.
-        return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
+    protected Map<String, Object> getInheritableEnvironment() {
+        return new DerivedEnvironmentVarsMap(INHERITABLE_ENVIRONMENT_VARIABLES::get);
     }
 
     @Override
