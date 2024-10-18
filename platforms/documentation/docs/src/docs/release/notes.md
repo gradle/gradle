@@ -94,9 +94,10 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Service reference properties are now stable
+
+Service references are task properties meant for easier consumption of shared build services.
+See documentation on [shared build services](userguide/build_services.html#sec:service_references) for more information.
 
 ## Fixed issues
 

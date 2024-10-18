@@ -841,9 +841,13 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     /**
      * Registers a {@link BuildService} that is used by this task so
      * {@link BuildServiceRegistration#getMaxParallelUsages() its constraint on parallel execution} can be honored.
+     * <p>
+     * This is not necessary for task properties declared as {@link org.gradle.api.services.ServiceReference}s.
+     * </p>
      *
      * @param service The service provider.
      * @since 6.1
+     * @see org.gradle.api.services.ServiceReference
      */
     void usesService(Provider<? extends BuildService<?>> service);
 }
