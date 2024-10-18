@@ -16,6 +16,8 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -28,13 +30,8 @@ public interface BuildCache {
     /**
      * Returns whether the build cache is enabled.
      */
-    @ToBeReplacedByLazyProperty
-    boolean isEnabled();
-
-    /**
-     * Sets whether the build cache is enabled.
-     */
-    void setEnabled(boolean enabled);
+    @ReplacesEagerProperty
+    Property<Boolean> getEnabled();
 
     /**
      * Returns whether a given build can store outputs in the build cache.

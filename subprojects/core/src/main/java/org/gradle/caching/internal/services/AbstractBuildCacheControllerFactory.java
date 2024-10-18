@@ -97,8 +97,8 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
                 DirectoryBuildCache local = buildCacheConfiguration.getLocal();
                 BuildCache remote = buildCacheConfiguration.getRemote();
 
-                boolean localEnabled = local.isEnabled();
-                boolean remoteEnabled = remote != null && remote.isEnabled();
+                boolean localEnabled = local.getEnabled().get();
+                boolean remoteEnabled = remote != null && remote.getEnabled().get();
 
                 if (remoteEnabled && remoteAccessMode == RemoteAccessMode.OFFLINE) {
                     remoteEnabled = false;
@@ -115,8 +115,8 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
                 context.setResult(new ResultImpl(
                     true,
-                    local.isEnabled(),
-                    remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
+                    local.getEnabled().get(),
+                    remote != null && remote.getEnabled().get() && remoteAccessMode == RemoteAccessMode.ONLINE,
                     localDescribedService == null ? null : localDescribedService.description,
                     remoteDescribedService == null ? null : remoteDescribedService.description
                 ));
