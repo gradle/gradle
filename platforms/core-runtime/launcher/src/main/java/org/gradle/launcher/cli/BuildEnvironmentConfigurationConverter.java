@@ -40,6 +40,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.launcher.cli.utils.CommandLineParametersUtil.isExecutingUpdateDaemonJvmTask;
+
 public class BuildEnvironmentConfigurationConverter {
 
     private final InitialPropertiesConverter initialPropertiesConverter;
@@ -93,7 +95,7 @@ public class BuildEnvironmentConfigurationConverter {
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
         toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
-        daemonParameters.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
+        daemonParameters.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties(), isExecutingUpdateDaemonJvmTask(args));
 
         return new Parameters(startParameter, daemonParameters, properties);
     }
