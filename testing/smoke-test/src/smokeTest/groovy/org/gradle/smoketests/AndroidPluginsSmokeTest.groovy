@@ -73,7 +73,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def runner = agpRunner(agpVersion, 'sourceSets')
 
         when:
-        def result = runner.build()
+        def result = runner
+            .deprecations(AndroidDeprecations) {
+                expectIsPropertyDeprecationWarnings()
+            }
+            .build()
 
         then:
         result.task(':app:sourceSets').outcome == TaskOutcome.SUCCESS
@@ -104,7 +108,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        def result = runner.build()
+        def result = runner
+            .deprecations(AndroidDeprecations) {
+                expectIsPropertyDeprecationWarnings()
+            }
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
