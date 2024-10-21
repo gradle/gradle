@@ -126,6 +126,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-lifecycle",
+    "path": "platforms/core-configuration/build-lifecycle",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-operations",
     "path": "platforms/core-runtime/build-operations",
     "unitTests": true,
