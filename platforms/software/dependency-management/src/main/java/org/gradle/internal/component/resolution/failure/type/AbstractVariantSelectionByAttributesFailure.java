@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -32,9 +33,9 @@ import java.util.Set;
 public abstract class AbstractVariantSelectionByAttributesFailure extends AbstractResolutionFailure implements VariantSelectionByAttributesFailure {
     private final ComponentIdentifier targetComponent;
     private final ImmutableAttributes requestedAttributes;
-    private final Set<CapabilitySelector> capabilitySelectors;
+    private final ImmutableSet<CapabilitySelector> capabilitySelectors;
 
-    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<CapabilitySelector> capabilitySelectors) {
+    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         super(problemId);
         this.targetComponent = targetComponent;
         this.requestedAttributes = requestedAttributes.asImmutable();

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -145,7 +146,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants, targetComponent.getDefaultCapability());
-        AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        AmbiguousVariantsFailure failure = new AmbiguousVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -156,7 +157,7 @@ public class ResolutionFailureHandler {
         AttributeContainerInternal requestedAttributes
     ) {
         List<AssessedCandidate> assessedCandidates = Collections.emptyList();
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, Collections.emptySet(), assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.of(), assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -169,7 +170,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -182,7 +183,7 @@ public class ResolutionFailureHandler {
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates, targetComponent.getDefaultCapability());
-        NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent.getId(), requestedAttributes, requestedCapabilities, assessedCandidates);
+        NoVariantsWithMatchingCapabilitiesFailure failure = new NoVariantsWithMatchingCapabilitiesFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
         return describeFailure(failure);
     }
     // endregion Variant Selection failures

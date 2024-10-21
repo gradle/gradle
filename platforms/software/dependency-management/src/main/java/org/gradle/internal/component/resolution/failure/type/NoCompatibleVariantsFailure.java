@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -25,7 +26,6 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * A {@link VariantSelectionByAttributesFailure} that represents the case when a variant cannot
@@ -34,7 +34,7 @@ import java.util.Set;
 public final class NoCompatibleVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public NoCompatibleVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, Set<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    public NoCompatibleVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         super(ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS, targetComponent, requestedAttributes, capabilitySelectors);
         this.candidates = ImmutableList.copyOf(candidates);
     }
