@@ -18,7 +18,7 @@ package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.gradle.internal.reflect.annotations.MethodAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
@@ -26,9 +26,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class DefaultMethodAnnotationMetadata extends AbstractHasAnnotationMetadata implements MethodAnnotationMetadata {
+public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMetadata implements FunctionAnnotationMetadata {
 
-    public DefaultMethodAnnotationMetadata(Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
+    public DefaultFunctionAnnotationMetadata(Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         super(method, annotationsByCategory);
     }
 
@@ -42,7 +42,7 @@ public class DefaultMethodAnnotationMetadata extends AbstractHasAnnotationMetada
     }
 
     @Override
-    public int compareTo(@Nonnull MethodAnnotationMetadata o) {
+    public int compareTo(@Nonnull FunctionAnnotationMetadata o) {
         int result = getMethod().getName().compareTo(o.getMethod().getName());
         if (result == 0) {
             if (getMethod().getParameterCount() != o.getMethod().getParameterCount()) {

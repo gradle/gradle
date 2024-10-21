@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.annotations.MethodAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
@@ -33,10 +33,10 @@ import java.util.Optional;
 public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     private final ImmutableBiMap<Class<? extends Annotation>, Annotation> annotations;
     private final ImmutableSortedSet<PropertyAnnotationMetadata> properties;
-    private final ImmutableSortedSet<MethodAnnotationMetadata> methods;
+    private final ImmutableSortedSet<FunctionAnnotationMetadata> methods;
     private final ReplayingTypeValidationContext validationProblems;
 
-    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, Iterable<? extends MethodAnnotationMetadata> methods, ReplayingTypeValidationContext validationProblems) {
+    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, Iterable<? extends FunctionAnnotationMetadata> methods, ReplayingTypeValidationContext validationProblems) {
         this.annotations = ImmutableBiMap.copyOf(Maps.uniqueIndex(annotations, Annotation::annotationType));
         this.properties = ImmutableSortedSet.copyOf(properties);
         this.methods = ImmutableSortedSet.copyOf(methods);
@@ -59,7 +59,7 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     }
 
     @Override
-    public ImmutableSortedSet<MethodAnnotationMetadata> getMethodsAnnotationMetadata() {
+    public ImmutableSortedSet<FunctionAnnotationMetadata> getFunctionAnnotationMetadata() {
         return methods;
     }
 

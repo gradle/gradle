@@ -35,7 +35,7 @@ import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
-import org.gradle.internal.properties.annotations.MethodAnnotationHandler
+import org.gradle.internal.properties.annotations.FunctionAnnotationHandler
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
@@ -100,7 +100,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERTY_TYPE_ANNOTATIONS
-import static org.gradle.internal.service.scopes.ExecutionGlobalServices.METHOD_TYPE_ANNOTATIONS
+import static org.gradle.internal.service.scopes.ExecutionGlobalServices.FUNCTION_TYPE_ANNOTATIONS
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec implements ValidationMessageChecker {
     private AnnotationProcessingTaskFactory factory
@@ -110,7 +110,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
-        METHOD_TYPE_ANNOTATIONS.collectEntries { [it, AnnotationCategory.TYPE] },
+        FUNCTION_TYPE_ANNOTATIONS.collectEntries { [it, AnnotationCategory.TYPE] },
         ["java", "groovy"],
         [],
         [Object, GroovyObject],
@@ -121,8 +121,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         cacheFactory
     )
     def propertyHandlers = services.getAll(PropertyAnnotationHandler)
-    def methodHandlers = services.getAll(MethodAnnotationHandler)
-    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], methodHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
+    def functionHandlers = services.getAll(FunctionAnnotationHandler)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], functionHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory(), typeMetadataStore)
     def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
@@ -237,12 +237,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        def expectedMessage = cannotUseStaticMethod {
-            method('staticAction()')
-                .kind("static")
+        validateException(task, e, staticFunctionMethodShouldNotBeAnnotatedMessage {
+                method('staticAction')
+                .kind("static method")
+                .annotation('TaskAction')
                 .includeLink()
-        }
-        validateException(task, e, expectedMessage)
+        })
     }
 
     def "works for #type.simpleName"() {

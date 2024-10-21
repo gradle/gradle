@@ -48,15 +48,6 @@ trait ValidationMessageChecker {
             .render()
     }
 
-    String cannotUseStaticMethod(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        def config = display(SimpleMessage, 'ignored_annotations_on_property', spec)
-        config.description("should not be annotated with: @TaskAction")
-            .reason("Non-property annotations are ignored if they are placed on a static method")
-            .solution("Remove the annotations")
-            .solution("Make the method non-static")
-            .render()
-    }
-
     String missingNonConfigurableValueMessage(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(SimpleMessage, 'value_not_set', spec)
         config.description("doesn't have a configured value")
@@ -87,20 +78,33 @@ trait ValidationMessageChecker {
     ShouldNotBeAnnotated propertyShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
         config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
-            .reason("Non-property annotations are ignored if they are placed on a property getter")
+            .reason("Function annotations are ignored if they are placed on a property getter")
             .solution("Remove the annotations")
             .solution("Rename the method")
     }
 
-    String staticMethodShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        ShouldNotBeAnnotated config = staticMethodShouldNotBeAnnotatedConfig(spec)
+    String staticPropertyMethodShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ShouldNotBeAnnotated config = staticPropertyMethodShouldNotBeAnnotatedConfig(spec)
         config.render()
     }
 
-    ShouldNotBeAnnotated staticMethodShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    ShouldNotBeAnnotated staticPropertyMethodShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
         config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
-            .reason("Non-property annotations are ignored if they are placed on a static method")
+            .reason("Function annotations are ignored if they are placed on a static method")
+            .solution("Remove the annotations")
+            .solution("Make the method non-static")
+    }
+
+    String staticFunctionMethodShouldNotBeAnnotatedMessage(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ShouldNotBeAnnotated config = staticFunctionMethodShouldNotBeAnnotatedConfig(spec)
+        config.render()
+    }
+
+    ShouldNotBeAnnotated staticFunctionMethodShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
+        config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
+            .reason("Function annotations are ignored if they are placed on a static method")
             .solution("Remove the annotations")
             .solution("Make the method non-static")
     }
@@ -113,7 +117,7 @@ trait ValidationMessageChecker {
     ShouldNotBeAnnotated fieldShouldNotBeAnnotatedConfig(@DelegatesTo(value = ShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(ShouldNotBeAnnotated, 'ignored_annotations_on_property', spec)
         config.description("$config.kind '$config.name()' should not be annotated with: @$config.annotation")
-            .reason("Non-property annotations are ignored if they are placed on a field")
+            .reason("Function annotations are ignored if they are placed on a field")
             .solution("Remove the annotations")
     }
 
@@ -130,7 +134,7 @@ trait ValidationMessageChecker {
             .solution("Annotate the public version of the getter")
     }
 
-    String privateMethodAnnotatedMessage(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+    String privateFunctionAnnotatedMessage(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         AnnotationContext config = privateMethodAnnotatedConfig(spec)
         config.render()
     }
@@ -860,6 +864,16 @@ trait ValidationMessageChecker {
         ShouldNotBeAnnotated method(String name) {
             this.name = name
             this
+        }
+
+        @Override
+        String getPropertyIntro() {
+            kind ? "${kind} ${super.getPropertyIntro()}" : super.getPropertyIntro()
+        }
+
+        @Override
+        String getFunctionIntro() {
+            kind ? "${kind} ${super.getFunctionIntro()}" : super.getFunctionIntro()
         }
     }
 

@@ -23,14 +23,14 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
 
     private final String pluginId;
     private final String propertyName;
-    private final String methodName;
+    private final String functionName;
     private final String parentPropertyName;
     private final String typeName;
 
-    public DefaultTypeValidationData(String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName) {
+    public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName) {
         this.pluginId = pluginId;
         this.propertyName = propertyName;
-        this.methodName = methodName;
+        this.functionName = functionName;
         this.parentPropertyName = parentPropertyName;
         this.typeName = typeName;
     }
@@ -46,8 +46,8 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     }
 
     @Override
-    public String getMethodName() {
-        return methodName;
+    public String getFunctionName() {
+        return functionName;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
 
         private String pluginId;
         private String propertyName;
-        private String methodName;
+        private String functionName;
         private String parentPropertyName;
         private String typeName;
 
@@ -81,14 +81,14 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         public DefaultTypeValidationDataBuilder(TypeValidationData from) {
             this.pluginId = from.getPluginId();
             this.propertyName = from.getPropertyName();
-            this.methodName = from.getMethodName();
+            this.functionName = from.getFunctionName();
             this.parentPropertyName = from.getParentPropertyName();
             this.typeName = from.getTypeName();
         }
 
         @Override
         public DefaultTypeValidationData build() {
-            return new DefaultTypeValidationData(pluginId, propertyName, methodName, parentPropertyName, typeName);
+            return new DefaultTypeValidationData(pluginId, propertyName, functionName, parentPropertyName, typeName);
         }
 
         @Override
@@ -104,8 +104,8 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         }
 
         @Override
-        public TypeValidationDataSpec methodName(String methodName) {
-            this.methodName = methodName;
+        public TypeValidationDataSpec functionName(String functionName) {
+            this.functionName = functionName;
             return this;
         }
 

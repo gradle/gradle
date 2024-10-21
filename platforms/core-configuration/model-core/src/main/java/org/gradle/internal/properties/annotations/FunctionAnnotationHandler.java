@@ -24,32 +24,32 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.lang.annotation.Annotation;
 
 /**
- * Handles validation, dependency handling, and skipping for a method marked with a given annotation.
+ * Handles validation, dependency handling, and skipping for a function marked with a given annotation.
  *
  * <p>Each handler must be registered as a global service.</p>
  */
 @ServiceScope(Scope.Global.class)
-public interface MethodAnnotationHandler {
+public interface FunctionAnnotationHandler {
     /**
      * The annotation type which this handler is responsible for.
      */
     Class<? extends Annotation> getAnnotationType();
 
     /**
-     * The modifier annotations allowed for the handled method type. This set can further be restricted by the actual work type.
+     * The modifier annotations allowed for the handled function type. This set can further be restricted by the actual work type.
      */
     ImmutableSet<Class<? extends Annotation>> getAllowedModifiers();
 
     /**
-     * Does this handler do something useful with the method that match it? Or can these methods be ignored?
+     * Does this handler do something useful with the functions that match it? Or can these functions be ignored?
      *
      * Should consider splitting up this type, perhaps into something that inspects the methods and produces the actual handlers and validation problems.
      */
-    boolean isMethodRelevant();
+    boolean isFunctionRelevant();
 
     /**
-     * Visits problems associated with the given method, if any.
+     * Visits problems associated with the given function, if any.
      */
-    default void validateMethodMetadata(MethodMetadata methodMetadata, TypeValidationContext validationContext) {}
+    default void validateFunctionMetadata(FunctionMetadata functionMetadata, TypeValidationContext validationContext) {}
 
 }

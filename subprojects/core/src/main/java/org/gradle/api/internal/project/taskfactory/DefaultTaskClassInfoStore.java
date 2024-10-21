@@ -26,7 +26,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.properties.annotations.MethodMetadata;
+import org.gradle.internal.properties.annotations.FunctionMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.reflect.Instantiator;
@@ -58,43 +58,43 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         Optional<String> reasonNotToTrackState = typeMetadata.getTypeAnnotationMetadata().getAnnotation(UntrackedTask.class)
             .map(UntrackedTask::because);
 
-        Map<String, MethodMetadata> methods = new HashMap<>();
+        Map<String, FunctionMetadata> functions = new HashMap<>();
 
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
-        typeMetadata.getMethodsMetadata().stream().filter(methodMetadata -> methodMetadata.getAnnotation(TaskAction.class).isPresent()).forEach(methodMetadata -> {
-            MethodMetadata alreadySeen = methods.put(methodMetadata.getMethodName(), methodMetadata);
+        typeMetadata.getFunctionMetadata().stream().filter(functionMetadata -> functionMetadata.getAnnotation(TaskAction.class).isPresent()).forEach(functionMetadata -> {
+            FunctionMetadata alreadySeen = functions.put(functionMetadata.getMethodName(), functionMetadata);
             if (alreadySeen != null) {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on multiple overloads of method %s.%s()",
-                    typeMetadata.getType().getSimpleName(), methodMetadata.getMethod().getName()
+                    typeMetadata.getType().getSimpleName(), functionMetadata.getMethod().getName()
                 ));
             }
 
             // TODO These validations should be done as validation in TaskActionAnnotationHandler and surfaced as problems
-            Class<?> declaringClass = methodMetadata.getMethod().getDeclaringClass();
-            final Class<?>[] parameterTypes = methodMetadata.getMethod().getParameterTypes();
+            Class<?> declaringClass = functionMetadata.getMethod().getDeclaringClass();
+            final Class<?>[] parameterTypes = functionMetadata.getMethod().getParameterTypes();
             if (parameterTypes.length > 1) {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on method %s.%s() as this method takes multiple parameters.",
-                    declaringClass.getSimpleName(), methodMetadata.getMethodName()));
+                    declaringClass.getSimpleName(), functionMetadata.getMethodName()));
             }
 
             TaskActionFactory taskActionFactory;
-            if (methodMetadata.getMethod().getParameterTypes().length == 1) {
+            if (functionMetadata.getMethod().getParameterTypes().length == 1) {
                 Class<?> parameterType = parameterTypes[0];
                 if (!parameterType.equals(InputChanges.class)) {
                     throw new GradleException(String.format(
                         "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
-                        declaringClass.getSimpleName(), methodMetadata.getMethodName(), parameterType));
+                        declaringClass.getSimpleName(), functionMetadata.getMethodName(), parameterType));
                 }
-                taskActionFactory = new IncrementalTaskActionFactory(type, methodMetadata.getMethod());
+                taskActionFactory = new IncrementalTaskActionFactory(type, functionMetadata.getMethod());
             } else {
-                taskActionFactory = new StandardTaskActionFactory(type, methodMetadata.getMethod());
+                taskActionFactory = new StandardTaskActionFactory(type, functionMetadata.getMethod());
             }
             taskActionFactoriesBuilder.add(taskActionFactory);
         });
 
-        if (methods.values().stream().filter(methodMetadata -> methodMetadata.getMethod().getParameterTypes().length > 0).count() > 1) {
+        if (functions.values().stream().filter(functionMetadata -> functionMetadata.getMethod().getParameterTypes().length > 0).count() > 1) {
             throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", InputChanges.class.getSimpleName()));
         }
 

@@ -54,8 +54,8 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     @Override
-    public TypeAwareProblemBuilder forMethod(String methodName) {
-        additionalData(TypeValidationDataSpec.class, data -> data.methodName(methodName));
+    public TypeAwareProblemBuilder forFunction(String methodName) {
+        additionalData(TypeValidationDataSpec.class, data -> data.functionName(methodName));
         return this;
     }
 
@@ -130,7 +130,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
                 .append("' ");
         }
 
-        Object method = additionalData.map(TypeValidationData::getMethodName).orElse(null);
+        Object method = additionalData.map(TypeValidationData::getFunctionName).orElse(null);
         if (method != null) {
             if (typeRelevant) {
                 builder.append("method '");

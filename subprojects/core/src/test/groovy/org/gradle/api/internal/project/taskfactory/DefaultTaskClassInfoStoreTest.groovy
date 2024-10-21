@@ -40,7 +40,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         _ * typeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * typeAnnotationMetadata.isAnnotationPresent(CacheableTask) >> true
         1 * typeAnnotationMetadata.getAnnotation(UntrackedTask) >> Optional.empty()
-        1 * typeMetadata.getMethodsMetadata() >> []
+        1 * typeMetadata.getFunctionMetadata() >> []
 
         expect:
         taskClassInfoStore.getTaskClassInfo(MyCacheableTask).cacheable
@@ -54,7 +54,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         _ * typeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * typeAnnotationMetadata.isAnnotationPresent(CacheableTask) >> false
         1 * typeAnnotationMetadata.getAnnotation(UntrackedTask) >> Optional.empty()
-        1 * typeMetadata.getMethodsMetadata() >> []
+        1 * typeMetadata.getFunctionMetadata() >> []
 
         expect:
         !taskClassInfoStore.getTaskClassInfo(MyNonCacheableTask).cacheable
@@ -76,7 +76,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         _ * typeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * typeAnnotationMetadata.isAnnotationPresent(CacheableTask) >> false
         1 * typeAnnotationMetadata.getAnnotation(UntrackedTask) >> Optional.empty()
-        1 * typeMetadata.getMethodsMetadata() >> []
+        1 * typeMetadata.getFunctionMetadata() >> []
 
         def info = taskClassInfoStore.getTaskClassInfo(NonAnnotatedTask)
         expect:

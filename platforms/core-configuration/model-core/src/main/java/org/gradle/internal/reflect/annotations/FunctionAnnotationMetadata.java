@@ -16,5 +16,5 @@
 
 package org.gradle.internal.reflect.annotations;
 
-public interface MethodAnnotationMetadata extends HasAnnotationMetadata, Comparable<MethodAnnotationMetadata> {
+public interface FunctionAnnotationMetadata extends HasAnnotationMetadata, Comparable<FunctionAnnotationMetadata> {
 }

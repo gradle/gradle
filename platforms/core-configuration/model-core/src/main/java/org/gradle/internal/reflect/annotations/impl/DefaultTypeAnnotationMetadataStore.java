@@ -34,7 +34,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
-import org.gradle.internal.reflect.annotations.MethodAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -89,7 +89,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
-        public ImmutableSortedSet<MethodAnnotationMetadata> getMethodsAnnotationMetadata() {
+        public ImmutableSortedSet<FunctionAnnotationMetadata> getFunctionAnnotationMetadata() {
             return ImmutableSortedSet.of();
         }
 
@@ -106,7 +106,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
     private final ImmutableSet<String> ignoredPackagePrefixes;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
-    private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> methodAnnotationCategories;
+    private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> functionAnnotationCategories;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final ImmutableSet<String> potentiallyIgnoredMethodNames;
     private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
@@ -120,6 +120,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      *
      * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
      * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoredMethodAnnotations} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
+     * @param functionAnnotationCategories Annotations on the functions that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoredMethodAnnotations} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
      * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
@@ -132,7 +133,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
-        Map<Class<? extends Annotation>, ? extends AnnotationCategory> methodAnnotationCategories,
+        Map<Class<? extends Annotation>, ? extends AnnotationCategory> functionAnnotationCategories,
         Collection<String> ignoredPackagePrefixes,
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
@@ -145,7 +146,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
         this.ignoredPackagePrefixes = collectIgnoredPackagePrefixes(ignoredPackagePrefixes);
         this.propertyAnnotationCategories = allAnnotationCategoriesForProperties(propertyAnnotationCategories, ignoredMethodAnnotations);
-        this.methodAnnotationCategories = allAnnotationCategories(methodAnnotationCategories, Collections.emptyList());
+        this.functionAnnotationCategories = allAnnotationCategories(functionAnnotationCategories, Collections.emptyList());
         this.cache = initCache(ignoredSuperTypes, cacheFactory);
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
@@ -238,17 +239,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         Map<String, PropertyAnnotationMetadataBuilder> propertyMethodBuilders = new HashMap<>();
-        Map<MethodSignature, MethodAnnotationMetadataBuilder> nonPropertyMethodBuilders = new HashMap<>();
+        Map<MethodSignature, FunctionAnnotationMetadataBuilder> functionMethodBuilders = new HashMap<>();
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
 
-        inheritMethods(type, validationContext, propertyMethodBuilders);
-        inheritNonPropertyMethods(type, validationContext, nonPropertyMethodBuilders);
+        inheritPropertyMethods(type, validationContext, propertyMethodBuilders);
+        inheritFunctionMethods(type, validationContext, functionMethodBuilders);
 
         ImmutableSortedSet<PropertyAnnotationMetadata> propertiesMetadata;
-        ImmutableSortedSet<MethodAnnotationMetadata> nonPropertyMethodsMetadata;
+        ImmutableSortedSet<FunctionAnnotationMetadata> functionMetadata;
         if (!type.isSynthetic()) {
             propertiesMetadata = extractPropertiesFrom(type, propertyMethodBuilders, validationContext);
-            nonPropertyMethodsMetadata = extractMethodsFrom(type, nonPropertyMethodBuilders, validationContext);
+            functionMetadata = extractFunctionsFrom(type, functionMethodBuilders, validationContext);
         } else {
             ImmutableSortedSet.Builder<PropertyAnnotationMetadata> propertiesMetadataBuilder = ImmutableSortedSet.naturalOrder();
             for (PropertyAnnotationMetadataBuilder propertyMetadataBuilder : propertyMethodBuilders.values()) {
@@ -256,17 +257,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             }
             propertiesMetadata = propertiesMetadataBuilder.build();
 
-            ImmutableSortedSet.Builder<MethodAnnotationMetadata> methodsMetadataBuilder = ImmutableSortedSet.naturalOrder();
-            for (MethodAnnotationMetadataBuilder methodMetadataBuilder : nonPropertyMethodBuilders.values()) {
-                methodsMetadataBuilder.add(methodMetadataBuilder.build());
+            ImmutableSortedSet.Builder<FunctionAnnotationMetadata> functionsMetadataBuilder = ImmutableSortedSet.naturalOrder();
+            for (FunctionAnnotationMetadataBuilder functionMetadataBuilder : functionMethodBuilders.values()) {
+                functionsMetadataBuilder.add(functionMetadataBuilder.build());
             }
-            nonPropertyMethodsMetadata = methodsMetadataBuilder.build();
+            functionMetadata = functionsMetadataBuilder.build();
         }
 
-        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata, nonPropertyMethodsMetadata, validationContext);
+        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata, functionMetadata, validationContext);
     }
 
-    private void inheritMethods(Class<?> type, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
+    private void inheritPropertyMethods(Class<?> type, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         visitSuperTypes(type, (superType, metadata) -> {
             for (PropertyAnnotationMetadata property : metadata.getPropertiesAnnotationMetadata()) {
                 getOrCreatePropertyBuilder(property.getPropertyName(), property.getMethod(), validationContext, methodBuilders)
@@ -275,10 +276,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         });
     }
 
-    private void inheritNonPropertyMethods(Class<?> type, TypeValidationContext validationContext, Map<MethodSignature, MethodAnnotationMetadataBuilder> methodBuilders) {
+    private void inheritFunctionMethods(Class<?> type, TypeValidationContext validationContext, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders) {
         visitSuperTypes(type, (superType, metadata) -> {
-            for (MethodAnnotationMetadata method : metadata.getMethodsAnnotationMetadata()) {
-                getOrCreateMethodBuilder(method.getMethod(), validationContext, methodBuilders)
+            for (FunctionAnnotationMetadata method : metadata.getFunctionAnnotationMetadata()) {
+                getOrCreateFunctionBuilder(method.getMethod(), validationContext, methodBuilders)
                     .inheritAnnotations(superType.isInterface(), method);
             }
         });
@@ -288,8 +289,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return propertyBuilders.computeIfAbsent(getter.getName(), methodName -> new PropertyAnnotationMetadataBuilder(propertyName, getter, validationContext));
     }
 
-    private MethodAnnotationMetadataBuilder getOrCreateMethodBuilder(Method method, TypeValidationContext validationContext, Map<MethodSignature, MethodAnnotationMetadataBuilder> methodBuilders) {
-        return methodBuilders.computeIfAbsent(MethodSignature.of(method), methodName -> new MethodAnnotationMetadataBuilder(method, validationContext));
+    private FunctionAnnotationMetadataBuilder getOrCreateFunctionBuilder(Method method, TypeValidationContext validationContext, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders) {
+        return methodBuilders.computeIfAbsent(MethodSignature.of(method), methodName -> new FunctionAnnotationMetadataBuilder(method, validationContext));
     }
 
     private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
@@ -305,15 +306,15 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return mergePropertiesAndFieldMetadata(type, propertyBuilders, fieldAnnotationsByPropertyName, validationContext);
     }
 
-    private ImmutableSortedSet<MethodAnnotationMetadata> extractMethodsFrom(Class<?> type, Map<MethodSignature, MethodAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+    private ImmutableSortedSet<FunctionAnnotationMetadata> extractFunctionsFrom(Class<?> type, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
         Method[] methods = type.getDeclaredMethods();
         // Make sure getters end up before the setters
         Arrays.sort(methods, comparing(Method::getName));
         for (Method method : methods) {
-            processNonPropertyMethodAnnotations(method, methodBuilders, validationContext);
+            processFunctionMethodAnnotations(method, methodBuilders, validationContext);
         }
 
-        ImmutableSortedSet.Builder<MethodAnnotationMetadata> methodsMetadataBuilder = ImmutableSortedSet.naturalOrder();
+        ImmutableSortedSet.Builder<FunctionAnnotationMetadata> methodsMetadataBuilder = ImmutableSortedSet.naturalOrder();
         methodBuilders.values().forEach(metadataBuilder -> methodsMetadataBuilder.add(metadataBuilder.build()));
         return methodsMetadataBuilder.build();
     }
@@ -374,9 +375,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 continue;
             }
             fieldAnnotationsByPropertyName.put(declaredField.getName(), collectRelevantAnnotations(declaredField, propertyAnnotationCategories));
-            ImmutableMap<Class<? extends Annotation>, Annotation> nonPropertyAnnotations = collectRelevantAnnotations(declaredField, methodAnnotationCategories);
+            ImmutableMap<Class<? extends Annotation>, Annotation> nonPropertyAnnotations = collectRelevantAnnotations(declaredField, functionAnnotationCategories);
             if (!nonPropertyAnnotations.isEmpty()) {
-                // Non-property method annotations should not be applicable to fields and should throw a compile time error, but in the
+                // Function method annotations should not be applicable to fields and should throw a compile time error, but in the
                 // event that they are marked applicable to fields, we report them as a problem.  If we add an annotation that is somehow
                 // valid in this context, we'll need to handle it in some way to avoid the problem being generated.
                 validationContext.visitTypeProblem(problem ->
@@ -391,7 +392,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                         .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
-                        .details("Non-property annotations are ignored if they are placed on a field")
+                        .details("Function annotations are ignored if they are placed on a field")
                         .solution("Remove the annotations")
                 );
             }
@@ -482,7 +483,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static final String PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED = "PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED";
 
-    private void processPropertyMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+    private void processPropertyMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders, TypeValidationContext validationContext) {
         if (shouldIgnore(method)) {
             return;
         }
@@ -501,7 +502,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType == null) {
-            validateNotAnnotatedForProperty(MethodKind.NON_PROPERTY, method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForProperty(MethodKind.FUNCTION, method, annotations.keySet(), validationContext);
             return;
         }
 
@@ -520,7 +521,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreatePropertyBuilder(propertyName, method, validationContext, methodBuilders);
+        PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreatePropertyBuilder(propertyName, method, validationContext, propertyBuilders);
         metadataBuilder.overrideMethod(method);
 
         if (privateGetter) {
@@ -545,7 +546,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
 
-    private void processNonPropertyMethodAnnotations(Method method, Map<MethodSignature, MethodAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+    private void processFunctionMethodAnnotations(Method method, Map<MethodSignature, FunctionAnnotationMetadataBuilder> functionBuilders, TypeValidationContext validationContext) {
         if (shouldIgnore(method)) {
             return;
         }
@@ -555,15 +556,15 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method, methodAnnotationCategories);
+        ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method, functionAnnotationCategories);
 
-        // If the non-property method is not annotated, we can ignore it
+        // If the function method is not annotated, we can ignore it
         if (annotations.isEmpty()) {
             return;
         }
 
         if (Modifier.isStatic(method.getModifiers())) {
-            validateNotAnnotatedForStaticMethod(method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForStaticFunction(method, annotations.keySet(), validationContext);
             return;
         }
 
@@ -573,15 +574,15 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        MethodAnnotationMetadataBuilder metadataBuilder = getOrCreateMethodBuilder(method, validationContext, methodBuilders);
+        FunctionAnnotationMetadataBuilder metadataBuilder = getOrCreateFunctionBuilder(method, validationContext, functionBuilders);
         metadataBuilder.overrideMethod(method);
 
         boolean privateMethod = Modifier.isPrivate(method.getModifiers());
         if (privateMethod) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.visitMethodProblem(problem ->
+            metadataBuilder.visitFunctionProblem(problem ->
                 problem
-                    .forMethod(method.getName())
+                    .forFunction(method.getName())
                     .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED), "Private method with wrong annotation", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
@@ -673,14 +674,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
-                    .details("Non-property annotations are ignored if they are placed on a property getter")
+                    .details("Function annotations are ignored if they are placed on a property getter")
                     .solution("Remove the annotations")
                     .solution("Rename the method")
             );
         }
     }
 
-    private static void validateNotAnnotatedForStaticMethod(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+    private static void validateNotAnnotatedForStaticFunction(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
@@ -694,7 +695,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
-                    .details("Non-property annotations are ignored if they are placed on a static method")
+                    .details("Function annotations are ignored if they are placed on a static method")
                     .solution("Remove the annotations")
                     .solution("Make the method non-static")
             );
@@ -918,29 +919,29 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
-    private class MethodAnnotationMetadataBuilder extends HasAnnotationMetadataBuilder implements Comparable<MethodAnnotationMetadataBuilder> {
-        public MethodAnnotationMetadataBuilder(Method method, TypeValidationContext validationContext) {
+    private class FunctionAnnotationMetadataBuilder extends HasAnnotationMetadataBuilder implements Comparable<FunctionAnnotationMetadataBuilder> {
+        public FunctionAnnotationMetadataBuilder(Method method, TypeValidationContext validationContext) {
             super(method, validationContext);
         }
 
         @Override
         protected ImmutableMap<Class<? extends Annotation>, AnnotationCategory> geAnnotationCategories() {
-            return methodAnnotationCategories;
+            return functionAnnotationCategories;
         }
 
-        public MethodAnnotationMetadata build() {
-            return new DefaultMethodAnnotationMetadata(getMethod(), resolveAnnotations());
+        public FunctionAnnotationMetadata build() {
+            return new DefaultFunctionAnnotationMetadata(getMethod(), resolveAnnotations());
         }
 
-        private void visitMethodProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        private void visitFunctionProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
             validationContext.visitTypeProblem(problemSpec);
         }
 
         @Override
         protected void handleConflictingAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
-            visitMethodProblem(problem ->
+            visitFunctionProblem(problem ->
                 problem
-                    .forMethod(method.getName())
+                    .forFunction(getMethod().getName())
                     .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().type())
                     .contextualLabel(
                         String.format(
@@ -958,7 +959,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
-        public int compareTo(MethodAnnotationMetadataBuilder o) {
+        public int compareTo(FunctionAnnotationMetadataBuilder o) {
             return getMethod().getName().compareTo(o.getMethod().getName());
         }
     }
@@ -966,7 +967,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private enum MethodKind {
         STATIC("static method"),
         PROPERTY("property"),
-        NON_PROPERTY("method"),
+        FUNCTION("function"),
         SETTER("setter");
 
         private final String displayName;

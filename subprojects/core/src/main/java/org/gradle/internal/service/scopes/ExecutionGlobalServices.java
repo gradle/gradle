@@ -87,7 +87,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.properties.annotations.MethodAnnotationHandler;
+import org.gradle.internal.properties.annotations.FunctionAnnotationHandler;
 import org.gradle.internal.properties.annotations.NestedBeanAnnotationHandler;
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
@@ -133,7 +133,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
         SoftwareType.class
     );
 
-    public static final ImmutableSet<Class<? extends Annotation>> METHOD_TYPE_ANNOTATIONS = ImmutableSet.of(
+    public static final ImmutableSet<Class<? extends Annotation>> FUNCTION_TYPE_ANNOTATIONS = ImmutableSet.of(
         TaskAction.class
     );
 
@@ -172,7 +172,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 RegistersSoftwareTypes.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
-            METHOD_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
+            FUNCTION_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
             ImmutableSet.of(
                 "java",
                 "groovy",
@@ -206,11 +206,11 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     InspectionSchemeFactory createInspectionSchemeFactory(
         List<TypeAnnotationHandler> typeHandlers,
         List<PropertyAnnotationHandler> propertyHandlers,
-        List<MethodAnnotationHandler> methodHandlers,
+        List<FunctionAnnotationHandler> functionHandlers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
-        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, methodHandlers, typeAnnotationMetadataStore, cacheFactory);
+        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, functionHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
     @Provides
@@ -385,7 +385,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    MethodAnnotationHandler createTaskActionHandler() {
+    FunctionAnnotationHandler createTaskActionHandler() {
         return new TaskActionAnnotationHandler();
     }
 }

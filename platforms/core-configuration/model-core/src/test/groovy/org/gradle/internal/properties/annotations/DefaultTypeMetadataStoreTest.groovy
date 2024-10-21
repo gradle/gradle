@@ -102,7 +102,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         cacheFactory
     )
     def propertyTypeResolver = new DefaultPropertyTypeResolver()
-    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], services.getAll(MethodAnnotationHandler), [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
+    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], services.getAll(FunctionAnnotationHandler), [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
 
     def setupSpec() {
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
@@ -125,8 +125,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * propertyAnnotationHandler.propertyRelevant >> true
         _ * propertyAnnotationHandler.annotationType >> SearchPath
 
-        def methodAnnotationHandler = Stub(MethodAnnotationHandler)
-        _ * methodAnnotationHandler.methodRelevant >> true
+        def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
+        _ * methodAnnotationHandler.functionRelevant >> true
         _ * methodAnnotationHandler.annotationType >> SearchMethod
 
         def metadataStore = new DefaultTypeMetadataStore([], [propertyAnnotationHandler], [], [methodAnnotationHandler], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
@@ -134,7 +134,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
         def propertiesMetadata = typeMetadata.propertiesMetadata
-        def methodsMetadata = typeMetadata.methodsMetadata
+        def methodsMetadata = typeMetadata.functionMetadata
 
         then:
         propertiesMetadata.size() == 1
@@ -148,7 +148,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         methodsMetadata.size() == 1
         def methodMetadata = methodsMetadata.first()
         methodMetadata.methodName == 'doSearch'
-        methodMetadata.methodType == SearchMethod
+        methodMetadata.functionType == SearchMethod
         typeMetadata.getAnnotationHandlerFor(methodMetadata) == methodAnnotationHandler
         collectProblems(typeMetadata).empty
     }
@@ -168,13 +168,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             }
         }
 
-        def methodAnnotationHandler = Stub(MethodAnnotationHandler)
-        _ * methodAnnotationHandler.methodRelevant >> true
+        def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
+        _ * methodAnnotationHandler.functionRelevant >> true
         _ * methodAnnotationHandler.annotationType >> SearchMethod
-        _ * methodAnnotationHandler.validateMethodMetadata(_, _) >> { MethodMetadata metadata, TypeValidationContext context ->
+        _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
             context.visitTypeProblem {
                 it
-                    .forMethod(metadata.getMethodName())
+                    .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
                     .severity(Severity.WARNING)
@@ -187,7 +187,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
         def propertiesMetadata = typeMetadata.propertiesMetadata
-        def methodsMetadata = typeMetadata.methodsMetadata
+        def methodsMetadata = typeMetadata.functionMetadata
 
         then:
         propertiesMetadata.size() == 1
@@ -220,13 +220,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .details("Test")
             }
         }
-        def methodAnnotationHandler = Stub(MethodAnnotationHandler)
-        _ * methodAnnotationHandler.methodRelevant >> false
+        def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
+        _ * methodAnnotationHandler.functionRelevant >> false
         _ * methodAnnotationHandler.annotationType >> SearchMethod
-        _ * methodAnnotationHandler.validateMethodMetadata(_, _) >> { MethodMetadata metadata, TypeValidationContext context ->
+        _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
             context.visitTypeProblem {
                 it
-                    .forMethod(metadata.getMethodName())
+                    .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
                     .severity(Severity.WARNING)
@@ -239,7 +239,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
         def propertiesMetadata = typeMetadata.propertiesMetadata
-        def methodsMetadata = typeMetadata.methodsMetadata
+        def methodsMetadata = typeMetadata.functionMetadata
 
         then:
         propertiesMetadata.empty
@@ -410,7 +410,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         when:
         def typeMetadata = metadataStore.getTypeMetadata(workClass)
         def properties = typeMetadata.propertiesMetadata.findAll { it.propertyType == null }
-        def methods = typeMetadata.methodsMetadata
+        def methods = typeMetadata.functionMetadata
 
         then:
         properties*.propertyName.empty
@@ -458,7 +458,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         when:
         def typeMetadata = metadataStore.getTypeMetadata(SimpleTask)
         def properties = typeMetadata.propertiesMetadata
-        def methods = typeMetadata.methodsMetadata
+        def methods = typeMetadata.functionMetadata
 
         then:
         properties.propertyName.sort() == ["destroys", "inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles", "someCache"]
@@ -496,11 +496,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
     def "ignores methods that are not annotated"() {
         when:
-        def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], services.getAll(MethodAnnotationHandler), [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
+        def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], services.getAll(FunctionAnnotationHandler), [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
         def metadata = metadataStore.getTypeMetadata(TypeWithUnannotatedMethods)
 
         then:
-        metadata.methodsMetadata.methodName == ['good']
+        metadata.functionMetadata.methodName == ['good']
     }
 
     static class TypeWithNonRelevantProperties extends DefaultTask {

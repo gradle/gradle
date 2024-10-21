@@ -25,7 +25,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.gradle.internal.reflect.annotations.MethodAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -53,9 +53,9 @@ import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
     private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
-    private final ImmutableMap<Class<? extends Annotation>, ? extends MethodAnnotationHandler> methodAnnotationHandlers;
+    private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers;
     private final ImmutableSet<Class<? extends Annotation>> allowedPropertyModifiers;
-    private final ImmutableSet<Class<? extends Annotation>> allowedMethodModifiers;
+    private final ImmutableSet<Class<? extends Annotation>> allowedFunctionModifiers;
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final PropertyTypeResolver propertyTypeResolver;
@@ -66,8 +66,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
         Collection<? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
         Collection<Class<? extends Annotation>> allowedPropertyModifiers,
-        Collection<? extends MethodAnnotationHandler> methodAnnotationHandlers,
-        Collection<Class<? extends Annotation>> allowedMethodModifiers,
+        Collection<? extends FunctionAnnotationHandler> functionAnnotationHandlers,
+        Collection<Class<? extends Annotation>> allowedFunctionModifiers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         PropertyTypeResolver propertyTypeResolver,
         CrossBuildInMemoryCacheFactory cacheFactory,
@@ -76,8 +76,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);
         this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, PropertyAnnotationHandler::getAnnotationType);
         this.allowedPropertyModifiers = ImmutableSet.copyOf(allowedPropertyModifiers);
-        this.methodAnnotationHandlers = Maps.uniqueIndex(methodAnnotationHandlers, MethodAnnotationHandler::getAnnotationType);
-        this.allowedMethodModifiers = ImmutableSet.copyOf(allowedMethodModifiers);
+        this.functionAnnotationHandlers = Maps.uniqueIndex(functionAnnotationHandlers, FunctionAnnotationHandler::getAnnotationType);
+        this.allowedFunctionModifiers = ImmutableSet.copyOf(allowedFunctionModifiers);
         this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
         this.displayName = calculateDisplayName(propertyAnnotationHandlers);
         this.propertyTypeResolver = propertyTypeResolver;
@@ -115,8 +115,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = getEffectiveProperties(annotationMetadata, validationContext);
-        ImmutableSet.Builder<MethodMetadata> effectiveMethods = getEffectiveMethods(annotationMetadata, validationContext);
-        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), effectiveMethods.build(), validationContext, propertyAnnotationHandlers, methodAnnotationHandlers, annotationMetadata);
+        ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = getEffectiveFunctions(annotationMetadata, validationContext);
+        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), effectiveFunctions.build(), validationContext, propertyAnnotationHandlers, functionAnnotationHandlers, annotationMetadata);
     }
 
     @Nonnull
@@ -189,55 +189,55 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     @Nonnull
-    private ImmutableSet.Builder<MethodMetadata> getEffectiveMethods(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
-        ImmutableSet.Builder<MethodMetadata> effectiveMethods = ImmutableSet.builderWithExpectedSize(annotationMetadata.getMethodsAnnotationMetadata().size());
-        for (MethodAnnotationMetadata methodAnnotationMetadata : annotationMetadata.getMethodsAnnotationMetadata()) {
-            Map<AnnotationCategory, Annotation> methodAnnotations = methodAnnotationMetadata.getAnnotations();
-            Annotation methodAnnotation = methodAnnotations.get(TYPE);
+    private ImmutableSet.Builder<FunctionMetadata> getEffectiveFunctions(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
+        ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = ImmutableSet.builderWithExpectedSize(annotationMetadata.getFunctionAnnotationMetadata().size());
+        for (FunctionAnnotationMetadata functionAnnotationMetadata : annotationMetadata.getFunctionAnnotationMetadata()) {
+            Map<AnnotationCategory, Annotation> functionAnnotations = functionAnnotationMetadata.getAnnotations();
+            Annotation functionAnnotation = functionAnnotations.get(TYPE);
 
-            if (methodAnnotation == null) {
+            if (functionAnnotation == null) {
                 continue;
             }
 
-            Class<? extends Annotation> methodType = methodAnnotation.annotationType();
+            Class<? extends Annotation> functionType = functionAnnotation.annotationType();
 
-            MethodAnnotationHandler annotationHandler = methodAnnotationHandlers.get(methodType);
+            FunctionAnnotationHandler annotationHandler = functionAnnotationHandlers.get(functionType);
             if (annotationHandler == null) {
                 validationContext.visitPropertyProblem(problem ->
                     problem
-                        .forMethod(methodAnnotationMetadata.getMethod().getName())
+                        .forFunction(functionAnnotationMetadata.getMethod().getName())
                         .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().type())
-                        .contextualLabel(String.format("is annotated with invalid method type @%s", methodType.getSimpleName()))
+                        .contextualLabel(String.format("is annotated with invalid function type @%s", functionType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
-                        .details("The '@" + methodType.getSimpleName() + "' annotation cannot be used in this context")
+                        .details("The '@" + functionType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the method")
-                        .solution("Use a different annotation, e.g one of " + toListOfAnnotations(methodAnnotationHandlers.keySet()))
+                        .solution("Use a different annotation, e.g one of " + toListOfAnnotations(functionAnnotationHandlers.keySet()))
                 );
                 continue;
             }
 
-            ImmutableSet<Class<? extends Annotation>> allowedModifiersForMethodType = annotationHandler.getAllowedModifiers();
-            for (Map.Entry<AnnotationCategory, Annotation> entry : methodAnnotations.entrySet()) {
+            ImmutableSet<Class<? extends Annotation>> allowedModifiersForFunctionType = annotationHandler.getAllowedModifiers();
+            for (Map.Entry<AnnotationCategory, Annotation> entry : functionAnnotations.entrySet()) {
                 AnnotationCategory annotationCategory = entry.getKey();
                 if (annotationCategory == TYPE) {
                     continue;
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
-                if (!allowedModifiersForMethodType.contains(annotationType)) {
+                if (!allowedModifiersForFunctionType.contains(annotationType)) {
                     validationContext.visitPropertyProblem(problem ->
                         problem
-                            .forMethod(methodAnnotationMetadata.getMethod().getName())
+                            .forFunction(functionAnnotationMetadata.getMethod().getName())
                             .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().type())
-                            .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + methodType.getSimpleName() + "' methods")
+                            .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + functionType.getSimpleName() + "' functions")
                             .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
-                            .details("This modifier is used in conjunction with a property of type '" + methodType.getSimpleName() + "' but this doesn't have semantics")
+                            .details("This modifier is used in conjunction with a property of type '" + functionType.getSimpleName() + "' but this doesn't have semantics")
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
-                } else if (!allowedMethodModifiers.contains(annotationType)) {
+                } else if (!allowedFunctionModifiers.contains(annotationType)) {
                     validationContext.visitPropertyProblem(problem ->
                         problem
-                            .forProperty(methodAnnotationMetadata.getMethod().getName())
+                            .forProperty(functionAnnotationMetadata.getMethod().getName())
                             .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
                             .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
@@ -249,14 +249,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
             }
 
-            MethodMetadata method = new DefaultMethodMetadata(methodType, methodAnnotationMetadata);
-            annotationHandler.validateMethodMetadata(method, validationContext);
+            FunctionMetadata function = new DefaultFunctionMetadata(functionType, functionAnnotationMetadata);
+            annotationHandler.validateFunctionMetadata(function, validationContext);
 
-            if (annotationHandler.isMethodRelevant()) {
-                effectiveMethods.add(method);
+            if (annotationHandler.isFunctionRelevant()) {
+                effectiveFunctions.add(function);
             }
         }
-        return effectiveMethods;
+        return effectiveFunctions;
     }
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
@@ -270,27 +270,27 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private static class DefaultTypeMetadata implements TypeMetadata {
         private final Class<?> type;
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
-        private final ImmutableSet<MethodMetadata> methodsMetadata;
+        private final ImmutableSet<FunctionMetadata> functionsMetadata;
         private final ReplayingTypeValidationContext validationProblems;
         private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
-        private final ImmutableMap<Class<? extends Annotation>, ? extends MethodAnnotationHandler> methodAnnotationHandlers;
+        private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers;
         private final TypeAnnotationMetadata typeAnnotationMetadata;
 
         DefaultTypeMetadata(
             Class<?> type,
             ImmutableSet<PropertyMetadata> propertiesMetadata,
-            ImmutableSet<MethodMetadata> methodsMetadata,
+            ImmutableSet<FunctionMetadata> functionsMetadata,
             ReplayingTypeValidationContext validationProblems,
             ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
-            ImmutableMap<Class<? extends Annotation>, ? extends MethodAnnotationHandler> methodAnnotationHandlers,
+            ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers,
             TypeAnnotationMetadata typeAnnotationMetadata
         ) {
             this.type = type;
             this.propertiesMetadata = propertiesMetadata;
-            this.methodsMetadata = methodsMetadata;
+            this.functionsMetadata = functionsMetadata;
             this.validationProblems = validationProblems;
             this.propertyAnnotationHandlers = propertyAnnotationHandlers;
-            this.methodAnnotationHandlers = methodAnnotationHandlers;
+            this.functionAnnotationHandlers = functionAnnotationHandlers;
             this.typeAnnotationMetadata = typeAnnotationMetadata;
         }
 
@@ -305,8 +305,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public Set<MethodMetadata> getMethodsMetadata() {
-            return methodsMetadata;
+        public Set<FunctionMetadata> getFunctionMetadata() {
+            return functionsMetadata;
         }
 
         @Override
@@ -320,8 +320,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public MethodAnnotationHandler getAnnotationHandlerFor(MethodMetadata methodMetadata) {
-            return methodAnnotationHandlers.get(methodMetadata.getMethodType());
+        public FunctionAnnotationHandler getAnnotationHandlerFor(FunctionMetadata functionMetadata) {
+            return functionAnnotationHandlers.get(functionMetadata.getFunctionType());
         }
 
         @Override
@@ -392,12 +392,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
     }
 
-    private static class DefaultMethodMetadata implements MethodMetadata {
-        private final Class<? extends Annotation> methodType;
-        private final MethodAnnotationMetadata annotationMetadata;
+    private static class DefaultFunctionMetadata implements FunctionMetadata {
+        private final Class<? extends Annotation> functionType;
+        private final FunctionAnnotationMetadata annotationMetadata;
 
-        public DefaultMethodMetadata(Class<? extends Annotation> methodType, MethodAnnotationMetadata annotationMetadata) {
-            this.methodType = methodType;
+        public DefaultFunctionMetadata(Class<? extends Annotation> functionType, FunctionAnnotationMetadata annotationMetadata) {
+            this.functionType = functionType;
             this.annotationMetadata = annotationMetadata;
         }
 
@@ -432,8 +432,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public Class<? extends Annotation> getMethodType() {
-            return methodType;
+        public Class<? extends Annotation> getFunctionType() {
+            return functionType;
         }
 
         @Override

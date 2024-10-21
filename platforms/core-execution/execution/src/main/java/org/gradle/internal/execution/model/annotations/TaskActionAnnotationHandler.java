@@ -18,15 +18,15 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.properties.annotations.AbstractMethodAnnotationHandler;
+import org.gradle.internal.properties.annotations.AbstractFunctionAnnotationHandler;
 
-public class TaskActionAnnotationHandler extends AbstractMethodAnnotationHandler {
+public class TaskActionAnnotationHandler extends AbstractFunctionAnnotationHandler {
     public TaskActionAnnotationHandler() {
         super(TaskAction.class, ImmutableSet.of());
     }
 
     @Override
-    public boolean isMethodRelevant() {
+    public boolean isFunctionRelevant() {
         return true;
     }
 }

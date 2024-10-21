@@ -24,9 +24,9 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
- * Represents the metadata of a non-property method.
+ * Represents the metadata of a function (i.e. an annotated method not associated with a property).
  */
-public interface MethodMetadata {
+public interface FunctionMetadata {
     String getMethodName();
 
     Method getMethod();
@@ -39,7 +39,7 @@ public interface MethodMetadata {
 
     boolean hasAnnotationForCategory(AnnotationCategory category);
 
-    Class<? extends Annotation> getMethodType();
+    Class<? extends Annotation> getFunctionType();
 
     TypeToken<?> getDeclaredType();
 }

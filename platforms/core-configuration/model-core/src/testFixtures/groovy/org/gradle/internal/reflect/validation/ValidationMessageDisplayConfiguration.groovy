@@ -33,9 +33,9 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     String typeName
     String property
+    String function
     String method
     String propertyType
-    String kind
     String section
     String documentationId = "validation_problems"
     boolean includeLink = false
@@ -61,12 +61,17 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     }
 
     T property(String name) {
-        property = name
+        this.property = name
+        this
+    }
+
+    T function(String name) {
+        this.function = name
         this
     }
 
     T method(String name) {
-        method = name
+        this.method = name
         this
     }
 
@@ -100,24 +105,23 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         this
     }
 
-    T kind(String kind) {
-        this.kind = kind
-        this
+    String getPropertyIntro() {
+        "property"
     }
 
-    String getPropertyIntro() {
-        kind ? "${kind} property" : "property"
+    String getFunctionIntro() {
+        "function"
     }
 
     String getMethodIntro() {
-        kind ? "${kind} method" : "method"
+        "method"
     }
 
     private String getIntro() {
         if (!hasIntro) {
             return ''
         }
-        String intro = typeName ? getTypeIntro() : getPropertyOrMethodDescription().capitalize()
+        String intro = typeName ? getTypeIntro() : getPropertyOrFunctionDescription().capitalize()
         if (pluginId) {
             return "In plugin '${pluginId}' ${intro.uncapitalize()}"
         }
@@ -128,12 +132,16 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         method ? "${methodIntro} '${method}' " : ""
     }
 
-    private String getPropertyOrMethodDescription() {
-        property ? "${propertyIntro} '${property}' " : methodDescription
+    private String getFunctionDescription() {
+        function ? "${functionIntro} '${function}' " : methodDescription
+    }
+
+    private String getPropertyOrFunctionDescription() {
+        property ? "${propertyIntro} '${property}' " : functionDescription
     }
 
     private String getTypeIntro() {
-        "Type '$typeName' ${propertyOrMethodDescription}"
+        "Type '$typeName' ${propertyOrFunctionDescription}"
     }
 
     private String getOutro() {

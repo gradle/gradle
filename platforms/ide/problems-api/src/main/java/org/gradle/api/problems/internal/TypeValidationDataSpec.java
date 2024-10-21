@@ -22,7 +22,7 @@ package org.gradle.api.problems.internal;
 public interface TypeValidationDataSpec extends AdditionalDataSpec {
     TypeValidationDataSpec pluginId(String pluginId);
     TypeValidationDataSpec propertyName(String propertyName);
-    TypeValidationDataSpec methodName(String methodName);
+    TypeValidationDataSpec functionName(String methodName);
     TypeValidationDataSpec parentPropertyName(String parentPropertyName);
     TypeValidationDataSpec typeName(String typeName);
 }

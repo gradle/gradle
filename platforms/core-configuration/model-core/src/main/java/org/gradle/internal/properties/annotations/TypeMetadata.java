@@ -33,13 +33,13 @@ public interface TypeMetadata {
     /**
      * Returns the set of relevant annotated methods, that is, those methods annotated with a relevant annotation.
      */
-    Set<MethodMetadata> getMethodsMetadata();
+    Set<FunctionMetadata> getFunctionMetadata();
 
     boolean hasAnnotatedProperties();
 
     PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
 
-    MethodAnnotationHandler getAnnotationHandlerFor(MethodMetadata methodMetadata);
+    FunctionAnnotationHandler getAnnotationHandlerFor(FunctionMetadata functionMetadata);
 
     TypeAnnotationMetadata getTypeAnnotationMetadata();
 
