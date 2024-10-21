@@ -20,8 +20,25 @@ import com.google.common.collect.ImmutableSet;
 
 import java.lang.annotation.Annotation;
 
-public abstract class AbstractFunctionAnnotationHandler extends AbstractAnnotationHandler implements FunctionAnnotationHandler {
-    public AbstractFunctionAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
-        super(annotationType, allowedModifiers);
+/**
+ * Base class for annotation handlers.
+ */
+public abstract class AbstractAnnotationHandler implements AnnotationHandler {
+    protected final Class<? extends Annotation> annotationType;
+    protected final ImmutableSet<Class<? extends Annotation>> allowedModifiers;
+
+    public AbstractAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+        this.annotationType = annotationType;
+        this.allowedModifiers = allowedModifiers;
+    }
+
+    @Override
+    public Class<? extends Annotation> getAnnotationType() {
+        return annotationType;
+    }
+
+    @Override
+    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
+        return allowedModifiers;
     }
 }

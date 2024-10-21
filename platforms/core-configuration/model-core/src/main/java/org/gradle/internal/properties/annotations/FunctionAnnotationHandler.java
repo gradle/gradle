@@ -16,12 +16,9 @@
 
 package org.gradle.internal.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.lang.annotation.Annotation;
 
 /**
  * Handles validation, dependency handling, and skipping for a function marked with a given annotation.
@@ -29,17 +26,7 @@ import java.lang.annotation.Annotation;
  * <p>Each handler must be registered as a global service.</p>
  */
 @ServiceScope(Scope.Global.class)
-public interface FunctionAnnotationHandler {
-    /**
-     * The annotation type which this handler is responsible for.
-     */
-    Class<? extends Annotation> getAnnotationType();
-
-    /**
-     * The modifier annotations allowed for the handled function type. This set can further be restricted by the actual work type.
-     */
-    ImmutableSet<Class<? extends Annotation>> getAllowedModifiers();
-
+public interface FunctionAnnotationHandler extends AnnotationHandler {
     /**
      * Visits problems associated with the given function, if any.
      */
