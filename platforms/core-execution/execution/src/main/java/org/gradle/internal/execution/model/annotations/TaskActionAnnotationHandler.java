@@ -24,9 +24,4 @@ public class TaskActionAnnotationHandler extends AbstractFunctionAnnotationHandl
     public TaskActionAnnotationHandler() {
         super(TaskAction.class, ImmutableSet.of());
     }
-
-    @Override
-    public boolean isFunctionRelevant() {
-        return true;
-    }
 }

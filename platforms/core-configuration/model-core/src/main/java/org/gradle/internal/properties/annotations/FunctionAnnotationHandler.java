@@ -41,13 +41,6 @@ public interface FunctionAnnotationHandler {
     ImmutableSet<Class<? extends Annotation>> getAllowedModifiers();
 
     /**
-     * Does this handler do something useful with the functions that match it? Or can these functions be ignored?
-     *
-     * Should consider splitting up this type, perhaps into something that inspects the methods and produces the actual handlers and validation problems.
-     */
-    boolean isFunctionRelevant();
-
-    /**
      * Visits problems associated with the given function, if any.
      */
     default void validateFunctionMetadata(FunctionMetadata functionMetadata, TypeValidationContext validationContext) {}

@@ -126,7 +126,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * propertyAnnotationHandler.annotationType >> SearchPath
 
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
-        _ * methodAnnotationHandler.functionRelevant >> true
         _ * methodAnnotationHandler.annotationType >> SearchMethod
 
         def metadataStore = new DefaultTypeMetadataStore([], [propertyAnnotationHandler], [], [methodAnnotationHandler], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
@@ -169,7 +168,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         }
 
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
-        _ * methodAnnotationHandler.functionRelevant >> true
         _ * methodAnnotationHandler.annotationType >> SearchMethod
         _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
             context.visitTypeProblem {
@@ -202,7 +200,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         and:
         collectProblems(typeMetadata) == [
             dummyPropertyValidationProblemWithLink(null, 'searchPath', 'is broken', 'Test').trim(),
-            dummyMethodValidationProblemWithLink(null, 'doSearch', 'is broken', 'Test').trim()
+            dummyFunctionValidationProblemWithLink(null, 'doSearch', 'is broken', 'Test').trim()
         ]
     }
 
@@ -221,7 +219,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             }
         }
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
-        _ * methodAnnotationHandler.functionRelevant >> false
         _ * methodAnnotationHandler.annotationType >> SearchMethod
         _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
             context.visitTypeProblem {
@@ -239,14 +236,12 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
         def propertiesMetadata = typeMetadata.propertiesMetadata
-        def methodsMetadata = typeMetadata.functionMetadata
 
         then:
         propertiesMetadata.empty
-        methodsMetadata.empty
         collectProblems(typeMetadata) == [
             dummyPropertyValidationProblemWithLink(null, 'searchPath', 'is broken', 'Test').trim(),
-            dummyMethodValidationProblemWithLink(null, 'doSearch', 'is broken', 'Test').trim()
+            dummyFunctionValidationProblemWithLink(null, 'doSearch', 'is broken', 'Test').trim()
         ]
     }
 

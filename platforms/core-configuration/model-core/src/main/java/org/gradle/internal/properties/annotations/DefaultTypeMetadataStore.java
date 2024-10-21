@@ -252,9 +252,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             FunctionMetadata function = new DefaultFunctionMetadata(functionType, functionAnnotationMetadata);
             annotationHandler.validateFunctionMetadata(function, validationContext);
 
-            if (annotationHandler.isFunctionRelevant()) {
-                effectiveFunctions.add(function);
-            }
+            effectiveFunctions.add(function);
         }
         return effectiveFunctions;
     }

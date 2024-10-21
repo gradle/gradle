@@ -429,7 +429,7 @@ trait ValidationMessageChecker {
         }.render()
     }
 
-    String dummyMethodValidationProblemWithLink(String onType = 'InvalidTask', String onMethod = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
+    String dummyFunctionValidationProblemWithLink(String onType = 'InvalidTask', String onMethod = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).method(onMethod)
             description(desc)
