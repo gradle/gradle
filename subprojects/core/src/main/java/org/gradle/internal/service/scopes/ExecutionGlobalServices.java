@@ -104,6 +104,9 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
+
 public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = ImmutableSet.of(
@@ -130,6 +133,11 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS = ImmutableSet.of(
         Internal.class,
         ReplacedBy.class
+    );
+
+    @VisibleForTesting
+    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS = ImmutableSet.of(
+        ReplacesEagerProperty.class
     );
 
     @Provides
@@ -180,6 +188,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 Property.class
             ),
             IGNORED_METHOD_ANNOTATIONS,
+            IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS,
             method -> method.isAnnotationPresent(Generated.class),
             cacheFactory);
     }
@@ -341,7 +350,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @Provides
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
-        return new NestedBeanAnnotationHandler(ImmutableSet.of(Optional.class));
+        return new NestedBeanAnnotationHandler(ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
     @Provides

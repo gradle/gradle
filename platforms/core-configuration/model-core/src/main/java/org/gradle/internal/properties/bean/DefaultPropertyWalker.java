@@ -116,8 +116,6 @@ public class DefaultPropertyWalker implements PropertyWalker {
             this.cachedInvoker = Suppliers.memoize(() -> {
                 Object value = DeprecationLogger.whileDisabled(supplier::get);
                 if (isUpgradedProperty && isConfigurable()) {
-                    // Upgraded properties should not be finalized to simplify migration.
-                    // This behaviour should be removed with Gradle 10.
                     ((HasConfigurableValueInternal) value).markAsUpgradedProperty();
                 }
                 return value;

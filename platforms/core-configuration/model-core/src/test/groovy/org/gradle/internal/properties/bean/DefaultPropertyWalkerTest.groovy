@@ -53,6 +53,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS
+import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS
 import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERTY_TYPE_ANNOTATIONS
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
@@ -256,6 +257,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             [Object, GroovyObject],
             [ConfigurableFileCollection, Property],
             IGNORED_METHOD_ANNOTATIONS,
+            IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS,
             { false },
             cacheFactory
         )
