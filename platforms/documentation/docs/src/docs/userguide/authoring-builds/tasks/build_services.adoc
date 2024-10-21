@@ -171,8 +171,9 @@ When this property has no value, which is the default, Gradle does not constrain
 When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
 
 IMPORTANT: When the consuming task property is annotated with `@Internal`, for the constraint to take effect, the build service *must* be registered with the consuming task via
-link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)].
-This is not necessary if, instead, the consuming property is annotated with `@ServiceReference`.
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)]. NOTE: at this time, Gradle cannot discover indirect usage of services (for instance, if an additional service is used only by a service that the task uses directly).
+As a workaround, indirect usage may be declared explicitly to Gradle by either adding a `@ServiceReference` property to the task and assigning the service that is only used indirectly to it (making it a direct reference),
+or invoking link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)].
 
 [[operation_listener]]
 == Receiving information about task execution
