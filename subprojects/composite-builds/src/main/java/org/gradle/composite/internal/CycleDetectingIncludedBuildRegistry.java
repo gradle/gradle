@@ -52,6 +52,6 @@ public class CycleDetectingIncludedBuildRegistry extends DefaultIncludedBuildReg
 
     private static void reportCycle(DynamicGraphCycleDetector.Cycle<BuildState> cycle) {
         String path = cycle.format(buildState -> buildState.getIdentityPath().getPath());
-        throw new GradleException("Cycle detected in the included builds definition: " + path);
+        throw new GradleException(String.format("A cycle has been detected in the definition of plugin builds: %s. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.", path));
     }
 }

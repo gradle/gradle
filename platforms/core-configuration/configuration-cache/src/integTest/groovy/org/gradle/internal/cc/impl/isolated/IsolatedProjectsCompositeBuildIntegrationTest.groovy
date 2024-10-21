@@ -69,7 +69,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("Cycle detected in the included builds definition: :plugins-c -> :plugins-a -> :plugins-b -> :plugins-c")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-c -> :plugins-a -> :plugins-b -> :plugins-c. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.")
     }
 
     def "transitive cycles for plugin builds are prohibited"() {
@@ -89,7 +89,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("Cycle detected in the included builds definition: :library-c -> :plugins-a -> :library-b -> :library-c")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :library-c -> :plugins-a -> :library-b -> :library-c. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.")
     }
 
     def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
@@ -120,7 +120,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("Cycle detected in the included builds definition: :build-logic -> :build-logic")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :build-logic -> :build-logic. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.")
     }
 
     def "cycles for library builds are allowed"() {
