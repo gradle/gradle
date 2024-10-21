@@ -32,5 +32,8 @@ public interface JavaForkOptionsInternal extends JavaForkOptions {
      */
     void checkDebugConfiguration(Iterable<?> arguments);
 
-    EffectiveJavaForkOptions toEffectiveJvmForkOptions();
+    /**
+     * Copies effective JVM options to the target.
+     */
+    void copyEffectiveJvmOptions(JvmOptions target);
 }

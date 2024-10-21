@@ -149,6 +149,23 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         return forkOptions;
     }
 
+    @Override
+    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(JavaForkOptionsInternal options) {
+        @SuppressWarnings("deprecation")
+        Factory<PatternSet> nonCachingPatternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+        // NOTE: We do not want/need a decorated version of JvmOptions or JavaDebugOptions because
+        // these immutable instances are held across builds and will retain classloaders/services in the decorated object
+        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
+        JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
+        options.copyEffectiveJvmOptions(jvmOptions);
+        return new EffectiveJavaForkOptions(
+            options.getExecutable(),
+            options.getWorkingDir(),
+            options.getEnvironment(),
+            jvmOptions
+        );
+    }
+
     public JavaExecAction newDecoratedJavaExecAction() {
         throw new UnsupportedOperationException();
     }

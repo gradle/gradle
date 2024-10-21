@@ -28,6 +28,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerThreadRegistry
+import org.gradle.process.internal.EffectiveJavaForkOptions
 import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.process.internal.JavaForkOptionsInternal
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
@@ -154,6 +155,11 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
             def forkOptions = delegate.newJavaForkOptions()
             forkOptions.setWorkingDir(temporaryFolder)
             return forkOptions
+        }
+
+        @Override
+        EffectiveJavaForkOptions toEffectiveJavaForkOptions(JavaForkOptionsInternal options) {
+            return delegate.toEffectiveJavaForkOptions(options)
         }
     }
 }

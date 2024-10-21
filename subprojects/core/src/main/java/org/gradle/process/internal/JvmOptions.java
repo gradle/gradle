@@ -388,6 +388,11 @@ public class JvmOptions {
 
     public JvmOptions createCopy() {
         JvmOptions target = new JvmOptions(fileCollectionFactory);
+        copyTo(target);
+        return target;
+    }
+
+    public void copyTo(JvmOptions target) {
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
@@ -398,15 +403,10 @@ public class JvmOptions {
         target.setEnableAssertions(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());
         target.systemProperties(immutableSystemProperties);
-        return target;
     }
 
     private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
         copyDebugOptions(debugOptions, otherOptions);
-    }
-
-    private void copyDebugOptionsFrom(JavaDebugOptions otherOptions) {
-        copyDebugOptions(otherOptions, debugOptions);
     }
 
     static void copyDebugOptions(JavaDebugOptions from, JavaDebugOptions to) {

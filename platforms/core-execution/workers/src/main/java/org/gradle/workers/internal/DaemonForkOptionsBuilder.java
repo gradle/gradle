@@ -50,11 +50,13 @@ public class DaemonForkOptionsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonForkOptionsBuilder.class);
 
     private final JavaForkOptionsInternal javaForkOptions;
+    private final JavaForkOptionsFactory javaForkOptionsFactory;
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
     private ClassLoaderStructure classLoaderStructure = null;
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
         this.javaForkOptions = forkOptionsFactory.newJavaForkOptions();
+        this.javaForkOptionsFactory = forkOptionsFactory;
     }
 
     public DaemonForkOptionsBuilder keepAliveMode(KeepAliveMode keepAliveMode) {
@@ -73,7 +75,7 @@ public class DaemonForkOptionsBuilder {
     }
 
     public DaemonForkOptions build() {
-        EffectiveJavaForkOptions forkOptions = javaForkOptions.toEffectiveJvmForkOptions();
+        EffectiveJavaForkOptions forkOptions = javaForkOptionsFactory.toEffectiveJavaForkOptions(javaForkOptions);
         if (OperatingSystem.current().isWindows() && keepAliveMode == KeepAliveMode.DAEMON) {
             List<String> jvmArgs = forkOptions.getJvmOptions().getAllJvmArgs();
             Optional<String> unreliableArgument = findUnreliableArgument(jvmArgs);

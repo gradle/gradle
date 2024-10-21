@@ -227,19 +227,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public EffectiveJavaForkOptions toEffectiveJvmForkOptions() {
-        JvmOptions copy = options.createCopy();
+    public void copyEffectiveJvmOptions(JvmOptions target) {
+        options.copyTo(target);
         if (jvmArgumentProviders != null) {
             for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                copy.jvmArgs(jvmArgumentProvider.asArguments());
+                target.jvmArgs(jvmArgumentProvider.asArguments());
             }
         }
-        return new EffectiveJavaForkOptions(
-            getExecutable(),
-            getWorkingDir(),
-            getEnvironment(),
-            copy
-        );
     }
 
     @Override
