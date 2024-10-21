@@ -42,7 +42,7 @@ class DynamicGraphCycleDetectorTest extends Specification {
         def result1 = graph.addEdge("A", "B")
 
         then:
-        result1.empty
+        !result1.present
 
         then:
         def result2 = graph.addEdge("B", "A")
