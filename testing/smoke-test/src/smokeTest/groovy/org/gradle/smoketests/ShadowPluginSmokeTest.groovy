@@ -24,8 +24,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
-    @Issue('https://plugins.gradle.org/plugin/io.github.goooler.shadow')
+    @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
     def 'shadow plugin (#pluginId) #(pluginVersion)'() {
         given:
         buildFile << """
@@ -85,15 +84,13 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         where:
         pluginId                            | pluginVersion                 | hasDeprecations
-        "com.github.johnrengelman.shadow"   | TestedVersions.shadow         | true
-        "io.github.goooler.shadow"          | TestedVersions.shadowFork     | false
+        "com.gradleup.shadow"               | TestedVersions.shadow         | true
     }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'com.github.johnrengelman.shadow': Versions.of(TestedVersions.shadow),
-            'io.github.goooler.shadow': Versions.of(TestedVersions.shadowFork)
+            'com.gradleup.shadow': Versions.of(TestedVersions.shadow)
         ]
     }
 

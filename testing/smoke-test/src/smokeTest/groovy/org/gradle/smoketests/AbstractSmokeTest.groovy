@@ -72,8 +72,8 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
         static nebulaResolutionRules = "11.3.0"
 
-        // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = "8.1.1"
+        // https://plugins.gradle.org/plugin/com.gradleup.shadow
+        static shadow = "8.3.3"
 
         // https://plugins.gradle.org/plugin/io.github.goooler.shadow
         static shadowFork = "8.1.8"
