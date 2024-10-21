@@ -42,7 +42,7 @@ import java.util.function.Function;
  * between nodes when new edges are added.</p>
  *
  * @param <T> the type of nodes in the graph
- * */
+ */
 class DynamicGraphCycleDetector<T> {
 
     public static class Cycle<T> {
@@ -77,7 +77,7 @@ class DynamicGraphCycleDetector<T> {
         }
         Optional<Cycle<T>> cycle = findCycle(from, to);
         if (cycle.isPresent()) {
-            return cycle.map(it -> it.plus(from));
+            return cycle;
         }
         referrersOf(to).add(from);
         return Optional.empty();
@@ -85,12 +85,15 @@ class DynamicGraphCycleDetector<T> {
 
     @Nonnull
     private Optional<Cycle<T>> findCycle(T from, T to) {
-        return findCycle(from, to, PersistentList.of(from));
+        return findCycle(from, to, PersistentList.of(from)).map(it -> it.plus(from));
     }
 
     @Nonnull
     private Optional<Cycle<T>> findCycle(T from, T to, PersistentList<T> path) {
-        Set<T> referrers = referrersOf(from);
+        Set<T> referrers = graph.get(from);
+        if (referrers == null) {
+            return Optional.empty();
+        }
         if (referrers.contains(to)) {
             return Optional.of(new Cycle<>(path.plus(to)));
         }
