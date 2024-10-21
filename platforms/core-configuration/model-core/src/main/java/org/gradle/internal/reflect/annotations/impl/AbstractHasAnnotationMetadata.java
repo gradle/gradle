@@ -26,7 +26,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class AbstractHasAnnotationMetadata implements HasAnnotationMetadata {
+/**
+ * Base class for elements that have annotation metadata, such as properties and functions.
+ */
+public abstract class AbstractHasAnnotationMetadata implements HasAnnotationMetadata {
     protected final Method method;
     protected final TypeToken<?> declaredType;
     protected final ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory;

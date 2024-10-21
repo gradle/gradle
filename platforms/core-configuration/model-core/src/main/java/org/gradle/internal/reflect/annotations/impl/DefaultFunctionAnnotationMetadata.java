@@ -26,6 +26,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * Default implementation of {@link FunctionAnnotationMetadata}.
+ */
 public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMetadata implements FunctionAnnotationMetadata {
 
     public DefaultFunctionAnnotationMetadata(Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {

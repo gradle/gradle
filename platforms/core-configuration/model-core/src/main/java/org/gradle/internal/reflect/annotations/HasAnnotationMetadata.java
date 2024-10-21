@@ -23,14 +23,33 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
+/**
+ * Base interface for elements that have annotation metadata, such as properties and functions.
+ */
 public interface HasAnnotationMetadata {
+    /**
+     * The method that this metadata is associated with (if relevant).
+     */
     Method getMethod();
 
+    /**
+     * Whether the given annotation is present on this element.
+     */
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
+    /**
+     * Returns the annotation of the given type that is present on this element, if any.
+     */
     <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType);
 
+    /**
+     * Returns the annotations present on this element.
+     */
     ImmutableMap<AnnotationCategory, Annotation> getAnnotations();
 
+    /**
+     * Returns the declared type of this element. For a property, this is the type of the property.
+     * For a function, this is the return type of the function.
+     */
     TypeToken<?> getDeclaredType();
 }

@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.properties.annotations.AbstractFunctionAnnotationHandler;
 
+/**
+ * Handles the {@link TaskAction} annotation.
+ */
 public class TaskActionAnnotationHandler extends AbstractFunctionAnnotationHandler {
     public TaskActionAnnotationHandler() {
         super(TaskAction.class, ImmutableSet.of());

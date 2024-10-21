@@ -18,6 +18,9 @@ package org.gradle.internal.reflect.annotations;
 
 import javax.annotation.Nullable;
 
+/**
+ * Annotation metadata associated with properties.
+ */
 public interface PropertyAnnotationMetadata extends HasAnnotationMetadata, Comparable<PropertyAnnotationMetadata> {
     String getPropertyName();
 

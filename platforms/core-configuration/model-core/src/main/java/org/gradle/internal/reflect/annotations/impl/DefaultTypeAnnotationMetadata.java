@@ -30,6 +30,9 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 
+/**
+ * Default implementation of {@link TypeAnnotationMetadata}.
+ */
 public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     private final ImmutableBiMap<Class<? extends Annotation>, Annotation> annotations;
     private final ImmutableSortedSet<PropertyAnnotationMetadata> properties;
