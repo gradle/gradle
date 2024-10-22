@@ -23,6 +23,14 @@ import spock.lang.Issue
 
 class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
+    def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
+
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/14770")
     def "capabilities resolution shouldn't put graph in inconsistent state"() {
         file("shared/build.gradle") << """
@@ -126,12 +134,10 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
         settingsFile << """
-            rootProject.name = 'test'
             include 'shared'
             include 'p1'
             include 'p2'
         """
-        def resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
 
         when:
@@ -171,5 +177,186 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 }
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30969")
+    def "dependency may have same capability as its transitive dependency and fails with rejection without capability resolution rule"() {
+        mavenRepo.module("org.hamcrest", "hamcrest-core", "2.2")
+            .dependsOn(mavenRepo.module("org.hamcrest", "hamcrest", "2.2").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.hamcrest:hamcrest-core:2.2")
+            }
+
+            dependencies.components.withModule('org.hamcrest:hamcrest-core') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org.hamcrest', 'hamcrest', id.version)
+                    }
+                }
+            }
+        """
+
+        when:
+        resolve.prepare()
+        fails(":checkDeps")
+
+        then:
+        failure.assertHasCause("Could not resolve org.hamcrest:hamcrest-core:2.2")
+        failure.assertHasCause("Module 'org.hamcrest:hamcrest-core' has been rejected")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest:2.2(runtime)]")
+        failure.assertHasCause("Module 'org.hamcrest:hamcrest' has been rejected")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest-core:2.2(runtime)]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30969")
+    def "dependency may have same capability as its transitive dependency"() {
+        mavenRepo.module("org.hamcrest", "hamcrest-core", "2.2")
+            .dependsOn(mavenRepo.module("org.hamcrest", "hamcrest", "2.2").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.hamcrest:hamcrest-core:2.2")
+            }
+
+            dependencies.components.withModule('org.hamcrest:hamcrest-core') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org.hamcrest', 'hamcrest', id.version)
+                    }
+                }
+            }
+
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    capabilitiesResolution {
+                        withCapability("org.hamcrest:hamcrest") {
+                            def result = candidates.find {
+                                it.id.group == "org.hamcrest" && it.id.module == "${winner}"
+                            }
+                            assert result != null
+                            select(result)
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        resolve.prepare()
+        succeeds(":checkDeps")
+
+        then:
+        if (winner == "hamcrest-core") {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module("org.hamcrest:hamcrest-core:2.2") {
+                        edge("org.hamcrest:hamcrest:2.2", "org.hamcrest:hamcrest-core:2.2")
+                        byConflictResolution()
+                    }
+                }
+            }
+        } else {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge("org.hamcrest:hamcrest-core:2.2", "org.hamcrest:hamcrest:2.2") {
+                        notRequested()
+                        byConflictResolution()
+                    }
+                }
+            }
+        }
+
+        where:
+        winner << ["hamcrest-core", "hamcrest"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30969")
+    def "dependency may have same capability as its distant transitive dependency"() {
+        mavenRepo.module("org", "parent", "2.2").dependsOn(
+            mavenRepo.module("org", "middle", "2.2").dependsOn(
+                mavenRepo.module("org", "child", "2.2").publish()
+            ).publish()
+        ).publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:parent:2.2")
+            }
+
+            dependencies.components.withModule('org:parent') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org', 'child', id.version)
+                    }
+                }
+            }
+
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    capabilitiesResolution {
+                        withCapability("org:child") {
+                            def result = candidates.find {
+                                it.id.group == "org" && it.id.module == "${winner}"
+                            }
+                            assert result != null
+                            select(result)
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        resolve.prepare()
+        succeeds(":checkDeps")
+
+        then:
+        if (winner == "parent") {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module("org:parent:2.2") {
+                        module("org:middle:2.2") {
+                            edge("org:child:2.2", "org:parent:2.2") {
+                                byConflictResolution()
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge("org:parent:2.2", "org:child:2.2") {
+                        notRequested()
+                        byConflictResolution()
+                    }
+                }
+            }
+        }
+
+        where:
+        winner << ["parent", "child"]
     }
 }
