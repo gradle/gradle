@@ -33,6 +33,56 @@ import spock.lang.Issue
 class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
     @NotYetImplemented
+    def "resolution hits isConstraint assertion"() {
+        mavenRepo.module("jaxen", "jaxen", "1.1.6").publish()
+        mavenRepo.module("dom4j", "dom4j", "1.6.1").publish()
+
+        mavenRepo.module("org.hibernate", "hibernate-core", "5.4.18.Final")
+            .dependsOn("org.dom4j", "dom4j", "2.1.3", null, null, null, [[group: "*", module: "*"]])
+            .publish()
+        mavenRepo.module("jaxen", "jaxen", "1.1.1")
+            .dependsOn("dom4j", "dom4j", "1.6.1")
+            .publish()
+        mavenRepo.module("org.dom4j", "dom4j", "2.1.3").publish()
+            .dependsOn("jaxen", "jaxen", "1.1.6")
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    capabilitiesResolution {
+                        withCapability("org.dom4j:dom4j") {
+                            selectHighestVersion()
+                        }
+                    }
+                }
+            }
+
+            dependencies.components.withModule('dom4j:dom4j') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org.dom4j', 'dom4j', id.version)
+                    }
+                }
+            }
+
+            dependencies {
+                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
+                implementation 'jaxen:jaxen:1.1.1'
+            }
+        """
+
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath", "--stacktrace")
+    }
+
+    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1283947029")
     def "resolution result represents failure to resolve dynamic selected module version when platform has constraint on that module"() {
         mavenRepo.module("test", "module1", "11.1.0.1").publish()
@@ -51,24 +101,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            plugins {
-                id("jvm-ecosystem")
-            }
-
-            configurations {
-                dependencyScope("implementation")
-                resolvable("runtimeClasspath") {
-                    extendsFrom implementation
-                }
-            }
-
-            tasks.register('resolve') {
-                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
-                doLast {
-                    println root.get()
-                }
-            }
-
+            ${header}
             ${mavenTestRepository()}
 
             dependencies {
@@ -79,6 +112,40 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("resolve")
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/26145")
+    @Issue("https://github.com/ljacomet/logging-capabilities/issues/33")
+    def "capability conflict in logging capabilities plugin causes corrupt resolution result"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'dev.jacomet.logging-capabilities' version '0.11.1'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'eu.medsea.mimeutil:mime-util:2.1.3'
+                implementation 'org.slf4j:slf4j-api:2.0.7'
+                runtimeOnly 'ch.qos.logback:logback-classic:1.3.11'
+            }
+
+            loggingCapabilities {
+                enforceLogback()
+            }
+
+            tasks.register("resolve") {
+                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    println root.get()
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve", "--stacktrace")
     }
 
     @Ignore("Original reproducer. Minified version below")
@@ -391,6 +458,128 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1423804572")
+    def "capability conflict causes corrupt graph"() {
+        buildFile << """
+            ${header}
+            ${mavenCentralRepository()}
+
+            ${selectHighest("org.dom4j:dom4j")}
+            ${withModules("dom4j:dom4j").addCapability("org.dom4j", "dom4j")}
+            ${withModules("org.hibernate:hibernate").addCapability("org.hibernate", "hibernate-core")}
+
+            dependencies {
+                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
+                implementation 'org.hibernate:hibernate-entitymanager:5.4.18.Final'
+                implementation 'jaxen:jaxen:1.1.1'
+                implementation 'dom4j:dom4j:1.6'
+                implementation 'org.unitils:unitils-database:3.3'
+            }
+        """
+
+        expect:
+        succeeds("resolve", "--stacktrace")
+    }
+
+    @NotYetImplemented
+    def "capability conflict hits assertions in resolution engine 2"() {
+        buildFile << """
+            ${header}
+            ${mavenCentralRepository()}
+
+            ${withModules("org.dom4j:dom4j").addCapability("dom4j", "dom4j")}
+            ${selectHighest("dom4j:dom4j")}
+
+            dependencies {
+                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
+                implementation 'org.hibernate:hibernate-entitymanager:5.4.18.Final'
+
+                implementation ('jaxen:jaxen:1.1.1') {
+                    exclude group: 'com.ibm.icu', module: 'icu4j'
+                }
+
+                implementation 'org.unitils:unitils-database:3.3'
+            }
+        """
+
+        expect:
+        succeeds(":resolve", "--stacktrace")
+    }
+
+    @NotYetImplemented
+    def "caability conflict causes cannot decrease hard edge count assertion"() {
+        buildFile << """
+            ${header}
+            ${mavenCentralRepository()}
+
+            ${selectHighest("org.dom4j:dom4j")}
+            ${withModules("dom4j:dom4j").addCapability("org.dom4j", "dom4j")}
+            ${withModules("org.hibernate:hibernate").addCapability("org.hibernate", "hibernate-core")}
+
+            dependencies {
+                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
+
+                implementation ('jaxen:jaxen:1.1.1') {
+                    exclude group: 'com.ibm.icu', module: 'icu4j'
+                }
+
+                implementation 'org.unitils:unitils-database:3.3'
+            }
+        """
+
+        expect:
+        succeeds(":resolve", "--stacktrace")
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1967573024")
+    def "conflict resolution causes graph to lose track of declared first-level dependencies"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            ${withModules(
+            "org.bouncycastle:bcprov-jdk14",
+            "org.bouncycastle:bcprov-jdk18on",
+        ).addCapability("foo", "bcprov")}
+            ${withModules(
+            "org.bouncycastle:bctls-fips",
+            "org.bouncycastle:bctls-jdk14",
+            "org.bouncycastle:bctls-jdk18on",
+        ).addCapability("foo", "bctls")}
+            ${selectHighest("foo:bcprov")}
+            ${selectHighest("foo:bctls")}
+
+            dependencies {
+                implementation("org.bouncycastle:bcprov-jdk14:1.70")
+                implementation("org.bouncycastle:bcprov-jdk18on:1.71")
+                implementation("org.bouncycastle:bctls-fips:1.0.9")
+                implementation("org.bouncycastle:bctls-jdk14:1.70")
+                implementation("org.bouncycastle:bctls-jdk18on:1.72")
+            }
+        """
+
+        when:
+        succeeds(":dependencies", "--configuration", "runtimeClasspath")
+
+        then:
+        [
+            "org.bouncycastle:bcprov-jdk14:1.70",
+            "org.bouncycastle:bcprov-jdk18on:1.71",
+            "org.bouncycastle:bctls-fips:1.0.9",
+            "org.bouncycastle:bctls-jdk14:1.70",
+            "org.bouncycastle:bctls-jdk18on:1.72"
+        ].each {
+            assert output.readLines().any {
+                it.startsWith("+--- ${it}")
+            }
+        }
+    }
+
+    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/22326")
     def "capability conflict skip"() {
         settingsFile << """
@@ -550,6 +739,34 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
+    def "corrupt serialized resolution result"() {
+        buildFile << """
+            plugins {
+                id("de.jjohannes.java-ecosystem-capabilities") version "0.8"
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("org.codehaus.woodstox:wstx-asl:4.0.6")
+                implementation("javax.xml.stream:stax-api:1.0")
+                implementation("org.codehaus.woodstox:wstx-lgpl:3.2.9")
+                implementation("org.codehaus.woodstox:woodstox-core-asl:4.4.1")
+                implementation("stax:stax-api:1.0.1")
+                implementation("woodstox:wstx-asl:2.9.3")
+                implementation("org.codehaus.woodstox:woodstox-core-lgpl:4.4.0")
+            }
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath", "--stacktrace")
+    }
+
+    @NotYetImplemented
     @UnsupportedWithConfigurationCache(because = "Uses allDependencies")
     @Issue("https://github.com/gradle/gradle/pull/26016#issuecomment-1795491970")
     def "conflict between two nodes in the same component causes edge without target node"() {
@@ -623,51 +840,57 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-2008178522")
-    def "another reproducer for corrupt RR"() {
-
-        mavenRepo.module("com.netflix.eureka", "eureka-client", "2.0.1")
-            .dependsOn(
-                mavenRepo.module("com.netflix.netflix-commons", "netflix-eventbus", "0.3.0")
-                    .dependsOn(mavenRepo.module("com.netflix.archaius", "archaius-core", "0.3.3").publish())
-                    .publish()
-            )
-            .dependsOn(mavenRepo.module("com.netflix.archaius", "archaius-core", "0.7.6").publish())
-            .publish()
-
-        mavenRepo.module("org.springframework.cloud", "spring-cloud-netflix-dependencies", "4.1.0")
-            .hasPackaging("pom")
-            .dependencyConstraint([exclusions: [[group: "com.netflix.archaius", module: "archaius-core"]]], mavenRepo.module("com.netflix.eureka", "eureka-client", "2.0.1"))
-            .publish()
-
-        settingsFile << """
-            include 'indirect'
+    def getHeader() {
         """
-
-        file("indirect/build.gradle") << """
             plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation(platform("org.springframework.cloud:spring-cloud-netflix-dependencies:4.1.0"))
-            }
-        """
-
-        buildFile << """
-            plugins {
-                id("java-library")
+                id("jvm-ecosystem")
             }
 
-            ${mavenTestRepository()}
+            configurations {
+                dependencyScope("implementation")
+                resolvable("runtimeClasspath") {
+                    extendsFrom implementation
+                }
+            }
 
-            dependencies {
-                implementation("com.netflix.eureka:eureka-client:2.0.1")
-                implementation(project(":indirect"))
+            tasks.register('resolve') {
+                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    println root.get()
+                }
             }
         """
+    }
 
-        expect:
-        succeeds("dependencies", "--configuration", "runtimeClasspath", "--stacktrace")
+    def selectHighest(String module) {
+        """
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    capabilitiesResolution {
+                        withCapability("$module") {
+                            selectHighestVersion()
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    def withModules(String... modules) {
+        return new Object() {
+            def addCapability(String group, String module) {
+                modules.collect {
+                    """
+                        dependencies.components.withModule('$it') {
+                            allVariants {
+                                withCapabilities {
+                                    addCapability('$group', '$module', id.version)
+                                }
+                            }
+                        }
+                    """
+                }.join("\n")
+            }
+        }
     }
 }
