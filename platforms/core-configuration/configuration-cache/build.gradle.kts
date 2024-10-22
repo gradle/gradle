@@ -37,6 +37,7 @@ dependencies {
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildEvents)
+    implementation(projects.buildLifecycle)
     implementation(projects.buildOperations)
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)

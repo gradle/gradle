@@ -31,6 +31,7 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.logging)
 
+    implementation(projects.buildLifecycle)
     implementation(projects.buildOperationsTrace)
     implementation(projects.coreApi)
     implementation(projects.messaging)
