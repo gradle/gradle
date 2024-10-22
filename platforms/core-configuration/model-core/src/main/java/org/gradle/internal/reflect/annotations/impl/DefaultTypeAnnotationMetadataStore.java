@@ -760,7 +760,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public void inheritAnnotations(boolean fromInterface, HasAnnotationMetadata superProperty) {
-            superProperty.getAnnotations()
+            superProperty.getAnnotationsByCategory()
                 .forEach((fromInterface
                     ? inheritedInterfaceAnnotations
                     : inheritedSuperclassAnnotations)::put);

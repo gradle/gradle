@@ -43,7 +43,7 @@ public abstract class AbstractHasAnnotationMetadata implements HasAnnotationMeta
         this.annotationsByType = collectAnnotationsByType(annotationsByCategory);
     }
 
-    protected static ImmutableMap<Class<? extends Annotation>, Annotation> collectAnnotationsByType(ImmutableMap<AnnotationCategory, Annotation> annotations) {
+    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectAnnotationsByType(ImmutableMap<AnnotationCategory, Annotation> annotations) {
         ImmutableMap.Builder<Class<? extends Annotation>, Annotation> builder = ImmutableMap.builderWithExpectedSize(annotations.size());
         for (Annotation value : annotations.values()) {
             builder.put(value.annotationType(), value);
@@ -67,12 +67,12 @@ public abstract class AbstractHasAnnotationMetadata implements HasAnnotationMeta
     }
 
     @Override
-    public ImmutableMap<AnnotationCategory, Annotation> getAnnotations() {
+    public ImmutableMap<AnnotationCategory, Annotation> getAnnotationsByCategory() {
         return annotationsByCategory;
     }
 
     @Override
-    public TypeToken<?> getDeclaredType() {
+    public TypeToken<?> getDeclaredReturnType() {
         return declaredType;
     }
 }

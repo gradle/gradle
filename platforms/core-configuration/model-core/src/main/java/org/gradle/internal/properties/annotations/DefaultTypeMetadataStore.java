@@ -123,7 +123,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private ImmutableSet.Builder<PropertyMetadata> getEffectiveProperties(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
-            Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotations();
+            Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotationsByCategory();
             Class<? extends Annotation> propertyType = propertyTypeResolver.resolveAnnotationType(propertyAnnotations);
             if (propertyType == null) {
                 missingPropertyAnnotationHandler.handleMissingPropertyAnnotation(validationContext, propertyAnnotationMetadata, displayName);
@@ -192,7 +192,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private ImmutableSet.Builder<FunctionMetadata> getEffectiveFunctions(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = ImmutableSet.builderWithExpectedSize(annotationMetadata.getFunctionAnnotationMetadata().size());
         for (FunctionAnnotationMetadata functionAnnotationMetadata : annotationMetadata.getFunctionAnnotationMetadata()) {
-            Map<AnnotationCategory, Annotation> functionAnnotations = functionAnnotationMetadata.getAnnotations();
+            Map<AnnotationCategory, Annotation> functionAnnotations = functionAnnotationMetadata.getAnnotationsByCategory();
             Annotation functionAnnotation = functionAnnotations.get(TYPE);
 
             if (functionAnnotation == null) {
@@ -360,12 +360,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
-            return Optional.ofNullable(annotationMetadata.getAnnotations().get(category));
+            return Optional.ofNullable(annotationMetadata.getAnnotationsByCategory().get(category));
         }
 
         @Override
         public boolean hasAnnotationForCategory(AnnotationCategory category) {
-            return annotationMetadata.getAnnotations().get(category) != null;
+            return annotationMetadata.getAnnotationsByCategory().get(category) != null;
         }
 
         @Override
@@ -375,7 +375,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public TypeToken<?> getDeclaredType() {
-            return annotationMetadata.getDeclaredType();
+            return annotationMetadata.getDeclaredReturnType();
         }
 
         @Nullable
@@ -421,12 +421,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
-            return Optional.ofNullable(annotationMetadata.getAnnotations().get(category));
+            return Optional.ofNullable(annotationMetadata.getAnnotationsByCategory().get(category));
         }
 
         @Override
         public boolean hasAnnotationForCategory(AnnotationCategory category) {
-            return annotationMetadata.getAnnotations().get(category) != null;
+            return annotationMetadata.getAnnotationsByCategory().get(category) != null;
         }
 
         @Override
@@ -436,7 +436,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public TypeToken<?> getDeclaredType() {
-            return annotationMetadata.getDeclaredType();
+            return annotationMetadata.getDeclaredReturnType();
         }
 
         @Override

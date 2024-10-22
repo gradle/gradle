@@ -45,11 +45,11 @@ public interface HasAnnotationMetadata {
     /**
      * Returns the annotations present on this element.
      */
-    ImmutableMap<AnnotationCategory, Annotation> getAnnotations();
+    ImmutableMap<AnnotationCategory, Annotation> getAnnotationsByCategory();
 
     /**
      * Returns the declared type of this element. For a property, this is the type of the property.
      * For a function, this is the return type of the function.
      */
-    TypeToken<?> getDeclaredType();
+    TypeToken<?> getDeclaredReturnType();
 }

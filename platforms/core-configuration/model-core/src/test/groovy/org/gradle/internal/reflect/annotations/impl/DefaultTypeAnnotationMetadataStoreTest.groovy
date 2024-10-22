@@ -1012,12 +1012,12 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         metadata.propertiesAnnotationMetadata.forEach { actualProperty ->
             def expectedAnnotations = expectedProperties[actualProperty.propertyName]
 
-            def actualCategories = actualProperty.annotations.keySet().sort()
+            def actualCategories = actualProperty.annotationsByCategory.keySet().sort()
             def expectedCategories = expectedAnnotations.keySet().sort()
             assert actualCategories == expectedCategories
 
             actualCategories.forEach { category ->
-                def actualAnnotation = actualProperty.annotations[category]
+                def actualAnnotation = actualProperty.annotationsByCategory[category]
                 def expectedAnnotation = expectedAnnotations[category]
                 if (expectedAnnotation instanceof Class) {
                     assert actualAnnotation.annotationType() == expectedAnnotation
@@ -1047,12 +1047,12 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         metadata.functionAnnotationMetadata.forEach { actualMethod ->
             def expectedAnnotations = expectedFunctions[actualMethod.method.name]
 
-            def actualCategories = actualMethod.annotations.keySet().sort()
+            def actualCategories = actualMethod.annotationsByCategory.keySet().sort()
             def expectedCategories = expectedAnnotations.keySet().sort()
             assert actualCategories == expectedCategories
 
             actualCategories.forEach { category ->
-                def actualAnnotation = actualMethod.annotations[category]
+                def actualAnnotation = actualMethod.annotationsByCategory[category]
                 def expectedAnnotation = expectedAnnotations[category]
                 if (expectedAnnotation instanceof Class) {
                     assert actualAnnotation.annotationType() == expectedAnnotation
