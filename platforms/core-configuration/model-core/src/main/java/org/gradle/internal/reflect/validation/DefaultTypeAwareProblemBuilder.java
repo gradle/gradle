@@ -111,43 +111,51 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
 
         Object property = additionalData.map(TypeValidationData::getPropertyName).orElse(null);
         if (property != null) {
-            if (typeRelevant) {
-                builder.append("property '");
-            } else {
-                if (pluginId.isPresent()) {
-                    builder.append("In plugin '")
-                        .append(pluginId.get())
-                        .append("' property '");
-                } else {
-                    builder.append("Property '");
-                }
-            }
-            additionalData.map(TypeValidationData::getParentPropertyName).ifPresent(parentProperty -> {
-                builder.append(parentProperty);
-                builder.append('.');
-            });
-            builder.append(property)
-                .append("' ");
+            renderPropertyIntro(additionalData, typeRelevant, builder, pluginId, property);
         }
 
         Object method = additionalData.map(TypeValidationData::getFunctionName).orElse(null);
         if (method != null) {
-            if (typeRelevant) {
-                builder.append("method '");
-            } else {
-                if (pluginId.isPresent()) {
-                    builder.append("In plugin '")
-                        .append(pluginId.get())
-                        .append("' method '");
-                } else {
-                    builder.append("Method '");
-                }
-            }
-            builder.append(method)
-                .append("' ");
+            renderMethodIntro(typeRelevant, builder, pluginId, method);
         }
 
         return builder.toString();
+    }
+
+    private static void renderPropertyIntro(Optional<TypeValidationData> additionalData, boolean typeRelevant, StringBuilder builder, Optional<DefaultPluginId> pluginId, Object property) {
+        if (typeRelevant) {
+            builder.append("property '");
+        } else {
+            if (pluginId.isPresent()) {
+                builder.append("In plugin '")
+                    .append(pluginId.get())
+                    .append("' property '");
+            } else {
+                builder.append("Property '");
+            }
+        }
+        additionalData.map(TypeValidationData::getParentPropertyName).ifPresent(parentProperty -> {
+            builder.append(parentProperty);
+            builder.append('.');
+        });
+        builder.append(property)
+            .append("' ");
+    }
+
+    private static void renderMethodIntro(boolean typeRelevant, StringBuilder builder, Optional<DefaultPluginId> pluginId, Object method) {
+        if (typeRelevant) {
+            builder.append("method '");
+        } else {
+            if (pluginId.isPresent()) {
+                builder.append("In plugin '")
+                    .append(pluginId.get())
+                    .append("' method '");
+            } else {
+                builder.append("Method '");
+            }
+        }
+        builder.append(method)
+            .append("' ");
     }
 
     // A heuristic to determine if the type is relevant or not.
