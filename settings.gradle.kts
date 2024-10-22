@@ -127,6 +127,7 @@ val core = platform("core") {
         subproject("api-metadata")
         subproject("base-services-groovy")
         subproject("bean-serialization-services")
+        subproject("build-lifecycle")
         subproject("configuration-cache")
         subproject("configuration-cache-base")
         subproject("configuration-problems-base")
