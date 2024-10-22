@@ -17,15 +17,18 @@ package org.gradle.execution;
 
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.selection.BuildTaskSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A {@link BuildTaskScheduler} which selects tasks which match the provided names. For each name, selects all tasks in all
@@ -53,6 +56,25 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                 LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
                 plan.addEntryTasks(taskSelection.getTasks());
             }
+        }
+        validateCompatibleTasksRequested(plan);
+    }
+
+    /**
+     * Validates the tasks to be run are mutually compatible.
+     * <p>
+     * Currently, this checks that {@code init} is not run along with any other tasks.
+     *
+     * @param plan execution plan containing requested tasks to validate
+     */
+    private void validateCompatibleTasksRequested(ExecutionPlan plan) {
+        Set<Task> requestedTasks = plan.getContents().getRequestedTasks();
+        if (requestedTasks.size() > 1 && requestedTasks.stream().anyMatch(t -> t.getName().equals("init"))) { // TODO: Consider moving the InitBuiltInCommand (and help) to core, as they are not Software Platform-specific
+            DeprecationLogger.deprecateAction("Executing other tasks along with the 'init' task")
+                .withAdvice("The init task should be run by itself.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "init_must_run_alone")
+                .nagUser();
         }
     }
 

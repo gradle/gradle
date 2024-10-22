@@ -33,6 +33,21 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
+    def "init must be only task requested #args = #allowed"() {
+        expect:
+        if (!allowed) {
+            executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
+        }
+        succeeds(args)
+
+        where:
+        allowed | args
+        false   | ["init", "tasks"]
+        false   | ["help", "init"]
+        true    | ["init", "--type", "java-application"]
+        true    | ["help", "--task", "init"]
+    }
+
     def "init shows up on tasks overview "() {
         given:
         targetDir.file("settings.gradle").touch()

@@ -167,6 +167,7 @@ dependencies {
     // TODO investigate why we depend on SSHD as a platform for internal-integ-testing
     runtimeOnly(libs.antJunit)
 
+    testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
     testImplementation(projects.platformNative)
     testImplementation(projects.testingBase)

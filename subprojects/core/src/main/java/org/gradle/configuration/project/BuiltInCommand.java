@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.project;
 
+import org.gradle.StartParameter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -39,7 +40,23 @@ public interface BuiltInCommand {
      */
     boolean commandLineMatches(List<String> taskNames);
 
-    default boolean needsBuildDefinition() {
-        return true;
+    /**
+     * Determines whether this command should always be run using an empty build definition.
+     * <p>
+     * In other words, should this command avoid loading Settings and just use an empty Settings definition?
+     *
+     * @return {@code true} if this command should always skip loading the build definition; {@code false} otherwise
+     */
+    default boolean requireEmptyBuildDefinition() {
+        return false;
+    }
+
+    /**
+     * Was this command specified as a task to be run in the Gradle invocation?
+     *
+     * {@code true} if so; {@code false} otherwise
+     */
+    default boolean wasInvoked(StartParameter startParameter) {
+        return commandLineMatches(startParameter.getTaskNames());
     }
 }

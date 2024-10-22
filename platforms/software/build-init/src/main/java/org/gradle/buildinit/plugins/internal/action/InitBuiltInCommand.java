@@ -36,7 +36,7 @@ public class InitBuiltInCommand implements BuiltInCommand {
     }
 
     @Override
-    public boolean needsBuildDefinition() {
-        return false;
+    public boolean requireEmptyBuildDefinition() {
+        return true;
     }
 }
