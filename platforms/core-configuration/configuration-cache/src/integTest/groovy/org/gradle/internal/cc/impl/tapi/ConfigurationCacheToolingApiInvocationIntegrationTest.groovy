@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.internal.cc.impl.tapi
 
 import org.gradle.internal.cc.impl.fixtures.SomeToolingModelBuildAction
-import org.gradle.internal.cc.impl.fixtures.ToolingApiBackedGradleExecuter
-import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 
-class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ToolingApiSpec {
-    @Override
-    GradleExecuter createExecuter() {
-        return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
-    }
+class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheToolingApiIntegrationTest {
 
     def "can run tasks via tooling API when configuration cache is enabled"() {
         buildFile << """
@@ -115,7 +108,6 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
     }
 
     def "can use test launcher tooling api"() {
-
         given:
         withConfigurationCacheEnabledInGradleProperties()
         settingsFile << ""
@@ -148,66 +140,88 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         outputDoesNotContain("script log statement")
     }
 
-    def "configuration cache is disabled for direct model requests"() {
+    def "configuration cache is enabled for direct model requests"() {
         given:
-        withConfigurationCacheEnabledInGradleProperties()
         buildWithSomeToolingModelAndScriptLogStatement()
 
         when:
+        withConfigurationCacheForModels()
         def model = fetchModel()
 
         then:
         model.message == "It works from project :"
-        outputContains("script log statement")
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured = 2
+        }
 
         when:
+        withConfigurationCacheForModels()
         def model2 = fetchModel()
 
         then:
         model2.message == "It works from project :"
-        outputContains("script log statement")
+
+        and:
+        fixture.assertStateLoaded()
     }
 
-    def "configuration cache is disabled for client provided build actions"() {
+    def "configuration cache is enabled for client provided build actions"() {
         given:
-        withConfigurationCacheEnabledInGradleProperties()
         buildWithSomeToolingModelAndScriptLogStatement()
 
         when:
+        withConfigurationCacheForModels()
         def model = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
         model.message == "It works from project :"
-        outputContains("script log statement")
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured = 2
+        }
 
         when:
+        withConfigurationCacheForModels()
         def model2 = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
         model2.message == "It works from project :"
-        outputContains("script log statement")
+
+        and:
+        fixture.assertStateLoaded()
     }
 
-    def "configuration cache is disabled for client provided phased build actions"() {
+    def "configuration cache is enabled for client provided phased build actions"() {
         given:
         withConfigurationCacheEnabledInGradleProperties()
         buildWithSomeToolingModelAndScriptLogStatement()
 
         when:
+        withConfigurationCacheForModels()
         def model = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
         model.left.message == "It works from project :"
         model.right.message == "It works from project :"
-        outputContains("script log statement")
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured = 2
+        }
 
         when:
+        withConfigurationCacheForModels()
         def model2 = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
         model2.left.message == "It works from project :"
         model2.right.message == "It works from project :"
-        outputContains("script log statement")
+
+        and:
+        fixture.assertStateLoaded()
     }
 
     private void withConfigurationCacheEnabledInGradleProperties() {

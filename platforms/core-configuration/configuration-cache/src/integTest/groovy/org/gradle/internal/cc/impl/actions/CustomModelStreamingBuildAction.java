@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolated;
+package org.gradle.internal.cc.impl.actions;
 
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel;
+import org.gradle.internal.cc.impl.fixtures.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import java.util.ArrayList;
-import java.util.List;
+public class CustomModelStreamingBuildAction<T> implements BuildAction<T> {
+    private final Class<T> type;
+    private final int value;
 
-public class FetchModelsMultipleTimesForEachProject implements BuildAction<List<SomeToolingModel>> {
+    public CustomModelStreamingBuildAction(Class<T> type, int value) {
+        this.type = type;
+        this.value = value;
+    }
+
     @Override
-    public List<SomeToolingModel> execute(BuildController controller) {
-        List<SomeToolingModel> result = new ArrayList<>();
-        result.addAll(new FetchCustomModelForEachProject().execute(controller));
-        result.addAll(new FetchCustomModelForEachProject().execute(controller));
-        return result;
+    public T execute(BuildController controller) {
+        controller.send(new CustomModel(value));
+        return controller.getModel(type);
     }
 }
