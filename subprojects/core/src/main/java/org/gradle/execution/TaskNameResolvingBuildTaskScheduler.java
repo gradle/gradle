@@ -68,13 +68,16 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
      * @param plan execution plan containing requested tasks to validate
      */
     private void validateCompatibleTasksRequested(ExecutionPlan plan) {
-        Set<Task> requestedTasks = plan.getContents().getRequestedTasks();
-        if (requestedTasks.size() > 1 && requestedTasks.stream().anyMatch(t -> t.getName().equals("init"))) { // TODO: Consider moving the InitBuiltInCommand (and help) to core, as they are not Software Platform-specific
-            DeprecationLogger.deprecateAction("Executing other tasks along with the 'init' task")
-                .withAdvice("The init task should be run by itself.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "init_must_run_alone")
-                .nagUser();
+        //noinspection ConstantValue support mocking in tests
+        if (null != plan.getContents()) {
+            Set<Task> requestedTasks = plan.getContents().getRequestedTasks();
+            if (requestedTasks.size() > 1 && requestedTasks.stream().anyMatch(t -> t.getName().equals("init"))) { // TODO: Consider moving the InitBuiltInCommand (and help) to core, as they are not Software Platform-specific
+                DeprecationLogger.deprecateAction("Executing other tasks along with the 'init' task")
+                    .withAdvice("The init task should be run by itself.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "init_must_run_alone")
+                    .nagUser();
+            }
         }
     }
 

@@ -51,6 +51,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         action.scheduleRequestedTasks(gradle, null, executionPlan)
 
         then:
+        1 * executionPlan.getContents()
         0 * executionPlan._
     }
 
@@ -96,6 +97,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
 
         then:
         1 * selector.applyTasksTo(_, executionPlan)
+        1 * executionPlan.getContents()
         0 * executionPlan._
     }
 

@@ -76,25 +76,25 @@ public class DefaultSettingsLoader implements SettingsLoader {
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
 
         SettingsState state;
+        ProjectSpec spec;
         if (shouldSkipLoadingBuildDefinition(startParameter)) {
             logger.debug("Skipping loading of build definition for build: '{}'", gradle.getIdentityPath());
             state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
-            ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
-            setDefaultProject(spec, state.getSettings());
+            spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
         } else {
             logger.debug("Loading build definition for build: '{}'", gradle.getIdentityPath());
             state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
             SettingsInternal settings = state.getSettings();
-            ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
+            spec = ProjectSpecs.forStartParameter(startParameter, settings);
             if (useEmptySettings(spec, settings, startParameter)) {
                 // Discard the loaded settings and replace with an empty one
                 logger.debug("Discarding loaded settings and replacing with empty settings for build: '{}'", gradle.getIdentityPath());
                 state.close();
-                state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
+                state = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
             }
-            setDefaultProject(spec, state.getSettings());
         }
 
+        setDefaultProject(spec, state.getSettings());
         return state;
     }
 

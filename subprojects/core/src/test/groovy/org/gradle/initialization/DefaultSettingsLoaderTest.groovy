@@ -35,6 +35,7 @@ import spock.lang.Specification
 class DefaultSettingsLoaderTest extends Specification {
     private projectRootDir = FileUtils.canonicalize(new File("someDir"))
     private mockBuildLayout = new BuildLayout(null, projectRootDir, null, Stub(ScriptFileResolver))
+    @SuppressWarnings('GroovyAssignabilityCheck')
     private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
         getLayoutFor(_) >> mockBuildLayout
     }
@@ -47,9 +48,6 @@ class DefaultSettingsLoaderTest extends Specification {
         getAllProjects() >> Collections.singleton(mockProjectDescriptor)
     }
     private startParameterInternal = new StartParameterInternal()
-    {
-        startParameterInternal.setCurrentDir( projectRootDir )
-    }
     private mockClassLoaderScope = Mock(ClassLoaderScope)
     private mockServiceRegistry = Mock(ServiceRegistry)
     private mockGradle = Mock(GradleInternal) {
@@ -61,6 +59,7 @@ class DefaultSettingsLoaderTest extends Specification {
     private mockSettingsProcessor = Mock(SettingsProcessor) {
         // When we process, we're interested in retaining the start parameter in
         // the resulting state, so we can test it, so create a new mock and configure it
+        //noinspection GroovyAssignabilityCheck
         process(mockGradle, mockBuildLayout, mockClassLoaderScope, _) >> { gradle, settingsLocation, clasLoaderScope, startParameter ->
             def mockResultSettingsScript = Mock(ScriptSource) {
                 getDisplayName() >> "foo"
@@ -77,6 +76,10 @@ class DefaultSettingsLoaderTest extends Specification {
             }
             return mockResultState
         }
+    }
+
+    void setup() {
+        startParameterInternal.setCurrentDir( projectRootDir )
     }
 
     private logger = new ToStringLogger()
