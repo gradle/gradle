@@ -70,7 +70,7 @@ errorprone {
 
 dependencies {
     api(projects.baseAsm)
-    api(projects.buildLifecycle)
+    api(projects.buildLifecycleApi)
     api(projects.concurrent)
     api(projects.instrumentationAgentServices)
     api(projects.serialization)
