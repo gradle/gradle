@@ -262,6 +262,7 @@ dependencies {
     testImplementation(projects.dependencyManagement)
 
     testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.modelCore))
