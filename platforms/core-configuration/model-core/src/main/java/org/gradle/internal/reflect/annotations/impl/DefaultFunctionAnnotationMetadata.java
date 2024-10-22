@@ -44,14 +44,25 @@ public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMeta
         return Arrays.stream(getMethod().getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "));
     }
 
+    /**
+     * Compares this metadata to another metadata by comparing the method name and the parameter types.
+     */
     @Override
     public int compareTo(@Nonnull FunctionAnnotationMetadata o) {
         int result = getMethod().getName().compareTo(o.getMethod().getName());
         if (result == 0) {
+            // This is the same method name, compare the number of parameters
             if (getMethod().getParameterCount() != o.getMethod().getParameterCount()) {
                 return getMethod().getParameterCount() - o.getMethod().getParameterCount();
             } else {
-                return Arrays.equals(getMethod().getParameterTypes(), o.getMethod().getParameterTypes()) ? 0 : 1;
+                // Same method name, same number of parameters, compare the parameter types
+                for (int i = 0; i < getMethod().getParameterCount(); i++) {
+                    // If the parameters don't match, return the comparison of the first mismatched parameter type name
+                    if (getMethod().getParameterTypes()[i] != o.getMethod().getParameterTypes()[i]) {
+                        return getMethod().getParameterTypes()[i].getName().compareTo(o.getMethod().getParameterTypes()[i].getName());
+                    }
+                }
+                return 0;
             }
         } else {
             return result;
