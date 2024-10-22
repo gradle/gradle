@@ -61,7 +61,7 @@ abstract class NativeCompilerTest extends Specification {
     protected final Clock timeProvider = Mock(Clock)
     protected BuildOperationExecutor buildOperationExecutor = BuildOperationExecutorSupport.builder(new DefaultWorkerLimits(DefaultParallelismConfiguration.getDefaultMaxWorkerCount()))
         .withWorkerLeaseService(workerLeaseService)
-        .withTimeSupplier { timeProvider.currentTime }
+        .withTimeSupplier(timeProvider)
         .withExecutionListenerFactory { new BuildOperationProgressEventListenerAdapter(buildOperationListener, new NoOpProgressLoggerFactory(), timeProvider) }
         .build()
 

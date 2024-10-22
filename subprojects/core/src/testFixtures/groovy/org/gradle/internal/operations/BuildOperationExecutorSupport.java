@@ -18,6 +18,8 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
@@ -35,7 +37,7 @@ public class BuildOperationExecutorSupport {
 
     public static class Builder {
         private final WorkerLimits workerLimits;
-        private BuildOperationTimeSupplier timeSupplier;
+        private Clock clock;
         private BuildOperationRunner runner;
         private WorkerLeaseService workerLeaseService;
         private BuildOperationQueueFactory queueFactory;
@@ -46,8 +48,8 @@ public class BuildOperationExecutorSupport {
             this.workerLimits = workerLimits;
         }
 
-        public Builder withTimeSupplier(BuildOperationTimeSupplier timeSupplier) {
-            this.timeSupplier = timeSupplier;
+        public Builder withTimeSupplier(Clock timeSupplier) {
+            this.clock = timeSupplier;
             return this;
         }
 
@@ -100,9 +102,9 @@ public class BuildOperationExecutorSupport {
                 return runner;
             }
 
-            BuildOperationTimeSupplier timeSupplier = this.timeSupplier != null
-                ? this.timeSupplier
-                : System::currentTimeMillis;
+            Clock timeSupplier = this.clock != null
+                ? this.clock
+                : Time.clock();
             DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory = this.executionListenerFactory != null
                 ? this.executionListenerFactory
                 : () -> DefaultBuildOperationRunner.BuildOperationExecutionListener.NO_OP;
