@@ -83,6 +83,7 @@ public class GnupgSignatory extends SignatorySupport {
         );
     }
 
+    @SuppressWarnings("DefaultCharset")
     private InputStream prepareStdin(InputStream input) {
         if (passphrase != null) {
             return new SequenceInputStream(new ByteArrayInputStream((passphrase + "\n").getBytes()), input);

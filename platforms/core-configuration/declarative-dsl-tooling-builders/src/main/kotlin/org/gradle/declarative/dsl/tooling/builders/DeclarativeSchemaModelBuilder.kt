@@ -24,16 +24,19 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.LoadedProjectScriptContext
 import org.gradle.internal.declarativedsl.evaluator.LoadedSettingsScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
 
-class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTypeRegistry) : BuildScopeModelBuilder {
+class DeclarativeSchemaModelBuilder(
+    private val softwareTypeRegistry: SoftwareTypeRegistry
+) : BuildScopeModelBuilder {
 
     override fun create(target: BuildState): Any {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
@@ -46,7 +49,9 @@ class DeclarativeSchemaModelBuilder(private val softwareTypeRegistry: SoftwareTy
 
         val settingsSequence = schemaBuilder.getEvaluationSchemaForScript(settingsContext)
             .sequenceOrError().analysisOnly()
-        val projectSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
+
+        val projectContext = LoadedProjectScriptContext(SoftwareFeatureApplicator.ANALYSIS_ONLY)
+        val projectSequence = schemaBuilder.getEvaluationSchemaForScript(projectContext)
             .sequenceOrError().analysisOnly()
 
         return DefaultDeclarativeSchemaModel(settingsSequence, projectSequence)

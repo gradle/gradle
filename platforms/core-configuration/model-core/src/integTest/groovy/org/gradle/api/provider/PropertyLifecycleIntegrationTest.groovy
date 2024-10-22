@@ -180,6 +180,89 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         outputContains("value: value 3")
     }
 
+    def "@ReplacesEagerProperty works with annotation #annotation"() {
+        given:
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                $annotation
+                abstract Property<String> getProp()
+
+                @TaskAction
+                void go() {
+                    println("value: " + prop.get())
+                }
+            }
+
+            task thing(type: SomeTask) {
+                prop = "value 1"
+                doFirst {
+                    prop = "value 3"
+                }
+            }
+
+            afterEvaluate {
+                thing.prop = "value 2"
+            }
+        """
+
+        expect:
+        succeeds("thing")
+        outputContains("value: value 3")
+
+        where:
+        annotation      | _
+        "@Internal"     | _
+        "@Console"      | _
+        "@OptionValues" | _
+        "@ReplacedBy"   | _
+        "@Destroys"     | _
+        "@LocalState"   | _
+    }
+
+    def "@ReplacesEagerProperty works with annotation @Nested"() {
+        given:
+        buildFile """
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+
+            class Bean {
+                @Internal
+                String value
+                Bean(String value) {
+                    this.value = value
+                }
+
+                String toString() {
+                    return value
+                }
+            }
+
+            abstract class SomeTask extends DefaultTask {
+                @ReplacesEagerProperty
+                @Nested
+                abstract Property<Bean> getProp()
+
+                @TaskAction
+                void go() {
+                    println("value: " + prop.get())
+                }
+            }
+
+            task thing(type: SomeTask) {
+                prop = new Bean("value 1")
+                doFirst {
+                    prop = new Bean("value 2")
+                }
+            }
+        """
+
+        expect:
+        succeeds("thing")
+        outputContains("value: value 2")
+    }
+
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
