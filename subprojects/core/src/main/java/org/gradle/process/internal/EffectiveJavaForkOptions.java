@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.gradle.process.internal.util.MergeOptionsUtil.containsAll;
@@ -44,7 +44,7 @@ public class EffectiveJavaForkOptions {
         this.jvmOptions = jvmOptions;
         this.executable = executable;
         this.workingDir = workingDir;
-        this.environment = new LinkedHashMap<>(environment);
+        this.environment = ImmutableMap.copyOf(environment);
     }
 
     public File getWorkingDir() {

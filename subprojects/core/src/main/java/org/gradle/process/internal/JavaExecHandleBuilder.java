@@ -442,7 +442,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public void copyEffectiveJvmOptions(JvmOptions target) {
-        javaOptions.copyEffectiveJvmOptions(target);
+    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
+        return javaOptions.toEffectiveJavaForkOptions(objectFactory, fileCollectionFactory);
     }
 }

@@ -47,7 +47,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 
 import javax.annotation.Nullable;
@@ -142,7 +141,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
+        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
         if (forkOptions.getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
         }
@@ -156,14 +155,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JvmOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory, new DefaultJavaDebugOptions(objectFactory));
-        options.copyEffectiveJvmOptions(jvmOptions);
-        return new EffectiveJavaForkOptions(
-            options.getExecutable(),
-            options.getWorkingDir(),
-            options.getEnvironment(),
-            jvmOptions
-        );
+        ObjectFactory objectFactory = new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE);
+        return options.toEffectiveJavaForkOptions(objectFactory, fileCollectionFactory);
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
@@ -365,8 +358,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
-            JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
             return forkOptions;
         }
