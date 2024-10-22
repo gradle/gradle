@@ -870,7 +870,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return annotations.stream().filter(annotation -> !ignoredMethodAnnotationsAllowedModifiers.contains(annotation.annotationType()));
         }
 
-        void handleAnnotatedIgnoredMethod(Class<? extends Annotation> ignoredMethodAnnotation) {
+        private void handleAnnotatedIgnoredMethod(Class<? extends Annotation> ignoredMethodAnnotation) {
             visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)

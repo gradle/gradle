@@ -114,13 +114,13 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         }
 
-        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = getEffectiveProperties(annotationMetadata, validationContext);
-        ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = getEffectiveFunctions(annotationMetadata, validationContext);
-        return new DefaultTypeMetadata(publicType, effectiveProperties.build(), effectiveFunctions.build(), validationContext, propertyAnnotationHandlers, functionAnnotationHandlers, annotationMetadata);
+        ImmutableSet<PropertyMetadata> effectiveProperties = getEffectiveProperties(annotationMetadata, validationContext);
+        ImmutableSet<FunctionMetadata> effectiveFunctions = getEffectiveFunctions(annotationMetadata, validationContext);
+        return new DefaultTypeMetadata(publicType, effectiveProperties, effectiveFunctions, validationContext, propertyAnnotationHandlers, functionAnnotationHandlers, annotationMetadata);
     }
 
     @Nonnull
-    private ImmutableSet.Builder<PropertyMetadata> getEffectiveProperties(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
+    private ImmutableSet<PropertyMetadata> getEffectiveProperties(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
             Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotationsByCategory();
@@ -185,11 +185,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 effectiveProperties.add(property);
             }
         }
-        return effectiveProperties;
+        return effectiveProperties.build();
     }
 
     @Nonnull
-    private ImmutableSet.Builder<FunctionMetadata> getEffectiveFunctions(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
+    private ImmutableSet<FunctionMetadata> getEffectiveFunctions(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = ImmutableSet.builderWithExpectedSize(annotationMetadata.getFunctionAnnotationMetadata().size());
         for (FunctionAnnotationMetadata functionAnnotationMetadata : annotationMetadata.getFunctionAnnotationMetadata()) {
             Map<AnnotationCategory, Annotation> functionAnnotations = functionAnnotationMetadata.getAnnotationsByCategory();
@@ -254,7 +254,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             effectiveFunctions.add(function);
         }
-        return effectiveFunctions;
+        return effectiveFunctions.build();
     }
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
