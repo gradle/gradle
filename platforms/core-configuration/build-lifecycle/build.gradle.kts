@@ -15,11 +15,10 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 description = "Event scopes of a build invocation lifecycle"
-
 
 dependencies {
     api(projects.stdlibJavaExtensions)
