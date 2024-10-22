@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
@@ -32,7 +31,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.DaemonStopClient;
+import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -57,22 +56,15 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, Factory<DaemonStopClient> daemonStopClientFactory) {
-        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(daemonStopClientFactory);
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonStopClientExecuter daemonStopClient) {
+        ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(daemonStopClient);
         listenerManager.addListener(shutdownCoordinator);
         return shutdownCoordinator;
     }
 
     @Provides
-    Factory<DaemonStopClient> createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
-        return new Factory<DaemonStopClient>() {
-            @Override
-            public DaemonStopClient create() {
-                ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
-                DaemonStopClient client = clientServices.get(DaemonStopClient.class);
-                return client;
-            }
-        };
+    DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
+        return new DaemonStopClientExecuter(loggingServices, daemonClientFactory, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
     }
 
     @Provides

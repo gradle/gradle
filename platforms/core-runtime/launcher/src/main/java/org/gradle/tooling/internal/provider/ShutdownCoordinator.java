@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
-import org.gradle.launcher.daemon.client.DaemonStopClient;
+import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 
 import java.util.Set;
@@ -30,9 +29,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ServiceScope(Scope.Global.class)
 public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
     private final Set<DaemonConnectDetails> daemons = new CopyOnWriteArraySet<DaemonConnectDetails>();
-    private final Factory<DaemonStopClient> client;
+    private final DaemonStopClientExecuter client;
 
-    public ShutdownCoordinator(Factory<DaemonStopClient> client) {
+    public ShutdownCoordinator(DaemonStopClientExecuter client) {
         this.client = client;
     }
 
@@ -43,6 +42,6 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
 
     @Override
     public void stop() {
-        client.create().gracefulStop(daemons);
+        client.execute(daemonStopClient -> daemonStopClient.gracefulStop(daemons));
     }
 }
