@@ -417,21 +417,8 @@ Description""") // include the next header to make sure all options are listed
 
         then:
         fails "init"
-        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '$targetDir'")
         targetDir.assertHasDescendants("build.gradle")
-    }
-
-    def "fails when initializing in a project directory of another build that does not contain a build script"() {
-        when:
-        containerDir.file("settings.gradle") << """
-            rootProject.name = 'root'
-            include('${targetDir.name}')
-        """
-
-        then:
-        fails "init"
-        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
-        targetDir.listFiles().size() == 0 // Is still empty
     }
 
     def "can create build in user home directory"() {
