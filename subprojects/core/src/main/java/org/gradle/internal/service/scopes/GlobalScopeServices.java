@@ -167,7 +167,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         BuildOperationListenerManager listenerManager
     ) {
         return new DefaultBuildOperationProgressEventEmitter(
-            clock::getCurrentTime,
+            clock,
             currentBuildOperationRef,
             listenerManager.getBroadcaster()
         );
