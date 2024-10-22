@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ResolutionStrategy
+import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
@@ -31,6 +32,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
@@ -51,6 +53,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     }
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
+    def transformationChainsAssessor = new TransformationChainsAssessor(new DefaultProviderFactory())
     def variantSelectionFailureProcessor = DependencyManagementTestUtil.newFailureHandler()
     def variantSelectorFactory = new DefaultVariantSelectorFactory(
         matchingCache,
@@ -60,7 +63,8 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         variantSelectionFailureProcessor,
         StandaloneDomainObjectContext.ANONYMOUS,
         TestUtil.calculatedValueContainerFactory(),
-        TestUtil.taskDependencyFactory()
+        TestUtil.taskDependencyFactory(),
+        transformationChainsAssessor
     )
 
     def "selects producer variant with requested attributes"() {
@@ -142,17 +146,27 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
 
         then:
         def e = thrown(ArtifactSelectionException)
-        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> with requested attributes:
+        e.message == toPlatformLineSeparators("""Found multiple transformation chains that produce a variant of '<component>' with requested attributes:
   - artifactType 'dll'
-Found the following transforms:
-  - From '<variant1>':
-      - With source attributes: artifactType 'jar'
-      - Candidate transform(s):
-          - Transform '' producing attributes: artifactType 'dll'
-  - From '<variant2>':
-      - With source attributes: artifactType 'classes'
-      - Candidate transform(s):
-          - Transform '' producing attributes: artifactType 'dll'""")
+Found the following transformation chains:
+  - From <variant1>:
+      - With source attributes:
+          - artifactType 'jar'
+      - Candidate transformation chains:
+          - Transformation chain: '':
+              - '':
+                  - Converts from attributes
+                  - To attributes:
+                      - artifactType 'dll'
+  - From <variant2>:
+      - With source attributes:
+          - artifactType 'classes'
+      - Candidate transformation chains:
+          - Transformation chain: '':
+              - '':
+                  - Converts from attributes
+                  - To attributes:
+                      - artifactType 'dll'""")
     }
 
     def "returns no matching variant artifact set when no variants match and ignore no matching enabled"() {
@@ -250,6 +264,7 @@ Found the following transforms:
             getDisplayName() >> ""
             getFromAttributes() >> fromAttributes
             getToAttributes() >> toAttributes
+            getImplementationClass() >> TransformAction
         }
         TransformStep step = Mock(TransformStep) {
             getDisplayName() >> ""

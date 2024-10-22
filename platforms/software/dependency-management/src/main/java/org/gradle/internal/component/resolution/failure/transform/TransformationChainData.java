@@ -19,6 +19,8 @@ package org.gradle.internal.component.resolution.failure.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -47,10 +49,14 @@ public final class TransformationChainData {
         return startingVariant;
     }
 
-    public String describeTransformations() {
+    public String summarizeTransformations() {
         return steps.stream()
-            .map(TransformData::getTransformName)
-            .collect(Collectors.joining(", "));
+            .map(t -> "'" + t.getTransformName() + "'")
+            .collect(Collectors.joining(" -> "));
+    }
+
+    public ImmutableList<TransformData> getSteps() {
+        return steps;
     }
 
     /**
@@ -63,5 +69,52 @@ public final class TransformationChainData {
      */
     public ImmutableAttributes getFinalAttributes() {
         return finalAttributes;
+    }
+
+    /**
+     * Obtain an object that represents this chain's distinct set of transformations such that it is equal to
+     * any other chain containing the same set (<strong>not sequence</strong> - the
+     * transforms can be in any order) of transforms from the same source variant.
+     * <p>
+     * Immutable data class.
+     */
+    public TransformationChainFingerprint fingerprint() {
+        return new TransformationChainFingerprint(this);
+    }
+
+    /**
+     * Immutable data class representing a unique set (<strong>not sequence</strong> - the
+     * transforms can be in any order) of transforms from a given source variant in a transformation chain.
+     * <p>
+     * This type must properly implement {@link #equals(Object)} and {@link #hashCode()}.
+     */
+    public static final class TransformationChainFingerprint {
+        private final SourceVariantData startingVariant;
+        private final HashSet<TransformData> steps;
+
+        public TransformationChainFingerprint(TransformationChainData chain) {
+            startingVariant = chain.startingVariant;
+            steps = new HashSet<>(chain.steps);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            TransformationChainFingerprint that = (TransformationChainFingerprint) o;
+            return Objects.equals(startingVariant, that.startingVariant) && steps.equals(that.steps);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hashCode(startingVariant);
+            result = 31 * result + steps.hashCode();
+            return result;
+        }
     }
 }

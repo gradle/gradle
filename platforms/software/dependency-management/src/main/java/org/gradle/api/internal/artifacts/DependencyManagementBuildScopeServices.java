@@ -61,6 +61,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
+import org.gradle.api.internal.artifacts.transform.TransformationChainsAssessor;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -140,6 +141,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(FileResourceConnector.class);
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
+        registration.add(TransformationChainsAssessor.class);
     }
 
     @Provides
