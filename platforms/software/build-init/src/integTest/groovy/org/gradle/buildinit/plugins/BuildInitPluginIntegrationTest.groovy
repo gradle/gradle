@@ -418,7 +418,7 @@ Description""") // include the next header to make sure all options are listed
         then:
         fails "init"
         failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
-        targetDir.assertHasDescendants("build.gradle")
+        targetDir.assertContainsDescendants("build.gradle")
     }
 
     def "can create build in user home directory"() {
