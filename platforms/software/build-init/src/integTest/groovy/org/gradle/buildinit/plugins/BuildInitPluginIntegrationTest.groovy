@@ -431,6 +431,43 @@ Description""") // include the next header to make sure all options are listed
         targetDir.assertContainsDescendants("build.gradle")
     }
 
+    def "fails when initializing in a directory that contains a working settings file"() {
+        when:
+        targetDir.file("settings.gradle") << """
+            // empty
+        """
+
+        then:
+        fails "init"
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("settings.gradle")
+    }
+
+    def "fails when initializing in a directory that contains an invalid settings file"() {
+        when:
+        targetDir.file("settings.gradle") << """
+            nonsense
+        """
+
+        then:
+        fails "init"
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("settings.gradle")
+    }
+
+    def "fails when initializing plus help in a directory that contains a working settings file"() {
+        when:
+        targetDir.file("settings.gradle") << """
+            // empty
+        """
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
+        fails "init", "help"
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("settings.gradle")
+    }
+
     def "can create build in user home directory"() {
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
