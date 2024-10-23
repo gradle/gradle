@@ -44,6 +44,22 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.21[Kotlin 2.0.21].
 
+=== Deprecations
+
+[[init_must_run_alone]]
+==== `init` must run alone
+The <<build_init_plugin.adoc#sec:build_init_tasks, `init` task>> must run by itself.
+This task should not be combined with other tasks in a single Gradle invocation.
+
+Running `init` in the same invocation as other tasks will become an error in Gradle 9.0.
+
+For instance, this wil *not* be allowed:
+
+[source]
+----
+> gradlew init tasks
+----
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
