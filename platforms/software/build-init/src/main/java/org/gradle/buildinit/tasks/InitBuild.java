@@ -81,11 +81,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
-
     private static final String SOURCE_PACKAGE_DEFAULT = "org.example";
     private static final String SOURCE_PACKAGE_PROPERTY = "org.gradle.buildinit.source.package";
-    static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
-    static final int DEFAULT_JAVA_VERSION = 21;
+    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
+    private static final int DEFAULT_JAVA_VERSION = 21;
 
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
@@ -97,14 +96,9 @@ public abstract class InitBuild extends DefaultTask {
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
-    private final BuildInitSpecRegistry projectSpecRegistry;
+
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
-
-    public InitBuild() {
-        // Don't inject this in order to preserve no-args constructor binary compatibility
-        projectSpecRegistry = getServices().get(BuildInitSpecRegistry.class);
-    }
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
@@ -301,7 +295,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseInitProjectSpec(UserInputHandler inputHandler) {
-        boolean templatesAvailable = !projectSpecRegistry.isEmpty();
+        boolean templatesAvailable = !getBuildInitSpecRegistry().isEmpty();
         return templatesAvailable && inputHandler.askUser(uq -> uq.askBooleanQuestion("Additional project types were loaded.  Do you want to generate a project using a contributed project specification?", true)).get();
     }
 
@@ -313,13 +307,15 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private BuildInitConfig selectAndConfigureSpec(UserQuestions userQuestions) {
+        BuildInitSpecRegistry registry = getBuildInitSpecRegistry();
+
         BuildInitSpec spec;
         if (type == null) {
-            spec = userQuestions.choice("Select project type", projectSpecRegistry.getAllSpecs())
+            spec = userQuestions.choice("Select project type", registry.getAllSpecs())
                 .renderUsing(BuildInitSpec::getDisplayName)
                 .ask();
         }  else {
-            spec = projectSpecRegistry.getSpecByType(type);
+            spec = registry.getSpecByType(type);
         }
 
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
@@ -339,7 +335,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private BuiltInitGenerator createGenerator(BuildInitConfig config) {
-        Class<? extends BuiltInitGenerator> generator = projectSpecRegistry.getGeneratorForSpec(config.getBuildSpec());
+        Class<? extends BuiltInitGenerator> generator = getBuildInitSpecRegistry().getGeneratorForSpec(config.getBuildSpec());
         return getObjectFactory().newInstance(generator);
     }
 
@@ -708,4 +704,7 @@ public abstract class InitBuild extends DefaultTask {
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract BuildInitSpecRegistry getBuildInitSpecRegistry();
 }
