@@ -11,7 +11,6 @@ dependencies {
 // end::dependencies[]
 
 // tag::substitution_rule[]
-/*
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("co.paralleluniverse:quasar-core"))
@@ -20,7 +19,7 @@ configurations.all {
     }
 }
 // end::substitution_rule[]
-*/
+
 tasks.register("resolve") {
     val classpath: FileCollection = configurations.runtimeClasspath.get()
     inputs.files(classpath)
