@@ -80,6 +80,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
+import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
@@ -216,7 +217,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
+import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -533,7 +534,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ServiceRegistry buildScopedServices,
         ScriptCompilerFactory scriptCompilerFactory,
         Factory<LoggingManagerInternal> loggingManagerFactory,
-        AutoAppliedPluginHandler autoAppliedPluginHandler,
+        PluginHandler pluginHandler,
         PluginRequestApplicator pluginRequestApplicator,
         CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
@@ -545,7 +546,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             buildScopedServices,
             scriptCompilerFactory,
             loggingManagerFactory,
-            autoAppliedPluginHandler,
+            pluginHandler,
             pluginRequestApplicator,
             compileOperationFactory
         );
@@ -801,5 +802,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected AdditionalDataBuilderFactory createAdditionalDataBuilderFactory() {
         return new AdditionalDataBuilderFactory();
+    }
+
+    @Provides
+    protected BuildInitSpecRegistry createInitProjectSpecRegistry() {
+        return new BuildInitSpecRegistry();
     }
 }

@@ -100,7 +100,7 @@ public class ProjectLayoutSetupRegistry {
     public BuildInitializer get(String type) {
         if (!registeredProjectDescriptors.containsKey(type)) {
             TreeFormatter formatter = new TreeFormatter();
-            formatter.node("The requested build type '" + type + "' is not supported. Supported types");
+            formatter.node("The requested build type: '" + type + "' is not supported. Supported types");
             formatter.startChildren();
             for (String candidate : getAllTypes()) {
                 formatter.node("'" + candidate + "'");
