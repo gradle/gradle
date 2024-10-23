@@ -25,6 +25,9 @@ import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 public class DefaultExternalResourceRepository implements ExternalResourceRepository {
     private final String name;
     private final ExternalResourceAccessor accessor;
@@ -49,8 +52,13 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     @Override
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File partPosition) {
+        return new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate, partPosition);
+    }
+
+    @Override
     public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
-        return new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate);
+        return resource(resource, revalidate, null);
     }
 
     @Override

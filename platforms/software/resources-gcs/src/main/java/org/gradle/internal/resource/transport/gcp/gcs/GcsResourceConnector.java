@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -53,7 +54,7 @@ public class GcsResourceConnector extends AbstractExternalResourceAccessor imple
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) throws ResourceException {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File partPosition) throws ResourceException {
         LOGGER.debug("Attempting to get resource: {}", location);
         StorageObject gcsObject = gcsClient.getResource(location.getUri());
         if (gcsObject == null) {
