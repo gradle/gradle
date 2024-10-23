@@ -33,19 +33,29 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    def "init must be only task requested #args = #allowed"() {
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    def "init must be only task requested #args"() {
         expect:
-        if (!allowed) {
-            executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
-        }
+        executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
         succeeds(args)
 
         where:
-        allowed | args
-        false   | ["init", "tasks"]
-        false   | ["help", "init"]
-        true    | ["init", "--type", "java-application"]
-        true    | ["help", "--task", "init"]
+        args << [
+            ["init", "tasks"],
+            ["help", "init"]
+        ]
+    }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    def "init can be run with arguments #args"() {
+        expect:
+        succeeds(args)
+
+        where:
+        args << [
+            ["init", "--type", "java-application"],
+            ["help", "--task", "init"]
+        ]
     }
 
     def "init shows up on tasks overview "() {
