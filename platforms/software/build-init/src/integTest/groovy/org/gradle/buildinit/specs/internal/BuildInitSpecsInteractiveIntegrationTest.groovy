@@ -17,13 +17,13 @@
 package org.gradle.buildinit.specs.internal
 
 import org.gradle.buildinit.plugins.AbstractInteractiveInitIntegrationSpec
-import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
+import org.gradle.buildinit.plugins.TestsBuiltInitSpecsViaPlugin
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.internal.TextUtil
 
-class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin {
+class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIntegrationSpec implements TestsBuiltInitSpecsViaPlugin {
     @LeaksFileHandles
     def "prompts to choose dynamically loaded project type properly and generates project when selected"() {
         given:

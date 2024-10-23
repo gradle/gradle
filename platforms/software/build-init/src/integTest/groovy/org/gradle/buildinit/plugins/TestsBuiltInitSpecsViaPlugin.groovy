@@ -16,7 +16,9 @@
 
 package org.gradle.buildinit.plugins
 
+import groovy.transform.SelfType
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.jvm.Jvm
@@ -27,7 +29,8 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * local Maven repository for testing, and contain utilities for asserting that the plugin
  * was resolved and its included spec was loaded.
  */
-trait TestsInitProjectSpecsViaPlugin {
+@SelfType(AbstractIntegrationSpec)
+trait TestsBuiltInitSpecsViaPlugin {
     def setup() {
         setupRepositoriesViaInit()
     }

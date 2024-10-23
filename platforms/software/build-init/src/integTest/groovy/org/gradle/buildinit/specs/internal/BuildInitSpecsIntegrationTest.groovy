@@ -18,7 +18,7 @@ package org.gradle.buildinit.specs.internal
 
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.AbstractInitIntegrationSpec
-import org.gradle.buildinit.plugins.TestsInitProjectSpecsViaPlugin
+import org.gradle.buildinit.plugins.TestsBuiltInitSpecsViaPlugin
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
@@ -28,7 +28,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
-class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsInitProjectSpecsViaPlugin, JavaToolchainFixture {
+class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuiltInitSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem"
     private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.13"
     private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
