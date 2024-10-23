@@ -1,0 +1,51 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_resolution_basics]]
+= Dependency Resolution Basics
+
+Dependency resolution in Gradle can largely be thought of as a two-step process.
+The first being _graph resolution_, and the second being _artifact resolution_:
+
+1. **Graph resolution phase**:
+- Driven by declared dependencies
+- Uses attributes assigned to the configuration
+
+2. **Artifact resolution phase**:
+- Based on nodes in the dependency graph
+- Matches the variant of each node
+
+The results of these processes are presented through a variety of types, each catering to different use cases.
+
+== Graph Resolution
+
+In the _graph resolution_ phase, Gradle downloads and examines component metadata (GMM, POM, and IVY XML) for declared and transitive dependencies to construct a *dependency graph*.
+
+The `ResolutionResult` represents the output of the graph resolution phase, which focuses solely on the nodes in the dependency graph, not the artifacts (files) they expose:
+
+- link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files. This is the most common way to access dependency resolution results.
+- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] and link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Exposes the raw dependency graph without resolving artifacts, describing the relationships between components and variants.
+
+== Artifact Resolution
+
+In the _artifact resolution_ phase, artifacts are selected typically using the same attributes that built the *dependency graph*.
+
+An `ArtifactView` operates on top of the resolved dependency graph (i.e., `ResolutionResult`).
+It queries the graph for specific artifacts, enabling artifact resolution with different attributes:
+
+- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[ArtifactCollection] - Provides access to the metadata for each resolved artifact in addition to the file itself.
+
+
+
+
