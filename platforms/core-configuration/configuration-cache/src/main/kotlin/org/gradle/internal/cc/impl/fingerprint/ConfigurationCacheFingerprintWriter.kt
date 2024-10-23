@@ -75,6 +75,7 @@ import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
 import java.io.File
@@ -83,6 +84,7 @@ import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
 
 
+@ParallelListener
 internal
 class ConfigurationCacheFingerprintWriter(
     private val host: Host,
