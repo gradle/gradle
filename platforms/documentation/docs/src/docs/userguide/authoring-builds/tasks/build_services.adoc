@@ -76,6 +76,7 @@ A build service implementation must be thread-safe, as it will potentially be us
 == Registering a build service and connecting it to a task
 
 To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] method.
+
 Registering the service does not create the service instance.
 This happens on demand when a task first uses the service.
 The service instance will not be created if no task uses the service during a build.

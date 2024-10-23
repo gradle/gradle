@@ -96,7 +96,8 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Service reference properties are now stable
 
-Service references are task properties meant for easier consumption of shared build services.
+Service references are task properties meant for easier consumption of [shared build services](userguide/build_services.html#sec:service_references).
+[`ServiceReference`](/javadoc/org/gradle/api/services/ServiceReference.html) is now stable.
 See documentation on [shared build services](userguide/build_services.html#sec:service_references) for more information.
 
 ## Fixed issues
