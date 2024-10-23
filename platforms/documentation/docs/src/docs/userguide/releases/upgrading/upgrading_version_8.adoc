@@ -51,12 +51,14 @@ The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetB
 The <<build_init_plugin.adoc#sec:build_init_tasks, `init` task>> must run by itself.
 It cannot be combined with other tasks in a single Gradle invocation.
 
-For instance, this is *not* allowed:
-```
-> gradlew init tasks
-```
-
 Running `init` in the same invocation as other tasks will become an error in Gradle 9.0.
+
+For instance, this wil *not* be allowed:
+
+[source]
+----
+> gradlew init tasks
+----
 
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
