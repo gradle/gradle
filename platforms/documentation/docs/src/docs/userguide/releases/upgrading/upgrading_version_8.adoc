@@ -233,12 +233,12 @@ link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Pro
 link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] methods have been deprecated and will be removed in Gradle 9.0.
 
 These methods are scheduled for removal as part of the ongoing effort to make writing configuration-cache-compatible code easier.
-There is no way to use these method without breaking configuration cache requirements so it is advised to migrate to a compatible alternative.
-The appropriate replacement for your use case depends on the context the method was called before.
+There is no way to use these methods without breaking configuration cache requirements so it is recommended to migrate to a compatible alternative.
+The appropriate replacement for your use case depends on the context in which the method was previously called.
 
 At execution time, for example in `@TaskAction` or `doFirst`/`doLast` callbacks, the use of `Project` instance is not allowed when the configuration cache is enabled.
 To run external processes, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service, which has the same API and can act as a drop-in replacement.
-The standard Java/Groovy/Kotlin process APIs, like `java.lang.ProcessBuilder` can be used there too.
+The standard Java/Groovy/Kotlin process APIs, like `java.lang.ProcessBuilder` can be used as well.
 
 At configuration time, only special Provider-based APIs must be used to run external processes when the configuration cache is enabled.
 You can use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] and
