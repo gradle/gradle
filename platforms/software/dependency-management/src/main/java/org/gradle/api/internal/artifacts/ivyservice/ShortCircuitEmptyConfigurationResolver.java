@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
@@ -122,11 +124,16 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
-    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet, SelectedArtifactResults {
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
         public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
+            return this;
+        }
+
+        @Override
+        public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient) {
             return this;
         }
 
@@ -141,6 +148,16 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         @Override
         public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return ResolvedArtifactSet.EMPTY;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifactsWithId(int id) {
+            return ResolvedArtifactSet.EMPTY;
         }
     }
 

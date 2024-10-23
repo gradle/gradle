@@ -23,6 +23,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  * aside from the to be transformed artifact.
  */
 public interface TransformUpstreamDependenciesResolver {
+
+    /**
+     * A resolver that always returns empty transform dependencies.
+     */
+    TransformUpstreamDependenciesResolver NO_DEPENDENCIES = (componentId, transformStep) -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
+
     /**
      * Returns the dependencies that should be applied to the given transform step for an artifact
      * sourced from a component with the given identifier.
