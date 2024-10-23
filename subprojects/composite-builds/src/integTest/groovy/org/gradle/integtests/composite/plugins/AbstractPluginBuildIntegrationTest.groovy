@@ -21,12 +21,16 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpec {
 
-    PluginBuildFixture pluginBuild(String buildName, boolean useKotlinDSL = false) {
-        return new PluginBuildFixture(buildName, useKotlinDSL)
+    PluginBuildFixture pluginBuild(String buildName, List<String> rootProjectPlugins = [], boolean useKotlinDSL = false) {
+        return new PluginBuildFixture(buildName, rootProjectPlugins, useKotlinDSL)
     }
 
     PluginAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
         return new PluginAndLibraryBuildFixture(pluginBuild(buildName))
+    }
+
+    PluginAndLibraryBuildFixture pluginAndLibraryBuild(PluginBuildFixture pluginBuildFixture) {
+        return new PluginAndLibraryBuildFixture(pluginBuildFixture)
     }
 
     class PluginBuildFixture {
@@ -39,8 +43,9 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
 
         final TestFile settingsPluginFile
         final TestFile projectPluginFile
+        final List<String> rootProjectsPlugins
 
-        PluginBuildFixture(String buildName, boolean useKotlinDSL) {
+        PluginBuildFixture(String buildName, List<String> rootProjectPlugins, boolean useKotlinDSL) {
             def fileExtension = useKotlinDSL ? '.gradle.kts' : '.gradle'
             def sourceDirectory = useKotlinDSL ? 'kotlin' : 'groovy'
             def pluginPluginId = useKotlinDSL
@@ -52,12 +57,15 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             this.projectPluginId = "${buildName}.project-plugin"
             this.settingsFile = file("$buildName/settings${fileExtension}")
             this.buildFile = file("$buildName/build${fileExtension}")
+            this.rootProjectsPlugins = rootProjectPlugins
+
 
             settingsFile << """
                 rootProject.name = "$buildName"
             """
             buildFile << """
                 plugins {
+                    ${rootProjectPlugins.collect { """id("$it")""" }.join("\n")}
                     $pluginPluginId
                 }
                 repositories {
@@ -115,6 +123,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             this.group = "com.example"
             pluginBuild.buildFile.setText("""
                 plugins {
+                    ${pluginBuild.rootProjectsPlugins.collect { """id("$it")""" }.join("\n")}
                     id("groovy-gradle-plugin")
                     id("java-library")
                 }
