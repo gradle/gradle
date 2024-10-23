@@ -31,14 +31,14 @@ public class WorkNodeDependencyResolver implements DependencyResolver, HoldsProj
     private final Map<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<WorkNodeAction, ActionNode>();
 
     @Override
-    public boolean resolve(Task task, final Object node, Action<? super Node> resolveAction) {
+    public boolean resolve(Task task, final Object node, Action<? super NodePromise> resolveAction) {
         if (!(node instanceof WorkNodeAction)) {
             return false;
         }
 
         WorkNodeAction action = (WorkNodeAction) node;
         ActionNode actionNode = actionNodeFor(action);
-        resolveAction.execute(actionNode);
+        resolveAction.execute(NodePromise.of(actionNode));
         return true;
     }
 
