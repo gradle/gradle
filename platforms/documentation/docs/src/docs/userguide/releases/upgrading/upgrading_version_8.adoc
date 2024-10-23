@@ -49,7 +49,7 @@ The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetB
 [[init_must_run_alone]]
 ==== `init` must run alone
 The <<build_init_plugin.adoc#sec:build_init_tasks, `init` task>> must run by itself.
-It cannot be combined with other tasks in a single Gradle invocation.
+This task should not be combined with other tasks in a single Gradle invocation.
 
 Running `init` in the same invocation as other tasks will become an error in Gradle 9.0.
 
