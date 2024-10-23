@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,12 @@
 
 package org.gradle.internal.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.Annotation;
-
-public abstract class AbstractPropertyAnnotationHandler extends AbstractAnnotationHandler implements PropertyAnnotationHandler {
-    private final Kind kind;
-
-    protected AbstractPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
-        super(annotationType, allowedModifiers);
-        this.kind = kind;
-    }
-
-    @Override
-    public Kind getKind() {
-        return kind;
-    }
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@interface SearchMethod {
 }

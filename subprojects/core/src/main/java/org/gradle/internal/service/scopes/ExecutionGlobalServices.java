@@ -64,6 +64,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -80,11 +81,13 @@ import org.gradle.internal.execution.model.annotations.InputFilesPropertyAnnotat
 import org.gradle.internal.execution.model.annotations.InputPropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.TaskActionAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.properties.annotations.FunctionAnnotationHandler;
 import org.gradle.internal.properties.annotations.NestedBeanAnnotationHandler;
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
@@ -103,6 +106,7 @@ import org.gradle.work.NormalizeLineEndings;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
@@ -127,6 +131,10 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
         OutputFiles.class,
         ServiceReference.class,
         SoftwareType.class
+    );
+
+    public static final ImmutableSet<Class<? extends Annotation>> FUNCTION_TYPE_ANNOTATIONS = ImmutableSet.of(
+        TaskAction.class
     );
 
     @VisibleForTesting
@@ -154,7 +162,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
-        annotationRegistry.registerPropertyTypeAnnotations(builder);
+        annotationRegistry.registerAnnotationTypes(builder);
         return new DefaultTypeAnnotationMetadataStore(
             ImmutableSet.of(
                 CacheableTask.class,
@@ -164,6 +172,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 RegistersSoftwareTypes.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
+            FUNCTION_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),
             ImmutableSet.of(
                 "java",
                 "groovy",
@@ -197,17 +206,18 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     InspectionSchemeFactory createInspectionSchemeFactory(
         List<TypeAnnotationHandler> typeHandlers,
         List<PropertyAnnotationHandler> propertyHandlers,
+        List<FunctionAnnotationHandler> functionHandlers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
-        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, typeAnnotationMetadataStore, cacheFactory);
+        return new InspectionSchemeFactory(typeHandlers, propertyHandlers, functionHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
     @Provides
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory, AnnotationHandlerRegistar annotationRegistry) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
-        allPropertyTypes.addAll(ImmutableSet.of(
+        ImmutableSet.Builder<Class<? extends Annotation>> allAnnotationTypes = ImmutableSet.builder();
+        allAnnotationTypes.addAll(ImmutableSet.of(
             Input.class,
             InputFile.class,
             InputFiles.class,
@@ -223,11 +233,12 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
             ReplacedBy.class,
             Internal.class,
             ServiceReference.class,
-            OptionValues.class
+            OptionValues.class,
+            TaskAction.class
         ));
-        annotationRegistry.registerPropertyTypeAnnotations(allPropertyTypes);
+        annotationRegistry.registerAnnotationTypes(allAnnotationTypes);
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
-            allPropertyTypes.build(),
+            allAnnotationTypes.build(),
             ImmutableSet.of(
                 Classpath.class,
                 CompileClasspath.class,
@@ -239,6 +250,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 NormalizeLineEndings.class,
                 ReplacesEagerProperty.class
             ),
+            ImmutableSet.of(),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
@@ -249,8 +261,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultTaskClassInfoStore(cacheFactory);
+    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory, TaskScheme taskScheme) {
+        return new DefaultTaskClassInfoStore(cacheFactory, taskScheme.getMetadataStore());
     }
 
     @Provides
@@ -364,11 +376,16 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
 
     @ServiceScope(Scope.Global.class)
     interface AnnotationHandlerRegistar {
-        void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
+        void registerAnnotationTypes(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }
 
     @Provides
     ImmutableWorkspaceMetadataStore createImmutableWorkspaceMetadataStore() {
         return new DefaultImmutableWorkspaceMetadataStore();
+    }
+
+    @Provides
+    FunctionAnnotationHandler createTaskActionHandler() {
+        return new TaskActionAnnotationHandler();
     }
 }

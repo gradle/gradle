@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,18 @@ import com.google.common.collect.ImmutableSet;
 
 import java.lang.annotation.Annotation;
 
-public abstract class AbstractPropertyAnnotationHandler extends AbstractAnnotationHandler implements PropertyAnnotationHandler {
-    private final Kind kind;
+/**
+ * Base class for handling validation, dependency handling, and skipping for a function or property marked with
+ * a given annotation.
+ */
+public interface AnnotationHandler {
+    /**
+     * The annotation type which this handler is responsible for.
+     */
+    Class<? extends Annotation> getAnnotationType();
 
-    protected AbstractPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
-        super(annotationType, allowedModifiers);
-        this.kind = kind;
-    }
-
-    @Override
-    public Kind getKind() {
-        return kind;
-    }
+    /**
+     * The modifier annotations allowed for the handled function type. This set can further be restricted by the actual work type.
+     */
+    ImmutableSet<Class<? extends Annotation>> getAllowedModifiers();
 }

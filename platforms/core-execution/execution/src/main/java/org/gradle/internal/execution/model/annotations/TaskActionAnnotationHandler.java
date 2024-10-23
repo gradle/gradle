@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties.annotations;
+package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.properties.annotations.AbstractFunctionAnnotationHandler;
 
-import java.lang.annotation.Annotation;
-
-public abstract class AbstractPropertyAnnotationHandler extends AbstractAnnotationHandler implements PropertyAnnotationHandler {
-    private final Kind kind;
-
-    protected AbstractPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
-        super(annotationType, allowedModifiers);
-        this.kind = kind;
-    }
-
-    @Override
-    public Kind getKind() {
-        return kind;
+/**
+ * Handles the {@link TaskAction} annotation.
+ */
+public class TaskActionAnnotationHandler extends AbstractFunctionAnnotationHandler {
+    public TaskActionAnnotationHandler() {
+        super(TaskAction.class, ImmutableSet.of());
     }
 }

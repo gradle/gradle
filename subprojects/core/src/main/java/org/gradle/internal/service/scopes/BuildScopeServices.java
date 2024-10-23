@@ -484,7 +484,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new AnnotationProcessingTaskFactory(
             instantiator,
             taskClassInfoStore,
-            new TaskFactory());
+            new TaskFactory()
+        );
     }
 
     @Provides

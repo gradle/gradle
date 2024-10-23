@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.internal.reflect.annotations;
 
 /**
- * Additional data type that can be used to attach type validation information to a problem.
+ * Annotation metadata associated with functions (i.e. an annotated method not associated with a property).
  */
-public interface TypeValidationData extends AdditionalData {
-    String getPluginId();
-    String getPropertyName();
-    String getFunctionName();
-    String getParentPropertyName();
-    String getTypeName();
+public interface FunctionAnnotationMetadata extends HasAnnotationMetadata, Comparable<FunctionAnnotationMetadata> {
 }

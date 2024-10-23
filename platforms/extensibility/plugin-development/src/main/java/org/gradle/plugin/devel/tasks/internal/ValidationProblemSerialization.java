@@ -607,6 +607,7 @@ public class ValidationProblemSerialization {
         public static final String FEATURE_USAGE = "featureUsage";
         public static final String PLUGIN_ID = "pluginId";
         public static final String PROPERTY_NAME = "propertyName";
+        public static final String FUNCTION_NAME = "functionName";
         public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
         public static final String TYPE_NAME = "typeName";
         public static final String GENERAL_DATA_DATA = "data";
@@ -626,6 +627,7 @@ public class ValidationProblemSerialization {
                 TypeValidationData typeValidationData = (TypeValidationData) value;
                 out.name(PLUGIN_ID).value(typeValidationData.getPluginId());
                 out.name(PROPERTY_NAME).value(typeValidationData.getPropertyName());
+                out.name(FUNCTION_NAME).value(typeValidationData.getFunctionName());
                 out.name(PARENT_PROPERTY_NAME).value(typeValidationData.getParentPropertyName());
                 out.name(TYPE_NAME).value(typeValidationData.getTypeName());
             } else if (value instanceof GeneralData) {
@@ -655,6 +657,7 @@ public class ValidationProblemSerialization {
                 String featureUsage = null;
                 String pluginId = null;
                 String propertyName = null;
+                String functionName = null;
                 String parentPropertyName = null;
                 String typeName = null;
                 String name;
@@ -678,6 +681,10 @@ public class ValidationProblemSerialization {
                         }
                         case PROPERTY_NAME: {
                             propertyName = in.nextString();
+                            break;
+                        }
+                        case FUNCTION_NAME: {
+                            functionName = in.nextString();
                             break;
                         }
                         case PARENT_PROPERTY_NAME: {
@@ -713,13 +720,13 @@ public class ValidationProblemSerialization {
                 if (type == null) {
                     throw new JsonParseException("type must not be null");
                 }
-                return createAdditionalData(type, featureUsage, pluginId, propertyName, parentPropertyName, typeName, generalData, propertyTrace);
+                return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, generalData, propertyTrace);
             } finally {
                 in.endObject();
             }
         }
 
-        private static @Nonnull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+        private static @Nonnull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
@@ -727,6 +734,7 @@ public class ValidationProblemSerialization {
                     return new DefaultTypeValidationData(
                         pluginId,
                         propertyName,
+                        methodName,
                         parentPropertyName,
                         typeName
                     );
