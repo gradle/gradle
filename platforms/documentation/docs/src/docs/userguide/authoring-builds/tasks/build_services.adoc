@@ -127,7 +127,7 @@ include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Downl
 
 In this case, the plugin registers the service and receives a `Provider<WebService>` back.
 This provider can be connected to task properties to pass the service to the task.
-Note that for a task property annotated with `@Internal`, the task property needs to (1) be explicitly assigned with the provider obtained during registation, and (2) you must tell Gradle the task uses the service via link:{javadocPath}/org/gradle/api/Task.html#usesService-org.gradle.api.provider.Provider-[Task.usesService].
+Note that for a task property annotated with `@Internal`, the task property needs to (1) be explicitly assigned with the provider obtained during registation, and (2) you must tell Gradle the task uses the service via link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService].
 None of that is needed when the task property consuming the service is annotated with `@ServiceReference`.
 
 Here is an example of a task that consumes the previous service via a property annotated with `@Internal`:
@@ -172,9 +172,9 @@ When this property has no value, which is the default, Gradle does not constrain
 When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
 
 IMPORTANT: When the consuming task property is annotated with `@Internal`, for the constraint to take effect, the build service *must* be registered with the consuming task via
-link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)]. NOTE: at this time, Gradle cannot discover indirect usage of services (for instance, if an additional service is used only by a service that the task uses directly).
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService]. NOTE: at this time, Gradle cannot discover indirect usage of services (for instance, if an additional service is used only by a service that the task uses directly).
 As a workaround, indirect usage may be declared explicitly to Gradle by either adding a `@ServiceReference` property to the task and assigning the service that is only used indirectly to it (making it a direct reference),
-or invoking link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)].
+or invoking link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService].
 
 [[operation_listener]]
 == Receiving information about task execution
