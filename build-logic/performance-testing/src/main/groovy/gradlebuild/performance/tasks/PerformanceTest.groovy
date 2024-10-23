@@ -316,7 +316,7 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)
             addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks)
-            addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel)
+            addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel.get())
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
             addSystemPropertyIfExist(result, "gradleBuildBranch", branchName)
 
