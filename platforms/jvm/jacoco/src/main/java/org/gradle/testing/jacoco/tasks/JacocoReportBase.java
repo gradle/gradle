@@ -176,12 +176,7 @@ public abstract class JacocoReportBase extends JacocoBase {
         for (Task task : tasks) {
             final JacocoTaskExtension extension = task.getExtensions().findByType(JacocoTaskExtension.class);
             if (extension != null) {
-                executionData(new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return extension.getDestinationFile();
-                    }
-                });
+                executionData(extension.getDestinationFile());
                 mustRunAfter(task);
             }
         }

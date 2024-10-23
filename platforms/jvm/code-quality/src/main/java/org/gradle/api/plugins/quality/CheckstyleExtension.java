@@ -18,15 +18,16 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Configuration options for the Checkstyle plugin.
@@ -38,10 +39,6 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     private final Project project;
 
     private TextResource config;
-    private Map<String, Object> configProperties = new LinkedHashMap<>();
-    private int maxErrors;
-    private int maxWarnings = Integer.MAX_VALUE;
-    private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
     private final Property<Boolean> enableExternalDtdLoad;
 
@@ -49,6 +46,9 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
         this.project = project;
         this.configDirectory = project.getObjects().directoryProperty();
         this.enableExternalDtdLoad = project.getObjects().property(Boolean.class).convention(false);
+        getMaxErrors().convention(0);
+        getMaxWarnings().convention(Integer.MAX_VALUE);
+        getShowViolations().convention(true);
     }
 
     /**
@@ -88,17 +88,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getConfigProperties() {
-        return configProperties;
-    }
-
-    /**
-     * The properties available for use in the configuration file. These are substituted into the configuration file.
-     */
-    public void setConfigProperties(Map<String, Object> configProperties) {
-        this.configProperties = configProperties;
-    }
+    @ReplacesEagerProperty
+    public abstract MapProperty<String, Object> getConfigProperties();
 
     /**
      * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}
@@ -122,20 +113,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return the maximum number of errors allowed
      * @since 3.4
      */
-    @ToBeReplacedByLazyProperty
-    public int getMaxErrors() {
-        return maxErrors;
-    }
-
-    /**
-     * Set the maximum number of errors that are tolerated before breaking the build.
-     *
-     * @param maxErrors number of errors allowed
-     * @since 3.4
-     */
-    public void setMaxErrors(int maxErrors) {
-        this.maxErrors = maxErrors;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxErrors();
 
     /**
      * The maximum number of warnings that are tolerated before breaking the build
@@ -146,38 +125,21 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return the maximum number of warnings allowed
      * @since 3.4
      */
-    @ToBeReplacedByLazyProperty
-    public int getMaxWarnings() {
-        return maxWarnings;
-    }
-
-    /**
-     * Set the maximum number of warnings that are tolerated before breaking the build.
-     *
-     * @param maxWarnings number of warnings allowed
-     * @since 3.4
-     */
-    public void setMaxWarnings(int maxWarnings) {
-        this.maxWarnings = maxWarnings;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxWarnings();
 
     /**
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isShowViolations() {
-        return showViolations;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getShowViolations();
 
-    /**
-     * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
-     *
-     * Example: showViolations = false
-     */
-    public void setShowViolations(boolean showViolations) {
-        this.showViolations = showViolations;
+    @Deprecated
+    public Property<Boolean> getIsShowViolations() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowViolations()", "getShowViolations()");
+        return getShowViolations();
     }
 
     /**

@@ -11,10 +11,8 @@ Accessors for org.gradle.api.tasks.SourceSetOutput.resourcesDir don't use symmet
 Accessors for org.gradle.api.tasks.bundling.War.classpath don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.bundling.Zip.metadataCharset don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.compile.CompileOptions.annotationProcessorGeneratedSourcesDirectory don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.javadoc.Javadoc.destinationDir don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.javadoc.Javadoc.maxMemory don't use symmetrical @Nullable
+Accessors for org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.configuration don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.testing.Test.forkEvery don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.testing.testng.TestNGOptions.parallel don't use symmetrical @Nullable
 Accessors for org.gradle.caching.http.HttpBuildCache.url don't use symmetrical @Nullable
 Accessors for org.gradle.external.javadoc.MinimalJavadocOptions.destinationDirectory don't use symmetrical @Nullable
 Accessors for org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.inputFile don't use symmetrical @Nullable

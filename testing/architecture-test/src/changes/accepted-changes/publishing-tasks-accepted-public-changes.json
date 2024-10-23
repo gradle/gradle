@@ -1,0 +1,62 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "member": "Method org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.getFileResolver()",
+            "acceptation": "Idiomatic injection. Should be removed, but deprecated method depends on it",
+            "changes": [
+                "Method is now abstract",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getIvyPublisher()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getDuplicatePublicationTracker()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenPublishers()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getFileResolver()",
+            "acceptation": "Idiomatic injection. Should be removed, but deprecated method depends on it",
+            "changes": [
+                "Method is now abstract",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
+            "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getListenerManager()",
+            "acceptation": "The method is unused",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

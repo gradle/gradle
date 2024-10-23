@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing.logging;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Internal;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Container for all test logging related options. Different options
@@ -33,12 +33,12 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  *     testLogging {
  *         // set options for log level LIFECYCLE
  *         events "failed"
- *         exceptionFormat "short"
+ *         exceptionFormat org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
  *
  *         // set options for log level DEBUG
  *         debug {
  *             events "started", "skipped", "failed"
- *             exceptionFormat "full"
+ *             exceptionFormat org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
  *         }
  *
  *         // remove standard output/error logging from --info builds
@@ -58,7 +58,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @return logging options for debug level
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getDebug();
 
     /**
@@ -81,7 +81,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @return logging options for info level
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getInfo();
 
     /**
@@ -104,7 +104,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @return logging options for lifecycle level
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getLifecycle();
 
     /**
@@ -127,7 +127,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @return logging options for warn level
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getWarn();
 
     /**
@@ -150,7 +150,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @return logging options for quiet level
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getQuiet();
 
     /**
@@ -173,7 +173,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @return logging options for error level
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Nested property")
     TestLogging getError();
 
     /**

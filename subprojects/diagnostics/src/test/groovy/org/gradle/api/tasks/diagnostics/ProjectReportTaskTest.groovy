@@ -26,7 +26,7 @@ class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         task = TestUtil.createTask(ProjectReportTask, project)
-        task.renderer.output = output
+        task.renderer.get().output = output
     }
 
     def rendersReportForRootProjectWithChildren() {

@@ -32,13 +32,13 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.logging)
     api(projects.platformJvm)
     api(projects.jvmServices)
     api(projects.workers)
     api(projects.daemonServices)
 
-    implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
     implementation(projects.pluginsApplication) {

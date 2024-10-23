@@ -33,7 +33,7 @@ package org.gradle.api.internal.tasks.scala;
  */
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
+import org.gradle.api.internal.tasks.compile.MinimalCompilerDaemonForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
@@ -82,7 +82,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
         MinimalScalaCompileOptions compileOptions = spec.getScalaCompileOptions();
         MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
+        JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(spec.getJavaExecutable().getAbsolutePath());
 
