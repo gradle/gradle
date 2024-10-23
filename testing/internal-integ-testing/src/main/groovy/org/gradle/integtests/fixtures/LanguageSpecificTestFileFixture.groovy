@@ -134,6 +134,24 @@ trait LanguageSpecificTestFileFixture {
     }
 
     /**
+     * <b>Appends</b> provided code to the given Kotlin file.
+     * <p>
+     * Consider specialized methods for Kotlin scripts.
+     */
+    TestFile kotlinFile(String targetFile, @Language('kotlin') String append) {
+        file(targetFile) << append
+    }
+
+    /**
+     * <b>Appends</b> provided code to the given Kotlin file.
+     * <p>
+     * Consider specialized methods for Kotlin scripts.
+     */
+    TestFile kotlinFile(TestFile targetFile, @Language('kotlin') String append) {
+        targetFile << append
+    }
+
+    /**
      * <b>Appends</b> provided code to the {@link #getVersionCatalogFile() default version catalog file}.
      */
     TestFile versionCatalogFile(@Language("toml") String append) {
