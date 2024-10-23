@@ -85,6 +85,7 @@ import org.gradle.internal.serialize.codecs.core.MapEntrySnapshotCodec
 import org.gradle.internal.serialize.codecs.core.MapPropertyCodec
 import org.gradle.internal.serialize.codecs.core.NullValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.OrdinalNodeCodec
+import org.gradle.internal.serialize.codecs.core.PatternMatcherCodec
 import org.gradle.internal.serialize.codecs.core.PatternSetCodec
 import org.gradle.internal.serialize.codecs.core.PropertyCodec
 import org.gradle.internal.serialize.codecs.core.ProviderCodec
@@ -234,6 +235,8 @@ class Codecs(
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, objectFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
+
+            bind(PatternMatcherCodec)
 
             bind(TaskReferenceCodec)
 
