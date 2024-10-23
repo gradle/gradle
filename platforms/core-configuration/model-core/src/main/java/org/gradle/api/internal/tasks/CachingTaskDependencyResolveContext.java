@@ -122,9 +122,14 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             throw new IllegalArgumentException(
                 format(
                     "Cannot resolve object of unknown type %s to a Task.",
-                    node.getClass().getSimpleName()
+                    getSimpleName(node)
                 )
             );
+        }
+
+        private String getSimpleName(Object node) {
+            String simpleName = node.getClass().getSimpleName();
+            return simpleName.isEmpty() ? node.getClass().getName() : simpleName;
         }
     }
 }
