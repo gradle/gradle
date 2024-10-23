@@ -1,3 +1,7 @@
+plugins {
+    id("java")
+}
+
 repositories {
     ivy {
         url = uri(layout.projectDirectory.dir("repo"))
@@ -23,7 +27,7 @@ dependencies {
 
 // tag::reject-version-1-1[]
 configurations {
-    create("rejectConfig") {
+    implementation {
         resolutionStrategy {
             componentSelection {
                 // Accept the highest version matching the requested version that isn't '1.5'
@@ -38,14 +42,14 @@ configurations {
 }
 
 dependencies {
-    "rejectConfig"("org.sample:api:1.+")
+    implementation("org.sample:api:1.+")
 }
 // end::reject-version-1-1[]
 
 tasks.register("printRejectConfig") {
-    val rejectConfig: FileCollection = configurations["rejectConfig"]
+    val implConfig: FileCollection = configurations.getByName("runtimeClasspath")
     doLast {
-        rejectConfig.forEach { println("Resolved: ${it.name}") }
+        implConfig.forEach { println("Resolved: ${it.name}") }
     }
 }
 
