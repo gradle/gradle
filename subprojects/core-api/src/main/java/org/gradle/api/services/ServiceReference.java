@@ -16,7 +16,6 @@
 
 package org.gradle.api.services;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Optional;
 
@@ -45,7 +44,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
-@Incubating
 public @interface ServiceReference {
     /**
      * <p>The optional name of the service which the annotated element references.</p>

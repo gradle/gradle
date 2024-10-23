@@ -73,41 +73,31 @@ Note that you should *not* implement the link:{javadocPath}/org/gradle/api/servi
 A build service implementation must be thread-safe, as it will potentially be used by multiple tasks concurrently.
 
 [[using_a_build_service_from_a_task]]
-== Using a build service in a task
+== Registering a build service and connecting it to a task
 
-To use a build service from a task, you need to:
+To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] method.
 
-1. Add a property to the task of type `Property<MyServiceType>`.
-2. Annotate the property with `@Internal` or `@ServiceReference` (since 8.0).
-3. Assign a shared build service provider to the property (optional, when using `@ServiceReference(<serviceName>)`).
-4. Declare the association between the task and the service so Gradle can properly honor the build service lifecycle and its usage constraints (also optional when using `@ServiceReference`).
+Registering the service does not create the service instance.
+This happens on demand when a task first uses the service.
+The service instance will not be created if no task uses the service during a build.
 
-Note that using a service with any other annotation is currently not supported.
-For example, it is currently impossible to mark a service as an input to a task.
+Currently, build services are scoped to a build, rather than a project, and these services are available to be shared by the tasks of all projects.
+You can access the registry of shared build services via `Project.getGradle().getSharedServices()`.
 
-=== Annotating a shared build service property with `@Internal`
+[[sec:service_references]]
+=== Registering a build service to be consumed via `@ServiceReference` task properties
 
-When you annotate a shared build service property with `@Internal`, you need to do two more things:
-
-1. Explicitly assign a build service provider obtained when registering the service with link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] to the property.
-2. Explicitly declare the association between the task and the service via the link:{javadocPath}/org/gradle/api/Task.html#usesService-org.gradle.api.provider.Provider-[Task.usesService].
-
-Here is an example of a task that consumes the previous service via a property annotated with `@Internal`:
+Here is an example of a plugin that registers the previous service when the task property consuming the service is annotated with `@ServiceReference`:
 
 ====
 [source.multi-language-sample,java]
-.Download.java
+.DownloadPlugin.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
 ====
 
-[[sec:service_references]]
-=== Annotating a shared build service property with `@ServiceReference`
-
-NOTE: The `@ServiceReference` annotation is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> API and is subject to change in a future release.
-
-Otherwise, when you annotate a shared build service property with `@ServiceReference`, there is no need to declare the association between the task and the service explicitly; also, if you provide a service name to the annotation, and a shared build service is registered with that name, it will be automatically assigned to the property when the task is created.
+As you can see, there is no need to assign the build service provider returned by `registerIfAbsent()` to the task, the service is automatically injected into all matching properties that were annotated with `@ServiceReference`.
 
 Here is an example of a task that consumes the previous service via a property annotated with `@ServiceReference`:
 
@@ -119,17 +109,13 @@ include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSr
 ----
 ====
 
-== Registering a build service and connecting it to a task
+Automatic matching of registered build services with service reference properties is done by type and (optionally) by name (for properties that declare the name of the service they expect).
+In case multiple services would match the requested service type (i.e. multiple services were registered for the same type, and a service name was not provided in the `@ServiceReference` annotation),
+you will need also to assign the shared build service provider manually to the task property.
 
-To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] method.
-Registering the service does not create the service instance.
-This happens on demand when a task first uses the service.
-The service instance will not be created if no task uses the service during a build.
+Read on to compare that to when the task property consuming the service is instead annotated with `@Internal`.
 
-Currently, build services are scoped to a build, rather than a project, and these services are available to be shared by the tasks of all projects.
-You can access the registry of shared build services via `Project.getGradle().getSharedServices()`.
-
-Here is an example of a plugin that registers the previous service when the task property consuming the service is annotated with `@Internal`:
+=== Registering a build service to be consumed via `@Internal` task properties
 
 ====
 [source.multi-language-sample,java]
@@ -139,21 +125,23 @@ include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Downl
 ----
 ====
 
-The plugin registers the service and receives a `Provider<WebService>` back.
+In this case, the plugin registers the service and receives a `Provider<WebService>` back.
 This provider can be connected to task properties to pass the service to the task.
-Note that for a task property annotated with `@Internal`, the task property needs to (1) be explicitly assigned with the provider obtained during registation, and (2) you must tell Gradle the task uses the service via link:{javadocPath}/org/gradle/api/Task.html#usesService-org.gradle.api.provider.Provider-[Task.usesService].
+Note that for a task property annotated with `@Internal`, the task property needs to (1) be explicitly assigned with the provider obtained during registation, and (2) you must tell Gradle the task uses the service via link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService].
+None of that is needed when the task property consuming the service is annotated with `@ServiceReference`.
 
-Compare that to when the task property consuming the service is annotated with `@ServiceReference`:
+Here is an example of a task that consumes the previous service via a property annotated with `@Internal`:
 
 ====
 [source.multi-language-sample,java]
-.DownloadPlugin.java
+.Download.java
 ----
-include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
+include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Download.java[]
 ----
 ====
 
-As you can see, there is no need to assign the build service provider to the task, nor to declare explicitly that the task uses the service.
+Note that using a service with any annotation other than `@ServiceReference` or `@Internal` is currently not supported.
+For example, it is currently impossible to mark a service as an input to a task.
 
 === Using shared build services from configuration actions
 
@@ -184,8 +172,9 @@ When this property has no value, which is the default, Gradle does not constrain
 When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
 
 IMPORTANT: When the consuming task property is annotated with `@Internal`, for the constraint to take effect, the build service *must* be registered with the consuming task via
-link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService(Provider<? extends BuildService<?>>)].
-This is not necessary if, instead, the consuming property is annotated with `@ServiceReference`.
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService]. NOTE: at this time, Gradle cannot discover indirect usage of services (for instance, if an additional service is used only by a service that the task uses directly).
+As a workaround, indirect usage may be declared explicitly to Gradle by either adding a `@ServiceReference` property to the task and assigning the service that is only used indirectly to it (making it a direct reference),
+or invoking link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:usesService(org.gradle.api.provider.Provider)[Task.usesService].
 
 [[operation_listener]]
 == Receiving information about task execution
