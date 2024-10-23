@@ -37,7 +37,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         executionPlan = Mock(ExecutionPlan)
         parser = Mock(CommandLineTaskParser)
         selector = Mock(EntryTaskSelector)
-        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(BuildTaskSelector.BuildSpecificSelector))
+        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(BuildTaskSelector.BuildSpecificSelector), [])
     }
 
     def "empty task parameters are no-op action"() {

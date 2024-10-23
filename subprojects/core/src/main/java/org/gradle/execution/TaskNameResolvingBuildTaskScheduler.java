@@ -19,6 +19,7 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.selection.BuildTaskSelector;
@@ -28,7 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A {@link BuildTaskScheduler} which selects tasks which match the provided names. For each name, selects all tasks in all
@@ -38,10 +40,12 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildTaskScheduler.class);
     private final CommandLineTaskParser commandLineTaskParser;
     private final BuildTaskSelector.BuildSpecificSelector taskSelector;
+    private final List<BuiltInCommand> builtInCommands;
 
-    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector) {
+    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector, List<BuiltInCommand> builtInCommands) {
         this.commandLineTaskParser = commandLineTaskParser;
         this.taskSelector = taskSelector;
+        this.builtInCommands = builtInCommands;
     }
 
     @Override
@@ -62,21 +66,25 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
 
     /**
      * Validates the tasks to be run are mutually compatible.
-     * <p>
-     * Currently, this checks that {@code init} is not run along with any other tasks.
      *
      * @param plan execution plan containing requested tasks to validate
      */
     private void validateCompatibleTasksRequested(ExecutionPlan plan) {
         //noinspection ConstantValue support mocking in tests
         if (null != plan.getContents()) {
-            Set<Task> requestedTasks = plan.getContents().getRequestedTasks();
-            if (requestedTasks.size() > 1 && requestedTasks.stream().anyMatch(t -> t.getName().equals("init"))) { // TODO: Consider moving the InitBuiltInCommand (and help) to core, as they are not Software Platform-specific
-                DeprecationLogger.deprecateAction("Executing other tasks along with the 'init' task")
-                    .withAdvice("The init task should be run by itself.")
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(8, "init_must_run_alone")
-                    .nagUser();
+            List<String> requestedTaskNames = plan.getContents().getRequestedTasks().stream().map(Task::getName).collect(Collectors.toList());
+            if (requestedTaskNames.size() > 1) {
+                Optional<BuiltInCommand> exclusiveTaskInvoked = builtInCommands.stream()
+                    .filter(BuiltInCommand::isExclusive)
+                    .filter(c -> c.commandLineMatches(requestedTaskNames))
+                    .findFirst();
+                exclusiveTaskInvoked.ifPresent(builtInCommand -> {
+                    DeprecationLogger.deprecateAction("Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task")
+                        .withAdvice("The " + builtInCommand.getDisplayName() + " task should be run by itself.")
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "init_must_run_alone")
+                        .nagUser();
+                });
             }
         }
     }
